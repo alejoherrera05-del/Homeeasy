@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="HomeEasy">
-    <link rel="apple-touch-icon" href="https://i.ibb.co/kVrX85J5/logo.jpg">
+    
+    <link rel="apple-touch-icon" href="https://i.ibb.co/zH9X4r6D/Home-Easy-Icon.jpg">
+    <link rel="icon" sizes="192x192" href="https://i.ibb.co/zH9X4r6D/Home-Easy-Icon.jpg">
 
     <title>HomeEasy | Cotizador</title>
     
@@ -18,7 +22,6 @@
         
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; padding: 0; margin: 0; color: #333; }
 
-        /* Evitar números azules en iOS */
         a[href^="tel"], .empresa-info, .empresa-info span, .empresa-info p { 
             color: white !important; 
             text-decoration: none !important; 
@@ -67,7 +70,6 @@
 
         input.form-control { border: none; border-bottom: 1px solid #eee; border-radius: 0; font-size: 0.95rem; color: #333 !important; background: transparent; }
         
-        /* Clase para ocultar filas vacías en el PDF */
         .hide-row { display: none !important; }
         .is-exporting .no-print { display: none !important; }
 
@@ -140,7 +142,7 @@
                     <p class="mb-0"><strong>• Vigencia:</strong> Oferta válida por <strong>5 días calendario</strong>.</p>
                 </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-5">
                 <div class="total-section text-end">
                     <p class="mb-1 small text-muted">Subtotal (Base): <span id="sub"> $0</span></p>
                     <p class="mb-1 small text-muted">IVA (19%): <span id="iva"> $0</span></p>
@@ -201,7 +203,6 @@
         const { jsPDF } = window.jspdf;
         const element = document.getElementById('area-pdf');
         
-        // LIMPIEZA: Ocultar filas que no tengan descripción ni precio antes de la foto
         const filas = document.querySelectorAll('#tabla-body tr');
         filas.forEach(fila => {
             const desc = fila.querySelector('td:first-child input').value;
@@ -223,7 +224,6 @@
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             const nombre = document.getElementById('cliente').value || 'Cliente';
             
-            // Forzar descarga
             const blob = pdf.output('blob');
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -237,7 +237,6 @@
             alert("Error al generar el archivo.");
         } finally {
             element.classList.remove('is-exporting');
-            // Volver a mostrar las filas para que el usuario pueda seguir editando
             filas.forEach(fila => fila.classList.remove('hide-row'));
         }
     }
