@@ -4,33 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="HomeEasy">
     <link rel="apple-touch-icon" href="https://i.ibb.co/kVrX85J5/logo.jpg">
-    <link rel="icon" sizes="192x192" href="https://i.ibb.co/kVrX85J5/logo.jpg">
 
-    <title>Cotizador HomeEasy | Alejandro Herrera</title>
+    <title>HomeEasy | Cotizador</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        :root {
-            --homeeasy-wine: #a63d56; 
-            --homeeasy-gold: #d4af37; 
-            --homeeasy-silver: #f4f4f4;
-        }
+        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; padding: 0; margin: 0; color: #333; }
 
-        /* Contenedor principal */
+        /* Evitar que el iPhone ponga los números en azul */
+        a[href^="tel"] { color: inherit !important; text-decoration: none !important; }
+        .empresa-info span, .empresa-info p { color: white !important; }
+
         .cotizacion-card {
             background-color: white;
+            width: 100%;
             max-width: 800px;
             margin: auto;
-            border: 1px solid #eee;
             min-height: 100vh;
+            border: 1px solid #eee;
         }
 
         .header-brand { 
@@ -39,21 +37,9 @@
             text-align: center;
         }
 
-        .logo-only {
-            max-width: 180px;
-            height: auto;
-            display: block;
-            margin: 0 auto 20px auto;
-        }
+        .logo-only { max-width: 180px; height: auto; margin-bottom: 20px; }
 
-        .empresa-info {
-            font-size: 0.85rem;
-            font-weight: 400;
-            color: #ffffff;
-            margin-top: 10px;
-        }
-
-        .empresa-info span { margin: 0 8px; display: inline-block; }
+        .empresa-info { font-size: 0.85rem; font-weight: 400; color: white; }
         .empresa-info i { color: var(--homeeasy-gold); margin-right: 4px; }
 
         .document-type {
@@ -64,81 +50,35 @@
             font-weight: 700;
             letter-spacing: 2px;
             text-transform: uppercase;
-            font-size: 1rem;
             border-bottom: 1px solid #ddd;
         }
 
         .card-body { padding: 40px 30px; }
 
-        .section-title {
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            color: var(--homeeasy-wine);
-            margin-bottom: 12px;
-            display: block;
-        }
+        .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.85rem; color: var(--homeeasy-wine); margin-bottom: 12px; display: block; }
 
-        .table th { 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            font-size: 0.75rem; 
-            color: #333;
-            border-bottom: 2px solid var(--homeeasy-wine);
-            padding: 12px 5px;
-        }
+        .table th { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
 
-        .total-section { 
-            background-color: #fdfafb; 
-            padding: 20px; 
-            border-radius: 4px; 
-            border: 1px solid #eee;
-            border-left: 5px solid var(--homeeasy-gold);
-        }
+        .total-section { background-color: #fdfafb; padding: 20px; border-left: 5px solid var(--homeeasy-gold); border-radius: 4px; }
 
-        .total-label { font-weight: 800; color: var(--homeeasy-wine); font-size: 1.2rem; }
+        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 4px; }
 
-        .btn-homeeasy { 
-            background-color: var(--homeeasy-wine); 
-            color: white; 
-            border: none; 
-            font-weight: 700; 
-            padding: 16px 40px; 
-            text-transform: uppercase;
-            border-radius: 4px;
-            width: 100%;
-        }
-
-        .no-print-action { display: table-cell; }
+        input.form-control { border: none; border-bottom: 1px solid #eee; border-radius: 0; font-size: 0.95rem; color: #333 !important; }
         
-        input.form-control { 
-            border: none; 
-            border-bottom: 1px solid #ddd; 
-            border-radius: 0; 
-            font-size: 0.95rem;
-            background: transparent;
-        }
-        
-        input.form-control:focus { box-shadow: none; border-bottom: 2px solid var(--homeeasy-wine); }
-
-        /* Estilo para el PDF (Oculta botones) */
-        .is-exporting .no-print-action, 
-        .is-exporting .btn-outline-secondary {
-            display: none !important;
-        }
+        /* Ocultar elementos en el PDF */
+        .is-exporting .no-print { display: none !important; }
 
         @media (max-width: 600px) {
             .empresa-info span { display: block; margin: 5px 0; }
-            .card-body { padding: 20px 15px !important; }
+            .card-body { padding: 25px 15px !important; }
         }
     </style>
 </head>
 <body>
 
-<div class="cotizacion-card" id="area-pdf">
+<div id="area-pdf" class="cotizacion-card">
     <div class="header-brand">
         <img src="https://i.ibb.co/kVrX85J5/logo.jpg" alt="HomeEasy Logo" class="logo-only" crossorigin="anonymous">
-        
         <div class="empresa-info">
             <p class="fw-bold mb-2">NIT: 1.061.760.850-1</p>
             <div>
@@ -171,22 +111,22 @@
                         <th width="70" class="text-center">Cant.</th>
                         <th width="140" class="text-center">Precio Unit.</th>
                         <th width="130" class="text-end">Total</th>
-                        <th width="40" class="no-print-action"></th>
+                        <th width="40" class="no-print"></th>
                     </tr>
                 </thead>
                 <tbody id="tabla-body">
                     <tr>
                         <td><input type="text" class="form-control" placeholder="Producto/Servicio"></td>
-                        <td><input type="number" class="form-control text-center cant" value="1" oninput="calcular()"></td>
-                        <td><input type="number" class="form-control text-center precio" value="0" oninput="calcular()"></td>
+                        <td><input type="number" class="form-control text-center cant" placeholder="0" oninput="calcular()"></td>
+                        <td><input type="number" class="form-control text-center precio" placeholder="0" oninput="calcular()"></td>
                         <td class="item-total pt-3 fw-bold text-end">$0</td>
-                        <td class="no-print-action"></td>
+                        <td class="no-print"></td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <button class="btn btn-sm btn-outline-secondary no-print-action mt-2" onclick="agregarFila()">+ Añadir Ítem</button>
+        <button class="btn btn-sm btn-outline-secondary no-print mt-2" onclick="agregarFila()">+ Añadir Ítem</button>
 
         <div class="row mt-5 pt-4">
             <div class="col-md-7 mb-4">
@@ -202,12 +142,12 @@
                     <p class="mb-1 small text-muted">Subtotal (Base): <span id="sub"> $0</span></p>
                     <p class="mb-1 small text-muted">IVA (19%): <span id="iva"> $0</span></p>
                     <hr>
-                    <span class="total-label">TOTAL: <span id="total"> $0</span></span>
+                    <h5 class="fw-bold mb-0" style="color:var(--homeeasy-wine)">TOTAL: <span id="total"> $0</span></h5>
                 </div>
             </div>
         </div>
 
-        <div class="mt-5 no-print-action">
+        <div class="mt-5 no-print">
             <button class="btn btn-homeeasy shadow" onclick="generarPDF()">Descargar Cotización PDF</button>
         </div>
     </div>
@@ -223,9 +163,9 @@
         let granTotal = 0;
         document.querySelectorAll('#tabla-body tr').forEach(fila => {
             let c = parseFloat(fila.querySelector('.cant').value) || 0;
-            let pIva = parseFloat(fila.querySelector('.precio').value) || 0;
-            let totalItem = c * pIva;
-            fila.querySelector('.item-total').innerText = `$${totalItem.toLocaleString('es-CO')}`;
+            let p = parseFloat(fila.querySelector('.precio').value) || 0;
+            let totalItem = c * p;
+            fila.querySelector('.item-total').innerText = totalItem > 0 ? `$${totalItem.toLocaleString('es-CO')}` : "$0";
             granTotal += totalItem;
         });
 
@@ -240,45 +180,34 @@
     function agregarFila() {
         let tr = document.createElement('tr');
         tr.innerHTML = `<td><input type="text" class="form-control"></td>
-                        <td><input type="number" class="form-control text-center cant" value="1" oninput="calcular()"></td>
-                        <td><input type="number" class="form-control text-center precio" value="0" oninput="calcular()"></td>
+                        <td><input type="number" class="form-control text-center cant" placeholder="0" oninput="calcular()"></td>
+                        <td><input type="number" class="form-control text-center precio" placeholder="0" oninput="calcular()"></td>
                         <td class="item-total pt-3 fw-bold text-end">$0</td>
-                        <td class="no-print-action text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
+                        <td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
         document.getElementById('tabla-body').appendChild(tr);
     }
 
     async function generarPDF() {
         const { jsPDF } = window.jspdf;
         const element = document.getElementById('area-pdf');
-        
-        // Marcamos que estamos exportando para ocultar botones
         element.classList.add('is-exporting');
 
         try {
-            // Forzamos el renderizado a un ancho de escritorio para que el PDF salga perfecto
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                windowWidth: 800 // Esto soluciona el problema de móvil
-            });
-
+            const canvas = await html2canvas(element, { scale: 3, useCORS: true, windowWidth: 800 });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            const pdfWidth = 210;
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            const nombreArchivo = document.getElementById('cliente').value || 'Cliente';
-            pdf.save(`Cotizacion_HomeEasy_${nombreArchivo}.pdf`);
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Hubo un error al generar el PDF.');
+            const nombre = document.getElementById('cliente').value || 'Cliente';
+            pdf.save(`Cotizacion_HomeEasy_${nombre}.pdf`);
+        } catch (e) {
+            alert("Error al generar el archivo.");
         } finally {
             element.classList.remove('is-exporting');
         }
     }
 </script>
-
 </body>
 </html>
