@@ -18,9 +18,11 @@
         
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; padding: 0; margin: 0; color: #333; }
 
-        /* Evitar que el iPhone ponga los números en azul */
-        a[href^="tel"] { color: inherit !important; text-decoration: none !important; }
-        .empresa-info span, .empresa-info p { color: white !important; }
+        /* Evitar números azules en iOS */
+        a[href^="tel"], .empresa-info, .empresa-info span, .empresa-info p { 
+            color: white !important; 
+            text-decoration: none !important; 
+        }
 
         .cotizacion-card {
             background-color: white;
@@ -39,7 +41,7 @@
 
         .logo-only { max-width: 180px; height: auto; margin-bottom: 20px; }
 
-        .empresa-info { font-size: 0.85rem; font-weight: 400; color: white; }
+        .empresa-info { font-size: 0.85rem; font-weight: 400; color: white !important; }
         .empresa-info i { color: var(--homeeasy-gold); margin-right: 4px; }
 
         .document-type {
@@ -63,9 +65,10 @@
 
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 4px; }
 
-        input.form-control { border: none; border-bottom: 1px solid #eee; border-radius: 0; font-size: 0.95rem; color: #333 !important; }
+        input.form-control { border: none; border-bottom: 1px solid #eee; border-radius: 0; font-size: 0.95rem; color: #333 !important; background: transparent; }
         
-        /* Ocultar elementos en el PDF */
+        /* Clase para ocultar filas vacías en el PDF */
+        .hide-row { display: none !important; }
         .is-exporting .no-print { display: none !important; }
 
         @media (max-width: 600px) {
@@ -109,7 +112,7 @@
                     <tr>
                         <th>Descripción</th>
                         <th width="70" class="text-center">Cant.</th>
-                        <th width="140" class="text-center">Precio Unit.</th>
+                        <th width="160" class="text-center">Precio Unit.</th>
                         <th width="130" class="text-end">Total</th>
                         <th width="40" class="no-print"></th>
                     </tr>
@@ -118,7 +121,7 @@
                     <tr>
                         <td><input type="text" class="form-control" placeholder="Producto/Servicio"></td>
                         <td><input type="number" class="form-control text-center cant" placeholder="0" oninput="calcular()"></td>
-                        <td><input type="number" class="form-control text-center precio" placeholder="0" oninput="calcular()"></td>
+                        <td><input type="text" class="form-control text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcular()"></td>
                         <td class="item-total pt-3 fw-bold text-end">$0</td>
                         <td class="no-print"></td>
                     </tr>
@@ -134,7 +137,7 @@
                 <div class="text-muted small">
                     <p class="mb-1"><strong>• Instalación:</strong> 100% GRATIS incluida.</p>
                     <p class="mb-1"><strong>• Pago:</strong> Abono del <strong>50%</strong> para producción.</p>
-                    <p class="mb-0"><strong>• Vigencia:</strong> 15 días calendario.</p>
+                    <p class="mb-0"><strong>• Vigencia:</strong> Oferta válida por <strong>5 días calendario</strong>.</p>
                 </div>
             </div>
             <div class="col-md-5">
@@ -159,19 +162,26 @@
 <script>
     document.getElementById('fecha').valueAsDate = new Date();
 
+    function formatearMoneda(input) {
+        let valor = input.value.replace(/\D/g, "");
+        if (valor === "") { input.value = ""; return; }
+        input.value = new Intl.NumberFormat('es-CO', {
+            style: 'currency', currency: 'COP', minimumFractionDigits: 0
+        }).format(valor);
+    }
+
     function calcular() {
         let granTotal = 0;
         document.querySelectorAll('#tabla-body tr').forEach(fila => {
             let c = parseFloat(fila.querySelector('.cant').value) || 0;
-            let p = parseFloat(fila.querySelector('.precio').value) || 0;
+            let pStr = fila.querySelector('.precio').value.replace(/\D/g, "");
+            let p = parseFloat(pStr) || 0;
             let totalItem = c * p;
             fila.querySelector('.item-total').innerText = totalItem > 0 ? `$${totalItem.toLocaleString('es-CO')}` : "$0";
             granTotal += totalItem;
         });
-
         let base = granTotal / 1.19;
         let impuesto = granTotal - base;
-
         document.getElementById('sub').innerText = `$${Math.round(base).toLocaleString('es-CO')}`;
         document.getElementById('iva').innerText = `$${Math.round(impuesto).toLocaleString('es-CO')}`;
         document.getElementById('total').innerText = `$${granTotal.toLocaleString('es-CO')}`;
@@ -181,7 +191,7 @@
         let tr = document.createElement('tr');
         tr.innerHTML = `<td><input type="text" class="form-control"></td>
                         <td><input type="number" class="form-control text-center cant" placeholder="0" oninput="calcular()"></td>
-                        <td><input type="number" class="form-control text-center precio" placeholder="0" oninput="calcular()"></td>
+                        <td><input type="text" class="form-control text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcular()"></td>
                         <td class="item-total pt-3 fw-bold text-end">$0</td>
                         <td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
         document.getElementById('tabla-body').appendChild(tr);
@@ -190,6 +200,17 @@
     async function generarPDF() {
         const { jsPDF } = window.jspdf;
         const element = document.getElementById('area-pdf');
+        
+        // LIMPIEZA: Ocultar filas que no tengan descripción ni precio antes de la foto
+        const filas = document.querySelectorAll('#tabla-body tr');
+        filas.forEach(fila => {
+            const desc = fila.querySelector('td:first-child input').value;
+            const precio = fila.querySelector('.precio').value;
+            if (!desc && !precio) {
+                fila.classList.add('hide-row');
+            }
+        });
+
         element.classList.add('is-exporting');
 
         try {
@@ -201,11 +222,23 @@
 
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             const nombre = document.getElementById('cliente').value || 'Cliente';
-            pdf.save(`Cotizacion_HomeEasy_${nombre}.pdf`);
+            
+            // Forzar descarga
+            const blob = pdf.output('blob');
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Cotizacion_HomeEasy_${nombre}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
         } catch (e) {
             alert("Error al generar el archivo.");
         } finally {
             element.classList.remove('is-exporting');
+            // Volver a mostrar las filas para que el usuario pueda seguir editando
+            filas.forEach(fila => fila.classList.remove('hide-row'));
         }
     }
 </script>
