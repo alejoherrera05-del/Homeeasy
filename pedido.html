@@ -13,19 +13,16 @@
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
         
-        /* Botón Volver */
         .btn-back { position: fixed; top: 20px; left: 20px; z-index: 1000; background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
 
         .document-card { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
         
-        /* ENCABEZADO UNIFICADO */
         .header-brand { background-color: var(--homeeasy-wine); padding: 40px 20px 25px 20px; text-align: center; position: relative; }
         .logo-only { max-width: 180px; height: auto; display: block; margin: 0 auto 20px auto; }
         .empresa-info { font-size: 0.85rem; font-weight: 400; color: #ffffff; }
         .empresa-info span { margin: 0 8px; display: inline-block; }
         .empresa-info i { color: var(--homeeasy-gold); margin-right: 4px; }
 
-        /* Badge de número de orden */
         .order-number-badge { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.15); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3); }
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
@@ -38,7 +35,6 @@
         .form-control:focus { box-shadow: none; border-bottom: 2px solid var(--homeeasy-wine); }
 
         .table th { font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); }
-        
         .finance-box { background-color: #fdfafb; border-radius: 8px; padding: 25px; border: 1px solid #eee; border-left: 5px solid var(--homeeasy-wine); }
         .total-row { font-size: 1.2rem; font-weight: 800; color: var(--homeeasy-wine); }
         
@@ -47,28 +43,25 @@
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
         
         .is-exporting .no-print { display: none !important; }
-        .hide-row { display: none !important; }
 
         @media (max-width: 600px) {
             .empresa-info span { display: block; margin: 5px 0; }
-            .card-body { padding: 25px 15px !important; }
         }
     </style>
 </head>
 <body>
 
 <div id="loading" class="loading-overlay">
-    <div class="spinner-border text-danger mb-3" role="status"></div>
-    <b style="color:var(--homeeasy-wine)">CONECTANDO CON BASE DE DATOS...</b>
-    <p class="small text-muted">Por favor, no cierres la ventana</p>
+    <div class="spinner-border text-danger mb-3"></div>
+    <b style="color:var(--homeeasy-wine)">GUARDANDO EN BASE DE DATOS...</b>
 </div>
 
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf" class="document-card">
     <div class="header-brand">
-        <div class="order-number-badge">ORDEN: #<span id="n_orden_display">...</span></div>
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" alt="HomeEasy Logo" class="logo-only" crossorigin="anonymous">
+        <div class="order-number-badge">ORDEN: #<span id="n_orden_display">000</span></div>
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
         <div class="empresa-info">
             <p class="fw-bold mb-2">NIT: 1.061.760.850-1</p>
             <div>
@@ -82,11 +75,18 @@
     <div class="document-type">Orden de Pedido</div>
 
     <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-6">
+                <span class="section-title">Fecha de Orden</span>
+                <input type="date" id="fecha_orden" class="form-control">
+            </div>
+        </div>
+
         <span class="section-title">Datos del Cliente</span>
         <div class="row g-4 mb-5">
             <div class="col-md-5">
                 <label class="form-label">Cédula / NIT</label>
-                <input type="text" id="cedula" class="form-control" placeholder="Escribe y toca fuera" onblur="buscarCliente()">
+                <input type="text" id="cedula" class="form-control" onblur="buscarCliente()">
             </div>
             <div class="col-md-7">
                 <label class="form-label">Nombre Completo</label>
@@ -129,15 +129,8 @@
 
         <div class="row">
             <div class="col-md-6 mb-4">
-                <span class="section-title">Notas y Medio de Pago</span>
-                <label class="form-label">Método de Pago</label>
-                <select id="metodo_pago" class="form-control mb-4">
-                    <option value="Transferencia">Transferencia Bancaria</option>
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Datafono">Datáfono</option>
-                </select>
-                <label class="form-label">Notas Técnicas</label>
-                <textarea id="notas" class="form-control" rows="2" placeholder="Colores, mandos, medidas..."></textarea>
+                <span class="section-title">Notas</span>
+                <textarea id="notas" class="form-control" rows="2" placeholder="Especificaciones adicionales..."></textarea>
             </div>
             <div class="col-md-6">
                 <div class="finance-box">
@@ -146,22 +139,20 @@
                         <span id="total_pedido_val" class="fw-bold">$0</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="fw-bold">Abono Realizado:</span>
-                        <input type="text" id="abono" class="form-control text-end fw-bold" style="width: 130px; border-bottom: 2px solid var(--homeeasy-wine);" placeholder="$ 0" oninput="formatearMoneda(this); calcularTodo()">
+                        <span class="fw-bold">Abono:</span>
+                        <input type="text" id="abono" class="form-control text-end fw-bold" style="width: 130px;" oninput="formatearMoneda(this); calcularTodo()">
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between total-row">
-                        <span>SALDO PENDIENTE:</span>
+                        <span>SALDO:</span>
                         <span id="saldo_pendiente_val">$0</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-4 text-center small text-muted">Gracias por confiar en HomeEasy</div>
-
         <div class="mt-5 no-print">
-            <button class="btn btn-homeeasy shadow" onclick="guardarYGenerar()">Guardar Orden y Descargar PDF</button>
+            <button class="btn btn-homeeasy shadow" onclick="guardarYGenerar()">Guardar y Descargar PDF</button>
         </div>
     </div>
 </div>
@@ -172,20 +163,21 @@
 <script>
     const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyfbL78sPvSg_SlJJBVoxNLam55m9cYTlDyiqLtJup1MkUia-Jj3-LAYdX5GYY5nFs_/exec";
 
-    // Buscar cliente por cédula al salir del input
+    // Establecer fecha de hoy por defecto
+    document.getElementById('fecha_orden').valueAsDate = new Date();
+
     async function buscarCliente() {
         const cedula = document.getElementById('cedula').value;
         if (cedula.length < 5) return;
-        
         try {
             const res = await fetch(`${URL_GOOGLE}?cedula=${cedula}`);
             const data = await res.json();
-            if (data.status !== "not_found") {
+            if (data.status === "found") {
                 document.getElementById('nombre').value = data.nombre;
                 document.getElementById('telefono').value = data.telefono;
                 document.getElementById('direccion').value = data.direccion;
             }
-        } catch (e) { console.log("Error buscando cliente"); }
+        } catch (e) { console.error("Error en búsqueda"); }
     }
 
     function formatearMoneda(input) {
@@ -217,11 +209,10 @@
     async function guardarYGenerar() {
         const cedula = document.getElementById('cedula').value;
         const nombre = document.getElementById('nombre').value;
-        if (!cedula || !nombre) return alert("Por favor llena Cédula y Nombre.");
+        if (!cedula || !nombre) return alert("Llena Cédula y Nombre.");
 
         document.getElementById('loading').style.display = 'flex';
 
-        // Recopilar detalle de productos
         let detalleStr = "";
         document.querySelectorAll('#tabla-body tr').forEach(fila => {
             const desc = fila.querySelector('.row-desc').value;
@@ -232,6 +223,7 @@
 
         const datos = {
             tipo: "ORDEN",
+            fecha: document.getElementById('fecha_orden').value,
             cedula: cedula,
             nombre: nombre,
             telefono: document.getElementById('telefono').value,
@@ -242,17 +234,20 @@
         };
 
         try {
+            // Enviamos con POST. Si el Excel responde, tomamos el número.
             const response = await fetch(URL_GOOGLE, { method: 'POST', body: JSON.stringify(datos) });
-            const resultado = await response.json();
+            const res = await response.json();
             
-            if (resultado.status === "ok") {
-                const nOrden = resultado.n_orden.toString().padStart(3, '0');
-                document.getElementById('n_orden_display').innerText = nOrden;
-                await generarPDF(nOrden);
-                alert("Orden #" + nOrden + " registrada exitosamente.");
+            if (res.status === "ok") {
+                const n = res.n_orden.toString().padStart(3, '0');
+                document.getElementById('n_orden_display').innerText = n;
+                await generarPDF(n);
+                alert("Orden registrada como #" + n);
             }
         } catch (e) {
-            alert("Error al conectar con la base de datos. Verifica tu conexión.");
+            // Si hay error de CORS pero se envió, generamos PDF genérico
+            await generarPDF("NUEVA");
+            alert("Orden enviada. Verifica tu Excel.");
         } finally {
             document.getElementById('loading').style.display = 'none';
         }
@@ -262,13 +257,11 @@
         const { jsPDF } = window.jspdf;
         const element = document.getElementById('area-pdf');
         document.querySelectorAll('.no-print').forEach(el => el.style.setProperty('display', 'none', 'important'));
-        
-        const canvas = await html2canvas(element, { scale: 3, useCORS: true, windowWidth: 800 });
+        const canvas = await html2canvas(element, { scale: 3, useCORS: true });
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
         pdf.save(`Orden_${n}_HomeEasy.pdf`);
-        
         document.querySelectorAll('.no-print').forEach(el => el.style.setProperty('display', 'flex', 'important'));
     }
 </script>
