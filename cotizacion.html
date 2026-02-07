@@ -11,26 +11,40 @@
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
         .text-uppercase-input { text-transform: uppercase; }
+        
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
+
+        /* CONTENEDOR FIJO PARA PDF MÓVIL */
         #area-pdf { background-color: white; width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
+        
         @media (max-width: 800px) { body { overflow-x: auto; } }
+
+        /* ENCABEZADO COMPLETO PROFESIONAL */
         .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
         .logo-only { max-width: 140px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
         .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
+
         .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 30px; z-index: 10; }
         .meta-item { font-size: 0.75rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
+
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
+        
         .card-body { padding: 30px 45px; }
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
+        
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
         .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
+
         .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
         .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
+        
         .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
+        
         .condiciones-texto { background: #fff; border: 1px solid #eee; padding: 15px; font-size: 0.72rem; color: #555; line-height: 1.5; border-radius: 8px; }
+
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
         .no-print { display: flex; }
         .hide-row { display: none !important; }
@@ -38,7 +52,7 @@
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">SINCRONIZANDO DATOS...</b></div>
+<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">SINCRONIZANDO CLIENTE...</b></div>
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf">
@@ -69,13 +83,13 @@
             <div class="col-12"><label class="form-label-small">Dirección de Obra</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
 
-        <span class="section-title">Propuesta Comercial</span>
+        <span class="section-title">Propuesta de Productos</span>
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead><tr><th>Descripción</th><th width="65" class="text-center">Cant.</th><th width="150" class="text-center">V. Unit</th><th width="120" class="text-end">Total</th><th width="35" class="no-print"></th></tr></thead>
                 <tbody id="tabla-body">
                     <tr>
-                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance Blanca"></td>
+                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance"></td>
                         <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
                         <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" oninput="formatear(this); calcular()"></td>
                         <td class="item-total fw-bold text-end">$0</td>
@@ -88,7 +102,7 @@
 
         <div class="row g-4">
             <div class="col-md-7">
-                <span class="section-title">Condiciones de Venta</span>
+                <span class="section-title">Condiciones Comerciales</span>
                 <div class="condiciones-texto">
                     • <b>Vigencia:</b> Esta cotización es válida por 15 días calendario.<br>
                     • <b>Forma de Pago:</b> Para iniciar producción se requiere un anticipo del <b>50%</b>. El saldo restante debe cancelarse al momento de la entrega/instalación.<br>
@@ -110,7 +124,7 @@
         </div>
 
         <div class="mt-5 text-center fw-bold" style="color:#bbb; font-size: 0.7rem; letter-spacing: 1.5px;">HOMEEASY - EXPERTOS EN PERSIANAS Y DECORACIÓN</div>
-        <button class="btn btn-homeeasy no-print shadow" onclick="finalizarCotizacion()">Sincronizar y Descargar PDF</button>
+        <button class="btn btn-homeeasy no-print shadow" onclick="finalizarCotizacion()">Sincronizar y Generar PDF</button>
     </div>
 </div>
 
@@ -159,48 +173,37 @@
     async function finalizarCotizacion() {
         const nomInput = document.getElementById('nombre');
         const nomValue = nomInput.value.trim().toUpperCase();
-        const ced = document.getElementById('cedula').value;
+        const cedValue = document.getElementById('cedula').value.trim();
 
-        if(!nomValue || !ced) return alert("Nombre y Cédula son necesarios para el registro.");
+        if(!nomValue || !cedValue) return alert("Nombre y Cédula son necesarios.");
 
         document.getElementById('loading').style.display = 'flex';
         
-        // Forzamos mayúsculas visuales antes de la captura
-        nomInput.value = nomValue;
-        document.getElementById('direccion').value = document.getElementById('direccion').value.toUpperCase();
-
-        const datosCliente = {
-            tipo: "ORDEN", 
-            solo_cliente: true,
-            cedula: ced,
+        // Sincronización silenciosa con el Excel (Solo Clientes)
+        const datosSync = {
+            tipo: "COTIZACION",
+            cedula: cedValue,
             nombre: nomValue,
             telefono: document.getElementById('telefono').value,
             email: document.getElementById('email').value.toLowerCase(),
-            direccion: document.getElementById('direccion').value.toUpperCase(),
-            fecha: new Date().toISOString().split('T')[0],
-            detalle: "REGISTRO DESDE COTIZACION",
-            total: 0,
-            abono: 0
+            direccion: document.getElementById('direccion').value.toUpperCase()
         };
 
         try {
-            await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosCliente) });
+            await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosSync) });
             
-            // LÓGICA DE LIMPIEZA PARA PDF
+            // PREPARACIÓN PARA PDF
             document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
             
-            // Ocultar filas vacías (la "línea fantasma")
+            // Ocultar la "línea fantasma" (filas sin descripción y en $0)
             document.querySelectorAll('#tabla-body tr').forEach(f => {
                 const desc = f.querySelector('.row-desc').value.trim();
                 const totalText = f.querySelector('.item-total').innerText;
-                if(!desc && totalText === "$0") {
-                    f.classList.add('hide-row');
-                }
+                if(!desc && totalText === "$0") f.classList.add('hide-row');
             });
 
-            // Quitar placeholders
-            const inputs = document.querySelectorAll('input, textarea');
-            inputs.forEach(i => i.dataset.placeholderBackup = i.placeholder, i.placeholder = "");
+            // Forzar nombre en mayúsculas para la foto del PDF
+            nomInput.value = nomValue;
 
             const canvas = await html2canvas(document.getElementById('area-pdf'), { scale: 2, useCORS: true, width: 800, windowWidth: 800 });
             const img = canvas.toDataURL('image/png');
@@ -209,12 +212,12 @@
             pdf.save(`Cotizacion_HomeEasy_${nomValue}.pdf`);
 
         } catch(e) {
-            alert("Error al procesar el documento.");
+            alert("Sincronización fallida, pero el PDF fue generado.");
         } finally {
             document.getElementById('loading').style.display = 'none';
             document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
             document.querySelectorAll('.hide-row').forEach(f => f.classList.remove('hide-row'));
-            location.reload(); // Recargamos para limpiar todo
+            location.reload();
         }
     }
 </script>
