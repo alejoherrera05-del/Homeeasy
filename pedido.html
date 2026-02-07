@@ -10,11 +10,19 @@
     <style>
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
+        
+        /* Clase para Mayúsculas Forzadas */
+        .text-uppercase-input { text-transform: uppercase; }
+
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
         
-        .document-card { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
+        /* Contenedor Fijo para evitar recorte en PDF */
+        #area-pdf { background-color: white; width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
         
-        /* ENCABEZADO COMPLETO Y COMPACTO */
+        @media (max-width: 800px) {
+            body { overflow-x: auto; }
+        }
+
         .header-brand { background-color: var(--homeeasy-wine); padding: 20px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
         .logo-only { max-width: 140px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
@@ -30,30 +38,23 @@
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
         
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
-        .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
+        .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; }
         .form-control-compact:focus { box-shadow: none; border-bottom-color: var(--homeeasy-wine); outline: none; }
 
         .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
         .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
         
-        .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; letter-spacing: 1px; }
+        .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
+        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .is-exporting .no-print { display: none !important; }
+        .no-print { display: flex; }
         .hide-row { display: none !important; }
-
-        @media (max-width: 600px) {
-            .header-brand { flex-direction: column; text-align: center; gap: 15px; }
-            .empresa-info-header { text-align: center; }
-            .order-meta { width: 90%; justify-content: center; gap: 15px; }
-            .card-body { padding: 35px 20px; }
-        }
     </style>
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">SINCRONIZANDO CON BASE DE DATOS...</b></div>
+<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">ACTUALIZANDO EXCEL...</b></div>
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf" class="document-card">
@@ -76,17 +77,17 @@
     
     <div class="card-body">
         <div class="no-print mb-4" style="background: #fdfafb; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
-            <label class="form-label-small">Establecer Fecha de Orden:</label>
+            <label class="form-label-small">Fecha de Orden:</label>
             <input type="date" id="fecha_orden" class="form-control-compact" onchange="actualizarFecha()">
         </div>
 
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" class="form-control-compact" placeholder="000.000.000" onblur="buscarCliente()"></div>
-            <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact" placeholder="Nombre o Razón Social"></div>
-            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" class="form-control-compact" placeholder="3XX XXX XXXX"></div>
-            <div class="col-6"><label class="form-label-small">Email (Facturación)</label><input type="email" id="email" class="form-control-compact" placeholder="ejemplo@correo.com"></div>
-            <div class="col-12"><label class="form-label-small">Dirección de Entrega / Instalación</label><input type="text" id="direccion" class="form-control-compact" placeholder="Dirección detallada"></div>
+            <div class="col-4"><label class="form-label-small">Cédula</label><input type="text" id="cedula" class="form-control-compact" onblur="buscarCliente()"></div>
+            <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
+            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" class="form-control-compact"></div>
+            <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
+            <div class="col-12"><label class="form-label-small">Dirección</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
 
         <span class="section-title">Detalle de Fabricación</span>
@@ -95,38 +96,37 @@
                 <thead><tr><th>Descripción</th><th width="65" class="text-center">Cant.</th><th width="150" class="text-center">V. Unit</th><th width="120" class="text-end">Total</th><th width="35" class="no-print"></th></tr></thead>
                 <tbody id="tabla-body">
                     <tr>
-                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance Gris"></td>
+                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer elegance gris"></td>
                         <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
                         <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" oninput="formatear(this); calcular()"></td>
-                        <td class="item-total fw-bold text-end" style="font-size: 0.9rem;">$0</td>
+                        <td class="item-total fw-bold text-end">$0</td>
                         <td class="no-print"></td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <button class="btn btn-sm btn-outline-secondary no-print mb-4" onclick="agregarFila()" style="font-size: 0.7rem; font-weight: 700;">+ AÑADIR PRODUCTO</button>
+        <button class="btn btn-sm btn-outline-secondary no-print mb-4" onclick="agregarFila()">+ AÑADIR PRODUCTO</button>
 
         <div class="row g-4">
             <div class="col-md-7">
-                <span class="section-title">Observaciones Técnicas</span>
-                <textarea id="notas" class="form-control" rows="3" style="font-size:0.82rem; border: 1px solid #eee; background: #fafafa;" placeholder="Colores, medidas exactas, lado del mando, etc."></textarea>
+                <span class="section-title">Observaciones</span>
+                <textarea id="notas" class="form-control text-uppercase-input" rows="3" style="font-size:0.82rem; border: 1px solid #eee;" placeholder="Notas..."></textarea>
             </div>
             <div class="col-md-5">
                 <div class="finance-box text-end">
                     <p class="mb-1 small text-muted">Base: <span id="sub_val">$0</span></p>
                     <p class="mb-1 small text-muted">IVA (19%): <span id="iva_val">$0</span></p>
-                    <p class="mb-2 fw-bold" style="font-size: 0.95rem;">TOTAL: <span id="total_pedido_val">$0</span></p>
+                    <p class="mb-2 fw-bold">TOTAL: <span id="total_pedido_val">$0</span></p>
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-bold small">ABONO:</span>
-                        <input type="text" id="abono" class="form-control-compact text-end fw-bold" style="width:110px; border-bottom:2px solid var(--homeeasy-wine)" placeholder="$ 0" oninput="formatear(this); calcular()">
+                        <input type="text" id="abono" class="form-control-compact text-end fw-bold" style="width:110px; border-bottom:2px solid var(--homeeasy-wine)" oninput="formatear(this); calcular()">
                     </div>
                     <hr class="my-2">
                     <p class="h5 fw-bold mb-0" style="color:var(--homeeasy-wine)">SALDO: <span id="saldo_pendiente_val">$0</span></p>
                 </div>
             </div>
         </div>
-        <div class="mt-5 text-center fw-bold" style="color:#bbb; font-size: 0.72rem; letter-spacing: 1.5px;">GRACIAS POR CONFIAR EN HOMEEASY</div>
-        <button class="btn btn-homeeasy no-print shadow" onclick="finalizar()">Sincronizar y Generar Orden</button>
+        <button class="btn btn-homeeasy no-print shadow" onclick="finalizar()">Finalizar y Sincronizar</button>
     </div>
 </div>
 
@@ -181,14 +181,16 @@
     }
 
     async function finalizar() {
-        const nom = document.getElementById('nombre').value;
+        const nom = document.getElementById('nombre').value.toUpperCase();
         const ced = document.getElementById('cedula').value;
-        if(!ced || !nom) return alert("Cédula y Nombre son obligatorios");
+        const dir = document.getElementById('direccion').value.toUpperCase();
+
+        if(!ced || !nom) return alert("Datos requeridos");
 
         document.getElementById('loading').style.display = 'flex';
         let det = ""; 
         document.querySelectorAll('#tabla-body tr').forEach(f => {
-            let d = f.querySelector('.row-desc').value;
+            let d = f.querySelector('.row-desc').value; // AQUÍ NO FORZAMOS MAYÚSCULAS
             if(d) det += `${f.querySelector('.cant').value}x ${d} | `; else f.classList.add('hide-row');
         });
 
@@ -198,9 +200,9 @@
             cedula: ced,
             nombre: nom,
             telefono: document.getElementById('telefono').value,
-            email: document.getElementById('email').value,
-            direccion: document.getElementById('direccion').value,
-            detalle: det + " Obs: " + document.getElementById('notas').value,
+            email: document.getElementById('email').value.toLowerCase(),
+            direccion: dir,
+            detalle: det + " OBS: " + document.getElementById('notas').value.toUpperCase(),
             total: parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")),
             abono: parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0
         };
@@ -209,14 +211,13 @@
             const res = await fetch(URL_G, { method: 'POST', body: JSON.stringify(datos) });
             const json = await res.json();
             if(json.status === "ok") {
-                document.getElementById('n_orden_display').innerText = json.n_orden.toString().padStart(3, '0');
-                await generarPDF(json.n_orden);
-                alert("Éxito: Sincronizado y PDF generado.");
+                const n = json.n_orden.toString().padStart(3, '0');
+                document.getElementById('n_orden_display').innerText = n;
+                await generarPDF(n);
+                alert("Sincronizado con éxito.");
             }
-        } catch(e) { 
-            await generarPDF("NUEVA"); 
-            alert("Sincronización fallida (CORS/Red), pero PDF generado localmente."); 
-        } finally { 
+        } catch(e) { await generarPDF("NUEVA"); }
+        finally { 
             document.getElementById('loading').style.display = 'none'; 
             document.querySelectorAll('.hide-row').forEach(f => f.classList.remove('hide-row')); 
         }
@@ -224,15 +225,19 @@
 
     async function generarPDF(n) {
         const { jsPDF } = window.jspdf;
+        const element = document.getElementById('area-pdf');
         document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
-        const canvas = await html2canvas(document.getElementById('area-pdf'), { scale: 3, useCORS: true });
+
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true, width: 800, windowWidth: 800 });
         const img = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
-        pdf.addImage(img, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        pdf.addImage(img, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(`Orden_${n}_HomeEasy.pdf`);
         document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
     }
 </script>
 </body>
 </html>
-
