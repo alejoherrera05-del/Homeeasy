@@ -4,195 +4,189 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HomeEasy | Recibo de Abono</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
-        
-        .btn-back { position: fixed; top: 20px; left: 20px; z-index: 1000; background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
-
-        .document-card { background-color: white; width: 100%; max-width: 500px; margin: 40px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #eee; }
-        
-        .header-brand { 
-            background-color: var(--homeeasy-wine); 
-            padding: 35px 20px 25px 20px; 
-            text-align: center;
-        }
-        .logo-receipt { max-width: 150px; height: auto; display: block; margin: 0 auto 15px auto; }
-        .empresa-info { font-size: 0.75rem; font-weight: 400; color: #ffffff; }
-        .empresa-info span { margin: 0 8px; display: inline-block; }
-        .empresa-info i { color: var(--homeeasy-gold); margin-right: 4px; }
-
-        .receipt-body { padding: 35px 30px; }
-        .receipt-title { 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            color: var(--homeeasy-wine); 
-            text-align: center; 
-            margin-bottom: 25px; 
-            background: var(--homeeasy-silver);
-            padding: 12px;
-            border-radius: 5px;
-            letter-spacing: 1px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .info-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px dashed #eee; padding-bottom: 8px; }
-        .info-label { font-size: 0.7rem; font-weight: 800; color: #999; text-transform: uppercase; }
-        
-        .input-ghost { border: none; border-bottom: 1px solid #ddd; width: 100%; font-weight: 600; text-align: right; background: transparent; color: #333; font-size: 0.95rem; }
-        .input-ghost:focus { outline: none; border-bottom-color: var(--homeeasy-wine); }
-
-        /* AJUSTE DE MARCO DEFINITIVO */
-        .amount-box { 
-            background: #fffafb; 
-            padding: 40px 20px; 
-            border-radius: 12px; 
-            text-align: center; 
-            margin: 30px 0; 
-            border: 2px solid var(--homeeasy-wine); 
-            position: relative;
-        }
-        .amount-label { font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; margin-bottom: 10px; display: block; }
-        
-        /* El input se ve en la web */
-        .amount-val-input { 
-            font-size: 2.2rem; 
-            font-weight: 800; 
-            color: var(--homeeasy-wine); 
-            border: none; 
-            width: 100%; 
-            text-align: center; 
-            background: transparent;
-        }
-
-        /* El texto espejo se ve solo en el PDF */
-        #valor-espejo {
-            display: none;
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: var(--homeeasy-wine);
-            width: 100%;
-            text-align: center;
-        }
-        
-        .footer-receipt { text-align: center; padding: 20px; background: #fafafa; font-size: 0.85rem; color: #777; border-top: 1px solid #eee; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-
-        .btn-download { background: var(--homeeasy-wine); color: white; border: none; width: 100%; padding: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* Reglas de impresión/exportación */
-        .is-exporting .no-print, .is-exporting .amount-val-input { display: none !important; }
-        .is-exporting #valor-espejo { display: block !important; }
-
-        @media (max-width: 600px) {
-            .empresa-info span { display: block; margin: 5px 0; }
-        }
+        .text-uppercase-input { text-transform: uppercase; }
+        .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
+        #area-pdf { background-color: white; width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
+        .header-brand { background-color: var(--homeeasy-wine); padding: 20px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
+        .logo-only { max-width: 140px; height: auto; }
+        .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
+        .empresa-info-header b { color: var(--homeeasy-gold); }
+        .empresa-info-header i { color: var(--homeeasy-gold); margin-right: 2px; }
+        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 25px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
+        .card-body { padding: 30px 45px; }
+        .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
+        .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
+        .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; }
+        .info-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); margin-bottom: 25px; }
+        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
+        .no-print { display: flex; }
     </style>
 </head>
 <body>
 
+<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">ACTUALIZANDO SALDOS EN EXCEL...</b></div>
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf" class="document-card">
     <div class="header-brand">
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" alt="HomeEasy Logo" class="logo-receipt" crossorigin="anonymous">
-        <div class="empresa-info">
-            <p class="fw-bold mb-2">NIT: 1.061.760.850-1</p>
-            <div>
-                <span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26 (Popayán)</span>
-                <span><i class="fas fa-mobile-alt"></i> 3334319374</span>
-                <span><i class="fab fa-instagram"></i> @Homeeasypopayan</span>
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
+        <div class="empresa-info-header">
+            <b>HOMEEASY POPAYÁN</b><br>
+            <span>NIT: 1.061.760.850-1</span><br>
+            <span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26</span><br>
+            <span><i class="fas fa-phone-alt"></i> 3334319374</span>
+        </div>
+    </div>
+    
+    <div class="document-type">Recibo de Abono</div>
+    
+    <div class="card-body">
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <label class="form-label-small">Número de Orden</label>
+                <div class="d-flex">
+                    <input type="number" id="n_orden" class="form-control-compact fw-bold" placeholder="Ej: 1">
+                    <button class="btn btn-sm btn-dark no-print ms-2" onclick="buscarOrden()">VERIFICAR</button>
+                </div>
+            </div>
+            <div class="col-6 text-end">
+                <label class="form-label-small">Fecha de Abono</label>
+                <p id="fecha_actual" class="fw-bold"></p>
             </div>
         </div>
+
+        <div id="datos_orden" style="display: none;">
+            <span class="section-title">Resumen de Cuenta</span>
+            <div class="info-box">
+                <div class="row">
+                    <div class="col-7">
+                        <p class="mb-1 small text-muted">CLIENTE:</p>
+                        <p id="resumen_cliente" class="fw-bold text-uppercase-input mb-3"></p>
+                    </div>
+                    <div class="col-5 text-end">
+                        <p class="mb-1 small text-muted">TOTAL ORDEN:</p>
+                        <p id="resumen_total" class="fw-bold mb-3"></p>
+                    </div>
+                    <hr>
+                    <div class="col-12 text-end">
+                        <p class="h5 fw-bold" style="color:var(--homeeasy-wine)">SALDO ACTUAL: <span id="resumen_saldo"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <span class="section-title">Detalle del Nuevo Abono</span>
+            <div class="row g-4">
+                <div class="col-6">
+                    <label class="form-label-small">Valor del Abono</label>
+                    <input type="text" id="valor_abono" class="form-control-compact fw-bold" style="font-size: 1.2rem; border-bottom: 2px solid var(--homeeasy-gold);" placeholder="$ 0" oninput="formatear(this); calcularNuevoSaldo()">
+                </div>
+                <div class="col-6">
+                    <label class="form-label-small">Medio de Pago</label>
+                    <select id="medio_pago" class="form-control-compact">
+                        <option value="Transferencia">TRANSFERENCIA</option>
+                        <option value="Efectivo">EFECTIVO</option>
+                        <option value="Datafono">DATÁFONO</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label-small">Concepto / Notas</label>
+                    <input type="text" id="concepto" class="form-control-compact text-uppercase-input" placeholder="Ej: SEGUNDO ABONO PERSIANAS">
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 text-center" style="background: #f8f9fa; border-radius: 8px;">
+                <p class="mb-0 fw-bold">NUEVO SALDO PENDIENTE: <span id="nuevo_saldo_text" style="color:var(--homeeasy-wine)">$0</span></p>
+            </div>
+
+            <button class="btn btn-homeeasy no-print shadow" onclick="finalizarAbono()">Registrar Abono y Descargar Recibo</button>
+        </div>
     </div>
-
-    <div class="receipt-body">
-        <div class="receipt-title">Comprobante de Ingreso</div>
-
-        <div class="info-row">
-            <span class="info-label">FECHA DE PAGO:</span>
-            <input type="date" id="fecha" class="input-ghost" style="width: 150px;">
-        </div>
-        <div class="info-row">
-            <span class="info-label">NOMBRE DEL CLIENTE:</span>
-            <input type="text" id="cliente" class="input-ghost" placeholder="Escriba el nombre" style="width: 220px;">
-        </div>
-        <div class="info-row">
-            <span class="info-label">CONCEPTO:</span>
-            <input type="text" id="concepto" class="input-ghost" placeholder="Abono a pedido #001" style="width: 220px;">
-        </div>
-
-        <div class="amount-box">
-            <span class="amount-label">Valor Recibido</span>
-            <input type="text" id="valor" class="amount-val-input" placeholder="$ 0" oninput="formatearMoneda(this)">
-            <div id="valor-espejo">$ 0</div>
-        </div>
-
-        <div class="info-row">
-            <span class="info-label">MEDIO DE PAGO:</span>
-            <select id="medio" class="input-ghost" style="width: 160px;">
-                <option value="Transferencia">Transferencia</option>
-                <option value="Efectivo">Efectivo</option>
-                <option value="Datafono">Datáfono</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="footer-receipt">
-        HomeEasy
-    </div>
-
-    <button class="btn-download no-print" onclick="generarPDF()">Descargar Recibo</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <script>
-    document.getElementById('fecha').valueAsDate = new Date();
+    const URL_G = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec";
+    
+    document.getElementById('fecha_actual').innerText = new Date().toLocaleDateString('es-CO');
 
-    function formatearMoneda(input) {
-        let valor = input.value.replace(/\D/g, "");
-        if (valor === "") { 
-            input.value = ""; 
-            document.getElementById('valor-espejo').innerText = "$ 0";
-            return; 
-        }
-        let formateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
-        input.value = formateado;
-        // Sincronizamos con el espejo
-        document.getElementById('valor-espejo').innerText = formateado;
+    let saldoGlobal = 0;
+    let totalOrdenGlobal = 0;
+
+    async function buscarOrden() {
+        const n = document.getElementById('n_orden').value;
+        if(!n) return alert("Ingresa un número de orden");
+        
+        document.getElementById('loading').style.display = 'flex';
+        try {
+            // El backend buscará en la pestaña 'Ordenes'
+            const r = await fetch(`${URL_G}?tipo=CONSULTA_ORDEN&n_orden=${n}`);
+            const d = await r.json();
+            
+            if(d.status === "found") {
+                document.getElementById('resumen_cliente').innerText = d.nombre;
+                document.getElementById('resumen_total').innerText = `$${d.total.toLocaleString('es-CO')}`;
+                document.getElementById('resumen_saldo').innerText = `$${d.saldo.toLocaleString('es-CO')}`;
+                saldoGlobal = d.saldo;
+                totalOrdenGlobal = d.total;
+                document.getElementById('datos_orden').style.display = 'block';
+                document.getElementById('nuevo_saldo_text').innerText = `$${d.saldo.toLocaleString('es-CO')}`;
+            } else {
+                alert("Orden no encontrada");
+                document.getElementById('datos_orden').style.display = 'none';
+            }
+        } catch(e) { alert("Error al conectar"); }
+        finally { document.getElementById('loading').style.display = 'none'; }
     }
 
-    async function generarPDF() {
-        const { jsPDF } = window.jspdf;
-        const element = document.getElementById('area-pdf');
-        
-        // Activamos modo exportación (oculta botones e inputs, muestra textos planos)
-        element.classList.add('is-exporting');
-        
+    function formatear(i) { let v = i.value.replace(/\D/g, ""); i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : ""; }
+    
+    function calcularNuevoSaldo() {
+        const abono = parseFloat(document.getElementById('valor_abono').value.replace(/\D/g, "")) || 0;
+        const nuevoSaldo = saldoGlobal - abono;
+        document.getElementById('nuevo_saldo_text').innerText = `$${nuevoSaldo.toLocaleString('es-CO')}`;
+    }
+
+    async function finalizarAbono() {
+        const valor = parseFloat(document.getElementById('valor_abono').value.replace(/\D/g, "")) || 0;
+        if(valor <= 0) return alert("Ingresa un valor válido");
+
+        document.getElementById('loading').style.display = 'flex';
+        const datos = {
+            tipo: "ABONO",
+            n_orden: document.getElementById('n_orden').value,
+            fecha: new Date().toISOString().split('T')[0],
+            valor: valor,
+            medio: document.getElementById('medio_pago').value,
+            concepto: document.getElementById('concepto').value.toUpperCase()
+        };
+
         try {
-            const canvas = await html2canvas(element, { 
-                scale: 3, 
-                useCORS: true,
-                backgroundColor: "#ffffff"
-            });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', [140, 200]); 
-            pdf.addImage(imgData, 'PNG', 0, 0, 140, (canvas.height * 140) / canvas.width);
-            
-            const nombre = document.getElementById('cliente').value || 'Cliente';
-            pdf.save(`Recibo_HomeEasy_${nombre}.pdf`);
-        } catch (e) { 
-            alert("Error al generar el recibo."); 
-        } finally { 
-            // Volvemos al modo normal
-            element.classList.remove('is-exporting');
-        }
+            await fetch(URL_G, { method: 'POST', body: JSON.stringify(datos) });
+            setTimeout(async () => {
+                await generarPDF(datos.n_orden);
+                alert("Abono registrado con éxito.");
+                location.reload();
+            }, 1500);
+        } catch(e) { await generarPDF(datos.n_orden); }
+    }
+
+    async function generarPDF(n) {
+        const { jsPDF } = window.jspdf;
+        document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
+        const canvas = await html2canvas(document.getElementById('area-pdf'), { scale: 2, useCORS: true, width: 800, windowWidth: 800 });
+        const img = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.addImage(img, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+        pdf.save(`Recibo_Abono_Orden_${n}.pdf`);
+        document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
     }
 </script>
 </body>
