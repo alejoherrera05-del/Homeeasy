@@ -47,17 +47,20 @@
         .input-ghost { border: none; border-bottom: 1px solid #ddd; width: 100%; font-weight: 600; text-align: right; background: transparent; color: #333; font-size: 0.95rem; }
         .input-ghost:focus { outline: none; border-bottom-color: var(--homeeasy-wine); }
 
-        /* AJUSTE DE MARCO PARA EVITAR CORTE */
+        /* AJUSTE DE MARCO DEFINITIVO */
         .amount-box { 
             background: #fffafb; 
-            padding: 30px 20px; 
+            padding: 40px 20px; 
             border-radius: 12px; 
             text-align: center; 
             margin: 30px 0; 
             border: 2px solid var(--homeeasy-wine); 
+            position: relative;
         }
         .amount-label { font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; margin-bottom: 10px; display: block; }
-        .amount-val { 
+        
+        /* El input se ve en la web */
+        .amount-val-input { 
             font-size: 2.2rem; 
             font-weight: 800; 
             color: var(--homeeasy-wine); 
@@ -65,14 +68,25 @@
             width: 100%; 
             text-align: center; 
             background: transparent;
-            line-height: 1.2;
+        }
+
+        /* El texto espejo se ve solo en el PDF */
+        #valor-espejo {
+            display: none;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--homeeasy-wine);
+            width: 100%;
+            text-align: center;
         }
         
         .footer-receipt { text-align: center; padding: 20px; background: #fafafa; font-size: 0.85rem; color: #777; border-top: 1px solid #eee; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
         .btn-download { background: var(--homeeasy-wine); color: white; border: none; width: 100%; padding: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         
-        .is-exporting .no-print { display: none !important; }
+        /* Reglas de impresión/exportación */
+        .is-exporting .no-print, .is-exporting .amount-val-input { display: none !important; }
+        .is-exporting #valor-espejo { display: block !important; }
 
         @media (max-width: 600px) {
             .empresa-info span { display: block; margin: 5px 0; }
@@ -114,7 +128,8 @@
 
         <div class="amount-box">
             <span class="amount-label">Valor Recibido</span>
-            <input type="text" id="valor" class="amount-val" placeholder="$ 0" oninput="formatearMoneda(this)">
+            <input type="text" id="valor" class="amount-val-input" placeholder="$ 0" oninput="formatearMoneda(this)">
+            <div id="valor-espejo">$ 0</div>
         </div>
 
         <div class="info-row">
@@ -142,21 +157,29 @@
 
     function formatearMoneda(input) {
         let valor = input.value.replace(/\D/g, "");
-        if (valor === "") { input.value = ""; return; }
-        input.value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+        if (valor === "") { 
+            input.value = ""; 
+            document.getElementById('valor-espejo').innerText = "$ 0";
+            return; 
+        }
+        let formateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+        input.value = formateado;
+        // Sincronizamos con el espejo
+        document.getElementById('valor-espejo').innerText = formateado;
     }
 
     async function generarPDF() {
         const { jsPDF } = window.jspdf;
         const element = document.getElementById('area-pdf');
-        document.querySelectorAll('.no-print').forEach(el => el.style.setProperty('display', 'none', 'important'));
+        
+        // Activamos modo exportación (oculta botones e inputs, muestra textos planos)
+        element.classList.add('is-exporting');
         
         try {
             const canvas = await html2canvas(element, { 
                 scale: 3, 
                 useCORS: true,
-                backgroundColor: "#ffffff",
-                logging: false
+                backgroundColor: "#ffffff"
             });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', [140, 200]); 
@@ -167,7 +190,8 @@
         } catch (e) { 
             alert("Error al generar el recibo."); 
         } finally { 
-            document.querySelectorAll('.no-print').forEach(el => el.style.setProperty('display', 'flex', 'important'));
+            // Volvemos al modo normal
+            element.classList.remove('is-exporting');
         }
     }
 </script>
