@@ -17,7 +17,6 @@
 
         .document-card { background-color: white; width: 100%; max-width: 500px; margin: 40px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #eee; }
         
-        /* ENCABEZADO UNIFICADO CON COTIZACIÓN Y PEDIDO */
         .header-brand { 
             background-color: var(--homeeasy-wine); 
             padding: 35px 20px 25px 20px; 
@@ -48,9 +47,26 @@
         .input-ghost { border: none; border-bottom: 1px solid #ddd; width: 100%; font-weight: 600; text-align: right; background: transparent; color: #333; font-size: 0.95rem; }
         .input-ghost:focus { outline: none; border-bottom-color: var(--homeeasy-wine); }
 
-        .amount-box { background: #fffafb; padding: 25px; border-radius: 10px; text-align: center; margin: 30px 0; border: 2px solid var(--homeeasy-wine); }
-        .amount-label { font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; margin-bottom: 8px; display: block; }
-        .amount-val { font-size: 2rem; font-weight: 800; color: var(--homeeasy-wine); border:none; width: 100%; text-align: center; background: transparent; }
+        /* AJUSTE DE MARCO PARA EVITAR CORTE */
+        .amount-box { 
+            background: #fffafb; 
+            padding: 30px 20px; 
+            border-radius: 12px; 
+            text-align: center; 
+            margin: 30px 0; 
+            border: 2px solid var(--homeeasy-wine); 
+        }
+        .amount-label { font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; margin-bottom: 10px; display: block; }
+        .amount-val { 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            color: var(--homeeasy-wine); 
+            border: none; 
+            width: 100%; 
+            text-align: center; 
+            background: transparent;
+            line-height: 1.2;
+        }
         
         .footer-receipt { text-align: center; padding: 20px; background: #fafafa; font-size: 0.85rem; color: #777; border-top: 1px solid #eee; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -139,10 +155,10 @@
             const canvas = await html2canvas(element, { 
                 scale: 3, 
                 useCORS: true,
-                backgroundColor: "#ffffff"
+                backgroundColor: "#ffffff",
+                logging: false
             });
             const imgData = canvas.toDataURL('image/png');
-            // Tamaño personalizado tipo voucher
             const pdf = new jsPDF('p', 'mm', [140, 200]); 
             pdf.addImage(imgData, 'PNG', 0, 0, 140, (canvas.height * 140) / canvas.width);
             
