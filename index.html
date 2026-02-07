@@ -2,12 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="HomeEasy">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <link rel="apple-touch-icon" href="https://i.ibb.co/kVrX85J5/logo.jpg">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#a63d56">
 
     <title>HomeEasy | Gestión</title>
     
@@ -28,6 +32,8 @@
             align-items: center;
             padding: 20px;
             margin: 0;
+            /* Evita el desplazamiento elástico en iPhone */
+            overscroll-behavior-y: contain;
         }
 
         .menu-container {
@@ -53,13 +59,11 @@
             color: #333;
             border-left: 6px solid var(--homeeasy-wine);
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            /* ESTO DA EL MOVIMIENTO SUAVE */
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
         }
 
-        /* EFECTO DE MOVIMIENTO (HOVER) */
         @media (hover: hover) {
             .menu-card:hover {
                 transform: translateY(-5px);
@@ -71,7 +75,6 @@
             }
         }
 
-        /* EFECTO AL TOCAR (CELULAR) */
         .menu-card:active {
             transform: scale(0.96);
             background-color: #f8f9fa;
@@ -95,7 +98,6 @@
         .menu-text h3 { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
         .menu-text p { margin: 0; font-size: 0.8rem; color: #666; font-weight: 400; }
 
-        /* ESTILOS DORADOS ESPECÍFICOS */
         .gold-card { border-left-color: var(--homeeasy-gold) !important; }
         .gold-card .icon-box { background-color: var(--homeeasy-gold) !important; }
         .gold-card h3 { color: var(--homeeasy-gold) !important; }
