@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HomeEasy | Cotización</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -12,22 +12,43 @@
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
         .text-uppercase-input { text-transform: uppercase; }
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
-        #area-pdf { background-color: white; width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
-        @media (max-width: 800px) { body { overflow-x: auto; } }
+        
+        /* MEJORA 2: Visualización Móvil Responsive */
+        #area-pdf { 
+            background-color: white; 
+            width: 100%; /* Flexible en móvil */
+            max-width: 800px; /* Tamaño máximo A4 */
+            margin: auto; 
+            min-height: 100vh; 
+            border: 1px solid #eee; 
+            position: relative; 
+        }
+
         .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
-        .logo-only { max-width: 140px; height: auto; }
+        .logo-only { max-width: 120px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
         .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
-        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 30px; z-index: 10; }
-        .meta-item { font-size: 0.75rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
+        
+        /* Ajuste de la "píldora" de meta para móviles */
+        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
+        .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
+
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
-        .card-body { padding: 30px 45px; }
+        
+        /* Padding adaptable */
+        .card-body { padding: 30px 20px; }
+        @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
+
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
         .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
+
+        /* Scroll horizontal solo para la tabla en móviles */
+        .table-responsive { border: none; }
         .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
         .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
+        
         .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         .condiciones-texto { background: #fff; border: 1px solid #eee; padding: 15px; font-size: 0.72rem; color: #555; line-height: 1.5; border-radius: 8px; }
@@ -38,7 +59,7 @@
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">SINCRONIZANDO CLIENTE...</b></div>
+<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">SINCRO Y PDF PROFESIONAL...</b></div>
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf">
@@ -62,22 +83,22 @@
     <div class="card-body">
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" class="form-control-compact" placeholder="000.000.000" onblur="buscarCliente()"></div>
+            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" inputmode="numeric" class="form-control-compact" placeholder="000.000.000" onblur="buscarCliente()"></div>
             <div class="col-8"><label class="form-label-small">Nombre / Empresa</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
-            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" class="form-control-compact"></div>
+            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" inputmode="numeric" class="form-control-compact"></div>
             <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
             <div class="col-12"><label class="form-label-small">Dirección de Obra</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
 
         <span class="section-title">Propuesta Comercial</span>
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="table align-middle" style="min-width: 600px;">
                 <thead><tr><th>Descripción</th><th width="65" class="text-center">Cant.</th><th width="150" class="text-center">V. Unit</th><th width="120" class="text-end">Total</th><th width="35" class="no-print"></th></tr></thead>
                 <tbody id="tabla-body">
                     <tr>
                         <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance Blanca"></td>
-                        <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
-                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" oninput="formatear(this); calcular()"></td>
+                        <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
+                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
                         <td class="item-total fw-bold text-end">$0</td>
                         <td class="no-print"></td>
                     </tr>
@@ -91,8 +112,8 @@
                 <span class="section-title">Condiciones de Venta</span>
                 <div class="condiciones-texto">
                     • <b>Vigencia:</b> Esta cotización es válida por 15 días calendario.<br>
-                    • <b>Forma de Pago:</b> Para iniciar producción se requiere un anticipo del <b>50%</b>. El saldo restante debe cancelarse al momento de la entrega/instalación.<br>
-                    • <b>Instalación:</b> El servicio de instalación es <b>GRATUITO</b> por compras superiores a $300.000 (dentro del área urbana).
+                    • <b>Forma de Pago:</b> Anticipo del <b>50%</b> para inicio. Saldo contra entrega.<br>
+                    • <b>Instalación:</b> <b>GRATUITA</b> por compras superiores a $300.000.
                 </div>
                 <div class="mt-3">
                     <label class="form-label-small">Observaciones Adicionales</label>
@@ -129,14 +150,8 @@
 
     async function buscarCliente() {
         let ced = document.getElementById('cedula').value.trim();
-        
-        if(ced === "") {
-            limpiarCampos();
-            return;
-        }
-
+        if(ced === "") { limpiarCampos(); return; }
         if(ced.length < 4) return;
-
         try {
             const r = await fetch(`${URL_G}?cedula=${ced}`);
             const d = await r.json();
@@ -145,9 +160,7 @@
                 document.getElementById('telefono').value = d.telefono;
                 document.getElementById('email').value = d.email || "";
                 document.getElementById('direccion').value = d.direccion;
-            } else {
-                limpiarCampos();
-            }
+            } else { limpiarCampos(); }
         } catch(e) { console.error("Error buscando cliente:", e); }
     }
 
@@ -168,7 +181,7 @@
 
     function agregarFila() {
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
+        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
         document.getElementById('tabla-body').appendChild(tr);
     }
 
@@ -176,6 +189,7 @@
         const nomInput = document.getElementById('nombre');
         const nomValue = nomInput.value.trim().toUpperCase();
         const cedValue = document.getElementById('cedula').value.trim();
+        const areaPdf = document.getElementById('area-pdf');
 
         if(!nomValue || !cedValue) return alert("Cédula y Nombre son obligatorios.");
 
@@ -193,6 +207,11 @@
         try {
             await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosSync) });
             
+            // --- MEJORA 4: Exportación Profesional ---
+            // Guardamos el ancho original y forzamos 800px para el PDF
+            const originalWidth = areaPdf.style.width;
+            areaPdf.style.width = "800px";
+
             document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
             
             document.querySelectorAll('#tabla-body tr').forEach(f => {
@@ -203,11 +222,14 @@
 
             nomInput.value = nomValue;
 
-            const canvas = await html2canvas(document.getElementById('area-pdf'), { scale: 2, useCORS: true, width: 800, windowWidth: 800 });
+            const canvas = await html2canvas(areaPdf, { scale: 2, useCORS: true, width: 800 });
             const img = canvas.toDataURL('image/png');
             const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
             pdf.addImage(img, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
             pdf.save(`Cotizacion_HomeEasy_${nomValue}.pdf`);
+
+            // Restauramos el ancho móvil
+            areaPdf.style.width = originalWidth;
 
         } catch(e) {
             alert("Error procesando los datos.");
