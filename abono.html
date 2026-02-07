@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HomeEasy | Recibo de Abono</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -14,31 +14,38 @@
         
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
 
-        /* CONTENEDOR FIJO PARA EVITAR RECORTE EN PDF MÓVIL */
-        #area-pdf { background-color: white; width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
-        
-        @media (max-width: 800px) { body { overflow-x: auto; } }
+        /* MEJORA 2: Visualización Móvil Responsive */
+        #area-pdf { 
+            background-color: white; 
+            width: 100%; /* Flexible en móvil */
+            max-width: 800px; /* Tamaño máximo para PDF */
+            margin: auto; 
+            min-height: 100vh; 
+            border: 1px solid #eee; 
+            position: relative; 
+        }
 
-        /* ENCABEZADO COMPLETO PROFESIONAL */
         .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
-        .logo-only { max-width: 140px; height: auto; }
+        .logo-only { max-width: 120px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
         .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
 
-        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 30px; z-index: 10; }
-        .meta-item { font-size: 0.75rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
+        /* Ajuste de la "píldora" de meta para móviles */
+        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 20px; z-index: 10; white-space: nowrap; }
+        .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
         
-        .card-body { padding: 30px 45px; }
+        /* Padding adaptable */
+        .card-body { padding: 30px 20px; }
+        @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
+
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
-        
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
         .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
         .form-control-compact:focus { box-shadow: none; border-bottom-color: var(--homeeasy-wine); outline: none; }
 
-        /* DISEÑO DE SALDOS ENFATIZADO */
         .saldo-destacado { background-color: #fdfafb; border: 2px dashed var(--homeeasy-gold); border-radius: 12px; padding: 25px; text-align: center; margin-top: 30px; }
         
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; letter-spacing: 1px; }
@@ -72,11 +79,11 @@
     
     <div class="card-body">
         <div class="row mb-5">
-            <div class="col-6">
+            <div class="col-12 col-md-6">
                 <label class="form-label-small">Referencia Orden #</label>
                 <div class="d-flex">
-                    <input type="number" id="n_orden" class="form-control-compact fw-bold" placeholder="Número">
-                    <button class="btn btn-sm btn-dark no-print ms-2" onclick="buscarOrden()">BUSCAR</button>
+                    <input type="text" id="n_orden" inputmode="numeric" class="form-control-compact fw-bold" placeholder="Número">
+                    <button class="btn btn-sm btn-dark no-print ms-2 px-3" onclick="buscarOrden()">BUSCAR</button>
                 </div>
             </div>
         </div>
@@ -89,7 +96,7 @@
             <div class="row g-4 mb-2">
                 <div class="col-6">
                     <label class="form-label-small">Valor del Abono</label>
-                    <input type="text" id="valor_abono" class="form-control-compact fw-bold text-success" style="font-size: 1.3rem; border-bottom: 2px solid var(--homeeasy-gold);" oninput="formatear(this); calcularNuevoSaldo()">
+                    <input type="text" id="valor_abono" inputmode="numeric" class="form-control-compact fw-bold text-success" style="font-size: 1.3rem; border-bottom: 2px solid var(--homeeasy-gold);" oninput="formatear(this); calcularNuevoSaldo()">
                 </div>
                 <div class="col-6">
                     <label class="form-label-small">Medio de Pago</label>
@@ -182,7 +189,6 @@
                 const nRec = json.n_recibo.toString().padStart(3, '0');
                 document.getElementById('n_recibo_display').innerText = nRec;
                 
-                // Limpieza para el PDF
                 document.getElementById('n_orden').placeholder = "";
                 document.getElementById('concepto').placeholder = "";
 
@@ -203,8 +209,15 @@
 
     async function generarPDF(n) {
         const { jsPDF } = window.jspdf;
+        const element = document.getElementById('area-pdf');
+
+        // MEJORA 4: Exportación Profesional (Truco de ancho)
+        const originalWidth = element.style.width;
+        element.style.width = "800px";
+
         document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
-        const canvas = await html2canvas(document.getElementById('area-pdf'), { 
+        
+        const canvas = await html2canvas(element, { 
             scale: 2, 
             useCORS: true, 
             width: 800, 
@@ -217,6 +230,9 @@
 
         pdf.addImage(img, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(`Recibo_Abono_${n}_HomeEasy.pdf`);
+
+        // Restaurar para visualización móvil
+        element.style.width = originalWidth;
         document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
     }
 </script>
