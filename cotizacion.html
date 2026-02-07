@@ -33,11 +33,12 @@
         .condiciones-texto { background: #fff; border: 1px solid #eee; padding: 15px; font-size: 0.72rem; color: #555; line-height: 1.5; border-radius: 8px; }
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
         .no-print { display: flex; }
+        .hide-row { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">GUARDANDO CLIENTE...</b></div>
+<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">SINCRONIZANDO DATOS...</b></div>
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf">
@@ -94,7 +95,7 @@
                     • <b>Instalación:</b> El servicio de instalación es <b>GRATUITO</b> por compras superiores a $300.000 (dentro del área urbana).
                 </div>
                 <div class="mt-3">
-                    <label class="form-label-small">Observaciones</label>
+                    <label class="form-label-small">Observaciones Adicionales</label>
                     <textarea id="notas" class="form-control-compact text-uppercase-input" style="height: 60px;"></textarea>
                 </div>
             </div>
@@ -156,41 +157,64 @@
     }
 
     async function finalizarCotizacion() {
-        const nom = document.getElementById('nombre').value;
+        const nomInput = document.getElementById('nombre');
+        const nomValue = nomInput.value.trim().toUpperCase();
         const ced = document.getElementById('cedula').value;
-        if(!nom || !ced) return alert("Nombre y Cédula son necesarios para registrar al cliente.");
+
+        if(!nomValue || !ced) return alert("Nombre y Cédula son necesarios para el registro.");
 
         document.getElementById('loading').style.display = 'flex';
         
+        // Forzamos mayúsculas visuales antes de la captura
+        nomInput.value = nomValue;
+        document.getElementById('direccion').value = document.getElementById('direccion').value.toUpperCase();
+
         const datosCliente = {
-            tipo: "ORDEN", // Usamos el tipo ORDEN para que el script lo guarde en la pestaña Clientes
+            tipo: "ORDEN", 
             solo_cliente: true,
             cedula: ced,
-            nombre: nom.toUpperCase(),
+            nombre: nomValue,
             telefono: document.getElementById('telefono').value,
             email: document.getElementById('email').value.toLowerCase(),
             direccion: document.getElementById('direccion').value.toUpperCase(),
             fecha: new Date().toISOString().split('T')[0],
-            detalle: "COTIZACION SOLAMENTE",
+            detalle: "REGISTRO DESDE COTIZACION",
             total: 0,
             abono: 0
         };
 
         try {
             await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosCliente) });
-            // Generar PDF
+            
+            // LÓGICA DE LIMPIEZA PARA PDF
             document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
+            
+            // Ocultar filas vacías (la "línea fantasma")
+            document.querySelectorAll('#tabla-body tr').forEach(f => {
+                const desc = f.querySelector('.row-desc').value.trim();
+                const totalText = f.querySelector('.item-total').innerText;
+                if(!desc && totalText === "$0") {
+                    f.classList.add('hide-row');
+                }
+            });
+
+            // Quitar placeholders
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(i => i.dataset.placeholderBackup = i.placeholder, i.placeholder = "");
+
             const canvas = await html2canvas(document.getElementById('area-pdf'), { scale: 2, useCORS: true, width: 800, windowWidth: 800 });
             const img = canvas.toDataURL('image/png');
             const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
             pdf.addImage(img, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save(`Cotizacion_HomeEasy_${nom}.pdf`);
-            alert("Cliente guardado en base de datos y PDF generado.");
+            pdf.save(`Cotizacion_HomeEasy_${nomValue}.pdf`);
+
         } catch(e) {
-            alert("PDF generado, pero hubo un error al guardar el cliente.");
+            alert("Error al procesar el documento.");
         } finally {
             document.getElementById('loading').style.display = 'none';
             document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
+            document.querySelectorAll('.hide-row').forEach(f => f.classList.remove('hide-row'));
+            location.reload(); // Recargamos para limpiar todo
         }
     }
 </script>
