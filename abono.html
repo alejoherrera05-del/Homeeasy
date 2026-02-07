@@ -169,7 +169,7 @@
         const datos = {
             tipo: "ABONO",
             n_orden: document.getElementById('n_orden').value,
-            nombre: nombreGlobal, // Nombre corregido para el Excel
+            nombre: nombreGlobal, 
             valor: valor,
             medio: document.getElementById('medio_pago').value,
             concepto: document.getElementById('concepto').value.toUpperCase()
@@ -182,7 +182,7 @@
                 const nRec = json.n_recibo.toString().padStart(3, '0');
                 document.getElementById('n_recibo_display').innerText = nRec;
                 
-                // Limpieza de campos para el PDF profesional
+                // Limpieza para el PDF
                 document.getElementById('n_orden').placeholder = "";
                 document.getElementById('concepto').placeholder = "";
 
@@ -195,7 +195,7 @@
         } catch(e) { 
             console.error(e);
             await generarPDF("FALLO");
-            alert("No se pudo sincronizar, pero generamos el PDF.");
+            alert("Sincronización fallida, pero el PDF fue generado.");
         } finally {
             document.getElementById('loading').style.display = 'none';
         }
