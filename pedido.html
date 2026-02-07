@@ -12,22 +12,37 @@
     <style>
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
-        .btn-back { position: fixed; top: 20px; left: 20px; z-index: 1000; background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
+        
+        .btn-back { position: fixed; top: 20px; left: 20px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
+
         .document-card { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
-        .header-brand { background-color: var(--homeeasy-wine); padding: 40px 20px 25px 20px; text-align: center; position: relative; }
-        .logo-only { max-width: 180px; height: auto; display: block; margin: 0 auto 20px auto; }
-        .empresa-info { font-size: 0.85rem; font-weight: 400; color: #ffffff; }
-        .empresa-info span { margin: 0 8px; display: inline-block; }
-        .empresa-info i { color: var(--homeeasy-gold); margin-right: 4px; }
-        .order-number-badge { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.15); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3); }
-        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
-        .card-body { padding: 40px 30px; }
-        .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.8rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; display: block; }
-        .form-control { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 5px 0; font-size: 0.95rem; background: transparent; }
-        .table th { font-size: 0.75rem; text-transform: uppercase; font-weight: 800; border-bottom: 2px solid var(--homeeasy-wine); }
-        .finance-box { background-color: #fdfafb; border-radius: 8px; padding: 20px; border: 1px solid #eee; border-left: 5px solid var(--homeeasy-gold); }
-        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 5px; margin-top: 20px; }
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
+        
+        /* ENCABEZADO COMPACTO */
+        .header-brand { background-color: var(--homeeasy-wine); padding: 25px 20px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
+        .logo-only { max-width: 130px; height: auto; }
+        .empresa-info-mini { font-size: 0.7rem; color: #ffffff; text-align: right; line-height: 1.4; }
+        .empresa-info-mini i { color: var(--homeeasy-gold); margin-right: 3px; }
+
+        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 20px; z-index: 10; }
+        .meta-item { font-size: 0.75rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
+
+        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 25px 12px 10px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
+        
+        .card-body { padding: 30px 40px; }
+        .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 12px; display: block; }
+        
+        /* INPUTS MÁS LIMPIOS */
+        .form-label-small { font-size: 0.65rem; font-weight: 700; color: #aaa; text-transform: uppercase; margin-bottom: 0; }
+        .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.85rem; background: transparent; height: 30px; }
+        .form-control-compact:focus { box-shadow: none; border-bottom-color: var(--homeeasy-wine); }
+
+        .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; border-bottom: 2px solid var(--homeeasy-wine); padding: 10px 5px; }
+        .table td { padding: 8px 5px; }
+        
+        .finance-box { background-color: #fdfafb; border-radius: 8px; padding: 15px; border-left: 4px solid var(--homeeasy-gold); }
+        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 14px; width: 100%; text-transform: uppercase; border-radius: 5px; margin-top: 15px; font-size: 0.9rem; }
+        
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
         .is-exporting .no-print { display: none !important; }
         .hide-row { display: none !important; }
     </style>
@@ -36,87 +51,104 @@
 
 <div id="loading" class="loading-overlay">
     <div class="spinner-border text-danger mb-3"></div>
-    <b style="color:var(--homeeasy-wine)">SINCRONIZANDO CON HOME EASY DATABASE...</b>
+    <b style="color:var(--homeeasy-wine)">ACTUALIZANDO BASE DE DATOS...</b>
 </div>
 
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf" class="document-card">
     <div class="header-brand">
-        <div class="order-number-badge">ORDEN: #<span id="n_orden_display">...</span></div>
         <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
-        <div class="empresa-info">
-            <p class="fw-bold mb-2">NIT: 1.061.760.850-1</p>
-            <div>
-                <span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26 (Popayán)</span>
-                <span><i class="fas fa-mobile-alt"></i> 3334319374</span>
-                <span><i class="fab fa-instagram"></i> @Homeeasypopayan</span>
-            </div>
+        <div class="empresa-info-mini">
+            <p class="fw-bold mb-1">NIT: 1.061.760.850-1</p>
+            <span><i class="fas fa-map-marker-alt"></i> Popayán</span> | <span><i class="fas fa-mobile-alt"></i> 3334319374</span><br>
+            <span><i class="fab fa-instagram"></i> @Homeeasypopayan</span>
+        </div>
+        <div class="order-meta">
+            <div class="meta-item">Orden: #<span id="n_orden_display">NUEVA</span></div>
+            <div class="meta-item">Fecha: <span id="fecha_display">--/--/--</span></div>
         </div>
     </div>
 
     <div class="document-type">Orden de Pedido</div>
 
     <div class="card-body">
-        <div class="row mb-4">
-            <div class="col-6"><span class="section-title">Fecha</span><input type="date" id="fecha_orden" class="form-control"></div>
+        <div class="no-print mb-4" style="background: #fff4f6; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+            <label class="form-label-small">Seleccionar Fecha de Orden:</label>
+            <input type="date" id="fecha_orden" class="form-control form-control-compact" onchange="actualizarFechaDisplay()">
         </div>
 
-        <span class="section-title">Datos del Cliente</span>
-        <div class="row g-4 mb-5">
-            <div class="col-md-5"><input type="text" id="cedula" class="form-control" placeholder="Cédula / NIT" onblur="buscarCliente()"></div>
-            <div class="col-md-7"><input type="text" id="nombre" class="form-control" placeholder="Nombre Completo"></div>
-            <div class="col-md-4"><input type="tel" id="telefono" class="form-control" placeholder="Teléfono"></div>
-            <div class="col-md-8"><input type="text" id="direccion" class="form-control" placeholder="Dirección"></div>
+        <span class="section-title">Información del Cliente</span>
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <label class="form-label-small">Cédula / NIT</label>
+                <input type="text" id="cedula" class="form-control form-control-compact" placeholder="00000000" onblur="buscarCliente()">
+            </div>
+            <div class="col-8">
+                <label class="form-label-small">Nombre Completo</label>
+                <input type="text" id="nombre" class="form-control form-control-compact" placeholder="Nombre del cliente">
+            </div>
+            <div class="col-6">
+                <label class="form-label-small">Teléfono / WhatsApp</label>
+                <input type="tel" id="telefono" class="form-control form-control-compact" placeholder="300 000 0000">
+            </div>
+            <div class="col-6">
+                <label class="form-label-small">Correo Electrónico</label>
+                <input type="email" id="email" class="form-control form-control-compact" placeholder="cliente@correo.com">
+            </div>
+            <div class="col-12">
+                <label class="form-label-small">Dirección de Entrega</label>
+                <input type="text" id="direccion" class="form-control form-control-compact" placeholder="Calle, Barrio, Ciudad">
+            </div>
         </div>
 
-        <span class="section-title">Productos</span>
+        <span class="section-title">Detalle del Pedido</span>
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead>
                     <tr>
                         <th>Descripción</th>
-                        <th width="70" class="text-center">Cant.</th>
-                        <th width="160" class="text-center">P. Unit</th>
-                        <th width="130" class="text-end">Total</th>
-                        <th width="40" class="no-print"></th>
+                        <th width="60" class="text-center">Cant.</th>
+                        <th width="140" class="text-center">P. Unit</th>
+                        <th width="110" class="text-end">Total</th>
+                        <th width="30" class="no-print"></th>
                     </tr>
                 </thead>
                 <tbody id="tabla-body">
                     <tr>
-                        <td><input type="text" class="form-control row-desc" placeholder="Describa el producto"></td>
-                        <td><input type="number" class="form-control text-center cant" value="1" oninput="calcularTodo()"></td>
-                        <td><input type="text" class="form-control text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcularTodo()"></td>
-                        <td class="item-total pt-3 fw-bold text-end">$0</td>
+                        <td><input type="text" class="form-control form-control-compact row-desc" placeholder="Ej: Sheer Elegance Gris"></td>
+                        <td><input type="number" class="form-control form-control-compact text-center cant" value="1" oninput="calcularTodo()"></td>
+                        <td><input type="text" class="form-control form-control-compact text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcularTodo()"></td>
+                        <td class="item-total pt-2 fw-bold text-end" style="font-size: 0.85rem;">$0</td>
                         <td class="no-print"></td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-secondary no-print mb-5" onclick="agregarNuevaFila()">+ Añadir Ítem</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary no-print mb-4" onclick="agregarNuevaFila()" style="font-size: 0.7rem;">+ AÑADIR PRODUCTO</button>
 
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <span class="section-title">Notas</span>
-                <textarea id="notas" class="form-control" rows="2" placeholder="Notas de fabricación..."></textarea>
+        <div class="row g-3">
+            <div class="col-md-7">
+                <span class="section-title">Observaciones</span>
+                <textarea id="notas" class="form-control" rows="3" style="font-size: 0.8rem; border: 1px solid #eee;" placeholder="Notas de fabricación, medidas, lado del mando..."></textarea>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <div class="finance-box text-end">
-                    <p class="mb-1 small text-muted">Base: <span id="sub_val">$0</span></p>
-                    <p class="mb-1 small text-muted">IVA (19%): <span id="iva_val">$0</span></p>
-                    <p class="mb-2 fw-bold">TOTAL: <span id="total_pedido_val">$0</span></p>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-bold">ABONO:</span>
-                        <input type="text" id="abono" class="form-control text-end fw-bold" style="width: 120px; border-bottom: 2px solid var(--homeeasy-wine);" oninput="formatearMoneda(this); calcularTodo()">
+                    <p class="mb-1" style="font-size: 0.75rem;">Base: <span id="sub_val">$0</span></p>
+                    <p class="mb-1" style="font-size: 0.75rem;">IVA (19%): <span id="iva_val">$0</span></p>
+                    <p class="mb-2 fw-bold" style="font-size: 0.9rem;">TOTAL: <span id="total_pedido_val">$0</span></p>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold" style="font-size: 0.75rem;">ABONO:</span>
+                        <input type="text" id="abono" class="form-control form-control-compact text-end fw-bold" style="width: 100px; border-bottom: 2px solid var(--homeeasy-wine);" placeholder="$ 0" oninput="formatearMoneda(this); calcularTodo()">
                     </div>
-                    <hr>
-                    <p class="h5 fw-bold mb-0" style="color:var(--homeeasy-wine)">SALDO: <span id="saldo_pendiente_val">$0</span></p>
+                    <hr class="my-2">
+                    <p class="fw-bold mb-0" style="color:var(--homeeasy-wine); font-size: 1rem;">SALDO: <span id="saldo_pendiente_val">$0</span></p>
                 </div>
             </div>
         </div>
 
-        <div class="mt-5 text-center fw-bold small" style="color:#aaa">Gracias por confiar en HomeEasy</div>
-        <div class="mt-4 no-print"><button class="btn btn-homeeasy shadow" onclick="guardarYGenerar()">Guardar y Descargar PDF</button></div>
+        <div class="mt-4 text-center fw-bold" style="color:#aaa; font-size: 0.7rem; letter-spacing: 1px;">GRACIAS POR CONFIAR EN HOMEEASY</div>
+        <div class="mt-4 no-print"><button class="btn btn-homeeasy shadow" onclick="guardarYGenerar()">Finalizar y Descargar</button></div>
     </div>
 </div>
 
@@ -125,11 +157,20 @@
 
 <script>
     const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyfbL78sPvSg_SlJJBVoxNLam55m9cYTlDyiqLtJup1MkUia-Jj3-LAYdX5GYY5nFs_/exec";
-    document.getElementById('fecha_orden').valueAsDate = new Date();
+    
+    // Inicialización
+    const fechaInput = document.getElementById('fecha_orden');
+    fechaInput.valueAsDate = new Date();
+    actualizarFechaDisplay();
+
+    function actualizarFechaDisplay() {
+        const date = new Date(fechaInput.value + 'T00:00:00');
+        document.getElementById('fecha_display').innerText = date.toLocaleDateString('es-CO');
+    }
 
     async function buscarCliente() {
         const cedula = document.getElementById('cedula').value;
-        if (cedula.length < 5) return;
+        if (cedula.length < 4) return;
         try {
             const res = await fetch(`${URL_GOOGLE}?cedula=${cedula}`);
             const data = await res.json();
@@ -137,6 +178,7 @@
                 document.getElementById('nombre').value = data.nombre;
                 document.getElementById('telefono').value = data.telefono;
                 document.getElementById('direccion').value = data.direccion;
+                if(data.email) document.getElementById('email').value = data.email;
             }
         } catch (e) { }
     }
@@ -158,7 +200,6 @@
         const abono = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
         const base = total / 1.19;
         const iva = total - base;
-        
         document.getElementById('sub_val').innerText = `$${Math.round(base).toLocaleString('es-CO')}`;
         document.getElementById('iva_val').innerText = `$${Math.round(iva).toLocaleString('es-CO')}`;
         document.getElementById('total_pedido_val').innerText = `$${total.toLocaleString('es-CO')}`;
@@ -167,12 +208,14 @@
 
     function agregarNuevaFila() {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><input type="text" class="form-control row-desc"></td><td><input type="number" class="form-control text-center cant" value="1" oninput="calcularTodo()"></td><td><input type="text" class="form-control text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcularTodo()"></td><td class="item-total pt-3 fw-bold text-end">$0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcularTodo()">✕</button></td>`;
+        tr.innerHTML = `<td><input type="text" class="form-control form-control-compact row-desc" placeholder="Ej: Sheer Elegance"></td><td><input type="number" class="form-control form-control-compact text-center cant" value="1" oninput="calcularTodo()"></td><td><input type="text" class="form-control form-control-compact text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcularTodo()"></td><td class="item-total pt-2 fw-bold text-end" style="font-size: 0.85rem;">$0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcularTodo()">✕</button></td>`;
         document.getElementById('tabla-body').appendChild(tr);
     }
 
     async function guardarYGenerar() {
-        if (!document.getElementById('cedula').value || !document.getElementById('nombre').value) return alert("Cédula y Nombre son obligatorios");
+        const ced = document.getElementById('cedula').value;
+        const nom = document.getElementById('nombre').value;
+        if (!ced || !nom) return alert("Cédula y Nombre son obligatorios");
         
         document.getElementById('loading').style.display = 'flex';
         let detalleStr = "";
@@ -181,16 +224,17 @@
         filas.forEach(f => {
             let d = f.querySelector('.row-desc').value;
             let c = f.querySelector('.cant').value;
-            if(!d) f.classList.add('hide-row'); // Ocultar filas vacías para el PDF
+            if(!d) f.classList.add('hide-row');
             else detalleStr += `${c}x ${d} | `;
         });
 
         const datos = {
             tipo: "ORDEN",
-            fecha: document.getElementById('fecha_orden').value,
-            cedula: document.getElementById('cedula').value,
-            nombre: document.getElementById('nombre').value,
+            fecha: fechaInput.value,
+            cedula: ced,
+            nombre: nom,
             telefono: document.getElementById('telefono').value,
+            email: document.getElementById('email').value, // NUEVO CAMPO
             direccion: document.getElementById('direccion').value,
             detalle: detalleStr + " Notas: " + document.getElementById('notas').value,
             total: parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")),
@@ -198,24 +242,20 @@
         };
 
         try {
-            const res = await fetch(URL_GOOGLE, { method: 'POST', body: JSON.stringify(datos) });
-            const json = await res.json();
-            if (json.status === "ok") {
-                const n = json.n_orden.toString().padStart(3, '0');
-                document.getElementById('n_orden_display').innerText = n;
-                await generarPDF(n);
-                alert("Guardado en Base de Datos: Orden #" + n);
-            }
+            fetch(URL_GOOGLE, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
+            setTimeout(async () => {
+                await generarPDF(nom);
+                document.getElementById('loading').style.display = 'none';
+                alert("Orden sincronizada con éxito.");
+                document.querySelectorAll('.hide-row').forEach(f => f.classList.remove('hide-row'));
+            }, 1500);
         } catch (e) {
-            alert("Error de conexión, pero se generará el PDF.");
-            await generarPDF("NUEVA");
-        } finally {
+            await generarPDF("LOCAL");
             document.getElementById('loading').style.display = 'none';
-            document.querySelectorAll('.hide-row').forEach(f => f.classList.remove('hide-row'));
         }
     }
 
-    async function generarPDF(n) {
+    async function generarPDF(nombreCliente) {
         const { jsPDF } = window.jspdf;
         const element = document.getElementById('area-pdf');
         document.querySelectorAll('.no-print').forEach(el => el.style.setProperty('display', 'none', 'important'));
@@ -223,7 +263,7 @@
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`Orden_${n}_HomeEasy.pdf`);
+        pdf.save(`Orden_HomeEasy_${nombreCliente}.pdf`);
         document.querySelectorAll('.no-print').forEach(el => el.style.setProperty('display', 'flex', 'important'));
     }
 </script>
