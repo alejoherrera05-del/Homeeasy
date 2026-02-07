@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeEasy | Cotización</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
+        body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; padding: 0; margin: 0; color: #333; }
+        .btn-back { position: fixed; top: 20px; left: 20px; z-index: 1000; background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
+        .document-card { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; }
+        .header-brand { background-color: var(--homeeasy-wine); padding: 40px 20px 25px 20px; text-align: center; }
+        .logo-only { max-width: 180px; height: auto; display: block; margin: 0 auto 20px auto; }
+        .empresa-info { font-size: 0.85rem; font-weight: 400; color: #ffffff; }
+        .empresa-info span { margin: 0 8px; display: inline-block; }
+        .empresa-info i { color: var(--homeeasy-gold); margin-right: 4px; }
+        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
+        .card-body { padding: 40px 30px; }
+        .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.8rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; display: block; }
+        .form-control { border: none; border-bottom: 1px solid #eee; border-radius: 0; font-size: 0.95rem; background: transparent; }
+        .table th { font-size: 0.75rem; text-transform: uppercase; font-weight: 800; border-bottom: 2px solid var(--homeeasy-wine); }
+        .total-section { background-color: #fdfafb; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
+        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 4px; }
+        .is-exporting .no-print { display: none !important; }
+        .hide-row { display: none !important; }
+    </style>
+</head>
+<body>
+<a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
+<div id="area-pdf" class="document-card">
+    <div class="header-brand">
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
+        <div class="empresa-info">
+            <p class="fw-bold mb-2">NIT: 1.061.760.850-1</p>
+            <div><span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26</span><span><i class="fas fa-mobile-alt"></i> 3334319374</span><span><i class="fab fa-instagram"></i> @Homeeasypopayan</span></div>
+        </div>
+    </div>
+    <div class="document-type">Cotización</div>
+    <div class="card-body">
+        <div class="row g-3 mb-5">
+            <div class="col-7"><span class="section-title">Información del Cliente</span><input type="text" id="cliente" class="form-control" placeholder="Nombre completo"></div>
+            <div class="col-5 text-end"><span class="section-title">Fecha</span><input type="date" id="fecha" class="form-control text-end"></div>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Descripción</th><th width="70" class="text-center">Cant.</th><th width="160" class="text-center">Precio Unit.</th><th width="130" class="text-end">Total</th><th width="40" class="no-print"></th></tr></thead>
+                <tbody id="tabla-body">
+                    <tr><td><input type="text" class="form-control" placeholder="Producto/Servicio"></td><td><input type="number" class="form-control text-center cant" value="1" oninput="calcular()"></td><td><input type="text" class="form-control text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcular()"></td><td class="item-total pt-3 fw-bold text-end">$0</td><td class="no-print"></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary no-print mt-2" onclick="agregarFila()">+ Añadir Ítem</button>
+        <div class="row mt-5 pt-4">
+            <div class="col-md-7 mb-4">
+                <span class="section-title">Condiciones Comerciales</span>
+                <div class="text-muted small">
+                    <p class="mb-1">• Instalación: 100% GRATIS incluida.</p>
+                    <p class="mb-1">• Pago: Abono del 50% para producción.</p>
+                    <p class="mb-0">• Vigencia: 5 días calendario.</p>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="total-section text-end">
+                    <p class="mb-1 small text-muted">Subtotal: <span id="sub">$0</span></p>
+                    <p class="mb-1 small text-muted">IVA (19%): <span id="iva">$0</span></p>
+                    <hr><h5 class="fw-bold mb-0" style="color:var(--homeeasy-wine)">TOTAL: <span id="total">$0</span></h5>
+                </div>
+            </div>
+        </div>
+        <div class="mt-5 no-print"><button class="btn btn-homeeasy shadow" onclick="generarPDF()">Descargar Cotización PDF</button></div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    document.getElementById('fecha').valueAsDate = new Date();
+    function formatearMoneda(input) { let valor = input.value.replace(/\D/g, ""); if (valor === "") { input.value = ""; return; } input.value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor); }
+    function calcular() { let granTotal = 0; document.querySelectorAll('#tabla-body tr').forEach(fila => { let c = parseFloat(fila.querySelector('.cant').value) || 0; let p = parseFloat(fila.querySelector('.precio').value.replace(/\D/g, "")) || 0; let totalItem = c * p; fila.querySelector('.item-total').innerText = `$${totalItem.toLocaleString('es-CO')}`; granTotal += totalItem; }); let base = granTotal / 1.19; let impuesto = granTotal - base; document.getElementById('sub').innerText = `$${Math.round(base).toLocaleString('es-CO')}`; document.getElementById('iva').innerText = `$${Math.round(impuesto).toLocaleString('es-CO')}`; document.getElementById('total').innerText = `$${granTotal.toLocaleString('es-CO')}`; }
+    function agregarFila() { let tr = document.createElement('tr'); tr.innerHTML = `<td><input type="text" class="form-control"></td><td><input type="number" class="form-control text-center cant" value="1" oninput="calcular()"></td><td><input type="text" class="form-control text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcular()"></td><td class="item-total pt-3 fw-bold text-end">$0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`; document.getElementById('tabla-body').appendChild(tr); }
+    async function generarPDF() { const { jsPDF } = window.jspdf; const element = document.getElementById('area-pdf'); const filas = document.querySelectorAll('#tabla-body tr'); filas.forEach(fila => { if (!fila.querySelector('td:first-child input').value && !fila.querySelector('.precio').value) fila.classList.add('hide-row'); }); element.classList.add('is-exporting'); try { const canvas = await html2canvas(element, { scale: 3, useCORS: true, windowWidth: 800 }); const imgData = canvas.toDataURL('image/png'); const pdf = new jsPDF('p', 'mm', 'a4'); pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width); pdf.save(`Cotizacion_HomeEasy_${document.getElementById('cliente').value || 'Cliente'}.pdf`); } catch (e) { alert("Error"); } finally { element.classList.remove('is-exporting'); filas.forEach(f => f.classList.remove('hide-row')); } }
+</script>
+</body>
+</html>

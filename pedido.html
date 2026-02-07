@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeEasy | Orden de Pedido</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
+        body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
+        .btn-back { position: fixed; top: 20px; left: 20px; z-index: 1000; background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
+        .document-card { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
+        .header-brand { background-color: var(--homeeasy-wine); padding: 40px 20px 25px 20px; text-align: center; position: relative; }
+        .order-number-badge { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.15); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3); }
+        .logo-only { max-width: 180px; height: auto; display: block; margin: 0 auto 20px auto; }
+        .empresa-info { font-size: 0.85rem; font-weight: 400; color: #ffffff; }
+        .empresa-info span { margin: 0 8px; display: inline-block; }
+        .empresa-info i { color: var(--homeeasy-gold); margin-right: 4px; }
+        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 12px; font-weight: 800; text-transform: uppercase; border-bottom: 1px solid #ddd; }
+        .card-body { padding: 40px 30px; }
+        .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.8rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; display: block; }
+        .form-control { border: none; border-bottom: 1px solid #eee; border-radius: 0; font-size: 0.95rem; background: transparent; }
+        .table th { font-size: 0.75rem; text-transform: uppercase; font-weight: 800; border-bottom: 2px solid var(--homeeasy-wine); }
+        .finance-box { background-color: #fdfafb; border-radius: 8px; padding: 25px; border: 1px solid #eee; border-left: 5px solid var(--homeeasy-wine); }
+        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 5px; }
+        .is-exporting .no-print { display: none !important; }
+        @media (max-width: 600px) { .empresa-info span { display: block; margin: 5px 0; } }
+    </style>
+</head>
+<body>
+<a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
+<div id="area-pdf" class="document-card">
+    <div class="header-brand">
+        <div class="order-number-badge">ORDEN: #<span id="numero-orden-val">001</span></div>
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
+        <div class="empresa-info">
+            <p class="fw-bold mb-2">NIT: 1.061.760.850-1</p>
+            <div><span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26 (Popayán)</span><span><i class="fas fa-mobile-alt"></i> 3334319374</span><span><i class="fab fa-instagram"></i> @Homeeasypopayan</span></div>
+        </div>
+    </div>
+    <div class="document-type">Orden de Pedido</div>
+    <div class="card-body">
+        <span class="section-title">Datos Completos del Cliente</span>
+        <div class="row g-4 mb-5">
+            <div class="col-md-7"><input type="text" id="cliente" class="form-control" placeholder="Nombre Completo / Empresa"></div>
+            <div class="col-md-5"><input type="text" id="cedula" class="form-control" placeholder="Cédula o NIT"></div>
+            <div class="col-md-4"><input type="tel" id="telefono" class="form-control" placeholder="Teléfono / WhatsApp"></div>
+            <div class="col-md-8"><input type="text" id="direccion" class="form-control" placeholder="Dirección de Instalación / Entrega"></div>
+        </div>
+        <span class="section-title">Detalle de Fabricación</span>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Descripción</th><th width="70" class="text-center">Cant.</th><th width="160" class="text-center">Precio Unit.</th><th width="130" class="text-end">Total</th><th width="40" class="no-print"></th></tr></thead>
+                <tbody id="tabla-body">
+                    <tr><td><input type="text" class="form-control" placeholder="Ej: Sheer Elegance Color Gris"></td><td><input type="number" class="form-control text-center cant" value="1" oninput="calcularTodo()"></td><td><input type="text" class="form-control text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcularTodo()"></td><td class="item-total pt-3 fw-bold text-end">$0</td><td class="no-print"></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary no-print mb-5" onclick="agregarNuevaFila()">+ Añadir Producto</button>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <span class="section-title">Finanzas y Entrega</span>
+                <select id="metodo_pago" class="form-control mb-4"><option value="Transferencia">Transferencia Bancaria</option><option value="Efectivo">Efectivo</option><option value="Datafono">Datáfono / Tarjeta</option></select>
+                <textarea class="form-control" rows="2" placeholder="Notas técnicas (Medidas, Color, Lado de mando...)"></textarea>
+                <div class="no-print mt-2 small text-muted text-decoration-underline" onclick="ajustarContador()" style="cursor:pointer">Ajustar número manualmente</div>
+            </div>
+            <div class="col-md-6">
+                <div class="finance-box">
+                    <div class="d-flex justify-content-between mb-2"><span>Total Pedido:</span><span id="total_pedido" class="fw-bold">$0</span></div>
+                    <div class="d-flex justify-content-between align-items-center mb-3"><span>Abono Recibido:</span><input type="text" id="abono" class="form-control text-end fw-bold" style="width: 130px; border-bottom: 2px solid var(--homeeasy-wine);" oninput="formatearMoneda(this); calcularTodo()"></div>
+                    <hr><div class="d-flex justify-content-between fw-bold" style="color:var(--homeeasy-wine)"><span>SALDO PENDIENTE:</span><span id="saldo_pendiente">$0</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-5 text-center fw-bold" style="color:#888; font-size: 0.9rem;">Gracias por confiar en HomeEasy</div>
+        <div class="mt-4 no-print"><button class="btn btn-homeeasy shadow" onclick="descargarYConfirmar()">Descargar y Finalizar Orden</button></div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    let nOrden = parseInt(localStorage.getItem('homeeasy_n_orden')) || 1;
+    document.getElementById('numero-orden-val').innerText = nOrden.toString().padStart(3, '0');
+    function ajustarContador() { let nuevo = prompt("Número de inicio:", nOrden); if (nuevo !== null) { nOrden = parseInt(nuevo); localStorage.setItem('homeeasy_n_orden', nOrden); document.getElementById('numero-orden-val').innerText = nOrden.toString().padStart(3, '0'); } }
+    function aumentarContador() { nOrden++; localStorage.setItem('homeeasy_n_orden', nOrden); document.getElementById('numero-orden-val').innerText = nOrden.toString().padStart(3, '0'); }
+    function formatearMoneda(input) { let valor = input.value.replace(/\D/g, ""); if (valor === "") { input.value = ""; return; } input.value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor); }
+    function calcularTodo() { let totalG = 0; document.querySelectorAll('#tabla-body tr').forEach(fila => { let c = parseFloat(fila.querySelector('.cant').value) || 0; let p = parseFloat(fila.querySelector('.precio').value.replace(/\D/g, "")) || 0; let sub = c * p; fila.querySelector('.item-total').innerText = `$${sub.toLocaleString('es-CO')}`; totalG += sub; }); let abono = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0; document.getElementById('total_pedido').innerText = `$${totalG.toLocaleString('es-CO')}`; document.getElementById('saldo_pendiente').innerText = `$${(totalG - abono).toLocaleString('es-CO')}`; }
+    function agregarNuevaFila() { const tr = document.createElement('tr'); tr.innerHTML = `<td><input type="text" class="form-control"></td><td><input type="number" class="form-control text-center cant" value="1" oninput="calcularTodo()"></td><td><input type="text" class="form-control text-center precio" placeholder="$ 0" oninput="formatearMoneda(this); calcularTodo()"></td><td class="item-total pt-3 fw-bold text-end">$0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcularTodo()">✕</button></td>`; document.getElementById('tabla-body').appendChild(tr); }
+    async function descargarYConfirmar() { if(confirm("¿Descargar PDF e incrementar número?")) { await generarPDF(); aumentarContador(); } }
+    async function generarPDF() { const { jsPDF } = window.jspdf; const element = document.getElementById('area-pdf'); const noPrint = document.querySelectorAll('.no-print'); noPrint.forEach(el => el.style.display = 'none'); try { const canvas = await html2canvas(element, { scale: 3, useCORS: true, windowWidth: 800 }); const imgData = canvas.toDataURL('image/png'); const pdf = new jsPDF('p', 'mm', 'a4'); pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width); pdf.save(`Orden_${nOrden.toString().padStart(3, '0')}_HomeEasy.pdf`); } catch (e) { alert("Error"); } finally { noPrint.forEach(el => el.style.display = 'flex'); } }
+</script>
+</body>
+</html>
