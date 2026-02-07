@@ -13,7 +13,7 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; }
@@ -53,26 +53,28 @@
             color: #333;
             border-left: 6px solid var(--homeeasy-wine);
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            /* ESTO DA EL MOVIMIENTO SUAVE */
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
         }
 
-        /* EFECTO AL PASAR EL MOUSE (HOVER) */
+        /* EFECTO DE MOVIMIENTO (HOVER) */
         @media (hover: hover) {
             .menu-card:hover {
                 transform: translateY(-5px);
-                box-shadow: 0 12px 20px rgba(166, 61, 86, 0.15);
+                box-shadow: 0 12px 20px rgba(0,0,0,0.1);
                 border-left-width: 10px;
-                background-color: #fffafb;
+            }
+            .menu-card:hover .icon-box {
+                transform: rotate(-5deg) scale(1.1);
             }
         }
 
-        /* EFECTO AL TOCAR CON EL DEDO (CELULAR) */
+        /* EFECTO AL TOCAR (CELULAR) */
         .menu-card:active {
             transform: scale(0.96);
-            background-color: #fceef1;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background-color: #f8f9fa;
         }
 
         .icon-box {
@@ -89,13 +91,14 @@
             transition: all 0.3s ease;
         }
 
-        .menu-card:hover .icon-box {
-            transform: rotate(-5deg) scale(1.1);
-        }
-
         .menu-text { text-align: left; }
         .menu-text h3 { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
         .menu-text p { margin: 0; font-size: 0.8rem; color: #666; font-weight: 400; }
+
+        /* ESTILOS DORADOS ESPECÍFICOS */
+        .gold-card { border-left-color: var(--homeeasy-gold) !important; }
+        .gold-card .icon-box { background-color: var(--homeeasy-gold) !important; }
+        .gold-card h3 { color: var(--homeeasy-gold) !important; }
 
         .footer-brand {
             margin-top: 30px;
@@ -112,6 +115,14 @@
 <div class="menu-container">
     <img src="https://i.ibb.co/kVrX85J5/logo.jpg" alt="HomeEasy" class="logo-menu">
 
+    <a href="clientes.html" class="menu-card gold-card">
+        <div class="icon-box"><i class="fas fa-magnifying-glass"></i></div>
+        <div class="menu-text">
+            <h3>Consultar Cliente</h3>
+            <p>Historial y saldos pendientes</p>
+        </div>
+    </a>
+
     <a href="cotizacion.html" class="menu-card">
         <div class="icon-box"><i class="fas fa-file-invoice-dollar"></i></div>
         <div class="menu-text">
@@ -120,8 +131,8 @@
         </div>
     </a>
 
-    <a href="pedido.html" class="menu-card" style="border-left-color: var(--homeeasy-gold);">
-        <div class="icon-box" style="background-color: var(--homeeasy-gold);"><i class="fas fa-clipboard-list"></i></div>
+    <a href="pedido.html" class="menu-card gold-card">
+        <div class="icon-box"><i class="fas fa-clipboard-list"></i></div>
         <div class="menu-text">
             <h3>Orden de Pedido</h3>
             <p>Medidas y fabricación</p>
