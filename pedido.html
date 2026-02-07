@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HomeEasy | Orden de Pedido</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -10,37 +10,42 @@
     <style>
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
-        
-        /* Clase para Mayúsculas Forzadas */
         .text-uppercase-input { text-transform: uppercase; }
-
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
         
-        /* Contenedor Fijo para evitar recorte en PDF */
-        #area-pdf { background-color: white; width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; }
-        
-        @media (max-width: 800px) {
-            body { overflow-x: auto; }
+        /* MEJORA 2: Visualización Móvil Responsive */
+        #area-pdf { 
+            background-color: white; 
+            width: 100%; /* Flexible en móvil */
+            max-width: 800px; /* Pero escala para PDF */
+            margin: auto; 
+            min-height: 100vh; 
+            border: 1px solid #eee; 
+            position: relative; 
         }
 
-        .header-brand { background-color: var(--homeeasy-wine); padding: 20px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
-        .logo-only { max-width: 140px; height: auto; }
+        .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
+        .logo-only { max-width: 120px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
         .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
 
-        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 30px; z-index: 10; }
-        .meta-item { font-size: 0.75rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
+        /* Ajuste de la "píldora" de meta para móviles */
+        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
+        .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
 
-        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 30px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
+        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
         
-        .card-body { padding: 30px 45px; }
+        /* Padding adaptable */
+        .card-body { padding: 30px 20px; }
+        @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
+
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
-        
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
-        .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; }
+        .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
         .form-control-compact:focus { box-shadow: none; border-bottom-color: var(--homeeasy-wine); outline: none; }
 
+        .table-responsive { border: none; }
         .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
         .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
         
@@ -54,7 +59,7 @@
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">ACTUALIZANDO EXCEL...</b></div>
+<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">ACTUALIZANDO EXCEL Y GENERANDO PDF...</b></div>
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf" class="document-card">
@@ -83,22 +88,22 @@
 
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4"><label class="form-label-small">Cédula</label><input type="text" id="cedula" class="form-control-compact" onblur="buscarCliente()"></div>
+            <div class="col-4"><label class="form-label-small">Cédula</label><input type="text" id="cedula" inputmode="numeric" class="form-control-compact" onblur="buscarCliente()"></div>
             <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
-            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" class="form-control-compact"></div>
+            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" inputmode="numeric" class="form-control-compact"></div>
             <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
             <div class="col-12"><label class="form-label-small">Dirección</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
 
         <span class="section-title">Detalle de Fabricación</span>
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="table align-middle" style="min-width: 600px;">
                 <thead><tr><th>Descripción</th><th width="65" class="text-center">Cant.</th><th width="150" class="text-center">V. Unit</th><th width="120" class="text-end">Total</th><th width="35" class="no-print"></th></tr></thead>
                 <tbody id="tabla-body">
                     <tr>
                         <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer elegance gris"></td>
-                        <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
-                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" oninput="formatear(this); calcular()"></td>
+                        <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
+                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
                         <td class="item-total fw-bold text-end">$0</td>
                         <td class="no-print"></td>
                     </tr>
@@ -119,7 +124,7 @@
                     <p class="mb-2 fw-bold">TOTAL: <span id="total_pedido_val">$0</span></p>
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-bold small">ABONO:</span>
-                        <input type="text" id="abono" class="form-control-compact text-end fw-bold" style="width:110px; border-bottom:2px solid var(--homeeasy-wine)" oninput="formatear(this); calcular()">
+                        <input type="text" id="abono" inputmode="numeric" class="form-control-compact text-end fw-bold" style="width:110px; border-bottom:2px solid var(--homeeasy-wine)" oninput="formatear(this); calcular()">
                     </div>
                     <hr class="my-2">
                     <p class="h5 fw-bold mb-0" style="color:var(--homeeasy-wine)">SALDO: <span id="saldo_pendiente_val">$0</span></p>
@@ -176,7 +181,7 @@
 
     function agregarFila() {
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
+        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
         document.getElementById('tabla-body').appendChild(tr);
     }
 
@@ -190,7 +195,7 @@
         document.getElementById('loading').style.display = 'flex';
         let det = ""; 
         document.querySelectorAll('#tabla-body tr').forEach(f => {
-            let d = f.querySelector('.row-desc').value; // AQUÍ NO FORZAMOS MAYÚSCULAS
+            let d = f.querySelector('.row-desc').value;
             if(d) det += `${f.querySelector('.cant').value}x ${d} | `; else f.classList.add('hide-row');
         });
 
@@ -226,6 +231,11 @@
     async function generarPDF(n) {
         const { jsPDF } = window.jspdf;
         const element = document.getElementById('area-pdf');
+        
+        // MEJORA 4: Exportación Profesional (Truco de ancho)
+        const originalWidth = element.style.width;
+        element.style.width = "800px";
+
         document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
 
         const canvas = await html2canvas(element, { scale: 2, useCORS: true, width: 800, windowWidth: 800 });
@@ -236,6 +246,9 @@
 
         pdf.addImage(img, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(`Orden_${n}_HomeEasy.pdf`);
+
+        // Restaurar para visualización móvil
+        element.style.width = originalWidth;
         document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
     }
 </script>
