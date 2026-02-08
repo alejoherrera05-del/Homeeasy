@@ -13,7 +13,7 @@
         .chat-header { background: linear-gradient(135deg, var(--homeeasy-wine) 0%, #8b2d44 100%); padding: 50px 20px 25px 20px; color: white; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; }
         .btn-back { position: absolute; top: 30px; left: 20px; color: white; text-decoration: none; font-size: 1.4rem; }
         .header-avatar { width: 55px; height: 55px; border-radius: 50%; border: 3px solid var(--homeeasy-gold); background: white; object-fit: cover; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-color: #f4f4f4; }
         .msg-container { display: flex; align-items: flex-start; gap: 10px; max-width: 88%; }
         .msg-container.user { align-self: flex-end; flex-direction: row-reverse; }
         .hommy-avatar-chat { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--homeeasy-gold); background: white; }
@@ -42,14 +42,14 @@
     <div class="chat-box" id="chatBox">
         <div class="msg-container">
             <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-            <div class="msg msg-ia">¡¡HOLA, EQUIPO!! ✨ ¡Listo para darles informes de nuestra gestión! ¡VAMOS CON TODA! 🔥</div>
+            <div class="msg msg-ia">¡¡HOLA, EQUIPO!! ✨ ¡Qué alegría saludarlos! Estoy listo y emocionado para conversar. ¡Pregúntenme lo que quieran! 🔥</div>
         </div>
     </div>
 
-    <div id="typing" class="typing">Hommy está analizando los datos... 🤔</div>
+    <div id="typing" class="typing">Hommy está escribiendo... ✍️</div>
 
     <div class="chat-input-area">
-        <input type="text" id="userInput" class="chat-input" placeholder="¿Qué revisamos hoy?">
+        <input type="text" id="userInput" class="chat-input" placeholder="Escríbele a Hommy...">
         <button class="btn-send" onclick="enviarPregunta()"><i class="fas fa-paper-plane"></i></button>
     </div>
 
@@ -57,62 +57,74 @@
         const GEMINI_API_KEY = "AIzaSyDS1f0uzNt_ZLLvSeZQcqYkGoR1dKqZ_38"; 
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec"; 
 
+        // ESTO ES LA MEMORIA DE HOMMY
+        let historialChat = [];
+
         async function enviarPregunta() {
             const input = document.getElementById('userInput');
             const chatBox = document.getElementById('chatBox');
-            const texto = input.value.trim();
-            if(!texto) return;
+            const userMsg = input.value.trim();
+            if(!userMsg) return;
 
-            chatBox.innerHTML += `<div class="msg-container user"><div class="msg msg-user">${texto}</div></div>`;
+            // Mostrar mensaje del usuario
+            chatBox.innerHTML += `<div class="msg-container user"><div class="msg msg-user">${userMsg}</div></div>`;
             input.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
             document.getElementById('typing').style.display = "block";
 
             try {
-                // 1. Obtener la data
+                // 1. Obtener los datos frescos del negocio
                 const responseData = await fetch(`${URL_SCRIPT}?tipo=GET_ALL_DATA`);
-                const dataJson = await responseData.json();
+                const dataText = await responseData.text();
 
-                // 2. Llamar a Gemini con la data ya filtrada
+                // 2. Construir la memoria para Gemini
+                historialChat.push({ role: "user", parts: [{ text: userMsg }] });
+
+                const promptContexto = `Eres Hommy, el asistente oficial de HomeEasy Popayán. 
+                Personalidad: EUFÓRICA, ENÉRGICA, SERVICIAL. 
+                Tu misión: Conversar con el equipo y dar informes de los datos si te los piden.
+                SIEMPRE saluda si te saludan. SIEMPRE sé amable.
+                Aquí tienes los datos actuales por si los necesitas: ${dataText}`;
+
+                // 3. Llamar a Gemini enviando TODO el contexto
                 const responseIA = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `Eres Hommy, asistente oficial de HomeEasy Popayán. Personalidad: EUFÓRICA y SERVICIAL. Data actual del negocio: ${JSON.stringify(dataJson)}. Responde con energía a: "${texto}"`
-                            }]
-                        }]
+                        contents: [
+                            { role: "user", parts: [{ text: promptContexto }] },
+                            ...historialChat
+                        ]
                     })
                 });
 
-                const resJson = await responseIA.json();
+                const jsonIA = await responseIA.json();
                 
-                // VERIFICACIÓN DE RESPUESTA
-                if (resJson.candidates && resJson.candidates[0].content) {
-                    let respuesta = resJson.candidates[0].content.parts[0].text;
-                    respuesta = respuesta.replace(/\n/g, '<br>');
+                if (jsonIA.candidates && jsonIA.candidates[0].content) {
+                    let respuestaHommy = jsonIA.candidates[0].content.parts[0].text;
+                    
+                    // Guardar respuesta en la memoria
+                    historialChat.push({ role: "model", parts: [{ text: respuestaHommy }] });
+
+                    respuestaHommy = respuestaHommy.replace(/\n/g, '<br>');
                     chatBox.innerHTML += `
                         <div class="msg-container">
                             <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-                            <div class="msg msg-ia">${respuesta}</div>
+                            <div class="msg msg-ia">${respuestaHommy}</div>
                         </div>`;
                 } else {
-                    throw new Error("La IA no generó respuesta.");
+                    throw new Error("No hubo respuesta de la IA");
                 }
 
             } catch(e) {
-                console.error("Error completo:", e);
-                chatBox.innerHTML += `
-                    <div class="msg-container">
-                        <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-                        <div class="msg msg-ia">¡¡EQUIPO!! ⚡ Hubo un lío técnico: ${e.message}. ¡Revisen la consola e intenten de nuevo! 🔥</div>
-                    </div>`;
+                console.error(e);
+                chatBox.innerHTML += `<div class="msg-container"><img src="hommy.png" class="hommy-avatar-chat"><div class="msg msg-ia">¡¡EQUIPO!! ⚡ Me distraje un segundo con un cable suelto. ¡Intentémoslo de nuevo!</div></div>`;
             } finally {
                 document.getElementById('typing').style.display = "none";
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
+        
         document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarPregunta(); });
     </script>
 </body>
