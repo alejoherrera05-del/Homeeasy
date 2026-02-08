@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HomeEasy | Hommy IA</title>
+    <title>HomeEasy | Asistente Hommy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,17 +14,17 @@
         .btn-back { position: absolute; top: 30px; left: 20px; color: white; text-decoration: none; font-size: 1.4rem; }
         .header-avatar { width: 55px; height: 55px; border-radius: 50%; border: 3px solid var(--homeeasy-gold); background: white; object-fit: cover; }
         .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-color: #f4f4f4; padding-bottom: 100px; }
-        .msg-container { display: flex; align-items: flex-start; gap: 10px; max-width: 88%; animation: fadeIn 0.3s ease; }
+        .msg-container { display: flex; align-items: flex-start; gap: 10px; max-width: 88%; }
         .msg-container.user { align-self: flex-end; flex-direction: row-reverse; }
         .hommy-avatar-chat { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--homeeasy-gold); background: white; }
         .msg { padding: 14px 18px; border-radius: 20px; font-size: 0.92rem; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .msg-ia { background: white; color: #333; border-bottom-left-radius: 2px; }
-        .msg-user { background: var(--homeeasy-wine); color: white; border-bottom-right-radius: 2px; }
+        .msg-ia { background: white; color: #333; border-bottom-left-radius: 3px; }
+        .msg-user { background: var(--homeeasy-wine); color: white; border-bottom-right-radius: 3px; font-weight: 600; }
         .chat-input-area { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; gap: 12px; border-top: 1px solid #eee; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
-        .chat-input { border: none; background: #f0f2f5; border-radius: 30px; padding: 12px 20px; flex: 1; outline: none; font-size: 16px; }
-        .btn-send { background: var(--homeeasy-gold); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .typing { font-size: 0.8rem; color: var(--homeeasy-wine); font-weight: 700; display: none; margin-left: 50px; padding-bottom: 10px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-input { border: none; background: #f0f2f5; border-radius: 30px; padding: 12px 20px; flex: 1; outline: none; font-weight: 500; }
+        .btn-send { background: var(--homeeasy-gold); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .btn-send:active { transform: scale(0.9); }
+        .typing { font-size: 0.8rem; color: var(--homeeasy-wine); font-weight: 700; display: none; padding: 10px 65px; font-style: italic; }
     </style>
 </head>
 <body>
@@ -34,8 +34,8 @@
         <div class="d-flex align-items-center justify-content-center">
             <img src="hommy.png" class="header-avatar me-3" alt="Hommy">
             <div class="text-start">
-                <h5 class="fw-bold mb-0" style="letter-spacing: 1px;">¡HOLA, SOY HOMMY!</h5>
-                <small style="opacity: 0.9;">TU ASISTENTE</small>
+                <h5 class="fw-bold mb-0">¡HOLA, SOY HOMMY!</h5>
+                <small>TU ASISTENTE</small>
             </div>
         </div>
     </div>
@@ -43,21 +43,20 @@
     <div class="chat-box" id="chatBox">
         <div class="msg-container">
             <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-            <div class="msg msg-ia">¡¡HOLA, EQUIPO!! ✨ ¡Listo para conversar! ¿Qué vamos a revisar hoy de HomeEasy? 🔥</div>
+            <div class="msg msg-ia">¡¡HOLA, EQUIPO!! ✨ ¡Es un gusto saludarlos! Estoy listo y emocionado para darles el informe de nuestra gestión comercial. 🚀 ¡Pregúntenme sobre ventas, clientes o saldos! ¡¡VAMOS CON TODA!! 🔥</div>
         </div>
     </div>
 
-    <div id="typing" class="typing">Hommy está analizando... ✍️</div>
+    <div id="typing" class="typing">Hommy está analizando los datos... 🤔</div>
 
     <div class="chat-input-area">
-        <input type="text" id="userInput" class="chat-input" placeholder="Pregúntale a Hommy...">
+        <input type="text" id="userInput" class="chat-input" placeholder="¿Qué revisamos hoy?">
         <button class="btn-send" onclick="enviarPregunta()"><i class="fas fa-paper-plane"></i></button>
     </div>
 
     <script>
-        // 1. LLAVE Y ENLACE (VERIFICADOS)
-        const API_KEY = "AIzaSyDS1f0uzNt_ZLLvSeZQcqYkGoR1dKqZ_38"; 
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec"; 
+        const API_KEY = "AIzaSyBek8HoNBUimVQKtv3AmJRBDdtWuwHm62A"; 
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec"; 
 
         let historial = []; 
 
@@ -73,42 +72,42 @@
             document.getElementById('typing').style.display = "block";
 
             try {
-                // 2. Obtener datos (Si falla el script, Hommy sigue siendo un chatbot)
-                let dataNegocio = "No se pudieron cargar los datos.";
-                try {
-                    const resData = await fetch(`${SCRIPT_URL}?tipo=GET_ALL_DATA`);
-                    dataNegocio = await resData.text();
-                } catch(e) { console.warn("Script no disponible"); }
+                // 1. Obtener datos frescos del Excel
+                const resData = await fetch(`${URL_SCRIPT}?tipo=GET_ALL_DATA`);
+                const dataJson = await resData.text();
 
-                // 3. EL CAMBIO MAESTRO: URL más compatible
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                // 2. Definir personalidad e información
+                const contexto = `Eres Hommy, el asistente interno de HomeEasy Popayán. Personalidad: EUFÓRICA, ENÉRGICA y MUY SERVICIAL. Dirígete siempre al "Equipo HomeEasy". Tienes acceso a estos datos reales: ${dataJson}. Responde con mucha energía y basándote en ellos si es necesario.`;
+
+                // 3. Llamada a la API (Estructura universal)
+                const urlIA = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
                 const payload = {
                     contents: [
-                        { role: "user", parts: [{ text: `Eres Hommy de HomeEasy Popayán. Eufórico y servicial. Datos: ${dataNegocio}` }] },
-                        { role: "model", parts: [{ text: "¡¡ENTENDIDO!! ¡SOY HOMMY Y ESTOY LISTO!! 🔥" }] },
+                        { role: "user", parts: [{ text: contexto }] },
+                        { role: "model", parts: [{ text: "¡¡ENTENDIDO EQUIPO!! ¡SOY HOMMY Y ESTOY LISTO PARA SERVIRLES!! 🔥✨" }] },
                         ...historial,
                         { role: "user", parts: [{ text: texto }] }
                     ]
                 };
 
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                const response = await fetch(urlIA, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                const resJson = await response.json();
+                const dataIA = await response.json();
 
-                if (resJson.error) {
-                    throw new Error(resJson.error.message);
-                }
+                if (dataIA.error) throw new Error(dataIA.error.message);
 
-                if (resJson.candidates && resJson.candidates[0].content) {
-                    const respuesta = resJson.candidates[0].content.parts[0].text;
+                if (dataIA.candidates && dataIA.candidates[0].content) {
+                    const respuesta = dataIA.candidates[0].content.parts[0].text;
                     
                     historial.push({ role: "user", parts: [{ text: texto }] });
                     historial.push({ role: "model", parts: [{ text: respuesta }] });
+
+                    if (historial.length > 8) historial.splice(0, 2);
 
                     chatBox.innerHTML += `
                         <div class="msg-container">
@@ -116,22 +115,22 @@
                             <div class="msg msg-ia">${respuesta.replace(/\n/g, '<br>')}</div>
                         </div>`;
                 } else {
-                    throw new Error("Respuesta incompleta de Google.");
+                    throw new Error("No se recibió respuesta válida.");
                 }
 
             } catch(e) {
-                console.error("DEBUG:", e);
+                console.error("Error:", e);
                 chatBox.innerHTML += `
                     <div class="msg-container">
-                        <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-                        <div class="msg msg-ia">¡¡EQUIPO!! ⚡ Algo pasó: <b>${e.message}</b>. <br><br> <i>Tip: Revisa si la API Key fue creada en aistudio.google.com</i></div>
+                        <img src="hommy.png" class="hommy-avatar-chat">
+                        <div class="msg msg-ia">¡¡EQUIPO!! ⚡ Algo pasó: <b>${e.message}</b>. <br>¡Refresquen e intenten de nuevo! 🔥</div>
                     </div>`;
             } finally {
                 document.getElementById('typing').style.display = "none";
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
-
+        
         document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarPregunta(); });
     </script>
 </body>
