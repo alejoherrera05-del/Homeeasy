@@ -9,21 +9,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; }
-        body { background-color: #f0f2f5; font-family: 'Montserrat', sans-serif; height: 100vh; display: flex; flex-direction: column; margin: 0; }
-        .chat-header { background: linear-gradient(135deg, var(--homeeasy-wine) 0%, #8b2d44 100%); padding: 50px 20px 25px 20px; color: white; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; }
+        body { background-color: #f0f2f5; font-family: 'Montserrat', sans-serif; height: 100vh; display: flex; flex-direction: column; margin: 0; overflow: hidden; }
+        .chat-header { background: linear-gradient(135deg, var(--homeeasy-wine) 0%, #8b2d44 100%); padding: 50px 20px 25px 20px; color: white; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; z-index: 10; }
         .btn-back { position: absolute; top: 30px; left: 20px; color: white; text-decoration: none; font-size: 1.4rem; }
         .header-avatar { width: 55px; height: 55px; border-radius: 50%; border: 3px solid var(--homeeasy-gold); background: white; object-fit: cover; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-color: #f4f4f4; }
-        .msg-container { display: flex; align-items: flex-start; gap: 10px; max-width: 88%; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-color: #f4f4f4; padding-bottom: 100px; }
+        .msg-container { display: flex; align-items: flex-start; gap: 10px; max-width: 88%; animation: fadeIn 0.3s ease; }
         .msg-container.user { align-self: flex-end; flex-direction: row-reverse; }
         .hommy-avatar-chat { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--homeeasy-gold); background: white; }
         .msg { padding: 14px 18px; border-radius: 20px; font-size: 0.92rem; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .msg-ia { background: white; color: #333; border-bottom-left-radius: 2px; }
-        .msg-user { background: var(--homeeasy-wine); color: white; border-bottom-right-radius: 2px; }
-        .chat-input-area { background: white; padding: 15px; display: flex; gap: 12px; border-top: 1px solid #eee; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
-        .chat-input { border: none; background: #f0f2f5; border-radius: 30px; padding: 12px 20px; flex: 1; outline: none; }
-        .btn-send { background: var(--homeeasy-gold); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; }
-        .typing { font-size: 0.8rem; color: var(--homeeasy-wine); font-weight: 700; display: none; padding: 10px 65px; font-style: italic; }
+        .msg-ia { background: white; color: #333; border-bottom-left-radius: 3px; }
+        .msg-user { background: var(--homeeasy-wine); color: white; border-bottom-right-radius: 3px; }
+        .chat-input-area { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; gap: 12px; border-top: 1px solid #eee; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
+        .chat-input { border: none; background: #f0f2f5; border-radius: 30px; padding: 12px 20px; flex: 1; outline: none; font-size: 16px; }
+        .btn-send { background: var(--homeeasy-gold); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .typing { font-size: 0.8rem; color: var(--homeeasy-wine); font-weight: 700; display: none; margin-left: 50px; padding-bottom: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -42,7 +43,7 @@
     <div class="chat-box" id="chatBox">
         <div class="msg-container">
             <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-            <div class="msg msg-ia">¡¡HOLA, EQUIPO!! ✨ ¡Qué alegría saludarlos! Estoy listo y emocionado para conversar. ¡Pregúntenme lo que quieran! 🔥</div>
+            <div class="msg msg-ia">¡¡HOLA, EQUIPO!! ✨ ¡Estoy listísimo para conversar y trabajar con ustedes! ¿Qué vamos a hacer hoy? ¡¡VAMOS CON TODA!! 🔥</div>
         </div>
     </div>
 
@@ -54,77 +55,84 @@
     </div>
 
     <script>
-        const GEMINI_API_KEY = "AIzaSyDS1f0uzNt_ZLLvSeZQcqYkGoR1dKqZ_38"; 
-        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec"; 
+        // CONFIGURACIÓN
+        const API_KEY = "AIzaSyDS1f0uzNt_ZLLvSeZQcqYkGoR1dKqZ_38"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec"; 
 
-        // ESTO ES LA MEMORIA DE HOMMY
-        let historialChat = [];
+        let historial = []; // Memoria del chat
 
         async function enviarPregunta() {
             const input = document.getElementById('userInput');
             const chatBox = document.getElementById('chatBox');
-            const userMsg = input.value.trim();
-            if(!userMsg) return;
+            const texto = input.value.trim();
+            if(!texto) return;
 
-            // Mostrar mensaje del usuario
-            chatBox.innerHTML += `<div class="msg-container user"><div class="msg msg-user">${userMsg}</div></div>`;
+            // 1. Mostrar mensaje del usuario
+            chatBox.innerHTML += `<div class="msg-container user"><div class="msg msg-user">${texto}</div></div>`;
             input.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
             document.getElementById('typing').style.display = "block";
 
             try {
-                // 1. Obtener los datos frescos del negocio
-                const responseData = await fetch(`${URL_SCRIPT}?tipo=GET_ALL_DATA`);
-                const dataText = await responseData.text();
+                // 2. Traer datos de HomeEasy (Cerebro)
+                const resData = await fetch(`${SCRIPT_URL}?tipo=GET_ALL_DATA`);
+                const dataJson = await resData.json();
 
-                // 2. Construir la memoria para Gemini
-                historialChat.push({ role: "user", parts: [{ text: userMsg }] });
+                // 3. Preparar la "Personalidad y Conocimiento"
+                const instrucciones = `Eres Hommy, el asistente interno oficial de HomeEasy Popayán. 
+                Personalidad: EUFÓRICA, EXTREMADAMENTE ENÉRGICA, SERVICIAL Y ALEGRE. Usa muchos signos de exclamación y emojis.
+                Conocimiento: Eres un experto en decoración y persianas. Además, tienes acceso a los datos reales de nuestra empresa: ${JSON.stringify(dataJson)}.
+                Misión: Responder cualquier duda, saludar amablemente y dar informes si te los piden. ¡Habla como un compañero de equipo!`;
 
-                const promptContexto = `Eres Hommy, el asistente oficial de HomeEasy Popayán. 
-                Personalidad: EUFÓRICA, ENÉRGICA, SERVICIAL. 
-                Tu misión: Conversar con el equipo y dar informes de los datos si te los piden.
-                SIEMPRE saluda si te saludan. SIEMPRE sé amable.
-                Aquí tienes los datos actuales por si los necesitas: ${dataText}`;
+                // 4. Estructurar para Gemini (Formato oficial conversacional)
+                const payload = {
+                    contents: [
+                        { role: "user", parts: [{ text: instrucciones }] },
+                        { role: "model", parts: [{ text: "¡¡ENTENDIDO, EQUIPO!! ¡SOY HOMMY Y ESTOY LISTO PARA DARLO TODO POR HOMEEASY!! 🔥✨" }] },
+                        ...historial,
+                        { role: "user", parts: [{ text: texto }] }
+                    ]
+                };
 
-                // 3. Llamar a Gemini enviando TODO el contexto
-                const responseIA = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                // 5. Llamada a la IA
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [
-                            { role: "user", parts: [{ text: promptContexto }] },
-                            ...historialChat
-                        ]
-                    })
+                    body: JSON.stringify(payload)
                 });
 
-                const jsonIA = await responseIA.json();
+                const dataIA = await response.json();
                 
-                if (jsonIA.candidates && jsonIA.candidates[0].content) {
-                    let respuestaHommy = jsonIA.candidates[0].content.parts[0].text;
+                if (dataIA.candidates && dataIA.candidates[0].content) {
+                    const respuesta = dataIA.candidates[0].content.parts[0].text;
                     
-                    // Guardar respuesta en la memoria
-                    historialChat.push({ role: "model", parts: [{ text: respuestaHommy }] });
+                    // Guardar en historial (Memoria)
+                    historial.push({ role: "user", parts: [{ text: texto }] });
+                    historial.push({ role: "model", parts: [{ text: respuesta }] });
 
-                    respuestaHommy = respuestaHommy.replace(/\n/g, '<br>');
+                    // Mostrar respuesta
                     chatBox.innerHTML += `
                         <div class="msg-container">
                             <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-                            <div class="msg msg-ia">${respuestaHommy}</div>
+                            <div class="msg msg-ia">${respuesta.replace(/\n/g, '<br>')}</div>
                         </div>`;
                 } else {
-                    throw new Error("No hubo respuesta de la IA");
+                    throw new Error("Respuesta vacía");
                 }
 
             } catch(e) {
-                console.error(e);
-                chatBox.innerHTML += `<div class="msg-container"><img src="hommy.png" class="hommy-avatar-chat"><div class="msg msg-ia">¡¡EQUIPO!! ⚡ Me distraje un segundo con un cable suelto. ¡Intentémoslo de nuevo!</div></div>`;
+                console.error("Error:", e);
+                chatBox.innerHTML += `
+                    <div class="msg-container">
+                        <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
+                        <div class="msg msg-ia">¡¡EQUIPO!! ⚡ Me perdí un segundo, pero ya volví. (Error: ${e.message}). ¡Intentémoslo de nuevo con toda! 🔥</div>
+                    </div>`;
             } finally {
                 document.getElementById('typing').style.display = "none";
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
-        
+
         document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarPregunta(); });
     </script>
 </body>
