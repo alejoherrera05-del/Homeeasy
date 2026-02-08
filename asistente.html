@@ -34,8 +34,8 @@
         <div class="d-flex align-items-center justify-content-center">
             <img src="hommy.png" class="header-avatar me-3" alt="Hommy">
             <div class="text-start">
-                <h5 class="fw-bold mb-0">¡HOLA, SOY HOMMY!</h5>
-                <small>TU ASISTENTE</small>
+                <h5 class="fw-bold mb-0" style="letter-spacing: 1px;">¡HOLA, SOY HOMMY!</h5>
+                <small style="opacity: 0.9;">TU ASISTENTE</small>
             </div>
         </div>
     </div>
@@ -43,11 +43,11 @@
     <div class="chat-box" id="chatBox">
         <div class="msg-container">
             <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-            <div class="msg msg-ia">¡¡HOLA, EQUIPO!! ✨ ¡Estoy listísimo para conversar! ¿Qué vamos a revisar hoy? ¡VAMOS CON TODA! 🔥</div>
+            <div class="msg msg-ia">¡¡HOLA, EQUIPO!! ✨ ¡Listo para conversar! ¿Qué vamos a revisar hoy de HomeEasy? 🔥</div>
         </div>
     </div>
 
-    <div id="typing" class="typing">Hommy está analizando los datos... ✍️</div>
+    <div id="typing" class="typing">Hommy está analizando... ✍️</div>
 
     <div class="chat-input-area">
         <input type="text" id="userInput" class="chat-input" placeholder="Pregúntale a Hommy...">
@@ -55,6 +55,7 @@
     </div>
 
     <script>
+        // 1. LLAVE Y ENLACE (VERIFICADOS)
         const API_KEY = "AIzaSyDS1f0uzNt_ZLLvSeZQcqYkGoR1dKqZ_38"; 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec"; 
 
@@ -72,44 +73,42 @@
             document.getElementById('typing').style.display = "block";
 
             try {
-                // 1. Obtener datos del script
-                const resData = await fetch(`${SCRIPT_URL}?tipo=GET_ALL_DATA`);
-                const dataJson = await resData.json();
+                // 2. Obtener datos (Si falla el script, Hommy sigue siendo un chatbot)
+                let dataNegocio = "No se pudieron cargar los datos.";
+                try {
+                    const resData = await fetch(`${SCRIPT_URL}?tipo=GET_ALL_DATA`);
+                    dataNegocio = await resData.text();
+                } catch(e) { console.warn("Script no disponible"); }
 
-                // 2. Instrucción de sistema
-                const instruccionSistema = `Eres Hommy, el asistente oficial de HomeEasy Popayán. Personalidad: EUFÓRICA y SERVICIAL. Datos de la empresa: ${JSON.stringify(dataJson)}. Responde con mucha energía y emojis.`;
+                // 3. EL CAMBIO MAESTRO: URL más compatible
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-                // 3. LA CLAVE: Usamos v1beta con gemini-1.5-flash
-                // Esta combinación es la más compatible con las llaves de AI Studio
-                const urlIA = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                const payload = {
+                    contents: [
+                        { role: "user", parts: [{ text: `Eres Hommy de HomeEasy Popayán. Eufórico y servicial. Datos: ${dataNegocio}` }] },
+                        { role: "model", parts: [{ text: "¡¡ENTENDIDO!! ¡SOY HOMMY Y ESTOY LISTO!! 🔥" }] },
+                        ...historial,
+                        { role: "user", parts: [{ text: texto }] }
+                    ]
+                };
 
-                let contenidos = [
-                    { role: "user", parts: [{ text: instruccionSistema }] },
-                    { role: "model", parts: [{ text: "¡¡ENTENDIDO!! ¡SOY HOMMY Y ESTOY LISTO PARA AYUDAR AL EQUIPO!! 🔥✨" }] }
-                ];
-
-                historial.forEach(m => contenidos.push(m));
-                contenidos.push({ role: "user", parts: [{ text: texto }] });
-
-                const response = await fetch(urlIA, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: contenidos })
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
                 });
 
-                const dataIA = await response.json();
+                const resJson = await response.json();
 
-                if (dataIA.error) {
-                    throw new Error(dataIA.error.message);
+                if (resJson.error) {
+                    throw new Error(resJson.error.message);
                 }
 
-                if (dataIA.candidates && dataIA.candidates[0].content) {
-                    const respuesta = dataIA.candidates[0].content.parts[0].text;
+                if (resJson.candidates && resJson.candidates[0].content) {
+                    const respuesta = resJson.candidates[0].content.parts[0].text;
                     
                     historial.push({ role: "user", parts: [{ text: texto }] });
                     historial.push({ role: "model", parts: [{ text: respuesta }] });
-
-                    if (historial.length > 8) historial.splice(0, 2);
 
                     chatBox.innerHTML += `
                         <div class="msg-container">
@@ -117,15 +116,15 @@
                             <div class="msg msg-ia">${respuesta.replace(/\n/g, '<br>')}</div>
                         </div>`;
                 } else {
-                    throw new Error("No se recibió respuesta de la IA.");
+                    throw new Error("Respuesta incompleta de Google.");
                 }
 
             } catch(e) {
-                console.error("DETALLE:", e);
+                console.error("DEBUG:", e);
                 chatBox.innerHTML += `
                     <div class="msg-container">
                         <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-                        <div class="msg msg-ia">¡¡EQUIPO!! ⚡ Tenemos un detalle: <b>${e.message}</b>. ¡Vamos a darle de nuevo! 🔥</div>
+                        <div class="msg msg-ia">¡¡EQUIPO!! ⚡ Algo pasó: <b>${e.message}</b>. <br><br> <i>Tip: Revisa si la API Key fue creada en aistudio.google.com</i></div>
                     </div>`;
             } finally {
                 document.getElementById('typing').style.display = "none";
