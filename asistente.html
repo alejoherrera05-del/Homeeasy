@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    <div id="typing" class="typing">Hommy está analizando los datos... 🤔</div>
+    <div id="typing" class="typing">Hommy está pensando... 🤔</div>
 
     <div class="chat-input-area">
         <input type="text" id="userInput" class="chat-input" placeholder="¿Qué revisamos hoy?">
@@ -55,10 +55,8 @@
     </div>
 
     <script>
-        const API_KEY = "AIzaSyBek8HoNBUimVQKtv3AmJRBDdtWuwHm62A"; 
-        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec"; 
-
-        let historial = []; 
+        // URL EXACTA DE TU SCRIPT DE GOOGLE (YA CONFIGURADA)
+        const URL_AGENTE = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec"; 
 
         async function enviarPregunta() {
             const input = document.getElementById('userInput');
@@ -66,64 +64,30 @@
             const texto = input.value.trim();
             if(!texto) return;
 
+            // Mostrar lo que tú escribes
             chatBox.innerHTML += `<div class="msg-container user"><div class="msg msg-user">${texto}</div></div>`;
             input.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
             document.getElementById('typing').style.display = "block";
 
             try {
-                // 1. Obtener datos frescos del Excel
-                const resData = await fetch(`${URL_SCRIPT}?tipo=GET_ALL_DATA`);
-                const dataJson = await resData.text();
+                // LLAMADA AL AGENTE (Cerebro en Google Apps Script)
+                const response = await fetch(`${URL_AGENTE}?tipo=CHAT_AGENTE&mensaje=${encodeURIComponent(texto)}`);
+                const respuesta = await response.text();
 
-                // 2. Definir personalidad e información
-                const contexto = `Eres Hommy, el asistente interno de HomeEasy Popayán. Personalidad: EUFÓRICA, ENÉRGICA y MUY SERVICIAL. Dirígete siempre al "Equipo HomeEasy". Tienes acceso a estos datos reales: ${dataJson}. Responde con mucha energía y basándote en ellos si es necesario.`;
-
-                // 3. Llamada a la API (Estructura universal)
-                const urlIA = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-
-                const payload = {
-                    contents: [
-                        { role: "user", parts: [{ text: contexto }] },
-                        { role: "model", parts: [{ text: "¡¡ENTENDIDO EQUIPO!! ¡SOY HOMMY Y ESTOY LISTO PARA SERVIRLES!! 🔥✨" }] },
-                        ...historial,
-                        { role: "user", parts: [{ text: texto }] }
-                    ]
-                };
-
-                const response = await fetch(urlIA, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const dataIA = await response.json();
-
-                if (dataIA.error) throw new Error(dataIA.error.message);
-
-                if (dataIA.candidates && dataIA.candidates[0].content) {
-                    const respuesta = dataIA.candidates[0].content.parts[0].text;
-                    
-                    historial.push({ role: "user", parts: [{ text: texto }] });
-                    historial.push({ role: "model", parts: [{ text: respuesta }] });
-
-                    if (historial.length > 8) historial.splice(0, 2);
-
-                    chatBox.innerHTML += `
-                        <div class="msg-container">
-                            <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-                            <div class="msg msg-ia">${respuesta.replace(/\n/g, '<br>')}</div>
-                        </div>`;
-                } else {
-                    throw new Error("No se recibió respuesta válida.");
-                }
+                // Mostrar respuesta de Hommy
+                chatBox.innerHTML += `
+                    <div class="msg-container">
+                        <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
+                        <div class="msg msg-ia">${respuesta.replace(/\n/g, '<br>')}</div>
+                    </div>`;
 
             } catch(e) {
                 console.error("Error:", e);
                 chatBox.innerHTML += `
                     <div class="msg-container">
                         <img src="hommy.png" class="hommy-avatar-chat">
-                        <div class="msg msg-ia">¡¡EQUIPO!! ⚡ Algo pasó: <b>${e.message}</b>. <br>¡Refresquen e intenten de nuevo! 🔥</div>
+                        <div class="msg msg-ia">¡¡EQUIPO!! ⚡ Me desconecté un segundo del servidor. (Verifica tu conexión a internet) 🔥</div>
                     </div>`;
             } finally {
                 document.getElementById('typing').style.display = "none";
