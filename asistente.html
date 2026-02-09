@@ -10,47 +10,22 @@
     <style>
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; }
         body { background-color: #f0f2f5; font-family: 'Montserrat', sans-serif; height: 100vh; display: flex; flex-direction: column; margin: 0; overflow: hidden; }
-        
-        /* HEADER MEJORADO PARA MÓVIL */
         .chat-header { background: linear-gradient(135deg, var(--homeeasy-wine) 0%, #8b2d44 100%); padding: 50px 20px 25px 20px; color: white; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; z-index: 10; }
-        
-        /* CORRECCIÓN BOTÓN ATRÁS */
-        .btn-back { 
-            position: absolute; 
-            top: 45px; /* Más abajo para evitar la barra de estado del cel */
-            left: 15px; 
-            color: white; 
-            text-decoration: none; 
-            font-size: 1.5rem; 
-            z-index: 1000; /* Asegura que esté encima de todo */
-            padding: 10px; /* Aumenta el área táctil para el dedo */
-            cursor: pointer;
-        }
-
+        .btn-back { position: absolute; top: 45px; left: 15px; color: white; text-decoration: none; font-size: 1.5rem; z-index: 1000; padding: 10px; }
         .header-avatar { width: 55px; height: 55px; border-radius: 50%; border: 3px solid var(--homeeasy-gold); background: white; object-fit: cover; }
         .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-color: #f4f4f4; padding-bottom: 100px; scroll-behavior: smooth; }
-        
-        .msg-container { display: flex; align-items: flex-start; gap: 10px; max-width: 88%; animation: fadeIn 0.3s ease; }
+        .msg-container { display: flex; align-items: flex-start; gap: 10px; max-width: 90%; animation: fadeIn 0.3s ease; }
         .msg-container.user { align-self: flex-end; flex-direction: row-reverse; }
-        
         .hommy-avatar-chat { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--homeeasy-gold); background: white; flex-shrink: 0; }
-        
-        .msg { padding: 14px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .msg { padding: 14px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.05); white-space: pre-wrap; }
         .msg-ia { background: white; color: #333; border-bottom-left-radius: 3px; }
         .msg-user { background: var(--homeeasy-wine); color: white; border-bottom-right-radius: 3px; font-weight: 600; }
-        
-        /* ÁREA DE INPUT FIJA */
         .chat-input-area { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; gap: 12px; border-top: 1px solid #eee; padding-bottom: calc(15px + env(safe-area-inset-bottom)); z-index: 20; }
-        .chat-input { border: none; background: #f0f2f5; border-radius: 30px; padding: 12px 20px; flex: 1; outline: none; font-weight: 500; font-size: 16px; /* Evita zoom en iPhone */ }
-        .btn-send { background: var(--homeeasy-gold); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
-        .btn-send:active { transform: scale(0.9); background: #b8962e; }
-
-        /* ANIMACIÓN DE CARGA (BURBUJA) */
-        .typing-bubble { background: white; padding: 15px 20px; border-radius: 20px; border-bottom-left-radius: 3px; display: flex; gap: 5px; width: fit-content; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .chat-input { border: none; background: #f0f2f5; border-radius: 30px; padding: 12px 20px; flex: 1; outline: none; font-size: 16px; }
+        .btn-send { background: var(--homeeasy-gold); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .typing-bubble { background: white; padding: 15px 20px; border-radius: 20px; display: flex; gap: 5px; width: fit-content; }
         .dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        
+        .dot:nth-child(1) { animation-delay: -0.32s; } .dot:nth-child(2) { animation-delay: -0.16s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -58,8 +33,7 @@
 <body>
 
     <div class="chat-header">
-        <a href="index.html" class="btn-back" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
-        
+        <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
         <div class="d-flex align-items-center justify-content-center">
             <img src="hommy.png" class="header-avatar me-3" alt="Hommy">
             <div class="text-start">
@@ -71,8 +45,8 @@
 
     <div class="chat-box" id="chatBox">
         <div class="msg-container">
-            <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-            <div class="msg msg-ia">Hola. Soy Hommy, tu asistente comercial. Estoy listo para revisar ventas, saldos o resolver dudas operativas.</div>
+            <img src="hommy.png" class="hommy-avatar-chat">
+            <div class="msg msg-ia">Hola, Alejandro. ¿En qué puedo apoyarte hoy con HomeEasy?</div>
         </div>
     </div>
 
@@ -82,8 +56,15 @@
     </div>
 
     <script>
-        // URL NUEVA Y ESTABLE (LA QUE CREASTE)
+        // URL ACTUALIZADA
         const URL_AGENTE = "https://script.google.com/macros/s/AKfycbxnQ3-nPVHBwNcrFe2xlOTLe8EUpVDQWV41Pbx5r6C6Zqm0MXpOvAxfa7otUzQTxdAl/exec"; 
+        
+        // --- GESTIÓN DE MEMORIA (SESSION ID) ---
+        let sessionId = localStorage.getItem('homeeasy_session_id');
+        if (!sessionId) {
+            sessionId = 'sess_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            localStorage.setItem('homeeasy_session_id', sessionId);
+        }
 
         async function enviarPregunta() {
             const input = document.getElementById('userInput');
@@ -91,58 +72,49 @@
             const texto = input.value.trim();
             if(!texto) return;
 
-            // 1. Mostrar mensaje del usuario
             chatBox.innerHTML += `<div class="msg-container user"><div class="msg msg-user">${texto}</div></div>`;
             input.value = "";
-            window.scrollTo(0, document.body.scrollHeight); // Forzar scroll
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // 2. Mostrar BURBUJA DE "ESCRIBIENDO..."
             const loadingId = "loading-" + Date.now();
             chatBox.innerHTML += `
                 <div class="msg-container" id="${loadingId}">
                     <img src="hommy.png" class="hommy-avatar-chat">
-                    <div class="typing-bubble">
-                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                    </div>
+                    <div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                 </div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                // 3. Llamada al Agente
-                const response = await fetch(`${URL_AGENTE}?tipo=CHAT_AGENTE&mensaje=${encodeURIComponent(texto)}`);
+                const urlCompleta = `${URL_AGENTE}?tipo=CHAT_AGENTE&mensaje=${encodeURIComponent(texto)}&sessionId=${sessionId}`;
+                const response = await fetch(urlCompleta);
                 const respuesta = await response.text();
 
-                // 4. Quitar burbuja de carga
-                const loadingElement = document.getElementById(loadingId);
-                if(loadingElement) loadingElement.remove();
+                document.getElementById(loadingId).remove();
 
-                // 5. Mostrar respuesta real
-                chatBox.innerHTML += `
-                    <div class="msg-container">
-                        <img src="hommy.png" class="hommy-avatar-chat" alt="Hommy">
-                        <div class="msg msg-ia">${respuesta.replace(/\n/g, '<br>')}</div>
-                    </div>`;
-
-            } catch(e) {
-                console.error("Error:", e);
-                const loadingElement = document.getElementById(loadingId);
-                if(loadingElement) loadingElement.remove();
-                
                 chatBox.innerHTML += `
                     <div class="msg-container">
                         <img src="hommy.png" class="hommy-avatar-chat">
-                        <div class="msg msg-ia">Sin conexión. Revisa tu internet.</div>
+                        <div class="msg msg-ia">${formatearMarkdown(respuesta)}</div>
                     </div>`;
+
+            } catch(e) {
+                if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="msg-container"><img src="hommy.png" class="hommy-avatar-chat"><div class="msg msg-ia">Error de conexión. Intenta de nuevo.</div></div>`;
             } finally {
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
+
+        // Mejora visual para tablas y formato
+        function formatearMarkdown(texto) {
+            return texto
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>')
+                .replace(/---/g, '<hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">')
+                .replace(/\|/g, '&nbsp;&nbsp;'); // Un poco de espacio para simular tablas si no usamos un parser completo
+        }
         
-        // Permitir envío con Enter
-        document.getElementById('userInput').addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter') enviarPregunta(); 
-        });
+        document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarPregunta(); });
     </script>
 </body>
 </html>
