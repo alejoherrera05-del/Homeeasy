@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>HomeEasy | Asistente Hommy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; }
+        body { background-color: #f0f2f5; font-family: 'Montserrat', sans-serif; height: 100vh; display: flex; flex-direction: column; margin: 0; overflow: hidden; }
+        
+        /* HEADER PREMIUM */
+        .chat-header { background: linear-gradient(135deg, var(--homeeasy-wine) 0%, #8b2d44 100%); padding: 50px 20px 25px 20px; color: white; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; z-index: 10; }
+        .btn-back { position: absolute; top: 45px; left: 15px; color: white; text-decoration: none; font-size: 1.5rem; z-index: 1000; padding: 10px; }
+        
+        /* BOTÓN REINICIAR (Sincronización) */
+        .btn-reset { position: absolute; top: 45px; right: 15px; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 1.2rem; z-index: 1000; padding: 10px; border: none; background: none; }
+
+        .header-avatar { width: 55px; height: 55px; border-radius: 50%; border: 3px solid var(--homeeasy-gold); background: white; object-fit: cover; }
+        
+        /* ÁREA DE CHAT */
+        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-color: #f4f4f4; padding-bottom: 110px; scroll-behavior: smooth; }
+        
+        .msg-container { display: flex; align-items: flex-start; gap: 10px; max-width: 92%; animation: fadeIn 0.3s ease; }
+        .msg-container.user { align-self: flex-end; flex-direction: row-reverse; }
+        
+        .hommy-avatar-chat { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--homeeasy-gold); background: white; flex-shrink: 0; }
+        
+        .msg { padding: 14px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.05); white-space: pre-wrap; word-break: break-word; }
+        .msg-ia { background: white; color: #333; border-bottom-left-radius: 3px; }
+        .msg-user { background: var(--homeeasy-wine); color: white; border-bottom-right-radius: 3px; font-weight: 600; }
+        
+        /* INPUT AREA */
+        .chat-input-area { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; gap: 12px; border-top: 1px solid #eee; padding-bottom: calc(15px + env(safe-area-inset-bottom)); z-index: 20; }
+        .chat-input { border: none; background: #f0f2f5; border-radius: 30px; padding: 12px 20px; flex: 1; outline: none; font-size: 16px; font-weight: 500; }
+        .btn-send { background: var(--homeeasy-gold); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
+        .btn-send:active { transform: scale(0.9); }
+
+        /* CARGA ANIMADA */
+        .typing-bubble { background: white; padding: 15px 20px; border-radius: 20px; display: flex; gap: 5px; width: fit-content; border-bottom-left-radius: 3px; }
+        .dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; } .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="chat-header">
+        <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
+        <button class="btn-reset" onclick="resetearMemoria()" title="Limpiar conversación"><i class="fas fa-sync-alt"></i></button>
+        
+        <div class="d-flex align-items-center justify-content-center">
+            <img src="hommy.png" class="header-avatar me-3" alt="Hommy">
+            <div class="text-start">
+                <h5 class="fw-bold mb-0">HOMMY</h5>
+                <small>ASISTENTE EJECUTIVO v25.1</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-box" id="chatBox">
+        <div class="msg-container">
+            <img src="hommy.png" class="hommy-avatar-chat">
+            <div class="msg msg-ia">Hola, Alejandro o Daniela. Sistema restaurado y seguro. ¿Qué cliente u orden revisamos hoy?</div>
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" id="userInput" class="chat-input" placeholder="Escribe aquí..." autocomplete="off">
+        <button class="btn-send" onclick="enviarPregunta()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <script>
+        // URL LIMPIA (Sin API Key expuesta)
+        const URL_AGENTE = "https://script.google.com/macros/s/AKfycbxnQ3-nPVHBwNcrFe2xlOTLe8EUpVDQWV41Pbx5r6C6Zqm0MXpOvAxfa7otUzQTxdAl/exec"; 
+        
+        let sessionId = localStorage.getItem('homeeasy_session_id');
+        if (!sessionId) {
+            generarNuevoID();
+        }
+
+        function generarNuevoID() {
+            sessionId = 'homeeasy_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            localStorage.setItem('homeeasy_session_id', sessionId);
+        }
+
+        function resetearMemoria() {
+            if(confirm("¿Deseas reiniciar la conversación? Esto borrará el contexto actual de Hommy.")) {
+                localStorage.removeItem('homeeasy_session_id');
+                location.reload();
+            }
+        }
+
+        async function enviarPregunta() {
+            const input = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+            const texto = input.value.trim();
+            if(!texto) return;
+
+            // Mensaje del Jefe
+            chatBox.innerHTML += `<div class="msg-container user"><div class="msg msg-user">${texto}</div></div>`;
+            input.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Burbuja de pensamiento
+            const loadingId = "loading-" + Date.now();
+            chatBox.innerHTML += `
+                <div class="msg-container" id="${loadingId}">
+                    <img src="hommy.png" class="hommy-avatar-chat">
+                    <div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // Petición al cerebro
+                const urlCompleta = `${URL_AGENTE}?tipo=CHAT_AGENTE&mensaje=${encodeURIComponent(texto)}&sessionId=${sessionId}`;
+                const response = await fetch(urlCompleta);
+                const respuestaRaw = await response.text();
+
+                document.getElementById(loadingId).remove();
+
+                // Limpieza de JSON residual por seguridad
+                let respuestaLimpia = respuestaRaw.replace(/\{[\s\S]*?\}/g, "").trim();
+                if (!respuestaLimpia) respuestaLimpia = "He procesado tu solicitud, Jefe.";
+
+                chatBox.innerHTML += `
+                    <div class="msg-container">
+                        <img src="hommy.png" class="hommy-avatar-chat">
+                        <div class="msg msg-ia">${formatearMarkdown(respuestaLimpia)}</div>
+                    </div>`;
+
+            } catch(e) {
+                if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="msg-container"><img src="hommy.png" class="hommy-avatar-chat"><div class="msg msg-ia">⚠️ Error de conexión. Verifica el script.</div></div>`;
+            } finally {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        function formatearMarkdown(texto) {
+            return texto
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+                .replace(/---/g, '<hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">') 
+                .replace(/\n/g, '<br>') 
+                .replace(/•/g, '&bull;') 
+                .replace(/\|/g, '&nbsp;&nbsp;'); 
+        }
+        
+        document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarPregunta(); });
+    </script>
+</body>
+</html>
