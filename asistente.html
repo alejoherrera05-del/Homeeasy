@@ -47,7 +47,7 @@
             <img src="hommy.png" class="header-avatar me-3" alt="Hommy">
             <div class="text-start">
                 <h5 class="fw-bold mb-0">HOMMY</h5>
-                <small>ASISTENTE EJECUTIVO v25.2</small>
+                <small>ASISTENTE EJECUTIVO v26.1</small>
             </div>
         </div>
     </div>
@@ -65,7 +65,8 @@
     </div>
 
     <script>
-        const URL_AGENTE = "https://script.google.com/macros/s/AKfycbxnQ3-nPVHBwNcrFe2xlOTLe8EUpVDQWV41Pbx5r6C6Zqm0MXpOvAxfa7otUzQTxdAl/exec"; 
+        // NUEVA URL ACTUALIZADA
+        const URL_AGENTE = "https://script.google.com/macros/s/AKfycbyzlvlsle6kCGpPWWKNK8x5LSiNflzlBeIFMMaG2K-HnH_xBd2WjBJnAWq7p6qjbDUv/exec"; 
         
         let sessionId = localStorage.getItem('homeeasy_session_id');
         if (!sessionId) { generarNuevoID(); }
@@ -107,11 +108,8 @@
 
                 document.getElementById(loadingId).remove();
 
-                // LÓGICA MEJORADA: Si el script devuelve algo, lo mostramos.
-                // Solo limpiamos si es un JSON de acción exitosa para que no se vea feo.
                 let respuestaLimpia = respuestaRaw.replace(/\{[\s\S]*?\}/g, "").trim();
                 
-                // Si tras limpiar JSON no queda nada pero el raw tiene datos, mostramos el raw (ayuda a ver errores)
                 if (!respuestaLimpia && respuestaRaw) {
                     respuestaLimpia = respuestaRaw;
                 }
@@ -124,7 +122,7 @@
 
             } catch(e) {
                 if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
-                chatBox.innerHTML += `<div class="msg-container"><img src="hommy.png" class="hommy-avatar-chat"><div class="msg msg-ia">⚠️ Error de red: ${e.message}</div></div>`;
+                chatBox.innerHTML += `<div class="msg-container"><img src="hommy.png" class="hommy-avatar-chat"><div class="msg msg-ia">⚠️ Error de red: El servidor no responde. Revisa la implementación del script.</div></div>`;
             } finally {
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
