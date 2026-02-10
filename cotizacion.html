@@ -38,20 +38,24 @@
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin: 20px 0; font-size: 0.95rem; }
         .condiciones-texto { background: #fff; border: 1px solid #eee; padding: 15px; font-size: 0.72rem; color: #555; line-height: 1.5; border-radius: 8px; }
         
-        /* ESTILO DEL PIE DE PÁGINA */
         .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
         .footer-logo { max-width: 80px; opacity: 0.6; margin-bottom: 10px; }
         .footer-creds { font-size: 0.65rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
 
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .no-print { display: flex; }
+        
+        /* Regla para ocultar botones durante la generación del PDF */
+        .is-generating .no-print { display: none !important; }
     </style>
 </head>
 <body>
 
 <div id="loading" class="loading-overlay">
-    <div class="spinner-border text-danger mb-3"></div>
-    <b style="color:var(--homeeasy-wine)">SINCRO Y PDF PROFESIONAL...</b>
+    <div id="loader-content" class="text-center">
+        <div class="spinner-border text-danger mb-3"></div>
+        <br>
+        <b id="status-text" style="color:var(--homeeasy-wine)">SINCRO Y PDF PROFESIONAL...</b>
+    </div>
 </div>
 
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
@@ -67,7 +71,7 @@
             <span><i class="fab fa-instagram"></i> @homeeasypopayan</span>
         </div>
         <div class="order-meta">
-            <div class="meta-item">VALIDEZ: 15 DÍAS</div>
+            <div class="meta-item">COTIZACIÓN N°: <span id="num_cotiz_display">Cargando...</span></div>
             <div class="meta-item">Fecha: <span id="fecha_display"></span></div>
         </div>
     </div>
@@ -138,7 +142,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
     const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-    document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
+    
+    window.onload = async () => {
+        document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
+        // Obtener último número de cotización
+        try {
+            const r = await fetch(`${URL_G}?action=getNextId`);
+            const d = await r.json();
+            document.getElementById('num_cotiz_display').innerText = d.nextId || "---";
+        } catch(e) { document.getElementById('num_cotiz_display').innerText = "ERR"; }
+    };
 
     function formatearYCalcular(i) {
         let v = i.value.replace(/\D/g, "");
@@ -189,8 +202,10 @@
         const areaPdf = document.getElementById('area-pdf');
 
         if(!nomValue || !cedValue) return alert("Cédula y Nombre son obligatorios.");
-        document.getElementById('loading').style.display = 'flex';
         
+        document.getElementById('loading').style.display = 'flex';
+        document.body.classList.add('is-generating'); // Oculta botones para la captura
+
         let descFull = "";
         document.querySelectorAll('#tabla-body tr').forEach(f => {
             let d = f.querySelector('.row-desc').value.trim();
@@ -199,7 +214,11 @@
         });
 
         try {
-            const canvas = await html2canvas(areaPdf, { scale: 2, useCORS: true });
+            const canvas = await html2canvas(areaPdf, { 
+                scale: 2, 
+                useCORS: true,
+                windowHeight: areaPdf.scrollHeight 
+            });
             const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
             pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
@@ -219,11 +238,17 @@
             const result = await response.json();
 
             if (result.status === "success") {
+                // Mensaje de éxito visual
+                document.getElementById('loader-content').innerHTML = `<i class="fas fa-check-circle" style="font-size:3rem; color:#28a745;"></i><br><b style="color:#28a745">¡ÉXITO! GUARDADO COMO N°${result.numero}</b>`;
                 pdf.save(datosSync.nombreArchivo);
-                alert(`¡Éxito! Cotización N°${result.numero} guardada.`);
-                location.reload();
+                setTimeout(() => location.reload(), 2500);
             }
-        } catch(e) { alert("Error al sincronizar."); } finally { document.getElementById('loading').style.display = 'none'; }
+        } catch(e) { 
+            alert("Error al sincronizar."); 
+            document.getElementById('loading').style.display = 'none';
+        } finally { 
+            document.body.classList.remove('is-generating');
+        }
     }
 </script>
 </body>
