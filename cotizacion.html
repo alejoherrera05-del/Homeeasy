@@ -134,7 +134,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    const URL_G = "https://script.google.com/macros/s/AKfycbyo63nozOZH4ciAnLvlwbvmsatG-t5wMDRvtzwAS-NgSv0diBXp-Z3v-A5R3K6E4yU5/exec";
+    const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
     document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
 
     function formatear(i) { let v = i.value.replace(/\D/g, ""); i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : ""; }
