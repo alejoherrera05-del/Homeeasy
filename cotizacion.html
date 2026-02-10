@@ -13,11 +13,10 @@
         .text-uppercase-input { text-transform: uppercase; }
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
         
-        /* MEJORA 2: Visualización Móvil Responsive */
         #area-pdf { 
             background-color: white; 
-            width: 100%; /* Flexible en móvil */
-            max-width: 800px; /* Tamaño máximo A4 */
+            width: 100%; 
+            max-width: 800px; 
             margin: auto; 
             min-height: 100vh; 
             border: 1px solid #eee; 
@@ -30,13 +29,11 @@
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
         .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
         
-        /* Ajuste de la "píldora" de meta para móviles */
         .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
         .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
         
-        /* Padding adaptable */
         .card-body { padding: 30px 20px; }
         @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
 
@@ -44,7 +41,6 @@
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
         .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
 
-        /* Scroll horizontal solo para la tabla en móviles */
         .table-responsive { border: none; }
         .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
         .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
@@ -87,7 +83,7 @@
             <div class="col-8"><label class="form-label-small">Nombre / Empresa</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
             <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" inputmode="numeric" class="form-control-compact"></div>
             <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
-            <div class="col-12"><label class="form-label-small">Dirección de Obra</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
+            <div class="col-12"><label class="form-label-small">Dirección</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
 
         <span class="section-title">Propuesta Comercial</span>
@@ -138,31 +134,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    const URL_G = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec";
+    const URL_G = "https://script.google.com/macros/s/AKfycbyo63nozOZH4ciAnLvlwbvmsatG-t5wMDRvtzwAS-NgSv0diBXp-Z3v-A5R3K6E4yU5/exec";
     document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-
-    function limpiarCampos() {
-        document.getElementById('nombre').value = "";
-        document.getElementById('telefono').value = "";
-        document.getElementById('email').value = "";
-        document.getElementById('direccion').value = "";
-    }
-
-    async function buscarCliente() {
-        let ced = document.getElementById('cedula').value.trim();
-        if(ced === "") { limpiarCampos(); return; }
-        if(ced.length < 4) return;
-        try {
-            const r = await fetch(`${URL_G}?cedula=${ced}`);
-            const d = await r.json();
-            if(d.status === "found") {
-                document.getElementById('nombre').value = d.nombre;
-                document.getElementById('telefono').value = d.telefono;
-                document.getElementById('email').value = d.email || "";
-                document.getElementById('direccion').value = d.direccion;
-            } else { limpiarCampos(); }
-        } catch(e) { console.error("Error buscando cliente:", e); }
-    }
 
     function formatear(i) { let v = i.value.replace(/\D/g, ""); i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : ""; }
     
@@ -185,9 +158,23 @@
         document.getElementById('tabla-body').appendChild(tr);
     }
 
+    async function buscarCliente() {
+        let ced = document.getElementById('cedula').value.trim();
+        if(!ced || ced.length < 4) return;
+        try {
+            const r = await fetch(`${URL_G}?cedula=${ced}`);
+            const d = await r.json();
+            if(d.status === "found") {
+                document.getElementById('nombre').value = d.nombre;
+                document.getElementById('telefono').value = d.telefono;
+                document.getElementById('email').value = d.email || "";
+                document.getElementById('direccion').value = d.direccion;
+            }
+        } catch(e) { console.error("Error buscando cliente:", e); }
+    }
+
     async function finalizarCotizacion() {
-        const nomInput = document.getElementById('nombre');
-        const nomValue = nomInput.value.trim().toUpperCase();
+        const nomValue = document.getElementById('nombre').value.trim().toUpperCase();
         const cedValue = document.getElementById('cedula').value.trim();
         const areaPdf = document.getElementById('area-pdf');
 
@@ -195,49 +182,46 @@
 
         document.getElementById('loading').style.display = 'flex';
         
-        const datosSync = {
-            tipo: "COTIZACION",
-            cedula: cedValue,
-            nombre: nomValue,
-            telefono: document.getElementById('telefono').value,
-            email: document.getElementById('email').value.toLowerCase(),
-            direccion: document.getElementById('direccion').value.toUpperCase()
-        };
+        // CONSTRUIR DESCRIPCIÓN CONSOLIDADA
+        let descFull = "";
+        document.querySelectorAll('#tabla-body tr').forEach(f => {
+            let d = f.querySelector('.row-desc').value.trim();
+            let c = f.querySelector('.cant').value;
+            if(d) descFull += `${c} x ${d} / `;
+        });
 
         try {
-            await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosSync) });
-            
-            // --- MEJORA 4: Exportación Profesional ---
-            // Guardamos el ancho original y forzamos 800px para el PDF
-            const originalWidth = areaPdf.style.width;
-            areaPdf.style.width = "800px";
-
-            document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
-            
-            document.querySelectorAll('#tabla-body tr').forEach(f => {
-                const desc = f.querySelector('.row-desc').value.trim();
-                const totalText = f.querySelector('.item-total').innerText;
-                if(!desc && totalText === "$0") f.classList.add('hide-row');
-            });
-
-            nomInput.value = nomValue;
-
-            const canvas = await html2canvas(areaPdf, { scale: 2, useCORS: true, width: 800 });
-            const img = canvas.toDataURL('image/png');
+            // GENERAR PDF EN BASE64
+            const canvas = await html2canvas(areaPdf, { scale: 2, useCORS: true });
             const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            pdf.addImage(img, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save(`Cotizacion_HomeEasy_${nomValue}.pdf`);
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+            const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            // Restauramos el ancho móvil
-            areaPdf.style.width = originalWidth;
+            const datosSync = {
+                cedula: cedValue,
+                nombre: nomValue,
+                telefono: document.getElementById('telefono').value,
+                email: document.getElementById('email').value.toLowerCase(),
+                direccion: document.getElementById('direccion').value.toUpperCase(),
+                descripcion: descFull,
+                total: document.getElementById('total_val').innerText.replace(/\D/g, ""),
+                pdfBase64: pdfBase64,
+                nombreArchivo: `Cotizacion_${cedValue}_${nomValue.replace(/ /g, "_")}.pdf`
+            };
+
+            const response = await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosSync) });
+            const result = await response.json();
+
+            if(result.status === "success") {
+                alert(`¡Éxito! Cotización N°${result.numero} guardada en Drive y Excel.`);
+                location.reload();
+            }
 
         } catch(e) {
-            alert("Error procesando los datos.");
+            console.error(e);
+            alert("Error al sincronizar. Revisa la conexión.");
         } finally {
             document.getElementById('loading').style.display = 'none';
-            document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
-            document.querySelectorAll('.hide-row').forEach(f => f.classList.remove('hide-row'));
-            location.reload();
         }
     }
 </script>
