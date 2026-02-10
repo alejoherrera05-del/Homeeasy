@@ -209,8 +209,14 @@
                 nombreArchivo: `Cotizacion_${cedValue}_${nomValue.replace(/ /g, "_")}.pdf`
             };
 
-            const response = await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosSync) });
-            const result = await response.json();
+            const response = await fetch(URL_G, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(datosSync)
+});
+
 
             if(result.status === "success") {
                 alert(`¡Éxito! Cotización N°${result.numero} guardada en Drive y Excel.`);
