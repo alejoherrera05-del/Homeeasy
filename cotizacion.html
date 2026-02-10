@@ -209,7 +209,8 @@
                 nombreArchivo: `Cotizacion_${cedValue}_${nomValue.replace(/ /g, "_")}.pdf`
             };
 
-            const response = await fetch(URL_G, {
+            const response = await fetch(https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec
+, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -217,11 +218,13 @@
   body: JSON.stringify(datosSync)
 });
 
+const result = await response.json();
 
-            if(result.status === "success") {
-                alert(`¡Éxito! Cotización N°${result.numero} guardada en Drive y Excel.`);
-                location.reload();
-            }
+if (result.status === "success") {
+  alert(`¡Éxito! Cotización N°${result.numero} guardada en Drive y Excel.`);
+  location.reload();
+}
+
 
         } catch(e) {
             console.error(e);
