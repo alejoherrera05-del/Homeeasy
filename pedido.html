@@ -216,19 +216,18 @@
         document.getElementById('loading').style.display = 'flex';
 
         try {
-            const response = await fetch(URL_G, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    tipo: "pedido",
-                    cedula: cedula,
-                    nombre: nombre,
-                    descripcion: descripcion,
-                    observaciones: observaciones,
-                    valorTotal: total,
-                    abonoInicial: abonoInicial
-                })
-            });
+            fetch(URL_G, {
+  method: "POST",
+  body: JSON.stringify({
+    tipo: "pedido",
+    cedula: cedula,
+    nombre: nombre,
+    descripcion: descripcion,
+    observaciones: observaciones,
+    valorTotal: total,
+    abonoInicial: abonoInicial
+  })
+});
 
             const json = await response.json();
 
@@ -248,5 +247,6 @@
 </script>
 </body>
 </html>
+
 
 
