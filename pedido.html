@@ -145,10 +145,14 @@
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-        // Obtener siguiente número de pedido
+        // REEMPLAZO DEL BLOQUE SOLICITADO PARA EL NÚMERO DE PEDIDO
         fetch(`${URL_G}?nextPedido=1`)
             .then(r => r.json())
-            .then(d => { document.getElementById("n_orden_display").innerText = d.nextPedido || "001"; })
+            .then(d => { 
+                if(d.status === "ok") {
+                    document.getElementById("n_orden_display").innerText = d.nextPedido || "001"; 
+                }
+            })
             .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
     };
 
@@ -219,12 +223,9 @@
         document.getElementById('loading').style.display = 'flex';
 
         try {
-            // CORRECCIÓN CRÍTICA: Cambiado a método POST con Content-Type correcto
             const response = await fetch(URL_G, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8" // Usamos text/plain para evitar errores de CORS en Apps Script
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     tipo: "pedido",
                     cedula: cedula,
@@ -243,11 +244,11 @@
                 location.reload();
             } else {
                 alert("Error: " + (json.msg || "No se pudo crear la orden"));
-                document.getElementById('loading').style.display = 'none';
             }
 
         } catch (err) {
             alert("Error de conexión: " + err.message);
+        } finally {
             document.getElementById('loading').style.display = 'none';
         }
     }
