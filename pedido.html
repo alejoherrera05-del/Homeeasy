@@ -216,37 +216,38 @@
         document.getElementById('loading').style.display = 'flex';
 
         try {
-            fetch(URL_G, {
-  method: "POST",
-  body: JSON.stringify({
-    tipo: "pedido",
-    cedula: cedula,
-    nombre: nombre,
-    descripcion: descripcion,
-    observaciones: observaciones,
-    valorTotal: total,
-    abonoInicial: abonoInicial
-  })
-});
+    const response = await fetch(URL_G, {
+        method: "POST",
+        body: JSON.stringify({
+            tipo: "pedido",
+            cedula: cedula,
+            nombre: nombre,
+            descripcion: descripcion,
+            observaciones: observaciones,
+            valorTotal: total,
+            abonoInicial: abonoInicial
+        })
+    });
 
-            const json = await response.json();
+    const json = await response.json();
 
-            if (json.status === "success") {
-                alert(`Orden N° ${json.numero_op} creada (${json.estado})`);
-                location.reload();
-            } else {
-                alert("Error: " + (json.msg || "No se pudo crear la orden"));
-            }
-
-        } catch (err) {
-            alert("Error de conexión: " + err.message);
-        } finally {
-            document.getElementById('loading').style.display = 'none';
-        }
+    if (json.status === "success") {
+        alert(`Orden N° ${json.numero_op} creada (${json.estado})`);
+        location.reload();
+    } else {
+        alert("Error: " + (json.msg || "No se pudo crear la orden"));
     }
+
+} catch (err) {
+    alert("Error de conexión: " + err.message);
+} finally {
+    document.getElementById('loading').style.display = 'none';
+}
+
 </script>
 </body>
 </html>
+
 
 
 
