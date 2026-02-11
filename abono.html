@@ -8,36 +8,67 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
+        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-green: #28a745; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
-        .text-uppercase-input { text-transform: uppercase; }
+        
+        /* Prevenir Zoom en iPhone */
+        input, select, textarea { font-size: 16px !important; }
+
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
         
-        #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; display: flex; flex-direction: column; }
-        .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
+        #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+        
+        /* ENCABEZADO COMPLETO RESTAURADO */
+        .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; display: flex; align-items: center; justify-content: space-between; position: relative; }
         .logo-only { max-width: 120px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
         .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
 
-        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
+        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
         .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
 
-        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
-        .card-body { padding: 30px 20px; flex-grow: 1; }
-        @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
-
-        .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
-        .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
-        .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
-
-        .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
-        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
+        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #ddd; }
         
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .pdf-footer { background-color: var(--homeeasy-silver); padding: 15px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
-        .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 5px; filter: grayscale(100%); }
+        /* CUERPO ESTERILIZADO */
+        .card-body { padding: 40px 50px; flex-grow: 1; }
+        
+        .form-section { margin-bottom: 30px; }
+        .label-modern { font-size: 0.7rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+        
+        /* Inputs modernos */
+        .input-op-box { border: 2px solid #eee; border-radius: 10px; padding: 12px 15px; width: 100%; font-weight: 700; transition: all 0.3s; }
+        .input-op-box:focus { border-color: var(--homeeasy-wine); outline: none; }
+
+        .input-readonly { background-color: #f2f2f2; border: 1px solid #e0e0e0; color: #666; border-radius: 10px; padding: 12px 15px; font-weight: 600; width: 100%; cursor: not-allowed; text-transform: uppercase; }
+
+        /* Abono en VERDE */
+        .input-pago-verde { border: 2px solid #eee; border-radius: 10px; padding: 15px; font-size: 1.8rem; font-weight: 800; color: var(--homeeasy-green); text-align: center; width: 100%; transition: all 0.3s; }
+        .input-pago-verde:focus { border-color: var(--homeeasy-green); outline: none; }
+        
+        .select-modern { border: 2px solid #eee; border-radius: 10px; padding: 12px; width: 100%; background: #fff; font-weight: 600; }
+
+        /* PAZ Y SALVO */
+        #paz-salvo-banner { 
+            display: none; width: 100%; text-align: center; padding: 12px; 
+            background: #e8f5e9; color: #2e7d32; font-weight: 800; 
+            font-size: 0.9rem; letter-spacing: 8px; border-radius: 8px; 
+            margin-bottom: 30px; border: 2px solid #2e7d32;
+        }
+
+        /* SALDO CENTRALIZADO */
+        .saldo-final-container { margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 30px; }
+        .saldo-final-label { font-size: 0.8rem; font-weight: 800; color: #bbb; text-transform: uppercase; letter-spacing: 2px; }
+        .saldo-final-valor { font-size: 2.2rem; font-weight: 900; color: var(--homeeasy-wine); display: block; margin-top: 5px; }
+
+        .btn-sync { background: var(--homeeasy-wine); color: #fff; border: none; padding: 20px; width: 100%; border-radius: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-top: 30px; box-shadow: 0 10px 20px rgba(166, 61, 86, 0.15); }
+
+        /* PIE DE PÁGINA SAGRADO RESTAURADO */
+        .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
+        .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 10px; filter: grayscale(100%); }
         .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -45,11 +76,8 @@
 <body>
 
 <div id="loading" class="loading-overlay">
-    <div id="loader-content" class="text-center">
-        <div id="spinner" class="spinner-border text-danger mb-3"></div>
-        <br>
-        <b id="status-text" style="color:var(--homeeasy-wine)">GENERANDO RECIBO Y SINCRONIZANDO...</b>
-    </div>
+    <div class="spinner-border text-danger mb-3"></div>
+    <b style="color:var(--homeeasy-wine); letter-spacing: 2px; text-transform: uppercase;">Sincronizando Abono...</b>
 </div>
 
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
@@ -66,36 +94,40 @@
         </div>
         <div class="order-meta">
             <div class="meta-item">RECIBO N°: <span id="n_recibo_display">...</span></div>
-            <div class="meta-item">Fecha: <span id="fecha_display"></span></div>
+            <div class="meta-item">FECHA: <span id="fecha_header_display">...</span></div>
         </div>
     </div>
     
-    <div class="document-type">RECIBO DE ABONO</div>
+    <div class="document-type">Comprobante de Ingreso</div>
     
     <div class="card-body">
-        <span class="section-title">Información de la Orden</span>
-        <div class="row g-3 mb-4">
-            <div class="col-4">
-                <label class="form-label-small">Número de OP</label>
-                <input type="text" id="numeroOP" inputmode="numeric" pattern="[0-9]*" class="form-control-compact fw-bold" onblur="buscarOrden()">
+        <div id="paz-salvo-banner">PAZ Y SALVO</div>
+
+        <div class="row g-4 form-section">
+            <div class="col-6">
+                <label class="label-modern">Fecha del Recibo</label>
+                <input type="text" id="fecha_cuerpo_display" class="input-readonly" readonly>
             </div>
-            <div class="col-8">
-                <label class="form-label-small">Cliente</label>
-                <input type="text" id="nombre" class="form-control-compact text-uppercase-input" readonly placeholder="Busque una OP válida...">
+            <div class="col-6">
+                <label class="label-modern">Localizar N° OP</label>
+                <input type="text" id="numeroOP" class="input-op-box" placeholder="Ej: 125" inputmode="numeric" onblur="buscarOrden()">
+            </div>
+            <div class="col-12">
+                <label class="label-modern">Nombre del Cliente</label>
+                <input type="text" id="nombre" class="input-readonly" readonly placeholder="Esperando número de orden...">
                 <input type="hidden" id="cedula">
             </div>
         </div>
 
-        <span class="section-title">Detalle del Pago</span>
-        <div class="row g-3 mb-4">
-            <div class="col-6">
-                <label class="form-label-small">Valor del Abono</label>
-                <input type="text" id="valorAbono" inputmode="numeric" pattern="[0-9]*" class="form-control-compact fw-bold" style="color: var(--homeeasy-wine)" oninput="formatear(this); calcularSaldo()">
+        <div class="row g-4 form-section">
+            <div class="col-7">
+                <label class="label-modern">Valor Recibido (Abono)</label>
+                <input type="text" id="valorAbono" class="input-pago-verde" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcularSaldo()">
             </div>
-            <div class="col-6">
-                <label class="form-label-small">Medio de Pago</label>
-                <select id="medioPago" class="form-control-compact">
-                    <option value="">Seleccione...</option>
+            <div class="col-5">
+                <label class="label-modern">Medio de Pago</label>
+                <select id="medioPago" class="select-modern">
+                    <option value="">Seleccionar...</option>
                     <option value="EFECTIVO">EFECTIVO</option>
                     <option value="TRANSFERENCIA">TRANSFERENCIA</option>
                     <option value="TARJETA">TARJETA</option>
@@ -103,18 +135,21 @@
             </div>
         </div>
 
-        <div class="finance-box text-end">
-            <p class="mb-1 small text-muted">Saldo Anterior: <span id="saldo_anterior_val">$ 0</span></p>
-            <p class="h5 fw-bold mb-0" style="color:var(--homeeasy-wine)">NUEVO SALDO: <span id="nuevo_saldo_val">$ 0</span></p>
+        <div class="saldo-final-container">
+            <span class="saldo-final-label">Nuevo Saldo Pendiente</span>
+            <span id="nuevo_saldo_val" class="saldo-final-valor">$ 0</span>
+            <div style="font-size: 0.65rem; color: #ccc; margin-top: 10px; text-transform: uppercase;">
+                Saldo anterior: <span id="saldo_anterior_val">$ 0</span>
+            </div>
         </div>
 
-        <button class="btn btn-homeeasy no-print shadow" onclick="finalizarAbono()">Generar Recibo y Sincronizar</button>
+        <button class="btn-sync no-print" onclick="finalizarAbono()">Confirmar y Sincronizar</button>
     </div>
 
     <div class="pdf-footer">
         <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo">
-        <div class="footer-creds">HomeEasy Popayán - Recibo Oficial de Caja</div>
-        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Este documento es soporte oficial de pago parcial de su pedido.</div>
+        <div class="footer-creds">HomeEasy Popayán - Expertos en Decoración</div>
+        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema HomeEasy</div>
     </div>
 </div>
 
@@ -123,28 +158,21 @@
     let saldoBase = 0;
 
     window.onload = () => {
-        document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-        // 3. Seguridad visual del número de recibo
-        fetch(`${URL_G}?nextRecibo=1`)
-            .then(r => r.json())
-            .then(d => { 
-                if(d.status === "ok") {
-                    document.getElementById("n_recibo_display").innerText = d.nextRecibo; 
-                } else {
-                    document.getElementById("n_recibo_display").innerText = "ERR";
-                }
-            })
-            .catch(() => document.getElementById("n_recibo_display").innerText = "ERR");
+        const fechaHoy = new Date().toLocaleDateString('es-CO');
+        document.getElementById('fecha_header_display').innerText = fechaHoy;
+        document.getElementById('fecha_cuerpo_display').value = fechaHoy;
+        
+        fetch(`${URL_G}?nextRecibo=1`).then(r => r.json()).then(d => { 
+            if(d.status === "ok") document.getElementById("n_recibo_display").innerText = d.nextRecibo; 
+        });
     };
 
     async function buscarOrden() {
         let numero = document.getElementById('numeroOP').value.trim();
         if(!numero) return;
-        
         try {
             const r = await fetch(`${URL_G}?buscarOP=${numero}`);
             const d = await r.json();
-            
             if(d.status === "found") {
                 document.getElementById('nombre').value = d.nombre.toUpperCase();
                 document.getElementById('cedula').value = d.cedula;
@@ -152,12 +180,7 @@
                 document.getElementById('saldo_anterior_val').innerText = `$ ${saldoBase.toLocaleString('es-CO')}`;
                 calcularSaldo();
             } else {
-                alert("Orden de pedido no encontrada.");
-                document.getElementById('nombre').value = "";
-                document.getElementById('cedula').value = "";
-                saldoBase = 0;
-                document.getElementById('saldo_anterior_val').innerText = "$ 0";
-                document.getElementById('nuevo_saldo_val').innerText = "$ 0";
+                alert("Orden no encontrada.");
             }
         } catch(e) { console.error(e); }
     }
@@ -171,28 +194,20 @@
         let abono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
         let nuevoSaldo = saldoBase - abono;
         document.getElementById('nuevo_saldo_val').innerText = `$ ${nuevoSaldo.toLocaleString('es-CO')}`;
+        
+        const banner = document.getElementById('paz-salvo-banner');
+        banner.style.display = (nuevoSaldo <= 0 && saldoBase > 0) ? 'block' : 'none';
     }
 
     async function finalizarAbono() {
-        const numOP = document.getElementById('numeroOP').value.trim();
-        const nom = document.getElementById('nombre').value;
         const ced = document.getElementById('cedula').value;
         const valAbono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
         const mPago = document.getElementById('medioPago').value;
-        const nRecibo = document.getElementById('n_recibo_display').innerText;
+        const nRecibo = document.getElementById("n_recibo_display").innerText;
 
-        // 1. Falta validar que la orden realmente esté cargada
-        if(!ced) return alert("Primero busque una Orden de Pedido válida.");
-
-        // 8. Validación básica obligatoria
-        if(!numOP || valAbono <= 0 || !mPago) {
-            return alert("Por favor complete: Número de OP, Valor del Abono y Medio de Pago.");
-        }
-
-        // 2. Protección contra saldo negativo
-        if (valAbono > saldoBase) {
-            return alert(`El abono ($${valAbono.toLocaleString()}) no puede ser mayor al saldo pendiente ($${saldoBase.toLocaleString()}).`);
-        }
+        if(!ced) return alert("Primero busque una Orden válida.");
+        if(valAbono <= 0 || !mPago) return alert("Complete los datos del abono.");
+        if(valAbono > saldoBase) return alert("El abono no puede ser mayor al saldo pendiente.");
 
         document.getElementById('loading').style.display = 'flex';
 
@@ -200,16 +215,16 @@
             const { jsPDF } = window.jspdf;
             const element = document.getElementById("area-pdf");
             
-            // 4. Refinamiento profesional de visibilidad de botones
+            // Refinamiento de visibilidad para PDF (incluye data-originalDisplay)
             const btns = document.querySelectorAll('.no-print, button, .btn');
             btns.forEach(b => {
                 b.dataset.originalDisplay = b.style.display;
                 b.style.display = 'none';
             });
 
+            // Captura forzada a 800px para centrar en iPhone
             const canvas = await html2canvas(element, { scale: 2, useCORS: true, width: 800 });
             
-            // Restaurar botones usando su estado original
             btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
 
             const imgData = canvas.toDataURL("image/png");
@@ -219,15 +234,15 @@
             pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
             const pdfBase64 = pdf.output("datauristring").split(',')[1];
-            const nombreArchivo = `Recibo_${nRecibo}_OP${numOP}_${nom.replace(/ /g,"_")}.pdf`;
+            const nombreArchivo = `Recibo_${nRecibo}_OP${document.getElementById('numeroOP').value.trim()}.pdf`;
 
             const response = await fetch(URL_G, {
                 method: "POST",
                 body: JSON.stringify({
                     tipo: "abono",
-                    numeroOP: numOP,
+                    numeroOP: document.getElementById('numeroOP').value.trim(),
                     cedula: ced,
-                    nombre: nom,
+                    nombre: document.getElementById('nombre').value,
                     valorAbono: valAbono,
                     medioPago: mPago,
                     pdfBase64: pdfBase64,
@@ -236,23 +251,14 @@
             });
 
             const json = await response.json();
-
             if (json.status === "success") {
                 pdf.save(nombreArchivo); 
                 window.open(json.url, "_blank");
                 alert("Abono registrado con éxito.");
-                // 5. Micro mejora opcional: esperar antes del reload
                 setTimeout(() => location.reload(), 500);
-            } else {
-                alert("Error: " + (json.msg || "No se pudo registrar el abono"));
             }
-
-        } catch (err) {
-            alert("Error de conexión: " + err.message);
-        } finally {
-            document.getElementById('loading').style.display = 'none';
-        }
+        } catch (err) { alert("Error: " + err.message); } finally { document.getElementById('loading').style.display = 'none'; }
     }
 </script>
 </body>
-</html>
+</html
