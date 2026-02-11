@@ -38,12 +38,11 @@
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .is-generating .no-print { display: none !important; }
         
-        /* Estilos del Pie de Página */
-        .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
-        .footer-logo { max-width: 80px; opacity: 0.6; margin-bottom: 10px; }
-        .footer-creds { font-size: 0.65rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        /* Ajuste del Pie de Página para que no se vea gigante */
+        .pdf-footer { background-color: var(--homeeasy-silver); padding: 15px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
+        .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 5px; filter: grayscale(100%); }
+        .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -51,7 +50,6 @@
 <div id="loading" class="loading-overlay">
     <div id="loader-content" class="text-center">
         <div id="spinner" class="spinner-border text-danger mb-3"></div>
-        <i id="success-icon" class="fas fa-check-circle" style="display:none; font-size:3rem; color:#28a745; margin-bottom: 15px;"></i>
         <br>
         <b id="status-text" style="color:var(--homeeasy-wine)">SINCRONIZANDO ORDEN EN EXCEL...</b>
     </div>
@@ -106,7 +104,7 @@
 
         <div class="mb-4">
             <label class="form-label-small">Observaciones de Fabricación</label>
-            <textarea id="notas" class="form-control-compact text-uppercase-input" style="height: 50px; min-height: 50px;" placeholder="Detalles de medidas o accesorios..."></textarea>
+            <textarea id="notas" class="form-control-compact" style="height: 50px; min-height: 50px;" placeholder="Detalles de medidas o accesorios..."></textarea>
         </div>
 
         <div class="row g-4">
@@ -136,7 +134,7 @@
     </div>
 
     <div class="pdf-footer">
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo" style="filter: grayscale(100%);">
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo">
         <div class="footer-creds">HomeEasy Popayán - Expertos en Decoración</div>
         <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema HomeEasy</div>
     </div>
@@ -202,40 +200,50 @@
     }
 
     async function finalizar() {
-        const ced = document.getElementById('cedula').value.trim();
-        const nom = document.getElementById('nombre').value.toUpperCase();
-        if(!ced || !nom) return alert("Cédula y Nombre son requeridos.");
+        const cedula = document.getElementById('cedula').value.trim();
+        const nombre = document.getElementById('nombre').value.toUpperCase();
+        const observaciones = document.getElementById('notas').value; // Sin .toUpperCase() como pediste
+        const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+        const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")) || 0;
 
-        document.getElementById('loading').style.display = 'flex';
+        if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
 
-        let desc = "";
+        let descripcion = "";
         document.querySelectorAll('#tabla-body tr').forEach(tr => {
             let d = tr.querySelector('.row-desc').value.trim();
             let c = tr.querySelector('.cant').value;
-            if(d) desc += `${c}x ${d} | `;
+            if(d) descripcion += `${c}x ${d} | `;
         });
 
-        const payload = {
-            tipo: "pedido",
-            cedula: ced,
-            nombre: nom,
-            descripcion: desc,
-            observaciones: document.getElementById('notas').value.toUpperCase(),
-            valorTotal: parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")),
-            abonoInicial: parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0
-        };
+        document.getElementById('loading').style.display = 'flex';
 
         try {
-            const res = await fetch(URL_G, { method: "POST", body: JSON.stringify(payload) });
-            const result = await res.json();
-            if (result.status === "success" || result.status === "ok") {
-                document.getElementById('spinner').style.display = 'none';
-                document.getElementById('success-icon').style.display = 'block';
-                document.getElementById('status-text').innerHTML = `¡ÉXITO!<br>ORDEN #${result.n_orden || result.numero} SINCRONIZADA`;
-                setTimeout(() => location.reload(), 3000);
+            const response = await fetch(URL_G, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    tipo: "pedido",
+                    cedula: cedula,
+                    nombre: nombre,
+                    descripcion: descripcion,
+                    observaciones: observaciones,
+                    valorTotal: total,
+                    abonoInicial: abonoInicial
+                })
+            });
+
+            const json = await response.json();
+
+            if (json.status === "success") {
+                alert(`Orden N° ${json.numero_op} creada (${json.estado})`);
+                location.reload();
+            } else {
+                alert("Error: " + (json.msg || "No se pudo crear la orden"));
             }
-        } catch(e) {
-            alert("Error al conectar.");
+
+        } catch (err) {
+            alert("Error de conexión: " + err.message);
+        } finally {
             document.getElementById('loading').style.display = 'none';
         }
     }
