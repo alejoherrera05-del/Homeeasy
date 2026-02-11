@@ -218,23 +218,33 @@ async function finalizar() {
     loading.style.display = 'flex';
 
     try {
-        // 1. LIMPIEZA VISUAL (Igual que en Cotización)
-        // Ocultamos botones y elementos que no deben salir en el PDF
+        // 1. LIMPIEZA VISUAL PARA EL PDF
+        // Ocultamos botones y elementos que no deben salir
         const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
         elementosNoDeseados.forEach(el => el.style.display = 'none');
+
+        // IDENTIFICAR Y OCULTAR FILAS VACÍAS (La "fila fantasma")
+        const filas = document.querySelectorAll('#tabla-body tr');
+        filas.forEach(fila => {
+            const descInput = fila.querySelector('.row-desc');
+            if (descInput && descInput.value.trim() === "") {
+                fila.style.display = 'none';
+            }
+        });
 
         const { jsPDF } = window.jspdf;
         const element = document.getElementById("area-pdf");
 
-        // Captura de alta calidad (useCORS para que el logo no salga blanco)
+        // Captura de alta calidad
         const canvas = await html2canvas(element, { 
             scale: 2, 
             useCORS: true,
             logging: false 
         });
 
-        // Restauramos la visibilidad de inmediato
+        // Restauramos la visibilidad de inmediato (botones y filas)
         elementosNoDeseados.forEach(el => el.style.display = '');
+        filas.forEach(fila => fila.style.display = '');
 
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF("p", "mm", "a4");
@@ -298,3 +308,4 @@ async function finalizar() {
 </script>
 </body>
 </html>
+
