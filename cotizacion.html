@@ -256,17 +256,18 @@
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
             const datosSync = {
-                cedula: cedValue, 
-                nombre: nomValue,
-                telefono: document.getElementById('telefono').value,
-                email: document.getElementById('email').value.toLowerCase(),
-                direccion: inputDireccion.value,
-                descripcion: descFull,
-                observaciones: document.getElementById('notas').value,
-                total: document.getElementById('total_val').innerText.replace(/\D/g, ""),
-                pdfBase64: pdfBase64,
-                nombreArchivo: `Cotizacion_${cedValue}_${nomValue.replace(/ /g, "_")}.pdf`
-            };
+  tipo: "cotizacion",   
+  cedula: cedValue,
+  nombre: nomValue,
+  telefono: document.getElementById('telefono').value,
+  email: document.getElementById('email').value.toLowerCase(),
+  direccion: inputDireccion.value,
+  descripcion: descFull,
+  observaciones: document.getElementById('notas').value,
+  total: document.getElementById('total_val').innerText.replace(/\D/g, ""),
+  pdfBase64: pdfBase64,
+  nombreArchivo: `Cotizacion_${cedValue}_${nomValue.replace(/ /g, "_")}.pdf`
+};
 
             const response = await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosSync) });
             const result = await response.json();
@@ -288,4 +289,5 @@
     }
 </script>
 </body>
+
 </html>
