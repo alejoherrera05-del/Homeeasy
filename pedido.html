@@ -211,29 +211,30 @@
 async function finalizar() {
     const cedula = document.getElementById('cedula').value.trim();
     const nombre = document.getElementById('nombre').value.toUpperCase();
+    
     if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
 
     const loading = document.getElementById('loading');
     loading.style.display = 'flex';
 
     try {
-        // 1. LIMPIEZA VISUAL PARA EL PDF
-        // Ocultamos botones y elementos con clase "no-print"
-        const elementosAEliminar = document.querySelectorAll('.no-print, .btn, button');
-        elementosAEliminar.forEach(el => el.style.visibility = 'hidden');
+        // 1. LIMPIEZA VISUAL (Igual que en Cotización)
+        // Ocultamos botones y elementos que no deben salir en el PDF
+        const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
+        elementosNoDeseados.forEach(el => el.style.display = 'none');
 
         const { jsPDF } = window.jspdf;
         const element = document.getElementById("area-pdf");
 
-        // Captura de alta calidad
+        // Captura de alta calidad (useCORS para que el logo no salga blanco)
         const canvas = await html2canvas(element, { 
-            scale: 2,
-            useCORS: true, // Importante para el logo
-            logging: false
+            scale: 2, 
+            useCORS: true,
+            logging: false 
         });
 
-        // Restauramos la visibilidad de los botones después de la foto
-        elementosAEliminar.forEach(el => el.style.visibility = 'visible');
+        // Restauramos la visibilidad de inmediato
+        elementosNoDeseados.forEach(el => el.style.display = '');
 
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF("p", "mm", "a4");
@@ -243,7 +244,7 @@ async function finalizar() {
         pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
         const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
-        // 2. ENVÍO DE DATOS
+        // 2. RECOPILAR DATOS PARA EL EXCEL
         let descripcion = "";
         document.querySelectorAll('#tabla-body tr').forEach(tr => {
             let d = tr.querySelector('.row-desc').value.trim();
@@ -251,6 +252,10 @@ async function finalizar() {
             if(d) descripcion += `${c}x ${d} | `;
         });
 
+        const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
+        const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+
+        // 3. ENVIAR AL CEREBRO
         const response = await fetch(URL_G, {
             method: "POST",
             body: JSON.stringify({
@@ -259,20 +264,29 @@ async function finalizar() {
                 nombre: nombre,
                 descripcion: descripcion,
                 observaciones: document.getElementById('notas').value,
-                valorTotal: parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")),
-                abonoInicial: parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0,
+                valorTotal: total,
+                abonoInicial: abonoInicial,
                 pdfBase64: pdfBase64,
-                nombreArchivo: `Orden_${nextOP}_${cedula}.pdf`
+                nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
             })
         });
 
         const json = await response.json();
 
         if (json.status === "success") {
-            alert(`¡ÉXITO! Orden N° ${json.numero_op} guardada y archivada.`);
-            window.open(json.url, "_blank"); // Abre el Drive
-            pdf.save(`Orden_Pedido_${json.numero_op}.pdf`); // Descarga local
+            // Descarga local automática
+            pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
+            
+            alert(`Orden N° ${json.numero_op} creada con éxito.`);
+            
+            // Abrir link de Drive si existe
+            if (json.url) {
+                window.open(json.url, "_blank");
+            }
+            
             location.reload();
+        } else {
+            alert("Error: " + (json.msg || "No se pudo crear la orden"));
         }
 
     } catch (err) {
@@ -284,5 +298,3 @@ async function finalizar() {
 </script>
 </body>
 </html>
-
-
