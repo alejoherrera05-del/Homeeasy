@@ -211,39 +211,46 @@
 async function finalizar() {
     const cedula = document.getElementById('cedula').value.trim();
     const nombre = document.getElementById('nombre').value.toUpperCase();
-    const observaciones = document.getElementById('notas').value; 
-    const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
-    const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")) || 0;
-
     if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
 
-    let descripcion = "";
-    document.querySelectorAll('#tabla-body tr').forEach(tr => {
-        let d = tr.querySelector('.row-desc').value.trim();
-        let c = tr.querySelector('.cant').value;
-        if(d) descripcion += `${c}x ${d} | `;
-    });
-
-    document.getElementById('loading').style.display = 'flex';
+    const loading = document.getElementById('loading');
+    loading.style.display = 'flex';
 
     try {
-        // 🔥 1️⃣ GENERAR PDF
+        // 1. LIMPIEZA VISUAL PARA EL PDF
+        // Ocultamos botones y elementos con clase "no-print"
+        const elementosAEliminar = document.querySelectorAll('.no-print, .btn, button');
+        elementosAEliminar.forEach(el => el.style.visibility = 'hidden');
+
         const { jsPDF } = window.jspdf;
         const element = document.getElementById("area-pdf");
 
-        const canvas = await html2canvas(element, { scale: 2 });
-        const imgData = canvas.toDataURL("image/png");
+        // Captura de alta calidad
+        const canvas = await html2canvas(element, { 
+            scale: 2,
+            useCORS: true, // Importante para el logo
+            logging: false
+        });
 
+        // Restauramos la visibilidad de los botones después de la foto
+        elementosAEliminar.forEach(el => el.style.visibility = 'visible');
+
+        const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF("p", "mm", "a4");
-        const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
         pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
         const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
-        // 🔥 2️⃣ ENVIAR AL BACKEND
+        // 2. ENVÍO DE DATOS
+        let descripcion = "";
+        document.querySelectorAll('#tabla-body tr').forEach(tr => {
+            let d = tr.querySelector('.row-desc').value.trim();
+            let c = tr.querySelector('.cant').value;
+            if(d) descripcion += `${c}x ${d} | `;
+        });
+
         const response = await fetch(URL_G, {
             method: "POST",
             body: JSON.stringify({
@@ -251,41 +258,31 @@ async function finalizar() {
                 cedula: cedula,
                 nombre: nombre,
                 descripcion: descripcion,
-                observaciones: observaciones,
-                valorTotal: total,
-                abonoInicial: abonoInicial,
+                observaciones: document.getElementById('notas').value,
+                valorTotal: parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")),
+                abonoInicial: parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0,
                 pdfBase64: pdfBase64,
-                nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
+                nombreArchivo: `Orden_${nextOP}_${cedula}.pdf`
             })
         });
 
         const json = await response.json();
 
         if (json.status === "success") {
-            // 1. Descargar el PDF localmente de inmediato
-            pdf.save(`Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`);
-
-            // 2. Avisar al usuario
-            alert(`Orden N° ${json.numero_op} creada con éxito.`);
-
-            // 3. Abrir el link de Google Drive en una nueva pestaña (para copiar y enviar)
-            if(json.url) {
-                window.open(json.url, "_blank");
-            }
-
-            // 4. Recargar
+            alert(`¡ÉXITO! Orden N° ${json.numero_op} guardada y archivada.`);
+            window.open(json.url, "_blank"); // Abre el Drive
+            pdf.save(`Orden_Pedido_${json.numero_op}.pdf`); // Descarga local
             location.reload();
-        } else {
-            alert("Error: " + (json.msg || "No se pudo crear la orden"));
         }
 
     } catch (err) {
         alert("Error: " + err.message);
     } finally {
-        document.getElementById('loading').style.display = 'none';
+        loading.style.display = 'none';
     }
 }
 </script>
 </body>
 </html>
+
 
