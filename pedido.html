@@ -262,8 +262,18 @@ async function finalizar() {
         const json = await response.json();
 
         if (json.status === "success") {
-            alert(`Orden N° ${json.numero_op} creada (${json.estado})`);
-            window.open(json.url, "_blank");
+            // 1. Descargar el PDF localmente de inmediato
+            pdf.save(`Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`);
+
+            // 2. Avisar al usuario
+            alert(`Orden N° ${json.numero_op} creada con éxito.`);
+
+            // 3. Abrir el link de Google Drive en una nueva pestaña (para copiar y enviar)
+            if(json.url) {
+                window.open(json.url, "_blank");
+            }
+
+            // 4. Recargar
             location.reload();
         } else {
             alert("Error: " + (json.msg || "No se pudo crear la orden"));
@@ -278,3 +288,4 @@ async function finalizar() {
 </script>
 </body>
 </html>
+
