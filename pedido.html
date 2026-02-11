@@ -215,7 +215,7 @@
         loading.style.display = 'flex';
 
         try {
-            // OCULTAR BOTONES Y FILAS VACÍAS
+            // 1. LIMPIEZA VISUAL
             const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
             elementosNoDeseados.forEach(el => el.style.display = 'none');
 
@@ -230,27 +230,33 @@
             const { jsPDF } = window.jspdf;
             const element = document.getElementById("area-pdf");
 
-            // --- CORRECCIÓN PARA CELULARES ---
-            // Forzamos al canvas a capturar un ancho de 800px (tamaño PC) 
-            // sin importar el tamaño real de la pantalla del móvil
+            // --- CAPTURA ---
+            // Mantenemos el ancho de 800 para que en celulares no se deforme
             const canvas = await html2canvas(element, { 
-                scale: 2, 
+                scale: 3, // Subimos un poco la escala para máxima nitidez
                 useCORS: true,
                 logging: false,
-                width: 800 // <--- Ancho fijo para que no salga pequeño en móviles
+                width: 800 
             });
 
+            // Restauramos visibilidad
             elementosNoDeseados.forEach(el => el.style.display = '');
             filas.forEach(fila => fila.style.display = '');
 
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
-            const pdfWidth = pdf.internal.pageSize.getWidth();
+            
+            // --- CORRECCIÓN DE AJUSTE A LA HOJA ---
+            const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
+            // Al usar pdfWidth (210) como ancho en addImage, obligamos a la imagen
+            // a ocupar TODO el ancho de la hoja de borde a borde.
             pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            
             const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
+            // 2. RECOPILAR DATOS
             let descripcion = "";
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
                 let d = tr.querySelector('.row-desc').value.trim();
@@ -261,6 +267,7 @@
             const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
             const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
 
+            // 3. ENVIAR AL CEREBRO
             const response = await fetch(URL_G, {
                 method: "POST",
                 body: JSON.stringify({
@@ -298,3 +305,4 @@
 </script>
 </body>
 </html>
+
