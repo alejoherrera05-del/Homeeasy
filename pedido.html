@@ -13,56 +13,53 @@
         .text-uppercase-input { text-transform: uppercase; }
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
         
-        /* MEJORA 2: Visualización Móvil Responsive */
-        #area-pdf { 
-            background-color: white; 
-            width: 100%; /* Flexible en móvil */
-            max-width: 800px; /* Pero escala para PDF */
-            margin: auto; 
-            min-height: 100vh; 
-            border: 1px solid #eee; 
-            position: relative; 
-        }
-
+        #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; display: flex; flex-direction: column; }
         .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
         .logo-only { max-width: 120px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
         .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
 
-        /* Ajuste de la "píldora" de meta para móviles */
         .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
         .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
-        
-        /* Padding adaptable */
-        .card-body { padding: 30px 20px; }
+        .card-body { padding: 30px 20px; flex-grow: 1; }
         @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
 
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
         .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
-        .form-control-compact:focus { box-shadow: none; border-bottom-color: var(--homeeasy-wine); outline: none; }
 
-        .table-responsive { border: none; }
         .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
         .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
         
         .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .no-print { display: flex; }
-        .hide-row { display: none !important; }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
+        .is-generating .no-print { display: none !important; }
+        .is-generating #area-pdf { min-height: auto !important; }
+        
+        .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
+        .footer-logo { max-width: 80px; opacity: 0.6; margin-bottom: 10px; }
+        .footer-creds { font-size: 0.65rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">ACTUALIZANDO EXCEL Y GENERANDO PDF...</b></div>
+<div id="loading" class="loading-overlay">
+    <div id="loader-content" class="text-center">
+        <div id="spinner" class="spinner-border text-danger mb-3"></div>
+        <i id="success-icon" class="fas fa-check-circle" style="display:none; font-size:3rem; color:#28a745; margin-bottom: 15px;"></i>
+        <br>
+        <b id="status-text" style="color:var(--homeeasy-wine)">SINCRO Y PDF PROFESIONAL...</b>
+    </div>
+</div>
+
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
-<div id="area-pdf" class="document-card">
+<div id="area-pdf">
     <div class="header-brand">
         <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
         <div class="empresa-info-header">
@@ -88,16 +85,19 @@
 
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4"><label class="form-label-small">Cédula</label><input type="text" id="cedula" inputmode="numeric" class="form-control-compact" onblur="buscarCliente()"></div>
+            <div class="col-4">
+                <label class="form-label-small">Cédula / NIT</label>
+                <input type="text" id="cedula" inputmode="numeric" class="form-control-compact" placeholder="000.000.000" oninput="validarYLimpiar()" onblur="buscarCliente()">
+            </div>
             <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
             <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" inputmode="numeric" class="form-control-compact"></div>
             <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
-            <div class="col-12"><label class="form-label-small">Dirección</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
+            <div class="col-12"><label class="form-label-small">Dirección de Instalación</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
 
         <span class="section-title">Detalle de Fabricación</span>
         <div class="table-responsive">
-            <table class="table align-middle" style="min-width: 600px;">
+            <table class="table align-middle">
                 <thead><tr><th>Descripción</th><th width="65" class="text-center">Cant.</th><th width="150" class="text-center">V. Unit</th><th width="120" class="text-end">Total</th><th width="35" class="no-print"></th></tr></thead>
                 <tbody id="tabla-body">
                     <tr>
@@ -115,7 +115,7 @@
         <div class="row g-4">
             <div class="col-md-7">
                 <span class="section-title">Observaciones</span>
-                <textarea id="notas" class="form-control text-uppercase-input" rows="3" style="font-size:0.82rem; border: 1px solid #eee;" placeholder="Notas..."></textarea>
+                <textarea id="notas" class="form-control text-uppercase-input" rows="3" style="font-size:0.82rem; border: 1px solid #eee; border-radius: 8px;" placeholder="Notas..."></textarea>
             </div>
             <div class="col-md-5">
                 <div class="finance-box text-end">
@@ -133,33 +133,68 @@
         </div>
         <button class="btn btn-homeeasy no-print shadow" onclick="finalizar()">Finalizar y Sincronizar</button>
     </div>
+    
+    <div class="pdf-footer">
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo" style="filter: grayscale(100%);">
+        <div class="footer-creds">HomeEasy Popayán - Transformamos tus espacios</div>
+        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema Hommy</div>
+    </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
+    // URL DE TU SCRIPT DE GOOGLE
     const URL_G = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec";
-    
-    document.getElementById('fecha_orden').valueAsDate = new Date();
+    let ultimaCedulaBuscada = "";
+
+    window.onload = () => {
+        const d = new Date();
+        document.getElementById('fecha_display').innerText = d.toLocaleDateString('es-CO');
+        
+        // Consultar el próximo número de orden progresivo
+        fetch(`${URL_G}?nextOrden=1`)
+            .then(r => r.json())
+            .then(d => { document.getElementById("n_orden_display").innerText = d.nextOrden || "001"; })
+            .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
+    };
+
     function actualizarFecha() { 
-        const d = new Date(document.getElementById('fecha_orden').value + 'T00:00:00');
+        const val = document.getElementById('fecha_orden').value;
+        if(!val) return;
+        const d = new Date(val + 'T00:00:00');
         document.getElementById('fecha_display').innerText = d.toLocaleDateString('es-CO'); 
     }
-    actualizarFecha();
 
+    // LIMPIEZA AUTOMÁTICA SI SE CAMBIA EL DÍGITO (Igual que en cotización)
+    function validarYLimpiar() {
+        const cedActual = document.getElementById('cedula').value.trim();
+        if (cedActual !== ultimaCedulaBuscada) {
+            document.getElementById('nombre').value = "";
+            document.getElementById('telefono').value = "";
+            document.getElementById('email').value = "";
+            document.getElementById('direccion').value = "";
+        }
+    }
+
+    // AUTORELLENO DESDE EL EXCEL (Hoja Clientes)
     async function buscarCliente() {
-        let ced = document.getElementById('cedula').value;
+        let ced = document.getElementById('cedula').value.trim();
         if(ced.length < 4) return;
+        ultimaCedulaBuscada = ced;
+
         try {
             const r = await fetch(`${URL_G}?cedula=${ced}`);
             const d = await r.json();
+            
             if(d.status === "found") {
-                document.getElementById('nombre').value = d.nombre;
-                document.getElementById('telefono').value = d.telefono;
-                document.getElementById('email').value = d.email || "";
-                document.getElementById('direccion').value = d.direccion;
+                // Coincidiendo exactamente con las chaves de tu Script: nombre, telefono, email, direccion
+                document.getElementById('nombre').value = (d.nombre || "").toUpperCase();
+                document.getElementById('telefono').value = (d.telefono || "");
+                document.getElementById('email').value = (d.email || "").toLowerCase();
+                document.getElementById('direccion').value = (d.direccion || "").toUpperCase();
             }
-        } catch(e) {}
+        } catch(e) { console.error("Error búsqueda:", e); }
     }
 
     function formatear(i) { let v = i.value.replace(/\D/g, ""); i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : ""; }
@@ -186,70 +221,71 @@
     }
 
     async function finalizar() {
-        const nom = document.getElementById('nombre').value.toUpperCase();
-        const ced = document.getElementById('cedula').value;
-        const dir = document.getElementById('direccion').value.toUpperCase();
+        // Aseguramos MAYÚSCULAS en los campos de texto
+        const inputNombre = document.getElementById('nombre');
+        const inputDireccion = document.getElementById('direccion');
+        const inputNotas = document.getElementById('notas');
+        inputNombre.value = inputNombre.value.toUpperCase();
+        inputDireccion.value = inputDireccion.value.toUpperCase();
+        inputNotas.value = inputNotas.value.toUpperCase();
 
-        if(!ced || !nom) return alert("Datos requeridos");
+        const ced = document.getElementById('cedula').value.trim();
+        const nom = inputNombre.value.trim();
+        const areaPdf = document.getElementById('area-pdf');
+
+        if(!ced || !nom) return alert("Cédula y Nombre son obligatorios.");
 
         document.getElementById('loading').style.display = 'flex';
+        
+        // ELIMINACIÓN DE FILA FANTASMA PARA EL PDF
+        const filas = document.querySelectorAll('#tabla-body tr');
         let det = ""; 
-        document.querySelectorAll('#tabla-body tr').forEach(f => {
-            let d = f.querySelector('.row-desc').value;
-            if(d) det += `${f.querySelector('.cant').value}x ${d} | `; else f.classList.add('hide-row');
+        filas.forEach(f => {
+            let d = f.querySelector('.row-desc').value.trim();
+            if(d) det += `${f.querySelector('.cant').value}x ${d} | `;
+            else f.style.display = 'none';
         });
 
-        const datos = {
-            tipo: "ORDEN",
-            fecha: document.getElementById('fecha_orden').value,
-            cedula: ced,
-            nombre: nom,
-            telefono: document.getElementById('telefono').value,
-            email: document.getElementById('email').value.toLowerCase(),
-            direccion: dir,
-            detalle: det + " OBS: " + document.getElementById('notas').value.toUpperCase(),
-            total: parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")),
-            abono: parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0
-        };
+        document.body.classList.add('is-generating');
 
         try {
+            const canvas = await html2canvas(areaPdf, { scale: 2, useCORS: true, windowHeight: areaPdf.scrollHeight });
+            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+            const pdfW = 210;
+            const pdfH = (canvas.height * pdfW) / canvas.width;
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, pdfH);
+            const pdfBase64 = pdf.output('datauristring').split(',')[1];
+
+            // OBJETO DE ENVÍO (Sincronizado con tu Script)
+            const datos = {
+                tipo: "pedido",
+                cedula: ced,
+                nombre: nom,
+                descripcion: det,
+                observaciones: inputNotas.value,
+                valorTotal: parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")),
+                abonoInicial: parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0,
+                pdfBase64: pdfBase64,
+                nombreArchivo: `Pedido_${ced}_${nom.replace(/ /g, "_")}.pdf`
+            };
+
             const res = await fetch(URL_G, { method: 'POST', body: JSON.stringify(datos) });
             const json = await res.json();
-            if(json.status === "ok") {
-                const n = json.n_orden.toString().padStart(3, '0');
-                document.getElementById('n_orden_display').innerText = n;
-                await generarPDF(n);
-                alert("Sincronizado con éxito.");
+            
+            if(json.status === "ok" || json.status === "success") {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('success-icon').style.display = 'block';
+                document.getElementById('status-text').innerHTML = `¡ÉXITO!<br>ORDEN # ${json.n_orden || json.numero} SINCRONIZADA`;
+                pdf.save(datos.nombreArchivo);
+                setTimeout(() => location.reload(), 2500);
             }
-        } catch(e) { await generarPDF("NUEVA"); }
-        finally { 
-            document.getElementById('loading').style.display = 'none'; 
-            document.querySelectorAll('.hide-row').forEach(f => f.classList.remove('hide-row')); 
+        } catch(e) { 
+            alert("Error al sincronizar.");
+            document.getElementById('loading').style.display = 'none';
+        } finally {
+            document.body.classList.remove('is-generating');
+            filas.forEach(f => f.style.display = '');
         }
-    }
-
-    async function generarPDF(n) {
-        const { jsPDF } = window.jspdf;
-        const element = document.getElementById('area-pdf');
-        
-        // MEJORA 4: Exportación Profesional (Truco de ancho)
-        const originalWidth = element.style.width;
-        element.style.width = "800px";
-
-        document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
-
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true, width: 800, windowWidth: 800 });
-        const img = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        pdf.addImage(img, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`Orden_${n}_HomeEasy.pdf`);
-
-        // Restaurar para visualización móvil
-        element.style.width = originalWidth;
-        document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
     }
 </script>
 </body>
