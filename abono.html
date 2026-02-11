@@ -11,52 +11,47 @@
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
         .text-uppercase-input { text-transform: uppercase; }
-        
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
-
-        /* MEJORA 2: Visualización Móvil Responsive */
-        #area-pdf { 
-            background-color: white; 
-            width: 100%; /* Flexible en móvil */
-            max-width: 800px; /* Tamaño máximo para PDF */
-            margin: auto; 
-            min-height: 100vh; 
-            border: 1px solid #eee; 
-            position: relative; 
-        }
-
+        
+        #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; display: flex; flex-direction: column; }
         .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
         .logo-only { max-width: 120px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
         .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
 
-        /* Ajuste de la "píldora" de meta para móviles */
-        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 20px; z-index: 10; white-space: nowrap; }
+        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
         .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
-        
-        /* Padding adaptable */
-        .card-body { padding: 30px 20px; }
+        .card-body { padding: 30px 20px; flex-grow: 1; }
         @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
 
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
         .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
-        .form-control-compact:focus { box-shadow: none; border-bottom-color: var(--homeeasy-wine); outline: none; }
 
-        .saldo-destacado { background-color: #fdfafb; border: 2px dashed var(--homeeasy-gold); border-radius: 12px; padding: 25px; text-align: center; margin-top: 30px; }
+        .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
+        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
-        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; letter-spacing: 1px; }
-        
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .no-print { display: flex; }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
+        .pdf-footer { background-color: var(--homeeasy-silver); padding: 15px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
+        .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 5px; filter: grayscale(100%); }
+        .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
-<div id="loading" class="loading-overlay"><div class="spinner-border text-danger mb-3"></div><b style="color:var(--homeeasy-wine)">PROCESANDO RECIBO...</b></div>
+<div id="loading" class="loading-overlay">
+    <div id="loader-content" class="text-center">
+        <div id="spinner" class="spinner-border text-danger mb-3"></div>
+        <br>
+        <b id="status-text" style="color:var(--homeeasy-wine)">GENERANDO RECIBO Y SINCRONIZANDO...</b>
+    </div>
+</div>
+
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf">
@@ -70,170 +65,193 @@
             <span><i class="fab fa-instagram"></i> @homeeasypopayan</span>
         </div>
         <div class="order-meta">
-            <div class="meta-item">Recibo: #<span id="n_recibo_display">...</span></div>
+            <div class="meta-item">RECIBO N°: <span id="n_recibo_display">...</span></div>
             <div class="meta-item">Fecha: <span id="fecha_display"></span></div>
         </div>
     </div>
     
-    <div class="document-type">Comprobante de Ingreso / Abono</div>
+    <div class="document-type">RECIBO DE ABONO</div>
     
     <div class="card-body">
-        <div class="row mb-5">
-            <div class="col-12 col-md-6">
-                <label class="form-label-small">Referencia Orden #</label>
-                <div class="d-flex">
-                    <input type="text" id="n_orden" inputmode="numeric" class="form-control-compact fw-bold" placeholder="Número">
-                    <button class="btn btn-sm btn-dark no-print ms-2 px-3" onclick="buscarOrden()">BUSCAR</button>
-                </div>
+        <span class="section-title">Información de la Orden</span>
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <label class="form-label-small">Número de OP</label>
+                <input type="text" id="numeroOP" inputmode="numeric" pattern="[0-9]*" class="form-control-compact fw-bold" onblur="buscarOrden()">
+            </div>
+            <div class="col-8">
+                <label class="form-label-small">Cliente</label>
+                <input type="text" id="nombre" class="form-control-compact text-uppercase-input" readonly placeholder="Busque una OP válida...">
+                <input type="hidden" id="cedula">
             </div>
         </div>
 
-        <div id="datos_orden" style="display: none;">
-            <span class="section-title">Información del Cliente</span>
-            <p id="resumen_cliente" class="fw-bold text-uppercase-input h5 mb-4"></p>
-
-            <span class="section-title">Detalle de la Transacción</span>
-            <div class="row g-4 mb-2">
-                <div class="col-6">
-                    <label class="form-label-small">Valor del Abono</label>
-                    <input type="text" id="valor_abono" inputmode="numeric" class="form-control-compact fw-bold text-success" style="font-size: 1.3rem; border-bottom: 2px solid var(--homeeasy-gold);" oninput="formatear(this); calcularNuevoSaldo()">
-                </div>
-                <div class="col-6">
-                    <label class="form-label-small">Medio de Pago</label>
-                    <select id="medio_pago" class="form-control-compact">
-                        <option value="Transferencia">TRANSFERENCIA</option>
-                        <option value="Efectivo">EFECTIVO</option>
-                        <option value="Datafono">DATÁFONO</option>
-                    </select>
-                </div>
-                <div class="col-12">
-                    <label class="form-label-small">Concepto</label>
-                    <input type="text" id="concepto" class="form-control-compact text-uppercase-input" placeholder="">
-                </div>
+        <span class="section-title">Detalle del Pago</span>
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <label class="form-label-small">Valor del Abono</label>
+                <input type="text" id="valorAbono" inputmode="numeric" pattern="[0-9]*" class="form-control-compact fw-bold" style="color: var(--homeeasy-wine)" oninput="formatear(this); calcularSaldo()">
             </div>
-
-            <div class="saldo-destacado">
-                <div class="row">
-                    <div class="col-6 border-end">
-                        <p class="form-label-small mb-1">Saldo Anterior</p>
-                        <p id="resumen_saldo" class="fw-bold text-muted h6 mb-0"></p>
-                    </div>
-                    <div class="col-6">
-                        <p class="form-label-small mb-1" style="color:var(--homeeasy-wine)">NUEVO SALDO PENDIENTE</p>
-                        <p id="nuevo_saldo_text" class="fw-bold h4 mb-0" style="color:var(--homeeasy-wine)">$0</p>
-                    </div>
-                </div>
+            <div class="col-6">
+                <label class="form-label-small">Medio de Pago</label>
+                <select id="medioPago" class="form-control-compact">
+                    <option value="">Seleccione...</option>
+                    <option value="EFECTIVO">EFECTIVO</option>
+                    <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                    <option value="TARJETA">TARJETA</option>
+                </select>
             </div>
-
-            <button class="btn btn-homeeasy no-print shadow" onclick="finalizarAbono()">Registrar Abono y Generar PDF</button>
         </div>
+
+        <div class="finance-box text-end">
+            <p class="mb-1 small text-muted">Saldo Anterior: <span id="saldo_anterior_val">$ 0</span></p>
+            <p class="h5 fw-bold mb-0" style="color:var(--homeeasy-wine)">NUEVO SALDO: <span id="nuevo_saldo_val">$ 0</span></p>
+        </div>
+
+        <button class="btn btn-homeeasy no-print shadow" onclick="finalizarAbono()">Generar Recibo y Sincronizar</button>
+    </div>
+
+    <div class="pdf-footer">
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo">
+        <div class="footer-creds">HomeEasy Popayán - Recibo Oficial de Caja</div>
+        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Este documento es soporte oficial de pago parcial de su pedido.</div>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    const URL_G = "https://script.google.com/macros/s/AKfycby6NM_X5TOzkHw7_N7M46RFuQqKJOzBH-V7kvEeQRU275LgcJrZe6OglE7mT6SRuWNk/exec";
-    
-    const hoy = new Date();
-    document.getElementById('fecha_display').innerText = hoy.toLocaleDateString('es-CO');
+    const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+    let saldoBase = 0;
 
-    let saldoGlobal = 0;
-    let nombreGlobal = "";
+    window.onload = () => {
+        document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
+        // 3. Seguridad visual del número de recibo
+        fetch(`${URL_G}?nextRecibo=1`)
+            .then(r => r.json())
+            .then(d => { 
+                if(d.status === "ok") {
+                    document.getElementById("n_recibo_display").innerText = d.nextRecibo; 
+                } else {
+                    document.getElementById("n_recibo_display").innerText = "ERR";
+                }
+            })
+            .catch(() => document.getElementById("n_recibo_display").innerText = "ERR");
+    };
 
     async function buscarOrden() {
-        const n = document.getElementById('n_orden').value;
-        if(!n) return alert("Ingrese el número de orden");
-        document.getElementById('loading').style.display = 'flex';
+        let numero = document.getElementById('numeroOP').value.trim();
+        if(!numero) return;
+        
         try {
-            const r = await fetch(`${URL_G}?tipo=CONSULTA_ORDEN&n_orden=${n}`);
+            const r = await fetch(`${URL_G}?buscarOP=${numero}`);
             const d = await r.json();
+            
             if(d.status === "found") {
-                nombreGlobal = d.nombre;
-                document.getElementById('resumen_cliente').innerText = d.nombre;
-                document.getElementById('resumen_saldo').innerText = `$${d.saldo.toLocaleString('es-CO')}`;
-                saldoGlobal = d.saldo;
-                document.getElementById('datos_orden').style.display = 'block';
-                document.getElementById('nuevo_saldo_text').innerText = `$${d.saldo.toLocaleString('es-CO')}`;
-            } else { alert("Orden no encontrada"); }
-        } catch(e) { alert("Error de conexión"); }
-        finally { document.getElementById('loading').style.display = 'none'; }
+                document.getElementById('nombre').value = d.nombre.toUpperCase();
+                document.getElementById('cedula').value = d.cedula;
+                saldoBase = parseFloat(d.saldo) || 0;
+                document.getElementById('saldo_anterior_val').innerText = `$ ${saldoBase.toLocaleString('es-CO')}`;
+                calcularSaldo();
+            } else {
+                alert("Orden de pedido no encontrada.");
+                document.getElementById('nombre').value = "";
+                document.getElementById('cedula').value = "";
+                saldoBase = 0;
+                document.getElementById('saldo_anterior_val').innerText = "$ 0";
+                document.getElementById('nuevo_saldo_val').innerText = "$ 0";
+            }
+        } catch(e) { console.error(e); }
     }
 
-    function formatear(i) { let v = i.value.replace(/\D/g, ""); i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : ""; }
-    
-    function calcularNuevoSaldo() {
-        const abono = parseFloat(document.getElementById('valor_abono').value.replace(/\D/g, "")) || 0;
-        document.getElementById('nuevo_saldo_text').innerText = `$${(saldoGlobal - abono).toLocaleString('es-CO')}`;
+    function formatear(i) {
+        let v = i.value.replace(/\D/g, "");
+        i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : "";
+    }
+
+    function calcularSaldo() {
+        let abono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
+        let nuevoSaldo = saldoBase - abono;
+        document.getElementById('nuevo_saldo_val').innerText = `$ ${nuevoSaldo.toLocaleString('es-CO')}`;
     }
 
     async function finalizarAbono() {
-        const valor = parseFloat(document.getElementById('valor_abono').value.replace(/\D/g, "")) || 0;
-        if(valor <= 0) return alert("Ingrese un valor");
-        
-        document.getElementById('loading').style.display = 'flex';
-        
-        const datos = {
-            tipo: "ABONO",
-            n_orden: document.getElementById('n_orden').value,
-            nombre: nombreGlobal, 
-            valor: valor,
-            medio: document.getElementById('medio_pago').value,
-            concepto: document.getElementById('concepto').value.toUpperCase()
-        };
-        
-        try {
-            const res = await fetch(URL_G, { method: 'POST', body: JSON.stringify(datos) });
-            const json = await res.json();
-            if(json.status === "ok") {
-                const nRec = json.n_recibo.toString().padStart(3, '0');
-                document.getElementById('n_recibo_display').innerText = nRec;
-                
-                document.getElementById('n_orden').placeholder = "";
-                document.getElementById('concepto').placeholder = "";
+        const numOP = document.getElementById('numeroOP').value.trim();
+        const nom = document.getElementById('nombre').value;
+        const ced = document.getElementById('cedula').value;
+        const valAbono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
+        const mPago = document.getElementById('medioPago').value;
+        const nRecibo = document.getElementById('n_recibo_display').innerText;
 
-                setTimeout(async () => {
-                    await generarPDF(nRec);
-                    alert("Abono #" + nRec + " registrado correctamente.");
-                    location.reload();
-                }, 800);
+        // 1. Falta validar que la orden realmente esté cargada
+        if(!ced) return alert("Primero busque una Orden de Pedido válida.");
+
+        // 8. Validación básica obligatoria
+        if(!numOP || valAbono <= 0 || !mPago) {
+            return alert("Por favor complete: Número de OP, Valor del Abono y Medio de Pago.");
+        }
+
+        // 2. Protección contra saldo negativo
+        if (valAbono > saldoBase) {
+            return alert(`El abono ($${valAbono.toLocaleString()}) no puede ser mayor al saldo pendiente ($${saldoBase.toLocaleString()}).`);
+        }
+
+        document.getElementById('loading').style.display = 'flex';
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById("area-pdf");
+            
+            // 4. Refinamiento profesional de visibilidad de botones
+            const btns = document.querySelectorAll('.no-print, button, .btn');
+            btns.forEach(b => {
+                b.dataset.originalDisplay = b.style.display;
+                b.style.display = 'none';
+            });
+
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true, width: 800 });
+            
+            // Restaurar botones usando su estado original
+            btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
+
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+            const pdfBase64 = pdf.output("datauristring").split(',')[1];
+            const nombreArchivo = `Recibo_${nRecibo}_OP${numOP}_${nom.replace(/ /g,"_")}.pdf`;
+
+            const response = await fetch(URL_G, {
+                method: "POST",
+                body: JSON.stringify({
+                    tipo: "abono",
+                    numeroOP: numOP,
+                    cedula: ced,
+                    nombre: nom,
+                    valorAbono: valAbono,
+                    medioPago: mPago,
+                    pdfBase64: pdfBase64,
+                    nombreArchivo: nombreArchivo
+                })
+            });
+
+            const json = await response.json();
+
+            if (json.status === "success") {
+                pdf.save(nombreArchivo); 
+                window.open(json.url, "_blank");
+                alert("Abono registrado con éxito.");
+                // 5. Micro mejora opcional: esperar antes del reload
+                setTimeout(() => location.reload(), 500);
+            } else {
+                alert("Error: " + (json.msg || "No se pudo registrar el abono"));
             }
-        } catch(e) { 
-            console.error(e);
-            await generarPDF("FALLO");
-            alert("Sincronización fallida, pero el PDF fue generado.");
+
+        } catch (err) {
+            alert("Error de conexión: " + err.message);
         } finally {
             document.getElementById('loading').style.display = 'none';
         }
-    }
-
-    async function generarPDF(n) {
-        const { jsPDF } = window.jspdf;
-        const element = document.getElementById('area-pdf');
-
-        // MEJORA 4: Exportación Profesional (Truco de ancho)
-        const originalWidth = element.style.width;
-        element.style.width = "800px";
-
-        document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'none', 'important'));
-        
-        const canvas = await html2canvas(element, { 
-            scale: 2, 
-            useCORS: true, 
-            width: 800, 
-            windowWidth: 800 
-        });
-        const img = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        pdf.addImage(img, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`Recibo_Abono_${n}_HomeEasy.pdf`);
-
-        // Restaurar para visualización móvil
-        element.style.width = originalWidth;
-        document.querySelectorAll('.no-print').forEach(e => e.style.setProperty('display', 'flex', 'important'));
     }
 </script>
 </body>
