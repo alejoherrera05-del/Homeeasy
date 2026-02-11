@@ -275,27 +275,6 @@ async function finalizar() {
         document.getElementById('loading').style.display = 'none';
     }
 }
-
-});
-
-
-            const json = await response.json();
-
-            if (json.status === "success") {
-                alert(`Orden N° ${json.numero_op} creada (${json.estado})`);
-                location.reload();
-            } else {
-                alert("Error: " + (json.msg || "No se pudo crear la orden"));
-            }
-
-        } catch (err) {
-            alert("Error de conexión: " + err.message);
-        } finally {
-            document.getElementById('loading').style.display = 'none';
-        }
-    }
 </script>
 </body>
 </html>
-
-
