@@ -146,10 +146,6 @@
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-        fetch(`${URL_G}?nextOrden=1`)
-            .then(r => r.json())
-            .then(d => { document.getElementById("n_orden_display").innerText = d.nextOrden || "001"; });
-    };
 
     function validarYLimpiar() {
         const ced = document.getElementById('cedula').value.trim();
@@ -250,3 +246,4 @@
 </script>
 </body>
 </html>
+
