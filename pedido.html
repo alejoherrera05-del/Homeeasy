@@ -38,15 +38,13 @@
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        
         .pdf-footer { background-color: var(--homeeasy-silver); padding: 15px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
         .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 5px; filter: grayscale(100%); }
         .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -81,9 +79,9 @@
     <div class="card-body">
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" class="form-control-compact" oninput="validarYLimpiar()" onblur="buscarCliente()"></div>
+            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" inputmode="numeric" pattern="[0-9]*" class="form-control-compact" oninput="validarYLimpiar()" onblur="buscarCliente()"></div>
             <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
-            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" class="form-control-compact"></div>
+            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" inputmode="numeric" pattern="[0-9]*" class="form-control-compact"></div>
             <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
             <div class="col-12"><label class="form-label-small">Dirección de Instalación</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
@@ -95,8 +93,8 @@
                 <tbody id="tabla-body">
                     <tr>
                         <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance Blanca"></td>
-                        <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
-                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" oninput="formatear(this); calcular()"></td>
+                        <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
+                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" pattern="[0-9]*" oninput="formatear(this); calcular()"></td>
                         <td class="item-total fw-bold text-end">$ 0</td>
                         <td class="no-print"></td>
                     </tr>
@@ -125,7 +123,7 @@
                     <p class="mb-1 small text-muted">Total Pedido: <span id="total_pedido_val">$ 0</span></p>
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-bold small">ABONO INICIAL:</span>
-                        <input type="text" id="abono" class="form-control-compact text-end fw-bold" style="width:110px; border-bottom: 2px solid var(--homeeasy-wine)" oninput="formatear(this); calcular()">
+                        <input type="text" id="abono" class="form-control-compact text-end fw-bold" style="width:110px; border-bottom: 2px solid var(--homeeasy-wine)" inputmode="numeric" pattern="[0-9]*" oninput="formatear(this); calcular()">
                     </div>
                     <hr>
                     <p class="h5 fw-bold mb-0" style="color:var(--homeeasy-wine)">SALDO: <span id="saldo_pendiente_val">$ 0</span></p>
@@ -149,7 +147,6 @@
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-        // REEMPLAZO DEL BLOQUE SOLICITADO PARA EL NÚMERO DE PEDIDO
         fetch(`${URL_G}?nextPedido=1`)
             .then(r => r.json())
             .then(d => { 
@@ -204,108 +201,100 @@
 
     function agregarFila() {
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$ 0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
+        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" pattern="[0-9]*" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$ 0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
         document.getElementById('tabla-body').appendChild(tr);
     }
 
-async function finalizar() {
-    const cedula = document.getElementById('cedula').value.trim();
-    const nombre = document.getElementById('nombre').value.toUpperCase();
-    
-    if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
+    async function finalizar() {
+        const cedula = document.getElementById('cedula').value.trim();
+        const nombre = document.getElementById('nombre').value.toUpperCase();
+        
+        if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
 
-    const loading = document.getElementById('loading');
-    loading.style.display = 'flex';
+        const loading = document.getElementById('loading');
+        loading.style.display = 'flex';
 
-    try {
-        // 1. LIMPIEZA VISUAL PARA EL PDF
-        // Ocultamos botones y elementos que no deben salir
-        const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
-        elementosNoDeseados.forEach(el => el.style.display = 'none');
+        try {
+            // OCULTAR BOTONES Y FILAS VACÍAS
+            const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
+            elementosNoDeseados.forEach(el => el.style.display = 'none');
 
-        // IDENTIFICAR Y OCULTAR FILAS VACÍAS (La "fila fantasma")
-        const filas = document.querySelectorAll('#tabla-body tr');
-        filas.forEach(fila => {
-            const descInput = fila.querySelector('.row-desc');
-            if (descInput && descInput.value.trim() === "") {
-                fila.style.display = 'none';
+            const filas = document.querySelectorAll('#tabla-body tr');
+            filas.forEach(fila => {
+                const descInput = fila.querySelector('.row-desc');
+                if (descInput && descInput.value.trim() === "") {
+                    fila.style.display = 'none';
+                }
+            });
+
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById("area-pdf");
+
+            // --- CORRECCIÓN PARA CELULARES ---
+            // Forzamos al canvas a capturar un ancho de 800px (tamaño PC) 
+            // sin importar el tamaño real de la pantalla del móvil
+            const canvas = await html2canvas(element, { 
+                scale: 2, 
+                useCORS: true,
+                logging: false,
+                width: 800 // <--- Ancho fijo para que no salga pequeño en móviles
+            });
+
+            elementosNoDeseados.forEach(el => el.style.display = '');
+            filas.forEach(fila => fila.style.display = '');
+
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            const pdfBase64 = pdf.output("datauristring").split(',')[1];
+
+            let descripcion = "";
+            document.querySelectorAll('#tabla-body tr').forEach(tr => {
+                let d = tr.querySelector('.row-desc').value.trim();
+                let c = tr.querySelector('.cant').value;
+                if(d) descripcion += `${c}x ${d} | `;
+            });
+
+            const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
+            const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+
+            const response = await fetch(URL_G, {
+                method: "POST",
+                body: JSON.stringify({
+                    tipo: "pedido",
+                    cedula: cedula,
+                    nombre: nombre,
+                    descripcion: descripcion,
+                    observaciones: document.getElementById('notas').value,
+                    valorTotal: total,
+                    abonoInicial: abonoInicial,
+                    pdfBase64: pdfBase64,
+                    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
+                })
+            });
+
+            const json = await response.json();
+
+            if (json.status === "success") {
+                pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
+                alert(`Orden N° ${json.numero_op} creada con éxito.`);
+                if (json.url) {
+                    window.open(json.url, "_blank");
+                }
+                location.reload();
+            } else {
+                alert("Error: " + (json.msg || "No se pudo crear la orden"));
             }
-        });
 
-        const { jsPDF } = window.jspdf;
-        const element = document.getElementById("area-pdf");
-
-        // Captura de alta calidad
-        const canvas = await html2canvas(element, { 
-            scale: 2, 
-            useCORS: true,
-            logging: false 
-        });
-
-        // Restauramos la visibilidad de inmediato (botones y filas)
-        elementosNoDeseados.forEach(el => el.style.display = '');
-        filas.forEach(fila => fila.style.display = '');
-
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        const pdfBase64 = pdf.output("datauristring").split(',')[1];
-
-        // 2. RECOPILAR DATOS PARA EL EXCEL
-        let descripcion = "";
-        document.querySelectorAll('#tabla-body tr').forEach(tr => {
-            let d = tr.querySelector('.row-desc').value.trim();
-            let c = tr.querySelector('.cant').value;
-            if(d) descripcion += `${c}x ${d} | `;
-        });
-
-        const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
-        const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
-
-        // 3. ENVIAR AL CEREBRO
-        const response = await fetch(URL_G, {
-            method: "POST",
-            body: JSON.stringify({
-                tipo: "pedido",
-                cedula: cedula,
-                nombre: nombre,
-                descripcion: descripcion,
-                observaciones: document.getElementById('notas').value,
-                valorTotal: total,
-                abonoInicial: abonoInicial,
-                pdfBase64: pdfBase64,
-                nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
-            })
-        });
-
-        const json = await response.json();
-
-        if (json.status === "success") {
-            // Descarga local automática
-            pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
-            
-            alert(`Orden N° ${json.numero_op} creada con éxito.`);
-            
-            // Abrir link de Drive si existe
-            if (json.url) {
-                window.open(json.url, "_blank");
-            }
-            
-            location.reload();
-        } else {
-            alert("Error: " + (json.msg || "No se pudo crear la orden"));
+        } catch (err) {
+            alert("Error: " + err.message);
+        } finally {
+            loading.style.display = 'none';
         }
-
-    } catch (err) {
-        alert("Error: " + err.message);
-    } finally {
-        loading.style.display = 'none';
     }
-}
 </script>
 </body>
 </html>
-
