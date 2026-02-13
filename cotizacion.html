@@ -11,6 +11,21 @@
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
         .text-uppercase-input { text-transform: uppercase; }
+        
+        /* BLOQUEO DE NÚMERO AZUL EN IPHONE SIN AFECTAR ICONOS */
+        .empresa-info-header span, .empresa-info-header a { 
+            color: #ffffff !important; 
+            text-decoration: none !important; 
+            pointer-events: none; /* Evita que sea clickeable como link */
+        }
+        /* ASEGURAR ICONOS DORADOS */
+        .empresa-info-header i { 
+            color: var(--homeeasy-gold) !important; 
+            width: 15px; 
+            text-align: center; 
+            margin-right: 2px; 
+        }
+
         .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
         
         #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; display: flex; flex-direction: column; }
@@ -18,9 +33,8 @@
         .logo-only { max-width: 120px; height: auto; }
         .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
         .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
-        .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
-        
-        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
+
+        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
         .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
@@ -35,26 +49,24 @@
         .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
         
         .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
-        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin: 20px 0; font-size: 0.95rem; }
-        .condiciones-texto { background: #fff; border: 1px solid #eee; padding: 15px; font-size: 0.72rem; color: #555; line-height: 1.5; border-radius: 8px; }
+        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
-        .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
-        .footer-logo { max-width: 80px; opacity: 0.6; margin-bottom: 10px; }
-        .footer-creds { font-size: 0.65rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .is-generating .no-print { display: none !important; }
-        .is-generating #area-pdf { min-height: auto !important; }
+        .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
+        .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 10px; filter: grayscale(100%); }
+        .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
 <div id="loading" class="loading-overlay">
     <div id="loader-content" class="text-center">
         <div id="spinner" class="spinner-border text-danger mb-3"></div>
-        <i id="success-icon" class="fas fa-check-circle" style="display:none; font-size:3rem; color:#28a745; margin-bottom: 15px;"></i>
+        <div id="success-icon" style="display:none;"><i class="fas fa-check-circle text-success fa-3x mb-3"></i></div>
         <br>
-        <b id="status-text" style="color:var(--homeeasy-wine)">SINCRO Y PDF PROFESIONAL...</b>
+        <b id="status-text" style="color:var(--homeeasy-wine)">SINCRONIZANDO COTIZACIÓN...</b>
     </div>
 </div>
 
@@ -71,7 +83,7 @@
             <span><i class="fab fa-instagram"></i> @homeeasypopayan</span>
         </div>
         <div class="order-meta">
-            <div class="meta-item">COTIZACIÓN N°: <span id="numeroCotizacion">...</span></div>
+            <div class="meta-item">COTIZACIÓN N°: <span id="n_cot_display">...</span></div>
             <div class="meta-item">Fecha: <span id="fecha_display"></span></div>
         </div>
     </div>
@@ -81,213 +93,188 @@
     <div class="card-body">
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4">
-                <label class="form-label-small">Cédula / NIT</label>
-                <input type="text" id="cedula" class="form-control-compact" placeholder="000.000.000" oninput="validarYLimpiar()" onblur="buscarCliente()">
-            </div>
-            <div class="col-8"><label class="form-label-small">Nombre / Empresa</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
+            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" inputmode="numeric" class="form-control-compact" onblur="buscarCliente()"></div>
+            <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
             <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" class="form-control-compact"></div>
             <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
             <div class="col-12"><label class="form-label-small">Dirección</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
 
-        <span class="section-title">Propuesta Comercial</span>
+        <span class="section-title">Detalle de Cotización</span>
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead><tr><th>Descripción</th><th width="80">Cant.</th><th width="150">V. Unit</th><th width="120" class="text-end">Total</th><th width="40" class="no-print"></th></tr></thead>
                 <tbody id="tabla-body">
                     <tr>
-                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance Blanca"></td>
+                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Cortina Enrollable"></td>
                         <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
-                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" oninput="formatearYCalcular(this)"></td>
+                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" oninput="formatear(this); calcular()"></td>
                         <td class="item-total fw-bold text-end">$ 0</td>
                         <td class="no-print"></td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <button class="btn btn-sm btn-outline-secondary no-print mb-3" onclick="agregarFila()">+ AÑADIR ÍTEM</button>
+        <button class="btn btn-sm btn-outline-secondary no-print mb-3" onclick="agregarFila()">+ AÑADIR PRODUCTO</button>
 
         <div class="mb-4">
-            <label class="form-label-small">Observaciones de la Cotización</label>
-            <textarea id="notas" class="form-control-compact" style="height: 50px; min-height: 50px;" placeholder="Detalles adicionales..."></textarea>
+            <label class="form-label-small">Observaciones / Notas</label>
+            <textarea id="notas" class="form-control-compact" style="height: 50px; min-height: 50px;" placeholder="Vigencia, condiciones especiales..."></textarea>
         </div>
 
         <div class="row g-4">
             <div class="col-md-7">
-                <span class="section-title">Condiciones de Venta</span>
-                <div class="condiciones-texto">
-                    • <b>Vigencia:</b> 15 días calendario.<br>
-                    • <b>Forma de Pago:</b> Anticipo del 50% para inicio. Saldo contra entrega.<br>
-                    • <b>Instalación:</b> <b>GRATUITA</b> por compras superiores a $300.000.
+                <span class="section-title">Validez y Condiciones</span>
+                <div style="font-size: 0.72rem; color: #555; background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 8px; line-height: 1.5;">
+                    • Esta cotización tiene una vigencia de <b>15 días calendario</b>.<br>
+                    • Los precios incluyen <b>instalación GRATIS</b> en Popayán.<br>
+                    • Forma de pago: 50% anticipo, 50% contra entrega.
                 </div>
             </div>
             <div class="col-md-5">
                 <div class="finance-box text-end">
-                    <p class="mb-1 small text-muted">Subtotal: <span id="sub_val">$ 0</span></p>
-                    <p class="mb-1 small text-muted">IVA (19%): <span id="iva_val">$ 0</span></p>
-                    <hr>
                     <p class="h4 fw-bold mb-0" style="color:var(--homeeasy-wine)">TOTAL: <span id="total_val">$ 0</span></p>
                 </div>
             </div>
         </div>
 
-        <button class="btn btn-homeeasy no-print shadow" onclick="finalizarCotizacion()">Sincronizar y Generar PDF</button>
+        <button class="btn btn-homeeasy no-print shadow" onclick="finalizar()">Sincronizar y Guardar</button>
     </div>
 
     <div class="pdf-footer">
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo" style="filter: grayscale(100%);">
-        <div class="footer-creds">HomeEasy Popayán - Expertos en Decoración</div>
-        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Documento generado digitalmente por Sistema HomeEasy</div>
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo" crossorigin="anonymous">
+        <div class="footer-creds">HomeEasy Popayán - Transformamos tus espacios</div>
+        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Cotización oficial generada por Sistema HomeEasy</div>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
     const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-    let ultimaCedulaBuscada = "";
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
+        // CARGA DE SECUENCIA
         fetch(`${URL_G}?nextCotizacion=1`)
             .then(r => r.json())
-            .then(d => {
-                document.getElementById("numeroCotizacion").innerText = d.nextCotizacion || "1";
-            })
-            .catch(e => { document.getElementById("numeroCotizacion").innerText = "1"; });
+            .then(d => { 
+                if(d.status === "ok") document.getElementById("n_cot_display").innerText = d.next; 
+            });
     };
-
-    function validarYLimpiar() {
-        const cedActual = document.getElementById('cedula').value.trim();
-        if (cedActual !== ultimaCedulaBuscada) {
-            document.getElementById('nombre').value = "";
-            document.getElementById('telefono').value = "";
-            document.getElementById('email').value = "";
-            document.getElementById('direccion').value = "";
-        }
-    }
 
     async function buscarCliente() {
         let ced = document.getElementById('cedula').value.trim();
-        if(!ced || ced.length < 4) return;
-        
-        ultimaCedulaBuscada = ced;
-
+        if(ced.length < 4) return;
         try {
             const r = await fetch(`${URL_G}?cedula=${ced}`);
             const d = await r.json();
             if(d.status === "found") {
-                document.getElementById('nombre').value = d.nombre.toUpperCase();
-                document.getElementById('telefono').value = d.telefono;
-                document.getElementById('email').value = d.email || "";
+                document.getElementById('nombre').value = (d.nombre || "").toUpperCase();
+                document.getElementById('telefono').value = d.telefono || "";
+                document.getElementById('email').value = (d.email || "").toLowerCase();
                 document.getElementById('direccion').value = (d.direccion || "").toUpperCase();
             }
-        } catch(e) { console.error("Error:", e); }
+        } catch(e) {}
     }
 
-    function formatearYCalcular(i) {
+    function formatear(i) {
         let v = i.value.replace(/\D/g, "");
         i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : "";
-        calcular();
     }
-    
+
     function calcular() {
-        let t = 0;
-        document.querySelectorAll('#tabla-body tr').forEach(f => {
-            let c = parseFloat(f.querySelector('.cant').value) || 0;
-            let p = parseFloat(f.querySelector('.precio').value.replace(/\D/g, "")) || 0;
-            let s = c * p; 
-            f.querySelector('.item-total').innerText = `$ ${s.toLocaleString('es-CO')}`; 
-            t += s;
+        let total = 0;
+        document.querySelectorAll('#tabla-body tr').forEach(tr => {
+            let c = parseFloat(tr.querySelector('.cant').value) || 0;
+            let p = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
+            let sub = c * p;
+            tr.querySelector('.item-total').innerText = `$ ${sub.toLocaleString('es-CO')}`;
+            total += sub;
         });
-        let b = t / 1.19; 
-        let v = t - b;
-        document.getElementById('sub_val').innerText = `$ ${Math.round(b).toLocaleString('es-CO')}`;
-        document.getElementById('iva_val').innerText = `$ ${Math.round(v).toLocaleString('es-CO')}`;
-        document.getElementById('total_val').innerText = `$ ${t.toLocaleString('es-CO')}`;
+        document.getElementById('total_val').innerText = `$ ${total.toLocaleString('es-CO')}`;
     }
 
     function agregarFila() {
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" oninput="formatearYCalcular(this)"></td><td class="item-total fw-bold text-end">$ 0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
+        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$ 0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
         document.getElementById('tabla-body').appendChild(tr);
     }
 
-    async function finalizarCotizacion() {
-        // Aseguramos MAYÚSCULAS antes de procesar
-        const inputNombre = document.getElementById('nombre');
-        const inputDireccion = document.getElementById('direccion');
-        inputNombre.value = inputNombre.value.toUpperCase();
-        inputDireccion.value = inputDireccion.value.toUpperCase();
-
-        const nomValue = inputNombre.value.trim();
+    async function finalizar() {
         const cedValue = document.getElementById('cedula').value.trim();
-        const areaPdf = document.getElementById('area-pdf');
+        const nomValue = document.getElementById('nombre').value.toUpperCase();
 
-        if(!nomValue || !cedValue) return alert("Cédula y Nombre son obligatorios.");
-        
+        if (!cedValue || !nomValue) return alert("Cédula y Nombre requeridos.");
+
         document.getElementById('loading').style.display = 'flex';
 
-        const filas = document.querySelectorAll('#tabla-body tr');
-        filas.forEach(f => {
-            if(!f.querySelector('.row-desc').value.trim()) f.style.display = 'none';
-        });
-
-        document.body.classList.add('is-generating');
-
-        let descFull = "";
-        document.querySelectorAll('#tabla-body tr:not([style*="display: none"])').forEach(f => {
-            let d = f.querySelector('.row-desc').value.trim();
-            let c = f.querySelector('.cant').value;
-            descFull += `${c} x ${d} / `;
-        });
-
         try {
-            const canvas = await html2canvas(areaPdf, { 
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('area-pdf');
+
+            // 1. LIMPIEZA VISUAL (Ocultar botones y filas vacías)
+            const btns = document.querySelectorAll('.no-print, button, .btn');
+            btns.forEach(b => { b.dataset.originalDisplay = b.style.display; b.style.display = 'none'; });
+
+            const filas = document.querySelectorAll('#tabla-body tr');
+            filas.forEach(f => {
+                if(!f.querySelector('.row-desc').value.trim()) f.style.display = 'none';
+            });
+
+            // 2. CAPTURA
+            const canvas = await html2canvas(element, { 
                 scale: 2, 
                 useCORS: true, 
-                windowHeight: areaPdf.scrollHeight 
+                width: 800,
+                windowWidth: 800 
             });
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            const pdfW = 210;
-            const pdfH = (canvas.height * pdfW) / canvas.width;
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, pdfH);
+
+            // RESTAURAR
+            btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
+            filas.forEach(f => f.style.display = '');
+
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
+            let descFull = "";
+            document.querySelectorAll('#tabla-body tr').forEach(tr => {
+                let d = tr.querySelector('.row-desc').value.trim();
+                let c = tr.querySelector('.cant').value;
+                if (d) descFull += `${c}x ${d} | `;
+            });
+
             const datosSync = {
-  tipo: "cotizacion",   
-  cedula: cedValue,
-  nombre: nomValue,
-  telefono: document.getElementById('telefono').value,
-  email: document.getElementById('email').value.toLowerCase(),
-  direccion: inputDireccion.value,
-  descripcion: descFull,
-  observaciones: document.getElementById('notas').value,
-  total: document.getElementById('total_val').innerText.replace(/\D/g, ""),
-  pdfBase64: pdfBase64,
-  nombreArchivo: `Cotizacion_${cedValue}_${nomValue.replace(/ /g, "_")}.pdf`
-};
+                tipo: "cotizacion",
+                cedula: cedValue,
+                nombre: nomValue,
+                telefono: document.getElementById('telefono').value,
+                email: document.getElementById('email').value.toLowerCase(),
+                direccion: document.getElementById('direccion').value,
+                descripcion: descFull,
+                observaciones: document.getElementById('notas').value,
+                total: document.getElementById('total_val').innerText.replace(/\D/g, ""),
+                pdfBase64: pdfBase64,
+                nombreArchivo: `Cotizacion_${cedValue}.pdf`
+            };
 
             const response = await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosSync) });
             const result = await response.json();
 
             if (result.status === "success") {
-                document.getElementById('spinner').style.display = 'none';
-                document.getElementById('success-icon').style.display = 'block';
-                document.getElementById('status-text').innerHTML = `¡ÉXITO!<br>GUARDADO COMO N°${result.numero}`;
                 pdf.save(datosSync.nombreArchivo);
-                setTimeout(() => location.reload(), 2500);
+                if (result.url) window.open(result.url, "_blank");
+                alert("Cotización guardada con éxito.");
+                setTimeout(() => location.reload(), 800);
             }
-        } catch(e) { 
-            alert("Error al sincronizar."); 
+        } catch (e) {
+            alert("Error: " + e.message);
             document.getElementById('loading').style.display = 'none';
-        } finally { 
-            document.body.classList.remove('is-generating');
-            filas.forEach(f => f.style.display = ''); 
         }
     }
 </script>
 </body>
-
 </html>
