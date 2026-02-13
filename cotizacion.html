@@ -12,13 +12,12 @@
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
         .text-uppercase-input { text-transform: uppercase; }
         
-        /* BLOQUEO DE NÚMERO AZUL EN IPHONE SIN AFECTAR ICONOS */
+        /* Evitar que iPhone ponga el número azul sin afectar iconos */
         .empresa-info-header span, .empresa-info-header a { 
             color: #ffffff !important; 
             text-decoration: none !important; 
-            pointer-events: none; /* Evita que sea clickeable como link */
+            pointer-events: none;
         }
-        /* ASEGURAR ICONOS DORADOS */
         .empresa-info-header i { 
             color: var(--homeeasy-gold) !important; 
             width: 15px; 
@@ -153,11 +152,13 @@
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-        // CARGA DE SECUENCIA
+        // CARGA DE SECUENCIA - LÍNEA SOLICITADA ACTUALIZADA
         fetch(`${URL_G}?nextCotizacion=1`)
             .then(r => r.json())
             .then(d => { 
-                if(d.status === "ok") document.getElementById("n_cot_display").innerText = d.next; 
+                if(d.status === "ok") {
+                    document.getElementById("n_cot_display").innerText = d.nextCotizacion; 
+                }
             });
     };
 
@@ -211,7 +212,6 @@
             const { jsPDF } = window.jspdf;
             const element = document.getElementById('area-pdf');
 
-            // 1. LIMPIEZA VISUAL (Ocultar botones y filas vacías)
             const btns = document.querySelectorAll('.no-print, button, .btn');
             btns.forEach(b => { b.dataset.originalDisplay = b.style.display; b.style.display = 'none'; });
 
@@ -220,7 +220,6 @@
                 if(!f.querySelector('.row-desc').value.trim()) f.style.display = 'none';
             });
 
-            // 2. CAPTURA
             const canvas = await html2canvas(element, { 
                 scale: 2, 
                 useCORS: true, 
@@ -228,7 +227,6 @@
                 windowWidth: 800 
             });
 
-            // RESTAURAR
             btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
             filas.forEach(f => f.style.display = '');
 
