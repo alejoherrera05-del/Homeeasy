@@ -12,7 +12,6 @@
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
         .text-uppercase-input { text-transform: uppercase; }
         
-        /* Evitar que iPhone ponga el número azul sin afectar iconos */
         .empresa-info-header span, .empresa-info-header a { 
             color: #ffffff !important; 
             text-decoration: none !important; 
@@ -200,10 +199,15 @@
     }
 
     async function finalizar() {
-        const cedValue = document.getElementById('cedula').value.trim();
-        const nomValue = document.getElementById('nombre').value.toUpperCase();
+        const cedula = document.getElementById('cedula').value.trim();
+        let nombre = document.getElementById('nombre').value.toUpperCase();
+        let email = document.getElementById('email').value.toLowerCase();
 
-        if (!cedValue || !nomValue) return alert("Cédula y Nombre requeridos.");
+        if (!cedula || !nombre) return alert("Cédula y Nombre requeridos.");
+
+        // Forzar mayúsculas y minúsculas en el DOM antes de generar el PDF
+        document.getElementById('nombre').value = nombre;
+        document.getElementById('email').value = email;
 
         document.getElementById('loading').style.display = 'flex';
 
@@ -238,49 +242,52 @@
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
             // --- INICIO CAMBIOS SOLICITADOS ---
-            let descripcion = "";
-            let items = [];
+            let descripcionTexto = "";
+            let itemsJSON = [];
 
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
-                let d = tr.querySelector('.row-desc').value.trim();
-                let c = parseFloat(tr.querySelector('.cant').value) || 0;
-                let p = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
+                let descripcion = tr.querySelector('.row-desc').value.trim();
+                let cantidad = parseFloat(tr.querySelector('.cant').value) || 0;
+                let precio = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
+                let subtotal = cantidad * precio;
 
-                if (!d) return;
+                if (!descripcion) return;
 
-                descripcion += `${c} x ${d} / `;
+                descripcionTexto += `${cantidad} x ${descripcion} / `;
 
-                items.push({
-                    cantidad: c,
-                    descripcion: d,
-                    precio: p,
-                    total: c * p
+                itemsJSON.push({
+                    descripcion: descripcion,
+                    cantidad: cantidad,
+                    precio: precio,
+                    subtotal: subtotal
                 });
             });
 
-            let itemsJSON = JSON.stringify(items);
+            const totalFinal = document.getElementById('total_val').innerText.replace(/\D/g, "");
+
+            const response = await fetch(URL_G, { 
+                method: 'POST', 
+                body: JSON.stringify({
+                    tipo: "cotizacion",
+                    cedula: cedula,
+                    nombre: nombre,
+                    telefono: document.getElementById('telefono').value,
+                    email: email,
+                    direccion: document.getElementById('direccion').value,
+                    descripcion: descripcionTexto,
+                    total: totalFinal,
+                    items: itemsJSON, // 👈 NUEVO: Enviar arreglo estructurado
+                    observaciones: document.getElementById('notas').value,
+                    pdfBase64: pdfBase64,
+                    nombreArchivo: `Cotizacion_${cedula}.pdf`
+                }) 
+            });
             // --- FIN CAMBIOS SOLICITADOS ---
 
-            const datosSync = {
-                tipo: "cotizacion",
-                cedula: cedValue,
-                nombre: nomValue,
-                telefono: document.getElementById('telefono').value,
-                email: document.getElementById('email').value.toLowerCase(),
-                direccion: document.getElementById('direccion').value,
-                descripcion: descripcion, // Ahora usa el nuevo formato
-                itemsJSON: itemsJSON,      // Paso 2: Enviar el JSON al cerebro
-                observaciones: document.getElementById('notas').value,
-                total: document.getElementById('total_val').innerText.replace(/\D/g, ""),
-                pdfBase64: pdfBase64,
-                nombreArchivo: `Cotizacion_${cedValue}.pdf`
-            };
-
-            const response = await fetch(URL_G, { method: 'POST', body: JSON.stringify(datosSync) });
             const result = await response.json();
 
             if (result.status === "success") {
-                pdf.save(datosSync.nombreArchivo);
+                pdf.save(`Cotizacion_${cedula}.pdf`);
                 if (result.url) window.open(result.url, "_blank");
                 alert("Cotización guardada con éxito.");
                 setTimeout(() => location.reload(), 800);
