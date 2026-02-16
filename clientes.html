@@ -186,7 +186,7 @@
         .saldo-price { font-weight: 800; color: #ff3b30; font-size: 0.9rem; }
         .saldo-finalizado { color: #8e8e93 !important; font-weight: 600; }
 
-        .btn-pdf, .btn-convert {
+        .btn-pdf {
             background: white;
             color: var(--homeeasy-wine);
             border: 1.5px solid var(--homeeasy-wine);
@@ -198,12 +198,7 @@
             display: inline-block;
             transition: 0.2s;
         }
-        .btn-convert {
-            background: var(--homeeasy-wine);
-            color: white;
-            margin-left: 5px;
-        }
-        .btn-convert:active { opacity: 0.8; transform: scale(0.95); }
+        .btn-pdf:active { opacity: 0.8; transform: scale(0.95); }
 
         .loader-ios { margin: 40px auto; color: var(--homeeasy-wine); }
     </style>
@@ -259,10 +254,6 @@
     <script>
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
 
-        function convertirACotizacion(numero) {
-            window.location.href = `pedido.html?cotizacion=${numero}`;
-        }
-
         async function buscarHistorial() {
             const cedula = document.getElementById('cedula_busqueda').value.trim();
             if (!cedula) return;
@@ -301,10 +292,18 @@
                 const total = parseFloat(item.total) || 0;
                 const saldo = parseFloat(item.saldo) || 0;
                 const fecha = item.fecha ? new Date(item.fecha).toLocaleDateString() : 'N/A';
-                const estadoLimpio = (item.estado || 'REGISTRADO').toUpperCase();
                 
+                const estadoLimpio = (item.estado || 'REGISTRADO').toUpperCase();
+                // PASO 2 - Detectar si es convertida
+                const esConvertida = prefix === 'COT' && estadoLimpio.includes("CONVERTIDA");
+
                 const cardTypeClass = prefix === 'COT' ? 'card-COT' : `card-${estadoLimpio}`;
-                const badgeClass = prefix === 'COT' ? 'badge-cot' : `status-${estadoLimpio}`;
+                
+                // PASO 4 - Badge dinámico
+                let badgeClass = prefix === 'COT' ? 'badge-cot' : `status-${estadoLimpio}`;
+                if (prefix === 'COT' && estadoLimpio.includes("CONVERTIDA")) {
+                    badgeClass = 'status-COMPLETADO';
+                }
 
                 const saldoClass = (saldo <= 0) ? 'saldo-price saldo-finalizado' : 'saldo-price';
                 const saldoTexto = (saldo <= 0) ? 'Orden Completa' : `Saldo: $${saldo.toLocaleString('es-CO')}`;
@@ -327,8 +326,13 @@
                             ${prefix === 'OP' ? `<div class="${saldoClass}">${saldoTexto}</div>` : ''}
                         </div>
                         <div class="d-flex align-items-center">
-                            ${urlDoc ? `<a href="${urlDoc}" target="_blank" class="btn-pdf"><i class="fas fa-file-pdf me-1"></i> PDF</a>` : ''}
-                            ${prefix === 'COT' ? `<button onclick="convertirACotizacion('${num}')" class="btn-convert"><i class="fas fa-sync-alt me-1"></i> Convertir a OP</button>` : ''}
+                            ${prefix === 'COT' && !esConvertida ? `<a href="pedido.html?cotizacion=${num}" class="btn-pdf me-2">
+                                <i class="fas fa-random me-1"></i> CONVERTIR A OP
+                            </a>` : ''}
+
+                            ${urlDoc ? `<a href="${urlDoc}" target="_blank" class="btn-pdf">
+                                <i class="fas fa-file-pdf me-1"></i> VER PDF
+                            </a>` : ''}
                         </div>
                     </div>
                 </div>`;
