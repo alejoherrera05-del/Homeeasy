@@ -169,28 +169,31 @@
                         document.getElementById("cedula").value = d.cedula;
                         document.getElementById("nombre").value = d.nombre.toUpperCase();
 
-                        buscarCliente(); // Cargar datos adicionales del cliente
+                        buscarCliente(); 
 
-                        // Limpiar tabla antes de rellenar
+                        // NUEVO BLOQUE DE PROCESAMIENTO SOLICITADO
+                        // Limpiar tabla
                         document.getElementById("tabla-body").innerHTML = "";
 
-                        // Nuevo Procesamiento de descripción con Regex
-                        let items = d.descripcion.split("|");
+                        // Separar por "/"
+                        let items = d.descripcion.split("/");
+
                         items.forEach(item => {
                             item = item.trim();
                             if (!item) return;
 
-                            // Extraer cantidad al inicio (ej: 2x ...)
-                            const match = item.match(/^(\d+)x\s(.+)$/);
-                            if (!match) return;
+                            // Buscar patrón "numero x descripcion"
+                            const partes = item.split(" x ");
 
-                            const cantidad = match[1];
-                            const nombreCompleto = match[2];
+                            if (partes.length < 2) return;
 
-                            // Agregar fila e insertar datos
+                            const cantidad = partes[0].trim();
+                            const descripcion = partes.slice(1).join(" x ").trim();
+
                             agregarFila();
+
                             const ultimaFila = document.querySelector("#tabla-body tr:last-child");
-                            ultimaFila.querySelector(".row-desc").value = nombreCompleto;
+                            ultimaFila.querySelector(".row-desc").value = descripcion;
                             ultimaFila.querySelector(".cant").value = cantidad;
                         });
 
@@ -296,7 +299,7 @@
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
                 let d = tr.querySelector('.row-desc').value.trim();
                 let c = tr.querySelector('.cant').value;
-                if(d) descripcion += `${c}x ${d} | `;
+                if(d) descripcion += `${c}x ${d} / `;
             });
 
             const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
