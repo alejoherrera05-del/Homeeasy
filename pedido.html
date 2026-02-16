@@ -25,6 +25,7 @@
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
         .card-body { padding: 30px 20px; flex-grow: 1; }
+        @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
 
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
@@ -146,8 +147,6 @@
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-        
-        // 1. Cargar número de orden siguiente
         fetch(`${URL_G}?nextPedido=1`)
             .then(r => r.json())
             .then(d => { 
@@ -157,7 +156,7 @@
             })
             .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
 
-        // 2. Detectar si viene de cotización
+        // Detectar si viene de cotización
         const params = new URLSearchParams(window.location.search);
         const numeroCot = params.get("cotizacion");
 
@@ -169,35 +168,29 @@
                         document.getElementById("cedula").value = d.cedula;
                         document.getElementById("nombre").value = d.nombre.toUpperCase();
 
-                        buscarCliente(); 
+                        buscarCliente(); // para cargar teléfono/email
 
-                        // NUEVO BLOQUE DE PROCESAMIENTO SOLICITADO
-                        // Limpiar tabla
-                        document.getElementById("tabla-body").innerHTML = "";
+                        // NUEVA LÓGICA DE PROCESAMIENTO JSON
+                        if (d.itemsJSON) {
+                            const items = JSON.parse(d.itemsJSON);
+                            document.getElementById("tabla-body").innerHTML = "";
 
-                        // Separar por "/"
-                        let items = d.descripcion.split("/");
+                            items.forEach(item => {
+                                agregarFila();
+                                const ultimaFila = document.querySelector("#tabla-body tr:last-child");
 
-                        items.forEach(item => {
-                            item = item.trim();
-                            if (!item) return;
+                                ultimaFila.querySelector(".row-desc").value = item.descripcion;
+                                ultimaFila.querySelector(".cant").value = item.cantidad;
+                                ultimaFila.querySelector(".precio").value = 
+                                    new Intl.NumberFormat('es-CO', {
+                                        style: 'currency',
+                                        currency: 'COP',
+                                        minimumFractionDigits: 0
+                                    }).format(item.precio);
+                            });
 
-                            // Buscar patrón "numero x descripcion"
-                            const partes = item.split(" x ");
-
-                            if (partes.length < 2) return;
-
-                            const cantidad = partes[0].trim();
-                            const descripcion = partes.slice(1).join(" x ").trim();
-
-                            agregarFila();
-
-                            const ultimaFila = document.querySelector("#tabla-body tr:last-child");
-                            ultimaFila.querySelector(".row-desc").value = descripcion;
-                            ultimaFila.querySelector(".cant").value = cantidad;
-                        });
-
-                        calcular();
+                            calcular();
+                        }
                     }
                 });
         }
@@ -299,7 +292,7 @@
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
                 let d = tr.querySelector('.row-desc').value.trim();
                 let c = tr.querySelector('.cant').value;
-                if(d) descripcion += `${c}x ${d} / `;
+                if(d) descripcion += `${c}x ${d} | `;
             });
 
             const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
