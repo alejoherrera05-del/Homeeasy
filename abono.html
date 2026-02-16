@@ -156,7 +156,7 @@
     };
 
     async function buscarOrden() {
-        let numero = document.getElementById('numeroOP').value.trim();
+        let numero = document.getElementById('numero_op').value.trim();
         if(!numero) return;
         try {
             const r = await fetch(`${URL_G}?buscarOP=${numero}`);
@@ -189,7 +189,7 @@
         const valAbono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
         const mPago = document.getElementById('medioPago').value;
         const nRecibo = document.getElementById("n_recibo_display").innerText;
-        const numOP = document.getElementById('numeroOP').value.trim();
+        const numOP = document.getElementById('numero_op').value.trim();
         const nom = document.getElementById('nombre').value;
 
         if(!ced) return alert("Primero busque una Orden válida.");
@@ -231,7 +231,7 @@
                 method: "POST",
                 body: JSON.stringify({
                     tipo: "abono",
-                    numeroOP: numOP,
+                    numero_op: numOP,
                     cedula: ced,
                     nombre: nom,
                     valorAbono: valAbono,
@@ -258,3 +258,4 @@
 </script>
 </body>
 </html>
+
