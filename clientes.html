@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,110 +8,122 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f8f9fa; }
-        body { background-color: #f4f4f4; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; padding-bottom: 50px; }
+        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-dark: #2c2c2c; }
+        body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: var(--homeeasy-dark); margin: 0; padding-bottom: 50px; }
         
+        .btn-back { 
+            position: absolute; 
+            top: 20px; 
+            left: 15px; 
+            background: rgba(255, 255, 255, 0.2);
+            color: white; 
+            width: 45px; 
+            height: 45px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 50%; 
+            backdrop-filter: blur(5px);
+            text-decoration: none;
+            transition: 0.3s;
+            z-index: 1001;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn-back:active { transform: scale(0.9); background: var(--homeeasy-gold); }
+
         .app-header { 
-            background: linear-gradient(180deg, var(--homeeasy-wine) 0%, #8b2d44 100%);
-            padding: 40px 20px;
+            background: linear-gradient(180deg, var(--homeeasy-wine) 0%, #7a2a3e 100%);
+            padding: 50px 20px 80px;
             text-align: center;
-            border-bottom: 5px solid var(--homeeasy-gold);
-            margin-bottom: 30px;
+            border-bottom: 4px solid var(--homeeasy-gold);
+            position: relative;
         }
-        .app-header h1 { font-weight: 800; color: white; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; margin-top: 15px; }
-        .logo-header { max-width: 110px; }
-        .btn-back { position: absolute; top: 20px; left: 20px; color: white; font-size: 1.2rem; text-decoration: none; }
+        .app-header h1 { font-weight: 800; color: white; letter-spacing: 1px; text-transform: uppercase; font-size: 1.1rem; margin-top: 15px; margin-bottom: 0; }
+        .logo-header { max-width: 100px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
 
-        .search-container { max-width: 600px; margin: -50px auto 30px; padding: 0 20px; }
-        .search-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .input-modern { border: 2px solid #eee; border-radius: 10px !important; padding: 12px 15px 12px 45px; font-weight: 600; font-size: 16px !important; }
-        .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #bbb; z-index: 10; }
-        .btn-search { background-color: var(--homeeasy-wine); color: white; border: none; border-radius: 10px; font-weight: 800; padding: 12px; margin-top: 15px; width: 100%; text-transform: uppercase; }
+        .search-container { max-width: 500px; margin: -40px auto 30px; padding: 0 15px; position: relative; z-index: 10; }
+        .search-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid #eee; }
+        .input-modern { border: 2px solid #f0f0f0; border-radius: 12px !important; padding: 14px 15px 14px 45px; font-weight: 600; font-size: 16px !important; transition: 0.3s; }
+        .input-modern:focus { border-color: var(--homeeasy-wine); box-shadow: 0 0 0 4px rgba(166, 61, 86, 0.1); }
+        .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #bbb; }
+        .btn-search { background: var(--homeeasy-wine); color: white; border: none; border-radius: 12px; font-weight: 800; padding: 14px; margin-top: 12px; width: 100%; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
 
-        /* DISEÑO DE PESTAÑAS (TABS) */
-        .nav-tabs-custom { display: flex; justify-content: space-around; background: #eee; border-radius: 12px; padding: 5px; margin-bottom: 25px; border: none; }
+        .client-card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 25px; border-left: 8px solid var(--homeeasy-gold); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+        .client-name { font-weight: 800; color: var(--homeeasy-wine); font-size: 1.2rem; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
+        .client-info { font-size: 0.85rem; color: #555; display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .info-item { display: flex; align-items: center; }
+        .info-item i { color: var(--homeeasy-gold); width: 25px; font-size: 1rem; }
+        .info-label { font-weight: 700; color: #888; margin-right: 5px; text-transform: uppercase; font-size: 0.7rem; }
+
+        .nav-tabs-custom { display: flex; background: #e9ecef; border-radius: 15px; padding: 4px; margin-bottom: 20px; border: none; }
         .nav-tabs-custom .nav-link { 
-            border: none; color: #888; font-weight: 700; font-size: 0.75rem; 
-            text-transform: uppercase; padding: 10px 20px; border-radius: 8px; transition: 0.3s;
+            flex: 1; border: none; color: #777; font-weight: 700; font-size: 0.7rem; 
+            text-transform: uppercase; padding: 12px 5px; border-radius: 12px; transition: 0.3s;
         }
-        .nav-tabs-custom .nav-link.active { background: white; color: var(--homeeasy-wine); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .nav-tabs-custom .nav-link.active { background: white; color: var(--homeeasy-wine); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
-        /* TARJETAS DE RESULTADOS */
-        .client-card { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; border-left: 6px solid var(--homeeasy-gold); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .client-name { font-weight: 800; color: var(--homeeasy-wine); font-size: 1.1rem; text-transform: uppercase; margin-bottom: 10px; }
-        .client-info { font-size: 0.8rem; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .client-info i { color: var(--homeeasy-gold); margin-right: 5px; }
+        .item-card { background: white; border-radius: 18px; border: 1px solid #f0f0f0; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .item-header { background: #fafafa; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .item-id { font-weight: 800; color: var(--homeeasy-dark); font-size: 0.85rem; }
 
-        .item-card { background: white; border-radius: 12px; border: 1px solid #eee; margin-bottom: 15px; transition: 0.3s; }
-        .item-header { background: #fcfcfc; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
-        .item-id { font-weight: 800; color: #444; font-size: 0.85rem; }
-        .status-badge { font-size: 0.6rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
-        
-        .badge-op { background: #e3f2fd; color: #0d47a1; } /* Color para Órdenes */
-        .badge-cot { background: #f3e5f5; color: #4a148c; } /* Color para Cotizaciones */
+        /* ESTADOS DE COLORES (REQUERIDO) */
+        .status-badge { font-size: 0.65rem; font-weight: 800; padding: 5px 12px; border-radius: 30px; text-transform: uppercase; }
+        .status-COMPLETADO { background: #d4edda !important; color: #155724 !important; border: 1px solid #c3e6cb; }
+        .status-ACTIVO { background: #fff3cd !important; color: #856404 !important; border: 1px solid #ffeeba; }
+        .badge-cot { background: #f3e8ff; color: #9333ea; border: 1px solid #e9d5ff; }
 
-        .item-body { padding: 15px; font-size: 0.82rem; color: #555; line-height: 1.4; }
-        .item-footer { background: #fafafa; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #eee; font-weight: 700; }
-        
-        .total-price { color: var(--homeeasy-wine); font-size: 0.95rem; }
-        .saldo-price { color: #d9534f; font-size: 0.95rem; }
+        .item-body { padding: 15px; font-size: 0.85rem; color: #444; }
+        .item-footer { background: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #eee; }
+        .total-price { font-weight: 800; color: var(--homeeasy-wine); font-size: 1rem; }
+        .saldo-price { font-weight: 800; color: #dc3545; font-size: 0.9rem; }
 
-        .empty-state { text-align: center; padding: 40px 20px; color: #aaa; font-size: 0.9rem; }
-        .empty-state i { font-size: 2.5rem; margin-bottom: 15px; opacity: 0.3; }
-
-        .loader { display: none; margin: 30px auto; }
+        .loader { display: none; margin: 40px auto; }
+        .empty-state { text-align: center; padding: 50px 20px; color: #bbb; font-weight: 600; }
     </style>
 </head>
 <body>
 
     <header class="app-header">
-        <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
+        <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i></a>
         <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-header" alt="HomeEasy Logo">
-        <h1>Expediente de Cliente</h1>
+        <h1>Expediente Digital</h1>
     </header>
 
     <div class="search-container">
         <div class="search-card">
-            <div class="input-group position-relative">
-                <i class="fas fa-search search-icon"></i>
+            <div class="position-relative">
+                <i class="fas fa-id-card search-icon"></i>
                 <input type="text" id="cedula_busqueda" class="form-control input-modern" placeholder="Cédula del cliente..." inputmode="numeric">
             </div>
-            <button class="btn-search" onclick="buscarHistorial()">Consultar Historial</button>
+            <button class="btn-search" onclick="buscarHistorial()">Buscar Cliente</button>
         </div>
     </div>
 
-    <div class="container mb-5">
+    <div class="container">
         <div id="loader" class="text-center loader">
             <div class="spinner-border text-danger" role="status"></div>
-            <p class="mt-2 fw-bold" style="color: var(--homeeasy-wine)">Accediendo al historial...</p>
+            <p class="mt-3 fw-bold text-muted">Consultando historial...</p>
         </div>
 
         <div id="resultado_cliente" style="display: none;">
             <div class="client-card">
                 <div class="client-name" id="c_nombre"></div>
                 <div class="client-info">
-                    <div><i class="fas fa-id-card"></i> <span id="c_cedula"></span></div>
-                    <div><i class="fas fa-phone"></i> <span id="c_tel"></span></div>
-                    <div style="grid-column: span 2;"><i class="fas fa-map-marker-alt"></i> <span id="c_dir"></span></div>
+                    <div class="info-item"><i class="fas fa-fingerprint"></i> <span class="info-label">C.C:</span> <span id="c_cedula"></span></div>
+                    <div class="info-item"><i class="fas fa-phone-alt"></i> <span class="info-label">TEL:</span> <span id="c_tel"></span></div>
+                    <div class="info-item"><i class="fas fa-envelope"></i> <span class="info-label">EMAIL:</span> <span id="c_email"></span></div>
+                    <div class="info-item"><i class="fas fa-map-marker-alt"></i> <span class="info-label">DIR:</span> <span id="c_dir"></span></div>
                 </div>
             </div>
 
             <ul class="nav nav-tabs nav-tabs-custom" id="tabHistorial" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="ordenes-tab" data-bs-toggle="tab" data-bs-target="#ordenes" type="button" role="tab">Órdenes de Pedido</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="cotizaciones-tab" data-bs-toggle="tab" data-bs-target="#cotizaciones" type="button" role="tab">Cotizaciones</button>
-                </li>
+                <li class="nav-item" style="flex:1"><button class="nav-link active w-100" id="ordenes-tab" data-bs-toggle="tab" data-bs-target="#ordenes" type="button">Órdenes</button></li>
+                <li class="nav-item" style="flex:1"><button class="nav-link w-100" id="cotizaciones-tab" data-bs-toggle="tab" data-bs-target="#cotizaciones" type="button">Cotizaciones</button></li>
             </ul>
 
             <div class="tab-content" id="tabHistorialContent">
-                <div class="tab-pane fade show active" id="ordenes" role="tabpanel">
-                    <div id="lista_ordenes"></div>
-                </div>
-                <div class="tab-pane fade" id="cotizaciones" role="tabpanel">
-                    <div id="lista_cotizaciones"></div>
-                </div>
+                <div class="tab-pane fade show active" id="ordenes" role="tabpanel"><div id="lista_ordenes"></div></div>
+                <div class="tab-pane fade" id="cotizaciones" role="tabpanel"><div id="lista_cotizaciones"></div></div>
             </div>
         </div>
     </div>
@@ -123,86 +134,67 @@
 
         async function buscarHistorial() {
             const cedula = document.getElementById('cedula_busqueda').value.trim();
-            if (!cedula) return alert("Ingrese una cédula.");
-
+            if (!cedula) return;
             document.getElementById('loader').style.display = 'block';
             document.getElementById('resultado_cliente').style.display = 'none';
 
             try {
                 const response = await fetch(`${URL_G}?tipo=HISTORIAL_CLIENTE&cedula=${cedula}`);
                 const data = await response.json();
-
                 if (data.status === "found") {
-                    // Llenar datos cliente
                     document.getElementById('c_nombre').innerText = data.cliente.nombre;
                     document.getElementById('c_cedula').innerText = data.cliente.cedula;
                     document.getElementById('c_tel').innerText = data.cliente.telefono;
+                    document.getElementById('c_email').innerText = data.cliente.email || 'No registrado';
                     document.getElementById('c_dir').innerText = data.cliente.direccion;
-
-                    // Llenar Órdenes
-                    renderLista(data.ordenes, 'lista_ordenes', 'OP', 'badge-op');
-                    
-                    // Llenar Cotizaciones (Propiedad que viene del Cerebro)
-                    renderLista(data.cotizaciones, 'lista_cotizaciones', 'COT', 'badge-cot');
-
+                    renderLista(data.ordenes, 'lista_ordenes', 'OP');
+                    renderLista(data.cotizaciones, 'lista_cotizaciones', 'COT');
                     document.getElementById('resultado_cliente').style.display = 'block';
-                } else {
-                    alert("Cliente no encontrado en la base de datos.");
-                }
-            } catch(e) { 
-                console.error(e);
-                alert("Error de conexión con el servidor."); 
-            } finally { 
-                document.getElementById('loader').style.display = 'none'; 
-            }
+                } else { alert("Cliente no encontrado."); }
+            } catch(e) { alert("Error al conectar."); } finally { document.getElementById('loader').style.display = 'none'; }
         }
 
-       function renderLista(items, containerId, prefix, badgeClass) {
-    const container = document.getElementById(containerId);
-    if (!items || items.length === 0) {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No hay registros disponibles</p></div>`;
-        return;
-    }
+        function renderLista(items, containerId, prefix) {
+            const container = document.getElementById(containerId);
+            if (!items || items.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open d-block mb-3 fs-1"></i>Sin registros</div>`;
+                return;
+            }
 
-    let html = "";
-    items.forEach(item => {
-        
-        const num = item.numero_op || item.numero || item.numero_cotizacion || "S/N"; 
-        
-        const urlDocumento = item.pdf_url || item.url || null;
-        
-        const total = parseFloat(item.total) || 0;
-        const saldo = parseFloat(item.saldo) || 0;
-        const fecha = item.fecha ? new Date(item.fecha).toLocaleDateString() : 'N/A';
+            let html = "";
+            items.forEach(item => {
+                const num = item.numero_op || item.numero || item.numero_cotizacion || "S/N"; 
+                const urlDoc = item.pdf_url || item.url || null;
+                const total = parseFloat(item.total) || 0;
+                const saldo = parseFloat(item.saldo) || 0;
+                const fecha = item.fecha ? new Date(item.fecha).toLocaleDateString() : 'N/A';
+                
+                // Lógica de clase de estado
+                const estadoLimpio = (item.estado || 'REGISTRADO').toUpperCase();
+                const badgeClass = prefix === 'COT' ? 'badge-cot' : `status-${estadoLimpio}`;
 
-        html += `
-        <div class="item-card shadow-sm">
-            <div class="item-header">
-                <div class="item-id">${prefix} N° ${num}</div>
-                <div class="status-badge ${badgeClass}">${item.estado || 'REGISTRADO'}</div>
-            </div>
-            <div class="item-body">
-                <p class="mb-2"><strong>Descripción:</strong> ${item.detalle || item.descripcion || 'Sin detalle'}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-muted"><i class="far fa-calendar-alt me-1"></i> ${fecha}</div>
-                    
-                    ${urlDocumento ? `
-                        <a href="${urlDocumento}" target="_blank" class="btn btn-sm btn-outline-danger" 
-                           style="border-radius: 20px; font-size: 0.7rem; font-weight: 700; padding: 4px 12px;">
-                           <i class="fas fa-file-pdf me-1"></i> VER ${prefix}
-                        </a>
-                    ` : ''}
-                </div>
-            </div>
-            <div class="item-footer">
-                <div class="total-price">Total: $${total.toLocaleString('es-CO')}</div>
-                ${prefix === 'OP' ? `<div class="saldo-price">Saldo: $${saldo.toLocaleString('es-CO')}</div>` : ''}
-            </div>
-        </div>`;
-    });
-    container.innerHTML = html;
+                html += `
+                <div class="item-card">
+                    <div class="item-header">
+                        <div class="item-id">${prefix} N° ${num}</div>
+                        <div class="status-badge ${badgeClass}">${estadoLimpio}</div>
+                    </div>
+                    <div class="item-body">
+                        <p class="mb-3 text-secondary" style="font-size: 0.8rem">${item.detalle || item.descripcion || 'Sin descripción'}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted" style="font-size: 0.75rem"><i class="far fa-calendar-alt me-1"></i> ${fecha}</span>
+                            ${urlDoc ? `<a href="${urlDoc}" target="_blank" class="btn btn-sm btn-outline-danger fw-bold px-3" style="border-radius: 20px; font-size: 0.65rem"><i class="fas fa-file-pdf"></i> VER PDF</a>` : ''}
+                        </div>
+                    </div>
+                    <div class="item-footer">
+                        <div class="total-price">$${total.toLocaleString('es-CO')}</div>
+                        ${prefix === 'OP' ? `<div class="saldo-price">Saldo: $${saldo.toLocaleString('es-CO')}</div>` : ''}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
 
-}
         document.getElementById('cedula_busqueda').addEventListener('keypress', (e) => { if (e.key === 'Enter') buscarHistorial(); });
     </script>
 </body>
