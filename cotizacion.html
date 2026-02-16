@@ -152,7 +152,6 @@
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-        // CARGA DE SECUENCIA - LÍNEA SOLICITADA ACTUALIZADA
         fetch(`${URL_G}?nextCotizacion=1`)
             .then(r => r.json())
             .then(d => { 
@@ -238,12 +237,29 @@
 
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            let descFull = "";
+            // --- INICIO CAMBIOS SOLICITADOS ---
+            let descripcion = "";
+            let items = [];
+
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
                 let d = tr.querySelector('.row-desc').value.trim();
-                let c = tr.querySelector('.cant').value;
-                if (d) descFull += `${c}x ${d} | `;
+                let c = parseFloat(tr.querySelector('.cant').value) || 0;
+                let p = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
+
+                if (!d) return;
+
+                descripcion += `${c} x ${d} / `;
+
+                items.push({
+                    cantidad: c,
+                    descripcion: d,
+                    precio: p,
+                    total: c * p
+                });
             });
+
+            let itemsJSON = JSON.stringify(items);
+            // --- FIN CAMBIOS SOLICITADOS ---
 
             const datosSync = {
                 tipo: "cotizacion",
@@ -252,7 +268,8 @@
                 telefono: document.getElementById('telefono').value,
                 email: document.getElementById('email').value.toLowerCase(),
                 direccion: document.getElementById('direccion').value,
-                descripcion: descFull,
+                descripcion: descripcion, // Ahora usa el nuevo formato
+                itemsJSON: itemsJSON,      // Paso 2: Enviar el JSON al cerebro
                 observaciones: document.getElementById('notas').value,
                 total: document.getElementById('total_val').innerText.replace(/\D/g, ""),
                 pdfBase64: pdfBase64,
