@@ -193,6 +193,11 @@
                             const ultimaFila = document.querySelector("#tabla-body tr:last-child");
                             ultimaFila.querySelector(".row-desc").value = descripcionCompleta;
                             ultimaFila.querySelector(".cant").value = cantidad;
+                            
+                            const precioInput = ultimaFila.querySelector(".precio");
+        precioInput.value = item.precio
+            ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio)
+            : "";
                         });
 
                         calcular();
@@ -340,3 +345,4 @@
 </script>
 </body>
 </html>
+
