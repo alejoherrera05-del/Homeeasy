@@ -340,17 +340,18 @@ calcular();
 
             const response = await fetch(URL_G, {
                 method: "POST",
-                body: JSON.stringify({
-                    tipo: "pedido",
-                    cedula: cedula,
-                    nombre: nombre,
-                    descripcion: descripcion,
-                    observaciones: document.getElementById('notas').value,
-                    valorTotal: total,
-                    abonoInicial: abonoInicial,
-                    pdfBase64: pdfBase64,
-                    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
-                })
+               body: JSON.stringify({
+    tipo: "pedido",
+    numeroCotizacion: params.get("cotizacion") || null,
+    cedula: cedula,
+    nombre: nombre,
+    descripcion: descripcion,
+    observaciones: document.getElementById('notas').value,
+    valorTotal: total,
+    abonoInicial: abonoInicial,
+    pdfBase64: pdfBase64,
+    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
+})
             });
 
             const json = await response.json();
@@ -375,5 +376,6 @@ calcular();
 </script>
 </body>
 </html>
+
 
 
