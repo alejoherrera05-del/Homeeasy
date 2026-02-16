@@ -25,7 +25,6 @@
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
         .card-body { padding: 30px 20px; flex-grow: 1; }
-        @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
 
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
@@ -147,6 +146,8 @@
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
+        
+        // 1. Cargar número de orden siguiente
         fetch(`${URL_G}?nextPedido=1`)
             .then(r => r.json())
             .then(d => { 
@@ -155,6 +156,44 @@
                 }
             })
             .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
+
+        // 2. Detectar si viene de cotización
+        const params = new URLSearchParams(window.location.search);
+        const numeroCot = params.get("cotizacion");
+
+        if (numeroCot) {
+            fetch(`${URL_G}?convertirCot=${numeroCot}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === "found") {
+                        document.getElementById("cedula").value = d.cedula;
+                        document.getElementById("nombre").value = d.nombre.toUpperCase();
+
+                        buscarCliente(); // para cargar teléfono/email
+
+                        // Limpiar tabla
+                        document.getElementById("tabla-body").innerHTML = "";
+
+                        // Parsear descripción
+                        const items = d.descripcion.split("|");
+                        items.forEach(item => {
+                            if (!item.trim()) return;
+
+                            const partes = item.trim().split("x ");
+                            const cantidad = partes[0];
+                            const descripcion = partes[1];
+
+                            agregarFila();
+                            const ultimaFila = document.querySelector("#tabla-body tr:last-child");
+
+                            ultimaFila.querySelector(".row-desc").value = descripcion;
+                            ultimaFila.querySelector(".cant").value = cantidad;
+                        });
+
+                        calcular();
+                    }
+                });
+        }
     };
 
     function validarYLimpiar() {
@@ -205,105 +244,94 @@
         document.getElementById('tabla-body').appendChild(tr);
     }
 
-   async function finalizar() {
-    const cedula = document.getElementById('cedula').value.trim();
-    const nombre = document.getElementById('nombre').value.toUpperCase();
-    
-    if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
-
-    const loading = document.getElementById('loading');
-    loading.style.display = 'flex';
-
-    try {
-        // 1. LIMPIEZA VISUAL (Ocultar botones y filas vacías para el PDF)
-        const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
-        elementosNoDeseados.forEach(el => el.style.display = 'none');
-
-        const filas = document.querySelectorAll('#tabla-body tr');
-        filas.forEach(fila => {
-            const descInput = fila.querySelector('.row-desc');
-            if (descInput && descInput.value.trim() === "") {
-                fila.style.display = 'none';
-            }
-        });
-
-        const { jsPDF } = window.jspdf;
-        const element = document.getElementById("area-pdf");
-
-        // CAPTURA CON ANCHO FIJO (Para que en celular se vea como en PC)
-        const canvas = await html2canvas(element, { 
-            scale: 2, 
-            useCORS: true,
-            logging: false,
-            width: 800 
-        });
-
-        // Restauramos visibilidad para la pantalla
-        elementosNoDeseados.forEach(el => el.style.display = '');
-        filas.forEach(fila => fila.style.display = '');
-
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-
-        // --- AJUSTE DE BORDE A BORDE ---
-        const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        // Forzamos la posición (0,0) y el ancho completo (pdfWidth)
-        // Esto elimina el desplazamiento lateral en móviles
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    async function finalizar() {
+        const cedula = document.getElementById('cedula').value.trim();
+        const nombre = document.getElementById('nombre').value.toUpperCase();
         
-        const pdfBase64 = pdf.output("datauristring").split(',')[1];
+        if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
 
-        // 2. RECOPILAR DATOS PARA EL EXCEL
-        let descripcion = "";
-        document.querySelectorAll('#tabla-body tr').forEach(tr => {
-            let d = tr.querySelector('.row-desc').value.trim();
-            let c = tr.querySelector('.cant').value;
-            if(d) descripcion += `${c}x ${d} | `;
-        });
+        const loading = document.getElementById('loading');
+        loading.style.display = 'flex';
 
-        const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
-        const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+        try {
+            const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
+            elementosNoDeseados.forEach(el => el.style.display = 'none');
 
-        // 3. ENVIAR AL CEREBRO
-        const response = await fetch(URL_G, {
-            method: "POST",
-            body: JSON.stringify({
-                tipo: "pedido",
-                cedula: cedula,
-                nombre: nombre,
-                descripcion: descripcion,
-                observaciones: document.getElementById('notas').value,
-                valorTotal: total,
-                abonoInicial: abonoInicial,
-                pdfBase64: pdfBase64,
-                nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
-            })
-        });
+            const filas = document.querySelectorAll('#tabla-body tr');
+            filas.forEach(fila => {
+                const descInput = fila.querySelector('.row-desc');
+                if (descInput && descInput.value.trim() === "") {
+                    fila.style.display = 'none';
+                }
+            });
 
-        const json = await response.json();
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById("area-pdf");
 
-        if (json.status === "success") {
-            pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
-            alert(`Orden N° ${json.numero_op} creada con éxito.`);
-            if (json.url) {
-                window.open(json.url, "_blank");
+            const canvas = await html2canvas(element, { 
+                scale: 2, 
+                useCORS: true,
+                logging: false,
+                width: 800 
+            });
+
+            elementosNoDeseados.forEach(el => el.style.display = '');
+            filas.forEach(fila => fila.style.display = '');
+
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            
+            const pdfBase64 = pdf.output("datauristring").split(',')[1];
+
+            let descripcion = "";
+            document.querySelectorAll('#tabla-body tr').forEach(tr => {
+                let d = tr.querySelector('.row-desc').value.trim();
+                let c = tr.querySelector('.cant').value;
+                if(d) descripcion += `${c}x ${d} | `;
+            });
+
+            const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
+            const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+
+            const response = await fetch(URL_G, {
+                method: "POST",
+                body: JSON.stringify({
+                    tipo: "pedido",
+                    cedula: cedula,
+                    nombre: nombre,
+                    descripcion: descripcion,
+                    observaciones: document.getElementById('notas').value,
+                    valorTotal: total,
+                    abonoInicial: abonoInicial,
+                    pdfBase64: pdfBase64,
+                    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
+                })
+            });
+
+            const json = await response.json();
+
+            if (json.status === "success") {
+                pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
+                alert(`Orden N° ${json.numero_op} creada con éxito.`);
+                if (json.url) {
+                    window.open(json.url, "_blank");
+                }
+                location.reload();
+            } else {
+                alert("Error: " + (json.msg || "No se pudo crear la orden"));
             }
-            location.reload();
-        } else {
-            alert("Error: " + (json.msg || "No se pudo crear la orden"));
-        }
 
-    } catch (err) {
-        alert("Error: " + err.message);
-    } finally {
-        loading.style.display = 'none';
+        } catch (err) {
+            alert("Error: " + err.message);
+        } finally {
+            loading.style.display = 'none';
+        }
     }
-}
 </script>
 </body>
 </html>
-
-
-
