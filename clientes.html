@@ -59,7 +59,7 @@
         }
         .logo-header { max-width: 85px; filter: drop-shadow(0 4px 15px rgba(0,0,0,0.2)); }
 
-        /* BUSCADOR CORREGIDO */
+        /* BUSCADOR */
         .search-container { max-width: 500px; margin: -55px auto 30px; padding: 0 20px; position: relative; z-index: 10; }
         .search-card { 
             background: rgba(255, 255, 255, 0.9); 
@@ -140,7 +140,7 @@
             background: white; color: var(--homeeasy-wine); box-shadow: 0 3px 10px rgba(0,0,0,0.1); 
         }
 
-        /* TARJETAS Y CORCHETES MEJORADOS */
+        /* TARJETAS */
         .item-card { 
             background: white; 
             border-radius: 22px; 
@@ -155,7 +155,7 @@
             left: 0;
             top: 15%;
             height: 70%;
-            width: 7px; /* Más visible */
+            width: 7px;
             border-radius: 0 10px 10px 0;
         }
 
@@ -184,11 +184,9 @@
         }
         .total-price { font-weight: 800; color: var(--homeeasy-wine); font-size: 1.1rem; }
         .saldo-price { font-weight: 800; color: #ff3b30; font-size: 0.9rem; }
-        
-        /* SALDO FINALIZADO */
         .saldo-finalizado { color: #8e8e93 !important; font-weight: 600; }
 
-        .btn-pdf {
+        .btn-pdf, .btn-convert {
             background: white;
             color: var(--homeeasy-wine);
             border: 1.5px solid var(--homeeasy-wine);
@@ -196,7 +194,16 @@
             font-size: 0.65rem;
             font-weight: 800;
             padding: 6px 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
         }
+        .btn-convert {
+            background: var(--homeeasy-wine);
+            color: white;
+            margin-left: 5px;
+        }
+        .btn-convert:active { opacity: 0.8; transform: scale(0.95); }
 
         .loader-ios { margin: 40px auto; color: var(--homeeasy-wine); }
     </style>
@@ -252,6 +259,10 @@
     <script>
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
 
+        function convertirACotizacion(numero) {
+            window.location.href = `pedido.html?cotizacion=${numero}`;
+        }
+
         async function buscarHistorial() {
             const cedula = document.getElementById('cedula_busqueda').value.trim();
             if (!cedula) return;
@@ -295,7 +306,6 @@
                 const cardTypeClass = prefix === 'COT' ? 'card-COT' : `card-${estadoLimpio}`;
                 const badgeClass = prefix === 'COT' ? 'badge-cot' : `status-${estadoLimpio}`;
 
-                // Lógica de color para saldo 0
                 const saldoClass = (saldo <= 0) ? 'saldo-price saldo-finalizado' : 'saldo-price';
                 const saldoTexto = (saldo <= 0) ? 'Orden Completa' : `Saldo: $${saldo.toLocaleString('es-CO')}`;
 
@@ -316,7 +326,10 @@
                             <div class="total-price">$${total.toLocaleString('es-CO')}</div>
                             ${prefix === 'OP' ? `<div class="${saldoClass}">${saldoTexto}</div>` : ''}
                         </div>
-                        ${urlDoc ? `<a href="${urlDoc}" target="_blank" class="btn btn-pdf"><i class="fas fa-file-pdf me-1"></i> VER PDF</a>` : ''}
+                        <div class="d-flex align-items-center">
+                            ${urlDoc ? `<a href="${urlDoc}" target="_blank" class="btn-pdf"><i class="fas fa-file-pdf me-1"></i> PDF</a>` : ''}
+                            ${prefix === 'COT' ? `<button onclick="convertirACotizacion('${num}')" class="btn-convert"><i class="fas fa-sync-alt me-1"></i> Convertir a OP</button>` : ''}
+                        </div>
                     </div>
                 </div>`;
             });
