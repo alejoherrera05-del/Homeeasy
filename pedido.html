@@ -169,24 +169,28 @@
                         document.getElementById("cedula").value = d.cedula;
                         document.getElementById("nombre").value = d.nombre.toUpperCase();
 
-                        buscarCliente(); // para cargar teléfono/email
+                        buscarCliente(); // Cargar datos adicionales del cliente
 
-                        // Limpiar tabla
+                        // Limpiar tabla antes de rellenar
                         document.getElementById("tabla-body").innerHTML = "";
 
-                        // Parsear descripción
-                        const items = d.descripcion.split("|");
+                        // Nuevo Procesamiento de descripción con Regex
+                        let items = d.descripcion.split("|");
                         items.forEach(item => {
-                            if (!item.trim()) return;
+                            item = item.trim();
+                            if (!item) return;
 
-                            const partes = item.trim().split("x ");
-                            const cantidad = partes[0];
-                            const descripcion = partes[1];
+                            // Extraer cantidad al inicio (ej: 2x ...)
+                            const match = item.match(/^(\d+)x\s(.+)$/);
+                            if (!match) return;
 
+                            const cantidad = match[1];
+                            const nombreCompleto = match[2];
+
+                            // Agregar fila e insertar datos
                             agregarFila();
                             const ultimaFila = document.querySelector("#tabla-body tr:last-child");
-
-                            ultimaFila.querySelector(".row-desc").value = descripcion;
+                            ultimaFila.querySelector(".row-desc").value = nombreCompleto;
                             ultimaFila.querySelector(".cant").value = cantidad;
                         });
 
