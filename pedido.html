@@ -144,6 +144,8 @@
 <script>
     const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
     let ultimaCedulaBuscada = "";
+    let params = new URLSearchParams(window.location.search);
+
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
@@ -159,7 +161,7 @@
             .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
 
         // 2. Detectar si viene de cotización
-        const params = new URLSearchParams(window.location.search);
+        
         const numeroCot = params.get("cotizacion");
 
         if (numeroCot) {
@@ -376,6 +378,7 @@ calcular();
 </script>
 </body>
 </html>
+
 
 
 
