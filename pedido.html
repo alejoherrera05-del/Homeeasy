@@ -25,7 +25,6 @@
 
         .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
         .card-body { padding: 30px 20px; flex-grow: 1; }
-        @media (min-width: 768px) { .card-body { padding: 30px 45px; } }
 
         .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
         .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
@@ -37,7 +36,7 @@
         .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-: center; flex-direction: column; }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
         .pdf-footer { background-color: var(--homeeasy-silver); padding: 15px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
         .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 5px; filter: grayscale(100%); }
         .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
@@ -144,8 +143,6 @@
 <script>
     const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
     let ultimaCedulaBuscada = "";
-    let params = new URLSearchParams(window.location.search);
-
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
@@ -161,7 +158,7 @@
             .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
 
         // 2. Detectar si viene de cotización
-        
+        const params = new URLSearchParams(window.location.search);
         const numeroCot = params.get("cotizacion");
 
         if (numeroCot) {
@@ -171,68 +168,22 @@
                     if (d.status === "found") {
                         document.getElementById("cedula").value = d.cedula;
                         document.getElementById("nombre").value = d.nombre.toUpperCase();
+                        buscarCliente(); 
 
-                        buscarCliente(); // Cargar datos adicionales del cliente
-
-                        // NUEVO BLOQUE DE PROCESAMIENTO SOLICITADO
-                        document.getElementById("tabla-body").innerHTML = "";
-
-// ✅ USAR EL JSON REAL
-let items = [];
-
-try {
-    items = typeof d.itemsJSON === "string"
-        ? JSON.parse(d.itemsJSON)
-        : d.itemsJSON;
-} catch (e) {
-    console.log("Error leyendo items JSON");
-}
-
-if (items && items.length > 0) {
-
-    items.forEach(item => {
-
-        agregarFila();
-
-        const ultimaFila = document.querySelector("#tabla-body tr:last-child");
-
-        ultimaFila.querySelector(".row-desc").value = item.descripcion || "";
-        ultimaFila.querySelector(".cant").value = item.cantidad || 1;
-
-        const precioInput = ultimaFila.querySelector(".precio");
-
-        if (item.precio) {
-            precioInput.value = new Intl.NumberFormat('es-CO', {
-                style: 'currency',
-                currency: 'COP',
-                minimumFractionDigits: 0
-            }).format(item.precio);
-        }
-
-    });
-
-} else {
-    // 🔁 fallback por si es cotización antigua
-    let texto = d.descripcion || "";
-    let filas = texto.split("/");
-
-    filas.forEach(fila => {
-        fila = fila.trim();
-        if (!fila) return;
-
-        const match = fila.match(/^(\d+)\s*x\s*(.+)$/i);
-        if (!match) return;
-
-        agregarFila();
-
-        const ultimaFila = document.querySelector("#tabla-body tr:last-child");
-        ultimaFila.querySelector(".row-desc").value = match[2];
-        ultimaFila.querySelector(".cant").value = match[1];
-    });
-}
-
-calcular();
-
+                        if (d.items && d.items.length > 0) {
+                            document.getElementById("tabla-body").innerHTML = "";
+                            d.items.forEach(item => {
+                                agregarFila();
+                                const ultimaFila = document.querySelector("#tabla-body tr:last-child");
+                                ultimaFila.querySelector(".row-desc").value = item.descripcion;
+                                ultimaFila.querySelector(".cant").value = item.cantidad;
+                                const precioInput = ultimaFila.querySelector(".precio");
+                                precioInput.value = item.precio
+                                    ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio)
+                                    : "";
+                            });
+                            calcular();
+                        }
                     }
                 });
         }
@@ -291,6 +242,7 @@ calcular();
         const nombre = document.getElementById('nombre').value.toUpperCase();
         
         if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
+        document.getElementById('nombre').value = nombre;
 
         const loading = document.getElementById('loading');
         loading.style.display = 'flex';
@@ -302,19 +254,19 @@ calcular();
             const filas = document.querySelectorAll('#tabla-body tr');
             filas.forEach(fila => {
                 const descInput = fila.querySelector('.row-desc');
-                if (descInput && descInput.value.trim() === "") {
-                    fila.style.display = 'none';
-                }
+                if (descInput && descInput.value.trim() === "") fila.style.display = 'none';
             });
 
             const { jsPDF } = window.jspdf;
             const element = document.getElementById("area-pdf");
 
+            // CORRECCIÓN AQUÍ: Agregamos windowWidth: 800 para centrado en móviles
             const canvas = await html2canvas(element, { 
-                scale: 2, 
+                scale: 3, 
                 useCORS: true,
                 logging: false,
-                width: 800 
+                width: 800,
+                windowWidth: 800 
             });
 
             elementosNoDeseados.forEach(el => el.style.display = '');
@@ -326,44 +278,47 @@ calcular();
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
+            // Se coloca la imagen centrada usando el ancho completo de la página
             pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
             
             const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
-            let descripcion = "";
+            let descripcionTexto = "";
+            let itemsJSON = [];
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
-                let d = tr.querySelector('.row-desc').value.trim();
-                let c = tr.querySelector('.cant').value;
-                if(d) descripcion += `${c} x ${d} / `;
+                let descripcion = tr.querySelector('.row-desc').value.trim();
+                let cantidad = parseFloat(tr.querySelector('.cant').value) || 0;
+                let precio = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
+                if (!descripcion) return;
+                descripcionTexto += `${cantidad} x ${descripcion} / `;
+                itemsJSON.push({ descripcion: descripcion, cantidad: cantidad, precio: precio, subtotal: cantidad * precio });
             });
 
             const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
             const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+            const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
             const response = await fetch(URL_G, {
                 method: "POST",
-               body: JSON.stringify({
-    tipo: "pedido",
-    numeroCotizacion: params.get("cotizacion") || null,
-    cedula: cedula,
-    nombre: nombre,
-    descripcion: descripcion,
-    observaciones: document.getElementById('notas').value,
-    valorTotal: total,
-    abonoInicial: abonoInicial,
-    pdfBase64: pdfBase64,
-    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
-})
+                body: JSON.stringify({
+                    tipo: "pedido",
+                    cedula: cedula,
+                    nombre: nombre,
+                    descripcion: descripcionTexto,
+                    itemsJSON: JSON.stringify(itemsJSON),
+                    observaciones: document.getElementById('notas').value,
+                    valorTotal: formatoCOP.format(total),
+                    abonoInicial: formatoCOP.format(abonoInicial),
+                    pdfBase64: pdfBase64,
+                    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
+                })
             });
 
             const json = await response.json();
-
             if (json.status === "success") {
                 pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
                 alert(`Orden N° ${json.numero_op} creada con éxito.`);
-                if (json.url) {
-                    window.open(json.url, "_blank");
-                }
+                if (json.url) window.open(json.url, "_blank");
                 location.reload();
             } else {
                 alert("Error: " + (json.msg || "No se pudo crear la orden"));
@@ -378,7 +333,3 @@ calcular();
 </script>
 </body>
 </html>
-
-
-
-
