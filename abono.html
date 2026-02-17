@@ -282,16 +282,18 @@ async function finalizarAbono() {
             updateStep(3,'active');
 
             if (json.status === "success") {
-                pdf.save(nombreArchivo); 
-                if (json.url) { window.open(json.url, "_blank"); }
-                updateStep(3,'done');
-                updateStep(4,'active');
 
-                setTimeout(()=>{
-                    updateStep(4,'done');
-                    alert("¡Éxito! Abono registrado correctamente. Hommy finalizó el proceso.");
-                    window.location.replace("index.html");
-                },800);
+    updateStep(3,'done');
+    updateStep(4,'active');
+
+    pdf.save(nombreArchivo);
+
+    setTimeout(()=>{
+        updateStep(4,'done');
+        alert("¡Éxito! Abono registrado correctamente. Hommy finalizó el proceso.");
+        window.location.replace("index.html");
+    },800);
+}
             } else {
                 alert("Error: " + (json.msg || "No se pudo registrar el abono"));
             }
@@ -302,3 +304,4 @@ async function finalizarAbono() {
 </script>
 </body>
 </html>
+
