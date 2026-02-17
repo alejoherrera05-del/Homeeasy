@@ -11,7 +11,9 @@
         :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
         body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
         .text-uppercase-input { text-transform: uppercase; }
-        .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
+        
+        /* 1. BOTÓN DE RETROCESO (Z-INDEX ALTO PARA EMERGENCIAS) */
+        .btn-back { position: fixed; top: 15px; left: 15px; z-index: 4000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
         
         #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; display: flex; flex-direction: column; }
         .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
@@ -36,14 +38,14 @@
         .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
-        /* ESTILOS CHECKLIST DE CARGA */
+        /* 2. PANTALLA DE CARGA HOMMY */
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .checklist-container { text-align: left; width: 280px; margin-top: 20px; }
-        .check-item { margin-bottom: 10px; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 10px; transition: all 0.3s; }
-        .check-item i { width: 20px; }
-        .check-item.active { color: var(--homeeasy-wine); font-weight: 700; }
-        .check-item.done { color: #28a745; }
-        .check-item.done i { color: #28a745; }
+        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; animation: bounce 2s infinite ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        .checklist-container { text-align: left; width: 280px; margin-top: 15px; }
+        .step-item { color: #aaa; font-size: 0.85rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; }
+        .step-active { color: var(--homeeasy-wine); font-weight: 700; opacity: 1; }
+        .step-done { color: #28a745; font-weight: 600; opacity: 1; }
 
         .pdf-footer { background-color: var(--homeeasy-silver); padding: 15px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
         .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 5px; filter: grayscale(100%); }
@@ -56,15 +58,15 @@
 <body>
 
 <div id="loading" class="loading-overlay">
+    <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy">
     <div id="loader-content" class="text-center">
-        <div class="spinner-border text-danger mb-3" style="width: 3rem; height: 3rem;"></div>
-        <h5 style="color:var(--homeeasy-wine); font-weight: 800;">PROCESANDO ORDEN</h5>
-        
-        <div class="checklist-container">
-            <div id="step1" class="check-item"><i class="fas fa-circle-notch fa-spin"></i> Generando documento digital...</div>
-            <div id="step2" class="check-item"><i class="far fa-circle"></i> Sincronizando con base de datos...</div>
-            <div id="step3" class="check-item"><i class="far fa-circle"></i> Guardando respaldo PDF...</div>
-            <div id="step4" class="check-item"><i class="far fa-circle"></i> Finalizando proceso...</div>
+        <h6 style="color:var(--homeeasy-wine); font-weight: 800;">ESPERA...</h6>
+        <p class="small text-muted mb-3">Hommy está realizando la operación</p>
+        <div class="checklist-container mx-auto">
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Paso 1: Generar documento...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Paso 2: Sincronizar datos...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Paso 3: Guardar respaldo...</div>
+            <div id="step-4" class="step-item"><i class="far fa-circle"></i> Paso 4: Finalizar proceso...</div>
         </div>
     </div>
 </div>
@@ -263,16 +265,16 @@
         document.getElementById('tabla-body').appendChild(tr);
     }
 
-    // Función auxiliar para actualizar el checklist
-    function updateStep(stepId, status) {
-        const el = document.getElementById(stepId);
+    // 3. FUNCIÓN PARA CONTROLAR EL CHECKLIST PROFESIONAL
+    function updateStep(num, status) {
+        const el = document.getElementById('step-' + num);
         if (status === 'active') {
-            el.classList.add('active');
-            el.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${el.innerText.replace('...', '')}`;
+            el.classList.add('step-active');
+            el.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ` + el.innerText.split(': ')[1];
         } else if (status === 'done') {
-            el.classList.remove('active');
-            el.classList.add('done');
-            el.innerHTML = `<i class="fas fa-check-circle"></i> ${el.innerText}`;
+            el.classList.remove('step-active');
+            el.classList.add('step-done');
+            el.innerHTML = `<i class="fas fa-check-circle"></i> ` + el.innerText;
         }
     }
 
@@ -287,7 +289,7 @@
         loading.style.display = 'flex';
         
         // Iniciar Checklist
-        updateStep('step1', 'active');
+        updateStep(1, 'active');
 
         try {
             const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
@@ -313,8 +315,8 @@
             elementosNoDeseados.forEach(el => el.style.display = '');
             filas.forEach(fila => fila.style.display = '');
 
-            updateStep('step1', 'done');
-            updateStep('step2', 'active');
+            updateStep(1, 'done');
+            updateStep(2, 'active');
 
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
@@ -346,7 +348,7 @@
                     nombre: nombre,
                     descripcion: descripcionTexto,
                     itemsJSON: JSON.stringify(itemsJSON),
-                    observaciones: document.getElementById('notes').value,
+                    observaciones: document.getElementById('notes').value, // SE MANTUVO ID 'notes' DEL ORIGINAL
                     valorTotal: total,
                     abonoInicial: abonoInicial,
                     pdfBase64: pdfBase64,
@@ -354,23 +356,23 @@
                 })
             });
 
-            updateStep('step2', 'done');
-            updateStep('step3', 'active');
+            updateStep(2, 'done');
+            updateStep(3, 'active');
 
             const json = await response.json();
             
             if (json.status === "success") {
-                updateStep('step3', 'done');
-                updateStep('step4', 'active');
+                updateStep(3, 'done');
+                updateStep(4, 'active');
                 
                 pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
                 
                 setTimeout(() => {
-                    updateStep('step4', 'done');
-                    alert(`Orden N° ${json.numero_op} creada con éxito.`);
-                    // REGRESA AL INDEX
-                    window.location.href = "index.html";
-                }, 1000);
+                    updateStep(4, 'done');
+                    alert(`¡Éxito! Orden N° ${json.numero_op} guardada. Hommy finalizó la operación.`);
+                    // REDIRECCIÓN SEGURA
+                    window.location.replace("index.html");
+                }, 800);
 
             } else {
                 alert("Error: " + (json.msg || "No se pudo crear la orden"));
