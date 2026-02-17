@@ -14,33 +14,59 @@
         /* Prevenir Zoom en iPhone */
         input, select, textarea { font-size: 16px !important; }
 
-        /* BOTÓN DE RETROCESO REFORZADO */
-        .btn-back { position: fixed; top: 15px; left: 15px; z-index: 4000; background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; border: 1px solid #eee; }
-
-        #area-pdf { background-color: white; width: 100%; max-width: 500px; margin: 20px auto; padding: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; border-radius: 12px; overflow: hidden; }
-        .header-recibo { background-color: var(--homeeasy-wine); color: white; padding: 25px; text-align: center; position: relative; }
-        .logo-recibo { max-width: 100px; margin-bottom: 10px; border-radius: 8px; }
+        .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
         
-        .cuerpo-recibo { padding: 30px 25px; }
-        .monto-box { background-color: #fdfafb; border: 2px dashed var(--homeeasy-gold); border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 25px; }
-        .label-monto { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: var(--homeeasy-wine); letter-spacing: 1px; }
-        .valor-monto { font-size: 1.8rem; font-weight: 800; color: #333; margin: 5px 0; }
+        #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+        
+        /* ENCABEZADO COMPLETO */
+        .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; display: flex; align-items: center; justify-content: space-between; position: relative; }
+        .logo-only { max-width: 120px; height: auto; }
+        .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
+        .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
+        .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
 
-        .form-label-custom { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #999; margin-bottom: 3px; display: block; }
-        .info-value { font-size: 0.95rem; font-weight: 600; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; min-height: 25px; }
+        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
+        .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
 
-        .btn-registrar { background-color: var(--homeeasy-wine); color: white; border: none; width: 100%; padding: 18px; font-weight: 800; text-transform: uppercase; border-radius: 8px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(166, 61, 86, 0.3); transition: all 0.3s; }
-        .btn-registrar:active { transform: scale(0.98); }
+        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #ddd; }
+        
+        /* CUERPO ESTERILIZADO */
+        .card-body { padding: 40px 50px; flex-grow: 1; }
+        .label-modern { font-size: 0.7rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+        
+        .input-op-box { border: 2px solid #eee; border-radius: 10px; padding: 12px 15px; width: 100%; font-weight: 700; }
+        .input-readonly { background-color: #f2f2f2; border: 1px solid #e0e0e0; color: #666; border-radius: 10px; padding: 12px 15px; font-weight: 600; width: 100%; cursor: not-allowed; text-transform: uppercase; }
 
-        /* PANTALLA DE CARGA HOMMY */
+        .input-pago-verde { border: 2px solid #eee; border-radius: 10px; padding: 15px; font-size: 1.8rem; font-weight: 800; color: var(--homeeasy-green); text-align: center; width: 100%; }
+        .select-modern { border: 2px solid #eee; border-radius: 10px; padding: 12px; width: 100%; background: #fff; font-weight: 600; }
+
+        #paz-salvo-banner { 
+            display: none; width: 100%; text-align: center; padding: 12px; 
+            background: #e8f5e9; color: #2e7d32; font-weight: 800; 
+            font-size: 0.9rem; letter-spacing: 8px; border-radius: 8px; 
+            margin-bottom: 30px; border: 2px solid #2e7d32;
+        }
+
+        .saldo-final-container { margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 30px; }
+        .saldo-final-label { font-size: 0.8rem; font-weight: 800; color: #bbb; text-transform: uppercase; letter-spacing: 2px; }
+        .saldo-final-valor { font-size: 2.2rem; font-weight: 900; color: var(--homeeasy-wine); display: block; margin-top: 5px; }
+
+        .btn-sync { background: var(--homeeasy-wine); color: #fff; border: none; padding: 20px; width: 100%; border-radius: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-top: 30px; }
+
+        .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
+        .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 10px; filter: grayscale(100%); }
+        .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; animation: bounce 2s infinite ease-in-out; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        .checklist-container { text-align: left; width: 280px; margin-top: 15px; }
-        .step-item { color: #aaa; font-size: 0.85rem; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transition: all 0.3s; }
-        .step-active { color: var(--homeeasy-wine); font-weight: 700; opacity: 1; }
-        .step-done { color: #28a745; font-weight: 600; opacity: 1; }
-    </style>
+    
+.hommy-loader { width: 140px; height: auto; margin-bottom: 15px; animation: bounce 2s infinite ease-in-out; }
+@keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);} }
+.checklist-container { text-align:left;width:280px;margin-top:15px; }
+.step-item { color:#aaa;font-size:0.85rem;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:all .3s; }
+.step-active { color:var(--homeeasy-wine);font-weight:700; }
+.step-done { color:#28a745;font-weight:600; }
+
+</style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -48,14 +74,14 @@
 
 <div id="loading" class="loading-overlay">
     <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy">
-    <div id="loader-content" class="text-center">
+    <div class="text-center">
         <h6 style="color:var(--homeeasy-wine); font-weight: 800;">ESPERA...</h6>
-        <p class="small text-muted mb-0">Hommy está registrando el abono</p>
+        <p class="small text-muted mb-3">Hommy está registrando el abono</p>
         <div class="checklist-container mx-auto">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Paso 1: Generar documento...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Paso 2: Sincronizar datos...</div>
-            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Paso 3: Guardar respaldo...</div>
-            <div id="step-4" class="step-item"><i class="far fa-circle"></i> Paso 4: Finalizar proceso...</div>
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Generar recibo PDF...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Sincronizar abono...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Actualizar saldo...</div>
+            <div id="step-4" class="step-item"><i class="far fa-circle"></i> Finalizar proceso...</div>
         </div>
     </div>
 </div>
@@ -63,118 +89,174 @@
 <a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf">
-    <div class="header-recibo">
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-recibo" crossorigin="anonymous">
-        <h4 class="mb-0 fw-bold" style="letter-spacing: 2px;">RECIBO DE ABONO</h4>
-        <div style="font-size: 0.7rem; opacity: 0.9; margin-top: 5px;">No. Recibo: <span id="n_recibo_display">...</span></div>
-    </div>
-
-    <div class="cuerpo-recibo">
-        <div class="monto-box">
-            <span class="label-monto">Valor Recibido</span>
-            <div class="valor-monto" id="valor_abono_display">$ 0</div>
-            <div style="font-size: 0.65rem; color: #666;" id="fecha_display">Popayán, --/--/----</div>
+    <div class="header-brand">
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
+        <div class="empresa-info-header">
+            <b>HOMEEASY POPAYÁN</b><br>
+            <span>NIT: 1.061.760.850-1</span><br>
+            <span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26</span><br>
+            <span><i class="fas fa-phone-alt"></i> 3334319374</span><br>
+            <span><i class="fab fa-instagram"></i> @homeeasypopayan</span>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-                <span class="form-label-custom">Orden de Pedido</span>
-                <div class="info-value" id="op_display">---</div>
-            </div>
-            <div class="col-12">
-                <span class="form-label-custom">Recibido de</span>
-                <div class="info-value" id="cliente_display">---</div>
-            </div>
-            <div class="col-6">
-                <span class="form-label-custom">Cédula / NIT</span>
-                <div class="info-value" id="cedula_display">---</div>
-            </div>
-            <div class="col-6">
-                <span class="form-label-custom">Medio de Pago</span>
-                <div class="info-value" id="medio_pago_display">---</div>
-            </div>
-            <div class="col-12">
-                <span class="form-label-custom">Concepto / Notas</span>
-                <div class="info-value" id="notas_display" style="font-size: 0.8rem; line-height: 1.4;">---</div>
-            </div>
-        </div>
-
-        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; text-align: center;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--homeeasy-wine);">HOMEEASY POPAYÁN</div>
-            <div style="font-size: 0.6rem; color: #999;">NIT: 1.061.760.850-1 | Tel: 3334319374</div>
+        <div class="order-meta">
+            <div class="meta-item">RECIBO N°: <span id="n_recibo_display">...</span></div>
+            <div class="meta-item">FECHA: <span id="fecha_header_display">...</span></div>
         </div>
     </div>
-</div>
+    
+    <div class="document-type">Comprobante de Ingreso</div>
+    
+    <div class="card-body">
+        <div id="paz-salvo-banner">PAZ Y SALVO</div>
 
-<div class="container mb-5 no-print" style="max-width: 500px;">
-    <button class="btn-registrar" onclick="finalizarAbono()">Registrar y Generar PDF</button>
+        <div class="row g-4 mb-4">
+            <div class="col-6">
+                <label class="label-modern">Fecha del Recibo</label>
+                <input type="text" id="fecha_cuerpo_display" class="input-readonly" readonly>
+            </div>
+            <div class="col-6">
+                <label class="label-modern">Localizar N° OP</label>
+                <input type="text" id="numeroOP" class="input-op-box" placeholder="Ej: 125" inputmode="numeric" onblur="buscarOrden()">
+            </div>
+            <div class="col-12">
+                <label class="label-modern">Nombre del Cliente</label>
+                <input type="text" id="nombre" class="input-readonly" readonly placeholder="Esperando número de orden...">
+                <input type="hidden" id="cedula">
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-7">
+                <label class="label-modern">Valor Recibido (Abono)</label>
+                <input type="text" id="valorAbono" class="input-pago-verde" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcularSaldo()">
+            </div>
+            <div class="col-5">
+                <label class="label-modern">Medio de Pago</label>
+                <select id="medioPago" class="select-modern">
+                    <option value="">Seleccionar...</option>
+                    <option value="EFECTIVO">EFECTIVO</option>
+                    <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                    <option value="TARJETA">TARJETA</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="saldo-final-container">
+            <span class="saldo-final-label">Nuevo Saldo Pendiente</span>
+            <span id="nuevo_saldo_val" class="saldo-final-valor">$ 0</span>
+            <div style="font-size: 0.65rem; color: #ccc; margin-top: 10px; text-transform: uppercase;">
+                Saldo anterior: <span id="saldo_anterior_val">$ 0</span>
+            </div>
+        </div>
+
+        <button class="btn-sync no-print shadow" onclick="finalizarAbono()">Confirmar y Sincronizar</button>
+    </div>
+
+    <div class="pdf-footer">
+        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo">
+        <div class="footer-creds">HomeEasy Popayán - Expertos en Decoración</div>
+        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema HomeEasy</div>
+    </div>
 </div>
 
 <script>
     const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-    
-    let nRecibo = "";
-    let numOP = "";
-    let ced = "";
-    let nom = "";
-    let valAbono = "";
-    let mPago = "";
+    let saldoBase = 0;
 
     window.onload = () => {
-        const params = new URLSearchParams(window.location.search);
-        numOP = params.get("op");
-        ced = params.get("ced");
-        nom = decodeURIComponent(params.get("nom") || "");
-        valAbono = params.get("val");
-        mPago = params.get("medio");
-
-        document.getElementById('op_display').innerText = "OP-" + (numOP || "---");
-        document.getElementById('cliente_display').innerText = nom || "---";
-        document.getElementById('cedula_display').innerText = ced || "---";
-        document.getElementById('medio_pago_display').innerText = mPago || "---";
-        document.getElementById('valor_abono_display').innerText = valAbono ? "$ " + parseInt(valAbono).toLocaleString('es-CO') : "$ 0";
-        document.getElementById('fecha_display').innerText = "Popayán, " + new Date().toLocaleDateString('es-CO');
-        
-        fetch(`${URL_G}?nextRecibo=1`)
-            .then(r => r.json())
-            .then(d => {
-                nRecibo = d.nextRecibo || "001";
-                document.getElementById('n_recibo_display').innerText = nRecibo;
-            });
+        const fechaHoy = new Date().toLocaleDateString('es-CO');
+        document.getElementById('fecha_header_display').innerText = fechaHoy;
+        document.getElementById('fecha_cuerpo_display').value = fechaHoy;
+        fetch(`${URL_G}?nextRecibo=1`).then(r => r.json()).then(d => { 
+            if(d.status === "ok") document.getElementById("n_recibo_display").innerText = d.nextRecibo; 
+        });
     };
 
-    function setStep(num, status) {
-        const el = document.getElementById('step-' + num);
-        if (status === 'active') {
-            el.classList.add('step-active');
-            el.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ` + el.innerText.split(': ')[1];
-        } else if (status === 'done') {
-            el.classList.remove('step-active');
-            el.classList.add('step-done');
-            el.innerHTML = `<i class="fas fa-check-circle"></i> ` + el.innerText;
-        }
+    async function buscarOrden() {
+        let numero = document.getElementById('numeroOP').value.trim();
+        if(!numero) return;
+        try {
+            const r = await fetch(`${URL_G}?buscarOP=${numero}`);
+            const d = await r.json();
+            if(d.status === "found") {
+                document.getElementById('nombre').value = d.nombre.toUpperCase();
+                document.getElementById('cedula').value = d.cedula;
+                saldoBase = parseFloat(d.saldo) || 0;
+                document.getElementById('saldo_anterior_val').innerText = `$ ${saldoBase.toLocaleString('es-CO')}`;
+                calcularSaldo();
+            } else { alert("Orden no encontrada."); }
+        } catch(e) { console.error(e); }
     }
 
-    async function finalizarAbono() {
-        const loading = document.getElementById('loading');
-        loading.style.display = 'flex';
-        
-        try {
-            setStep(1, 'active');
-            const btns = document.querySelectorAll('.no-print');
-            btns.forEach(b => b.style.display = 'none');
+    function formatear(i) {
+        let v = i.value.replace(/\D/g, "");
+        i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : "";
+    }
 
+    function calcularSaldo() {
+        let abono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
+        let nuevoSaldo = saldoBase - abono;
+        document.getElementById('nuevo_saldo_val').innerText = `$ ${nuevoSaldo.toLocaleString('es-CO')}`;
+        const banner = document.getElementById('paz-salvo-banner');
+        banner.style.display = (nuevoSaldo <= 0 && saldoBase > 0) ? 'block' : 'none';
+    }
+
+    
+function updateStep(num, status) {
+    const el = document.getElementById('step-' + num);
+    if(status === 'active'){
+        el.classList.add('step-active');
+        el.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ` + el.innerText;
+    }
+    if(status === 'done'){
+        el.classList.remove('step-active');
+        el.classList.add('step-done');
+        el.innerHTML = `<i class="fas fa-check-circle"></i> ` + el.innerText;
+    }
+}
+
+async function finalizarAbono() {
+        const ced = document.getElementById('cedula').value;
+        const valAbono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
+        const mPago = document.getElementById('medioPago').value;
+        const nRecibo = document.getElementById("n_recibo_display").innerText;
+        const numOP = document.getElementById('numeroOP').value.trim();
+        const nom = document.getElementById('nombre').value;
+
+        if(!ced) return alert("Primero busque una Orden válida.");
+        if(valAbono <= 0 || !mPago) return alert("Complete los datos del abono.");
+        if(valAbono > saldoBase) return alert("El abono no puede ser mayor al saldo pendiente.");
+
+        document.getElementById('loading').style.display = 'flex';
+        updateStep(1,'active');
+
+        try {
             const { jsPDF } = window.jspdf;
             const element = document.getElementById("area-pdf");
-            const canvas = await html2canvas(element, { scale: 3, useCORS: true });
             
-            setStep(1, 'done');
-            setStep(2, 'active');
+            const btns = document.querySelectorAll('.no-print, button, .btn');
+            btns.forEach(b => {
+                b.dataset.originalDisplay = b.style.display;
+                b.style.display = 'none';
+            });
+
+            const canvas = await html2canvas(element, { 
+                scale: 2, 
+                useCORS: true, 
+                width: 800,
+                windowWidth: 800 
+            });
+            
+            btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
+
+            updateStep(1,'done');
+            updateStep(2,'active');
 
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
             pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
             const pdfBase64 = pdf.output("datauristring").split(',')[1];
@@ -194,31 +276,27 @@
                 })
             });
 
-            setStep(2, 'done');
-            setStep(3, 'active');
-
             const json = await response.json();
 
-            if (json.status === "success") {
-                setStep(3, 'done');
-                setStep(4, 'active');
+            updateStep(2,'done');
+            updateStep(3,'active');
 
+            if (json.status === "success") {
                 pdf.save(nombreArchivo); 
-                
-                setTimeout(() => {
-                    setStep(4, 'done');
-                    alert("¡Abono registrado con éxito! Hommy finalizó la operación.");
+                if (json.url) { window.open(json.url, "_blank"); }
+                updateStep(3,'done');
+                updateStep(4,'active');
+
+                setTimeout(()=>{
+                    updateStep(4,'done');
+                    alert("¡Éxito! Abono registrado correctamente. Hommy finalizó el proceso.");
                     window.location.replace("index.html");
-                }, 800);
+                },800);
             } else {
                 alert("Error: " + (json.msg || "No se pudo registrar el abono"));
-                loading.style.display = 'none';
-                btns.forEach(b => b.style.display = '');
             }
-        } catch (err) { 
-            alert("Error de conexión: " + err.message); 
-            loading.style.display = 'none';
-            document.querySelectorAll('.no-print').forEach(b => b.style.display = '');
+        } catch (err) { alert("Error de conexión: " + err.message); } finally {
+            document.getElementById('loading').style.display = 'none';
         }
     }
 </script>
