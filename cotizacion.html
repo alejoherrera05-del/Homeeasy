@@ -56,9 +56,11 @@
 
         .row-desc, #notas { height: auto !important; min-height: 32px; }
 
-        /* Estilos nuevos para el Checklist del Loader */
-        #status-list { color: var(--homeeasy-wine); font-weight: 600; font-size: 0.9rem; margin-top: 20px; }
-        .step-item { opacity: 0.5; transition: all 0.3s; margin-bottom: 8px; }
+        /* Estilos de la Pantalla de Carga con Hommy */
+        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; animation: bounce 2s infinite ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        #status-list { color: var(--homeeasy-wine); font-weight: 600; font-size: 0.9rem; margin-top: 10px; }
+        .step-item { opacity: 0.4; transition: all 0.3s; margin-bottom: 8px; display: flex; align-items: center; justify-content: start; gap: 10px; }
         .step-active { opacity: 1; font-weight: 800; }
         .step-check { color: #28a745; opacity: 1; }
     </style>
@@ -69,13 +71,15 @@
 
 <div id="loading" class="loading-overlay">
     <div id="loader-content" class="text-center">
-        <div id="spinner" class="spinner-border text-danger mb-3" style="width: 3rem; height: 3rem;"></div>
-        <div id="success-icon" style="display:none;"><i class="fas fa-check-circle text-success fa-4x mb-3"></i></div>
+        <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy">
+        <h6 style="color:var(--homeeasy-wine); font-weight: 800;">ESPERA...</h6>
+        <p class="small text-muted mb-3">Hommy está realizando la operación</p>
         
-        <div id="status-list" class="text-start mx-auto" style="max-width: 280px;">
-            <div id="step-1" class="step-item"><i class="far fa-circle me-2"></i> Generando documento PDF...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle me-2"></i> Procesando información...</div>
-            <div id="step-3" class="step-item"><i class="far fa-circle me-2"></i> Sincronizando con la nube...</div>
+        <div id="status-list" class="mx-auto" style="max-width: 250px;">
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Paso 1: Generar documento...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Paso 2: Sincronizar datos...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Paso 3: Guardar respaldo...</div>
+            <div id="step-4" class="step-item"><i class="far fa-circle"></i> Paso 4: Finalizar proceso...</div>
         </div>
     </div>
 </div>
@@ -210,15 +214,16 @@
         document.getElementById('tabla-body').appendChild(tr);
     }
 
+    // Lógica para actualizar los pasos del Checklist
     function setStep(num, status) {
         const step = document.getElementById('step-' + num);
         if (status === 'active') {
             step.classList.add('step-active');
-            step.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i> ` + step.innerText.replace('...', '') + '...';
+            step.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ` + step.innerText.split(': ')[1];
         } else if (status === 'check') {
             step.classList.remove('step-active');
             step.classList.add('step-check');
-            step.innerHTML = `<i class="fas fa-check-circle me-2"></i> ` + step.innerText.replace('...', '');
+            step.innerHTML = `<i class="fas fa-check-circle"></i> ` + step.innerText;
         }
     }
 
@@ -229,19 +234,15 @@
 
         if (!cedula || !nombre) return alert("Cédula y Nombre requeridos.");
 
-        document.getElementById('nombre').value = nombre;
-        document.getElementById('email').value = email;
-
         const loading = document.getElementById('loading');
         loading.style.display = 'flex';
         
-        // Reset Steps
-        for(let i=1; i<=3; i++) {
+        // Reset Steps al inicio
+        for(let i=1; i<=4; i++) {
             const s = document.getElementById('step-'+i);
             s.className = 'step-item';
-            s.innerHTML = i===1 ? '<i class="far fa-circle me-2"></i> Generando documento PDF...' : 
-                          i===2 ? '<i class="far fa-circle me-2"></i> Procesando información...' : 
-                                  '<i class="far fa-circle me-2"></i> Sincronizando con la nube...';
+            const texts = ["Generar documento...", "Sincronizar datos...", "Guardar respaldo...", "Finalizar proceso..."];
+            s.innerHTML = `<i class="far fa-circle"></i> Paso ${i}: ${texts[i-1]}`;
         }
 
         try {
@@ -254,11 +255,6 @@
                 if(!f.querySelector('.row-desc').value.trim()) f.style.display = 'none';
             });
 
-            const notasArea = document.getElementById('notas');
-            const originalNotasH = notasArea.style.height;
-            notasArea.style.height = 'auto';
-            notasArea.style.height = (notasArea.scrollHeight) + 'px';
-
             const { jsPDF } = window.jspdf;
             const element = document.getElementById('area-pdf');
 
@@ -266,8 +262,7 @@
                 scale: 2, 
                 useCORS: true, 
                 width: 800,
-                windowWidth: 800,
-                scrollY: -window.scrollY
+                windowWidth: 800
             });
 
             setStep(1, 'check');
@@ -275,7 +270,6 @@
 
             btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
             filas.forEach(f => f.style.display = '');
-            notasArea.style.height = originalNotasH;
 
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
@@ -298,9 +292,6 @@
 
             const totalFinal = document.getElementById('total_val').innerText.replace(/\D/g, "");
 
-            setStep(2, 'check');
-            setStep(3, 'active');
-
             const response = await fetch(URL_G, { 
                 method: 'POST', 
                 body: JSON.stringify({
@@ -319,19 +310,21 @@
                 }) 
             });
 
+            setStep(2, 'check');
+            setStep(3, 'active');
+
             const result = await response.json();
             
             if (result.status === "success") {
                 setStep(3, 'check');
-                document.getElementById('spinner').style.display = 'none';
-                document.getElementById('success-icon').style.display = 'block';
+                setStep(4, 'active');
                 
                 setTimeout(() => {
-                    loading.style.display = 'none';
+                    setStep(4, 'check');
                     pdf.save(`Cotizacion_${cedula}.pdf`);
-                    if (result.url) window.open(result.url, "_blank");
-                    alert("Cotización guardada con éxito.");
-                    location.reload();
+                    alert("¡Operación exitosa! Hommy ha guardado tu cotización.");
+                    // Regreso al index
+                    window.location.href = "index.html";
                 }, 1000);
             }
         } catch (e) {
