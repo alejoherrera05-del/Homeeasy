@@ -214,7 +214,6 @@
         document.getElementById('tabla-body').appendChild(tr);
     }
 
-    // Lógica para actualizar los pasos del Checklist
     function setStep(num, status) {
         const step = document.getElementById('step-' + num);
         if (status === 'active') {
@@ -237,7 +236,6 @@
         const loading = document.getElementById('loading');
         loading.style.display = 'flex';
         
-        // Reset Steps al inicio
         for(let i=1; i<=4; i++) {
             const s = document.getElementById('step-'+i);
             s.className = 'step-item';
@@ -319,13 +317,18 @@
                 setStep(3, 'check');
                 setStep(4, 'active');
                 
+                // Primero disparamos la descarga
+                pdf.save(`Cotizacion_${cedula}.pdf`);
+
+                // Marcamos el último paso como completado después de un breve delay
                 setTimeout(() => {
                     setStep(4, 'check');
-                    pdf.save(`Cotizacion_${cedula}.pdf`);
-                    alert("¡Operación exitosa! Hommy ha guardado tu cotización.");
-                    // Regreso al index
-                    window.location.href = "index.html";
-                }, 1000);
+                    // Usamos una pequeña pausa para asegurar que el usuario vea el checklist completo
+                    setTimeout(() => {
+                        alert("¡Operación exitosa! Hommy ha guardado tu cotización.");
+                        window.location.replace("index.html"); // .replace es más agresivo para forzar el cambio
+                    }, 500);
+                }, 500);
             }
         } catch (e) {
             alert("Error: " + e.message);
