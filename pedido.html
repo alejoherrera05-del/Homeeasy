@@ -36,7 +36,15 @@
         .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
         
+        /* ESTILOS CHECKLIST DE CARGA */
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
+        .checklist-container { text-align: left; width: 280px; margin-top: 20px; }
+        .check-item { margin-bottom: 10px; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 10px; transition: all 0.3s; }
+        .check-item i { width: 20px; }
+        .check-item.active { color: var(--homeeasy-wine); font-weight: 700; }
+        .check-item.done { color: #28a745; }
+        .check-item.done i { color: #28a745; }
+
         .pdf-footer { background-color: var(--homeeasy-silver); padding: 15px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
         .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 5px; filter: grayscale(100%); }
         .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
@@ -49,9 +57,15 @@
 
 <div id="loading" class="loading-overlay">
     <div id="loader-content" class="text-center">
-        <div id="spinner" class="spinner-border text-danger mb-3"></div>
-        <br>
-        <b id="status-text" style="color:var(--homeeasy-wine)">SINCRONIZANDO ORDEN EN EXCEL...</b>
+        <div class="spinner-border text-danger mb-3" style="width: 3rem; height: 3rem;"></div>
+        <h5 style="color:var(--homeeasy-wine); font-weight: 800;">PROCESANDO ORDEN</h5>
+        
+        <div class="checklist-container">
+            <div id="step1" class="check-item"><i class="fas fa-circle-notch fa-spin"></i> Generando documento digital...</div>
+            <div id="step2" class="check-item"><i class="far fa-circle"></i> Sincronizando con base de datos...</div>
+            <div id="step3" class="check-item"><i class="far fa-circle"></i> Guardando respaldo PDF...</div>
+            <div id="step4" class="check-item"><i class="far fa-circle"></i> Finalizando proceso...</div>
+        </div>
     </div>
 </div>
 
@@ -104,7 +118,7 @@
 
         <div class="mb-4">
             <label class="form-label-small">Observaciones de Fabricación</label>
-            <textarea id="notas" class="form-control-compact" style="height: 50px; min-height: 50px;" placeholder="Detalles de medidas o accesorios..."></textarea>
+            <textarea id="notes" class="form-control-compact" style="height: 50px; min-height: 50px;" placeholder="Detalles de medidas o accesorios..."></textarea>
         </div>
 
         <div class="row g-4">
@@ -148,7 +162,6 @@
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
         
-        // 1. Cargar número de orden siguiente
         fetch(`${URL_G}?nextPedido=1`)
             .then(r => r.json())
             .then(d => { 
@@ -158,7 +171,6 @@
             })
             .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
 
-        // 2. Detectar si viene de cotización
         const params = new URLSearchParams(window.location.search);
         numeroCot = params.get("cotizacion");
 
@@ -172,56 +184,32 @@
                         buscarCliente(); 
 
                        let items = [];
+                        if (d.items) { items = d.items; } 
+                        else if (d.itemsJSON) { try { items = JSON.parse(d.itemsJSON); } catch(e) { items = []; } }
 
-if (d.items) {
-    items = d.items;
-} else if (d.itemsJSON) {
-    try {
-        items = JSON.parse(d.itemsJSON);
-    } catch(e) {
-        items = [];
-    }
-}
-
-if (items.length > 0) {
-
-
-    const tbody = document.getElementById("tabla-body");
-    tbody.innerHTML = "";
-
-    items.forEach(item => {
-
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-        <td><input type="text" class="form-control-compact row-desc"></td>
-        <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
-        <td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td>
-        <td class="item-total fw-bold text-end">$ 0</td>
-        <td class="no-print text-end">
-            <button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button>
-        </td>
-    `;
-
-    tbody.appendChild(tr);
-
-    tr.querySelector(".row-desc").value = item.descripcion || "";
-    tr.querySelector(".cant").value = item.cantidad || 1;
-
-    if (item.precio) {
-        tr.querySelector(".precio").value =
-            new Intl.NumberFormat('es-CO', {
-                style: 'currency',
-                currency: 'COP',
-                minimumFractionDigits: 0
-            }).format(item.precio);
-    }
-
-});
-
-    calcular();
-}
-
+                        if (items.length > 0) {
+                            const tbody = document.getElementById("tabla-body");
+                            tbody.innerHTML = "";
+                            items.forEach(item => {
+                                const tr = document.createElement("tr");
+                                tr.innerHTML = `
+                                    <td><input type="text" class="form-control-compact row-desc"></td>
+                                    <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
+                                    <td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td>
+                                    <td class="item-total fw-bold text-end">$ 0</td>
+                                    <td class="no-print text-end">
+                                        <button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(tr);
+                                tr.querySelector(".row-desc").value = item.descripcion || "";
+                                tr.querySelector(".cant").value = item.cantidad || 1;
+                                if (item.precio) {
+                                    tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio);
+                                }
+                            });
+                            calcular();
+                        }
                     }
                 });
         }
@@ -275,6 +263,19 @@ if (items.length > 0) {
         document.getElementById('tabla-body').appendChild(tr);
     }
 
+    // Función auxiliar para actualizar el checklist
+    function updateStep(stepId, status) {
+        const el = document.getElementById(stepId);
+        if (status === 'active') {
+            el.classList.add('active');
+            el.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${el.innerText.replace('...', '')}`;
+        } else if (status === 'done') {
+            el.classList.remove('active');
+            el.classList.add('done');
+            el.innerHTML = `<i class="fas fa-check-circle"></i> ${el.innerText}`;
+        }
+    }
+
     async function finalizar() {
         const cedula = document.getElementById('cedula').value.trim();
         const nombre = document.getElementById('nombre').value.toUpperCase();
@@ -284,6 +285,9 @@ if (items.length > 0) {
 
         const loading = document.getElementById('loading');
         loading.style.display = 'flex';
+        
+        // Iniciar Checklist
+        updateStep('step1', 'active');
 
         try {
             const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
@@ -298,7 +302,6 @@ if (items.length > 0) {
             const { jsPDF } = window.jspdf;
             const element = document.getElementById("area-pdf");
 
-            // CORRECCIÓN AQUÍ: Agregamos windowWidth: 800 para centrado en móviles
             const canvas = await html2canvas(element, { 
                 scale: 3, 
                 useCORS: true,
@@ -310,15 +313,14 @@ if (items.length > 0) {
             elementosNoDeseados.forEach(el => el.style.display = '');
             filas.forEach(fila => fila.style.display = '');
 
+            updateStep('step1', 'done');
+            updateStep('step2', 'active');
+
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
-
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-            // Se coloca la imagen centrada usando el ancho completo de la página
             pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-            
             const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
             let descripcionTexto = "";
@@ -334,44 +336,52 @@ if (items.length > 0) {
 
             const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
             const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
-            const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-           const response = await fetch(URL_G, {
-    method: "POST",
-    body: JSON.stringify({
-        tipo: "pedido",
-        numeroCotizacion: numeroCot || null,
-        cedula: cedula,
-        nombre: nombre,
-        descripcion: descripcionTexto,
-        itemsJSON: JSON.stringify(itemsJSON),
-        observaciones: document.getElementById('notas').value,
-        valorTotal: total,
-        abonoInicial: abonoInicial,
-        pdfBase64: pdfBase64,
-        nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
-    })
-});
+            const response = await fetch(URL_G, {
+                method: "POST",
+                body: JSON.stringify({
+                    tipo: "pedido",
+                    numeroCotizacion: numeroCot || null,
+                    cedula: cedula,
+                    nombre: nombre,
+                    descripcion: descripcionTexto,
+                    itemsJSON: JSON.stringify(itemsJSON),
+                    observaciones: document.getElementById('notes').value,
+                    valorTotal: total,
+                    abonoInicial: abonoInicial,
+                    pdfBase64: pdfBase64,
+                    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
+                })
+            });
+
+            updateStep('step2', 'done');
+            updateStep('step3', 'active');
 
             const json = await response.json();
+            
             if (json.status === "success") {
+                updateStep('step3', 'done');
+                updateStep('step4', 'active');
+                
                 pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
-                alert(`Orden N° ${json.numero_op} creada con éxito.`);
-                if (json.url) window.open(json.url, "_blank");
-                location.reload();
+                
+                setTimeout(() => {
+                    updateStep('step4', 'done');
+                    alert(`Orden N° ${json.numero_op} creada con éxito.`);
+                    // REGRESA AL INDEX
+                    window.location.href = "index.html";
+                }, 1000);
+
             } else {
                 alert("Error: " + (json.msg || "No se pudo crear la orden"));
+                loading.style.display = 'none';
             }
 
         } catch (err) {
             alert("Error: " + err.message);
-        } finally {
             loading.style.display = 'none';
         }
     }
 </script>
 </body>
 </html>
-
-
-
