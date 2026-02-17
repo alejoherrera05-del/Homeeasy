@@ -44,7 +44,7 @@
         .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
 
         .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
-        .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
+        .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; word-break: break-word; }
         
         .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
         .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
@@ -53,6 +53,9 @@
         .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
         .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 10px; filter: grayscale(100%); }
         .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* Ajustes específicos para que el texto fluya en el PDF */
+        .row-desc, #notas { height: auto !important; min-height: 32px; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -205,16 +208,13 @@
 
         if (!cedula || !nombre) return alert("Cédula y Nombre requeridos.");
 
-        // Forzar mayúsculas y minúsculas en el DOM antes de generar el PDF
         document.getElementById('nombre').value = nombre;
         document.getElementById('email').value = email;
 
-        document.getElementById('loading').style.display = 'flex';
+        const loading = document.getElementById('loading');
+        loading.style.display = 'flex';
 
         try {
-            const { jsPDF } = window.jspdf;
-            const element = document.getElementById('area-pdf');
-
             const btns = document.querySelectorAll('.no-print, button, .btn');
             btns.forEach(b => { b.dataset.originalDisplay = b.style.display; b.style.display = 'none'; });
 
@@ -223,15 +223,25 @@
                 if(!f.querySelector('.row-desc').value.trim()) f.style.display = 'none';
             });
 
+            // Ajuste para que el área de PDF crezca según el texto antes de capturar
+            const notasArea = document.getElementById('notas');
+            notasArea.style.height = 'auto';
+            notasArea.style.height = (notasArea.scrollHeight) + 'px';
+
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('area-pdf');
+
             const canvas = await html2canvas(element, { 
                 scale: 2, 
                 useCORS: true, 
                 width: 800,
-                windowWidth: 800 
+                windowWidth: 800,
+                scrollY: -window.scrollY
             });
 
             btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
             filas.forEach(f => f.style.display = '');
+            notasArea.style.height = '50px';
 
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
@@ -241,26 +251,15 @@
 
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            // --- INICIO CAMBIOS SOLICITADOS ---
             let descripcionTexto = "";
             let itemsJSON = [];
-
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
                 let descripcion = tr.querySelector('.row-desc').value.trim();
                 let cantidad = parseFloat(tr.querySelector('.cant').value) || 0;
                 let precio = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
-                let subtotal = cantidad * precio;
-
                 if (!descripcion) return;
-
                 descripcionTexto += `${cantidad} x ${descripcion} / `;
-
-                itemsJSON.push({
-                    descripcion: descripcion,
-                    cantidad: cantidad,
-                    precio: precio,
-                    subtotal: subtotal
-                });
+                itemsJSON.push({ descripcion: descripcion, cantidad: cantidad, precio: precio, subtotal: cantidad * precio });
             });
 
             const totalFinal = document.getElementById('total_val').innerText.replace(/\D/g, "");
@@ -276,25 +275,27 @@
                     direccion: document.getElementById('direccion').value,
                     descripcion: descripcionTexto,
                     total: totalFinal,
-                    items: itemsJSON, // 👈 NUEVO: Enviar arreglo estructurado
+                    items: itemsJSON,
                     observaciones: document.getElementById('notas').value,
                     pdfBase64: pdfBase64,
                     nombreArchivo: `Cotizacion_${cedula}.pdf`
                 }) 
             });
-            // --- FIN CAMBIOS SOLICITADOS ---
 
             const result = await response.json();
+            
+            // Ocultar loader inmediatamente al recibir respuesta
+            loading.style.display = 'none';
 
             if (result.status === "success") {
                 pdf.save(`Cotizacion_${cedula}.pdf`);
                 if (result.url) window.open(result.url, "_blank");
                 alert("Cotización guardada con éxito.");
-                setTimeout(() => location.reload(), 800);
+                location.reload();
             }
         } catch (e) {
             alert("Error: " + e.message);
-            document.getElementById('loading').style.display = 'none';
+            loading.style.display = 'none';
         }
     }
 </script>
