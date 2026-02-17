@@ -143,6 +143,7 @@
 <script>
     const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
     let ultimaCedulaBuscada = "";
+    let numeroCot = null;
 
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
@@ -159,7 +160,7 @@
 
         // 2. Detectar si viene de cotización
         const params = new URLSearchParams(window.location.search);
-        const numeroCot = params.get("cotizacion");
+        numeroCot = params.get("cotizacion");
 
         if (numeroCot) {
             fetch(`${URL_G}?convertirCot=${numeroCot}`)
@@ -335,21 +336,22 @@ if (items.length > 0) {
             const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
             const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-            const response = await fetch(URL_G, {
-                method: "POST",
-                body: JSON.stringify({
-                    tipo: "pedido",
-                    cedula: cedula,
-                    nombre: nombre,
-                    descripcion: descripcionTexto,
-                    itemsJSON: JSON.stringify(itemsJSON),
-                    observaciones: document.getElementById('notas').value,
-                    valorTotal: formatoCOP.format(total),
-                    abonoInicial: formatoCOP.format(abonoInicial),
-                    pdfBase64: pdfBase64,
-                    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
-                })
-            });
+           const response = await fetch(URL_G, {
+    method: "POST",
+    body: JSON.stringify({
+        tipo: "pedido",
+        numeroCotizacion: numeroCot || null,
+        cedula: cedula,
+        nombre: nombre,
+        descripcion: descripcionTexto,
+        itemsJSON: JSON.stringify(itemsJSON),
+        observaciones: document.getElementById('notas').value,
+        valorTotal: total,
+        abonoInicial: abonoInicial,
+        pdfBase64: pdfBase64,
+        nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
+    })
+});
 
             const json = await response.json();
             if (json.status === "success") {
@@ -370,5 +372,6 @@ if (items.length > 0) {
 </script>
 </body>
 </html>
+
 
 
