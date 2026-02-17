@@ -36,6 +36,34 @@
             overflow: hidden;
         }
 
+        /* --- ESTILOS DEL SPLASH SCREEN (NUEVO) --- */
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--homeeasy-wine); /* Usa tu color vino tinto */
+            z-index: 99999; /* Asegura que tape todo */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-out; /* Efecto suave al desaparecer */
+        }
+        
+        #intro-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ajusta la imagen para cubrir la pantalla */
+            max-width: 500px; /* Evita que se vea demasiado grande en PC */
+        }
+
+        /* Clase para ocultar el splash */
+        .intro-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
         .menu-container {
             width: 100%;
             max-width: 400px;
@@ -48,7 +76,7 @@
         }
 
         .logo-img {
-            max-width: 180px; /* Reducido de 220px a 180px para mayor sutileza */
+            max-width: 180px; 
             filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05));
         }
 
@@ -164,6 +192,9 @@
 </head>
 <body>
 
+<div id="intro-overlay" style="display:none;">
+    <img src="Introhommy.gif" alt="Intro HomeEasy">
+</div>
 <div class="menu-container">
     <div class="header-container">
         <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy">
@@ -211,6 +242,29 @@
         VERSION 1.0 &copy; 2026
     </footer>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const overlay = document.getElementById('intro-overlay');
+        
+        // Verificamos si ya vio la intro en esta sesión
+        if (!sessionStorage.getItem('hasSeenIntro')) {
+            // SI ES NUEVO: Mostramos la intro
+            overlay.style.display = "flex";
+            
+            // Esperamos 3.5 segundos (3500ms) - AJUSTA ESTE TIEMPO SEGÚN TU GIF
+            setTimeout(() => {
+                overlay.classList.add('intro-hidden'); // Desvanecer
+                sessionStorage.setItem('hasSeenIntro', 'true'); // Marcar como visto
+                
+                // Quitar del DOM después de la transición
+                setTimeout(() => {
+                    overlay.style.display = "none";
+                }, 800);
+            }, 3500); 
+        }
+    });
+</script>
 
 </body>
 </html>
