@@ -170,39 +170,53 @@
                         document.getElementById("nombre").value = d.nombre.toUpperCase();
                         buscarCliente(); 
 
-                       if (d.items && d.items.length > 0) {
+                       let items = [];
+
+if (d.items) {
+    items = d.items;
+} else if (d.itemsJSON) {
+    try {
+        items = JSON.parse(d.itemsJSON);
+    } catch(e) {
+        items = [];
+    }
+}
+
+if (items.length > 0) {
+
 
     const tbody = document.getElementById("tabla-body");
     tbody.innerHTML = "";
 
-    d.items.forEach(item => {
+    items.forEach(item => {
 
-        const tr = document.createElement("tr");
+    const tr = document.createElement("tr");
 
-        tr.innerHTML = `
-            <td><input type="text" class="form-control-compact row-desc"></td>
-            <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
-            <td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td>
-            <td class="item-total fw-bold text-end">$ 0</td>
-            <td class="no-print text-end">
-                <button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button>
-            </td>
-        `;
+    tr.innerHTML = `
+        <td><input type="text" class="form-control-compact row-desc"></td>
+        <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
+        <td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td>
+        <td class="item-total fw-bold text-end">$ 0</td>
+        <td class="no-print text-end">
+            <button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button>
+        </td>
+    `;
 
-        tbody.appendChild(tr);
+    tbody.appendChild(tr);
 
-        tr.querySelector(".row-desc").value = item.descripcion || "";
-        tr.querySelector(".cant").value = item.cantidad || 1;
+    tr.querySelector(".row-desc").value = item.descripcion || "";
+    tr.querySelector(".cant").value = item.cantidad || 1;
 
-        if (item.precio) {
-            tr.querySelector(".precio").value =
-                new Intl.NumberFormat('es-CO', {
-                    style: 'currency',
-                    currency: 'COP',
-                    minimumFractionDigits: 0
-                }).format(item.precio);
-        }
-    });
+    if (item.precio) {
+        tr.querySelector(".precio").value =
+            new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(item.precio);
+    }
+
+});
 
     calcular();
 }
@@ -356,4 +370,5 @@
 </script>
 </body>
 </html>
+
 
