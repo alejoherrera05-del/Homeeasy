@@ -54,8 +54,13 @@
         .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 10px; filter: grayscale(100%); }
         .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
 
-        /* Ajustes específicos para que el texto fluya en el PDF */
         .row-desc, #notas { height: auto !important; min-height: 32px; }
+
+        /* Estilos nuevos para el Checklist del Loader */
+        #status-list { color: var(--homeeasy-wine); font-weight: 600; font-size: 0.9rem; margin-top: 20px; }
+        .step-item { opacity: 0.5; transition: all 0.3s; margin-bottom: 8px; }
+        .step-active { opacity: 1; font-weight: 800; }
+        .step-check { color: #28a745; opacity: 1; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -64,10 +69,14 @@
 
 <div id="loading" class="loading-overlay">
     <div id="loader-content" class="text-center">
-        <div id="spinner" class="spinner-border text-danger mb-3"></div>
-        <div id="success-icon" style="display:none;"><i class="fas fa-check-circle text-success fa-3x mb-3"></i></div>
-        <br>
-        <b id="status-text" style="color:var(--homeeasy-wine)">SINCRONIZANDO COTIZACIÓN...</b>
+        <div id="spinner" class="spinner-border text-danger mb-3" style="width: 3rem; height: 3rem;"></div>
+        <div id="success-icon" style="display:none;"><i class="fas fa-check-circle text-success fa-4x mb-3"></i></div>
+        
+        <div id="status-list" class="text-start mx-auto" style="max-width: 280px;">
+            <div id="step-1" class="step-item"><i class="far fa-circle me-2"></i> Generando documento PDF...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle me-2"></i> Procesando información...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle me-2"></i> Sincronizando con la nube...</div>
+        </div>
     </div>
 </div>
 
@@ -94,9 +103,9 @@
     <div class="card-body">
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" inputmode="numeric" class="form-control-compact" onblur="buscarCliente()"></div>
+            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" inputmode="numeric" pattern="[0-9]*" class="form-control-compact" onblur="buscarCliente()"></div>
             <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
-            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" class="form-control-compact"></div>
+            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" inputmode="numeric" pattern="[0-9]*" class="form-control-compact"></div>
             <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
             <div class="col-12"><label class="form-label-small">Dirección</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
         </div>
@@ -108,8 +117,8 @@
                 <tbody id="tabla-body">
                     <tr>
                         <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Cortina Enrollable"></td>
-                        <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
-                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" oninput="formatear(this); calcular()"></td>
+                        <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
+                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" pattern="[0-9]*" oninput="formatear(this); calcular()"></td>
                         <td class="item-total fw-bold text-end">$ 0</td>
                         <td class="no-print"></td>
                     </tr>
@@ -197,8 +206,20 @@
 
     function agregarFila() {
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$ 0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
+        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" pattern="[0-9]*" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$ 0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
         document.getElementById('tabla-body').appendChild(tr);
+    }
+
+    function setStep(num, status) {
+        const step = document.getElementById('step-' + num);
+        if (status === 'active') {
+            step.classList.add('step-active');
+            step.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i> ` + step.innerText.replace('...', '') + '...';
+        } else if (status === 'check') {
+            step.classList.remove('step-active');
+            step.classList.add('step-check');
+            step.innerHTML = `<i class="fas fa-check-circle me-2"></i> ` + step.innerText.replace('...', '');
+        }
     }
 
     async function finalizar() {
@@ -213,8 +234,18 @@
 
         const loading = document.getElementById('loading');
         loading.style.display = 'flex';
+        
+        // Reset Steps
+        for(let i=1; i<=3; i++) {
+            const s = document.getElementById('step-'+i);
+            s.className = 'step-item';
+            s.innerHTML = i===1 ? '<i class="far fa-circle me-2"></i> Generando documento PDF...' : 
+                          i===2 ? '<i class="far fa-circle me-2"></i> Procesando información...' : 
+                                  '<i class="far fa-circle me-2"></i> Sincronizando con la nube...';
+        }
 
         try {
+            setStep(1, 'active');
             const btns = document.querySelectorAll('.no-print, button, .btn');
             btns.forEach(b => { b.dataset.originalDisplay = b.style.display; b.style.display = 'none'; });
 
@@ -223,8 +254,8 @@
                 if(!f.querySelector('.row-desc').value.trim()) f.style.display = 'none';
             });
 
-            // Ajuste para que el área de PDF crezca según el texto antes de capturar
             const notasArea = document.getElementById('notas');
+            const originalNotasH = notasArea.style.height;
             notasArea.style.height = 'auto';
             notasArea.style.height = (notasArea.scrollHeight) + 'px';
 
@@ -239,9 +270,12 @@
                 scrollY: -window.scrollY
             });
 
+            setStep(1, 'check');
+            setStep(2, 'active');
+
             btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
             filas.forEach(f => f.style.display = '');
-            notasArea.style.height = '50px';
+            notasArea.style.height = originalNotasH;
 
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
@@ -264,6 +298,9 @@
 
             const totalFinal = document.getElementById('total_val').innerText.replace(/\D/g, "");
 
+            setStep(2, 'check');
+            setStep(3, 'active');
+
             const response = await fetch(URL_G, { 
                 method: 'POST', 
                 body: JSON.stringify({
@@ -284,14 +321,18 @@
 
             const result = await response.json();
             
-            // Ocultar loader inmediatamente al recibir respuesta
-            loading.style.display = 'none';
-
             if (result.status === "success") {
-                pdf.save(`Cotizacion_${cedula}.pdf`);
-                if (result.url) window.open(result.url, "_blank");
-                alert("Cotización guardada con éxito.");
-                location.reload();
+                setStep(3, 'check');
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('success-icon').style.display = 'block';
+                
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                    pdf.save(`Cotizacion_${cedula}.pdf`);
+                    if (result.url) window.open(result.url, "_blank");
+                    alert("Cotización guardada con éxito.");
+                    location.reload();
+                }, 1000);
             }
         } catch (e) {
             alert("Error: " + e.message);
