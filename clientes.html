@@ -129,6 +129,10 @@
             <div class="position-relative">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" id="cedula_busqueda" class="form-control input-modern" placeholder="Número de cédula..." inputmode="numeric">
+                <div id="sugerencias" 
+     style="position:absolute; background:white; width:100%; z-index:1000; border:1px solid #ddd; border-radius:6px;">
+</div>
+
             </div>
             <button class="btn-search" onclick="buscarHistorial()">Consultar Historial</button>
         </div>
@@ -270,7 +274,51 @@
         }
 
         document.getElementById('cedula_busqueda').addEventListener('keypress', (e) => { if (e.key === 'Enter') buscarHistorial(); });
+        const inputBusqueda = document.getElementById("cedula_busqueda");
+const sugerenciasDiv = document.getElementById("sugerencias");
+
+inputBusqueda.addEventListener("input", async function () {
+
+    const valor = this.value.trim();
+
+    if (valor.length < 2) {
+        sugerenciasDiv.innerHTML = "";
+        return;
+    }
+
+    try {
+        const response = await fetch(`${URL_G}?buscarCliente=${valor}`);
+        const data = await response.json();
+
+        if (data.status === "ok") {
+
+            sugerenciasDiv.innerHTML = "";
+
+            data.resultados.forEach(cliente => {
+
+                const item = document.createElement("div");
+                item.style.padding = "8px";
+                item.style.cursor = "pointer";
+                item.style.borderBottom = "1px solid #eee";
+                item.innerText = `${cliente.nombre} - ${cliente.cedula}`;
+
+                item.onclick = () => {
+                    inputBusqueda.value = cliente.cedula;
+                    sugerenciasDiv.innerHTML = "";
+                    buscarHistorial();
+                };
+
+                sugerenciasDiv.appendChild(item);
+            });
+        }
+
+    } catch (e) {
+        console.error("Error en buscador");
+    }
+});
+
     </script>
 </body>
 </html>
+
 
