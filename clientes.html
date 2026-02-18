@@ -8,10 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- VARIABLES ORIGINALES + NUEVAS --- */
+        /* --- VARIABLES --- */
         :root { 
-            --homeeasy-wine: #a6455a; /* Ajustado al tono de la imagen */
-            --homeeasy-gold: #c3a364; /* Dorado imagen */
+            --homeeasy-wine: #8d374f;;
+            --homeeasy-gold: #c3a364;
             --homeeasy-dark: #1c1c1e;
             --ios-gray: #f2f2f7;
             --success-ios: #34c759;
@@ -32,6 +32,28 @@
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
+        /* --- CORRECCIÓN BOTÓN ATRÁS --- */
+        .btn-back-cover {
+            position: absolute;
+            top: 60px; /* Bajado para evitar notch/barra de estado */
+            left: 25px;
+            width: 50px; /* Tamaño táctil óptimo */
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.2); /* Fondo sutil para que se vea el círculo */
+            border-radius: 50%; /* Círculo perfecto */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            text-decoration: none;
+            z-index: 3000; /* Encima de todo */
+            backdrop-filter: blur(5px); /* Efecto vidrio */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Sombra suave */
+            transition: transform 0.1s;
+        }
+        .btn-back-cover:active { transform: scale(0.90); background-color: rgba(255, 255, 255, 0.4); }
+
         .inicio-content {
             flex-grow: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center; padding-bottom: 20px;
@@ -44,7 +66,6 @@
         .main-title { color: var(--homeeasy-gold); font-size: 2.8rem; font-weight: 700; margin: 0; line-height: 1.1; text-align: center; }
         .sub-title { color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-top: 8px; font-weight: 400; text-align: center; margin-bottom: 40px; }
 
-        /* Input Estilo Cover */
         .search-wrapper { position: relative; width: 85%; max-width: 450px; }
         .input-cover {
             width: 100%; border: none; background: white;
@@ -55,40 +76,31 @@
         .input-cover:focus { outline: none; box-shadow: 0 15px 40px rgba(195, 163, 100, 0.4); }
         .icon-cover { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 1.3rem; }
 
-        /* Área Inferior: Hommy + Barra */
         .bottom-area { position: relative; width: 100%; display: flex; justify-content: center; align-items: flex-end; }
-        .hommy-img { width: 240px; max-width: 60%; z-index: 2; margin-bottom: -2px; } /* -2px para que pise la barra */
+        .hommy-img { width: 240px; max-width: 60%; z-index: 2; margin-bottom: -2px; }
         .gold-bar {
             position: absolute; bottom: 0; left: 0; width: 100%;
             height: 45px; background-color: var(--homeeasy-gold); z-index: 1;
         }
 
-        .btn-back-cover {
-            position: absolute; top: 30px; left: 20px;
-            color: white; font-size: 1.2rem; z-index: 2020;
-            background: rgba(255,255,255,0.1); width: 45px; height: 45px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; text-decoration: none;
-        }
-
         /* =========================================
-           DISEÑO PANTALLA RESULTADOS (TU CÓDIGO)
+           DISEÑO PANTALLA RESULTADOS
            ========================================= */
         #pantalla-resultados { display: none; padding-top: 80px; padding-bottom: 40px; }
         
-        /* Mini Header para volver a buscar */
         .header-mini {
             position: fixed; top: 0; left: 0; width: 100%;
-            background: var(--homeeasy-wine); padding: 15px 20px;
+            background: var(--homeeasy-wine); padding: 15px 20px; padding-top: 50px; /* Ajuste para móviles */
             z-index: 1000; display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            height: 90px;
         }
         .mini-brand { color: white; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
         
-        /* TUS ESTILOS ORIGINALES PARA TARJETAS */
         .client-card { 
             background: white; border-radius: 28px; padding: 25px; margin-bottom: 25px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-left: 8px solid var(--homeeasy-gold);
+            margin-top: 20px;
         }
         .client-name { 
             font-weight: 800; color: var(--homeeasy-wine); font-size: 1.3rem; 
@@ -148,7 +160,9 @@
 <body>
 
     <div id="pantalla-inicio">
-        <a href="index.html" class="btn-back-cover"><i class="fas fa-chevron-left"></i></a>
+        <a href="index.html" class="btn-back-cover">
+            <i class="fas fa-chevron-left"></i>
+        </a>
 
         <div class="inicio-content">
             <div class="brand-box">
@@ -191,7 +205,7 @@
         <div class="container">
             <div id="loader" class="text-center" style="display: none; color: var(--homeeasy-wine); margin-top: 40px;">
                 <div class="spinner-border spinner-border-sm" role="status"></div>
-                <p class="mt-2 fw-bold small">Consultando...</p>
+                <p class="mt-2 fw-bold small">Hoomy esta buscando...</p>
             </div>
 
             <div id="resultado_cliente" style="display: none;">
@@ -220,7 +234,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- TU CÓDIGO JS ORIGINAL (INTACTO) ---
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
         let CLIENTES_CACHE = [];
 
@@ -253,10 +266,8 @@
             const cedula = document.getElementById('cedula_busqueda').value.trim();
             if (!cedula) return;
 
-            // --- TRANSICIÓN DE UI (NUEVO) ---
             document.getElementById('pantalla-inicio').style.transform = "translateY(-100%)";
             document.getElementById('pantalla-resultados').style.display = "block";
-            // ---------------------------------
 
             document.getElementById('loader').style.display = 'block';
             document.getElementById('resultado_cliente').style.display = 'none';
@@ -297,7 +308,6 @@
             }, 500);
         }
 
-        // --- TU LÓGICA DE RENDERIZADO ORIGINAL (TEXTUAL) ---
         function renderLista(items, containerId, prefix) {
             const container = document.getElementById(containerId);
             if (!items || items.length === 0) {
@@ -369,7 +379,6 @@
             container.innerHTML = html;
         }
 
-        // --- TU LÓGICA DE SUGERENCIAS (TEXTUAL) ---
         const inputBusqueda = document.getElementById("cedula_busqueda");
         const sugerenciasDiv = document.getElementById("sugerencias");
 
@@ -399,7 +408,7 @@
 
             resultados.forEach(cliente => {
                 const item = document.createElement("div");
-                item.style.padding = "15px 20px"; // Ajustado padding para que sea más fácil tocar
+                item.style.padding = "15px 20px";
                 item.style.cursor = "pointer";
                 item.style.borderBottom = "1px solid #eee";
 
@@ -410,7 +419,6 @@
                     const antes = cliente.nombre.substring(0, index);
                     const match = cliente.nombre.substring(index, index + valor.length);
                     const despues = cliente.nombre.substring(index + valor.length);
-                    // Color ajustado a variable
                     item.innerHTML = `${antes}<strong style="color:#782037">${match}</strong>${despues} <br><small style="color:#999">${cliente.cedula}</small>`;
                 } else {
                     item.innerText = `${cliente.nombre} - ${cliente.cedula}`;
@@ -433,6 +441,4 @@
         });
     </script>
 </body>
-
 </html>
-
