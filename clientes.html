@@ -126,6 +126,10 @@
 
     <div class="search-container">
         <div class="search-card">
+            <div id="cargando_clientes" style="text-align:center; font-size:0.75rem; font-weight:600; color:#8e8e93; padding:6px 0;">
+    <span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px;"></span>
+    Cargando clientes...
+</div>
             <div class="position-relative">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text"
@@ -174,6 +178,9 @@
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
 let CLIENTES_CACHE = [];
 window.addEventListener("DOMContentLoaded", async () => {
+
+    const indicador = document.getElementById("cargando_clientes");
+
     try {
         const response = await fetch(`${URL_G}?listaClientes=1`);
         const data = await response.json();
@@ -181,11 +188,17 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (data.status === "ok") {
             CLIENTES_CACHE = data.clientes;
             console.log("Clientes cargados:", CLIENTES_CACHE.length);
+
+            if (indicador) indicador.style.display = "none";
+        } else {
+            if (indicador) indicador.innerHTML = "⚠ Error cargando clientes";
         }
+
     } catch (e) {
-        console.error("Error cargando clientes");
+        if (indicador) indicador.innerHTML = "⚠ Error de conexión";
     }
 });
+
         function togglePagos(id) {
             const div = document.getElementById(id);
             if(div) div.style.display = div.style.display === 'none' ? 'block' : 'none';
@@ -367,6 +380,7 @@ document.addEventListener("click", function(e) {
     </script>
 </body>
 </html>
+
 
 
 
