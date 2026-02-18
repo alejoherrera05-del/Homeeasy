@@ -172,7 +172,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+let CLIENTES_CACHE = [];
+window.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const response = await fetch(`${URL_G}?listaClientes=1`);
+        const data = await response.json();
 
+        if (data.status === "ok") {
+            CLIENTES_CACHE = data.clientes;
+            console.log("Clientes cargados:", CLIENTES_CACHE.length);
+        }
+    } catch (e) {
+        console.error("Error cargando clientes");
+    }
+});
         function togglePagos(id) {
             const div = document.getElementById(id);
             if(div) div.style.display = div.style.display === 'none' ? 'block' : 'none';
@@ -286,9 +299,9 @@ function normalizarTexto(texto) {
         .replace(/[\u0300-\u036f]/g, "");
 }
 
-inputBusqueda.addEventListener("input", async function () {
+inputBusqueda.addEventListener("input", function () {
 
-    const valorOriginal = this.value.trim();
+    const valorOriginal = inputBusqueda.value.trim();
     const valor = normalizarTexto(valorOriginal);
 
     if (valor.length < 2) {
@@ -296,44 +309,52 @@ inputBusqueda.addEventListener("input", async function () {
         return;
     }
 
-    try {
-        const response = await fetch(`${URL_G}?buscarCliente=${valorOriginal}`);
-        const data = await response.json();
+    sugerenciasDiv.innerHTML = "";
 
-        if (data.status === "ok") {
+    const resultados = CLIENTES_CACHE.filter(cliente => {
 
-            sugerenciasDiv.innerHTML = "";
+        const nombre = normalizarTexto(cliente.nombre || "");
+        const cedula = normalizarTexto(cliente.cedula || "");
+        const telefono = normalizarTexto(cliente.telefono || "");
 
-            data.resultados.forEach(cliente => {
+        return (
+            nombre.includes(valor) ||
+            cedula.includes(valor) ||
+            telefono.includes(valor)
+        );
 
-                const item = document.createElement("div");
-                item.style.padding = "8px";
-                item.style.cursor = "pointer";
-                item.style.borderBottom = "1px solid #eee";
+    }).slice(0, 8);
 
-                // 🔥 RESALTAR COINCIDENCIA
-                const nombreNormalizado = normalizarTexto(cliente.nombre);
-                const index = nombreNormalizado.indexOf(valor);
+    resultados.forEach(cliente => {
 
-                if (index !== -1) {
-                    const antes = cliente.nombre.substring(0, index);
-                    const match = cliente.nombre.substring(index, index + valor.length);
-                    const despues = cliente.nombre.substring(index + valor.length);
+        const item = document.createElement("div");
+        item.style.padding = "8px";
+        item.style.cursor = "pointer";
+        item.style.borderBottom = "1px solid #eee";
 
-                    item.innerHTML = `${antes}<strong style="color:#a63d56">${match}</strong>${despues} - ${cliente.cedula}`;
-                } else {
-                    item.innerText = `${cliente.nombre} - ${cliente.cedula}`;
-                }
+        const nombreNormalizado = normalizarTexto(cliente.nombre);
+        const index = nombreNormalizado.indexOf(valor);
 
-                item.onclick = () => {
-                    inputBusqueda.value = cliente.cedula;
-                    sugerenciasDiv.innerHTML = "";
-                    buscarHistorial();
-                };
+        if (index !== -1) {
+            const antes = cliente.nombre.substring(0, index);
+            const match = cliente.nombre.substring(index, index + valor.length);
+            const despues = cliente.nombre.substring(index + valor.length);
 
-                sugerenciasDiv.appendChild(item);
-            });
+            item.innerHTML = `${antes}<strong style="color:#a63d56">${match}</strong>${despues} - ${cliente.cedula}`;
+        } else {
+            item.innerText = `${cliente.nombre} - ${cliente.cedula}`;
         }
+
+        item.onclick = () => {
+            inputBusqueda.value = cliente.cedula;
+            sugerenciasDiv.innerHTML = "";
+            buscarHistorial();
+        };
+
+        sugerenciasDiv.appendChild(item);
+    });
+});
+
 
     } catch (e) {
         console.error("Error en buscador");
@@ -350,6 +371,7 @@ document.addEventListener("click", function(e) {
     </script>
 </body>
 </html>
+
 
 
 
