@@ -355,13 +355,7 @@ inputBusqueda.addEventListener("input", function () {
     });
 });
 
-
-    } catch (e) {
-        console.error("Error en buscador");
-    }
-
-});
-        
+    
 document.addEventListener("click", function(e) {
     if (!inputBusqueda.contains(e.target) && !sugerenciasDiv.contains(e.target)) {
         sugerenciasDiv.innerHTML = "";
@@ -371,6 +365,7 @@ document.addEventListener("click", function(e) {
     </script>
 </body>
 </html>
+
 
 
 
