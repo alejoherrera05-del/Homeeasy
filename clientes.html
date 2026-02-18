@@ -279,9 +279,17 @@
         const inputBusqueda = document.getElementById("cedula_busqueda");
 const sugerenciasDiv = document.getElementById("sugerencias");
 
+function normalizarTexto(texto) {
+    return texto
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+}
+
 inputBusqueda.addEventListener("input", async function () {
 
-    const valor = this.value.trim();
+    const valorOriginal = this.value.trim();
+    const valor = normalizarTexto(valorOriginal);
 
     if (valor.length < 2) {
         sugerenciasDiv.innerHTML = "";
@@ -289,7 +297,7 @@ inputBusqueda.addEventListener("input", async function () {
     }
 
     try {
-        const response = await fetch(`${URL_G}?buscarCliente=${valor}`);
+        const response = await fetch(`${URL_G}?buscarCliente=${valorOriginal}`);
         const data = await response.json();
 
         if (data.status === "ok") {
@@ -302,7 +310,20 @@ inputBusqueda.addEventListener("input", async function () {
                 item.style.padding = "8px";
                 item.style.cursor = "pointer";
                 item.style.borderBottom = "1px solid #eee";
-                item.innerText = `${cliente.nombre} - ${cliente.cedula}`;
+
+                // 🔥 RESALTAR COINCIDENCIA
+                const nombreNormalizado = normalizarTexto(cliente.nombre);
+                const index = nombreNormalizado.indexOf(valor);
+
+                if (index !== -1) {
+                    const antes = cliente.nombre.substring(0, index);
+                    const match = cliente.nombre.substring(index, index + valor.length);
+                    const despues = cliente.nombre.substring(index + valor.length);
+
+                    item.innerHTML = `${antes}<strong style="color:#a63d56">${match}</strong>${despues} - ${cliente.cedula}`;
+                } else {
+                    item.innerText = `${cliente.nombre} - ${cliente.cedula}`;
+                }
 
                 item.onclick = () => {
                     inputBusqueda.value = cliente.cedula;
@@ -317,11 +338,19 @@ inputBusqueda.addEventListener("input", async function () {
     } catch (e) {
         console.error("Error en buscador");
     }
+
+});
+        
+document.addEventListener("click", function(e) {
+    if (!inputBusqueda.contains(e.target) && !sugerenciasDiv.contains(e.target)) {
+        sugerenciasDiv.innerHTML = "";
+    }
 });
 
     </script>
 </body>
 </html>
+
 
 
 
