@@ -29,16 +29,15 @@
         }
 
         .app-header { 
-            background: linear-gradient(200deg, var(--homeeasy-wine) 0%, #5a1a29 100%);
-            padding: 70px 20px 100px; text-align: center; position: relative;
-            clip-path: ellipse(150% 100% at 50% 0%);
+    background: linear-gradient(200deg, var(--homeeasy-wine) 0%, #5a1a29 100%);
+    padding: 50px 20px 80px;
         }
         .app-header h1 { font-weight: 800; color: white; letter-spacing: -0.5px; font-size: 1.6rem; margin-top: 10px; }
-        .logo-header {
-    width: 120px;
-    height: 120px;
+   .logo-header {
+    width: 55px;
+    height: 55px;
     border-radius: 50%;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
 }
 
         .search-container { max-width: 500px; margin: -55px auto 30px; padding: 0 20px; position: relative; z-index: 10; }
@@ -119,7 +118,7 @@
             border-radius: 15px; font-size: 0.65rem; font-weight: 800; padding: 6px 14px;
             text-decoration: none; display: inline-block;
         }
-        <style>
+
 
     /* tu CSS actual */
 
@@ -131,27 +130,34 @@
         margin-bottom: 2px;
     }
 
-    .sub-hommy {
-        font-size: 0.85rem;
-        color: rgba(255,255,255,0.85);
-        font-weight: 500;
-        margin: 0;
-    }
+   .sub-hommy {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+    margin: 0;
+}
 
+.header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
 </style>
+
 </head>
 <body>
 
     <header class="app-header">
         <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
-        <img src="hommy.png" class="logo-header" alt="Hommy">
-        <h1 class="titulo-principal">
-    Historial de Clientes
-</h1>
+       <div class="header-flex">
+    <img src="hommy.png" class="logo-header" alt="Hommy">
+    <div>
+        <h1 class="titulo-principal">Historial de Clientes</h1>
+        <p class="sub-hommy">Hommy está listo para ayudarte a buscar</p>
+    </div>
+</div>
 
-<p class="sub-hommy">
-    Hommy está listo para ayudarte a buscar
-</p>
     </header>
 
     <div class="search-container">
@@ -418,6 +424,7 @@ document.addEventListener("click", function(e) {
     </script>
 </body>
 </html>
+
 
 
 
