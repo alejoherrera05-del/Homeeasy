@@ -34,7 +34,12 @@
             clip-path: ellipse(150% 100% at 50% 0%);
         }
         .app-header h1 { font-weight: 800; color: white; letter-spacing: -0.5px; font-size: 1.6rem; margin-top: 10px; }
-        .logo-header { max-width: 85px; filter: drop-shadow(0 4px 15px rgba(0,0,0,0.2)); }
+        .logo-header {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
 
         .search-container { max-width: 500px; margin: -55px auto 30px; padding: 0 20px; position: relative; z-index: 10; }
         .search-card { 
@@ -145,7 +150,7 @@
 </h1>
 
 <p class="sub-hommy">
-    Hommy está listo para ayudarte 🐻
+    Hommy está listo para ayudarte a buscar
 </p>
     </header>
 
@@ -413,6 +418,7 @@ document.addEventListener("click", function(e) {
     </script>
 </body>
 </html>
+
 
 
 
