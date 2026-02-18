@@ -69,6 +69,8 @@
 </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 <body>
 
@@ -110,13 +112,18 @@
         <div id="paz-salvo-banner">PAZ Y SALVO</div>
 
         <div class="row g-4 mb-4">
-            <div class="col-6">
+            <div class="col-6 position-relative">
                 <label class="label-modern">Fecha del Recibo</label>
                 <input type="text" id="fecha_cuerpo_display" class="input-readonly" readonly>
             </div>
-            <div class="col-6">
+            <div class="col-6 position-relative">
                 <label class="label-modern">Localizar N° OP</label>
                 <input type="text" id="numeroOP" class="input-op-box" placeholder="Ej: 125" inputmode="numeric" onblur="buscarOrden()">
+                <div id="sugerencias_orden"
+     style="position:absolute;background:white;width:100%;
+     max-height:200px;overflow:auto;z-index:1000;
+     border-radius:10px;box-shadow:0 10px 20px rgba(0,0,0,0.15);"></div>
+
             </div>
             <div class="col-12">
                 <label class="label-modern">Nombre del Cliente</label>
@@ -172,22 +179,60 @@
         });
     };
 
-    async function buscarOrden() {
-        let numero = document.getElementById('numeroOP').value.trim();
-        if(!numero) return;
-        try {
-            const r = await fetch(`${URL_G}?buscarOP=${numero}`);
-            const d = await r.json();
-            if(d.status === "found") {
-                document.getElementById('nombre').value = d.nombre.toUpperCase();
-                document.getElementById('cedula').value = d.cedula;
-                saldoBase = parseFloat(d.saldo) || 0;
-                document.getElementById('saldo_anterior_val').innerText = `$ ${saldoBase.toLocaleString('es-CO')}`;
-                calcularSaldo();
-            } else { alert("Orden no encontrada."); }
-        } catch(e) { console.error(e); }
+   function buscarOrden() {
+
+    const numero = document.getElementById('numeroOP').value.trim();
+    const cache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
+
+    const orden = cache.find(o => String(o.numero) === numero);
+
+    if (!orden) {
+        document.getElementById('nombre').value = "";
+        document.getElementById('cedula').value = "";
+        saldoBase = 0;
+        document.getElementById('saldo_anterior_val').innerText = "$ 0";
+        calcularSaldo();
+
+        // 🔓 Rehabilitar campos si estaba bloqueado
+        document.getElementById('valorAbono').disabled = false;
+        document.getElementById('medioPago').disabled = false;
+
+        return;
     }
 
+    document.getElementById('nombre').value = (orden.nombre || "").toUpperCase();
+    document.getElementById('cedula').value = orden.cedula || "";
+
+    saldoBase = parseFloat(orden.saldo) || 0;
+    document.getElementById('saldo_anterior_val').innerText =
+        `$ ${saldoBase.toLocaleString('es-CO')}`;
+
+    calcularSaldo();
+
+    // 💎 VALIDACIÓN SOLO SI SALDO ES 0
+    if (saldoBase <= 0) {
+
+        document.getElementById('valorAbono').disabled = true;
+        document.getElementById('medioPago').disabled = true;
+
+        Swal.fire({
+    icon: 'info',
+    iconColor: '#c3a364',
+    title: 'Orden Completada',
+    html: '<b>Esta orden ya está en estado COMPLETADO</b><br>No tiene saldo pendiente.',
+    confirmButtonColor: '#a63d56',
+    confirmButtonText: 'Entendido'
+});
+
+
+    } else {
+
+        document.getElementById('valorAbono').disabled = false;
+        document.getElementById('medioPago').disabled = false;
+    }
+}
+
+ 
     function formatear(i) {
         let v = i.value.replace(/\D/g, "");
         i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : "";
@@ -223,9 +268,46 @@ async function finalizarAbono() {
         const numOP = document.getElementById('numeroOP').value.trim();
         const nom = document.getElementById('nombre').value;
 
-        if(!ced) return alert("Primero busque una Orden válida.");
-        if(valAbono <= 0 || !mPago) return alert("Complete los datos del abono.");
-        if(valAbono > saldoBase) return alert("El abono no puede ser mayor al saldo pendiente.");
+        if(!ced){
+    Swal.fire({
+        icon: 'warning',
+        title: 'Orden no válida',
+        text: 'Primero debes buscar una orden válida.',
+        confirmButtonColor: '#a63d56'
+    });
+    return;
+}
+
+if (saldoBase <= 0) {
+    Swal.fire({
+        icon: 'info',
+        title: 'Orden Completada',
+        html: '<b>Esta orden ya está en estado COMPLETADO</b><br>No tiene saldo pendiente.',
+        confirmButtonColor: '#a63d56',
+        confirmButtonText: 'Entendido'
+    });
+    return;
+}
+       if(valAbono <= 0 || !mPago){
+    Swal.fire({
+        icon: 'warning',
+        title: 'Datos incompletos',
+        text: 'Debes ingresar el valor del abono y seleccionar el medio de pago.',
+        confirmButtonColor: '#a63d56'
+    });
+    return;
+}
+
+       if(valAbono > saldoBase){
+    Swal.fire({
+        icon: 'error',
+        title: 'Abono inválido',
+        html: 'El valor del abono no puede ser mayor al saldo pendiente.<br><b>Saldo actual:</b> $ ' + saldoBase.toLocaleString('es-CO'),
+        confirmButtonColor: '#a63d56'
+    });
+    return;
+}
+
 
         document.getElementById('loading').style.display = 'flex';
         updateStep(1,'active');
@@ -300,8 +382,63 @@ async function finalizarAbono() {
             document.getElementById('loading').style.display = 'none';
         }
     }
+    // ===============================
+// 🔎 SUGERENCIAS ORDENES CACHE
+// ===============================
+const ordenesCache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
+
+document.getElementById("numeroOP").addEventListener("input", function() {
+
+    const numero = this.value.trim();
+    const cont = document.getElementById("sugerencias_orden");
+
+    cont.innerHTML = "";
+    cont.style.display = "none";
+
+    const cache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
+
+   // Mientras escribe, solo limpiar
+document.getElementById('nombre').value = "";
+document.getElementById('cedula').value = "";
+saldoBase = 0;
+document.getElementById('saldo_anterior_val').innerText = "$ 0";
+calcularSaldo();
+
+
+    if (numero.length < 1) return;
+
+    // 🔽 SUGERENCIAS (esto sigue igual)
+    cache.forEach(o => {
+
+        if (String(o.numero).includes(numero)) {
+
+            const div = document.createElement("div");
+            div.style.padding = "8px";
+            div.style.cursor = "pointer";
+            div.style.borderBottom = "1px solid #eee";
+            div.onmouseover = () => div.style.background = "#f5f5f5";
+            div.onmouseout = () => div.style.background = "white";
+
+            div.innerHTML = `<b>OP ${o.numero}</b> - ${o.nombre}`;
+
+            div.onclick = function() {
+                document.getElementById("numeroOP").value = o.numero;
+                buscarOrden();
+                cont.innerHTML = "";
+                cont.style.display = "none";
+            };
+
+            cont.appendChild(div);
+            cont.style.display = "block";
+        }
+
+    });
+
+});
+
 </script>
 </body>
 </html>
+
 
 
