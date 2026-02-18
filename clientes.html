@@ -3,25 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#782037">
+    
     <title>HomeEasy | Buscar Cliente</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* --- VARIABLES --- */
+        /* --- VARIABLES DE DISEÑO --- */
         :root { 
-            --homeeasy-wine: #8d374f;;
-            --homeeasy-gold: #c3a364;
+            --homeeasy-wine: #8d374f; /* Vinotinto Premium */
+            --homeeasy-gold: #c3a364; /* Dorado Premium */
             --homeeasy-dark: #1c1c1e;
             --ios-gray: #f2f2f7;
             --success-ios: #34c759;
             --warning-ios: #ffcc00;
         }
         
-        body, html { height: 100%; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; background-color: var(--ios-gray); }
+        /* Ajuste CRÍTICO: html y body ocupan el 100% y tienen fondo base vinotinto */
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--homeeasy-wine); 
+            overscroll-behavior-y: none; /* Evita rebotes blancos en iOS */
+        }
 
         /* =========================================
-           DISEÑO PANTALLA DE INICIO (COVER)
+           1. PANTALLA DE INICIO (COVER / PORTADA)
            ========================================= */
         #pantalla-inicio {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -32,24 +44,19 @@
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
-        /* --- CORRECCIÓN BOTÓN ATRÁS --- */
+        /* BOTÓN ATRÁS (Posición corregida para evitar la cámara/notch) */
         .btn-back-cover {
             position: absolute;
-            top: 60px; /* Bajado para evitar notch/barra de estado */
+            top: 60px; /* Bajado estratégicamente */
             left: 25px;
-            width: 50px; /* Tamaño táctil óptimo */
-            height: 50px;
-            background-color: rgba(255, 255, 255, 0.2); /* Fondo sutil para que se vea el círculo */
-            border-radius: 50%; /* Círculo perfecto */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-            text-decoration: none;
-            z-index: 3000; /* Encima de todo */
-            backdrop-filter: blur(5px); /* Efecto vidrio */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Sombra suave */
+            width: 50px; height: 50px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.2rem; text-decoration: none;
+            z-index: 3000;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             transition: transform 0.1s;
         }
         .btn-back-cover:active { transform: scale(0.90); background-color: rgba(255, 255, 255, 0.4); }
@@ -67,6 +74,7 @@
         .sub-title { color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-top: 8px; font-weight: 400; text-align: center; margin-bottom: 40px; }
 
         .search-wrapper { position: relative; width: 85%; max-width: 450px; }
+        
         .input-cover {
             width: 100%; border: none; background: white;
             padding: 22px 25px 22px 60px; border-radius: 50px;
@@ -74,33 +82,46 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
         .input-cover:focus { outline: none; box-shadow: 0 15px 40px rgba(195, 163, 100, 0.4); }
+        .input-cover::placeholder { color: #999; font-weight: 400; }
+        
         .icon-cover { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 1.3rem; }
 
         .bottom-area { position: relative; width: 100%; display: flex; justify-content: center; align-items: flex-end; }
-        .hommy-img { width: 240px; max-width: 60%; z-index: 2; margin-bottom: -2px; }
+        .hommy-img { width: 240px; max-width: 60%; z-index: 2; margin-bottom: -2px; pointer-events: none; }
         .gold-bar {
             position: absolute; bottom: 0; left: 0; width: 100%;
             height: 45px; background-color: var(--homeeasy-gold); z-index: 1;
         }
 
         /* =========================================
-           DISEÑO PANTALLA RESULTADOS
+           2. PANTALLA DE RESULTADOS (CORREGIDA)
            ========================================= */
-        #pantalla-resultados { display: none; padding-top: 80px; padding-bottom: 40px; }
+        #pantalla-resultados { 
+            display: none; 
+            padding-top: 130px; /* Espacio suficiente para que el header no tape el contenido */
+            padding-bottom: 40px; 
+            background-color: var(--ios-gray); /* Fondo gris para los resultados */
+            min-height: 100vh;
+        }
         
+        /* CABECERA AJUSTADA: Más alta y con más padding superior */
         .header-mini {
             position: fixed; top: 0; left: 0; width: 100%;
-            background: var(--homeeasy-wine); padding: 15px 20px; padding-top: 50px; /* Ajuste para móviles */
-            z-index: 1000; display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            height: 90px;
+            background: var(--homeeasy-wine); 
+            padding: 20px 25px 15px; 
+            padding-top: 70px; /* AQUÍ ESTÁ LA SOLUCIÓN AL ESPACIO SUPERIOR */
+            z-index: 1000; 
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            height: 110px; 
         }
-        .mini-brand { color: white; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .mini-brand { color: white; font-weight: 700; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
         
+        /* ESTILOS DE TARJETAS (ORIGINALES) */
         .client-card { 
             background: white; border-radius: 28px; padding: 25px; margin-bottom: 25px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-left: 8px solid var(--homeeasy-gold);
-            margin-top: 20px;
+            margin-top: 0; 
         }
         .client-name { 
             font-weight: 800; color: var(--homeeasy-wine); font-size: 1.3rem; 
@@ -144,7 +165,6 @@
             display: flex; justify-content: space-between; align-items: center; 
             padding: 10px; background: #f9f9f9; border-radius: 12px; margin-bottom: 8px; font-size: 0.75rem;
         }
-        .payment-item b { color: var(--homeeasy-wine); }
 
         .total-price { font-weight: 800; color: var(--homeeasy-wine); font-size: 1.1rem; }
         .saldo-price { font-weight: 800; color: #ff3b30; font-size: 0.9rem; }
@@ -160,9 +180,7 @@
 <body>
 
     <div id="pantalla-inicio">
-        <a href="index.html" class="btn-back-cover">
-            <i class="fas fa-chevron-left"></i>
-        </a>
+        <a href="index.html" class="btn-back-cover"><i class="fas fa-chevron-left"></i></a>
 
         <div class="inicio-content">
             <div class="brand-box">
@@ -197,15 +215,15 @@
     <div id="pantalla-resultados">
         <header class="header-mini">
             <div class="mini-brand">
-                <img src="triangulo.png" style="width:25px;"> HomeEasy
+                <img src="triangulo.png" style="width:28px;"> HomeEasy
             </div>
-            <button onclick="reiniciarBusqueda()" class="btn btn-sm btn-light fw-bold" style="color:var(--homeeasy-wine); border-radius:20px; padding: 5px 15px;">Nueva Búsqueda</button>
+            <button onclick="reiniciarBusqueda()" class="btn btn-sm btn-light fw-bold" style="color:var(--homeeasy-wine); border-radius:20px; padding: 8px 18px; font-size: 0.85rem;">Nueva Búsqueda</button>
         </header>
 
         <div class="container">
             <div id="loader" class="text-center" style="display: none; color: var(--homeeasy-wine); margin-top: 40px;">
                 <div class="spinner-border spinner-border-sm" role="status"></div>
-                <p class="mt-2 fw-bold small">Hoomy esta buscando...</p>
+                <p class="mt-2 fw-bold small">Hommy esta buscando...</p>
             </div>
 
             <div id="resultado_cliente" style="display: none;">
@@ -266,6 +284,7 @@
             const cedula = document.getElementById('cedula_busqueda').value.trim();
             if (!cedula) return;
 
+            // Al buscar, subimos el telón
             document.getElementById('pantalla-inicio').style.transform = "translateY(-100%)";
             document.getElementById('pantalla-resultados').style.display = "block";
 
@@ -411,6 +430,8 @@
                 item.style.padding = "15px 20px";
                 item.style.cursor = "pointer";
                 item.style.borderBottom = "1px solid #eee";
+                item.style.fontSize = "0.9rem";
+                item.style.color = "#444";
 
                 const nombreNormalizado = normalizarTexto(cliente.nombre);
                 const index = nombreNormalizado.indexOf(valor);
