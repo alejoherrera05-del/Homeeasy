@@ -94,7 +94,21 @@
     <div class="card-body">
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4"><label class="form-label-small">Cédula / NIT</label><input type="text" id="cedula" inputmode="numeric" pattern="[0-9]*" class="form-control-compact" oninput="validarYLimpiar()" onblur="buscarCliente()"></div>
+            <div class="col-4 position-relative">
+  <label class="form-label-small">Cédula / NIT</label>
+  <input type="text" id="cedula" inputmode="numeric" pattern="[0-9]*"
+         class="form-control-compact" oninput="validarYLimpiar()" onblur="buscarCliente()">
+
+  <div id="sugerencias_cliente"
+       style="background:white;
+       border-radius:10px;
+       max-height:200px;
+       overflow:auto;
+       box-shadow:0 10px 20px rgba(0,0,0,0.15);
+       margin-top:5px;
+       display:none;">
+  </div>
+</div>
             <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
             <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" inputmode="numeric" pattern="[0-9]*" class="form-control-compact"></div>
             <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
@@ -224,21 +238,26 @@
         }
     }
 
-    async function buscarCliente() {
-        let ced = document.getElementById('cedula').value.trim();
-        if(ced.length < 4) return;
-        ultimaCedulaBuscada = ced;
-        try {
-            const r = await fetch(`${URL_G}?cedula=${ced}`);
-            const d = await r.json();
-            if(d.status === "found") {
-                document.getElementById('nombre').value = (d.nombre || "").toUpperCase();
-                document.getElementById('telefono').value = (d.telefono || "");
-                document.getElementById('email').value = (d.email || "").toLowerCase();
-                document.getElementById('direccion').value = (d.direccion || "").toUpperCase();
-            }
-        } catch(e) {}
+    function buscarCliente() {
+
+    const ced = document.getElementById('cedula').value.trim();
+    const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
+
+    if (!ced || !cache[ced]) {
+        document.getElementById('nombre').value = "";
+        document.getElementById('telefono').value = "";
+        document.getElementById('email').value = "";
+        document.getElementById('direccion').value = "";
+        return;
     }
+
+    const cliente = cache[ced];
+
+    document.getElementById('nombre').value = (cliente.nombre || "").toUpperCase();
+    document.getElementById('telefono').value = cliente.telefono || "";
+    document.getElementById('email').value = (cliente.email || "").toLowerCase();
+    document.getElementById('direccion').value = (cliente.direccion || "").toUpperCase();
+}
 
     function formatear(i) {
         let v = i.value.replace(/\D/g, "");
@@ -384,6 +403,55 @@
             loading.style.display = 'none';
         }
     }
+    // ===============================
+// 🔎 SUGERENCIAS CLIENTES CACHE
+// ===============================
+const clientesCache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
+
+document.getElementById("cedula").addEventListener("input", function() {
+
+    buscarCliente(); // limpia o llena en tiempo real
+
+    const valor = this.value.trim().toLowerCase();
+    const cont = document.getElementById("sugerencias_cliente");
+
+    cont.innerHTML = "";
+    cont.style.display = "none";
+
+    if (valor.length < 2) return;
+
+    const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
+
+    Object.values(cache).forEach(cliente => {
+
+        if (
+            String(cliente.cedula).includes(valor) ||
+            cliente.nombre.toLowerCase().includes(valor)
+        ) {
+
+            const div = document.createElement("div");
+            div.style.padding = "8px";
+            div.style.cursor = "pointer";
+            div.style.borderBottom = "1px solid #eee";
+            div.onmouseover = () => div.style.background = "#f5f5f5";
+            div.onmouseout = () => div.style.background = "white";
+            div.innerHTML = `<b>${cliente.cedula}</b> - ${cliente.nombre}`;
+
+            div.onclick = function() {
+                document.getElementById("cedula").value = cliente.cedula;
+                buscarCliente();
+                cont.innerHTML = "";
+                cont.style.display = "none";
+            };
+
+            cont.appendChild(div);
+            cont.style.display = "block";
+        }
+
+    });
+
+});
+
 </script>
 </body>
 </html>
