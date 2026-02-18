@@ -293,7 +293,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 const sugerenciasDiv = document.getElementById("sugerencias");
 
 function normalizarTexto(texto) {
-    return texto
+    if (!texto) return "";
+
+    return String(texto)
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
@@ -365,6 +367,7 @@ document.addEventListener("click", function(e) {
     </script>
 </body>
 </html>
+
 
 
 
