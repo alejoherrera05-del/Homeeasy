@@ -12,28 +12,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- VARIABLES DE DISEÑO --- */
+        /* --- VARIABLES --- */
         :root { 
-            --homeeasy-wine: #8d374f; /* Vinotinto Premium */
-            --homeeasy-gold: #c3a364; /* Dorado Premium */
+            --homeeasy-wine: #f2f2f7;
+            --homeeasy-gold: #c3a364;
             --homeeasy-dark: #1c1c1e;
             --ios-gray: #f2f2f7;
             --success-ios: #34c759;
             --warning-ios: #ffcc00;
         }
         
-        /* Ajuste CRÍTICO: html y body ocupan el 100% y tienen fondo base vinotinto */
         html, body { 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
+            height: 100%; margin: 0; padding: 0; 
             font-family: 'Montserrat', sans-serif; 
             background-color: var(--homeeasy-wine); 
-            overscroll-behavior-y: none; /* Evita rebotes blancos en iOS */
+            overscroll-behavior-y: none;
         }
 
         /* =========================================
-           1. PANTALLA DE INICIO (COVER / PORTADA)
+           1. PANTALLA DE INICIO (COVER)
            ========================================= */
         #pantalla-inicio {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -44,16 +41,13 @@
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
-        /* BOTÓN ATRÁS (Posición corregida para evitar la cámara/notch) */
         .btn-back-cover {
-            position: absolute;
-            top: 60px; /* Bajado estratégicamente */
-            left: 25px;
+            position: absolute; top: 60px; left: 25px;
             width: 50px; height: 50px;
             background-color: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 1.2rem; text-decoration: none;
+            color: #8d374f; font-size: 1.2rem; text-decoration: none;
             z-index: 3000;
             backdrop-filter: blur(5px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -68,10 +62,20 @@
 
         .brand-box { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
         .logo-img { width: 38px; height: auto; }
-        .brand-txt { color: white; font-size: 2rem; font-weight: 500; margin: 0; letter-spacing: 0.5px; }
+        .brand-txt { color:#8d374f; font-size: 2rem; font-weight: 500; margin: 0; letter-spacing: 0.5px; }
 
-        .main-title { color: var(--homeeasy-gold); font-size: 2.8rem; font-weight: 700; margin: 0; line-height: 1.1; text-align: center; }
-        .sub-title { color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-top: 8px; font-weight: 400; text-align: center; margin-bottom: 40px; }
+        /* --- CORRECCIÓN: SOMBRA SOBRIA EN EL TÍTULO --- */
+        .main-title { 
+            color: var(--homeeasy-gold); 
+            font-size: 2.8rem; 
+            font-weight: 700; 
+            margin: 0; 
+            line-height: 1.1; 
+            text-align: center;
+            
+        }
+        
+        .sub-title { color: #8d374f; font-size: 1.1rem; margin-top: 8px; font-weight: 400; text-align: center; margin-bottom: 40px; }
 
         .search-wrapper { position: relative; width: 85%; max-width: 450px; }
         
@@ -83,33 +87,55 @@
         }
         .input-cover:focus { outline: none; box-shadow: 0 15px 40px rgba(195, 163, 100, 0.4); }
         .input-cover::placeholder { color: #999; font-weight: 400; }
-        
         .icon-cover { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 1.3rem; }
 
-        .bottom-area { position: relative; width: 100%; display: flex; justify-content: center; align-items: flex-end; }
-        .hommy-img { width: 240px; max-width: 60%; z-index: 2; margin-bottom: -2px; pointer-events: none; }
+        /* --- CORRECCIÓN: FRANJA DORADA INFINITA --- */
+        .bottom-area { 
+            position: relative; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-end; 
+        }
+        
+        .hommy-img { 
+            width: 240px; 
+            max-width: 60%; 
+            z-index: 2; /* Hommy encima de la barra */
+            margin-bottom: -5px; /* Ajuste fino para que pise la barra */
+            pointer-events: none; 
+        }
+        
         .gold-bar {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            height: 45px; background-color: var(--homeeasy-gold); z-index: 1;
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%;
+            /* Altura base + ajuste para móviles */
+            height: 55px; 
+            background-color: var(--homeeasy-gold); 
+            z-index: 1;
+            /* ESTO HACE LA MAGIA: Rellena el área segura inferior (iPhone chin) con dorado */
+            padding-bottom: env(safe-area-inset-bottom);
+            box-sizing: content-box; /* Asegura que el padding se sume a la altura */
         }
 
         /* =========================================
-           2. PANTALLA DE RESULTADOS (CORREGIDA)
+           2. PANTALLA DE RESULTADOS
            ========================================= */
         #pantalla-resultados { 
             display: none; 
-            padding-top: 130px; /* Espacio suficiente para que el header no tape el contenido */
+            padding-top: 130px; 
             padding-bottom: 40px; 
-            background-color: var(--ios-gray); /* Fondo gris para los resultados */
+            background-color: var(--ios-gray); 
             min-height: 100vh;
         }
         
-        /* CABECERA AJUSTADA: Más alta y con más padding superior */
         .header-mini {
             position: fixed; top: 0; left: 0; width: 100%;
             background: var(--homeeasy-wine); 
             padding: 20px 25px 15px; 
-            padding-top: 70px; /* AQUÍ ESTÁ LA SOLUCIÓN AL ESPACIO SUPERIOR */
+            padding-top: 70px;
             z-index: 1000; 
             display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
@@ -117,7 +143,6 @@
         }
         .mini-brand { color: white; font-weight: 700; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
         
-        /* ESTILOS DE TARJETAS (ORIGINALES) */
         .client-card { 
             background: white; border-radius: 28px; padding: 25px; margin-bottom: 25px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-left: 8px solid var(--homeeasy-gold);
@@ -192,7 +217,7 @@
             <p class="sub-title">Encuentra rápidamente con Hommy...</p>
 
             <div class="search-wrapper">
-                <div id="cargando_clientes" style="text-align:center; font-size:0.8rem; color:rgba(255,255,255,0.8); margin-bottom:10px;">
+                <div id="cargando_clientes" style="text-align:center; font-size:0.8rem; color:#8d374f; margin-bottom:10px;">
                     <span class="spinner-border spinner-border-sm me-1"></span> Cargando base de datos...
                 </div>
 
@@ -223,7 +248,7 @@
         <div class="container">
             <div id="loader" class="text-center" style="display: none; color: var(--homeeasy-wine); margin-top: 40px;">
                 <div class="spinner-border spinner-border-sm" role="status"></div>
-                <p class="mt-2 fw-bold small">Hommy esta buscando...</p>
+                <p class="mt-2 fw-bold small">Consultando...</p>
             </div>
 
             <div id="resultado_cliente" style="display: none;">
