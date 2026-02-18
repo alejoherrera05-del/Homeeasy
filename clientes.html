@@ -125,9 +125,15 @@
     </header>
 
     <div class="search-container">
-        <div class="search-card">
-            <div id="cargando_clientes" style="text-align:center; font-size:0.75rem; font-weight:600; color:#8e8e93; padding:6px 0;">
-    <span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px;"></span>
+        <div id="cargando_clientes"
+     style="text-align:center;
+            font-size:0.75rem;
+            font-weight:600;
+            color:#8e8e93;
+            padding:6px 0;
+            transition: opacity 0.3s ease;">
+    <span class="spinner-border spinner-border-sm me-2"
+          style="width:14px;height:14px;"></span>
     Cargando clientes...
 </div>
             <div class="position-relative">
@@ -189,7 +195,8 @@ window.addEventListener("DOMContentLoaded", async () => {
             CLIENTES_CACHE = data.clientes;
             console.log("Clientes cargados:", CLIENTES_CACHE.length);
 
-            if (indicador) indicador.style.display = "none";
+            if (indicador)indicador.style.opacity = "0";
+setTimeout(() => indicador.style.display = "none", 300);
         } else {
             if (indicador) indicador.innerHTML = "⚠ Error cargando clientes";
         }
@@ -380,6 +387,7 @@ document.addEventListener("click", function(e) {
     </script>
 </body>
 </html>
+
 
 
 
