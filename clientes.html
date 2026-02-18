@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#782037">
+    <meta name="theme-color" content="#f2f2f7">
     
     <title>HomeEasy | Buscar Cliente</title>
     
@@ -14,12 +14,15 @@
     <style>
         /* --- VARIABLES --- */
         :root { 
-            --homeeasy-wine: #f2f2f7;
+            --homeeasy-wine: #f2f2f7; /* Fondo Claro Cover */
             --homeeasy-gold: #c3a364;
             --homeeasy-dark: #1c1c1e;
             --ios-gray: #f2f2f7;
             --success-ios: #34c759;
             --warning-ios: #ffcc00;
+            
+            /* Color Vinotinto Marca para Textos y Header Resultados */
+            --brand-wine: #8d374f; 
         }
         
         html, body { 
@@ -44,16 +47,17 @@
         .btn-back-cover {
             position: absolute; top: 60px; left: 25px;
             width: 50px; height: 50px;
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            color: #8d374f; font-size: 1.2rem; text-decoration: none;
+            color: var(--brand-wine);
+            font-size: 1.2rem; text-decoration: none;
             z-index: 3000;
             backdrop-filter: blur(5px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             transition: transform 0.1s;
         }
-        .btn-back-cover:active { transform: scale(0.90); background-color: rgba(255, 255, 255, 0.4); }
+        .btn-back-cover:active { transform: scale(0.90); background-color: rgba(255, 255, 255, 0.8); }
 
         .inicio-content {
             flex-grow: 1; display: flex; flex-direction: column;
@@ -62,9 +66,8 @@
 
         .brand-box { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
         .logo-img { width: 38px; height: auto; }
-        .brand-txt { color:#8d374f; font-size: 2rem; font-weight: 500; margin: 0; letter-spacing: 0.5px; }
+        .brand-txt { color: var(--brand-wine); font-size: 2rem; font-weight: 500; margin: 0; letter-spacing: 0.5px; }
 
-        /* --- CORRECCIÓN: SOMBRA SOBRIA EN EL TÍTULO --- */
         .main-title { 
             color: var(--homeeasy-gold); 
             font-size: 2.8rem; 
@@ -72,10 +75,10 @@
             margin: 0; 
             line-height: 1.1; 
             text-align: center;
-            
+            text-shadow: 0 4px 10px rgba(195, 163, 100, 0.2); 
         }
         
-        .sub-title { color: #8d374f; font-size: 1.1rem; margin-top: 8px; font-weight: 400; text-align: center; margin-bottom: 40px; }
+        .sub-title { color: var(--brand-wine); font-size: 1.1rem; margin-top: 8px; font-weight: 400; text-align: center; margin-bottom: 40px; }
 
         .search-wrapper { position: relative; width: 85%; max-width: 450px; }
         
@@ -83,13 +86,12 @@
             width: 100%; border: none; background: white;
             padding: 22px 25px 22px 60px; border-radius: 50px;
             font-size: 1.1rem; color: #333; font-weight: 500;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(141, 55, 79, 0.1);
         }
-        .input-cover:focus { outline: none; box-shadow: 0 15px 40px rgba(195, 163, 100, 0.4); }
+        .input-cover:focus { outline: none; box-shadow: 0 10px 35px rgba(141, 55, 79, 0.25); }
         .input-cover::placeholder { color: #999; font-weight: 400; }
         .icon-cover { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 1.3rem; }
 
-        /* --- CORRECCIÓN: FRANJA DORADA INFINITA --- */
         .bottom-area { 
             position: relative; 
             width: 100%; 
@@ -101,8 +103,8 @@
         .hommy-img { 
             width: 240px; 
             max-width: 60%; 
-            z-index: 2; /* Hommy encima de la barra */
-            margin-bottom: -5px; /* Ajuste fino para que pise la barra */
+            z-index: 2; 
+            margin-bottom: -5px; 
             pointer-events: none; 
         }
         
@@ -111,13 +113,11 @@
             bottom: 0; 
             left: 0; 
             width: 100%;
-            /* Altura base + ajuste para móviles */
             height: 55px; 
             background-color: var(--homeeasy-gold); 
             z-index: 1;
-            /* ESTO HACE LA MAGIA: Rellena el área segura inferior (iPhone chin) con dorado */
             padding-bottom: env(safe-area-inset-bottom);
-            box-sizing: content-box; /* Asegura que el padding se sume a la altura */
+            box-sizing: content-box;
         }
 
         /* =========================================
@@ -133,7 +133,7 @@
         
         .header-mini {
             position: fixed; top: 0; left: 0; width: 100%;
-            background: var(--homeeasy-wine); 
+            background-color: var(--brand-wine) !important; 
             padding: 20px 25px 15px; 
             padding-top: 70px;
             z-index: 1000; 
@@ -146,22 +146,20 @@
         .client-card { 
             background: white; border-radius: 28px; padding: 25px; margin-bottom: 25px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-left: 8px solid var(--homeeasy-gold);
-            margin-top: 0; 
         }
         .client-name { 
-            font-weight: 800; color: var(--homeeasy-wine); font-size: 1.3rem; 
+            font-weight: 800; color: var(--brand-wine); font-size: 1.3rem; 
             letter-spacing: -0.5px; margin-bottom: 18px; text-transform: uppercase;
             border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;
         }
 
         .nav-tabs-custom { background: #efeff4; border-radius: 14px; padding: 3px; margin: 20px 0 0; border: none; }
         .nav-tabs-custom .nav-link { border: none; color: #8e8e93; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; border-radius: 11px; padding: 10px; flex: 1; }
-        .nav-tabs-custom .nav-link.active { background: white; color: var(--homeeasy-wine); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+        .nav-tabs-custom .nav-link.active { background: white; color: var(--brand-wine); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
 
         .item-card { 
             background: white; border-radius: 22px; margin-bottom: 18px; 
             overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.03); position: relative;
-            transition: transform 0.2s;
         }
         .item-card-clickable { cursor: pointer; }
         .item-card-clickable:active { transform: scale(0.98); background: #fdfdfd; }
@@ -191,12 +189,12 @@
             padding: 10px; background: #f9f9f9; border-radius: 12px; margin-bottom: 8px; font-size: 0.75rem;
         }
 
-        .total-price { font-weight: 800; color: var(--homeeasy-wine); font-size: 1.1rem; }
+        .total-price { font-weight: 800; color: var(--brand-wine); font-size: 1.1rem; }
         .saldo-price { font-weight: 800; color: #ff3b30; font-size: 0.9rem; }
         .saldo-finalizado { color: #8e8e93 !important; }
 
         .btn-pdf {
-            background: white; color: var(--homeeasy-wine); border: 1.5px solid var(--homeeasy-wine);
+            background: white; color: var(--brand-wine); border: 1.5px solid var(--brand-wine);
             border-radius: 15px; font-size: 0.65rem; font-weight: 800; padding: 6px 14px;
             text-decoration: none; display: inline-block;
         }
@@ -240,13 +238,13 @@
     <div id="pantalla-resultados">
         <header class="header-mini">
             <div class="mini-brand">
-                <img src="triangulo.png" style="width:28px;"> HomeEasy
+                <img src="triangulogold.png" style="width:28px;"> HomeEasy
             </div>
-            <button onclick="reiniciarBusqueda()" class="btn btn-sm btn-light fw-bold" style="color:var(--homeeasy-wine); border-radius:20px; padding: 8px 18px; font-size: 0.85rem;">Nueva Búsqueda</button>
+            <button onclick="reiniciarBusqueda()" class="btn btn-sm btn-light fw-bold" style="color:#8d374f; border-radius:20px; padding: 8px 18px; font-size: 0.85rem;">Nueva Búsqueda</button>
         </header>
 
         <div class="container">
-            <div id="loader" class="text-center" style="display: none; color: var(--homeeasy-wine); margin-top: 40px;">
+            <div id="loader" class="text-center" style="display: none; color: #8d374f; margin-top: 40px;">
                 <div class="spinner-border spinner-border-sm" role="status"></div>
                 <p class="mt-2 fw-bold small">Consultando...</p>
             </div>
@@ -309,7 +307,6 @@
             const cedula = document.getElementById('cedula_busqueda').value.trim();
             if (!cedula) return;
 
-            // Al buscar, subimos el telón
             document.getElementById('pantalla-inicio').style.transform = "translateY(-100%)";
             document.getElementById('pantalla-resultados').style.display = "block";
 
@@ -465,7 +462,7 @@
                     const antes = cliente.nombre.substring(0, index);
                     const match = cliente.nombre.substring(index, index + valor.length);
                     const despues = cliente.nombre.substring(index + valor.length);
-                    item.innerHTML = `${antes}<strong style="color:#782037">${match}</strong>${despues} <br><small style="color:#999">${cliente.cedula}</small>`;
+                    item.innerHTML = `${antes}<strong style="color:#8d374f">${match}</strong>${despues} <br><small style="color:#999">${cliente.cedula}</small>`;
                 } else {
                     item.innerText = `${cliente.nombre} - ${cliente.cedula}`;
                 }
