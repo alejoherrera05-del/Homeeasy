@@ -114,14 +114,39 @@
             border-radius: 15px; font-size: 0.65rem; font-weight: 800; padding: 6px 14px;
             text-decoration: none; display: inline-block;
         }
-    </style>
+        <style>
+
+    /* tu CSS actual */
+
+    .titulo-principal {
+        font-weight: 800;
+        font-size: 1.9rem;
+        letter-spacing: -1px;
+        color: white;
+        margin-bottom: 2px;
+    }
+
+    .sub-hommy {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.85);
+        font-weight: 500;
+        margin: 0;
+    }
+
+</style>
 </head>
 <body>
 
     <header class="app-header">
         <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
         <img src="hommy.png" class="logo-header" alt="Hommy">
-        <h1>Historial cliente</h1>
+        <h1 class="titulo-principal">
+    Historial de Clientes
+</h1>
+
+<p class="sub-hommy">
+    Hommy está listo para ayudarte 🐻
+</p>
     </header>
 
     <div class="search-container">
@@ -388,6 +413,7 @@ document.addEventListener("click", function(e) {
     </script>
 </body>
 </html>
+
 
 
 
