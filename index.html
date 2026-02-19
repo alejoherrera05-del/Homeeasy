@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<meta name="theme-color" content="#8d374f">
+<meta name="theme-color" content="#6b293b">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
@@ -29,53 +29,55 @@
     --brand-dark:#6b293b;
     --menu-bg: #f8f9fa; 
     
+    /* DEFINICIÓN DEL DEGRADADO MAESTRO (Para que coincida SIEMPRE) */
+    --master-gradient: radial-gradient(circle at center, var(--brand-color) 0%, var(--brand-dark) 100%);
+    
     --glass-bg:rgba(255,255,255,0.12);
     --glass-border:rgba(255,255,255,0.18);
 }
 
 /* =================================================
-   1. EL FONDO CAMALEÓN (La Clave de Todo)
+   1. EL FONDO INFINITO (LA CORRECCIÓN DE COLOR)
    ================================================= */
 html {
     height: 100%;
-    /* Prevenimos el rebote elástico exagerado */
-    overscroll-behavior-y: none; 
+    /* Fondo inicial del HTML: EL DEGRADADO EXACTO, NO COLOR PLANO */
+    background: var(--master-gradient) fixed no-repeat;
 }
 
 body {
     margin: 0; padding: 0; 
     width: 100%; 
-    min-height: 100dvh; /* Altura Dinámica Real */
+    min-height: 100dvh; 
     
     font-family: 'Montserrat', sans-serif;
     -webkit-font-smoothing: antialiased;
     
-    /* ESTADO INICIAL: VINOTINTO (Para que el Intro se vea perfecto) */
-    background-color: var(--brand-color);
+    /* ESTADO INICIAL: EL MISMO DEGRADADO QUE EL HTML Y EL INTRO */
+    background: var(--master-gradient) fixed no-repeat;
     
-    /* Transición suave: Cuando cambiemos a gris, tomará 1 segundo */
-    transition: background-color 1s ease;
+    /* Preparamos la transición */
+    transition: background 0.5s ease;
     
-    /* Bloqueamos scroll global, lo manejaremos internamente */
     overflow: hidden;
 }
 
-/* CLASE MÁGICA: Se activa cuando Hommy termina */
+/* CLASE QUE CAMBIA EL FONDO A GRIS (Se activa JS) */
 body.modo-menu {
-    background-color: var(--menu-bg) !important; /* Cambia a Gris #f8f9fa */
+    background: var(--menu-bg) !important; /* Gris solido */
 }
 
 /* =================================================
-   2. EL INTRO (Cubre todo)
+   2. EL INTRO (COINCIDENCIA PERFECTA)
    ================================================= */
 #intro-screen {
     position: fixed;
     top: 0; left: 0; width: 100%; 
-    height: 100dvh; /* Usamos 100dvh para llenar hasta abajo en iPhone */
+    height: 100dvh; 
     z-index: 99999;
     
-    /* Gradiente idéntico al fondo inicial del body */
-    background: radial-gradient(circle at center, var(--brand-color) 0%, var(--brand-dark) 100%);
+    /* EL MISMO DEGRADADO EXACTO (Imposible notar la diferencia) */
+    background: var(--master-gradient) fixed no-repeat;
     
     display: flex; justify-content: center; align-items: center;
     flex-direction: column;
@@ -111,34 +113,25 @@ body.modo-menu {
 .bar-fill{ height:100%; width:0%; background:var(--homeeasy-gold); transition:width 1s ease-in-out; }
 
 /* =================================================
-   3. CONTENEDOR DEL MENÚ (Scroll Interno)
+   3. CONTENEDOR DEL MENÚ
    ================================================= */
 #app-scroll-wrapper {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    
-    /* Aquí permitimos el scroll */
     overflow-y: auto; 
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch; 
-    
-    /* Áreas seguras */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
-    
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* justify-content: center; <--- Quitado para evitar bugs de altura */
+    display: flex; flex-direction: column; align-items: center;
 }
 
-/* Ocultar barra scroll */
 #app-scroll-wrapper::-webkit-scrollbar { display: none; }
 #app-scroll-wrapper { -ms-overflow-style: none; scrollbar-width: none; }
 
 .menu-container {
     width: 100%; max-width: 420px; text-align: center; padding: 20px;
-    margin: auto 0; /* Centrado vertical flex */
+    margin: auto 0; 
 }
 
 /* Tarjetas */
@@ -248,14 +241,15 @@ function closeIntro() {
     
     setTimeout(() => {
         if(intro) {
-            // 1. Desvanecemos el intro
-            intro.classList.add("intro-hidden");
-            
-            // 2. ¡EL TRUCO! Cambiamos el color del body entero a GRIS
+            // 1. CAMBIAMOS EL FONDO DEL BODY AHORA (Detrás de cámaras)
+            // Como el intro todavía está tapando, nadie ve el cambio brusco.
             document.body.classList.add("modo-menu");
 
-            sessionStorage.setItem("APP_INIT_DONE", "true");
+            // 2. DESVANECEMOS EL INTRO
+            // Al desvanecerse, revelará el fondo GRIS que acabamos de poner.
+            intro.classList.add("intro-hidden");
             
+            sessionStorage.setItem("APP_INIT_DONE", "true");
             setTimeout(() => { intro.style.display = "none"; }, 1000);
         }
     }, 800);
@@ -277,10 +271,9 @@ function correrGuion() {
 document.addEventListener("DOMContentLoaded", function() {
     const intro = document.getElementById("intro-screen");
 
-    // Lógica de inicio rápido
+    // Inicio Rápido
     if (sessionStorage.getItem("APP_INIT_DONE") === "true") {
         if(intro) intro.style.display = "none";
-        // Si entra directo, ponemos el modo menú (gris) inmediatamente
         document.body.classList.add("modo-menu");
         return; 
     }
