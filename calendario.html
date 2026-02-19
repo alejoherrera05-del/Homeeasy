@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario - Sistema Hommy</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --primary-wine: #8d374f;
+            --accent-gold: #c3a364;
+            --text-dark: #333333;
+            --text-light: #888888;
+            --white: #ffffff;
+            --shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Evita scroll en el body, lo manejamos por secciones */
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--white);
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            color: var(--primary-wine);
+            font-weight: 600;
+        }
+
+        .header-icons span {
+            color: var(--primary-wine);
+            font-size: 28px;
+            margin-left: 15px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Indicador de notificación */
+        .badge {
+            position: absolute;
+            top: 2px;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-gold);
+            border-radius: 50%;
+            border: 2px solid var(--white);
+        }
+
+        /* --- Calendario (Parte Superior) --- */
+        .calendar-container {
+            background-color: var(--white);
+            padding: 0 20px 20px 20px;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            box-shadow: var(--shadow);
+            z-index: 5;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-top: 10px;
+        }
+
+        .month-header h2 {
+            font-size: 1.2rem;
+            color: var(--text-dark);
+        }
+
+        .month-nav {
+            color: var(--accent-gold);
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            row-gap: 15px;
+        }
+
+        .day {
+            font-size: 0.95rem;
+            cursor: pointer;
+            position: relative;
+            height: 35px;
+            width: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .day.active {
+            background-color: var(--primary-wine);
+            color: var(--white);
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(141, 55, 79, 0.4);
+        }
+
+        .day.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            background-color: var(--accent-gold);
+            border-radius: 50%;
+        }
+        
+        /* Ajuste para punto blanco si el día está seleccionado */
+        .day.active.has-event::after {
+            background-color: var(--white);
+        }
+
+        .day:not(.active):hover {
+            background-color: #f0f0f0;
+        }
+
+        /* --- Agenda / Lista de Eventos (Parte Inferior) --- */
+        .agenda-container {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .agenda-header {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .event-card {
+            background-color: var(--white);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.02);
+            border-left: 4px solid transparent; /* Color dinámico */
+            transition: transform 0.2s;
+        }
+
+        .event-card:active {
+            transform: scale(0.98);
+        }
+
+        .event-time {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            min-width: 60px;
+            text-align: center;
+            margin-right: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .event-time span {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        .event-details h3 {
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .event-details p {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        /* Tipos de eventos */
+        .type-instalacion { border-left-color: var(--primary-wine); }
+        .type-visita { border-left-color: var(--accent-gold); }
+        .type-recordatorio { border-left-color: #888; }
+
+        .type-tag {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .tag-wine { background-color: rgba(141, 55, 79, 0.1); color: var(--primary-wine); }
+        .tag-gold { background-color: rgba(195, 163, 100, 0.1); color: var(--accent-gold); }
+
+        /* --- Botón Flotante (FAB) --- */
+        .fab {
+            position: absolute;
+            bottom: 90px; /* Arriba del nav */
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent-gold), #d4b87d);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(195, 163, 100, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 100;
+        }
+
+        .fab:hover {
+            transform: rotate(90deg) scale(1.05);
+        }
+
+        /* --- Navegación Inferior (Simulada) --- */
+        .bottom-nav {
+            background-color: var(--white);
+            height: 70px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--primary-wine);
+        }
+
+        .nav-item .material-icons-round {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        /* --- Modal para Agregar Evento --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            width: 85%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 25px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal h2 {
+            color: var(--primary-wine);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .btn-submit {
+            background-color: var(--primary-wine);
+            color: var(--white);
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-light);
+            border: none;
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Mi Agenda</h1>
+        <div class="header-icons">
+            <span class="material-icons-round">search</span>
+            <span class="material-icons-round">
+                notifications
+                <div class="badge"></div>
+            </span>
+        </div>
+    </header>
+
+    <div class="calendar-container">
+        <div class="month-header">
+            <span class="material-icons-round month-nav" onclick="changeMonth(-1)">chevron_left</span>
+            <h2 id="currentMonthYear">Octubre 2025</h2>
+            <span class="material-icons-round month-nav" onclick="changeMonth(1)">chevron_right</span>
+        </div>
+        <div class="weekdays">
+            <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
+        </div>
+        <div class="days" id="calendarDays">
+            </div>
+    </div>
+
+    <div class="agenda-container">
+        <div class="agenda-header" id="selectedDateText">Hoy, 24 de Octubre</div>
+
+        <div class="event-card type-instalacion">
+            <div class="event-time">
+                10:00 <span>AM</span>
+            </div>
+            <div class="event-details">
+                <h3>Instalación Persianas Sheer</h3>
+                <p>Cliente: Familia Herrera - Apto 502</p>
+                <span class="type-tag tag-wine">Instalación</span>
+            </div>
+        </div>
+
+        <div class="event-card type-visita">
+            <div class="event-time">
+                02:30 <span>PM</span>
+            </div>
+            <div class="event-details">
+                <h3>Visita Técnica / Medidas</h3>
+                <p>Cliente: Oficina Centro</p>
+                <span class="type-tag tag-gold">Cotización</span>
+            </div>
+        </div>
+        
+        <div class="event-card type-recordatorio">
+            <div class="event-time">
+                05:00 <span>PM</span>
+            </div>
+            <div class="event-details">
+                <h3>Pasar Pedido Telas</h3>
+                <p>Proveedor Nacional</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="fab" onclick="openModal()">
+        <span class="material-icons-round" style="font-size: 32px;">add</span>
+    </div>
+
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <h2>Nuevo Evento</h2>
+            <div class="form-group">
+                <label>Título</label>
+                <input type="text" placeholder="Ej: Visita Cliente...">
+            </div>
+            <div class="form-group">
+                <label>Tipo</label>
+                <select>
+                    <option>Instalación</option>
+                    <option>Visita Técnica</option>
+                    <option>Recordatorio</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Hora</label>
+                <input type="time">
+            </div>
+          <button class="btn-submit" onclick="guardarEvento()">Guardar Evento</button>
+            <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item">
+            <span class="material-icons-round">home</span>
+            <span>Inicio</span>
+        </div>
+        <div class="nav-item active">
+            <span class="material-icons-round">calendar_today</span>
+            <span>Agenda</span>
+        </div>
+        <div class="nav-item">
+            <span class="material-icons-round">inventory_2</span>
+            <span>Pedidos</span>
+        </div>
+        <div class="nav-item">
+            <span class="material-icons-round">person</span>
+            <span>Perfil</span>
+        </div>
+    </nav>
+
+    <script>
+        const date = new Date();
+        const currentMonthYear = document.getElementById('currentMonthYear');
+        const calendarDays = document.getElementById('calendarDays');
+        const selectedDateText = document.getElementById('selectedDateText');
+        const modal = document.getElementById('eventModal');
+
+        const months = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
+
+        function renderCalendar() {
+            date.setDate(1);
+            const monthDays = document.querySelector('.days');
+            const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+            const prevLastDay = new Date(date.getFullYear(), date.getMonth(), 0).getDate();
+            const firstDayIndex = date.getDay();
+            const lastDayIndex = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDay();
+            const nextDays = 7 - lastDayIndex - 1;
+
+            currentMonthYear.innerHTML = `${months[date.getMonth()]} ${date.getFullYear()}`;
+
+            let days = "";
+
+            // Días del mes anterior (gris claro)
+            for (let x = firstDayIndex; x > 0; x--) {
+                days += `<div class="day" style="opacity:0.3">${prevLastDay - x + 1}</div>`;
+            }
+
+            // Días del mes actual
+            for (let i = 1; i <= lastDay; i++) {
+                // Simulación: Ponemos el día 24 como "hoy/activo" y algunos días con eventos (puntos)
+                if (i === 24 && date.getMonth() === 9) { // Octubre 24 ejemplo
+                    days += `<div class="day active has-event" onclick="selectDay(this)">${i}</div>`;
+                } else if ([5, 12, 18, 28].includes(i)) {
+                    days += `<div class="day has-event" onclick="selectDay(this)">${i}</div>`;
+                } else {
+                    days += `<div class="day" onclick="selectDay(this)">${i}</div>`;
+                }
+            }
+
+            monthDays.innerHTML = days;
+        }
+
+        function changeMonth(n) {
+            date.setMonth(date.getMonth() + n);
+            renderCalendar();
+        }
+
+        function selectDay(element) {
+            // Remover clase activa de otros días
+            document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
+            // Activar clickeado
+            element.classList.add('active');
+            // Actualizar texto abajo
+            selectedDateText.innerText = `Seleccionado: ${element.innerText} de ${months[date.getMonth()]}`;
+            // Aquí podrías cargar eventos dinámicamente
+        }
+
+        // Modal Logic
+        function openModal() {
+            modal.style.display = "flex";
+        }
+        function closeModal() {
+            modal.style.display = "none";
+        }
+        
+        // Cerrar modal si clicas fuera
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+
+function guardarEvento() {
+
+    const titulo = document.querySelector('.modal input[type="text"]').value;
+    const categoria = document.querySelector('.modal select').value;
+    const hora = document.querySelector('.modal input[type="time"]').value;
+
+    if (!titulo || !hora) {
+        alert("Debes completar título y hora");
+        return;
+    }
+
+    const diaActivo = document.querySelector('.day.active');
+    let fechaSeleccionada;
+
+    if (diaActivo) {
+        const dia = diaActivo.innerText.padStart(2, "0");
+        const mes = (date.getMonth() + 1).toString().padStart(2, "0");
+        const anio = date.getFullYear();
+        fechaSeleccionada = `${anio}-${mes}-${dia}`;
+    } else {
+        const hoy = new Date();
+        fechaSeleccionada = hoy.toISOString().split("T")[0];
+    }
+
+    fetch(WEBAPP_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            tipo: "nuevo_evento",
+            fecha: fechaSeleccionada,
+            hora: hora,
+            categoria: categoria,
+            titulo: titulo
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        if (data.status === "success") {
+            alert("Evento guardado correctamente");
+            closeModal();
+        } else {
+            alert("Error al guardar evento");
+        }
+
+    })
+    .catch(error => {
+        alert("Error de conexión");
+        console.error(error);
+    });
+}
+
+        renderCalendar();
+    </script>
+</body>
+</html>
