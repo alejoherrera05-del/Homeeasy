@@ -10,8 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<meta name="theme-color" content="#6b293b">
+<meta name="theme-color" content="#8d374f">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
@@ -27,68 +26,58 @@
     --homeeasy-gold:#d4af37;
     --brand-color:#8d374f;
     --brand-dark:#6b293b;
-    --menu-bg: #f8f9fa; 
-    
-    /* DEFINICIÓN DEL DEGRADADO MAESTRO (Para que coincida SIEMPRE) */
-    --master-gradient: radial-gradient(circle at center, var(--brand-color) 0%, var(--brand-dark) 100%);
+    --menu-bg: #f8f9fa; /* Color del Menú */
     
     --glass-bg:rgba(255,255,255,0.12);
     --glass-border:rgba(255,255,255,0.18);
 }
 
 /* =================================================
-   1. EL FONDO INFINITO (LA CORRECCIÓN DE COLOR)
+   1. ESTRUCTURA BASE (ELIMINA FRANJAS Y REBOTES)
    ================================================= */
 html {
     height: 100%;
-    /* Fondo inicial del HTML: EL DEGRADADO EXACTO, NO COLOR PLANO */
-    background: var(--master-gradient) fixed no-repeat;
+    /* ESTO ES ORO: Prohíbe al navegador "estirar" la página */
+    overscroll-behavior: none; 
+    background-color: var(--brand-color); /* Color de seguridad inicial */
 }
 
 body {
     margin: 0; padding: 0; 
-    width: 100%; 
-    min-height: 100dvh; 
+    width: 100%; height: 100%; 
+    
+    /* El fondo del body es el del MENÚ. Así cuando se vaya el intro, ya estamos en casa. */
+    background-color: var(--menu-bg);
     
     font-family: 'Montserrat', sans-serif;
     -webkit-font-smoothing: antialiased;
-    
-    /* ESTADO INICIAL: EL MISMO DEGRADADO QUE EL HTML Y EL INTRO */
-    background: var(--master-gradient) fixed no-repeat;
-    
-    /* Preparamos la transición */
-    transition: background 0.5s ease;
-    
-    overflow: hidden;
-}
-
-/* CLASE QUE CAMBIA EL FONDO A GRIS (Se activa JS) */
-body.modo-menu {
-    background: var(--menu-bg) !important; /* Gris solido */
+    overflow: hidden; /* Sin barras de scroll globales */
 }
 
 /* =================================================
-   2. EL INTRO (COINCIDENCIA PERFECTA)
+   2. EL TELÓN (INTRO) - TAPA TODO
    ================================================= */
-#intro-screen {
+#intro-curtain {
     position: fixed;
-    top: 0; left: 0; width: 100%; 
-    height: 100dvh; 
-    z-index: 99999;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 99999; /* Encima de todo */
     
-    /* EL MISMO DEGRADADO EXACTO (Imposible notar la diferencia) */
-    background: var(--master-gradient) fixed no-repeat;
+    /* El fondo está AQUÍ, pegado al contenido. Sin capas raras. */
+    background: radial-gradient(circle at center, var(--brand-color) 0%, var(--brand-dark) 100%);
     
     display: flex; justify-content: center; align-items: center;
-    flex-direction: column;
     color: white;
     
+    /* Transición simple: Se desvanece todo junto */
     transition: opacity 0.8s ease, visibility 0.8s ease;
+    opacity: 1;
+    visibility: visible;
 }
 
-.intro-hidden {
-    opacity: 0;
-    visibility: hidden;
+/* Clase para levantar el telón */
+.curtain-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
     pointer-events: none;
 }
 
@@ -113,28 +102,36 @@ body.modo-menu {
 .bar-fill{ height:100%; width:0%; background:var(--homeeasy-gold); transition:width 1s ease-in-out; }
 
 /* =================================================
-   3. CONTENEDOR DEL MENÚ
+   3. EL ESCENARIO (MENÚ) - ESTÁ DETRÁS
    ================================================= */
 #app-scroll-wrapper {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
+    
+    /* Aquí permitimos el scroll */
     overflow-y: auto; 
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch; 
+    -webkit-overflow-scrolling: touch; /* Suavidad iOS */
+    
+    /* Zonas seguras para iPhone (Notch y Home Bar) */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
-    display: flex; flex-direction: column; align-items: center;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
+/* Ocultar Scrollbar (Estética App Nativa) */
 #app-scroll-wrapper::-webkit-scrollbar { display: none; }
 #app-scroll-wrapper { -ms-overflow-style: none; scrollbar-width: none; }
 
 .menu-container {
     width: 100%; max-width: 420px; text-align: center; padding: 20px;
-    margin: auto 0; 
+    margin: auto 0; /* Centrado vertical inteligente */
 }
 
-/* Tarjetas */
+/* Estilos de Tarjetas */
 .header-container{ margin-bottom:40px; }
 .logo-img{ width:180px; display:block; margin:0 auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); }
 
@@ -158,7 +155,7 @@ footer{ margin-top:30px; font-size:.7rem; color:#aaa; letter-spacing:2px; font-w
 
 <body>
 
-    <div id="intro-screen">
+    <div id="intro-curtain">
         <div class="main-container">
             <img src="triangulogold.png" class="logo-triangulo" alt="Logo" onerror="this.style.display='none'">
             <h1>HomeEasy</h1>
@@ -184,7 +181,7 @@ footer{ margin-top:30px; font-size:.7rem; color:#aaa; letter-spacing:2px; font-w
                 <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy Logo" onerror="this.style.display='none'">
                 <div class="status-online">
                     <div class="pulse-green"></div>
-                    SISTEMA | ONLINE
+                    HOMMY | ONLINE
                 </div>
             </div>
 
@@ -208,49 +205,48 @@ footer{ margin-top:30px; font-size:.7rem; color:#aaa; letter-spacing:2px; font-w
                 <div class="menu-text"><h3>Recibo de Abono</h3><p>Pagos y anticipos</p></div>
             </a>
 
-            <footer>HomeEasy MANAGEMENT SYSTEM<br>VERSION 2.0 © 2026</footer>
+            <footer>HomeEasy - Sistema Hommy <br>VERSION 2.0 © 2026</footer>
         </div>
     </div>
 
 <script>
 // ==========================================
-// 🚀 LÓGICA DE NEGOCIO
+// 🚀 LÓGICA DE NEGOCIO (SIN CAMBIOS RAROS)
 // ==========================================
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
 let appIniciada = false;
 
 const guionCarga = [
-    { tiempo: 100,  progreso: "15%", texto: "Hommy está despertando..." },
-    { tiempo: 1500, progreso: "45%", texto: "Limpiando sus lentes..." },
+    { tiempo: 100,  progreso: "18%", texto: "Hommy está despertando..." },
+    { tiempo: 1500, progreso: "45%", texto: "Limpiando sus ojitos..." },
     { tiempo: 3000, progreso: "75%", texto: "Preparándose un café virtual..." },
-    { tiempo: 4500, progreso: "90%", texto: "Ajustando su corbatín..." }
+    { tiempo: 4500, progreso: "90%", texto: "Ajustando su gorra..." }
 ];
 
 function closeIntro() {
     if (appIniciada) return;
     appIniciada = true;
 
-    const intro = document.getElementById("intro-screen");
+    const curtain = document.getElementById("intro-curtain");
     const progressBar = document.getElementById("progress-bar");
     const statusMessage = document.getElementById("status-message");
     
+    // Final
     if(statusMessage) statusMessage.innerText = "¡Hommy está listo!";
     if(progressBar) progressBar.style.width = "100%";
     
-    console.log("🔓 Abriendo menú...");
+    console.log("🔓 Levantando telón...");
     
     setTimeout(() => {
-        if(intro) {
-            // 1. CAMBIAMOS EL FONDO DEL BODY AHORA (Detrás de cámaras)
-            // Como el intro todavía está tapando, nadie ve el cambio brusco.
-            document.body.classList.add("modo-menu");
-
-            // 2. DESVANECEMOS EL INTRO
-            // Al desvanecerse, revelará el fondo GRIS que acabamos de poner.
-            intro.classList.add("intro-hidden");
+        // Simplemente desvanecemos el telón completo
+        if(curtain) {
+            curtain.classList.add("curtain-hidden");
             
+            // Guardamos sesión
             sessionStorage.setItem("APP_INIT_DONE", "true");
-            setTimeout(() => { intro.style.display = "none"; }, 1000);
+            
+            // Lo quitamos de la memoria para que no estorbe
+            setTimeout(() => { curtain.style.display = "none"; }, 1000);
         }
     }, 800);
 }
@@ -269,12 +265,11 @@ function correrGuion() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    const intro = document.getElementById("intro-screen");
+    const curtain = document.getElementById("intro-curtain");
 
-    // Inicio Rápido
+    // Lógica de sesión
     if (sessionStorage.getItem("APP_INIT_DONE") === "true") {
-        if(intro) intro.style.display = "none";
-        document.body.classList.add("modo-menu");
+        if(curtain) curtain.style.display = "none";
         return; 
     }
 
