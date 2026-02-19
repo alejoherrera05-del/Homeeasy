@@ -2,12 +2,19 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-title" content="HomeEasy">
+
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#a63d56">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#8d374f">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 <title>HomeEasy | Gestión</title>
 
@@ -25,34 +32,55 @@
     --glass-border:rgba(255,255,255,0.18);
 }
 
-/* ===== BASE ===== */
-html,body{
+/* ===== BASE BLINDADA ===== */
+html {
+    height: 100%;
+    /* Bloquea el rebote elástico que muestra la franja fea */
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    background-color: var(--brand-color);
+}
+
+body{
     margin:0; padding:0; height:100%;
     font-family:'Montserrat',sans-serif;
     -webkit-font-smoothing:antialiased;
     background:#f8f9fa;
-    overflow: hidden; /* Evita scroll durante la carga */
-}
-
-body{
+    /* Bloquea scroll en el body principal */
+    overflow: hidden; 
     display:flex;
     justify-content:center;
     align-items:center;
-    padding-top:env(safe-area-inset-top);
-    padding-bottom:env(safe-area-inset-bottom);
+    
+    /* ÁREAS SEGURAS (Notch y Barra Home) */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
-/* ================= INTRO (NUEVA ESTÉTICA) ================= */
+/* ================= INTRO (FULL SCREEN REAL) ================= */
 #intro-screen{
-    position:fixed;
-    inset:0;
-    display:flex; /* Flex por defecto, JS lo ocultará si es necesario */
+    /* Usamos position:fixed con coordenadas 0 para forzar cobertura total */
+    position: fixed;
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh; /* Forzamos altura de pantalla */
+    
+    /* Capa superior absoluta */
+    z-index: 99999;
+    
+    display:flex; 
     justify-content:center;
     align-items:center;
+    
     background:radial-gradient(circle at center,var(--brand-color) 0%,var(--brand-dark) 100%);
     color:white;
-    z-index:99999;
     transition: opacity 0.8s ease, visibility 0.8s ease;
+    
+    /* Evita que el usuario pueda scrollear la intro */
+    touch-action: none;
 }
 
 .intro-hidden{
@@ -63,6 +91,8 @@ body{
 
 .main-container{
     width:100%; max-width:420px; text-align:center; padding:20px;
+    position: relative;
+    z-index: 2;
 }
 
 .logo-triangulo{ width:75px; margin-bottom:10px; }
@@ -73,6 +103,7 @@ body{
 .glass-loader{
     background:var(--glass-bg);
     backdrop-filter:blur(15px);
+    -webkit-backdrop-filter:blur(15px);
     border:1px solid var(--glass-border);
     border-radius:28px;
     padding:25px;
@@ -103,13 +134,16 @@ body{
 .bar-fill{
     height:100%; width:0%;
     background:var(--homeeasy-gold);
-    transition:width 0.6s ease;
+    transition:width 1s ease-in-out; 
 }
 
-/* ================= MENU (ESTILO ESTABLE) ================= */
+/* ================= MENU ================= */
 .menu-container{
     width:100%; max-width:420px; text-align:center; padding:20px;
     transition: filter 0.5s ease;
+    /* Permitir scroll suave SOLO dentro del menú si es necesario */
+    overflow-y: auto;
+    max-height: 100vh;
 }
 
 .header-container{ margin-bottom:40px; }
@@ -143,7 +177,7 @@ body{
     text-decoration:none; color:#333;
     box-shadow:0 10px 25px rgba(0,0,0,.06);
     transition:transform .25s ease, box-shadow .25s ease;
-    border-left: 6px solid transparent; /* Reserva espacio para borde */
+    border-left: 6px solid transparent;
 }
 
 .menu-card:active{ transform:scale(.96); }
@@ -174,16 +208,16 @@ footer{
 
 <div id="intro-screen">
     <div class="main-container">
-        <img src="triangulogold.png" class="logo-triangulo" alt="Logo">
+        <img src="triangulogold.png" class="logo-triangulo" alt="Logo" onerror="this.style.display='none'">
         <h1>HomeEasy</h1>
         <div class="version-tag">Sistema Hommy 2.0</div>
         
-        <img src="hommysaludando.png" class="hommy-static" alt="Hommy">
+        <img src="hommysaludando.png" class="hommy-static" alt="Hommy" onerror="this.style.display='none'">
         
         <div class="glass-loader">
             <div class="status-pill">
                 <div class="dot-spinner"></div>
-                <div id="status-message">Iniciando...</div>
+                <div id="status-message">Iniciando sistema...</div>
             </div>
             <div class="bar-container">
                 <div class="bar-fill" id="progress-bar"></div>
@@ -194,10 +228,10 @@ footer{
 
 <div class="menu-container">
     <div class="header-container">
-        <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy Logo">
+        <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy Logo" onerror="this.style.display='none'">
         <div class="status-online">
             <div class="pulse-green"></div>
-            HOMMY | ONLINE
+            SISTEMA | ONLINE
         </div>
     </div>
 
@@ -234,30 +268,27 @@ footer{
     </a>
 
     <footer>
-        HomeEasy - Sistema Hommy<br>
+        HomeEasy MANAGEMENT SYSTEM<br>
         VERSION 2.0 © 2026
     </footer>
 </div>
 
 <script>
 // ==========================================
-// 🚀 CONFIGURACIÓN FINAL - HOME EASY 2.0 (MODO CINE)
+// 🚀 CONFIGURACIÓN FINAL - HOME EASY 2.0
 // ==========================================
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
 
 let appIniciada = false;
 
-// 🎬 EL GUION DE LA PELÍCULA (Timeline)
-// Aquí controlas EXACTAMENTE qué pasa, cuándo pasa y cuánto avanza la barra.
-// tiempo: milisegundos desde que arranca (1000 = 1 segundo)
+// 🎬 EL GUION DE LA PELÍCULA
 const guionCarga = [
     { tiempo: 100,  progreso: "15%", texto: "Hommy está despertando..." },
-    { tiempo: 1500, progreso: "45%", texto: "Limpiando sus ojitos..." },
+    { tiempo: 1500, progreso: "45%", texto: "Limpiando sus lentes..." },
     { tiempo: 3000, progreso: "75%", texto: "Preparándose un café virtual..." },
-    { tiempo: 4500, progreso: "90%", texto: "Ajustando su gorra..." }
+    { tiempo: 4500, progreso: "90%", texto: "Ajustando su corbatín..." }
 ];
 
-// 1. FUNCIÓN PARA CERRAR LA INTRO
 function closeIntro() {
     if (appIniciada) return;
     appIniciada = true;
@@ -266,7 +297,6 @@ function closeIntro() {
     const progressBar = document.getElementById("progress-bar");
     const statusMessage = document.getElementById("status-message");
     
-    // Final glorioso
     if(statusMessage) statusMessage.innerText = "¡Hommy está listo!";
     if(progressBar) progressBar.style.width = "100%";
 
@@ -275,21 +305,20 @@ function closeIntro() {
     setTimeout(() => {
         if(intro) {
             intro.classList.add("intro-hidden");
+            // Reactivar rebote solo si es necesario, pero mejor mantenerlo firme
             document.body.style.overflow = "auto";
             sessionStorage.setItem("APP_INIT_DONE", "true");
             setTimeout(() => { intro.style.display = "none"; }, 1000);
         }
-    }, 800); // Damos un segundito para leer "Hommy está listo"
+    }, 800);
 }
 
-// 2. DIRECTOR DE ESCENA (Ejecuta el guion)
 function correrGuion() {
     const progressBar = document.getElementById("progress-bar");
     const statusMessage = document.getElementById("status-message");
 
     guionCarga.forEach(escena => {
         setTimeout(() => {
-            // Solo actualizamos si la app no ha terminado de cargar por velocidad extrema
             if (!appIniciada) {
                 if(statusMessage) statusMessage.innerText = escena.texto;
                 if(progressBar) progressBar.style.width = escena.progreso;
@@ -298,36 +327,28 @@ function correrGuion() {
     });
 }
 
-// 3. EL CEREBRO DEL FRONTEND
 document.addEventListener("DOMContentLoaded", function() {
-    
     const intro = document.getElementById("intro-screen");
 
-    // A. ¿Ya entró antes?
+    // Verificar si ya entramos
     if (sessionStorage.getItem("APP_INIT_DONE") === "true") {
         if(intro) intro.style.display = "none";
         document.body.style.overflow = "auto";
         return; 
     }
 
-    // B. ¡ACCIÓN! Corremos el guion visual
     correrGuion();
 
-    // C. ⏰ SEGURO DE VIDA (TIMER)
-    // Le damos un poco más de tiempo (5.5s) para que se alcance a leer el último mensaje
     setTimeout(() => {
         console.log("⏰ Tiempo cumplido. Entrando...");
         closeIntro();
     }, 5500);
 
-    // D. 📡 DESCARGA DE DATOS
     console.log("📡 Hommy está buscando los archivos...");
-    
     fetch(URL_SCRIPT + "?init=LOAD")
         .then(response => response.json())
         .then(data => {
             if (data.status === "ok") {
-                // Procesar Clientes
                 const clientesObj = {};
                 if(data.clientes){
                     for (let i = 1; i < data.clientes.length; i++) {
@@ -340,8 +361,6 @@ document.addEventListener("DOMContentLoaded", function() {
                         }
                     }
                 }
-
-                // Procesar Ordenes
                 const ordenesArr = [];
                 if(data.ordenes){
                     for (let i = 1; i < data.ordenes.length; i++) {
@@ -349,19 +368,17 @@ document.addEventListener("DOMContentLoaded", function() {
                         if(o) ordenesArr.push({ numero: o[1], cedula: o[2], nombre: o[3], total: o[6], saldo: o[10] });
                     }
                 }
-
                 localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
                 localStorage.setItem("CACHE_ORDENES", JSON.stringify(ordenesArr));
                 console.log("💾 Datos guardados.");
-
-                // Si terminó todo, esperamos un poquito para no cortar la inspiración de Hommy bruscamente
                 setTimeout(closeIntro, 1500);
             }
         })
         .catch(err => {
             console.error("⚠️ Error silencioso:", err);
-            // El Timer del punto C se encargará de abrir
         });
 });
 </script>
 
+</body>
+</html>
