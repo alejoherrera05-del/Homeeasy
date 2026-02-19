@@ -26,90 +26,62 @@
     --homeeasy-gold:#d4af37;
     --brand-color:#8d374f;
     --brand-dark:#6b293b;
+    --menu-bg: #f8f9fa; /* Color del Menú */
+    
     --glass-bg:rgba(255,255,255,0.12);
     --glass-border:rgba(255,255,255,0.18);
 }
 
 /* =================================================
-   SOLUCIÓN REAL: ESTRUCTURA DE CAPAS
+   1. ESTRUCTURA BASE (ELIMINA FRANJAS Y REBOTES)
    ================================================= */
+html {
+    height: 100%;
+    /* ESTO ES ORO: Prohíbe al navegador "estirar" la página */
+    overscroll-behavior: none; 
+    background-color: var(--brand-color); /* Color de seguridad inicial */
+}
 
-/* 1. ELIMINAR BARRAS DE DESPLAZAMIENTO NATIVAS */
-html, body {
-    margin: 0; 
-    padding: 0; 
-    width: 100%; 
-    height: 100%; 
-    overflow: hidden; /* ¡ESTO MATA LA BARRA LATERAL EN PC! */
-    background-color: var(--brand-color); /* Fondo de seguridad */
+body {
+    margin: 0; padding: 0; 
+    width: 100%; height: 100%; 
+    
+    /* El fondo del body es el del MENÚ. Así cuando se vaya el intro, ya estamos en casa. */
+    background-color: var(--menu-bg);
+    
     font-family: 'Montserrat', sans-serif;
     -webkit-font-smoothing: antialiased;
+    overflow: hidden; /* Sin barras de scroll globales */
 }
 
-/* 2. CAPA DE FONDO INMÓVIL (Soluciona la franja blanca) */
-#app-background-layer {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: -1; /* Detrás de todo */
-    background: radial-gradient(circle at center, var(--brand-color) 0%, var(--brand-dark) 100%);
-    /* Esto evita que el rebote muestre blanco, mostrará Vinotinto */
-}
-
-/* 3. CONTENEDOR SCROLLABLE INVISIBLE 
-   El scroll ocurre AQUÍ ADENTRO, no en el body. */
-#scroll-container {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    overflow-y: auto; /* Permite deslizar */
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch; /* Suavidad nativa en iOS */
-    
-    /* ZONA SEGURA IPHONE (Para que el último botón no quede tapado) */
-    padding-bottom: env(safe-area-inset-bottom); 
-    padding-top: env(safe-area-inset-top);
-    
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* Centra el menú verticalmente */
-}
-
-/* 4. TRUCO DE MAGIA: OCULTAR LA BARRA GRIS (SCROLLBAR) PERO PERMITIR DESLIZAR */
-#scroll-container::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-}
-#scroll-container {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-
-/* ================= INTRO (ENCIMA DE TODO) ================= */
-#intro-screen {
+/* =================================================
+   2. EL TELÓN (INTRO) - TAPA TODO
+   ================================================= */
+#intro-curtain {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 99999;
+    z-index: 99999; /* Encima de todo */
     
-    /* Flexbox para centrar */
-    display: flex; 
-    justify-content: center;
-    align-items: center;
-    
-    /* Fondo propio para tapar el menú mientras carga */
+    /* El fondo está AQUÍ, pegado al contenido. Sin capas raras. */
     background: radial-gradient(circle at center, var(--brand-color) 0%, var(--brand-dark) 100%);
+    
+    display: flex; justify-content: center; align-items: center;
     color: white;
+    
+    /* Transición simple: Se desvanece todo junto */
     transition: opacity 0.8s ease, visibility 0.8s ease;
+    opacity: 1;
+    visibility: visible;
 }
 
-.intro-hidden {
-    opacity: 0;
-    visibility: hidden;
+/* Clase para levantar el telón */
+.curtain-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
     pointer-events: none;
 }
 
-.main-container {
-    width: 100%; max-width: 420px; text-align: center; padding: 20px;
-    position: relative;
-}
+.main-container { width: 100%; max-width: 420px; text-align: center; padding: 20px; }
 
 .logo-triangulo{ width:75px; margin-bottom:10px; }
 .version-tag{ font-size:.8rem; letter-spacing:2px; opacity:.7; margin-bottom:30px; }
@@ -118,13 +90,9 @@ html, body {
 /* Loader */
 .glass-loader {
     background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid var(--glass-border);
-    border-radius: 28px;
-    padding: 25px;
-    width: 100%;
-    box-shadow: 0 25px 50px rgba(0,0,0,.25);
+    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border); border-radius: 28px;
+    padding: 25px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,.25);
 }
 
 .status-pill{ display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.2); padding:10px 18px; border-radius:40px; margin-bottom:15px; }
@@ -133,14 +101,37 @@ html, body {
 .bar-container{ width:100%; height:4px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden; }
 .bar-fill{ height:100%; width:0%; background:var(--homeeasy-gold); transition:width 1s ease-in-out; }
 
-/* ================= MENU ================= */
-.menu-container {
-    width: 100%; max-width: 420px; text-align: center; padding: 20px;
-    transition: filter 0.5s ease;
-    /* Quitamos alturas forzadas aquí, el scroll-container lo maneja */
-    margin: auto 0; /* Centrado vertical extra */
+/* =================================================
+   3. EL ESCENARIO (MENÚ) - ESTÁ DETRÁS
+   ================================================= */
+#app-scroll-wrapper {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    
+    /* Aquí permitimos el scroll */
+    overflow-y: auto; 
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* Suavidad iOS */
+    
+    /* Zonas seguras para iPhone (Notch y Home Bar) */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
+/* Ocultar Scrollbar (Estética App Nativa) */
+#app-scroll-wrapper::-webkit-scrollbar { display: none; }
+#app-scroll-wrapper { -ms-overflow-style: none; scrollbar-width: none; }
+
+.menu-container {
+    width: 100%; max-width: 420px; text-align: center; padding: 20px;
+    margin: auto 0; /* Centrado vertical inteligente */
+}
+
+/* Estilos de Tarjetas */
 .header-container{ margin-bottom:40px; }
 .logo-img{ width:180px; display:block; margin:0 auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); }
 
@@ -164,9 +155,7 @@ footer{ margin-top:30px; font-size:.7rem; color:#aaa; letter-spacing:2px; font-w
 
 <body>
 
-    <div id="app-background-layer"></div>
-
-    <div id="intro-screen">
+    <div id="intro-curtain">
         <div class="main-container">
             <img src="triangulogold.png" class="logo-triangulo" alt="Logo" onerror="this.style.display='none'">
             <h1>HomeEasy</h1>
@@ -186,7 +175,7 @@ footer{ margin-top:30px; font-size:.7rem; color:#aaa; letter-spacing:2px; font-w
         </div>
     </div>
 
-    <div id="scroll-container">
+    <div id="app-scroll-wrapper">
         <div class="menu-container">
             <div class="header-container">
                 <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy Logo" onerror="this.style.display='none'">
@@ -222,10 +211,9 @@ footer{ margin-top:30px; font-size:.7rem; color:#aaa; letter-spacing:2px; font-w
 
 <script>
 // ==========================================
-// 🚀 LÓGICA DE NEGOCIO (INTACTA)
+// 🚀 LÓGICA DE NEGOCIO (SIN CAMBIOS RAROS)
 // ==========================================
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-
 let appIniciada = false;
 
 const guionCarga = [
@@ -239,20 +227,26 @@ function closeIntro() {
     if (appIniciada) return;
     appIniciada = true;
 
-    const intro = document.getElementById("intro-screen");
+    const curtain = document.getElementById("intro-curtain");
     const progressBar = document.getElementById("progress-bar");
     const statusMessage = document.getElementById("status-message");
     
+    // Final
     if(statusMessage) statusMessage.innerText = "¡Hommy está listo!";
     if(progressBar) progressBar.style.width = "100%";
-    console.log("🔓 Abriendo menú...");
+    
+    console.log("🔓 Levantando telón...");
     
     setTimeout(() => {
-        if(intro) {
-            intro.classList.add("intro-hidden");
-            // No tocamos overflow del body, eso lo maneja el CSS ahora
+        // Simplemente desvanecemos el telón completo
+        if(curtain) {
+            curtain.classList.add("curtain-hidden");
+            
+            // Guardamos sesión
             sessionStorage.setItem("APP_INIT_DONE", "true");
-            setTimeout(() => { intro.style.display = "none"; }, 1000);
+            
+            // Lo quitamos de la memoria para que no estorbe
+            setTimeout(() => { curtain.style.display = "none"; }, 1000);
         }
     }, 800);
 }
@@ -271,11 +265,14 @@ function correrGuion() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    const intro = document.getElementById("intro-screen");
+    const curtain = document.getElementById("intro-curtain");
+
+    // Lógica de sesión
     if (sessionStorage.getItem("APP_INIT_DONE") === "true") {
-        if(intro) intro.style.display = "none";
+        if(curtain) curtain.style.display = "none";
         return; 
     }
+
     correrGuion();
     setTimeout(() => { closeIntro(); }, 5500);
 
@@ -287,12 +284,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if(data.clientes){
                     for (let i = 1; i < data.clientes.length; i++) {
                         const c = data.clientes[i];
-                        if(c && c[0]) {
-                            clientesObj[c[0]] = {
-                                cedula: c[0], nombre: c[1], telefono: c[2], 
-                                email: c[3], direccion: c[4]
-                            };
-                        }
+                        if(c && c[0]) clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] };
                     }
                 }
                 const ordenesArr = [];
