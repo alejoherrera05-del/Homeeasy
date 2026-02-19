@@ -1,13 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-<!-- Viewport optimizado para iPhone notch -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-<!-- PWA & iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -29,74 +25,51 @@
     --glass-border:rgba(255,255,255,0.18);
 }
 
-/* ===== BASE MOBILE OPTIMIZATION ===== */
-
+/* ===== BASE ===== */
 html,body{
-    margin:0;
-    padding:0;
-    height:100%;
+    margin:0; padding:0; height:100%;
     font-family:'Montserrat',sans-serif;
     -webkit-font-smoothing:antialiased;
-    -webkit-tap-highlight-color:transparent;
+    background:#f8f9fa;
+    overflow: hidden; /* Evita scroll durante la carga */
 }
 
-/* Safe areas para iPhone */
 body{
-    min-height:100dvh;
-    background:#f8f9fa;
     display:flex;
     justify-content:center;
     align-items:center;
     padding-top:env(safe-area-inset-top);
     padding-bottom:env(safe-area-inset-bottom);
-    padding-left:env(safe-area-inset-left);
-    padding-right:env(safe-area-inset-right);
-    overflow-x:hidden;
 }
 
-/* ================= INTRO ================= */
-
+/* ================= INTRO (NUEVA ESTÉTICA) ================= */
 #intro-screen{
     position:fixed;
     inset:0;
-    display:flex;
+    display:flex; /* Flex por defecto, JS lo ocultará si es necesario */
     justify-content:center;
     align-items:center;
     background:radial-gradient(circle at center,var(--brand-color) 0%,var(--brand-dark) 100%);
     color:white;
     z-index:99999;
-    transition:opacity .8s ease, visibility .8s ease;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
 .intro-hidden{
     opacity:0;
     visibility:hidden;
+    pointer-events: none;
 }
 
 .main-container{
-    width:100%;
-    max-width:420px;
-    text-align:center;
-    padding:20px;
+    width:100%; max-width:420px; text-align:center; padding:20px;
 }
 
-.logo-triangulo{
-    width:75px;
-    margin-bottom:10px;
-}
+.logo-triangulo{ width:75px; margin-bottom:10px; }
+.version-tag{ font-size:.8rem; letter-spacing:2px; opacity:.7; margin-bottom:30px; }
+.hommy-static{ width:260px; margin-bottom:40px; }
 
-.version-tag{
-    font-size:.8rem;
-    letter-spacing:2px;
-    opacity:.7;
-    margin-bottom:30px;
-}
-
-.hommy-static{
-    width:260px;
-    margin-bottom:40px;
-}
-
+/* Loader estilo Glass */
 .glass-loader{
     background:var(--glass-bg);
     backdrop-filter:blur(15px);
@@ -108,179 +81,109 @@ body{
 }
 
 .status-pill{
-    display:flex;
-    align-items:center;
+    display:flex; align-items:center; justifyContent:center;
     background:rgba(0,0,0,.2);
-    padding:10px 18px;
-    border-radius:40px;
-    margin-bottom:15px;
+    padding:10px 18px; border-radius:40px; margin-bottom:15px;
 }
 
 .dot-spinner{
-    width:10px;
-    height:10px;
-    background:var(--homeeasy-gold);
-    border-radius:50%;
-    margin-right:10px;
+    width:10px; height:10px; background:var(--homeeasy-gold);
+    border-radius:50%; margin-right:10px;
     animation:pulse 1.5s infinite;
 }
 
-@keyframes pulse{
-    0%,100%{opacity:1}
-    50%{opacity:.4}
-}
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.4} }
 
 .bar-container{
-    width:100%;
-    height:4px;
+    width:100%; height:4px;
     background:rgba(255,255,255,.1);
-    border-radius:10px;
-    overflow:hidden;
+    border-radius:10px; overflow:hidden;
 }
 
 .bar-fill{
-    height:100%;
-    width:0%;
+    height:100%; width:0%;
     background:var(--homeeasy-gold);
-    transition:width .6s ease;
+    transition:width 0.6s ease;
 }
 
-/* ================= MENU ================= */
-
+/* ================= MENU (ESTILO ESTABLE) ================= */
 .menu-container{
-    width:100%;
-    max-width:420px;
-    text-align:center;
-    padding:20px;
+    width:100%; max-width:420px; text-align:center; padding:20px;
+    transition: filter 0.5s ease;
 }
 
-.header-container{
-    margin-bottom:40px;
-}
-
-.logo-img{
-    width:180px;
-    display:block;
-    margin:0 auto;
-}
+.header-container{ margin-bottom:40px; }
+.logo-img{ width:180px; display:block; margin:0 auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); }
 
 .status-online{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    margin-top:15px;
-    padding:8px 18px;
-    border-radius:50px;
-    background:white;
-    font-size:.65rem;
-    font-weight:800;
-    letter-spacing:1.5px;
-    color:#555;
+    display:inline-flex; align-items:center; justify-content:center;
+    margin-top:15px; padding:8px 18px; border-radius:50px;
+    background:white; font-size:.65rem; font-weight:800;
+    letter-spacing:1.5px; color:#555;
     box-shadow:0 5px 15px rgba(0,0,0,.08);
 }
 
 .pulse-green{
-    width:8px;
-    height:8px;
-    background:#2ecc71;
-    border-radius:50%;
-    margin-right:10px;
-    position:relative;
+    width:8px; height:8px; background:#2ecc71;
+    border-radius:50%; margin-right:10px; position:relative;
 }
 
 .pulse-green::after{
-    content:"";
-    position:absolute;
-    width:100%;
-    height:100%;
-    background:#2ecc71;
-    border-radius:50%;
+    content:""; position:absolute; width:100%; height:100%;
+    background:#2ecc71; border-radius:50%;
     animation:premium-pulse 2s infinite;
 }
 
-@keyframes premium-pulse{
-    0%{transform:scale(1);opacity:.8}
-    100%{transform:scale(3);opacity:0}
-}
+@keyframes premium-pulse{ 0%{transform:scale(1);opacity:.8} 100%{transform:scale(3);opacity:0} }
 
+/* Tarjetas del Menú */
 .menu-card{
-    background:white;
-    border-radius:18px;
-    padding:20px;
-    margin-bottom:18px;
-    display:flex;
-    align-items:center;
-    text-decoration:none;
-    color:#333;
+    background:white; border-radius:18px; padding:20px;
+    margin-bottom:18px; display:flex; align-items:center;
+    text-decoration:none; color:#333;
     box-shadow:0 10px 25px rgba(0,0,0,.06);
     transition:transform .25s ease, box-shadow .25s ease;
+    border-left: 6px solid transparent; /* Reserva espacio para borde */
 }
 
-.menu-card:active{
-    transform:scale(.96);
-}
+.menu-card:active{ transform:scale(.96); }
 
 .icon-box{
-    width:55px;
-    height:55px;
-    border-radius:14px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.3rem;
-    margin-right:18px;
-    background:var(--homeeasy-wine);
-    color:white;
+    width:55px; height:55px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem; margin-right:18px;
+    background:var(--homeeasy-wine); color:white;
 }
 
-.gold-card .icon-box{
-    background:var(--homeeasy-gold);
-}
+.menu-text{ text-align:left; }
+.menu-text h3{ margin:0; font-size:1rem; font-weight:800; color:var(--homeeasy-wine); }
+.menu-text p{ margin:3px 0 0; font-size:.8rem; color:#777; }
 
-.menu-text{
-    text-align:left;
-}
-
-.menu-text h3{
-    margin:0;
-    font-size:1rem;
-    font-weight:800;
-    color:var(--homeeasy-wine);
-}
-
-.gold-card .menu-text h3{
-    color:var(--homeeasy-gold);
-}
-
-.menu-text p{
-    margin:3px 0 0;
-    font-size:.8rem;
-    color:#777;
-}
+/* Estilos específicos tarjetas Doradas/Vino */
+.gold-card .icon-box{ background:var(--homeeasy-gold); }
+.gold-card .menu-text h3{ color:var(--homeeasy-gold); }
 
 footer{
-    margin-top:30px;
-    font-size:.7rem;
-    color:#aaa;
-    letter-spacing:2px;
-    font-weight:600;
+    margin-top:30px; font-size:.7rem; color:#aaa;
+    letter-spacing:2px; font-weight:600;
 }
 </style>
 </head>
 
 <body>
 
-<!-- INTRO -->
-<div id="intro-screen" style="display:none;">
+<div id="intro-screen">
     <div class="main-container">
-        <img src="triangulogold.png" class="logo-triangulo">
+        <img src="triangulogold.png" class="logo-triangulo" alt="Logo">
         <h1>HomeEasy</h1>
         <div class="version-tag">Sistema Hommy 2.0</div>
-        <img src="hommysaludando.png" class="hommy-static">
+        
+        <img src="hommysaludando.png" class="hommy-static" alt="Hommy">
+        
         <div class="glass-loader">
             <div class="status-pill">
                 <div class="dot-spinner"></div>
-                <div id="status-message">Conectando...</div>
+                <div id="status-message">Iniciando...</div>
             </div>
             <div class="bar-container">
                 <div class="bar-fill" id="progress-bar"></div>
@@ -289,14 +192,12 @@ footer{
     </div>
 </div>
 
-<!-- MENU -->
 <div class="menu-container">
-
     <div class="header-container">
-        <img src="logohomeeasy.png" class="logo-img">
+        <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy Logo">
         <div class="status-online">
             <div class="pulse-green"></div>
-            SISTEMA | ONLINE
+            HOMMY | ONLINE
         </div>
     </div>
 
@@ -333,94 +234,133 @@ footer{
     </a>
 
     <footer>
-        HomeEasy MANAGEMENT SYSTEM<br>
-        VERSION 1.0 © 2026
+        HomeEasy - Sistema Hommy<br>
+        VERSION 2.0 © 2026
     </footer>
-
 </div>
 
 <script>
-
+// ==========================================
+// 🚀 CONFIGURACIÓN FINAL - HOME EASY 2.0 (MODO CINE)
+// ==========================================
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
 
-window.addEventListener("load", async function() {
+let appIniciada = false;
+
+// 🎬 EL GUION DE LA PELÍCULA (Timeline)
+// Aquí controlas EXACTAMENTE qué pasa, cuándo pasa y cuánto avanza la barra.
+// tiempo: milisegundos desde que arranca (1000 = 1 segundo)
+const guionCarga = [
+    { tiempo: 100,  progreso: "15%", texto: "Hommy está despertando..." },
+    { tiempo: 1500, progreso: "45%", texto: "Limpiando sus ojitos..." },
+    { tiempo: 3000, progreso: "75%", texto: "Preparándose un café virtual..." },
+    { tiempo: 4500, progreso: "90%", texto: "Ajustando su gorra..." }
+];
+
+// 1. FUNCIÓN PARA CERRAR LA INTRO
+function closeIntro() {
+    if (appIniciada) return;
+    appIniciada = true;
 
     const intro = document.getElementById("intro-screen");
     const progressBar = document.getElementById("progress-bar");
     const statusMessage = document.getElementById("status-message");
+    
+    // Final glorioso
+    if(statusMessage) statusMessage.innerText = "¡Hommy está listo!";
+    if(progressBar) progressBar.style.width = "100%";
 
-    // 🔎 Si ya se cargó en esta sesión, no mostrar intro
-   if (sessionStorage.getItem("APP_INIT_DONE") === "true") {
-    return;
-} else {
-    intro.classList.remove("intro-hidden");
-}
-
-    try {
-
-        statusMessage.innerText = "Cargando base de datos...";
-        progressBar.style.width = "40%";
-
-        const resp = await fetch(URL_SCRIPT + "?init=LOAD");
-        const data = await resp.json();
-
-        if (data.status === "ok") {
-
-            progressBar.style.width = "70%";
-
-            // ===== OPTIMIZAR CLIENTES =====
-            const clientesRaw = data.clientes;
-            const clientesObj = {};
-
-            for (let i = 1; i < clientesRaw.length; i++) {
-                const c = clientesRaw[i];
-                clientesObj[c[0]] = {
-                    cedula: c[0],
-                    nombre: c[1],
-                    telefono: c[2],
-                    email: c[3],
-                    direccion: c[4]
-                };
-            }
-
-            // ===== OPTIMIZAR ORDENES =====
-            const ordenesRaw = data.ordenes;
-            const ordenesArr = [];
-
-            for (let i = 1; i < ordenesRaw.length; i++) {
-                const o = ordenesRaw[i];
-                ordenesArr.push({
-                    numero: o[1],
-                    cedula: o[2],
-                    nombre: o[3],
-                    total: o[6],
-                    saldo: o[10]
-                });
-            }
-
-            localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
-            localStorage.setItem("CACHE_ORDENES", JSON.stringify(ordenesArr));
-
-            progressBar.style.width = "100%";
-            statusMessage.innerText = "Sistema listo";
-
-            // 🔐 Marcar como inicializado en esta sesión
-            sessionStorage.setItem("APP_INIT_DONE", "true");
-        }
-
-    } catch (err) {
-        console.error("Error en precarga:", err);
-        statusMessage.innerText = "Error de conexión";
-    }
+    console.log("🔓 Abriendo menú...");
 
     setTimeout(() => {
-        intro.classList.add("intro-hidden");
-    }, 1000);
+        if(intro) {
+            intro.classList.add("intro-hidden");
+            document.body.style.overflow = "auto";
+            sessionStorage.setItem("APP_INIT_DONE", "true");
+            setTimeout(() => { intro.style.display = "none"; }, 1000);
+        }
+    }, 800); // Damos un segundito para leer "Hommy está listo"
+}
 
+// 2. DIRECTOR DE ESCENA (Ejecuta el guion)
+function correrGuion() {
+    const progressBar = document.getElementById("progress-bar");
+    const statusMessage = document.getElementById("status-message");
+
+    guionCarga.forEach(escena => {
+        setTimeout(() => {
+            // Solo actualizamos si la app no ha terminado de cargar por velocidad extrema
+            if (!appIniciada) {
+                if(statusMessage) statusMessage.innerText = escena.texto;
+                if(progressBar) progressBar.style.width = escena.progreso;
+            }
+        }, escena.tiempo);
+    });
+}
+
+// 3. EL CEREBRO DEL FRONTEND
+document.addEventListener("DOMContentLoaded", function() {
+    
+    const intro = document.getElementById("intro-screen");
+
+    // A. ¿Ya entró antes?
+    if (sessionStorage.getItem("APP_INIT_DONE") === "true") {
+        if(intro) intro.style.display = "none";
+        document.body.style.overflow = "auto";
+        return; 
+    }
+
+    // B. ¡ACCIÓN! Corremos el guion visual
+    correrGuion();
+
+    // C. ⏰ SEGURO DE VIDA (TIMER)
+    // Le damos un poco más de tiempo (5.5s) para que se alcance a leer el último mensaje
+    setTimeout(() => {
+        console.log("⏰ Tiempo cumplido. Entrando...");
+        closeIntro();
+    }, 5500);
+
+    // D. 📡 DESCARGA DE DATOS
+    console.log("📡 Hommy está buscando los archivos...");
+    
+    fetch(URL_SCRIPT + "?init=LOAD")
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "ok") {
+                // Procesar Clientes
+                const clientesObj = {};
+                if(data.clientes){
+                    for (let i = 1; i < data.clientes.length; i++) {
+                        const c = data.clientes[i];
+                        if(c && c[0]) {
+                            clientesObj[c[0]] = {
+                                cedula: c[0], nombre: c[1], telefono: c[2], 
+                                email: c[3], direccion: c[4]
+                            };
+                        }
+                    }
+                }
+
+                // Procesar Ordenes
+                const ordenesArr = [];
+                if(data.ordenes){
+                    for (let i = 1; i < data.ordenes.length; i++) {
+                        const o = data.ordenes[i];
+                        if(o) ordenesArr.push({ numero: o[1], cedula: o[2], nombre: o[3], total: o[6], saldo: o[10] });
+                    }
+                }
+
+                localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
+                localStorage.setItem("CACHE_ORDENES", JSON.stringify(ordenesArr));
+                console.log("💾 Datos guardados.");
+
+                // Si terminó todo, esperamos un poquito para no cortar la inspiración de Hommy bruscamente
+                setTimeout(closeIntro, 1500);
+            }
+        })
+        .catch(err => {
+            console.error("⚠️ Error silencioso:", err);
+            // El Timer del punto C se encargará de abrir
+        });
 });
-
 </script>
-
-
-</body>
-</html>
