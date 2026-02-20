@@ -197,10 +197,10 @@
             border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
             text-align: center; width: 85%; max-width: 340px; 
         }
-        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; animation: bounce 2s infinite ease-in-out; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        /* Hommy sin animación de rebote para que se vea impecable */
+        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; }
         
-        .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; }
+        .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; text-align: left; }
         .step-active { opacity: 1; color: var(--homeeasy-wine); font-weight: 800; }
         .step-check { opacity: 1; color: #2ecc71; font-weight: 700; }
 
@@ -241,15 +241,15 @@
 
 <div id="loading" class="loading-overlay">
     <div class="glass-loader">
-        <img src="hommysaludando.png" class="hommy-loader" alt="Hommy" onerror="this.src='HOMMY.png'">
+        <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy" onerror="this.src='HOMMY.png'">
         <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">PROCESANDO...</h6>
         <p class="small text-muted mb-4">Hommy está preparando tu documento</p>
         
         <div id="status-list" style="text-align: left; margin-left: 10px;">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Hommy está acomodando el papel...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Escribiendo detalladamente...</div>
-            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Guardando copia en la caja fuerte...</div>
-            <div id="step-4" class="step-item"><i class="far fa-circle"></i> ¡Cotización empacada!</div>
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Llenando la información...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Guardando el documento...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Empacándolo en sobre...</div>
+            <div id="step-4" class="step-item"><i class="far fa-circle"></i> ¡Todo listo jefe!</div>
         </div>
     </div>
 </div>
@@ -461,15 +461,27 @@
         calcular();
     }
 
+    // Nuevo sistema robusto para los textos de carga de Hommy
+    const loadingTexts = [
+        "Llenando la información...",
+        "Guardando el documento...",
+        "Empacándolo en sobre...",
+        "¡Todo listo jefe!"
+    ];
+
     function setStep(num, status) {
         const step = document.getElementById('step-' + num);
         if (status === 'active') {
             step.classList.add('step-active');
-            step.innerHTML = `<i class="fas fa-circle-notch fa-spin text-warning"></i> ` + step.innerText.split(' ').slice(1).join(' ');
+            step.classList.remove('step-check');
+            step.innerHTML = `<i class="fas fa-circle-notch fa-spin text-warning"></i> ` + loadingTexts[num-1];
         } else if (status === 'check') {
             step.classList.remove('step-active');
             step.classList.add('step-check');
-            step.innerHTML = `<i class="fas fa-check-circle"></i> ` + step.innerText;
+            step.innerHTML = `<i class="fas fa-check-circle"></i> ` + loadingTexts[num-1];
+        } else {
+            step.className = 'step-item';
+            step.innerHTML = `<i class="far fa-circle"></i> ` + loadingTexts[num-1];
         }
     }
 
@@ -487,8 +499,9 @@
         const loading = document.getElementById('loading');
         loading.style.display = 'flex';
         
+        // Reiniciar todos los pasos visualmente
         for(let i=1; i<=4; i++) {
-            document.getElementById('step-'+i).className = 'step-item';
+            setStep(i, 'reset');
         }
 
         try {
