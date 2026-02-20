@@ -12,17 +12,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- VARIABLES --- */
+        /* --- VARIABLES ACTUALIZADAS --- */
         :root { 
-            --homeeasy-wine: #f8f9fa; /* Fondo Claro Cover */
-            --homeeasy-gold: #c3a364;
+            --homeeasy-wine: #f8f9fa; 
+            --homeeasy-gold: #c2a468; /* NUEVO DORADO */
             --homeeasy-dark: #1c1c1e;
             --ios-gray: #f8f9fa;
             --success-ios: #34c759;
             --warning-ios: #ffcc00;
-            
-            /* Color Vinotinto Marca para Textos y Header Resultados */
-            --brand-wine: #8d374f; 
+            --brand-wine: #a6455a; /* NUEVO VINOTINTO */
         }
         
         html, body { 
@@ -36,31 +34,19 @@
            1. PANTALLA DE INICIO (COVER)
            ========================================= */
        #pantalla-inicio {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;        
-    height: 100dvh;       
-            background-color: var(--homeeasy-wine);
-            z-index: 2000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100dvh;       
+            background-color: var(--homeeasy-wine); z-index: 2000;
             display: flex; flex-direction: column; justify-content: space-between;
-            overflow: hidden;
-            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            overflow: hidden; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
         .btn-back-cover {
-            position: absolute; top: 60px; left: 25px;
-            width: 50px; height: 50px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
+            position: absolute; top: 60px; left: 25px; width: 50px; height: 50px;
+            background-color: rgba(255, 255, 255, 0.5); border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            color: var(--brand-wine);
-            font-size: 1.2rem; text-decoration: none;
-            z-index: 3000;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: transform 0.1s;
+            color: var(--brand-wine); font-size: 1.2rem; text-decoration: none;
+            z-index: 3000; backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.1s;
         }
         .btn-back-cover:active { transform: scale(0.90); background-color: rgba(255, 255, 255, 0.8); }
 
@@ -74,13 +60,9 @@
         .brand-txt { color: var(--brand-wine); font-size: 2rem; font-weight: 500; margin: 0; letter-spacing: 0.5px; }
 
         .main-title { 
-            color: var(--homeeasy-gold); 
-            font-size: 2.8rem; 
-            font-weight: 700; 
-            margin: 0; 
-            line-height: 1.1; 
-            text-align: center;
-            text-shadow: 0 4px 10px rgba(195, 163, 100, 0.2); 
+            color: var(--homeeasy-gold); font-size: 2.8rem; font-weight: 700; margin: 0; 
+            line-height: 1.1; text-align: center;
+            text-shadow: 0 4px 10px rgba(194, 164, 104, 0.2); 
         }
         
         .sub-title { color: var(--brand-wine); font-size: 1.1rem; margin-top: 8px; font-weight: 400; text-align: center; margin-bottom: 40px; }
@@ -91,60 +73,34 @@
             width: 100%; border: none; background: white;
             padding: 22px 25px 22px 60px; border-radius: 50px;
             font-size: 1.1rem; color: #333; font-weight: 500;
-            box-shadow: 0 10px 30px rgba(141, 55, 79, 0.1);
+            box-shadow: 0 10px 30px rgba(166, 69, 90, 0.1);
         }
-        .input-cover:focus { outline: none; box-shadow: 0 10px 35px rgba(141, 55, 79, 0.25); }
+        .input-cover:focus { outline: none; box-shadow: 0 10px 35px rgba(166, 69, 90, 0.25); }
         .input-cover::placeholder { color: #999; font-weight: 400; }
         .icon-cover { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 1.3rem; }
 
-        .bottom-area { 
-            position: relative; 
-            width: 100%; 
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-end; 
-        }
-        
-        .hommy-img { 
-            width: 240px; 
-            max-width: 60%; 
-            z-index: 2; 
-            margin-bottom: -5px; 
-            pointer-events: none; 
-        }
-        
+        .bottom-area { position: relative; width: 100%; display: flex; justify-content: center; align-items: flex-end; }
+        .hommy-img { width: 240px; max-width: 60%; z-index: 2; margin-bottom: -5px; pointer-events: none; }
         .gold-bar {
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%;
-            height: 55px; 
-            background-color: var(--homeeasy-gold); 
-            z-index: 1;
-            padding-bottom: env(safe-area-inset-bottom);
-            box-sizing: content-box;
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 55px; 
+            background-color: var(--homeeasy-gold); z-index: 1;
+            padding-bottom: env(safe-area-inset-bottom); box-sizing: content-box;
         }
 
         /* =========================================
            2. PANTALLA DE RESULTADOS
            ========================================= */
         #pantalla-resultados { 
-            display: none; 
-            padding-top: 130px; 
-            padding-bottom: 40px; 
-            background-color: var(--ios-gray); 
-            min-height: 100vh;
+            display: none; padding-top: 130px; padding-bottom: 40px; 
+            background-color: var(--ios-gray); min-height: 100vh;
         }
         
         .header-mini {
             position: fixed; top: 0; left: 0; width: 100%;
             background-color: var(--brand-wine) !important; 
-            padding: 20px 25px 15px; 
-            padding-top: 70px;
-            z-index: 1000; 
+            padding: 20px 25px 15px; padding-top: 70px; z-index: 1000; 
             display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            height: 110px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15); height: 110px; 
         }
         .mini-brand { color: white; font-weight: 700; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
         
@@ -157,6 +113,14 @@
             letter-spacing: -0.5px; margin-bottom: 18px; text-transform: uppercase;
             border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;
         }
+        
+        /* Botón de edición en tarjeta de cliente */
+        .btn-edit-client {
+            background: rgba(166, 69, 90, 0.1); color: var(--brand-wine); 
+            border: none; border-radius: 12px; font-weight: 700; font-size: 0.8rem; padding: 6px 14px;
+            transition: all 0.2s;
+        }
+        .btn-edit-client:active { transform: scale(0.95); background: rgba(166, 69, 90, 0.2); }
 
         .nav-tabs-custom { background: #efeff4; border-radius: 14px; padding: 3px; margin: 20px 0 0; border: none; }
         .nav-tabs-custom .nav-link { border: none; color: #8e8e93; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; border-radius: 11px; padding: 10px; flex: 1; }
@@ -169,10 +133,7 @@
         .item-card-clickable { cursor: pointer; }
         .item-card-clickable:active { transform: scale(0.98); background: #fdfdfd; }
         
-        .item-card::before {
-            content: ""; position: absolute; left: 0; top: 15%; height: 70%; width: 7px; border-radius: 0 10px 10px 0;
-        }
-
+        .item-card::before { content: ""; position: absolute; left: 0; top: 15%; height: 70%; width: 7px; border-radius: 0 10px 10px 0; }
         .card-COMPLETADO::before { background: var(--success-ios); }
         .card-ACTIVO::before { background: var(--warning-ios); }
         .card-COT::before { background: #af52de; }
@@ -189,10 +150,7 @@
         .payment-history { display: none; padding: 0 20px 20px; background: #fff; animation: slideDown 0.3s ease-out; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .payment-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 10px; background: #f9f9f9; border-radius: 12px; margin-bottom: 8px; font-size: 0.75rem;
-        }
+        .payment-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 12px; margin-bottom: 8px; font-size: 0.75rem; }
 
         .total-price { font-weight: 800; color: var(--brand-wine); font-size: 1.1rem; }
         .saldo-price { font-weight: 800; color: #ff3b30; font-size: 0.9rem; }
@@ -203,6 +161,10 @@
             border-radius: 15px; font-size: 0.65rem; font-weight: 800; padding: 6px 14px;
             text-decoration: none; display: inline-block;
         }
+        
+        /* Modal Estilos Premium */
+        .modal-content { border-radius: 20px; border: none; }
+        .modal-header { background: var(--brand-wine); color: white; border-radius: 20px 20px 0 0; border-bottom: none; }
     </style>
 </head>
 <body>
@@ -220,7 +182,7 @@
             <p class="sub-title">Encuentra rápidamente con Hommy...</p>
 
             <div class="search-wrapper">
-                <div id="cargando_clientes" style="text-align:center; font-size:0.8rem; color:#8d374f; margin-bottom:10px;">
+                <div id="cargando_clientes" style="text-align:center; font-size:0.8rem; color:var(--brand-wine); margin-bottom:10px;">
                     <span class="spinner-border spinner-border-sm me-1"></span> Cargando base de datos...
                 </div>
 
@@ -245,23 +207,29 @@
             <div class="mini-brand">
                 <img src="triangulogold.png" style="width:28px;"> HomeEasy
             </div>
-            <button onclick="reiniciarBusqueda()" class="btn btn-sm btn-light fw-bold" style="color:#8d374f; border-radius:20px; padding: 8px 18px; font-size: 0.85rem;">Nueva Búsqueda</button>
+            <button onclick="reiniciarBusqueda()" class="btn btn-sm btn-light fw-bold" style="color:var(--brand-wine); border-radius:20px; padding: 8px 18px; font-size: 0.85rem;">Nueva Búsqueda</button>
         </header>
 
         <div class="container">
-            <div id="loader" class="text-center" style="display: none; color: #8d374f; margin-top: 40px;">
+            <div id="loader" class="text-center" style="display: none; color: var(--brand-wine); margin-top: 40px;">
                 <div class="spinner-border spinner-border-sm" role="status"></div>
                 <p class="mt-2 fw-bold small">Consultando...</p>
             </div>
 
             <div id="resultado_cliente" style="display: none;">
                 <div class="client-card">
-                    <div class="client-name" id="c_nombre"></div>
+                    <div class="client-name d-flex justify-content-between align-items-center">
+                        <span id="c_nombre" style="flex:1;"></span>
+                        <button class="btn-edit-client" onclick="abrirModalEditar()">
+                            <i class="fas fa-pen me-1"></i> Editar
+                        </button>
+                    </div>
+                    
                     <div class="client-info" style="font-size: 0.85rem; font-weight: 600;">
-                        <div><i class="fas fa-fingerprint me-2 text-warning"></i> <span id="c_cedula"></span></div>
-                        <div><i class="fas fa-phone-alt me-2 text-warning"></i> <span id="c_tel"></span></div>
-                        <div><i class="fas fa-envelope me-2 text-warning"></i> <span id="c_email"></span></div>
-                        <div><i class="fas fa-map-marker-alt me-2 text-warning"></i> <span id="c_dir"></span></div>
+                        <div class="mb-1"><i class="fas fa-fingerprint me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_cedula"></span></div>
+                        <div class="mb-1"><i class="fas fa-phone-alt me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_tel"></span></div>
+                        <div class="mb-1"><i class="fas fa-envelope me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_email"></span></div>
+                        <div><i class="fas fa-map-marker-alt me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_dir"></span></div>
                     </div>
                     
                     <ul class="nav nav-tabs nav-tabs-custom" id="tabHistorial" role="tablist">
@@ -278,13 +246,54 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalEditarCliente" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-user-edit me-2"></i>Editar Contacto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Cédula (Clave de Identificación)</label>
+                        <input type="text" class="form-control" id="edit_cedula" readonly style="background: #f0f0f0; color: #888; font-weight:600;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Nombre Completo</label>
+                        <input type="text" class="form-control" id="edit_nombre" style="font-weight:600; color: var(--brand-wine);">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Teléfono</label>
+                        <input type="tel" class="form-control" id="edit_telefono">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="edit_email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Dirección / Ciudad</label>
+                        <input type="text" class="form-control" id="edit_direccion">
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: none; padding: 0 1.5rem 1.5rem;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 12px; font-weight: 600;">Cancelar</button>
+                    <button type="button" class="btn text-white w-50" style="background: var(--brand-wine); border-radius: 12px; font-weight: 600;" id="btnGuardarEdicion" onclick="guardarEdicionCliente()">Actualizar Datos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
         let CLIENTES_CACHE = [];
+        let clienteActual = null; // Variable global para guardar datos al editar
+        let modalEditarInstance = null;
 
         window.addEventListener("DOMContentLoaded", async () => {
             const indicador = document.getElementById("cargando_clientes");
+            modalEditarInstance = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
+
             try {
                 const response = await fetch(`${URL_G}?listaClientes=1`);
                 const data = await response.json();
@@ -323,6 +332,8 @@
                 const data = await response.json();
                 
                 if (data.status === "found") {
+                    clienteActual = data.cliente; // Guardamos en memoria para editar
+                    
                     document.getElementById('c_nombre').innerText = data.cliente.nombre;
                     document.getElementById('c_cedula').innerText = data.cliente.cedula;
                     document.getElementById('c_tel').innerText = data.cliente.telefono;
@@ -342,6 +353,60 @@
                 reiniciarBusqueda();
             } finally { 
                 document.getElementById('loader').style.display = 'none'; 
+            }
+        }
+
+        /* Funciones de Edición de Cliente */
+        function abrirModalEditar() {
+            if (!clienteActual) return;
+            document.getElementById('edit_cedula').value = clienteActual.cedula;
+            document.getElementById('edit_nombre').value = clienteActual.nombre;
+            document.getElementById('edit_telefono').value = clienteActual.telefono;
+            document.getElementById('edit_email').value = clienteActual.email !== 'No registrado' ? clienteActual.email : '';
+            document.getElementById('edit_direccion').value = clienteActual.direccion;
+            
+            modalEditarInstance.show();
+        }
+
+        async function guardarEdicionCliente() {
+            const btn = document.getElementById('btnGuardarEdicion');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sincronizando...';
+            btn.disabled = true;
+
+            const payload = {
+                tipo: "actualizar_cliente",
+                cedula: document.getElementById('edit_cedula').value,
+                nombre: document.getElementById('edit_nombre').value,
+                telefono: document.getElementById('edit_telefono').value,
+                email: document.getElementById('edit_email').value,
+                direccion: document.getElementById('edit_direccion').value
+            };
+
+            try {
+                const response = await fetch(URL_G, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Actualizamos memoria local
+                    const idx = CLIENTES_CACHE.findIndex(c => String(c.cedula) === String(payload.cedula));
+                    if (idx > -1) {
+                        CLIENTES_CACHE[idx].nombre = payload.nombre;
+                        CLIENTES_CACHE[idx].telefono = payload.telefono;
+                    }
+                    
+                    modalEditarInstance.hide();
+                    buscarHistorial(); // Refresca en vivo la tarjeta del cliente
+                } else {
+                    alert("Hubo un error al actualizar: " + result.msg);
+                }
+            } catch (error) {
+                alert("Error de conexión al servidor.");
+            } finally {
+                btn.innerHTML = 'Actualizar Datos';
+                btn.disabled = false;
             }
         }
 
@@ -467,7 +532,7 @@
                     const antes = cliente.nombre.substring(0, index);
                     const match = cliente.nombre.substring(index, index + valor.length);
                     const despues = cliente.nombre.substring(index + valor.length);
-                    item.innerHTML = `${antes}<strong style="color:#8d374f">${match}</strong>${despues} <br><small style="color:#999">${cliente.cedula}</small>`;
+                    item.innerHTML = `${antes}<strong style="color:var(--brand-wine);">${match}</strong>${despues} <br><small style="color:#999">${cliente.cedula}</small>`;
                 } else {
                     item.innerText = `${cliente.nombre} - ${cliente.cedula}`;
                 }
@@ -490,5 +555,3 @@
     </script>
 </body>
 </html>
-
-
