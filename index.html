@@ -149,16 +149,27 @@ body {
     gap: 15px;
 }
 
-/* --- ANIMACIÓN PREMIUM DE TARJETAS --- */
+/* --- ANIMACIÓN PREMIUM DE TARJETAS TÁCTILES --- */
 .menu-card { 
     background: white; border-radius: 18px; padding: 20px; 
     display: flex; align-items: center; text-decoration: none; color: #333; 
     box-shadow: 0 10px 25px rgba(0,0,0,.04); border-left: 6px solid transparent; 
     position: relative; overflow: hidden; 
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    /* Elimina el borde azul al tocar en móviles */
+    -webkit-tap-highlight-color: transparent; 
 }
-.menu-card:active { transform: scale(0.96) translateY(2px); box-shadow: 0 4px 10px rgba(0,0,0,.08); }
-.menu-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(166, 69, 90, 0.06); opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
+
+/* Efecto al tocar la pantalla (Mobile + PC) */
+.menu-card:active { 
+    transform: scale(0.94); /* Se hunde un poquito más */
+    box-shadow: 0 2px 8px rgba(0,0,0,.1); 
+}
+.menu-card::after { 
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(166, 69, 90, 0.1); /* Overlay vinotinto ligeramente más oscuro */
+    opacity: 0; transition: opacity 0.15s ease; pointer-events: none; 
+}
 .menu-card:active::after { opacity: 1; }
 
 .icon-box { width:55px; height:55px; min-width: 55px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-right:18px; background:var(--home-red); color:white; transition: all 0.3s ease;}
@@ -170,11 +181,10 @@ body {
 .gold-card .icon-box { background:var(--home-yellow); }
 .gold-card .menu-text h3 { color:var(--home-yellow); }
 
-/* Tarjeta Destacada Calendario */
+/* Tarjeta Destacada Calendario (Sin justify-content center aquí para no dañar el móvil) */
 .calendar-card { 
     border: 2px solid var(--home-red); 
     background: linear-gradient(to right, #ffffff, #fffdfd); 
-    justify-content: center; /* CENTRA EL CONTENIDO AL ESTIRARSE */
 }
 .calendar-card .icon-box { background: var(--home-red); }
 .calendar-card .menu-text h3 { color: var(--home-red); }
@@ -222,12 +232,13 @@ body {
     }
     .calendar-card {
         grid-column: 1 / -1; 
+        justify-content: center; /* ¡AQUÍ SÍ LO CENTRAMOS PARA EL PC! */
     }
 }
 </style>
 </head>
 
-<body>
+<body ontouchstart="">
 
     <div id="intro-curtain">
         <div class="main-container">
