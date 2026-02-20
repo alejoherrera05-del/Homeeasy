@@ -8,6 +8,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
+        .sugerencias-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 10px 10px;
+            z-index: 1000;
+            max-height: 150px;
+            overflow-y: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .sugerencia-item {
+            padding: 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f9f9f9;
+        }
+        .sugerencia-item:hover { background-color: #f8f0f2; }
+
         :root {
             --bg-color: #f8f9fa;
             --primary-wine: #8d374f;
@@ -16,6 +38,7 @@
             --text-light: #888888;
             --white: #ffffff;
             --shadow: 0 4px 20px rgba(0,0,0,0.05);
+            --danger: #e74c3c;
         }
 
         * {
@@ -32,47 +55,93 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Evita scroll en el body, lo manejamos por secciones */
+            overflow: hidden;
         }
 
-        /* --- Header --- */
+        /* --- Header REDISEÑADO --- */
         header {
             background-color: var(--white);
-            padding: 20px 25px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
             z-index: 10;
+            position: relative; 
         }
 
-        header h1 {
-            font-size: 1.4rem;
+        .header-left {
+            z-index: 2;
+        }
+
+        /* =========================
+           BOTÓN RETROCESO HOMEEASY 
+           ========================= */
+        .he-btn-back {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8d374f;
+            font-size: 1.2rem;
+            text-decoration: none;
+            z-index: 3000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: transform 0.1s ease, background-color 0.1s ease;
+        }
+
+        .he-btn-back:active {
+            transform: scale(0.90);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .he-btn-back span {
+            font-size: 28px;
+            margin-right: 2px; 
+        }
+
+        .header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-brand img {
+            height: 28px;
+            width: auto;
+        }
+
+        .header-brand h1 {
+            font-size: 1.2rem;
             color: var(--primary-wine);
             font-weight: 600;
+            margin: 0;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+            z-index: 2;
         }
 
         .header-icons span {
             color: var(--primary-wine);
-            font-size: 28px;
-            margin-left: 15px;
+            font-size: 26px;
             cursor: pointer;
-            position: relative;
         }
 
-        /* Indicador de notificación */
-        .badge {
-            position: absolute;
-            top: 2px;
-            right: 0;
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent-gold);
-            border-radius: 50%;
-            border: 2px solid var(--white);
-        }
-
-        /* --- Calendario (Parte Superior) --- */
+        /* --- Calendario --- */
         .calendar-container {
             background-color: var(--white);
             padding: 0 20px 20px 20px;
@@ -91,7 +160,7 @@
         }
 
         .month-header h2 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--text-dark);
         }
 
@@ -105,7 +174,7 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-light);
             margin-bottom: 10px;
         }
@@ -114,11 +183,11 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
-            row-gap: 15px;
+            row-gap: 12px;
         }
 
         .day {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             cursor: pointer;
             position: relative;
             height: 35px;
@@ -135,7 +204,7 @@
             background-color: var(--primary-wine);
             color: var(--white);
             font-weight: 600;
-            box-shadow: 0 4px 10px rgba(141, 55, 79, 0.4);
+            box-shadow: 0 4px 10px rgba(141, 55, 79, 0.3);
         }
 
         .day.has-event::after {
@@ -148,152 +217,324 @@
             border-radius: 50%;
         }
         
-        /* Ajuste para punto blanco si el día está seleccionado */
         .day.active.has-event::after {
             background-color: var(--white);
         }
 
-        .day:not(.active):hover {
-            background-color: #f0f0f0;
-        }
-
-        /* --- Agenda / Lista de Eventos (Parte Inferior) --- */
+        /* --- Agenda Section --- */
         .agenda-container {
             flex: 1;
-            padding: 25px;
+            padding: 20px;
+            padding-bottom: 110px; 
             overflow-y: auto;
-            position: relative;
         }
 
         .agenda-header {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: var(--text-light);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-weight: 500;
+            text-transform: capitalize;
         }
 
-        .event-card {
-            background-color: var(--white);
+        /* =========================================
+           ESTÉTICA PREMIUM: TAREAS VENCIDAS
+           ========================================= */
+        #vencidosWrapper {
+            margin-bottom: 20px;
+            background: var(--white); 
             border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.08); 
+            border: 1px solid rgba(231, 76, 60, 0.15); 
+        }
+
+        .vencidos-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 18px;
+            cursor: pointer;
+            background: linear-gradient(to right, #fffafa, #ffffff);
+            border-bottom: 1px solid rgba(231, 76, 60, 0.05);
+            transition: background 0.3s;
+        }
+
+        .vencidos-toggle:active { background-color: #fff0f0; }
+
+        .vencidos-toggle .label-box {
             display: flex;
             align-items: center;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.02);
-            border-left: 4px solid transparent; /* Color dinámico */
-            transition: transform 0.2s;
+            gap: 8px;
+            color: var(--danger);
+            font-weight: 600;
+            font-size: 0.9rem;
         }
 
-        .event-card:active {
-            transform: scale(0.98);
+        .vencidos-count {
+            background: var(--danger);
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 5px;
+            box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+        }
+
+        .vencidos-container {
+            display: block; 
+            padding: 10px 15px;
+            background-color: #fafafa; 
+        }
+
+        .vencidos-container.collapsed { display: none; }
+
+        /* ==== SWIPE IOS ==== */
+        .evento-swipe-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            background-color: #FF3B30; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.4s ease; 
+        }
+
+        .evento-accion-borrar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .evento-accion-borrar .material-icons-round {
+            font-size: 28px;
+        }
+
+        .evento-card-content {
+            position: relative;
+            z-index: 1;
+            background-color: #FFFFFF;
+            padding: 16px;
+            border-radius: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            border-left: 4px solid transparent; 
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease, border-color 0.4s ease;
+        }
+
+        .evento-card-content.vencido {
+            border-left: 5px solid var(--danger) !important; 
+            background-color: var(--white) !important; 
+            border: 1px solid #f0f0f0 !important;
+        }
+
+        .evento-card-content.completed {
+            background-color: #f5f5f5 !important;
+            border-left-color: #dcdcdc !important;
+            border: 1px solid #eeeeee !important;
+            opacity: 1 !important; 
+        }
+        .evento-card-content.completed .event-time,
+        .evento-card-content.completed h3,
+        .evento-card-content.completed p,
+        .evento-card-content.completed strong,
+        .evento-card-content.completed .vencido-badge {
+            text-decoration: line-through !important; 
+            color: #a0a0a0 !important;
         }
 
         .event-time {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-dark);
-            min-width: 60px;
-            text-align: center;
+            min-width: 65px;
             margin-right: 15px;
-            display: flex;
-            flex-direction: column;
+            transition: color 0.4s ease;
         }
-        
-        .event-time span {
-            font-size: 0.7rem;
-            color: var(--text-light);
-            font-weight: 400;
+
+        .event-details {
+            flex: 1; 
         }
 
         .event-details h3 {
-            font-size: 1rem;
-            color: var(--text-dark);
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
             margin-bottom: 2px;
+            transition: color 0.4s ease;
         }
 
         .event-details p {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+            line-height: 1.2;
+            transition: color 0.4s ease;
+        }
+
+        .event-details p.titulo-tarea {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .event-details p:not([class]) {
             color: var(--text-light);
+        }
+
+        .vencido-badge {
+            color: var(--danger);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-top: 4px;
+            background: rgba(231, 76, 60, 0.08); 
+            padding: 4px 8px;
+            border-radius: 6px;
         }
 
         /* Tipos de eventos */
         .type-instalacion { border-left-color: var(--primary-wine); }
         .type-visita { border-left-color: var(--accent-gold); }
-        .type-recordatorio { border-left-color: #888; }
+        .type-garantia { border-left-color: #3498db; }
+        .type-recordatorio { border-left-color: #27ae60; }
+        .type-obligacion { border-left-color: #9b59b6; }
 
-        .type-tag {
-            font-size: 0.65rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-top: 5px;
-            display: inline-block;
-        }
-        
-        .tag-wine { background-color: rgba(141, 55, 79, 0.1); color: var(--primary-wine); }
-        .tag-gold { background-color: rgba(195, 163, 100, 0.1); color: var(--accent-gold); }
+        .cat-instalacion { color: var(--primary-wine); font-weight: 600; }
+        .cat-visita { color: var(--accent-gold); font-weight: 600; }
+        .cat-garantia { color: #3498db; font-weight: 600; }
+        .cat-recordatorio { color: #27ae60; font-weight: 600; }
+        .cat-obligacion { color: #9b59b6; font-weight: 600; }
 
-        /* --- Botón Flotante (FAB) --- */
+        /* =========================================
+           BOTÓN FLOTANTE (ESTEROIDES EN DORADO) 
+           ========================================= */
         .fab {
             position: absolute;
-            bottom: 90px; /* Arriba del nav */
+            bottom: 105px; 
             right: 25px;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, var(--accent-gold), #d4b87d);
+            background: linear-gradient(135deg, var(--accent-gold), #d4b87d); 
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             color: var(--white);
             box-shadow: 0 4px 15px rgba(195, 163, 100, 0.4);
-            cursor: pointer;
-            transition: transform 0.3s;
             z-index: 100;
+            cursor: pointer;
+            
+            animation: pulse-steroids 2s infinite;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .fab .material-icons-round {
+            font-size: 32px;
+            transition: transform 0.4s ease;
         }
 
         .fab:hover {
-            transform: rotate(90deg) scale(1.05);
+            transform: scale(1.08);
+        }
+        .fab:hover .material-icons-round {
+            transform: rotate(90deg); 
+        }
+        .fab:active {
+            transform: scale(0.95);
         }
 
-        /* --- Navegación Inferior (Simulada) --- */
-        .bottom-nav {
+        @keyframes pulse-steroids {
+            0% { box-shadow: 0 0 0 0 rgba(195, 163, 100, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(195, 163, 100, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(195, 163, 100, 0); }
+        }
+
+        /* =========================================
+           PIE DE PÁGINA (3 LÍNEAS CENTRADAS)
+           ========================================= */
+        .app-footer {
             background-color: var(--white);
-            height: 70px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
-        }
-
-        .nav-item {
-            color: var(--text-light);
+            padding: 15px 0;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.04);
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+            flex-shrink: 0;
+            z-index: 20;
+            gap: 3px; 
+        }
+
+        .footer-logo {
+            height: 38px; 
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 2px;
+        }
+
+        .footer-title {
+            font-size: 0.85rem; 
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .footer-version {
             font-size: 0.7rem;
-            cursor: pointer;
+            color: var(--text-light);
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
 
-        .nav-item.active {
-            color: var(--primary-wine);
+        /* Modales Nuevos: Buscador y Próximos */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-color);
+            z-index: 300;
+            flex-direction: column;
+        }
+        .fs-header {
+            background: var(--white);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .fs-header input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: var(--text-dark);
+        }
+        .fs-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
         }
 
-        .nav-item .material-icons-round {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-
-        /* --- Modal para Agregar Evento --- */
+        /* Modal Evento Nuevo */
         .modal {
-            display: none; /* Hidden by default */
+            display: none;
             position: fixed;
             z-index: 200;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
+            left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.5);
             backdrop-filter: blur(4px);
             align-items: center;
@@ -306,305 +547,1106 @@
             max-width: 400px;
             border-radius: 20px;
             padding: 25px;
-            animation: slideUp 0.3s ease;
+            max-height: 90vh; 
+            overflow-y: auto;
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--text-light); margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 10px; outline: none; }
+        .btn-submit { background-color: var(--primary-wine); color: var(--white); border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: 600; margin-top: 10px; transition: 0.3s; }
+        .btn-cancel { background: transparent; color: var(--text-light); border: none; width: 100%; padding: 10px; }
+
+        /* Estilo para el contenedor recurrente */
+        .recurrent-box {
+            display: none; 
+            margin-top: 10px; 
+            padding: 12px; 
+            background: #fff8eb; 
+            border-radius: 10px; 
+            border: 1px dashed var(--accent-gold);
         }
 
-        .modal h2 {
-            color: var(--primary-wine);
-            margin-bottom: 20px;
-            font-size: 1.2rem;
+        /* =========================================
+           MODAL CONFIRMACIÓN PREMIUM (BORRADO)
+           ========================================= */
+        .modal-confirm {
+            display: none;
+            position: fixed;
+            z-index: 4000; 
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
         }
-
-        .form-group {
-            margin-bottom: 15px;
+        .modal-confirm-content {
+            background-color: var(--white);
+            width: 85%;
+            max-width: 320px;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-
-        .form-group label {
-            display: block;
-            color: var(--text-light);
-            font-size: 0.8rem;
-            margin-bottom: 5px;
-        }
-
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-family: 'Poppins', sans-serif;
-            outline: none;
-        }
-        
-        .form-group input:focus {
-            border-color: var(--accent-gold);
-        }
-
-        .btn-submit {
+        .btn-danger-confirm {
+            /* 👑 AHORA USA EL COLOR VINOTINTO DE LA MARCA */
             background-color: var(--primary-wine);
-            color: var(--white);
-            border: none;
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: 600;
-            margin-top: 10px;
-            cursor: pointer;
+            color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: 600; margin-bottom: 10px; cursor: pointer;
         }
-        
-        .btn-cancel {
-            background: transparent;
-            color: var(--text-light);
-            border: none;
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            cursor: pointer;
+        .btn-light-confirm {
+            background-color: #f0f0f0;
+            color: var(--text-dark); border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: 600; margin-bottom: 5px; cursor: pointer;
         }
-
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Mi Agenda</h1>
+        <div class="header-left">
+            <a href="index.html" class="he-btn-back">
+                <span class="material-icons-round">chevron_left</span>
+            </a>
+        </div>
+
+        <div class="header-center">
+            <div class="header-brand">
+                <img src="triangulo.png" alt="Logo">
+                <h1>Agenda HomeEasy</h1>
+            </div>
+        </div>
+
         <div class="header-icons">
-            <span class="material-icons-round">search</span>
-            <span class="material-icons-round">
-                notifications
-                <div class="badge"></div>
-            </span>
+            <span class="material-icons-round" onclick="abrirBuscador()">search</span>
+            <span class="material-icons-round" onclick="abrirProximos()">upcoming</span>
         </div>
     </header>
 
     <div class="calendar-container">
         <div class="month-header">
             <span class="material-icons-round month-nav" onclick="changeMonth(-1)">chevron_left</span>
-            <h2 id="currentMonthYear">Octubre 2025</h2>
+           <h2 id="currentMonthYear"></h2>
             <span class="material-icons-round month-nav" onclick="changeMonth(1)">chevron_right</span>
         </div>
         <div class="weekdays">
             <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
         </div>
-        <div class="days" id="calendarDays">
-            </div>
+        <div class="days" id="calendarDays"></div>
     </div>
 
     <div class="agenda-container">
-        <div class="agenda-header" id="selectedDateText">Hoy, 24 de Octubre</div>
-
-        <div class="event-card type-instalacion">
-            <div class="event-time">
-                10:00 <span>AM</span>
-            </div>
-            <div class="event-details">
-                <h3>Instalación Persianas Sheer</h3>
-                <p>Cliente: Familia Herrera - Apto 502</p>
-                <span class="type-tag tag-wine">Instalación</span>
-            </div>
-        </div>
-
-        <div class="event-card type-visita">
-            <div class="event-time">
-                02:30 <span>PM</span>
-            </div>
-            <div class="event-details">
-                <h3>Visita Técnica / Medidas</h3>
-                <p>Cliente: Oficina Centro</p>
-                <span class="type-tag tag-gold">Cotización</span>
-            </div>
-        </div>
-        
-        <div class="event-card type-recordatorio">
-            <div class="event-time">
-                05:00 <span>PM</span>
-            </div>
-            <div class="event-details">
-                <h3>Pasar Pedido Telas</h3>
-                <p>Proveedor Nacional</p>
-            </div>
-        </div>
+        <div class="agenda-header" id="selectedDateText">Hoy</div>
+        <div class="events-container"></div>
     </div>
 
     <div class="fab" onclick="openModal()">
-        <span class="material-icons-round" style="font-size: 32px;">add</span>
+        <span class="material-icons-round">add</span>
+    </div>
+
+    <footer class="app-footer">
+        <img src="Hommypiedepagina.png" alt="Logo Hommy" class="footer-logo">
+        <div class="footer-title">HomeEasy - Sistema Hommy</div>
+        <div class="footer-version">VERSIÓN 2.0 &copy; 2026</div>
+    </footer>
+
+    <div class="fullscreen-modal" id="searchModal">
+        <div class="fs-header">
+            <span class="material-icons-round" onclick="cerrarBuscador()" style="cursor:pointer; color: var(--text-light);">arrow_back</span>
+            <input type="text" id="searchInput" placeholder="Buscar título, cliente, categoría..." oninput="filtrarBusqueda(this.value)">
+        </div>
+        <div class="fs-content" id="searchResults">
+            <p style="text-align:center; color:#bbb; margin-top:20px; font-size:0.9rem;">Escribe para buscar cualquier tarea...</p>
+        </div>
+    </div>
+
+    <div class="fullscreen-modal" id="upcomingModal">
+        <div class="fs-header">
+            <span class="material-icons-round" onclick="cerrarProximos()" style="cursor:pointer; color: var(--text-light);">arrow_back</span>
+            <h2 style="font-size: 1.1rem; color: var(--primary-wine); margin-left: 10px;">Próximas Tareas</h2>
+        </div>
+        <div class="fs-content" id="upcomingResults">
+        </div>
     </div>
 
     <div class="modal" id="eventModal">
-        <div class="modal-content">
-            <h2>Nuevo Evento</h2>
-            <div class="form-group">
-                <label>Título</label>
-                <input type="text" placeholder="Ej: Visita Cliente...">
-            </div>
-            <div class="form-group">
-                <label>Tipo</label>
-                <select>
-                    <option>Instalación</option>
-                    <option>Visita Técnica</option>
-                    <option>Recordatorio</option>
+    <div class="modal-content">
+        <h2 style="color: var(--primary-wine); margin-bottom: 15px;">Nuevo Evento</h2>
+        
+        <div class="form-group">
+            <label>Categoría</label>
+            <select id="eventType" onchange="manejarCambioCategoria()" style="font-weight: bold; color: var(--text-dark);">
+                <option value="" style="font-weight: normal;">Seleccionar</option>
+                <option value="Instalaciones" style="color: #8d374f; font-weight: bold;">● Instalaciones</option>
+                <option value="Visitas técnicas" style="color: #c3a364; font-weight: bold;">● Visitas técnicas</option>
+                <option value="Garantías" style="color: #3498db; font-weight: bold;">● Garantías</option>
+                <option value="Recordatorios de pago" style="color: #27ae60; font-weight: bold;">● Recordatorios de pago</option>
+                <option value="Obligaciones tributarias" style="color: #9b59b6; font-weight: bold;">● Obligaciones tributarias</option>
+            </select>
+            <label style="margin-top: 10px;">Título del Evento</label>
+            <input type="text" id="eventTitle" placeholder="Ej: Entrega de Comedor">
+        </div>
+
+        <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="eventDate" style="font-family: 'Poppins', sans-serif; color: var(--primary-wine); font-weight: 500;">
+        </div>
+
+        <div class="form-group">
+            <label>Hora</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="time" id="eventTimeRaw" style="flex: 2; font-family: 'Poppins', sans-serif;">
+                <select id="eventAMPM" style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-weight: bold; color: var(--primary-wine);">
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Hora</label>
-                <input type="time">
+        </div>
+
+        <div id="recurrenteContainer" class="recurrent-box">
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight: 600; color: #b8860b; cursor: pointer;">
+                <input type="checkbox" id="mensualCheckbox" style="width: auto; transform: scale(1.3);">
+                🔄 ¿Deseas crear este evento para cada mes? (1 año)
+            </label>
+        </div>
+
+        <div id="usarClienteContainer" style="display:none; margin-top:10px;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px;">
+                <input type="checkbox" id="usarClienteCheckbox" onchange="toggleCliente()">
+                ¿Quieres usar un cliente creado?
+            </label>
+        </div>
+
+        <div id="seccionCliente" style="display: none; border-top: 1px solid #eee; padding-top:10px; margin-top: 10px;">
+            <div class="form-group" style="position: relative;">
+                <label>Cliente (Nombre o Cédula)</label>
+                <input type="text" id="clienteBusqueda" placeholder="Buscar cliente..." oninput="buscarClienteApp(this.value)">
+                <div id="listaSugerencias" class="sugerencias-dropdown"></div>
+                <input type="hidden" id="clienteSeleccionadoId">
             </div>
-          <button class="btn-submit" onclick="guardarEvento()">Guardar Evento</button>
-            <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+
+            <div class="form-group" id="seccionReferencia" style="display: none;">
+                <label>Referencia (Orden / Cotización)</label>
+                <select id="eventReferencia">
+                    <option value="">Cargando referencias...</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-submit" onclick="guardarEvento()">Guardar en Agenda</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+    </div>
+    </div>
+
+    <div class="modal-confirm" id="confirmDeleteModal">
+        <div class="modal-confirm-content">
+            <span class="material-icons-round" style="font-size: 45px; color: var(--primary-wine); margin-bottom: 10px;">warning_amber</span>
+            <h3 style="font-size: 1.15rem; color: var(--text-dark); margin-bottom: 10px; font-weight: 600;">Tarea Recurrente</h3>
+            <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 20px; line-height: 1.4;">Esta es una tarea que se repite automáticamente todos los meses. ¿Qué deseas hacer?</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn-danger-confirm" onclick="ejecutarBorradoRecurrente(true)">Sí, de manera permanente</button>
+                <button class="btn-light-confirm" onclick="ejecutarBorradoRecurrente(false)">No, solo este mes</button>
+                <button onclick="cerrarModalBorrado()" style="background: transparent; color: var(--text-light); border: none; padding: 10px; font-size: 0.85rem; font-weight: 500; cursor: pointer;">Cancelar acción</button>
+            </div>
         </div>
     </div>
 
-    <nav class="bottom-nav">
-        <div class="nav-item">
-            <span class="material-icons-round">home</span>
-            <span>Inicio</span>
-        </div>
-        <div class="nav-item active">
-            <span class="material-icons-round">calendar_today</span>
-            <span>Agenda</span>
-        </div>
-        <div class="nav-item">
-            <span class="material-icons-round">inventory_2</span>
-            <span>Pedidos</span>
-        </div>
-        <div class="nav-item">
-            <span class="material-icons-round">person</span>
-            <span>Perfil</span>
-        </div>
-    </nav>
+<script>
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+    const date = new Date();
+    const currentMonthYear = document.getElementById('currentMonthYear');
+    const calendarDays = document.getElementById('calendarDays');
+    const selectedDateText = document.getElementById('selectedDateText');
+    const modal = document.getElementById('eventModal');
 
-    <script>
-        const date = new Date();
-        const currentMonthYear = document.getElementById('currentMonthYear');
-        const calendarDays = document.getElementById('calendarDays');
-        const selectedDateText = document.getElementById('selectedDateText');
-        const modal = document.getElementById('eventModal');
+    const months = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    let diasConEventos = [];
+    let fechaActiva = null;
+    let eventosGlobales = []; 
 
-        const months = [
-            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-        ];
+    // Variables globales para el borrado recurrente
+    let itemABorrar = null;
+    let idABorrar = null;
+    let grupoABorrar = null;
 
-        function renderCalendar() {
-            date.setDate(1);
-            const monthDays = document.querySelector('.days');
-            const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-            const prevLastDay = new Date(date.getFullYear(), date.getMonth(), 0).getDate();
-            const firstDayIndex = date.getDay();
-            const lastDayIndex = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDay();
-            const nextDays = 7 - lastDayIndex - 1;
-
-            currentMonthYear.innerHTML = `${months[date.getMonth()]} ${date.getFullYear()}`;
-
-            let days = "";
-
-            // Días del mes anterior (gris claro)
-            for (let x = firstDayIndex; x > 0; x--) {
-                days += `<div class="day" style="opacity:0.3">${prevLastDay - x + 1}</div>`;
-            }
-
-            // Días del mes actual
-            for (let i = 1; i <= lastDay; i++) {
-                // Simulación: Ponemos el día 24 como "hoy/activo" y algunos días con eventos (puntos)
-                if (i === 24 && date.getMonth() === 9) { // Octubre 24 ejemplo
-                    days += `<div class="day active has-event" onclick="selectDay(this)">${i}</div>`;
-                } else if ([5, 12, 18, 28].includes(i)) {
-                    days += `<div class="day has-event" onclick="selectDay(this)">${i}</div>`;
-                } else {
-                    days += `<div class="day" onclick="selectDay(this)">${i}</div>`;
-                }
-            }
-
-            monthDays.innerHTML = days;
-        }
-
-        function changeMonth(n) {
-            date.setMonth(date.getMonth() + n);
-            renderCalendar();
-        }
-
-        function selectDay(element) {
-            // Remover clase activa de otros días
-            document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
-            // Activar clickeado
-            element.classList.add('active');
-            // Actualizar texto abajo
-            selectedDateText.innerText = `Seleccionado: ${element.innerText} de ${months[date.getMonth()]}`;
-            // Aquí podrías cargar eventos dinámicamente
-        }
-
-        // Modal Logic
-        function openModal() {
-            modal.style.display = "flex";
-        }
-        function closeModal() {
-            modal.style.display = "none";
-        }
-        
-        // Cerrar modal si clicas fuera
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-
-function guardarEvento() {
-
-    const titulo = document.querySelector('.modal input[type="text"]').value;
-    const categoria = document.querySelector('.modal select').value;
-    const hora = document.querySelector('.modal input[type="time"]').value;
-
-    if (!titulo || !hora) {
-        alert("Debes completar título y hora");
-        return;
+    function getFechaLocal() {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
-    const diaActivo = document.querySelector('.day.active');
-    let fechaSeleccionada;
+    function comprobarSiEsVencido(fechaEv, horaEv, estado) {
+        if (estado === "COMPLETADO") return false;
+        
+        const ahora = new Date();
+        const fechaHoyStr = getFechaLocal();
+        const fechaSolo = fechaEv.split("T")[0]; 
 
-    if (diaActivo) {
-        const dia = diaActivo.innerText.padStart(2, "0");
+        if (fechaSolo < fechaHoyStr) return true;
+        if (fechaSolo > fechaHoyStr) return false;
+
+        if (fechaSolo === fechaHoyStr && horaEv) {
+            let partes = horaEv.split(' ');
+            if(partes.length === 2) {
+                let [time, ampm] = partes;
+                let [h, m] = time.split(':');
+                h = parseInt(h, 10);
+                
+                if (h === 12 && ampm.toUpperCase() === 'AM') h = 0;
+                if (h !== 12 && ampm.toUpperCase() === 'PM') h += 12;
+                
+                const horaEvento = new Date();
+                horaEvento.setHours(h, parseInt(m, 10), 0, 0);
+                
+                return horaEvento < ahora;
+            }
+        }
+        return false;
+    }
+
+    function obtenerClasesCategoria(categoriaRaw) {
+        let cat = (categoriaRaw || "").toLowerCase();
+        let claseTipo = "";
+        let claseCategoria = "";
+
+        if (cat.includes("instalaci")) { claseTipo = "type-instalacion"; claseCategoria = "cat-instalacion"; }
+        else if (cat.includes("visita")) { claseTipo = "type-visita"; claseCategoria = "cat-visita"; }
+        else if (cat.includes("garant")) { claseTipo = "type-garantia"; claseCategoria = "cat-garantia"; }
+        else if (cat.includes("recordatorio")) { claseTipo = "type-recordatorio"; claseCategoria = "cat-recordatorio"; }
+        else if (cat.includes("obligaci")) { claseTipo = "type-obligacion"; claseCategoria = "cat-obligacion"; }
+        
+        return { claseTipo, claseCategoria };
+    }
+
+    // 🌟 FUNCIÓN AUXILIAR PARA MOSTRAR "CADA MES" ESTÉTICO
+    function getReferenciaHtml(referencia) {
+        if (referencia && referencia.includes("REC-")) {
+            return `<p style="color: var(--accent-gold); font-weight: 600; font-size: 0.75rem; margin-top:2px; display:flex; align-items:center; gap:4px;"><span class="material-icons-round" style="font-size: 14px;">autorenew</span> Cada mes</p>`;
+        } else if (referencia && referencia !== 'N/A' && referencia !== 'VENTA DIRECTA') {
+            return `<p><strong>Ref:</strong> ${referencia}</p>`;
+        }
+        return '';
+    }
+
+    // =========================================================================
+    // 🚀 ARQUITECTURA OFFLINE-FIRST (INSTANTÁNEA GRACIAS A LA CACHÉ)
+    // =========================================================================
+
+    async function inicializarCalendario() {
+        const cacheEventos = localStorage.getItem('CACHE_EVENTOS');
+        if (cacheEventos) {
+            try {
+                eventosGlobales = JSON.parse(cacheEventos);
+                procesarEventosLocales();
+            } catch(e) { console.error("Error leyendo caché de eventos", e); }
+        }
+
+        try {
+            const response = await fetch(`${WEBAPP_URL}?tipo=EVENTOS_TODOS`);
+            const data = await response.json();
+            if (data.eventos) {
+                eventosGlobales = data.eventos;
+                localStorage.setItem('CACHE_EVENTOS', JSON.stringify(eventosGlobales));
+                procesarEventosLocales(); 
+            }
+        } catch(e) { 
+            console.log("Modo offline o error de red. Usando caché local exclusivamente."); 
+        }
+    }
+
+    function procesarEventosLocales() {
+        actualizarDiasConEventos();
+        renderCalendar();
+        
+        const fechaHoy = fechaActiva || getFechaLocal();
+        fechaActiva = fechaHoy;
+
+        const [anio, mes, dia] = fechaHoy.split("-");
+        const fechaObj = new Date(anio, mes - 1, dia);
+        selectedDateText.innerText = fechaObj.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });
+        
+        renderizarVencidas();
+        renderizarEventosDia(fechaHoy);
+    }
+
+    function actualizarDiasConEventos() {
+        const mesObj = date.getMonth() + 1;
+        const anioObj = date.getFullYear();
+        const mesActual = mesObj.toString().padStart(2, "0");
+        const anioActual = anioObj.toString();
+        
+        diasConEventos = eventosGlobales
+            .filter(ev => {
+                if(!ev.fecha) return false;
+                const [y, m, d] = ev.fecha.split("T")[0].split("-");
+                return y === anioActual && m === mesActual && ev.estado !== "COMPLETADO";
+            })
+            .map(ev => ev.fecha.split("T")[0].split("-")[2]);
+    }
+
+    function renderCalendar() {
+        date.setDate(1);
+        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        const firstDayIndex = date.getDay();
+        currentMonthYear.innerHTML = `${months[date.getMonth()]} ${date.getFullYear()}`;
+        let days = "";
+        for (let x = 0; x < firstDayIndex; x++) { days += `<div></div>`; }
+        for (let i = 1; i <= lastDay; i++) {
+            const hoy = new Date();
+            const esHoy = i === hoy.getDate() && date.getMonth() === hoy.getMonth() && date.getFullYear() === hoy.getFullYear();
+            const diaFormateado = i.toString().padStart(2, "0");
+            const tieneEvento = diasConEventos.includes(diaFormateado);
+            days += `<div class="day ${esHoy ? 'active' : ''} ${tieneEvento ? 'has-event' : ''}" onclick="selectDay(this)">${i}</div>`;
+        }
+        calendarDays.innerHTML = days;
+    }
+
+    function changeMonth(n) {
+        date.setMonth(date.getMonth() + n);
+        actualizarDiasConEventos();
+        renderCalendar();
+    }
+
+    function selectDay(element) {
+        document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
+        element.classList.add('active');
+
+        const dia = element.innerText.padStart(2, "0");
         const mes = (date.getMonth() + 1).toString().padStart(2, "0");
         const anio = date.getFullYear();
-        fechaSeleccionada = `${anio}-${mes}-${dia}`;
-    } else {
-        const hoy = new Date();
-        fechaSeleccionada = hoy.toISOString().split("T")[0];
+
+        fechaActiva = `${anio}-${mes}-${dia}`;
+        const fechaObj = new Date(fechaActiva + 'T00:00:00');
+
+        selectedDateText.innerText = fechaObj.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric"
+        });
+
+        renderizarEventosDia(fechaActiva); 
     }
 
-    fetch(WEBAPP_URL, {
-        method: "POST",
-        body: JSON.stringify({
-            tipo: "nuevo_evento",
-            fecha: fechaSeleccionada,
-            hora: hora,
-            categoria: categoria,
-            titulo: titulo
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
+    function irAFecha(fechaStr) {
+        cerrarBuscador();
+        cerrarProximos();
+        
+        const [anio, mes, dia] = fechaStr.split("-");
+        
+        date.setFullYear(parseInt(anio));
+        date.setMonth(parseInt(mes) - 1);
+        
+        actualizarDiasConEventos();
+        renderCalendar();
 
-        if (data.status === "success") {
-            alert("Evento guardado correctamente");
-            closeModal();
-        } else {
-            alert("Error al guardar evento");
+        fechaActiva = fechaStr;
+        const fechaObj = new Date(fechaActiva + 'T00:00:00');
+        selectedDateText.innerText = fechaObj.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });
+
+        document.querySelectorAll('.day').forEach(d => {
+            d.classList.remove('active');
+            if(d.innerText.padStart(2, "0") === dia) {
+                d.classList.add('active');
+            }
+        });
+
+        renderizarEventosDia(fechaActiva);
+    }
+
+    function abrirBuscador() {
+        document.getElementById('searchModal').style.display = 'flex';
+        document.getElementById('searchInput').focus();
+    }
+    
+    function cerrarBuscador() {
+        document.getElementById('searchModal').style.display = 'none';
+        document.getElementById('searchInput').value = "";
+        document.getElementById('searchResults').innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.9rem;'>Escribe para buscar cualquier tarea...</p>";
+    }
+
+    function filtrarBusqueda(texto) {
+        const contenedor = document.getElementById("searchResults");
+        texto = texto.toLowerCase().trim();
+
+        if (texto.length === 0) {
+            contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.9rem;'>Escribe para buscar cualquier tarea...</p>";
+            return;
         }
 
-    })
-    .catch(error => {
-        alert("Error de conexión");
-        console.error(error);
-    });
-}
+        const resultados = eventosGlobales.filter(ev => 
+            (ev.titulo && ev.titulo.toLowerCase().includes(texto)) ||
+            (ev.categoria && ev.categoria.toLowerCase().includes(texto)) ||
+            (ev.cliente && ev.cliente.toLowerCase().includes(texto)) ||
+            (ev.referencia && ev.referencia.toLowerCase().includes(texto))
+        );
 
-        renderCalendar();
-    </script>
+        if (resultados.length === 0) {
+            contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.9rem;'>No se encontraron resultados.</p>";
+            return;
+        }
+
+        contenedor.innerHTML = "";
+        resultados.forEach(ev => {
+            const { claseTipo, claseCategoria } = obtenerClasesCategoria(ev.categoria);
+            const fechaFormateada = new Date(ev.fecha.split("T")[0] + 'T00:00:00').toLocaleDateString("es-ES", { day: "2-digit", month: "short", year:"numeric" });
+            const estadoTexto = ev.estado === "COMPLETADO" ? " (Completada)" : (ev.estado === "PENDIENTE" && comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado) ? " (Vencida)" : "");
+
+            const tarjeta = `
+                <div class="evento-card-content ${claseTipo} ${ev.estado === 'COMPLETADO' ? 'completed' : ''}" onclick="irAFecha('${ev.fecha.split("T")[0]}')" style="margin-bottom:12px; cursor:pointer; box-shadow: var(--shadow); border: 1px solid #eee;">
+                    <div class="event-details">
+                        <div style="font-size: 0.7rem; color: var(--text-light); font-weight: 600; margin-bottom: 4px;">📅 ${fechaFormateada}${estadoTexto}</div>
+                        <h3 class="${claseCategoria}" style="font-size: 0.8rem;">${ev.categoria}</h3>
+                        <p class="titulo-tarea ${claseCategoria}" style="font-size: 0.95rem; margin-bottom: 2px;">${ev.titulo}</p>
+                        ${ev.cliente && ev.cliente !== 'Sin asignar' ? `<p style="font-size:0.75rem; color:var(--text-dark);"><strong>C:</strong> ${ev.cliente}</p>` : ''}
+                        ${getReferenciaHtml(ev.referencia)}
+                    </div>
+                    <span class="material-icons-round" style="color: #ddd;">chevron_right</span>
+                </div>
+            `;
+            contenedor.innerHTML += tarjeta;
+        });
+    }
+
+    function abrirProximos() {
+        document.getElementById('upcomingModal').style.display = 'flex';
+        const contenedor = document.getElementById("upcomingResults");
+        contenedor.innerHTML = "";
+
+        const hoy = getFechaLocal();
+        
+        let proximos = eventosGlobales.filter(ev => {
+            if(!ev.fecha) return false;
+            const fechaSolo = ev.fecha.split("T")[0];
+            return fechaSolo >= hoy && ev.estado === "PENDIENTE" && !comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado);
+        });
+
+        proximos.sort((a, b) => a.fecha.localeCompare(b.fecha));
+        proximos = proximos.slice(0, 15);
+
+        if(proximos.length === 0) {
+            contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px;'>Tu agenda está limpia. No hay tareas próximas.</p>";
+            return;
+        }
+
+        proximos.forEach(ev => {
+            const { claseTipo, claseCategoria } = obtenerClasesCategoria(ev.categoria);
+            const fechaFormateada = new Date(ev.fecha.split("T")[0] + 'T00:00:00').toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+
+            const tarjeta = `
+                <div class="evento-card-content ${claseTipo}" onclick="irAFecha('${ev.fecha.split("T")[0]}')" style="margin-bottom:12px; cursor:pointer; box-shadow: var(--shadow); border: 1px solid #eee;">
+                    <div class="event-details">
+                        <div style="font-size: 0.75rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 4px;">📅 ${fechaFormateada} - 🕒 ${ev.hora}</div>
+                        <h3 class="${claseCategoria}" style="font-size: 0.8rem;">${ev.categoria}</h3>
+                        <p class="titulo-tarea ${claseCategoria}" style="font-size: 0.95rem; margin-bottom: 0;">${ev.titulo}</p>
+                        ${getReferenciaHtml(ev.referencia)}
+                    </div>
+                    <span class="material-icons-round" style="color: #ddd;">chevron_right</span>
+                </div>
+            `;
+            contenedor.innerHTML += tarjeta;
+        });
+    }
+
+    function cerrarProximos() {
+        document.getElementById('upcomingModal').style.display = 'none';
+    }
+
+    // =========================================================================
+    // ⚙️ GUARDADO (CON FUNCIÓN RECURRENTE MENSUAL)
+    // =========================================================================
+    async function guardarEvento() {
+        const titulo = document.getElementById('eventTitle').value;
+        const categoria = document.getElementById('eventType').value;
+        const horaInput = document.getElementById('eventTimeRaw').value; 
+        const ampm = document.getElementById('eventAMPM').value; 
+        const hora = horaInput ? `${horaInput.split(':')[0]}:${horaInput.split(':')[1]} ${ampm}` : "";
+        const cliente = document.getElementById('clienteBusqueda').value;
+        
+        const fechaSeleccionada = document.getElementById('eventDate').value;
+        const referencia = document.getElementById('eventReferencia') ? document.getElementById('eventReferencia').value : "N/A";
+        let referenciaFinal = referencia;
+        const esMensual = document.getElementById('mensualCheckbox').checked;
+
+        if (!fechaSeleccionada) {
+            alert("Por favor selecciona una fecha");
+            return;
+        }
+
+        if (referencia && referencia !== "N/A" && referencia !== "VENTA DIRECTA") {
+            if (categoria === "Instalaciones") referenciaFinal = "OP-" + referencia;
+            if (categoria === "Visitas técnicas") referenciaFinal = "COT-" + referencia;
+        }
+
+        if (!titulo || !hora) {
+            alert("Por favor completa el título y la hora");
+            return;
+        }
+
+        const btn = document.querySelector('.btn-submit');
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
+
+        const baseRef = referenciaFinal || "N/A";
+        const groupId = esMensual ? "REC-" + Date.now() : "";
+        const iteraciones = esMensual ? 12 : 1; 
+        const [anio, mes, dia] = fechaSeleccionada.split("-");
+        const fechaBase = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+
+        try {
+            for (let i = 0; i < iteraciones; i++) {
+                if (esMensual) {
+                    btn.innerText = `Guardando mes ${i + 1} de 12...`;
+                }
+
+                const fechaIteracionObj = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + i, fechaBase.getDate());
+                const y = fechaIteracionObj.getFullYear();
+                const m = String(fechaIteracionObj.getMonth() + 1).padStart(2, '0');
+                const d = String(fechaIteracionObj.getDate()).padStart(2, '0');
+                const fechaIteracionStr = `${y}-${m}-${d}`;
+
+                const refGuardar = esMensual ? `${baseRef} | ${groupId}` : baseRef;
+
+                const datos = {
+                    tipo: "nuevo_evento",
+                    fecha: fechaIteracionStr,
+                    hora: hora,
+                    titulo: titulo,
+                    categoria: categoria,
+                    cliente: cliente || "Sin asignar",
+                    referencia: refGuardar
+                };
+
+                const response = await fetch(WEBAPP_URL, {
+                    method: "POST",
+                    body: JSON.stringify(datos)
+                });
+
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    const nuevoEv = {
+                        id: data.id || Date.now() + i,
+                        fecha: fechaIteracionStr,
+                        hora: hora,
+                        titulo: titulo,
+                        categoria: categoria,
+                        cliente: cliente || "Sin asignar",
+                        referencia: refGuardar,
+                        estado: "PENDIENTE"
+                    };
+                    eventosGlobales.push(nuevoEv);
+                } else {
+                    console.error("Error en mes", i+1, data);
+                }
+            } 
+
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+            alert(esMensual ? "¡Eventos de todo el año programados exitosamente!" : "Evento guardado exitosamente");
+            limpiarFormulario();
+            closeModal();
+            procesarEventosLocales();
+
+        } catch (error) {
+            console.error("Error al guardar:", error);
+            alert("Hubo un problema al conectar con el servidor");
+        } finally {
+            btn.innerText = "Guardar en Agenda";
+            btn.disabled = false;
+        }
+    }
+
+    function limpiarFormulario() {
+        document.getElementById('eventType').selectedIndex = 0;
+        document.getElementById('eventTitle').value = "";
+        document.getElementById('eventTimeRaw').value = "";
+        document.getElementById('eventAMPM').value = "AM";
+        document.getElementById('clienteBusqueda').value = "";
+        document.getElementById('clienteSeleccionadoId').value = "";
+        document.getElementById('usarClienteCheckbox').checked = false;
+        document.getElementById('mensualCheckbox').checked = false;
+        document.getElementById('seccionCliente').style.display = 'none';
+        document.getElementById('recurrenteContainer').style.display = 'none';
+        const ref = document.getElementById('eventReferencia');
+        if (ref) ref.innerHTML = '<option value="">Cargando referencias...</option>';
+    }
+
+    function actualizarContadorVencidas() {
+        const contenedor = document.getElementById("vencidosContainer");
+        const countBadge = document.querySelector(".vencidos-count");
+        const wrapper = document.getElementById("vencidosWrapper");
+
+        if (contenedor && countBadge && wrapper) {
+            const tareasRestantes = contenedor.querySelectorAll('.evento-swipe-wrapper:not(.completed)').length;
+            countBadge.innerText = tareasRestantes;
+
+            if (tareasRestantes === 0) {
+                wrapper.style.transition = "all 0.4s ease";
+                wrapper.style.opacity = "0";
+                wrapper.style.height = "0px";
+                wrapper.style.marginBottom = "0px";
+                setTimeout(() => wrapper.remove(), 400);
+            }
+        }
+    }
+
+    function renderizarVencidas() {
+        const agendaContainer = document.querySelector(".agenda-container");
+        const existente = document.getElementById("vencidosWrapper");
+        if (existente) existente.remove();
+
+        const vencidos = eventosGlobales.filter(ev => ev.fecha && comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado));
+        
+        if (vencidos.length === 0) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.id = "vencidosWrapper";
+        
+        let htmlVencidos = `
+            <div class="vencidos-toggle" onclick="toggleVencidos()">
+                <div class="label-box">
+                    <span class="material-icons-round" style="font-size: 20px;">error_outline</span>
+                    <span>Tareas atrasadas</span>
+                    <span class="vencidos-count">${vencidos.length}</span>
+                </div>
+                <span class="material-icons-round" id="vencidosIcon" style="color: var(--text-light);">keyboard_arrow_up</span>
+            </div>
+            <div class="vencidos-container" id="vencidosContainer">
+        `;
+
+        vencidos.forEach(ev => {
+            const { claseTipo, claseCategoria } = obtenerClasesCategoria(ev.categoria);
+
+            htmlVencidos += `
+                <div class="evento-swipe-wrapper" id="evento-vencido-${ev.id}">
+                    <div class="evento-accion-borrar">
+                        <span class="material-icons-round">delete</span>
+                    </div>
+                    <div class="evento-card-content vencido ${claseTipo}">
+                        <div class="event-time">${ev.hora}</div>
+                        <div class="event-details">
+                            <h3 class="${claseCategoria}">${ev.categoria}</h3>
+                            <p class="titulo-tarea ${claseCategoria}">${ev.titulo}</p>
+                            ${ev.cliente && ev.cliente !== 'Sin asignar' ? `<p><strong>Cliente:</strong> ${ev.cliente}</p>` : ''}
+                            ${getReferenciaHtml(ev.referencia)}
+                            <span class="vencido-badge">¡Atrasada!</span>
+                        </div>
+                        <span class="material-icons-round check-icon" style="color: var(--accent-gold); cursor:pointer; font-size: 26px; margin-left: auto;" onclick="animarYCompletar(this, '${ev.id}', '${ev.fecha.split("T")[0]}')">
+                            check_circle
+                        </span>
+                    </div>
+                </div>
+            `;
+        });
+
+        htmlVencidos += `</div>`;
+        wrapper.innerHTML = htmlVencidos;
+        agendaContainer.insertBefore(wrapper, agendaContainer.firstChild);
+        
+        inicializarEventosSwipe();
+    }
+
+    function toggleVencidos() {
+        const container = document.getElementById("vencidosContainer");
+        const icon = document.getElementById("vencidosIcon");
+        if (container) {
+            const isCollapsed = container.classList.toggle("collapsed");
+            icon.innerText = isCollapsed ? "keyboard_arrow_down" : "keyboard_arrow_up";
+        }
+    }
+
+    async function animarYCompletar(iconoCheck, id, fecha) {
+        const wrapper = iconoCheck.closest('.evento-swipe-wrapper');
+        const content = wrapper.querySelector('.evento-card-content');
+        const contenedorPadre = wrapper.parentElement;
+
+        iconoCheck.style.transition = "transform 0.5s ease, opacity 0.5s ease";
+        iconoCheck.style.transform = "scale(1.5) rotate(360deg)";
+        iconoCheck.style.opacity = "0";
+
+        setTimeout(() => {
+            wrapper.classList.add('completed');
+            content.classList.remove('vencido'); 
+            content.classList.add('completed');
+            
+            const textos = content.querySelectorAll('h3, p, strong, .event-time, .vencido-badge');
+            textos.forEach(t => {
+                t.style.textDecoration = "line-through";
+                t.style.color = "#a0a0a0";
+            });
+
+            contenedorPadre.appendChild(wrapper);
+            actualizarContadorVencidas(); 
+
+        }, 350); 
+
+        const evIndex = eventosGlobales.findIndex(e => String(e.id) === String(id));
+        if(evIndex > -1) {
+            eventosGlobales[evIndex].estado = "COMPLETADO";
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales)); 
+        }
+
+        completarEvento(id, fecha);
+    }
+
+    async function completarEvento(id, fecha) {
+        try {
+            await fetch(WEBAPP_URL, {
+                method: "POST",
+                body: JSON.stringify({ tipo: "completar_evento", id: id })
+            });
+        } catch (e) { console.error("Error al completar en red:", e); }
+    }
+
+    async function eliminarEventoDB(id) {
+        try {
+            await fetch(WEBAPP_URL, {
+                method: "POST",
+                body: JSON.stringify({ tipo: "eliminar_evento", id: id })
+            });
+        } catch (e) { console.error("Error al eliminar de DB:", e); }
+    }
+
+    function renderizarEventosDia(fecha) {
+        const contenedor = document.querySelector(".events-container");
+        contenedor.innerHTML = "";
+
+        let eventosDelDia = eventosGlobales.filter(ev => ev.fecha && ev.fecha.split("T")[0] === fecha);
+
+        if (eventosDelDia.length === 0) {
+            contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.8rem;'>No hay eventos programados</p>";
+            return;
+        }
+        
+        eventosDelDia.sort((a, b) => {
+            if (a.estado === "COMPLETADO" && b.estado !== "COMPLETADO") return 1;
+            if (a.estado !== "COMPLETADO" && b.estado === "COMPLETADO") return -1;
+            return 0; 
+        });
+
+        eventosDelDia.forEach(ev => {
+            let esVencido = comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado);
+            
+            if (esVencido && ev.estado === "PENDIENTE") {
+                return; 
+            }
+
+            const claseEstado = ev.estado === "COMPLETADO" ? "completed" : "";
+            const { claseTipo, claseCategoria } = obtenerClasesCategoria(ev.categoria);
+
+            const tarjeta = `
+            <div class="evento-swipe-wrapper ${claseEstado}" id="evento-${ev.id}">
+                <div class="evento-accion-borrar">
+                    <span class="material-icons-round">delete</span>
+                </div>
+
+                <div class="evento-card-content ${claseEstado} ${claseTipo}">
+                    <div class="event-time">${ev.hora}</div>
+                    
+                    <div class="event-details">
+                        <h3 class="${claseCategoria}">${ev.categoria}</h3>
+                        <p class="titulo-tarea ${claseCategoria}">${ev.titulo}</p>
+                        ${ev.cliente && ev.cliente !== 'Sin asignar' ? `<p><strong>Cliente:</strong> ${ev.cliente}</p>` : ''}
+                        ${getReferenciaHtml(ev.referencia)}
+                    </div>
+
+                    ${ev.estado !== 'COMPLETADO' ? `
+                        <span class="material-icons-round check-icon" style="color: var(--accent-gold); cursor:pointer; font-size: 26px; margin-left: auto;" onclick="animarYCompletar(this, '${ev.id}', '${fechaActiva || ev.fecha.split("T")[0]}')">
+                            check_circle
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
+            `;
+
+            contenedor.innerHTML += tarjeta;
+        });
+
+        inicializarEventosSwipe();
+    }
+
+    function openModal() { 
+        document.getElementById('eventDate').value = fechaActiva || getFechaLocal();
+        modal.style.display = 'flex'; 
+    }
+    
+    function closeModal() { modal.style.display = 'none'; }
+
+    let timeoutBusqueda;
+    async function buscarClienteApp(valor) {
+        if (valor.length < 3) {
+            document.getElementById('listaSugerencias').style.display = 'none';
+            return;
+        }
+
+        const texto = valor.toLowerCase().trim();
+        const lista = document.getElementById('listaSugerencias');
+        lista.innerHTML = "";
+        
+        const cacheClientes = localStorage.getItem("CACHE_CLIENTES");
+        if (cacheClientes) {
+            try {
+                const clientesObj = JSON.parse(cacheClientes);
+                const clientesArr = Object.values(clientesObj);
+                const resultadosLocales = clientesArr.filter(c => 
+                    (c.nombre && c.nombre.toLowerCase().includes(texto)) || 
+                    (c.cedula && String(c.cedula).includes(texto))
+                ).slice(0, 8);
+
+                if (resultadosLocales.length > 0) {
+                    lista.style.display = 'block';
+                    resultadosLocales.forEach(c => {
+                        const div = document.createElement('div');
+                        div.className = 'sugerencia-item';
+                        div.innerHTML = `<strong>${c.nombre}</strong> <br> <small>${c.cedula}</small>`;
+                        div.onclick = () => seleccionarCliente(c.nombre, c.cedula);
+                        lista.appendChild(div);
+                    });
+                    return; 
+                }
+            } catch(e) { console.error("Error leyendo CACHE_CLIENTES", e); }
+        }
+
+        clearTimeout(timeoutBusqueda);
+        timeoutBusqueda = setTimeout(async () => {
+            try {
+                const res = await fetch(`${WEBAPP_URL}?buscarCliente=${encodeURIComponent(valor)}`);
+                const data = await res.json();
+                
+                if (data.status === "ok" && data.resultados.length > 0) {
+                    lista.style.display = 'block';
+                    data.resultados.forEach(c => {
+                        const div = document.createElement('div');
+                        div.className = 'sugerencia-item';
+                        div.innerHTML = `<strong>${c.nombre}</strong> <br> <small>${c.cedula}</small>`;
+                        div.onclick = () => seleccionarCliente(c.nombre, c.cedula);
+                        lista.appendChild(div);
+                    });
+                }
+            } catch (e) { console.error("Error buscando en red:", e); }
+        }, 300);
+    }
+
+    async function seleccionarCliente(nombre, cedula) {
+        document.getElementById('clienteBusqueda').value = nombre;
+        document.getElementById('clienteSeleccionadoId').value = cedula;
+        document.getElementById('listaSugerencias').style.display = 'none';
+        
+        const seccionRef = document.getElementById('seccionReferencia');
+        const selectRef = document.getElementById('eventReferencia');
+        const categoriaSeleccionada = document.getElementById('eventType').value;
+
+        seccionRef.style.display = 'block';
+        selectRef.innerHTML = '<option value="">Cargando referencias...</option>';
+
+        const cacheOrdenesStr = localStorage.getItem("CACHE_ORDENES");
+        if (cacheOrdenesStr) {
+            try {
+                const ordenes = JSON.parse(cacheOrdenesStr);
+                const previas = ordenes.filter(o => String(o.cedula) === String(cedula));
+                
+                selectRef.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option>';
+                if (previas.length > 0) {
+                    previas.forEach(ref => {
+                        selectRef.innerHTML += `<option value="${ref.numero}">OP-${ref.numero} | Saldo: $${ref.saldo}</option>`;
+                    });
+                } else {
+                    selectRef.innerHTML += '<option value="N/A">Sin registros previos (según caché)</option>';
+                }
+                
+                cargarReferenciasRedSilenciosa(cedula, categoriaSeleccionada, selectRef);
+                return; 
+            } catch(e) { console.error("Error con CACHE_ORDENES", e); }
+        }
+
+        await cargarReferenciasRedSilenciosa(cedula, categoriaSeleccionada, selectRef);
+    }
+
+    async function cargarReferenciasRedSilenciosa(cedula, categoriaSeleccionada, selectElement) {
+        try {
+            const res = await fetch(`${WEBAPP_URL}?tipo=BUSCAR_REFERENCIAS&cedula=${cedula}&categoria=${encodeURIComponent(categoriaSeleccionada)}`);
+            const data = await res.json();
+            
+            selectElement.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option>';
+            if (data.status === "ok" && data.referencias && data.referencias.length > 0) {
+                data.referencias.forEach(ref => {
+                    selectElement.innerHTML += `<option value="${ref.id}">${ref.detalle}</option>`;
+                });
+            } else {
+                selectElement.innerHTML += '<option value="N/A">Sin registros previos</option>';
+            }
+        } catch (e) { console.error("Error actualizando referencias en fondo", e); }
+    }
+
+    function inicializarEventosSwipe() {
+        const wrappers = document.querySelectorAll('.evento-swipe-wrapper');
+
+        wrappers.forEach(wrapper => {
+            const content = wrapper.querySelector('.evento-card-content');
+            
+            if (wrapper.dataset.swipeActivo) return;
+            wrapper.dataset.swipeActivo = "true";
+
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            content.addEventListener("touchstart", (e) => {
+                startX = e.touches[0].clientX;
+                currentX = startX;
+                isDragging = true;
+                content.style.transition = "none";
+            });
+
+            content.addEventListener("touchmove", (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+
+                if (diff < 0) {
+                    if (diff > -100) {
+                        content.style.transform = `translateX(${diff}px)`;
+                    } else {
+                        content.style.transform = `translateX(-${100 + Math.abs(diff + 100) * 0.2}px)`;
+                    }
+                }
+            });
+
+            content.addEventListener("touchend", () => {
+                if (!isDragging) return;
+                isDragging = false;
+                content.style.transition = "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
+                
+                const diff = currentX - startX;
+
+                if (diff < -60) {
+                    content.style.transform = "translateX(-120%)";
+                    setTimeout(() => {
+                        confirmarYEliminar(wrapper); 
+                    }, 300);
+                } else {
+                    content.style.transform = "translateX(0)";
+                }
+            });
+        });
+    }
+
+    // =========================================================================
+    // 🗑️ LÓGICA DE BORRADO INTELIGENTE Y MODAL PERSONALIZADO
+    // =========================================================================
+    async function confirmarYEliminar(elemento) {
+        const eventId = elemento.id.split('-').pop();
+        const ev = eventosGlobales.find(e => String(e.id) === String(eventId));
+        
+        if (!ev) return eliminarEventoVisual(elemento, eventId); 
+
+        const esRecurrente = ev.referencia && ev.referencia.includes("REC-");
+
+        if (esRecurrente) {
+            const groupIdMatch = ev.referencia.match(/(REC-\d+)/);
+            if (groupIdMatch) {
+                itemABorrar = elemento;
+                idABorrar = eventId;
+                grupoABorrar = groupIdMatch[1];
+                document.getElementById('confirmDeleteModal').style.display = 'flex';
+                return; 
+            }
+        }
+
+        eliminarEventoVisual(elemento, eventId);
+    }
+
+    function cerrarModalBorrado() {
+        document.getElementById('confirmDeleteModal').style.display = 'none';
+        
+        if(itemABorrar) {
+            const content = itemABorrar.querySelector('.evento-card-content');
+            if(content) content.style.transform = "translateX(0)";
+        }
+        
+        itemABorrar = null; 
+        idABorrar = null; 
+        grupoABorrar = null;
+    }
+
+    function ejecutarBorradoRecurrente(permanente) {
+        document.getElementById('confirmDeleteModal').style.display = 'none';
+        
+        if (permanente) {
+            const eventosGrupo = eventosGlobales.filter(e => e.referencia && e.referencia.includes(grupoABorrar));
+            
+            eventosGrupo.forEach(eg => {
+                eliminarEventoDB(eg.id); 
+                const domEl = document.getElementById(`evento-${eg.id}`) || document.getElementById(`evento-vencido-${eg.id}`);
+                if(domEl) domEl.remove();
+                eventosGlobales = eventosGlobales.filter(e => String(e.id) !== String(eg.id));
+            });
+            
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+            actualizarContadorVencidas();
+            procesarEventosLocales(); 
+        } else {
+            eliminarEventoVisual(itemABorrar, idABorrar);
+        }
+        
+        itemABorrar = null; 
+        idABorrar = null; 
+        grupoABorrar = null;
+    }
+
+    function eliminarEventoVisual(elemento, eventId) {
+        elemento.style.transition = "all 0.3s ease";
+        elemento.style.opacity = "0";
+        elemento.style.height = "0px";
+        elemento.style.marginBottom = "0px";
+        
+        setTimeout(() => {
+            elemento.remove();
+            
+            eventosGlobales = eventosGlobales.filter(e => String(e.id) !== String(eventId));
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+            
+            eliminarEventoDB(eventId);
+            
+            actualizarContadorVencidas();
+            procesarEventosLocales(); 
+        }, 300);
+    }
+
+    inicializarCalendario(); 
+
+    function manejarCambioCategoria() {
+        const categoria = document.getElementById("eventType").value;
+        const contenedorCliente = document.getElementById("usarClienteContainer");
+        const contenedorRecurrente = document.getElementById("recurrenteContainer");
+
+        if (categoria === "Instalaciones" || categoria === "Visitas técnicas") {
+            contenedorCliente.style.display = "block";
+        } else {
+            contenedorCliente.style.display = "none";
+            document.getElementById("usarClienteCheckbox").checked = false;
+            document.getElementById("seccionCliente").style.display = "none";
+        }
+
+        if (categoria === "Recordatorios de pago" || categoria === "Obligaciones tributarias") {
+            contenedorRecurrente.style.display = "block";
+        } else {
+            contenedorRecurrente.style.display = "none";
+            document.getElementById("mensualCheckbox").checked = false;
+        }
+    }
+
+    function toggleCliente() {
+        const usar = document.getElementById("usarClienteCheckbox").checked;
+        const seccionCliente = document.getElementById("seccionCliente");
+
+        if (usar) {
+            seccionCliente.style.display = "block";
+        } else {
+            seccionCliente.style.display = "none";
+        }
+    }
+</script>
 </body>
 </html>
