@@ -182,7 +182,7 @@
         <p class="small text-muted mb-4">Ajustando diseño de página perfecta</p>
         
         <div id="status-list" style="text-align: left; margin-left: 10px;">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Escalando lienzo y márgenes...</div>
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Escalando lienzo sin bordes...</div>
             <div id="step-2" class="step-item"><i class="far fa-circle"></i> Generando archivo PDF (4K)...</div>
             <div id="step-3" class="step-item"><i class="far fa-circle"></i> Guardando en la nube...</div>
             <div id="step-4" class="step-item"><i class="far fa-circle"></i> Finalizando...</div>
@@ -221,7 +221,7 @@
             </div>
             <div class="col-8">
                 <label class="form-label-small">Nombre Completo</label>
-                <input type="text" id="nombre" class="form-control-compact text-uppercase-input">
+                <input type="text" id="nombre" class="form-control-compact text-uppercase-input" oninput="capFirst(this)">
             </div>
             <div class="col-4">
                 <label class="form-label-small">Teléfono</label>
@@ -233,7 +233,7 @@
             </div>
             <div class="col-12">
                 <label class="form-label-small">Dirección / Ciudad</label>
-                <input type="text" id="direccion" class="form-control-compact text-uppercase-input">
+                <input type="text" id="direccion" class="form-control-compact text-uppercase-input" oninput="capFirst(this)">
             </div>
         </div>
 
@@ -251,7 +251,7 @@
                 </thead>
                 <tbody id="tabla-body">
                     <tr>
-                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Cortina Enrollable Blackout" oninput="capFirst(this)"></td>
+                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Cortina enrollable blackout" oninput="capFirst(this)"></td>
                         <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
                         <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
                         <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
@@ -338,7 +338,7 @@
             }).catch(err => console.error("Error parchando caché:", err));
     };
 
-    // Función que pone la primera letra en mayúscula automáticamente
+    // Función Inteligente para Mayúscula Inicial
     function capFirst(input) {
         let val = input.value;
         if (val.length > 0) {
@@ -402,7 +402,7 @@
     }
 
     // ============================================================
-    // 🖨️ MOTOR GENERADOR DE PDF (CERO BORDES BLANCOS - ALTA CALIDAD)
+    // 🖨️ MOTOR GENERADOR DE PDF CERO BORDES (EXTERMINADOR DEFINITIVO)
     // ============================================================
     async function finalizar() {
         const cedula = document.getElementById('cedula').value.trim();
@@ -421,93 +421,120 @@
 
         try {
             setStep(1, 'active');
-            const areaPdf = document.getElementById('area-pdf');
+            
+            // TRUCO MAESTRO: Forzar al body a no tener padding para evitar márgenes falsos en móviles
+            const origBodyPadding = document.body.style.padding;
+            document.body.style.padding = '0';
 
-            // --- 1. COMPRESIÓN PARA HOJA ÚNICA ---
+            const areaPdf = document.getElementById('area-pdf');
             areaPdf.classList.add('pdf-export-mode');
 
-            // --- 2. OCULTAR BOTONES Y FILAS VACÍAS ---
-            const btns = document.querySelectorAll('.no-print');
-            btns.forEach(b => { b.dataset.originalDisplay = window.getComputedStyle(b).display; b.style.display = 'none'; });
-
-            const filas = document.querySelectorAll('#tabla-body tr');
-            filas.forEach(f => {
-                const desc = f.querySelector('.row-desc');
-                if(!desc || !desc.value.trim()) f.style.display = 'none';
-            });
-
-            // --- 3. EXTERMINIO DEL DESCUENTO ---
-            const descInput = document.getElementById('descuento_input');
-            const descRow = document.getElementById('desc_row');
-            const descOriginalDisplay = window.getComputedStyle(descRow).display;
-            const descVal = parseFloat(descInput.value.replace(/\D/g, ""));
-            
-            if (isNaN(descVal) || descVal === 0) {
-                descRow.style.display = 'none'; // Se va por completo
-            }
-
-            // --- 4. LIMPIEZA DE INPUTS PARA EL PDF ---
-            const compactInputs = document.querySelectorAll('.form-control-compact');
-            compactInputs.forEach(input => {
-                input.dataset.origBorder = input.style.borderBottom;
-                input.style.borderBottom = 'none';
-                input.style.background = 'transparent';
-                input.style.color = '#222';
-            });
-
-            // Preparación del contenedor físico (Forzar proporciones sin bordes)
+            // Quitar bordes para la foto
             const origBorderRadius = areaPdf.style.borderRadius;
             const origBoxShadow = areaPdf.style.boxShadow;
             areaPdf.style.borderRadius = '0px';
             areaPdf.style.boxShadow = 'none';
             areaPdf.style.width = '800px';
             areaPdf.style.maxWidth = '800px';
+            areaPdf.style.margin = '0'; // Cero márgenes físicos
 
-            // --- 5. FOTOGRAFÍA ALTA RESOLUCIÓN ---
+            // Dejar que el navegador renderice el cambio de tamaño
+            await new Promise(r => setTimeout(r, 50));
+
             const canvas = await html2canvas(areaPdf, { 
-                scale: 3, // CALIDAD 4K
+                scale: 3, // CALIDAD EXTREMA 4K
                 useCORS: true, 
                 width: 800,
-                windowWidth: 800
+                windowWidth: 800,
+                x: areaPdf.offsetLeft, // Iniciar captura exactamente donde arranca el div
+                y: areaPdf.offsetTop,
+                onclone: function(clonedDoc) {
+                    // 1. Eliminar botones no print
+                    clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
+
+                    // 2. Eliminar filas vacías
+                    clonedDoc.querySelectorAll('#tabla-body tr').forEach(f => {
+                        const desc = f.querySelector('.row-desc');
+                        if(!desc || !desc.value.trim()) f.remove();
+                    });
+
+                    // 3. EXTERMINIO DEL DESCUENTO (Bypass al important de Bootstrap)
+                    const descInput = clonedDoc.getElementById('descuento_input');
+                    const descRow = clonedDoc.getElementById('desc_row');
+                    if (descInput && descRow) {
+                        const descVal = parseFloat(descInput.value.replace(/\D/g, ""));
+                        // Si está vacío, NaN o 0 -> SE ELIMINA LA FILA COMPLETA
+                        if (isNaN(descVal) || descVal === 0) {
+                            descRow.parentNode.removeChild(descRow); 
+                        } else {
+                            descInput.style.border = 'none'; 
+                        }
+                    }
+
+                    // 4. Limpieza Inputs para PDF
+                    clonedDoc.querySelectorAll('.form-control-compact').forEach(input => {
+                        input.style.borderBottom = 'none';
+                        input.style.background = 'transparent';
+                        input.style.color = '#222';
+                    });
+
+                    // 5. Transformar inputs en texto
+                    clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(input => {
+                        const span = clonedDoc.createElement('span');
+                        span.innerText = input.value;
+                        span.className = input.className;
+                        span.style.display = 'inline-block';
+                        span.style.border = 'none';
+                        span.style.background = 'transparent';
+                        if(input.classList.contains('text-end')) span.style.textAlign = 'right';
+                        if(input.classList.contains('text-center')) span.style.textAlign = 'center';
+                        input.parentNode.replaceChild(span, input);
+                    });
+
+                    clonedDoc.querySelectorAll('textarea').forEach(ta => {
+                        const div = clonedDoc.createElement('div');
+                        div.innerText = ta.value;
+                        div.className = ta.className;
+                        div.style.border = 'none';
+                        div.style.background = 'transparent';
+                        div.style.whiteSpace = 'pre-wrap';
+                        ta.parentNode.replaceChild(div, ta);
+                    });
+                }
             });
 
             setStep(1, 'check');
             setStep(2, 'active');
 
-            // --- 6. RESTAURAR INTERFAZ AL USUARIO ---
+            // --- RESTAURAR INTERFAZ AL USUARIO MÓVIL ---
             areaPdf.classList.remove('pdf-export-mode');
-            btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
-            filas.forEach(f => f.style.display = '');
-            descRow.style.display = descOriginalDisplay;
-            
-            compactInputs.forEach(input => {
-                input.style.borderBottom = input.dataset.origBorder || '';
-            });
+            document.body.style.padding = origBodyPadding; // Devolver padding original
             areaPdf.style.borderRadius = origBorderRadius;
             areaPdf.style.boxShadow = origBoxShadow;
             areaPdf.style.width = '100%';
+            areaPdf.style.margin = '0 auto';
 
-            // --- 7. ARMADO DEL DOCUMENTO PDF (CARTA) ---
+            // --- ARMADO DEL DOCUMENTO PDF CARTA ---
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF("p", "mm", "letter"); 
             
-            const pdfWidth = pdf.internal.pageSize.getWidth(); // Exacto de orilla a orilla
+            const pdfWidth = pdf.internal.pageSize.getWidth(); 
             const pdfHeight = pdf.internal.pageSize.getHeight(); 
             const canvasRatio = canvas.width / canvas.height;
             
-            let finalWidth = pdfWidth;
-            let finalHeight = finalWidth / canvasRatio; // Alto calculado SIN alterar el ancho
+            const finalWidth = pdfWidth; // Exactamente el ancho del papel Carta
+            let finalHeight = finalWidth / canvasRatio; 
 
-            const imgData = canvas.toDataURL("image/jpeg", 1.0); // 100% Calidad JPEG
+            const imgData = canvas.toDataURL("image/jpeg", 1.0); // Calidad Máxima
             
             let heightLeft = finalHeight;
             let position = 0;
 
-            // Pega la imagen ocupando EL 100% DEL ANCHO de la hoja (Cero bordes blancos)
+            // Foto abarca TODO el ancho del PDF (X=0)
             pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight);
             heightLeft -= pdfHeight;
 
-            // Si pusiste demasiados items y la foto supera 1 hoja, crea la 2da mágicamente
+            // Paginación si hay muchos productos
             while (heightLeft > 0) {
                 position -= pdfHeight; 
                 pdf.addPage();
@@ -517,7 +544,7 @@
 
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            // --- 8. GUARDADO EN BASE DE DATOS ---
+            // --- GUARDADO EN BASE DE DATOS ---
             let descripcionTexto = "";
             let itemsJSON = [];
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
