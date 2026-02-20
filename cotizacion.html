@@ -6,7 +6,7 @@
     <title>HomeEasy | Cotización</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -72,11 +72,17 @@
         }
         .meta-item { font-size: 0.7rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; letter-spacing: 0.5px;}
 
-        /* Título del Documento */
+        /* Título del Documento PREMIUM */
         .document-type { 
-            background-color: #fafafa; color: #444; text-align: center; 
-            padding: 40px 12px 15px 12px; font-weight: 800; text-transform: uppercase; 
-            letter-spacing: 3px; border-bottom: 1px solid #eee; font-size: 1.1rem;
+            background-color: #ffffff; 
+            color: var(--homeeasy-wine); 
+            text-align: center; 
+            padding: 40px 12px 20px 12px; 
+            font-weight: 300; 
+            text-transform: uppercase; 
+            letter-spacing: 8px; 
+            border-bottom: 1px solid rgba(166, 69, 90, 0.1); 
+            font-size: 1.6rem;
         }
         
         .card-body { padding: 30px 35px; flex-grow: 1; display: flex; flex-direction: column;}
@@ -129,6 +135,20 @@
         .footer-logo { max-width: 80px; opacity: 0.4; margin-bottom: 10px; filter: grayscale(100%); }
         .footer-creds { font-size: 0.65rem; color: #777; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
 
+        /* =========================================
+           MODO EXPORTACIÓN (COMPRIME ESPACIOS)
+           ========================================= */
+        .pdf-export-mode .header-brand { padding: 15px 30px 25px 30px !important; }
+        .pdf-export-mode .document-type { padding: 25px 12px 10px 12px !important; font-size: 1.4rem !important; }
+        .pdf-export-mode .card-body { padding: 15px 30px !important; }
+        .pdf-export-mode .finance-box { padding: 10px 20px !important; }
+        .pdf-export-mode .section-title { margin-bottom: 5px !important; }
+        .pdf-export-mode .row.g-4 { row-gap: 0.5rem !important; }
+        .pdf-export-mode .mb-5 { margin-bottom: 0.8rem !important; }
+        .pdf-export-mode .mb-4 { margin-bottom: 0.5rem !important; }
+        .pdf-export-mode .table th, .pdf-export-mode .table td { padding: 6px 5px !important; }
+        .pdf-export-mode .pdf-footer { padding: 10px !important; }
+
         /* Pantalla de Carga */
         .loading-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -162,8 +182,8 @@
         <p class="small text-muted mb-4">Ajustando diseño de página perfecta</p>
         
         <div id="status-list" style="text-align: left; margin-left: 10px;">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Escalando lienzo a 1 hoja...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Generando archivo PDF...</div>
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Escalando lienzo y márgenes...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Generando archivo PDF (4K)...</div>
             <div id="step-3" class="step-item"><i class="far fa-circle"></i> Guardando en la nube...</div>
             <div id="step-4" class="step-item"><i class="far fa-circle"></i> Finalizando...</div>
         </div>
@@ -188,7 +208,7 @@
         </div>
     </div>
     
-    <div class="document-type">PRESUPUESTO DE SERVICIO</div>
+    <div class="document-type">COTIZACIÓN</div>
     
     <div class="card-body">
         
@@ -231,7 +251,7 @@
                 </thead>
                 <tbody id="tabla-body">
                     <tr>
-                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Cortina Enrollable Blackout"></td>
+                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Cortina Enrollable Blackout" oninput="capFirst(this)"></td>
                         <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
                         <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
                         <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
@@ -244,7 +264,7 @@
 
         <div class="mb-4">
             <label class="form-label-small">Observaciones Especiales</label>
-            <textarea id="notas" class="form-control-compact" style="height: 40px; resize: none;" placeholder="Ej: Las medidas son aproximadas..."></textarea>
+            <textarea id="notas" class="form-control-compact" style="height: 40px; resize: none;" placeholder="Ej: Las medidas son aproximadas..." oninput="capFirst(this)"></textarea>
         </div>
 
         <div class="row g-4 mt-auto">
@@ -318,6 +338,14 @@
             }).catch(err => console.error("Error parchando caché:", err));
     };
 
+    // Función que pone la primera letra en mayúscula automáticamente
+    function capFirst(input) {
+        let val = input.value;
+        if (val.length > 0) {
+            input.value = val.charAt(0).toUpperCase() + val.slice(1);
+        }
+    }
+
     function formatear(i) {
         let v = i.value.replace(/\D/g, "");
         i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : "";
@@ -347,7 +375,7 @@
     function agregarFila() {
         let tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" class="form-control-compact row-desc" placeholder="Descripción..."></td>
+            <td><input type="text" class="form-control-compact row-desc" placeholder="Descripción..." oninput="capFirst(this)"></td>
             <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
             <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
             <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
@@ -374,7 +402,7 @@
     }
 
     // ============================================================
-    // 🖨️ MOTOR GENERADOR DE PDF "MAGIA DE UNA SOLA HOJA"
+    // 🖨️ MOTOR GENERADOR DE PDF (CERO BORDES BLANCOS - ALTA CALIDAD)
     // ============================================================
     async function finalizar() {
         const cedula = document.getElementById('cedula').value.trim();
@@ -395,97 +423,101 @@
             setStep(1, 'active');
             const areaPdf = document.getElementById('area-pdf');
 
-            // Magia HTML2Canvas: Clonación y manipulación virtual
+            // --- 1. COMPRESIÓN PARA HOJA ÚNICA ---
+            areaPdf.classList.add('pdf-export-mode');
+
+            // --- 2. OCULTAR BOTONES Y FILAS VACÍAS ---
+            const btns = document.querySelectorAll('.no-print');
+            btns.forEach(b => { b.dataset.originalDisplay = window.getComputedStyle(b).display; b.style.display = 'none'; });
+
+            const filas = document.querySelectorAll('#tabla-body tr');
+            filas.forEach(f => {
+                const desc = f.querySelector('.row-desc');
+                if(!desc || !desc.value.trim()) f.style.display = 'none';
+            });
+
+            // --- 3. EXTERMINIO DEL DESCUENTO ---
+            const descInput = document.getElementById('descuento_input');
+            const descRow = document.getElementById('desc_row');
+            const descOriginalDisplay = window.getComputedStyle(descRow).display;
+            const descVal = parseFloat(descInput.value.replace(/\D/g, ""));
+            
+            if (isNaN(descVal) || descVal === 0) {
+                descRow.style.display = 'none'; // Se va por completo
+            }
+
+            // --- 4. LIMPIEZA DE INPUTS PARA EL PDF ---
+            const compactInputs = document.querySelectorAll('.form-control-compact');
+            compactInputs.forEach(input => {
+                input.dataset.origBorder = input.style.borderBottom;
+                input.style.borderBottom = 'none';
+                input.style.background = 'transparent';
+                input.style.color = '#222';
+            });
+
+            // Preparación del contenedor físico (Forzar proporciones sin bordes)
+            const origBorderRadius = areaPdf.style.borderRadius;
+            const origBoxShadow = areaPdf.style.boxShadow;
+            areaPdf.style.borderRadius = '0px';
+            areaPdf.style.boxShadow = 'none';
+            areaPdf.style.width = '800px';
+            areaPdf.style.maxWidth = '800px';
+
+            // --- 5. FOTOGRAFÍA ALTA RESOLUCIÓN ---
             const canvas = await html2canvas(areaPdf, { 
-                scale: 2, 
+                scale: 3, // CALIDAD 4K
                 useCORS: true, 
-                windowWidth: 800, // Fuerza la vista de Escritorio en móviles
-                onclone: function(clonedDoc) {
-                    const clonedArea = clonedDoc.getElementById('area-pdf');
-                    clonedArea.style.width = '800px'; // Forzamos medidas estáticas
-                    clonedArea.style.maxWidth = '800px';
-                    clonedArea.style.borderRadius = '0'; // Bordes rectos para PDF
-                    clonedArea.style.boxShadow = 'none';
-
-                    // 1. Eliminar botones No Print
-                    const noPrint = clonedDoc.querySelectorAll('.no-print');
-                    noPrint.forEach(el => el.style.display = 'none');
-
-                    // 2. Eliminar filas vacías
-                    const filas = clonedDoc.querySelectorAll('#tabla-body tr');
-                    filas.forEach(f => {
-                        const desc = f.querySelector('.row-desc');
-                        if(!desc || !desc.value.trim()) f.style.display = 'none';
-                    });
-
-                    // 3. Lógica del Descuento
-                    const descInput = clonedDoc.getElementById('descuento_input');
-                    const descRow = clonedDoc.getElementById('desc_row');
-                    const descVal = parseFloat(descInput.value.replace(/\D/g, "")) || 0;
-                    if (descVal === 0) {
-                        descRow.style.display = 'none'; // Desaparece la fila completa
-                    } else {
-                        descInput.style.border = 'none'; // Quita la línea
-                    }
-
-                    // 4. Convertir todos los Inputs a Texto Puro (Fix de renderización Móvil/Safari)
-                    const inputs = clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]');
-                    inputs.forEach(input => {
-                        const span = clonedDoc.createElement('span');
-                        span.innerText = input.value;
-                        span.className = input.className;
-                        span.style.display = 'inline-block';
-                        span.style.border = 'none';
-                        span.style.background = 'transparent';
-                        if(input.classList.contains('text-end')) span.style.textAlign = 'right';
-                        if(input.classList.contains('text-center')) span.style.textAlign = 'center';
-                        input.parentNode.replaceChild(span, input);
-                    });
-
-                    const textareas = clonedDoc.querySelectorAll('textarea');
-                    textareas.forEach(ta => {
-                        const div = clonedDoc.createElement('div');
-                        div.innerText = ta.value;
-                        div.className = ta.className;
-                        div.style.border = 'none';
-                        div.style.background = 'transparent';
-                        div.style.whiteSpace = 'pre-wrap';
-                        ta.parentNode.replaceChild(div, ta);
-                    });
-                }
+                width: 800,
+                windowWidth: 800
             });
 
             setStep(1, 'check');
             setStep(2, 'active');
 
-            // Inicializar jsPDF (Tamaño Carta - Letter)
+            // --- 6. RESTAURAR INTERFAZ AL USUARIO ---
+            areaPdf.classList.remove('pdf-export-mode');
+            btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
+            filas.forEach(f => f.style.display = '');
+            descRow.style.display = descOriginalDisplay;
+            
+            compactInputs.forEach(input => {
+                input.style.borderBottom = input.dataset.origBorder || '';
+            });
+            areaPdf.style.borderRadius = origBorderRadius;
+            areaPdf.style.boxShadow = origBoxShadow;
+            areaPdf.style.width = '100%';
+
+            // --- 7. ARMADO DEL DOCUMENTO PDF (CARTA) ---
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF("p", "mm", "letter"); 
             
-            const pdfWidth = pdf.internal.pageSize.getWidth(); // Ancho Carta: 215.9 mm
-            const pdfHeight = pdf.internal.pageSize.getHeight(); // Alto Carta: 279.4 mm
-            
-            const imgData = canvas.toDataURL("image/jpeg", 1.0);
+            const pdfWidth = pdf.internal.pageSize.getWidth(); // Exacto de orilla a orilla
+            const pdfHeight = pdf.internal.pageSize.getHeight(); 
             const canvasRatio = canvas.width / canvas.height;
             
             let finalWidth = pdfWidth;
-            let finalHeight = finalWidth / canvasRatio;
+            let finalHeight = finalWidth / canvasRatio; // Alto calculado SIN alterar el ancho
 
-            // ESTA ES LA MAGIA: Si el contenido es más largo que la hoja, lo encogemos proporcionalmente
-            if (finalHeight > pdfHeight) {
-                finalHeight = pdfHeight;
-                finalWidth = finalHeight * canvasRatio;
+            const imgData = canvas.toDataURL("image/jpeg", 1.0); // 100% Calidad JPEG
+            
+            let heightLeft = finalHeight;
+            let position = 0;
+
+            // Pega la imagen ocupando EL 100% DEL ANCHO de la hoja (Cero bordes blancos)
+            pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight);
+            heightLeft -= pdfHeight;
+
+            // Si pusiste demasiados items y la foto supera 1 hoja, crea la 2da mágicamente
+            while (heightLeft > 0) {
+                position -= pdfHeight; 
+                pdf.addPage();
+                pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight);
+                heightLeft -= pdfHeight;
             }
 
-            // Centrado horizontal (en caso de que se haya encogido por el alto)
-            const xOffset = (pdfWidth - finalWidth) / 2;
-            
-            // Pegar la foto en la hoja de PDF
-            pdf.addImage(imgData, "JPEG", xOffset, 0, finalWidth, finalHeight);
-            
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            // Armar los datos para el Sheet
+            // --- 8. GUARDADO EN BASE DE DATOS ---
             let descripcionTexto = "";
             let itemsJSON = [];
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
@@ -498,7 +530,7 @@
             });
 
             const totalFinal = document.getElementById('total_val').innerText.replace(/\D/g, "");
-            const nombreArchivo = `Cotizacion_${numeroCot}_${cedula}.pdf`;
+            const nombreArchivo = `Cotizacion_N_${numeroCot}_${cedula}.pdf`;
 
             setStep(2, 'check');
             setStep(3, 'active');
