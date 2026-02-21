@@ -219,6 +219,61 @@ body {
     .menu-card { margin-bottom: 0; height: 100%; }
     .calendar-card { grid-column: 1 / -1; justify-content: center; }
 }
+
+/* ==========================================================
+   🚨 NUEVO: VENTANITAS BONITAS (BOTTOM SHEETS ESTILO iOS)
+   ========================================================== */
+.bottom-sheet-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    z-index: 9999; opacity: 0; visibility: hidden;
+    transition: all 0.3s ease;
+    display: flex; align-items: flex-end;
+}
+.bottom-sheet-overlay.active { opacity: 1; visibility: visible; }
+.bottom-sheet-content {
+    background: white; width: 100%;
+    border-radius: 30px 30px 0 0;
+    padding: 25px 25px calc(40px + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+}
+.bottom-sheet-overlay.active .bottom-sheet-content { transform: translateY(0); }
+.sheet-handle {
+    width: 40px; height: 5px; background: #ddd;
+    border-radius: 10px; margin: 0 auto 20px;
+}
+.sheet-title {
+    font-weight: 800; color: #333; font-size: 1.3rem; 
+    text-align: left; margin-bottom: 5px;
+}
+.sheet-desc {
+    font-size: 0.85rem; color: #888; font-weight: 500;
+    text-align: left; margin-bottom: 25px;
+}
+.sheet-btn {
+    display: flex; align-items: center; gap: 15px;
+    background: #f8f9fa; border: 1px solid #f0f0f0;
+    padding: 15px 20px; border-radius: 20px;
+    margin-bottom: 15px; color: #333; text-decoration: none;
+    font-weight: 700; font-size: 1.05rem;
+    transition: all 0.2s;
+}
+.sheet-btn:active { background: #eee; transform: scale(0.98); }
+.sheet-btn:last-child { margin-bottom: 0; }
+.sheet-btn .icon-wrapper {
+    width: 45px; height: 45px; border-radius: 14px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 1.3rem;
+}
+.sheet-btn-wine .icon-wrapper { background: rgba(166, 69, 90, 0.1); color: var(--home-red); }
+.sheet-btn-gold .icon-wrapper { background: rgba(194, 164, 104, 0.15); color: var(--home-yellow); }
+.sheet-btn-blue .icon-wrapper { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+.sheet-btn-green .icon-wrapper { background: rgba(46, 204, 113, 0.1); color: #27ae60; }
+.sheet-btn-content { display: flex; flex-direction: column; text-align: left; }
+.sheet-btn-title { margin: 0; line-height: 1; }
+.sheet-btn-subtitle { font-size: 0.7rem; color: #999; font-weight: 500; margin-top: 4px; }
 </style>
 </head>
 
@@ -276,14 +331,14 @@ body {
                     <div class="menu-text"><h3>Consultar cliente</h3><p>Datos e historial</p></div>
                 </a>
 
-                <a href="cotizacion.html" class="menu-card gold-card">
+                <a href="#" onclick="event.preventDefault(); openSheet('sheet-cotizacion')" class="menu-card gold-card">
                     <div class="icon-box"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                    <div class="menu-text"><h3>Cotización</h3><p>Formulario de presupuesto</p></div>
+                    <div class="menu-text"><h3>Cotización</h3><p>Formulario y Seguimiento</p></div>
                 </a>
 
-                <a href="pedido.html" class="menu-card">
+                <a href="#" onclick="event.preventDefault(); openSheet('sheet-pedido')" class="menu-card">
                     <div class="icon-box"><i class="fa-solid fa-clipboard-list"></i></div>
-                    <div class="menu-text"><h3>Orden de pedido</h3><p>Formulario de venta op</p></div>
+                    <div class="menu-text"><h3>Orden de pedido</h3><p>Formulario e Informes</p></div>
                 </a>
 
                 <a href="abono.html" class="menu-card gold-card">
@@ -307,7 +362,68 @@ body {
 
     </div>
 
+<div class="bottom-sheet-overlay" id="sheet-cotizacion" onclick="closeSheet('sheet-cotizacion')">
+    <div class="bottom-sheet-content" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <h3 class="sheet-title">Cotizaciones</h3>
+        <p class="sheet-desc">¿Qué deseas realizar?</p>
+
+        <a href="cotizacion.html" class="sheet-btn sheet-btn-gold">
+            <div class="icon-wrapper"><i class="fa-solid fa-pen-nib"></i></div>
+            <div class="sheet-btn-content">
+                <span class="sheet-btn-title">Formulario</span>
+                <span class="sheet-btn-subtitle">Crear nueva cotización</span>
+            </div>
+        </a>
+
+        <a href="seguimiento.html" class="sheet-btn sheet-btn-wine">
+            <div class="icon-wrapper"><i class="fa-solid fa-crosshairs"></i></div>
+            <div class="sheet-btn-content">
+                <span class="sheet-btn-title">Seguimiento</span>
+                <span class="sheet-btn-subtitle">Radar CRM y activas</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="bottom-sheet-overlay" id="sheet-pedido" onclick="closeSheet('sheet-pedido')">
+    <div class="bottom-sheet-content" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <h3 class="sheet-title">Orden de Pedido</h3>
+        <p class="sheet-desc">¿Qué deseas realizar?</p>
+
+        <a href="pedido.html" class="sheet-btn sheet-btn-wine">
+            <div class="icon-wrapper"><i class="fa-solid fa-clipboard-check"></i></div>
+            <div class="sheet-btn-content">
+                <span class="sheet-btn-title">Formulario</span>
+                <span class="sheet-btn-subtitle">Registrar nueva OP</span>
+            </div>
+        </a>
+
+        <a href="reportes.html" class="sheet-btn sheet-btn-green">
+            <div class="icon-wrapper"><i class="fa-solid fa-chart-pie"></i></div>
+            <div class="sheet-btn-content">
+                <span class="sheet-btn-title">Informes</span>
+                <span class="sheet-btn-subtitle">Dashboard de ventas</span>
+            </div>
+        </a>
+    </div>
+</div>
+
 <script>
+// ==========================================
+// 🚨 FUNCIONES DE LAS VENTANAS BONITAS
+// ==========================================
+function openSheet(id) {
+    document.getElementById(id).classList.add('active');
+    document.body.style.overflow = 'hidden'; 
+}
+
+function closeSheet(id) {
+    document.getElementById(id).classList.remove('active');
+    document.body.style.overflow = ''; 
+}
+
 // ==========================================
 // 🚀 LÓGICA DE NEGOCIO INTEGRADA
 // ==========================================
