@@ -491,7 +491,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 if(data.clientes){
                     for (let i = 1; i < data.clientes.length; i++) {
                         const c = data.clientes[i];
-                        // 🔥 AQUÍ ESTABA EL ERROR: AHORA HOMMY MEMORIZA LOS 5 DATOS
                         if(c && c[0]) clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] };
                     }
                 }
@@ -614,6 +613,53 @@ document.addEventListener('click', function(event) {
 });
 
 window.addEventListener('focus', actualizarCampana);
+
+// ==========================================
+// 📱 MAGIA TÁCTIL: DESLIZAR PARA CERRAR (SWIPE DOWN)
+// ==========================================
+document.addEventListener("DOMContentLoaded", function() {
+    const sheets = document.querySelectorAll('.bottom-sheet-content');
+    
+    sheets.forEach(sheet => {
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        
+        sheet.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            currentY = startY;
+            isDragging = true;
+            sheet.style.transition = 'none'; // Quitamos la animación para que siga al dedo
+        }, {passive: true});
+
+        sheet.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentY = e.touches[0].clientY;
+            let deltaY = currentY - startY;
+            
+            // Solo permitimos arrastrar hacia abajo
+            if (deltaY > 0) {
+                sheet.style.transform = `translateY(${deltaY}px)`;
+            }
+        }, {passive: true});
+
+        sheet.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            let deltaY = currentY - startY;
+            
+            // Devolvemos la animación original
+            sheet.style.transition = ''; 
+            sheet.style.transform = ''; 
+            
+            // Si deslizó más de 80 píxeles hacia abajo, cerramos la ventana
+            if (deltaY > 80) {
+                const overlayId = sheet.parentElement.id;
+                closeSheet(overlayId);
+            }
+        });
+    });
+});
 
 </script>
 </body>
