@@ -41,12 +41,12 @@
         }
         .btn-back:active { transform: scale(0.9); }
         
-        /* Contenedor Principal (Aspecto de Papel Físico en PC) */
+        /* Contenedor Principal */
         #area-pdf { 
             background-color: white; 
             width: 100%; max-width: 800px; 
             margin: 0 auto; 
-            min-height: 1035px; /* Proporción Carta */
+            min-height: 1035px; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.05); 
             border-radius: 12px; 
             overflow: hidden; 
@@ -241,7 +241,7 @@
 <div id="loading" class="loading-overlay">
     <div class="glass-loader">
         <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy" onerror="this.src='HOMMY.png'">
-        <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">PROCESANDO...</h6>
+        <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;" id="lbl-proceso">PROCESANDO...</h6>
         <p class="small text-muted mb-4">Hommy está generando tu orden</p>
         
         <div id="status-list" style="text-align: left; margin-left: 10px;">
@@ -257,7 +257,7 @@
     <div class="success-box">
         <div class="success-icon"><i class="fas fa-check"></i></div>
         <h3>¡Orden Confirmada!</h3>
-        <p>La orden fue creada, sincronizada y está lista para enviarse al cliente.</p>
+        <p id="exito-msg">La orden fue creada, sincronizada y está lista para enviarse al cliente.</p>
         <button class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
     </div>
 </div>
@@ -370,7 +370,7 @@
             </div>
         </div>
 
-        <button class="btn btn-homeeasy no-print" onclick="finalizar()"><i class="fas fa-cloud-upload-alt me-2"></i> Generar Orden de Pedido</button>
+        <button class="btn btn-homeeasy no-print" id="btnProcesar" onclick="finalizar()"><i class="fas fa-cloud-upload-alt me-2"></i> Generar Orden de Pedido</button>
     </div>
 
     <div class="pdf-footer">
@@ -383,21 +383,66 @@
 <script>
     const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
     let numeroCot = null;
+    let isEditMode = false;
+    let editNum = null;
 
     // ==========================================
     // 1. CARGA INICIAL Y VERIFICACIÓN DE URL
     // ==========================================
     window.onload = () => {
-        document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-        
-        // Obtener consecutivo
-        fetch(`${URL_G}?nextPedido=1`)
+        const params = new URLSearchParams(window.location.search);
+        editNum = params.get("edit");
+        numeroCot = params.get("cotizacion");
+
+        if (editNum) {
+            isEditMode = true;
+            document.getElementById("n_orden_display").innerText = editNum;
+            document.getElementById("btnProcesar").innerHTML = '<i class="fas fa-save me-2"></i> Guardar Cambios';
+            
+            // Cargar datos originales
+            fetch(`${URL_G}?tipo=EDITAR_OP&numero=${editNum}`)
             .then(r => r.json())
-            .then(d => { 
-                if(d.status === "ok") {
-                    document.getElementById("n_orden_display").innerText = d.nextPedido || "001"; 
+            .then(d => {
+                if(d.status === "found") {
+                    document.getElementById('fecha_display').innerText = new Date(d.fecha).toLocaleDateString('es-CO');
+                    document.getElementById('cedula').value = d.cedula;
+                    document.getElementById('nombre').value = d.nombre;
+                    document.getElementById('notas').value = d.observaciones || "";
+                    document.getElementById('abono').value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(d.abono || 0);
+                    
+                    buscarCliente(); 
+                    
+                    let items = [];
+                    try { items = JSON.parse(d.itemsJSON); } catch(e) {}
+                    if(items.length > 0) {
+                        const tbody = document.getElementById("tabla-body");
+                        tbody.innerHTML = "";
+                        items.forEach(item => {
+                            const tr = document.createElement("tr");
+                            tr.innerHTML = `
+                                <td><input type="text" class="form-control-compact row-desc" oninput="capFirst(this)"></td>
+                                <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
+                                <td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" oninput="formatear(this); calcular()"></td>
+                                <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
+                                <td class="no-print text-end"><button class="btn btn-sm" style="color:#e74c3c; padding:0;" onclick="eliminarFila(this)"><i class="fas fa-times"></i></button></td>
+                            `;
+                            tbody.appendChild(tr);
+                            tr.querySelector(".row-desc").value = item.descripcion || "";
+                            tr.querySelector(".cant").value = item.cantidad || 1;
+                            if (item.precio) tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio);
+                        });
+                        calcular();
+                    }
                 }
-            }).catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
+            });
+        } else {
+            // Flujo Normal: Nuevo Pedido
+            document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
+            fetch(`${URL_G}?nextPedido=1`)
+                .then(r => r.json())
+                .then(d => { if(d.status === "ok") document.getElementById("n_orden_display").innerText = d.nextPedido || "001"; })
+                .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
+        }
 
         // Actualizar Caché silenciosamente
         fetch(`${URL_G}?init=LOAD`)
@@ -407,19 +452,15 @@
                     const clientesObj = {};
                     for (let i = 1; i < data.clientes.length; i++) {
                         const c = data.clientes[i];
-                        if(c && c[0]) {
-                            clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] };
-                        }
+                        if(c && c[0]) { clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] }; }
                     }
                     localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
+                    if(!isEditMode && !numeroCot) buscarCliente(); 
                 }
             }).catch(err => console.error("Error parchando caché:", err));
 
-        // Verificar si viene de una cotización
-        const params = new URLSearchParams(window.location.search);
-        numeroCot = params.get("cotizacion");
-
-        if (numeroCot) {
+        // Verificar si viene de una cotización (Solo si no estamos editando una OP)
+        if (numeroCot && !isEditMode) {
             fetch(`${URL_G}?convertirCot=${numeroCot}`)
                 .then(r => r.json())
                 .then(d => {
@@ -429,8 +470,7 @@
                         buscarCliente(); 
 
                         let items = [];
-                        if (d.items) { items = d.items; } 
-                        else if (d.itemsJSON) { try { items = JSON.parse(d.itemsJSON); } catch(e) { items = []; } }
+                        if (d.items) { items = d.items; } else if (d.itemsJSON) { try { items = JSON.parse(d.itemsJSON); } catch(e) { items = []; } }
 
                         if (items.length > 0) {
                             const tbody = document.getElementById("tabla-body");
@@ -447,9 +487,7 @@
                                 tbody.appendChild(tr);
                                 tr.querySelector(".row-desc").value = item.descripcion || "";
                                 tr.querySelector(".cant").value = item.cantidad || 1;
-                                if (item.precio) {
-                                    tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio);
-                                }
+                                if (item.precio) { tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio); }
                             });
                             calcular();
                         }
@@ -458,35 +496,20 @@
         }
     };
 
-    function capFirst(input) {
-        let val = input.value;
-        if (val.length > 0) {
-            input.value = val.charAt(0).toUpperCase() + val.slice(1);
-        }
-    }
-
-    function formatear(i) {
-        let v = i.value.replace(/\D/g, "");
-        i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : "";
-    }
+    function capFirst(input) { let val = input.value; if (val.length > 0) { input.value = val.charAt(0).toUpperCase() + val.slice(1); } }
+    function formatear(i) { let v = i.value.replace(/\D/g, ""); i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : ""; }
 
     function calcular() {
         let total = 0;
         document.querySelectorAll('#tabla-body tr').forEach(tr => {
-            let c = parseFloat(tr.querySelector('.cant').value) || 0;
-            let p = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
-            let sub = c * p;
-            tr.querySelector('.item-total').innerText = `$ ${sub.toLocaleString('es-CO')}`;
-            total += sub;
+            let c = parseFloat(tr.querySelector('.cant').value) || 0; let p = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0; let sub = c * p;
+            tr.querySelector('.item-total').innerText = `$ ${sub.toLocaleString('es-CO')}`; total += sub;
         });
         
         let abono = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
-        
         document.getElementById('total_pedido_val').innerText = `$ ${total.toLocaleString('es-CO')}`;
         
-        let saldo = total - abono;
-        if(saldo < 0) saldo = 0;
-        
+        let saldo = total - abono; if(saldo < 0) saldo = 0;
         document.getElementById('saldo_pendiente_val').innerText = `$ ${saldo.toLocaleString('es-CO')}`;
     }
 
@@ -502,36 +525,19 @@
         document.getElementById('tabla-body').appendChild(tr);
     }
     
-    function eliminarFila(btn) {
-        btn.closest('tr').remove();
-        calcular();
-    }
+    function eliminarFila(btn) { btn.closest('tr').remove(); calcular(); }
 
-    const loadingTexts = [
-        "Revisando las medidas...",
-        "Imprimiendo OP...",
-        "Programando fabricación...",
-        "¡Orden sellada y lista!"
-    ];
+    const loadingTexts = [ "Acomodando el diseño final...", "Imprimiendo PDF en 4K...", "Programando la fabricación...", "¡Orden sellada y lista!" ];
 
     function setStep(num, status) {
         const step = document.getElementById('step-' + num);
-        if (status === 'active') {
-            step.classList.add('step-active');
-            step.classList.remove('step-check');
-            step.innerHTML = `<i class="fas fa-circle-notch fa-spin text-warning"></i> ` + loadingTexts[num-1];
-        } else if (status === 'check') {
-            step.classList.remove('step-active');
-            step.classList.add('step-check');
-            step.innerHTML = `<i class="fas fa-check-circle"></i> ` + loadingTexts[num-1];
-        } else {
-            step.className = 'step-item';
-            step.innerHTML = `<i class="far fa-circle"></i> ` + loadingTexts[num-1];
-        }
+        if (status === 'active') { step.classList.add('step-active'); step.classList.remove('step-check'); step.innerHTML = `<i class="fas fa-circle-notch fa-spin text-warning"></i> ` + loadingTexts[num-1]; } 
+        else if (status === 'check') { step.classList.remove('step-active'); step.classList.add('step-check'); step.innerHTML = `<i class="fas fa-check-circle"></i> ` + loadingTexts[num-1]; } 
+        else { step.className = 'step-item'; step.innerHTML = `<i class="far fa-circle"></i> ` + loadingTexts[num-1]; }
     }
 
     // ============================================================
-    // 🖨️ MOTOR GENERADOR DE PDF CERO BORDES (VERSIÓN PEDIDOS)
+    // 🖨️ MOTOR GENERADOR DE PDF CERO BORDES 
     // ============================================================
     async function finalizar() {
         const cedula = document.getElementById('cedula').value.trim();
@@ -542,126 +548,63 @@
         if (!cedula || !nombre) return alert("Por favor, ingresa al menos Cédula y Nombre.");
 
         const loading = document.getElementById('loading');
+        if(isEditMode) document.getElementById('lbl-proceso').innerText = "ACTUALIZANDO...";
         loading.style.display = 'flex';
         
-        for(let i=1; i<=4; i++) {
-            setStep(i, 'reset');
-        }
+        for(let i=1; i<=4; i++) { setStep(i, 'reset'); }
 
         try {
             setStep(1, 'active');
-            
-            const origBodyPadding = document.body.style.padding;
-            document.body.style.padding = '0';
-
-            const areaPdf = document.getElementById('area-pdf');
-            areaPdf.classList.add('pdf-export-mode');
-
-            const origBorderRadius = areaPdf.style.borderRadius;
-            const origBoxShadow = areaPdf.style.boxShadow;
-            areaPdf.style.borderRadius = '0px';
-            areaPdf.style.boxShadow = 'none';
-            areaPdf.style.width = '800px';
-            areaPdf.style.maxWidth = '800px';
-            areaPdf.style.margin = '0'; 
+            const origBodyPadding = document.body.style.padding; document.body.style.padding = '0';
+            const areaPdf = document.getElementById('area-pdf'); areaPdf.classList.add('pdf-export-mode');
+            const origBorderRadius = areaPdf.style.borderRadius; const origBoxShadow = areaPdf.style.boxShadow;
+            areaPdf.style.borderRadius = '0px'; areaPdf.style.boxShadow = 'none'; areaPdf.style.width = '800px'; areaPdf.style.maxWidth = '800px'; areaPdf.style.margin = '0'; 
 
             await new Promise(r => setTimeout(r, 50));
 
             const canvas = await html2canvas(areaPdf, { 
-                scale: 3, 
-                useCORS: true, 
-                width: 800,
-                windowWidth: 800,
-                x: areaPdf.offsetLeft, 
-                y: areaPdf.offsetTop,
+                scale: 3, useCORS: true, width: 800, windowWidth: 800, x: areaPdf.offsetLeft, y: areaPdf.offsetTop,
                 onclone: function(clonedDoc) {
                     clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
-
-                    clonedDoc.querySelectorAll('#tabla-body tr').forEach(f => {
-                        const desc = f.querySelector('.row-desc');
-                        if(!desc || !desc.value.trim()) f.remove();
-                    });
-
-                    // Limpieza específica para el input de Abono
-                    const abonoInputClone = clonedDoc.getElementById('abono');
-                    if (abonoInputClone) {
-                        abonoInputClone.style.borderBottom = 'none';
-                        abonoInputClone.style.background = 'transparent';
-                    }
-
-                    clonedDoc.querySelectorAll('.form-control-compact').forEach(input => {
-                        input.style.borderBottom = 'none';
-                        input.style.background = 'transparent';
-                        input.style.color = '#222';
-                    });
-
+                    clonedDoc.querySelectorAll('#tabla-body tr').forEach(f => { const desc = f.querySelector('.row-desc'); if(!desc || !desc.value.trim()) f.remove(); });
+                    
+                    const abonoInputClone = clonedDoc.getElementById('abono'); 
+                    if (abonoInputClone) { abonoInputClone.style.borderBottom = 'none'; abonoInputClone.style.background = 'transparent'; }
+                    
+                    clonedDoc.querySelectorAll('.form-control-compact').forEach(input => { input.style.borderBottom = 'none'; input.style.background = 'transparent'; input.style.color = '#222'; });
+                    
                     clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(input => {
-                        const span = clonedDoc.createElement('span');
-                        span.innerText = input.value;
-                        span.className = input.className;
-                        span.style.display = 'inline-block';
-                        span.style.border = 'none';
-                        span.style.background = 'transparent';
-                        if(input.classList.contains('text-end')) span.style.textAlign = 'right';
-                        if(input.classList.contains('text-center')) span.style.textAlign = 'center';
+                        const span = clonedDoc.createElement('span'); span.innerText = input.value; span.className = input.className; span.style.display = 'inline-block'; span.style.border = 'none'; span.style.background = 'transparent';
+                        if(input.classList.contains('text-end')) span.style.textAlign = 'right'; if(input.classList.contains('text-center')) span.style.textAlign = 'center';
                         input.parentNode.replaceChild(span, input);
                     });
-
+                    
                     clonedDoc.querySelectorAll('textarea').forEach(ta => {
-                        const div = clonedDoc.createElement('div');
-                        div.innerText = ta.value;
-                        div.className = ta.className;
-                        div.style.border = 'none';
-                        div.style.background = 'transparent';
-                        div.style.whiteSpace = 'pre-wrap';
+                        const div = clonedDoc.createElement('div'); div.innerText = ta.value; div.className = ta.className; div.style.border = 'none'; div.style.background = 'transparent'; div.style.whiteSpace = 'pre-wrap';
                         ta.parentNode.replaceChild(div, ta);
                     });
                 }
             });
 
-            setStep(1, 'check');
-            setStep(2, 'active');
+            setStep(1, 'check'); setStep(2, 'active');
 
-            areaPdf.classList.remove('pdf-export-mode');
-            document.body.style.padding = origBodyPadding; 
-            areaPdf.style.borderRadius = origBorderRadius;
-            areaPdf.style.boxShadow = origBoxShadow;
-            areaPdf.style.width = '100%';
-            areaPdf.style.margin = '0 auto';
+            areaPdf.classList.remove('pdf-export-mode'); document.body.style.padding = origBodyPadding; 
+            areaPdf.style.borderRadius = origBorderRadius; areaPdf.style.boxShadow = origBoxShadow; areaPdf.style.width = '100%'; areaPdf.style.margin = '0 auto';
 
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF("p", "mm", "letter"); 
-            
-            const pdfWidth = pdf.internal.pageSize.getWidth(); 
-            const pdfHeight = pdf.internal.pageSize.getHeight(); 
-            const canvasRatio = canvas.width / canvas.height;
-            
-            const finalWidth = pdfWidth; 
-            let finalHeight = finalWidth / canvasRatio; 
-
+            const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = pdf.internal.pageSize.getHeight(); const canvasRatio = canvas.width / canvas.height;
+            const finalWidth = pdfWidth; let finalHeight = finalWidth / canvasRatio; 
             const imgData = canvas.toDataURL("image/jpeg", 1.0); 
-            
-            let heightLeft = finalHeight;
-            let position = 0;
+            let heightLeft = finalHeight; let position = 0;
 
-            pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight);
-            heightLeft -= pdfHeight;
-
-            while (heightLeft > 0) {
-                position -= pdfHeight; 
-                pdf.addPage();
-                pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight);
-                heightLeft -= pdfHeight;
-            }
-
+            pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); heightLeft -= pdfHeight;
+            while (heightLeft > 0) { position -= pdfHeight; pdf.addPage(); pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); heightLeft -= pdfHeight; }
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            let descripcionTexto = "";
-            let itemsJSON = [];
+            let descripcionTexto = ""; let itemsJSON = [];
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
-                let descripcion = tr.querySelector('.row-desc').value.trim();
-                let cantidad = parseFloat(tr.querySelector('.cant').value) || 0;
-                let precio = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
+                let descripcion = tr.querySelector('.row-desc').value.trim(); let cantidad = parseFloat(tr.querySelector('.cant').value) || 0; let precio = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
                 if (!descripcion) return;
                 descripcionTexto += `${cantidad} x ${descripcion} / `;
                 itemsJSON.push({ descripcion: descripcion, cantidad: cantidad, precio: precio, subtotal: cantidad * precio });
@@ -671,13 +614,15 @@
             const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
             const nombreArchivo = `Orden_N_${numeroOP}_${cedula}.pdf`;
 
-            setStep(2, 'check');
-            setStep(3, 'active');
+            setStep(2, 'check'); setStep(3, 'active');
+
+            const payloadType = isEditMode ? "edit_pedido" : "pedido";
 
             const response = await fetch(URL_G, { 
                 method: 'POST', 
                 body: JSON.stringify({
-                    tipo: "pedido",
+                    tipo: payloadType,
+                    numero: isEditMode ? editNum : undefined,
                     numeroCotizacion: numeroCot || null,
                     cedula: cedula,
                     nombre: nombre,
@@ -697,24 +642,16 @@
             const result = await response.json();
             
             if (result.status === "success") {
-                setStep(3, 'check');
-                setStep(4, 'active');
-                
+                setStep(3, 'check'); setStep(4, 'active');
                 setTimeout(() => {
                     setStep(4, 'check');
                     pdf.save(nombreArchivo);
-                    
                     document.getElementById('loading').style.display = 'none';
+                    if(isEditMode) document.getElementById('exito-msg').innerText = "La orden fue actualizada en el sistema y el PDF ha sido reemplazado.";
                     document.getElementById('success-modal').style.display = 'flex';
                 }, 800);
-            } else {
-                throw new Error(result.msg || "El servidor no respondió con éxito.");
-            }
-        } catch (e) {
-            alert("Error: No se pudo procesar. Intenta nuevamente.");
-            console.error(e);
-            loading.style.display = 'none';
-        }
+            } else { throw new Error(result.msg || "El servidor no respondió con éxito."); }
+        } catch (e) { alert("Error: No se pudo procesar. Intenta nuevamente."); console.error(e); loading.style.display = 'none'; }
     }
 
     // ===============================
@@ -722,67 +659,30 @@
     // ===============================
     document.getElementById("cedula").addEventListener("input", function() {
         buscarCliente(); 
-
-        const valor = this.value.trim().toLowerCase();
-        const cont = document.getElementById("sugerencias_cliente");
-
-        cont.innerHTML = "";
-        cont.style.display = "none";
-
+        const valor = this.value.trim().toLowerCase(); const cont = document.getElementById("sugerencias_cliente");
+        cont.innerHTML = ""; cont.style.display = "none";
         if (valor.length < 2) return;
-
         const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
-
         Object.values(cache).forEach(cliente => {
             if (String(cliente.cedula).includes(valor) || cliente.nombre.toLowerCase().includes(valor)) {
-                const div = document.createElement("div");
-                div.style.padding = "12px 15px";
-                div.style.cursor = "pointer";
-                div.style.borderBottom = "1px solid #eee";
-                div.style.fontSize = "0.85rem";
-                div.onmouseover = () => div.style.background = "#f9f9f9";
-                div.onmouseout = () => div.style.background = "white";
+                const div = document.createElement("div"); div.style.padding = "12px 15px"; div.style.cursor = "pointer"; div.style.borderBottom = "1px solid #eee"; div.style.fontSize = "0.85rem";
+                div.onmouseover = () => div.style.background = "#f9f9f9"; div.onmouseout = () => div.style.background = "white";
                 div.innerHTML = `<strong style="color:var(--homeeasy-wine)">${cliente.cedula}</strong> - ${cliente.nombre}`;
-
-                div.onclick = function() {
-                    document.getElementById("cedula").value = cliente.cedula;
-                    buscarCliente();
-                    cont.innerHTML = "";
-                    cont.style.display = "none";
-                };
-
-                cont.appendChild(div);
-                cont.style.display = "block";
+                div.onclick = function() { document.getElementById("cedula").value = cliente.cedula; buscarCliente(); cont.innerHTML = ""; cont.style.display = "none"; };
+                cont.appendChild(div); cont.style.display = "block";
             }
         });
     });
 
-    document.addEventListener("click", function(e) {
-        const input = document.getElementById("cedula");
-        const div = document.getElementById("sugerencias_cliente");
-        if(e.target !== input && e.target !== div) {
-            div.style.display = "none";
-        }
-    });
+    document.addEventListener("click", function(e) { const input = document.getElementById("cedula"); const div = document.getElementById("sugerencias_cliente"); if(e.target !== input && e.target !== div) { div.style.display = "none"; } });
 
     function buscarCliente() {
-        const ced = document.getElementById('cedula').value.trim();
-        const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
-
-        if (!ced) {
-            document.getElementById('nombre').value = "";
-            document.getElementById('telefono').value = "";
-            document.getElementById('email').value = "";
-            document.getElementById('direccion').value = "";
-            return;
-        }
-
+        const ced = document.getElementById('cedula').value.trim(); const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
+        if (!ced) { document.getElementById('nombre').value = ""; document.getElementById('telefono').value = ""; document.getElementById('email').value = ""; document.getElementById('direccion').value = ""; return; }
         if (cache[ced]) {
             const cliente = cache[ced];
-            document.getElementById('nombre').value = (cliente.nombre || "").toUpperCase();
-            document.getElementById('telefono').value = cliente.telefono || "";
-            document.getElementById('email').value = (cliente.email || "").toLowerCase();
-            document.getElementById('direccion').value = (cliente.direccion || "").toUpperCase();
+            document.getElementById('nombre').value = (cliente.nombre || "").toUpperCase(); document.getElementById('telefono').value = cliente.telefono || "";
+            document.getElementById('email').value = (cliente.email || "").toLowerCase(); document.getElementById('direccion').value = (cliente.direccion || "").toUpperCase();
         }
     }
 </script>
