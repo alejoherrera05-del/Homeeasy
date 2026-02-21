@@ -27,7 +27,7 @@
         
         .text-uppercase-input { text-transform: uppercase; }
         
-        /* Botón Volver (Optimizado Notch iPhone) */
+        /* Botón Volver */
         .btn-back { 
             position: fixed; 
             top: calc(15px + env(safe-area-inset-top)); 
@@ -264,71 +264,43 @@
             .table td { font-size: 0.8rem; }
         }
 
-        /* 🖨️ PDF EXPORT MODE (Congela para PDF) */
-        .pdf-export-mode .header-brand { padding: 15px 30px 25px 30px !important; flex-direction: row !important; text-align: right !important; }
+        /* 🚨 🖨️ PDF EXPORT MODE EXTREMO (Para asegurar 1 sola hoja) */
+        #area-pdf.pdf-export-mode { min-height: 1035px !important; }
+        .pdf-export-mode .header-brand { padding: 15px 30px 15px 30px !important; flex-direction: row !important; text-align: right !important; }
         .pdf-export-mode .empresa-info-header { font-size: 0.75rem !important; }
-        .pdf-export-mode .logo-only { max-width: 130px !important; }
-        .pdf-export-mode .order-meta { width: auto !important; padding: 10px 25px !important; bottom: -18px !important; font-size: 0.7rem !important; }
-        .pdf-export-mode .document-type { padding: 35px 12px 10px 12px !important; font-size: 1.4rem !important; letter-spacing: 8px !important; }
-        .pdf-export-mode .card-body { padding: 15px 30px !important; }
-        .pdf-export-mode .finance-box { padding: 10px 20px !important; }
-        .pdf-export-mode .section-title { margin-bottom: 5px !important; }
-        .pdf-export-mode .row.g-4 { row-gap: 0.5rem !important; }
-        .pdf-export-mode .mb-5 { margin-bottom: 0.8rem !important; }
-        .pdf-export-mode .mb-4 { margin-bottom: 0.5rem !important; }
-        .pdf-export-mode .table th, .pdf-export-mode .table td { padding: 6px 5px !important; font-size: 0.8rem !important;}
-        .pdf-export-mode .pdf-footer { padding: 10px !important; }
+        .pdf-export-mode .logo-only { max-width: 110px !important; }
+        .pdf-export-mode .order-meta { width: auto !important; padding: 6px 20px !important; bottom: -12px !important; font-size: 0.65rem !important; }
+        .pdf-export-mode .document-type { padding: 25px 12px 5px 12px !important; font-size: 1.3rem !important; letter-spacing: 6px !important; }
+        .pdf-export-mode .card-body { padding: 10px 30px 0px 30px !important; }
+        
+        /* Comprimiendo la caja financiera */
+        .pdf-export-mode .finance-box { padding: 5px 15px !important; border-left: 4px solid var(--homeeasy-gold); }
+        .pdf-export-mode .finance-box .mb-2 { margin-bottom: 2px !important; }
+        .pdf-export-mode .finance-box .mt-3 { margin-top: 4px !important; }
+        .pdf-export-mode .finance-box .pt-3 { padding-top: 4px !important; }
+
+        .pdf-export-mode .section-title { margin-bottom: 4px !important; padding-bottom: 2px !important; }
+        .pdf-export-mode .row.g-4 { row-gap: 0.2rem !important; }
+        .pdf-export-mode .mb-5 { margin-bottom: 0.5rem !important; }
+        .pdf-export-mode .mb-4 { margin-bottom: 0.2rem !important; }
+        .pdf-export-mode .table th, .pdf-export-mode .table td { padding: 4px 5px !important; font-size: 0.75rem !important;}
+        .pdf-export-mode .pdf-footer { padding: 5px !important; margin-top: 5px !important; border-top: none !important; }
 
         /* PANTALLAS DE CARGA Y ÉXITO */
-        .loading-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            z-index: 9999; justify-content: center; align-items: center; 
-        }
-        .glass-loader { 
-            background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); 
-            border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
-            text-align: center; width: 85%; max-width: 340px; 
-        }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; }
+        .glass-loader { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; }
         .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; }
-        
-        .step-item { 
-            font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; 
-            transition: all 0.3s; margin-bottom: 10px; display: flex; 
-            align-items: center; justify-content: start; gap: 10px; text-align: left; 
-        }
+        .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; text-align: left; }
         .step-active { opacity: 1; color: var(--homeeasy-wine); font-weight: 800; }
         .step-check { opacity: 1; color: #2ecc71; font-weight: 700; }
 
-        .success-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            z-index: 10000; justify-content: center; align-items: center; 
-        }
-        .success-box { 
-            background: white; border-radius: 28px; padding: 40px 30px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; 
-            width: 85%; max-width: 340px; border: 1px solid rgba(194, 164, 104, 0.3);
-            animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
+        .success-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; justify-content: center; align-items: center; }
+        .success-box { background: white; border-radius: 28px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; border: 1px solid rgba(194, 164, 104, 0.3); animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .success-icon { 
-            width: 80px; height: 80px; background: rgba(46, 204, 113, 0.15); 
-            color: #27ae60; border-radius: 50%; display: flex; justify-content: center; 
-            align-items: center; font-size: 40px; margin: 0 auto 20px; 
-        }
-        .success-box h3 { 
-            color: var(--homeeasy-wine); font-weight: 800; font-size: 1.5rem; 
-            margin-bottom: 10px; letter-spacing: -0.5px;
-        }
-        .success-box p { 
-            color: #666; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; font-weight: 500;
-        }
-        .btn-success-home { 
-            background: var(--homeeasy-wine); color: white; border: none; 
-            font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; 
-            font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25);
-        }
+        .success-icon { width: 80px; height: 80px; background: rgba(46, 204, 113, 0.15); color: #27ae60; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; margin: 0 auto 20px; }
+        .success-box h3 { color: var(--homeeasy-wine); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px; letter-spacing: -0.5px;}
+        .success-box p { color: #666; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; font-weight: 500;}
+        .btn-success-home { background: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25);}
         .btn-success-home:active { transform: scale(0.95); }
 
         .row-desc, #notas { height: auto !important; min-height: 35px; }
@@ -342,14 +314,14 @@
 <div id="loading" class="loading-overlay">
     <div class="glass-loader">
         <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy" onerror="this.src='HOMMY.png'">
-        <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;" id="lbl-proceso">PROCESANDO...</h6>
-        <p class="small text-muted mb-4">Hommy está preparando tu documento</p>
+        <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;" id="lbl-proceso">ESPERA UN MOMENTO...</h6>
+        <p class="small text-muted mb-4">Hommy está preparando la cotización</p>
         
         <div id="status-list" style="text-align: left; margin-left: 10px;">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Llenando la información...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Guardando el documento...</div>
-            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Empacándolo en sobre...</div>
-            <div id="step-4" class="step-item"><i class="far fa-circle"></i> ¡Todo listo jefe!</div>
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Hommy está afilando el lápiz y buscando la calculadora...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Borrando la evidencia vieja y tirando magia al PDF...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Empacando la cotización para el cliente...</div>
+            <div id="step-4" class="step-item"><i class="far fa-circle"></i> ¡Uff, qué calor! Cotización sellada, Jefe.</div>
         </div>
     </div>
 </div>
@@ -487,9 +459,6 @@
     let editNum = null;
     let returnCedula = null; 
 
-    // ==========================================
-    // 1. CARGA INICIAL Y MODO EDICIÓN
-    // ==========================================
     window.onload = () => {
         const params = new URLSearchParams(window.location.search);
         editNum = params.get("edit");
@@ -511,8 +480,6 @@
                     document.getElementById('fecha_display').innerText = new Date(d.fecha).toLocaleDateString('es-CO');
                     document.getElementById('cedula').value = d.cedula;
                     document.getElementById('nombre').value = d.nombre;
-                    
-                    // 🚨 AHORA SÍ: Las observaciones (Col F) van a las notas
                     document.getElementById('notas').value = d.observaciones || ""; 
                     
                     buscarCliente(); 
@@ -529,9 +496,8 @@
                                 items = parsed;
                             }
                         }
-                    } catch(e) { console.warn("JSON error"); }
+                    } catch(e) {}
 
-                    // FALLBACK MAGICO PARA COTIZACIONES ANTIGUAS
                     if(items.length === 0 && d.descripcion && d.descripcion.includes(" x ")) {
                         let partes = d.descripcion.split('/');
                         partes.forEach(p => {
@@ -553,6 +519,7 @@
                                 }
                             }
                         });
+                        document.getElementById('notas').value = ""; 
                     }
                     
                     let subtotalCarga = 0;
@@ -583,7 +550,6 @@
                             subtotalCarga += (item.cantidad || 1) * pr;
                         });
                         
-                        // RECUPERACIÓN INTELIGENTE DE DESCUENTOS
                         let totalGuardado = parseFloat(d.total) || 0;
                         if (totalGuardado > 0 && subtotalCarga > totalGuardado) {
                             let descuentoDetectado = subtotalCarga - totalGuardado;
@@ -619,9 +585,6 @@
             }).catch(err => console.error("Error parchando caché:", err));
     };
 
-    // ==========================================
-    // 2. MATEMÁTICAS Y FORMATOS
-    // ==========================================
     function capFirst(input) { 
         let val = input.value; 
         if (val.length > 0) { 
@@ -672,11 +635,12 @@
         calcular(); 
     }
 
+    // 🚨 NUEVOS TEXTOS DE HOMMY PARA COTIZACIONES
     const loadingTexts = [ 
-        "Llenando la información...", 
-        "Guardando el documento...", 
-        "Empacándolo en sobre...", 
-        "¡Todo listo jefe!" 
+        "Hommy está afilando el lápiz y buscando la calculadora...", 
+        "Borrando la evidencia vieja y tirando magia al PDF...", 
+        "Empacando la cotización para el cliente...", 
+        "¡Uff, qué calor! Cotización sellada, Jefe." 
     ];
 
     function setStep(num, status) {
@@ -695,9 +659,6 @@
         }
     }
 
-    // ============================================================
-    // 3. 🖨️ MOTOR PDF FINAL Y GUARDADO EN LA NUBE
-    // ============================================================
     async function finalizar() {
         const cedula = document.getElementById('cedula').value.trim();
         let nombre = document.getElementById('nombre').value.toUpperCase();
@@ -812,7 +773,8 @@
             pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); 
             heightLeft -= pdfHeight;
             
-            while (heightLeft > 0) { 
+            // 🚨 FIX: Tolerancia de 25 píxeles
+            while (heightLeft > 25) { 
                 position -= pdfHeight; 
                 pdf.addPage(); 
                 pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); 
@@ -820,9 +782,8 @@
             }
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            // 🚨 CONSTRUCCIÓN CORRECTA DE LAS VARIABLES PARA LA NUBE
-            let descripcionTexto = ""; // Esto irá a la columna E (Ítems en plano)
-            let itemsJSON = [];        // Esto irá a la columna I (JSON)
+            let descripcionTexto = ""; 
+            let itemsJSON = [];        
             
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
                 let descEl = tr.querySelector('.row-desc');
@@ -847,7 +808,7 @@
             });
 
             const totalFinal = document.getElementById('total_val').innerText.replace(/\D/g, "");
-            const notas = document.getElementById('notas').value; // Esto irá a la columna F (Observaciones)
+            const notas = document.getElementById('notas').value; 
             const nombreArchivo = `Cotizacion_N_${numeroCot}_${cedula}.pdf`;
 
             setStep(2, 'check'); 
@@ -865,8 +826,8 @@
                     telefono: document.getElementById('telefono').value,
                     email: email,
                     direccion: document.getElementById('direccion').value,
-                    descripcion: descripcionTexto, // 👈 Ítems al tubo E
-                    observaciones: notas,          // 👈 Notas al tubo F
+                    descripcion: descripcionTexto, 
+                    observaciones: notas,          
                     total: totalFinal,
                     items: itemsJSON,
                     itemsJSON: JSON.stringify(itemsJSON), 
@@ -911,9 +872,6 @@
         }
     }
 
-    // ===============================
-    // 4. 🔎 SUGERENCIAS Y AUTOCOMPLETADO
-    // ===============================
     document.getElementById("cedula").addEventListener("input", function() {
         buscarCliente(); 
         
