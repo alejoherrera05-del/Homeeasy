@@ -240,14 +240,14 @@
 
 <div id="loading" class="loading-overlay">
     <div class="glass-loader">
-        <img src="hommysaludando.png" class="hommy-loader" alt="Hommy" onerror="this.src='HOMMY.png'">
+        <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy" onerror="this.src='HOMMY.png'">
         <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">PROCESANDO...</h6>
         <p class="small text-muted mb-4">Hommy está generando tu orden</p>
         
         <div id="status-list" style="text-align: left; margin-left: 10px;">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Acomodando el diseño final...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Imprimiendo PDF en 4K...</div>
-            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Programando la fabricación...</div>
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Revisando las medidas...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Imprimiendo OP...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Programando fabricación...</div>
             <div id="step-4" class="step-item"><i class="far fa-circle"></i> ¡Orden sellada y lista!</div>
         </div>
     </div>
@@ -257,7 +257,7 @@
     <div class="success-box">
         <div class="success-icon"><i class="fas fa-check"></i></div>
         <h3>¡Orden Confirmada!</h3>
-        <p>La orden fue generada, sincronizada con el taller y está lista para enviarse al cliente.</p>
+        <p>La orden fue creada, sincronizada y está lista para enviarse al cliente.</p>
         <button class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
     </div>
 </div>
@@ -304,7 +304,7 @@
                 <input type="email" id="email" class="form-control-compact" style="text-transform: lowercase;">
             </div>
             <div class="col-12">
-                <label class="form-label-small">Dirección / Ciudad</label>
+                <label class="form-label-small">Dirección de Instalación</label>
                 <input type="text" id="direccion" class="form-control-compact text-uppercase-input" oninput="capFirst(this)">
             </div>
         </div>
@@ -508,9 +508,9 @@
     }
 
     const loadingTexts = [
-        "Acomodando el diseño final...",
-        "Imprimiendo PDF en 4K...",
-        "Programando la fabricación...",
+        "Revisando las medidas...",
+        "Imprimiendo OP...",
+        "Programando fabricación...",
         "¡Orden sellada y lista!"
     ];
 
@@ -687,7 +687,7 @@
                     descripcion: descripcionTexto,
                     valorTotal: totalFinal,
                     abonoInicial: abonoInicial,
-                    itemsJSON: JSON.stringify(itemsJSON), // Para Op se envia en string (backend)
+                    itemsJSON: JSON.stringify(itemsJSON), 
                     observaciones: document.getElementById('notas').value,
                     pdfBase64: pdfBase64,
                     nombreArchivo: nombreArchivo
