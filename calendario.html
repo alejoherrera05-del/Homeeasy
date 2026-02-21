@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Calendario - Sistema Hommy</title>
+    
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -95,12 +96,13 @@
             font-size: 0.95rem; color: var(--primary-wine); margin-bottom: 15px; font-weight: 700; text-transform: capitalize; border-bottom: 1px dashed #e0e0e0; padding-bottom: 8px; 
         }
 
-        /* Botón Deshacer */
+        /* Botón Deshacer Mágico */
         #undoContainer {
             display: none; align-items: center; gap: 5px; cursor: pointer;
             color: var(--primary-wine); font-weight: 600; font-size: 0.75rem;
-            background: rgba(166, 69, 90, 0.1); padding: 4px 10px; border-radius: 20px;
-            transition: all 0.3s;
+            background: rgba(166, 69, 90, 0.1); padding: 5px 12px; border-radius: 20px;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 2px 8px rgba(166, 69, 90, 0.15);
         }
         #undoContainer:active { transform: scale(0.95); background: rgba(166, 69, 90, 0.2); }
 
@@ -113,8 +115,8 @@
         .vencidos-container.collapsed { display: none; }
 
         /* ==== TARJETAS EVENTOS ==== */
-        .evento-swipe-wrapper { position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 12px; background-color: #FF3B30; box-shadow: 0 2px 10px rgba(0,0,0,0.04); transition: transform 0.4s ease; }
-        .evento-accion-borrar { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: white; }
+        .evento-swipe-wrapper { position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 12px; background-color: transparent; box-shadow: 0 2px 10px rgba(0,0,0,0.04); transition: transform 0.4s ease; }
+        .evento-accion-borrar { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: white; background-color: #FF3B30;}
         
         .evento-card-content { position: relative; z-index: 1; background-color: #FFFFFF; padding: 18px 16px; border-radius: 12px; width: 100%; box-sizing: border-box; display: flex; align-items: center; border-left: 5px solid transparent; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease; }
         .evento-card-content.vencido { border-left: 5px solid var(--danger) !important; background-color: var(--white) !important; border: 1px solid #f0f0f0 !important; }
@@ -130,7 +132,6 @@
         .nota-box { font-size: 0.75rem; color: #666; font-style: italic; background: #fdfdfd; padding: 6px 10px; border-radius: 6px; margin-top: 6px; border-left: 2px solid var(--accent-gold); display: block; }
         .vencido-badge { color: var(--danger); font-size: 10px; font-weight: 700; text-transform: uppercase; display: inline-block; margin-top: 4px; background: rgba(231, 76, 60, 0.08); padding: 4px 8px; border-radius: 6px; }
 
-        /* Tipos de eventos */
         .type-instalacion { border-left-color: var(--primary-wine); }
         .type-visita { border-left-color: var(--accent-gold); }
         .type-garantia { border-left-color: #3498db; }
@@ -140,7 +141,7 @@
         .cat-visita { color: var(--accent-gold); font-weight: 600; }
 
         /* =========================================
-           BOTÓN FLOTANTE (CON ANIMACIÓN ESTEROIDES)
+           BOTÓN FLOTANTE ESTEROIDES ACTIVADOS
            ========================================= */
         .fab {
             position: fixed; bottom: 95px; right: 20px; width: 60px; height: 60px;
@@ -148,7 +149,7 @@
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
             color: var(--white); box-shadow: 0 4px 20px rgba(194, 164, 104, 0.5);
             z-index: 100; cursor: pointer;
-            animation: pulse-steroids 2s infinite; /* REGRESARON LOS ESTEROIDES */
+            animation: pulse-steroids 2s infinite; 
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .fab:active { transform: scale(0.9); }
@@ -179,7 +180,7 @@
         .fs-header input { flex: 1; border: none; outline: none; font-size: 1rem; background: #f0f0f0; padding: 10px 15px; border-radius: 20px; color: var(--text-dark); }
         .fs-content { flex: 1; overflow-y: auto; padding: 20px; }
 
-        /* Títulos Próximas Tareas en Vinotinto */
+        /* Títulos Próximas Tareas (Vinotinto) */
         .group-header {
             font-size: 0.75rem; font-weight: 800; color: var(--primary-wine);
             text-transform: uppercase; letter-spacing: 2px;
@@ -187,18 +188,32 @@
         }
         .group-header:first-child { margin-top: 0; }
 
-        /* Modal Evento Nuevo / Edición */
+        /* Modal Evento Nuevo / Edición (Estructurado y Estable) */
         .modal { display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
-        .modal-content { background-color: var(--white); width: 85%; max-width: 400px; border-radius: 20px; padding: 25px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; outline: none; font-weight: 500; color: var(--text-dark); transition: border 0.3s; background: #fafafa; }
+        .modal-content { background-color: var(--white); width: 90%; max-width: 420px; border-radius: 24px; padding: 30px 25px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        
+        .form-layout { display: flex; flex-direction: column; gap: 16px; }
+        .form-group { margin: 0; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 12px; outline: none; font-weight: 500; color: var(--text-dark); transition: border 0.3s; background: #fafafa; }
         .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-gold); background: #fff;}
         .form-group textarea { resize: none; }
         
-        .btn-submit { background-color: var(--primary-wine); color: var(--white); border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 700; margin-top: 10px; font-size: 1rem; box-shadow: 0 5px 15px rgba(166, 69, 90, 0.2);}
+        .btn-submit { background-color: var(--primary-wine); color: var(--white); border: none; width: 100%; padding: 16px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 1rem; box-shadow: 0 5px 15px rgba(166, 69, 90, 0.2);}
         .btn-submit:active { transform: scale(0.98); }
         .btn-cancel { background: transparent; color: var(--text-light); border: none; width: 100%; padding: 10px; font-weight: 600; margin-top: 5px; }
+
+        /* Animación Rueda Sincronizar */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .spin-anim { animation: spin 0.6s ease; }
+
+        /* PC vs Movil Time Inputs */
+        .time-desktop { display: none; }
+        .time-mobile { display: block; }
+        @media (pointer: fine) and (min-width: 768px) {
+            .time-desktop { display: flex !important; gap: 10px; }
+            .time-mobile { display: none !important; }
+        }
 
         @media (max-width: 380px) {
             .header-brand h1 { font-size: 0.95rem; }
@@ -283,69 +298,85 @@
         <div class="modal-content">
             <h2 id="modalTitle" style="color: var(--primary-wine); font-weight: 800; font-size: 1.3rem; margin-bottom: 20px; text-align: center;">Nuevo Evento</h2>
             
-            <div class="form-group">
-                <label>Categoría</label>
-                <select id="eventType" onchange="manejarCambioCategoria()" style="font-weight: 700;">
-                    <option value="" style="font-weight: normal;">Seleccionar categoría...</option>
-                    <option value="Instalaciones" style="color: #a6455a;">● Instalaciones</option>
-                    <option value="Visitas técnicas" style="color: #c2a468;">● Visitas técnicas</option>
-                    <option value="Garantías" style="color: #3498db;">● Garantías</option>
-                    <option value="Recordatorios de pago" style="color: #27ae60;">● Recordatorios de pago</option>
-                    <option value="Obligaciones tributarias" style="color: #9b59b6;">● Obligaciones tributarias</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Título del Evento</label>
-                <input type="text" id="eventTitle" placeholder="Ej: Entrega de Comedor">
-            </div>
-
-            <div class="form-group">
-                <label>Fecha</label>
-                <input type="date" id="eventDate">
-            </div>
-            <div class="form-group">
-                <label>Hora</label>
-                <input type="time" id="eventTimeRaw">
-            </div>
-
-            <div class="form-group">
-                <label>¿Algo importante que añadir?</label>
-                <textarea id="eventNota" placeholder="Ej: Detalles adicionales..." rows="2"></textarea>
-            </div>
-
-            <div id="recurrenteContainer" style="display:none; margin-bottom: 15px; padding: 12px; background: #fff8eb; border-radius: 10px; border: 1px dashed var(--accent-gold);">
-                <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight: 600; color: var(--accent-gold); cursor: pointer; text-transform: none;">
-                    <input type="checkbox" id="mensualCheckbox" style="width: auto; transform: scale(1.3);">
-                    Crear para cada mes (1 año)
-                </label>
-            </div>
-
-            <div id="usarClienteContainer" style="display:none; margin-bottom: 10px;">
-                <label style="display:flex; align-items:center; gap:8px; font-size:13px; text-transform: none;">
-                    <input type="checkbox" id="usarClienteCheckbox" onchange="toggleCliente()" style="width: auto; transform: scale(1.3);">
-                    Vincular con un Cliente
-                </label>
-            </div>
-
-            <div id="seccionCliente" style="display: none; border-top: 1px dashed #eee; padding-top:15px;">
-                <div class="form-group" style="position: relative;">
-                    <label>Buscar Cliente</label>
-                    <input type="text" id="clienteBusqueda" placeholder="Nombre o cédula..." oninput="buscarClienteApp(this.value)">
-                    <div id="listaSugerencias" class="sugerencias-dropdown"></div>
-                    <input type="hidden" id="clienteSeleccionadoId">
-                </div>
-
-                <div class="form-group" id="seccionReferencia" style="display: none;">
-                    <label>Cotización / OP Asignada</label>
-                    <select id="eventReferencia">
-                        <option value="">Cargando referencias...</option>
+            <div class="form-layout">
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="eventType" onchange="manejarCambioCategoria()" style="font-weight: 700;">
+                        <option value="" style="font-weight: normal;">Seleccionar categoría...</option>
+                        <option value="Instalaciones" style="color: #a6455a;">● Instalaciones</option>
+                        <option value="Visitas técnicas" style="color: #c2a468;">● Visitas técnicas</option>
+                        <option value="Garantías" style="color: #3498db;">● Garantías</option>
+                        <option value="Recordatorios de pago" style="color: #27ae60;">● Recordatorios de pago</option>
+                        <option value="Obligaciones tributarias" style="color: #9b59b6;">● Obligaciones tributarias</option>
                     </select>
                 </div>
-            </div>
+                
+                <div class="form-group">
+                    <label>Título del Evento</label>
+                    <input type="text" id="eventTitle" placeholder="Ej: Entrega de Comedor">
+                </div>
 
-            <button class="btn-submit" id="btnGuardarEvent" onclick="guardarEvento()">Guardar Agenda</button>
-            <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" id="eventDate">
+                </div>
+                
+                <div class="form-group time-mobile">
+                    <label>Hora</label>
+                    <input type="time" id="eventTimeMobile">
+                </div>
+                <div class="form-group time-desktop">
+                    <div style="flex:1">
+                        <label>Hora</label>
+                        <input type="text" id="eventTimeDesktop" placeholder="08:30" maxlength="5">
+                    </div>
+                    <div style="width: 90px;">
+                        <label>&nbsp;</label>
+                        <select id="eventAmPmDesktop">
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>¿Algo importante que añadir?</label>
+                    <textarea id="eventNota" placeholder="Ej: Detalles adicionales..." rows="2"></textarea>
+                </div>
+
+                <div id="recurrenteContainer" style="display:none; padding: 12px; background: #fff8eb; border-radius: 10px; border: 1px dashed var(--accent-gold);">
+                    <label style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight: 600; color: var(--accent-gold); cursor: pointer; text-transform: none; margin: 0;" onclick="animarRueda()">
+                        <input type="checkbox" id="mensualCheckbox" style="width: auto; transform: scale(1.3);">
+                        <i class="fas fa-sync-alt" id="syncIcon"></i> Crear para cada mes (1 año)
+                    </label>
+                </div>
+
+                <div id="usarClienteContainer" style="display:none;">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:13px; text-transform: none; margin: 0;">
+                        <input type="checkbox" id="usarClienteCheckbox" onchange="toggleCliente()" style="width: auto; transform: scale(1.3);">
+                        Vincular con un Cliente
+                    </label>
+                </div>
+
+                <div id="seccionCliente" style="display: none; border-top: 1px dashed #eee; padding-top:15px;" class="form-layout">
+                    <div class="form-group" style="position: relative;">
+                        <label>Buscar Cliente</label>
+                        <input type="text" id="clienteBusqueda" placeholder="Nombre o cédula..." oninput="buscarClienteApp(this.value)">
+                        <div id="listaSugerencias" class="sugerencias-dropdown"></div>
+                        <input type="hidden" id="clienteSeleccionadoId">
+                    </div>
+
+                    <div class="form-group" id="seccionReferencia" style="display: none;">
+                        <label>Cotización / OP Asignada</label>
+                        <select id="eventReferencia">
+                            <option value="">Cargando referencias...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-submit" id="btnGuardarEvent" onclick="guardarEvento()">Guardar Agenda</button>
+                <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+            </div>
         </div>
     </div>
 
@@ -365,12 +396,32 @@
     let isEditing = false;
     let editingEventId = null;
     
-    // Variables para el Botón "Deshacer"
+    // Variables Botón Deshacer
     let ultimoEventoBorrado = null;
     let undoTimeout = null;
 
+    // Click por fuera del modal en PC
+    modal.addEventListener('mousedown', function(e) {
+        if(e.target === this) closeModal();
+    });
+
+    // Formateo en tiempo real del Input Desktop (00:00)
+    document.getElementById('eventTimeDesktop').addEventListener('input', function(e) {
+        let v = this.value.replace(/\D/g, '');
+        if (v.length >= 3) v = v.substring(0, 2) + ':' + v.substring(2, 4);
+        this.value = v;
+    });
+
+    // Animación Rueda Sincronizar
+    function animarRueda() {
+        const icon = document.getElementById('syncIcon');
+        icon.classList.remove('spin-anim');
+        void icon.offsetWidth; 
+        icon.classList.add('spin-anim');
+    }
+
     // ==========================================
-    // GESTIÓN DE HORAS (24h nativo <-> AM/PM)
+    // GESTIÓN DE HORAS
     // ==========================================
     function formatTimeForSave(time24) {
         if(!time24) return "";
@@ -379,7 +430,7 @@
         let ampm = h >= 12 ? 'PM' : 'AM';
         h = h % 12;
         h = h ? h : 12; 
-        return `${h}:${m} ${ampm}`;
+        return `${String(h).padStart(2, '0')}:${m} ${ampm}`;
     }
 
     function parseTimeTo24h(timeAMPM) {
@@ -424,15 +475,12 @@
 
     function obtenerClasesCategoria(categoriaRaw) {
         let cat = (categoriaRaw || "").toLowerCase();
-        let claseTipo = "";
-        let claseCategoria = "";
-
+        let claseTipo = ""; let claseCategoria = "";
         if (cat.includes("instalaci")) { claseTipo = "type-instalacion"; claseCategoria = "cat-instalacion"; }
         else if (cat.includes("visita")) { claseTipo = "type-visita"; claseCategoria = "cat-visita"; }
         else if (cat.includes("garant")) { claseTipo = "type-garantia"; claseCategoria = "cat-garantia"; }
         else if (cat.includes("recordatorio")) { claseTipo = "type-recordatorio"; claseCategoria = "cat-recordatorio"; }
         else if (cat.includes("obligaci")) { claseTipo = "type-obligacion"; claseCategoria = "cat-obligacion"; }
-        
         return { claseTipo, claseCategoria };
     }
 
@@ -465,8 +513,7 @@
     // SWIPE CALENDAR MÓVIL
     // ==========================================
     const calZone = document.getElementById('swipeCalendarZone');
-    let touchstartX = 0;
-    let touchendX = 0;
+    let touchstartX = 0; let touchendX = 0;
 
     calZone.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, {passive: true});
     calZone.addEventListener('touchend', e => { 
@@ -481,12 +528,8 @@
     async function inicializarCalendario() {
         const cacheEventos = localStorage.getItem('CACHE_EVENTOS');
         if (cacheEventos) {
-            try {
-                eventosGlobales = JSON.parse(cacheEventos);
-                procesarEventosLocales();
-            } catch(e) {}
+            try { eventosGlobales = JSON.parse(cacheEventos); procesarEventosLocales(); } catch(e) {}
         }
-
         try {
             const response = await fetch(`${WEBAPP_URL}?tipo=EVENTOS_TODOS`);
             const data = await response.json();
@@ -545,8 +588,7 @@
 
     function changeMonth(n) {
         date.setMonth(date.getMonth() + n);
-        actualizarDiasConEventos();
-        renderCalendar();
+        actualizarDiasConEventos(); renderCalendar();
     }
 
     function selectDay(element) {
@@ -565,15 +607,10 @@
     }
 
     function irAFecha(fechaStr) {
-        cerrarBuscador();
-        cerrarProximos();
-        
+        cerrarBuscador(); cerrarProximos();
         const [anio, mes, dia] = fechaStr.split("-");
-        date.setFullYear(parseInt(anio));
-        date.setMonth(parseInt(mes) - 1);
-        
-        actualizarDiasConEventos();
-        renderCalendar();
+        date.setFullYear(parseInt(anio)); date.setMonth(parseInt(mes) - 1);
+        actualizarDiasConEventos(); renderCalendar();
 
         fechaActiva = fechaStr;
         const fechaObj = new Date(fechaActiva + 'T00:00:00');
@@ -593,7 +630,6 @@
         document.getElementById('searchModal').style.display = 'flex';
         document.getElementById('searchInput').focus();
     }
-    
     function cerrarBuscador() {
         document.getElementById('searchModal').style.display = 'none';
         document.getElementById('searchInput').value = "";
@@ -602,23 +638,14 @@
     function filtrarBusqueda(texto) {
         const contenedor = document.getElementById("searchResults");
         texto = texto.toLowerCase().trim();
-
-        if (texto.length === 0) {
-            contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.9rem;'>Escribe para buscar cualquier tarea...</p>";
-            return;
-        }
+        if (texto.length === 0) { contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.9rem;'>Escribe para buscar cualquier tarea...</p>"; return; }
 
         const resultados = eventosGlobales.filter(ev => 
-            (ev.titulo && ev.titulo.toLowerCase().includes(texto)) ||
-            (ev.categoria && ev.categoria.toLowerCase().includes(texto)) ||
-            (ev.cliente && ev.cliente.toLowerCase().includes(texto)) ||
-            (ev.referencia && ev.referencia.toLowerCase().includes(texto))
+            (ev.titulo && ev.titulo.toLowerCase().includes(texto)) || (ev.categoria && ev.categoria.toLowerCase().includes(texto)) ||
+            (ev.cliente && ev.cliente.toLowerCase().includes(texto)) || (ev.referencia && ev.referencia.toLowerCase().includes(texto))
         );
 
-        if (resultados.length === 0) {
-            contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.9rem;'>No se encontraron resultados.</p>";
-            return;
-        }
+        if (resultados.length === 0) { contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.9rem;'>No se encontraron resultados.</p>"; return; }
 
         contenedor.innerHTML = "";
         resultados.forEach(ev => {
@@ -629,13 +656,13 @@
             const tarjeta = `
                 <div class="evento-card-content ${claseTipo} ${ev.estado === 'COMPLETADO' ? 'completed' : ''}" onclick="irAFecha('${ev.fecha.split("T")[0]}')" style="margin-bottom:12px; cursor:pointer; box-shadow: var(--shadow); border: 1px solid #eee;">
                     <div class="event-details">
-                        <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 600; margin-bottom: 4px;"><i class="far fa-calendar-alt me-1"></i> ${fechaFormateada}${estadoTexto}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 600; margin-bottom: 4px;"><i class="fas fa-calendar-day me-1"></i> ${fechaFormateada}${estadoTexto}</div>
                         <h3 class="${claseCategoria}" style="font-size: 0.8rem;">${ev.categoria}</h3>
                         <p class="titulo-tarea ${claseCategoria}" style="font-size: 0.95rem; margin-bottom: 2px;">${ev.titulo}</p>
                         ${ev.cliente && ev.cliente !== 'Sin asignar' ? `<p style="font-size:0.75rem; color:var(--text-dark);"><strong>C:</strong> ${ev.cliente}</p>` : ''}
                         ${getReferenciaHtml(ev.referencia)}
                     </div>
-                    <span class="material-icons-round" style="color: #ddd;">chevron_right</span>
+                    <i class="fas fa-chevron-right" style="color: #ddd;"></i>
                 </div>
             `;
             contenedor.innerHTML += tarjeta;
@@ -648,36 +675,27 @@
         contenedor.innerHTML = "";
 
         const hoy = new Date(getFechaLocal() + 'T00:00:00');
-        
         let proximos = eventosGlobales.filter(ev => {
             if(!ev.fecha) return false;
-            const evDateStr = ev.fecha.split("T")[0];
-            return evDateStr >= getFechaLocal() && ev.estado === "PENDIENTE" && !comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado);
+            return ev.fecha.split("T")[0] >= getFechaLocal() && ev.estado === "PENDIENTE" && !comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado);
         });
 
         proximos.sort((a, b) => a.fecha.localeCompare(b.fecha));
         proximos = proximos.slice(0, 30); 
 
-        if(proximos.length === 0) {
-            contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px;'>Tu agenda está limpia. No hay tareas próximas.</p>";
-            return;
-        }
+        if(proximos.length === 0) { contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px;'>Tu agenda está limpia. No hay tareas próximas.</p>"; return; }
 
         let groups = {};
         proximos.forEach(ev => {
             const evDate = new Date(ev.fecha.split("T")[0] + 'T00:00:00');
-            const diffTime = evDate.getTime() - hoy.getTime();
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const diffDays = Math.floor((evDate.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
             
             let groupName = "";
             if (diffDays === 0) groupName = "Hoy";
             else if (diffDays === 1) groupName = "Mañana";
             else if (diffDays <= 7) groupName = "Próximos 7 días";
             else if (diffDays <= 30) groupName = "Este Mes";
-            else {
-                const mes = evDate.toLocaleDateString("es-ES", { month: "long" });
-                groupName = mes.charAt(0).toUpperCase() + mes.slice(1) + " " + evDate.getFullYear();
-            }
+            else { groupName = evDate.toLocaleDateString("es-ES", { month: "long" }).toUpperCase() + " " + evDate.getFullYear(); }
 
             if(!groups[groupName]) groups[groupName] = [];
             groups[groupName].push(ev);
@@ -692,23 +710,22 @@
                 const tarjeta = `
                     <div class="evento-card-content ${claseTipo}" onclick="irAFecha('${ev.fecha.split("T")[0]}')" style="margin-bottom:12px; cursor:pointer; box-shadow: var(--shadow); border: 1px solid #eee;">
                         <div class="event-details">
-                            <div style="font-size: 0.75rem; color: var(--primary-wine); font-weight: 700; margin-bottom: 4px;"><i class="far fa-calendar-alt me-1"></i> ${fechaFormateada} &nbsp;|&nbsp; <i class="far fa-clock me-1"></i> ${ev.hora}</div>
+                            <div style="font-size: 0.75rem; color: var(--primary-wine); font-weight: 700; margin-bottom: 4px;"><i class="fas fa-calendar-day me-1"></i> ${fechaFormateada} &nbsp;|&nbsp; <i class="fas fa-clock me-1"></i> ${ev.hora}</div>
                             <h3 class="${claseCategoria}" style="font-size: 0.8rem;">${ev.categoria}</h3>
                             <p class="titulo-tarea ${claseCategoria}" style="font-size: 0.95rem; margin-bottom: 0;">${ev.titulo}</p>
                             ${getReferenciaHtml(ev.referencia)}
                         </div>
-                        <span class="material-icons-round" style="color: #ddd;">chevron_right</span>
+                        <i class="fas fa-chevron-right" style="color: #ddd;"></i>
                     </div>
                 `;
                 contenedor.innerHTML += tarjeta;
             });
         }
     }
-
     function cerrarProximos() { document.getElementById('upcomingModal').style.display = 'none'; }
 
     // ==========================================
-    // RENDERIZADO PRINCIPAL
+    // RENDERIZADO Y SWIPE
     // ==========================================
     function renderizarVencidas() {
         const agendaContainer = document.querySelector(".agenda-container");
@@ -718,27 +735,20 @@
         const vencidos = eventosGlobales.filter(ev => ev.fecha && comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado));
         if (vencidos.length === 0) return;
 
-        const wrapper = document.createElement("div");
-        wrapper.id = "vencidosWrapper";
-        
+        const wrapper = document.createElement("div"); wrapper.id = "vencidosWrapper";
         let htmlVencidos = `
             <div class="vencidos-toggle" onclick="toggleVencidos()">
-                <div class="label-box">
-                    <span class="material-icons-round" style="font-size: 20px;">error_outline</span>
-                    <span>Tareas atrasadas</span>
-                    <span class="vencidos-count">${vencidos.length}</span>
-                </div>
-                <span class="material-icons-round" id="vencidosIcon" style="color: var(--text-light);">keyboard_arrow_up</span>
+                <div class="label-box"><i class="fas fa-exclamation-circle" style="font-size: 18px;"></i> <span>Tareas atrasadas</span> <span class="vencidos-count">${vencidos.length}</span></div>
+                <i class="fas fa-chevron-up" id="vencidosIcon" style="color: var(--text-light);"></i>
             </div>
             <div class="vencidos-container" id="vencidosContainer">
         `;
 
         vencidos.forEach(ev => {
             const { claseTipo, claseCategoria } = obtenerClasesCategoria(ev.categoria);
-
             htmlVencidos += `
                 <div class="evento-swipe-wrapper" id="evento-vencido-${ev.id}">
-                    <div class="evento-accion-borrar"><span class="material-icons-round">delete</span></div>
+                    <div class="evento-accion-borrar"><i class="fas fa-trash-alt" style="font-size:24px;"></i></div>
                     <div class="evento-card-content vencido ${claseTipo}" onclick="abrirEdicion('${ev.id}')">
                         <div class="event-time">${ev.hora}</div>
                         <div class="event-details">
@@ -748,18 +758,14 @@
                             ${getReferenciaHtml(ev.referencia)}
                             <span class="vencido-badge">¡Atrasada!</span>
                         </div>
-                        <span class="material-icons-round check-icon" style="color: var(--accent-gold); cursor:pointer; font-size: 28px; margin-left: auto;" onclick="event.stopPropagation(); animarYCompletar(this, '${ev.id}')">
-                            check_circle
-                        </span>
+                        <i class="fas fa-check-circle" style="color: var(--accent-gold); cursor:pointer; font-size: 28px; margin-left: auto;" onclick="event.stopPropagation(); animarYCompletar(this, '${ev.id}')"></i>
                     </div>
                 </div>
             `;
         });
 
-        htmlVencidos += `</div>`;
-        wrapper.innerHTML = htmlVencidos;
+        htmlVencidos += `</div>`; wrapper.innerHTML = htmlVencidos;
         agendaContainer.insertBefore(wrapper, agendaContainer.firstChild);
-        
         inicializarEventosSwipe();
     }
 
@@ -768,7 +774,7 @@
         const icon = document.getElementById("vencidosIcon");
         if (container) {
             const isCollapsed = container.classList.toggle("collapsed");
-            icon.innerText = isCollapsed ? "keyboard_arrow_down" : "keyboard_arrow_up";
+            icon.className = isCollapsed ? "fas fa-chevron-down" : "fas fa-chevron-up";
         }
     }
 
@@ -777,11 +783,7 @@
         contenedor.innerHTML = "";
 
         let eventosDelDia = eventosGlobales.filter(ev => ev.fecha && ev.fecha.split("T")[0] === fecha);
-
-        if (eventosDelDia.length === 0) {
-            contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.85rem;'>No hay eventos programados para hoy</p>";
-            return;
-        }
+        if (eventosDelDia.length === 0) { contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px; font-size:0.85rem;'>No hay eventos programados para hoy</p>"; return; }
         
         eventosDelDia.sort((a, b) => {
             if (a.estado === "COMPLETADO" && b.estado !== "COMPLETADO") return 1;
@@ -790,34 +792,25 @@
         });
 
         eventosDelDia.forEach(ev => {
-            let esVencido = comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado);
-            if (esVencido && ev.estado === "PENDIENTE") return; 
+            if (comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado) && ev.estado === "PENDIENTE") return; 
 
             const claseEstado = ev.estado === "COMPLETADO" ? "completed" : "";
             const { claseTipo, claseCategoria } = obtenerClasesCategoria(ev.categoria);
 
             const tarjeta = `
             <div class="evento-swipe-wrapper ${claseEstado}" id="evento-${ev.id}">
-                <div class="evento-accion-borrar"><span class="material-icons-round">delete</span></div>
-                
+                <div class="evento-accion-borrar"><i class="fas fa-trash-alt" style="font-size:24px;"></i></div>
                 <div class="evento-card-content ${claseEstado} ${claseTipo}" onclick="${ev.estado !== 'COMPLETADO' ? `abrirEdicion('${ev.id}')` : ''}">
                     <div class="event-time">${ev.hora}</div>
-                    
                     <div class="event-details">
                         <h3 class="${claseCategoria}">${ev.categoria}</h3>
                         <p class="titulo-tarea ${claseCategoria}">${ev.titulo}</p>
                         ${ev.cliente && ev.cliente !== 'Sin asignar' ? `<p><strong>Cliente:</strong> ${ev.cliente}</p>` : ''}
                         ${getReferenciaHtml(ev.referencia)}
                     </div>
-
-                    ${ev.estado !== 'COMPLETADO' ? `
-                        <span class="material-icons-round check-icon" style="color: var(--accent-gold); cursor:pointer; font-size: 28px; margin-left: auto;" onclick="event.stopPropagation(); animarYCompletar(this, '${ev.id}')">
-                            check_circle
-                        </span>
-                    ` : ''}
+                    ${ev.estado !== 'COMPLETADO' ? `<i class="fas fa-check-circle" style="color: var(--accent-gold); cursor:pointer; font-size: 28px; margin-left: auto;" onclick="event.stopPropagation(); animarYCompletar(this, '${ev.id}')"></i>` : ''}
                 </div>
-            </div>
-            `;
+            </div>`;
             contenedor.innerHTML += tarjeta;
         });
 
@@ -828,6 +821,10 @@
         const wrapper = iconoCheck.closest('.evento-swipe-wrapper');
         const content = wrapper.querySelector('.evento-card-content');
         const contenedorPadre = wrapper.parentElement;
+
+        // Eliminamos el fondo rojo para que no se vea en la transición
+        wrapper.style.backgroundColor = 'transparent';
+        wrapper.style.boxShadow = 'none';
 
         iconoCheck.style.transition = "transform 0.5s ease, opacity 0.5s ease";
         iconoCheck.style.transform = "scale(1.5) rotate(360deg)";
@@ -848,9 +845,7 @@
             localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales)); 
         }
 
-        try {
-            await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "completar_evento", id: id }) });
-        } catch (e) { console.error(e); }
+        try { await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "completar_evento", id: id }) }); } catch (e) {}
     }
 
     function actualizarContadorVencidas() {
@@ -861,7 +856,6 @@
         if (contenedor && countBadge && wrapper) {
             const tareasRestantes = contenedor.querySelectorAll('.evento-swipe-wrapper:not(.completed)').length;
             countBadge.innerText = tareasRestantes;
-
             if (tareasRestantes === 0) {
                 wrapper.style.transition = "all 0.4s ease"; wrapper.style.opacity = "0"; wrapper.style.height = "0px"; wrapper.style.marginBottom = "0px";
                 setTimeout(() => wrapper.remove(), 400);
@@ -870,157 +864,7 @@
     }
 
     // ==========================================
-    // NUEVO / EDICIÓN DE EVENTOS 
-    // ==========================================
-    function abrirNuevoEvento() {
-        isEditing = false;
-        editingEventId = null;
-        limpiarFormulario();
-        document.getElementById('modalTitle').innerText = "Nuevo Evento";
-        document.getElementById('eventDate').value = fechaActiva || getFechaLocal();
-        document.getElementById('btnGuardarEvent').innerText = "Guardar Agenda";
-        modal.style.display = 'flex';
-    }
-
-    function abrirEdicion(id) {
-        let ev = eventosGlobales.find(e => String(e.id) === String(id));
-        if(!ev) return;
-        
-        isEditing = true;
-        editingEventId = id;
-        
-        document.getElementById('modalTitle').innerText = "Editar Evento";
-        document.getElementById('btnGuardarEvent').innerText = "Guardar Cambios";
-        limpiarFormulario();
-
-        document.getElementById('eventTitle').value = ev.titulo;
-        document.getElementById('eventType').value = ev.categoria;
-        manejarCambioCategoria(); 
-        document.getElementById('eventDate').value = ev.fecha.split("T")[0];
-        document.getElementById('eventTimeRaw').value = parseTimeTo24h(ev.hora);
-        
-        let notaVal = "";
-        let refBase = ev.referencia || "";
-        if(refBase.includes(" / Nota: ")) {
-            let partes = refBase.split(" / Nota: ");
-            refBase = partes[0];
-            notaVal = partes[1].split(" | REC-")[0];
-        }
-        document.getElementById('eventNota').value = notaVal;
-        
-        if(ev.cliente && ev.cliente !== 'Sin asignar') {
-            document.getElementById('usarClienteCheckbox').checked = true;
-            toggleCliente();
-            document.getElementById('clienteBusqueda').value = ev.cliente;
-            document.getElementById('eventReferencia').innerHTML = `<option value="${refBase}">${refBase}</option>`;
-        }
-        
-        modal.style.display = 'flex';
-    }
-    
-    function closeModal() { modal.style.display = 'none'; }
-
-    function limpiarFormulario() {
-        document.getElementById('eventType').selectedIndex = 0;
-        document.getElementById('eventTitle').value = "";
-        document.getElementById('eventTimeRaw').value = "";
-        document.getElementById('eventNota').value = "";
-        document.getElementById('clienteBusqueda').value = "";
-        document.getElementById('clienteSeleccionadoId').value = "";
-        document.getElementById('usarClienteCheckbox').checked = false;
-        document.getElementById('mensualCheckbox').checked = false;
-        document.getElementById('seccionCliente').style.display = 'none';
-        document.getElementById('recurrenteContainer').style.display = 'none';
-        const ref = document.getElementById('eventReferencia');
-        if (ref) ref.innerHTML = '<option value="">Cargando referencias...</option>';
-        document.getElementById("eventNota").placeholder = "Ej: Detalles adicionales...";
-    }
-
-    async function guardarEvento() {
-        const titulo = document.getElementById('eventTitle').value.trim();
-        const categoria = document.getElementById('eventType').value;
-        const timeRaw = document.getElementById('eventTimeRaw').value; 
-        const hora = formatTimeForSave(timeRaw); 
-        const cliente = document.getElementById('clienteBusqueda').value;
-        const nota = document.getElementById('eventNota').value.trim();
-        
-        const fechaSeleccionada = document.getElementById('eventDate').value;
-        const referencia = document.getElementById('eventReferencia') ? document.getElementById('eventReferencia').value : "N/A";
-        let referenciaFinal = referencia;
-        const esMensual = document.getElementById('mensualCheckbox').checked;
-
-        if (!fechaSeleccionada) return alert("Por favor selecciona una fecha");
-        if (!titulo || !timeRaw) return alert("Por favor completa el título y la hora");
-
-        if (referencia && referencia !== "N/A" && referencia !== "VENTA DIRECTA" && !referencia.includes("OP-") && !referencia.includes("COT-")) {
-            if (categoria === "Instalaciones") referenciaFinal = "OP-" + referencia;
-            if (categoria === "Visitas técnicas") referenciaFinal = "COT-" + referencia;
-        }
-
-        const btn = document.getElementById('btnGuardarEvent');
-        btn.innerText = "Procesando...";
-        btn.disabled = true;
-
-        const baseRef = referenciaFinal || "N/A";
-        let refLimpia = baseRef.split(" | REC-")[0]; 
-
-        // Si es Edición, borramos el anterior silenciosamente.
-        if(isEditing && editingEventId) {
-            try {
-                await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: editingEventId }) });
-                eventosGlobales = eventosGlobales.filter(e => String(e.id) !== String(editingEventId));
-            } catch(e) {}
-        }
-
-        const groupId = esMensual ? "REC-" + Date.now() : "";
-        const iteraciones = esMensual && !isEditing ? 12 : 1; 
-        const [anio, mes, dia] = fechaSeleccionada.split("-");
-        const fechaBase = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
-
-        try {
-            for (let i = 0; i < iteraciones; i++) {
-                const fechaIteracionObj = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + i, fechaBase.getDate());
-                const y = fechaIteracionObj.getFullYear();
-                const m = String(fechaIteracionObj.getMonth() + 1).padStart(2, '0');
-                const d = String(fechaIteracionObj.getDate()).padStart(2, '0');
-                const fechaIteracionStr = `${y}-${m}-${d}`;
-
-                // Empacar la Nota
-                let refGuardar = refLimpia;
-                if (nota) refGuardar += ` / Nota: ${nota}`;
-                if (esMensual && !isEditing) refGuardar += ` | ${groupId}`;
-
-                const datos = {
-                    tipo: "nuevo_evento",
-                    fecha: fechaIteracionStr, hora: hora, titulo: titulo, categoria: categoria,
-                    cliente: cliente || "Sin asignar", referencia: refGuardar
-                };
-
-                const response = await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify(datos) });
-                const data = await response.json();
-
-                if (data.status === "success") {
-                    eventosGlobales.push({
-                        id: data.id || Date.now() + i,
-                        fecha: fechaIteracionStr, hora: hora, titulo: titulo, categoria: categoria,
-                        cliente: cliente || "Sin asignar", referencia: refGuardar, estado: "PENDIENTE"
-                    });
-                }
-            } 
-
-            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
-            closeModal();
-            procesarEventosLocales();
-
-        } catch (error) {
-            alert("Hubo un problema al conectar con el servidor");
-        } finally {
-            btn.disabled = false;
-        }
-    }
-
-    // ==========================================
-    // BORRADO Y DESHACER (CTRL+Z MÁGICO)
+    // BORRADO Y DESHACER 
     // ==========================================
     function inicializarEventosSwipe() {
         const wrappers = document.querySelectorAll('.evento-swipe-wrapper');
@@ -1033,22 +877,22 @@
 
             content.addEventListener("touchstart", (e) => {
                 startX = e.touches[0].clientX; currentX = startX; isDragging = true; content.style.transition = "none";
+                wrapper.style.backgroundColor = '#FF3B30'; // Devuelve el fondo rojo al tocar
             }, {passive: true});
 
             content.addEventListener("touchmove", (e) => {
                 if (!isDragging) return;
                 currentX = e.touches[0].clientX;
                 const diff = currentX - startX;
-                if (diff < 0) {
-                    content.style.transform = `translateX(${diff > -120 ? diff : -(120 + Math.abs(diff + 120) * 0.2)}px)`;
-                }
+                if (diff < 0) { content.style.transform = `translateX(${diff > -100 ? diff : -(100 + Math.abs(diff + 100) * 0.2)}px)`; }
             }, {passive: true});
 
             content.addEventListener("touchend", () => {
                 if (!isDragging) return;
                 isDragging = false;
                 content.style.transition = "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
-                if ((currentX - startX) < -120) { // Mayor sensibilidad
+                // Resistencia al swipe subida a -80px
+                if ((currentX - startX) < -80) { 
                     content.style.transform = "translateX(-120%)";
                     setTimeout(() => { eliminarEventoVisual(wrapper, wrapper.id.split('-').pop()); }, 300);
                 } else {
@@ -1070,41 +914,175 @@
             localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
             fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: eventId }) });
             
-            actualizarContadorVencidas(); 
-            procesarEventosLocales(); 
+            actualizarContadorVencidas(); procesarEventosLocales(); 
 
             // Activar botón deshacer
             if(ultimoEventoBorrado) {
                 const btnUndo = document.getElementById("undoContainer");
                 btnUndo.style.display = "flex";
                 clearTimeout(undoTimeout);
-                undoTimeout = setTimeout(() => {
-                    btnUndo.style.display = "none";
-                    ultimoEventoBorrado = null;
-                }, 15000); // 15 segundos para arrepentirse
+                undoTimeout = setTimeout(() => { btnUndo.style.display = "none"; ultimoEventoBorrado = null; }, 15000); 
             }
         }, 300);
     }
 
     async function deshacerBorrado() {
         if (!ultimoEventoBorrado) return;
-        
         const btnUndo = document.getElementById("undoContainer");
-        btnUndo.style.display = "none";
-        clearTimeout(undoTimeout);
+        btnUndo.style.display = "none"; clearTimeout(undoTimeout);
 
         eventosGlobales.push(ultimoEventoBorrado);
         localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
 
-        try {
-            await fetch(WEBAPP_URL, {
-                method: "POST",
-                body: JSON.stringify({ tipo: "restaurar_evento", ...ultimoEventoBorrado })
-            });
-        } catch(e) {}
+        try { await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "restaurar_evento", ...ultimoEventoBorrado }) }); } catch(e) {}
+        ultimoEventoBorrado = null; procesarEventosLocales(); 
+    }
 
-        ultimoEventoBorrado = null;
-        procesarEventosLocales(); 
+    // ==========================================
+    // NUEVO / EDICIÓN DE EVENTOS 
+    // ==========================================
+    function abrirNuevoEvento() {
+        isEditing = false; editingEventId = null; limpiarFormulario();
+        document.getElementById('modalTitle').innerText = "Nuevo Evento";
+        document.getElementById('eventDate').value = fechaActiva || getFechaLocal();
+        document.getElementById('btnGuardarEvent').innerText = "Guardar Agenda";
+        modal.style.display = 'flex';
+    }
+
+    function abrirEdicion(id) {
+        let ev = eventosGlobales.find(e => String(e.id) === String(id));
+        if(!ev) return;
+        
+        isEditing = true; editingEventId = id;
+        document.getElementById('modalTitle').innerText = "Editar Evento";
+        document.getElementById('btnGuardarEvent').innerText = "Guardar Cambios";
+        limpiarFormulario();
+
+        document.getElementById('eventTitle').value = ev.titulo;
+        document.getElementById('eventType').value = ev.categoria;
+        manejarCambioCategoria(); 
+        document.getElementById('eventDate').value = ev.fecha.split("T")[0];
+        
+        // Poner la hora según sea PC o Móvil
+        let isDesktop = window.innerWidth >= 768 && matchMedia('(pointer: fine)').matches;
+        let [time, ampm] = ev.hora.split(' ');
+        if (isDesktop) {
+            document.getElementById('eventTimeDesktop').value = time || "";
+            document.getElementById('eventAmPmDesktop').value = ampm || "AM";
+        } else {
+            document.getElementById('eventTimeMobile').value = parseTimeTo24h(ev.hora);
+        }
+        
+        let notaVal = ""; let refBase = ev.referencia || "";
+        if(refBase.includes(" / Nota: ")) {
+            let partes = refBase.split(" / Nota: ");
+            refBase = partes[0];
+            notaVal = partes[1].split(" | REC-")[0];
+        }
+        document.getElementById('eventNota').value = notaVal;
+        
+        if(ev.cliente && ev.cliente !== 'Sin asignar') {
+            document.getElementById('usarClienteCheckbox').checked = true; toggleCliente();
+            document.getElementById('clienteBusqueda').value = ev.cliente;
+            document.getElementById('eventReferencia').innerHTML = `<option value="${refBase}">${refBase}</option>`;
+        }
+        modal.style.display = 'flex';
+    }
+    
+    function closeModal() { modal.style.display = 'none'; }
+
+    function limpiarFormulario() {
+        document.getElementById('eventType').selectedIndex = 0; document.getElementById('eventTitle').value = "";
+        document.getElementById('eventTimeMobile').value = ""; document.getElementById('eventTimeDesktop').value = "";
+        document.getElementById('eventNota').value = ""; document.getElementById('clienteBusqueda').value = "";
+        document.getElementById('clienteSeleccionadoId').value = ""; document.getElementById('usarClienteCheckbox').checked = false;
+        document.getElementById('mensualCheckbox').checked = false; document.getElementById('seccionCliente').style.display = 'none';
+        document.getElementById('recurrenteContainer').style.display = 'none';
+        const ref = document.getElementById('eventReferencia');
+        if (ref) ref.innerHTML = '<option value="">Cargando referencias...</option>';
+        document.getElementById("eventNota").placeholder = "Ej: Detalles adicionales...";
+    }
+
+    async function guardarEvento() {
+        const titulo = document.getElementById('eventTitle').value.trim();
+        const categoria = document.getElementById('eventType').value;
+        const cliente = document.getElementById('clienteBusqueda').value;
+        const nota = document.getElementById('eventNota').value.trim();
+        const fechaSeleccionada = document.getElementById('eventDate').value;
+        
+        // Obtener hora PC vs Móvil
+        let isDesktop = window.innerWidth >= 768 && matchMedia('(pointer: fine)').matches;
+        let hora = "";
+        if (isDesktop) {
+            let t = document.getElementById('eventTimeDesktop').value;
+            let ampm = document.getElementById('eventAmPmDesktop').value;
+            if(t) hora = `${t} ${ampm}`;
+        } else {
+            hora = formatTimeForSave(document.getElementById('eventTimeMobile').value);
+        }
+
+        const referencia = document.getElementById('eventReferencia') ? document.getElementById('eventReferencia').value : "N/A";
+        let referenciaFinal = referencia;
+        const esMensual = document.getElementById('mensualCheckbox').checked;
+
+        if (!fechaSeleccionada) return alert("Por favor selecciona una fecha");
+        if (!titulo || !hora) return alert("Por favor completa el título y la hora");
+
+        if (referencia && referencia !== "N/A" && referencia !== "VENTA DIRECTA" && !referencia.includes("OP-") && !referencia.includes("COT-")) {
+            if (categoria === "Instalaciones") referenciaFinal = "OP-" + referencia;
+            if (categoria === "Visitas técnicas") referenciaFinal = "COT-" + referencia;
+        }
+
+        const btn = document.getElementById('btnGuardarEvent');
+        btn.innerText = "Procesando..."; btn.disabled = true;
+
+        const baseRef = referenciaFinal || "N/A";
+        let refLimpia = baseRef.split(" | REC-")[0]; 
+
+        if(isEditing && editingEventId) {
+            try {
+                await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: editingEventId }) });
+                eventosGlobales = eventosGlobales.filter(e => String(e.id) !== String(editingEventId));
+            } catch(e) {}
+        }
+
+        const groupId = esMensual ? "REC-" + Date.now() : "";
+        const iteraciones = esMensual && !isEditing ? 12 : 1; 
+        const [anio, mes, dia] = fechaSeleccionada.split("-");
+        const fechaBase = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+
+        try {
+            for (let i = 0; i < iteraciones; i++) {
+                const fechaIteracionObj = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + i, fechaBase.getDate());
+                const y = fechaIteracionObj.getFullYear();
+                const m = String(fechaIteracionObj.getMonth() + 1).padStart(2, '0');
+                const d = String(fechaIteracionObj.getDate()).padStart(2, '0');
+                const fechaIteracionStr = `${y}-${m}-${d}`;
+
+                let refGuardar = refLimpia;
+                if (nota) refGuardar += ` / Nota: ${nota}`;
+                if (esMensual && !isEditing) refGuardar += ` | ${groupId}`;
+
+                const datos = {
+                    tipo: "nuevo_evento", fecha: fechaIteracionStr, hora: hora, titulo: titulo, categoria: categoria,
+                    cliente: cliente || "Sin asignar", referencia: refGuardar
+                };
+
+                const response = await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify(datos) });
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    eventosGlobales.push({
+                        id: data.id || Date.now() + i, fecha: fechaIteracionStr, hora: hora, titulo: titulo, categoria: categoria,
+                        cliente: cliente || "Sin asignar", referencia: refGuardar, estado: "PENDIENTE"
+                    });
+                }
+            } 
+
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+            closeModal(); procesarEventosLocales();
+
+        } catch (error) { alert("Hubo un problema al conectar con el servidor"); } finally { btn.disabled = false; }
     }
 
     // ==========================================
@@ -1112,14 +1090,9 @@
     // ==========================================
     let timeoutBusqueda;
     async function buscarClienteApp(valor) {
-        if (valor.length < 3) {
-            document.getElementById('listaSugerencias').style.display = 'none';
-            return;
-        }
-
+        if (valor.length < 3) { document.getElementById('listaSugerencias').style.display = 'none'; return; }
         const texto = valor.toLowerCase().trim();
-        const lista = document.getElementById('listaSugerencias');
-        lista.innerHTML = "";
+        const lista = document.getElementById('listaSugerencias'); lista.innerHTML = "";
         
         const cacheClientes = localStorage.getItem("CACHE_CLIENTES");
         if (cacheClientes) {
@@ -1127,15 +1100,13 @@
                 const clientesObj = JSON.parse(cacheClientes);
                 const clientesArr = Object.values(clientesObj);
                 const resultadosLocales = clientesArr.filter(c => 
-                    (c.nombre && c.nombre.toLowerCase().includes(texto)) || 
-                    (c.cedula && String(c.cedula).includes(texto))
+                    (c.nombre && c.nombre.toLowerCase().includes(texto)) || (c.cedula && String(c.cedula).includes(texto))
                 ).slice(0, 8);
 
                 if (resultadosLocales.length > 0) {
                     lista.style.display = 'block';
                     resultadosLocales.forEach(c => {
-                        const div = document.createElement('div');
-                        div.className = 'sugerencia-item';
+                        const div = document.createElement('div'); div.className = 'sugerencia-item';
                         div.innerHTML = `<strong>${c.nombre}</strong> <br> <small>${c.cedula}</small>`;
                         div.onclick = () => seleccionarCliente(c.nombre, c.cedula);
                         lista.appendChild(div);
@@ -1144,7 +1115,6 @@
                 }
             } catch(e) {}
         }
-
         clearTimeout(timeoutBusqueda);
         timeoutBusqueda = setTimeout(async () => {
             try {
@@ -1153,8 +1123,7 @@
                 if (data.status === "ok" && data.resultados.length > 0) {
                     lista.style.display = 'block';
                     data.resultados.forEach(c => {
-                        const div = document.createElement('div');
-                        div.className = 'sugerencia-item';
+                        const div = document.createElement('div'); div.className = 'sugerencia-item';
                         div.innerHTML = `<strong>${c.nombre}</strong> <br> <small>${c.cedula}</small>`;
                         div.onclick = () => seleccionarCliente(c.nombre, c.cedula);
                         lista.appendChild(div);
@@ -1165,16 +1134,13 @@
     }
 
     async function seleccionarCliente(nombre, cedula) {
-        document.getElementById('clienteBusqueda').value = nombre;
-        document.getElementById('clienteSeleccionadoId').value = cedula;
+        document.getElementById('clienteBusqueda').value = nombre; document.getElementById('clienteSeleccionadoId').value = cedula;
         document.getElementById('listaSugerencias').style.display = 'none';
         
-        const seccionRef = document.getElementById('seccionReferencia');
-        const selectRef = document.getElementById('eventReferencia');
+        const seccionRef = document.getElementById('seccionReferencia'); const selectRef = document.getElementById('eventReferencia');
         const categoriaSeleccionada = document.getElementById('eventType').value;
 
-        seccionRef.style.display = 'block';
-        selectRef.innerHTML = '<option value="">Cargando referencias...</option>';
+        seccionRef.style.display = 'block'; selectRef.innerHTML = '<option value="">Cargando referencias...</option>';
 
         const cacheOrdenesStr = localStorage.getItem("CACHE_ORDENES");
         if (cacheOrdenesStr) {
@@ -1183,8 +1149,7 @@
                 const previas = ordenes.filter(o => String(o.cedula) === String(cedula));
                 
                 selectRef.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option>';
-                if (previas.length > 0) {
-                    previas.forEach(ref => { selectRef.innerHTML += `<option value="${ref.numero}">OP-${ref.numero} | Saldo: $${ref.saldo}</option>`; });
+                if (previas.length > 0) { previas.forEach(ref => { selectRef.innerHTML += `<option value="${ref.numero}">OP-${ref.numero} | Saldo: $${ref.saldo}</option>`; });
                 } else { selectRef.innerHTML += '<option value="N/A">Sin registros previos</option>'; }
                 cargarReferenciasRedSilenciosa(cedula, categoriaSeleccionada, selectRef);
                 return; 
@@ -1212,20 +1177,12 @@
         const contenedorRecurrente = document.getElementById("recurrenteContainer");
         const notaInput = document.getElementById("eventNota");
 
-        // Cambiar Placeholder Dinámicamente
-        if (categoria === "Instalaciones") {
-            notaInput.placeholder = "Ej: Llamar al piaggio antes, confirmar con la cliente...";
-        } else if (categoria === "Visitas técnicas") {
-            notaInput.placeholder = "Ej: No olvidar el metro, llevar catálogo de sheer...";
-        } else if (categoria === "Recordatorios de pago") {
-            notaInput.placeholder = "Ej: Número de referencia de pago, contrato, llevar efectivo...";
-        } else if (categoria === "Obligaciones tributarias") {
-            notaInput.placeholder = "Ej: Formulario N° de la DIAN...";
-        } else if (categoria === "Garantías") {
-            notaInput.placeholder = "Ej: Llevar nuevos herrajes, llevar cordón...";
-        } else {
-            notaInput.placeholder = "Ej: Detalles adicionales...";
-        }
+        if (categoria === "Instalaciones") notaInput.placeholder = "Ej: Llamar al piaggio antes, confirmar con la cliente...";
+        else if (categoria === "Visitas técnicas") notaInput.placeholder = "Ej: No olvidar el metro, llevar catálogo de sheer...";
+        else if (categoria === "Recordatorios de pago") notaInput.placeholder = "Ej: Número de referencia de pago, contrato, llevar efectivo...";
+        else if (categoria === "Obligaciones tributarias") notaInput.placeholder = "Ej: Formulario N° de la DIAN...";
+        else if (categoria === "Garantías") notaInput.placeholder = "Ej: Llevar nuevos herrajes, llevar cordón...";
+        else notaInput.placeholder = "Ej: Detalles adicionales...";
 
         if (categoria === "Instalaciones" || categoria === "Visitas técnicas") {
             contenedorCliente.style.display = "block";
