@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>HomeEasy | Radar Comercial</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --home-wine: #a6455a;
+            --home-gold: #c2a468;
+            --bg-color: #f2f2f7; /* Gris estilo iOS */
+            --text-dark: #1c1c1e;
+        }
+
+        body {
+            /* 🚨 NUEVA TIPOGRAFÍA NATIVA ESTILO iOS (San Francisco) */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 0;
+            padding-bottom: 50px;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- CABECERA PREMIUM --- */
+        .crm-header {
+            background: linear-gradient(135deg, var(--home-wine) 0%, #823646 100%);
+            padding: calc(20px + env(safe-area-inset-top)) 20px 40px;
+            border-radius: 0 0 32px 32px;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(166, 69, 90, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Separación de elementos */
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white; width: 40px; height: 40px;
+            border-radius: 50%; display: flex;
+            align-items: center; justify-content: center;
+            text-decoration: none; font-size: 1.1rem;
+            backdrop-filter: blur(5px); flex-shrink: 0;
+        }
+        .btn-back:active { transform: scale(0.9); }
+
+        .hommy-header-img {
+            width: 85px; /* 🚨 Aumentado de 65px a 85px */
+            height: auto;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25)); /* Sombra un poco más profunda */
+            margin-right: 5px; /* Un pequeño respiro con el borde */
+        }
+
+        .header-text { color: white; text-align: left; flex: 1; }
+        .header-text h1 { font-size: 1.4rem; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
+        .header-text p { font-size: 0.8rem; margin: 0; opacity: 0.85; font-weight: 400; }
+
+        /* --- DASHBOARD Y FILTROS --- */
+        .dashboard-stats {
+            margin: -20px 20px 20px;
+            background: white; border-radius: 20px;
+            padding: 18px 20px; display: flex;
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            position: relative; z-index: 2;
+        }
+        
+        .stat-item { text-align: center; }
+        .stat-val { font-size: 1.35rem; font-weight: 700; color: var(--home-wine); margin-bottom: 2px; letter-spacing: -0.5px;}
+        .stat-label { font-size: 0.65rem; font-weight: 600; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .filters-card {
+            margin: 0 20px 20px; background: white;
+            border-radius: 20px; padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            display: flex; gap: 10px; align-items: flex-end;
+        }
+        .filter-group { flex: 1; }
+        .filter-group label { font-size: 0.7rem; font-weight: 600; color: #8e8e93; margin-bottom: 5px; display: block;}
+        .filter-input { 
+            width: 100%; border: 1px solid #e5e5ea; border-radius: 12px; 
+            padding: 10px 12px; font-size: 0.85rem; font-family: inherit;
+            background: #fdfdfd; font-weight: 500; color: #333;
+        }
+        .filter-input:focus { outline: none; border-color: var(--home-gold); }
+        
+        .btn-filter {
+            background: var(--home-gold); color: white; border: none;
+            border-radius: 12px; width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(194, 164, 104, 0.3);
+            font-size: 1.1rem;
+        }
+        .btn-filter:active { transform: scale(0.95); }
+
+        /* --- TARJETAS CRM --- */
+        .cards-container { padding: 0 20px; }
+        
+        .crm-card {
+            background: white; border-radius: 20px; margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            border-left: 5px solid #ccc;
+            overflow: hidden; position: relative;
+        }
+        
+        /* Semáforo de Tiempo */
+        .age-new { border-left-color: #34c759; } /* iOS Green */
+        .age-mid { border-left-color: #ffcc00; } /* iOS Yellow */
+        .age-old { border-left-color: #ff3b30; } /* iOS Red */
+
+        .card-header-crm {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px 5px;
+        }
+        .client-name { font-weight: 700; font-size: 1.1rem; color: var(--text-dark); margin: 0; line-height: 1.2; letter-spacing: -0.3px;}
+        .doc-number { font-size: 0.7rem; color: #8e8e93; font-weight: 500; margin-bottom: 2px; }
+        
+        .time-badge {
+            font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 10px;
+            background: #f2f2f7; color: #8e8e93; display: flex; align-items: center; gap: 5px;
+        }
+
+        .card-body-crm { padding: 10px 20px 15px; }
+        .amount { font-size: 1.25rem; font-weight: 700; color: var(--home-wine); margin-bottom: 12px; letter-spacing: -0.5px;}
+        
+        /* Caja de Notas Secreta */
+        .note-box {
+            background: #fbfbfd; border: 1px dashed #d1d1d6;
+            border-radius: 12px; padding: 12px; font-size: 0.8rem;
+            color: #666; position: relative; margin-bottom: 5px;
+            font-weight: 500; line-height: 1.4;
+        }
+        .note-box i { color: var(--home-gold); margin-right: 6px; }
+
+        .card-actions {
+            display: flex; gap: 10px; padding: 15px 20px;
+            background: #fafafa; border-top: 1px solid #f2f2f7;
+        }
+        
+        .btn-crm {
+            flex: 1; border: none; border-radius: 10px;
+            padding: 10px 0; font-size: 0.8rem; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: transform 0.2s; font-family: inherit;
+        }
+        .btn-crm:active { transform: scale(0.95); }
+        
+        .btn-note { background: rgba(194, 164, 104, 0.12); color: #a48644; }
+        .btn-archive { background: rgba(255, 59, 48, 0.1); color: #ff3b30; }
+        .btn-view { background: rgba(166, 69, 90, 0.1); color: var(--home-wine); }
+
+        /* Loader & Estados Vacíos */
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .swal2-premium { border-radius: 24px !important; font-family: inherit; }
+
+        .empty-state { text-align: center; padding: 50px 20px; }
+        .empty-state i { font-size: 50px; color: #d1d1d6; margin-bottom: 15px; }
+        .empty-state h3 { color: #8e8e93; font-size: 1.1rem; font-weight: 600; margin-bottom: 5px;}
+        .empty-state p { color: #aeaeb2; font-size: 0.85rem; }
+
+        /* 🚨 NUEVO: MODAL VISOR DE PDF */
+        #pdf-viewer-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 10000; flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        
+        .pdf-viewer-header {
+            padding: calc(env(safe-area-inset-top) + 15px) 20px 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.5); color: white; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .pdf-viewer-title { font-weight: 600; font-size: 1rem; }
+        .btn-close-pdf {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 18px;
+            display: flex; justify-content: center; align-items: center; font-size: 1.1rem;
+        }
+        .btn-close-pdf:active { background: rgba(255,255,255,0.4); }
+        
+        #pdf-iframe { flex: 1; width: 100%; border: none; background: #ececec; }
+    </style>
+</head>
+<body>
+
+    <div class="loader-overlay" id="loader">
+        <div class="spinner-border mb-3" role="status" style="color: var(--home-wine) !important;"></div>
+        <h6 style="color: var(--home-wine); font-weight: 600; letter-spacing: -0.3px;">Actualizando Radar...</h6>
+    </div>
+
+    <header class="crm-header">
+        <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
+        <img src="Hommycot.png" class="hommy-header-img" alt="Hommy" onerror="this.src='HOMMY.png'">
+        <div class="header-text">
+            <h1>Radar Comercial</h1>
+            <p>Seguimiento de Cotizaciones</p>
+        </div>
+    </header>
+
+    <div class="dashboard-stats">
+        <div class="stat-item">
+            <div class="stat-val" id="kpi-count">0</div>
+            <div class="stat-label">Activas</div>
+        </div>
+        <div style="width: 1px; height: 35px; background: #e5e5ea;"></div>
+        <div class="stat-item">
+            <div class="stat-val" id="kpi-total" style="color: var(--home-gold);">$0</div>
+            <div class="stat-label">Monto en Mesa</div>
+        </div>
+    </div>
+
+    <div class="filters-card">
+        <div class="filter-group">
+            <label>Desde</label>
+            <input type="date" id="fecha-desde" class="filter-input">
+        </div>
+        <div class="filter-group">
+            <label>Hasta</label>
+            <input type="date" id="fecha-hasta" class="filter-input">
+        </div>
+        <button class="btn-filter" onclick="aplicarFiltros()"><i class="fas fa-search"></i></button>
+    </div>
+
+    <div class="cards-container" id="tarjetas-container">
+        </div>
+
+    <div id="pdf-viewer-overlay">
+        <div class="pdf-viewer-header">
+            <div class="pdf-viewer-title"><i class="fas fa-file-pdf text-danger me-2"></i> Vista Previa</div>
+            <button class="btn-close-pdf" onclick="cerrarVisorPDF()"><i class="fas fa-times"></i></button>
+        </div>
+        <iframe id="pdf-iframe" src=""></iframe>
+    </div>
+
+    <script>
+        const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+        
+        let allCotizaciones = []; 
+
+        window.onload = () => {
+            obtenerDatosFrescos();
+            establecerFechasPorDefecto();
+        };
+
+        function establecerFechasPorDefecto() {
+            const hoy = new Date();
+            const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            
+            document.getElementById('fecha-hasta').value = hoy.toISOString().split('T')[0];
+            document.getElementById('fecha-desde').value = primerDiaMes.toISOString().split('T')[0];
+        }
+
+        async function obtenerDatosFrescos() {
+            document.getElementById('loader').style.display = 'flex';
+            try {
+                const response = await fetch(`${URL_G}?tipo=GET_SEGUIMIENTO`);
+                const data = await response.json();
+                
+                if (data.status === "ok") {
+                    allCotizaciones = data.cotizaciones.filter(c => c.estado === 'COTIZACION');
+                    aplicarFiltros();
+                } else {
+                    Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Falla de conexión', 'error');
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        function aplicarFiltros() {
+            const desde = document.getElementById('fecha-desde').value;
+            const hasta = document.getElementById('fecha-hasta').value;
+            
+            let filtradas = allCotizaciones;
+
+            if (desde) {
+                const dDate = new Date(desde + "T00:00:00");
+                filtradas = filtradas.filter(c => new Date(c.fecha) >= dDate);
+            }
+            if (hasta) {
+                const hDate = new Date(hasta + "T23:59:59");
+                filtradas = filtradas.filter(c => new Date(c.fecha) <= hDate);
+            }
+
+            filtradas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            actualizarKPIs(filtradas);
+            renderizarTarjetas(filtradas);
+        }
+
+        function actualizarKPIs(lista) {
+            document.getElementById('kpi-count').innerText = lista.length;
+            
+            const totalSuma = lista.reduce((acc, curr) => acc + (parseFloat(curr.total) || 0), 0);
+            
+            let displayTotal = "$" + totalSuma.toLocaleString('es-CO');
+            if(totalSuma >= 1000000) {
+                displayTotal = "$" + (totalSuma / 1000000).toFixed(1) + "M";
+            }
+            
+            document.getElementById('kpi-total').innerText = displayTotal;
+        }
+
+        function calcularDiasPasados(fechaString) {
+            const fechaCot = new Date(fechaString);
+            const hoy = new Date();
+            const diferenciaMs = hoy - fechaCot;
+            return Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+        }
+
+        // 🚨 FUNCIÓN PARA ABRIR EL PDF SIN SALIR DE LA PANTALLA
+        function abrirVisorPDF(driveUrl) {
+            if (!driveUrl) {
+                Swal.fire('Atención', 'Esta cotización no tiene un PDF vinculado.', 'info');
+                return;
+            }
+            // Convierte el enlace "view" de drive a "preview" para que se pueda insertar
+            let previewUrl = driveUrl;
+            if(previewUrl.includes('/view')) {
+                previewUrl = previewUrl.replace('/view?usp=drivesdk', '/preview');
+                previewUrl = previewUrl.replace('/view', '/preview');
+            }
+
+            document.getElementById('pdf-iframe').src = previewUrl;
+            document.getElementById('pdf-viewer-overlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Bloquea el fondo
+        }
+
+        function cerrarVisorPDF() {
+            document.getElementById('pdf-viewer-overlay').style.display = 'none';
+            document.getElementById('pdf-iframe').src = '';
+            document.body.style.overflow = ''; // Libera el fondo
+        }
+
+        function renderizarTarjetas(lista) {
+            const container = document.getElementById('tarjetas-container');
+            container.innerHTML = '';
+
+            if (lista.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-check"></i>
+                        <h3>Radar Limpio</h3>
+                        <p>No hay cotizaciones pendientes.</p>
+                    </div>`;
+                return;
+            }
+
+            lista.forEach(cot => {
+                const dias = calcularDiasPasados(cot.fecha);
+                
+                let ageClass = 'age-new';
+                let iconClock = '<i class="fas fa-clock" style="color:#34c759;"></i>';
+                let textoDias = dias === 0 ? 'Hoy' : `Hace ${dias} d`;
+
+                if (dias > 7 && dias <= 15) { 
+                    ageClass = 'age-mid'; 
+                    iconClock = '<i class="fas fa-exclamation-circle" style="color:#ffcc00;"></i>'; 
+                } else if (dias > 15) { 
+                    ageClass = 'age-old'; 
+                    iconClock = '<i class="fas fa-fire" style="color:#ff3b30;"></i>'; 
+                }
+
+                let notaHtml = '';
+                if (cot.notas_seguimiento && cot.notas_seguimiento.trim() !== "") {
+                    notaHtml = `
+                    <div class="note-box">
+                        <i><i class="fas fa-comment-dots"></i> ${cot.notas_seguimiento}</i>
+                    </div>`;
+                } else {
+                    notaHtml = `<div class="note-box" style="background:#fcfcfc; border-color:#e5e5ea; color:#8e8e93;"><i><i class="fas fa-pen"></i> Sin notas de seguimiento...</i></div>`;
+                }
+
+                const totalFormatted = (parseFloat(cot.total) || 0).toLocaleString('es-CO');
+                const urlSegura = cot.url ? cot.url : '';
+
+                container.innerHTML += `
+                <div class="crm-card ${ageClass}" id="card-${cot.numero}">
+                    <div class="card-header-crm">
+                        <div>
+                            <div class="doc-number">COT #${cot.numero}</div>
+                            <h3 class="client-name">${cot.nombre}</h3>
+                        </div>
+                        <div class="time-badge">
+                            ${iconClock} ${textoDias}
+                        </div>
+                    </div>
+                    <div class="card-body-crm">
+                        <div class="amount">$${totalFormatted}</div>
+                        ${notaHtml}
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-crm btn-note" onclick="abrirModalNota('${cot.numero}', \`${cot.notas_seguimiento || ''}\`)">
+                            <i class="fas fa-sticky-note"></i> Nota
+                        </button>
+                        <button class="btn-crm btn-archive" onclick="archivarCotizacion('${cot.numero}', '${cot.nombre}')">
+                            <i class="fas fa-box-archive"></i> Archivar
+                        </button>
+                        
+                        <button class="btn-crm btn-view" onclick="abrirVisorPDF('${urlSegura}')">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                    </div>
+                </div>
+                `;
+            });
+        }
+
+        // ==========================================
+        // 🚨 FUNCIONES DE ACCIÓN CRM
+        // ==========================================
+
+        function abrirModalNota(numero, notaActual) {
+            Swal.fire({
+                title: `Nota COT #${numero}`,
+                input: 'textarea',
+                inputLabel: 'Escribe un apunte interno:',
+                inputValue: notaActual === 'undefined' ? '' : notaActual,
+                inputPlaceholder: 'Ej: Llamar el lunes, le gustó el gris...',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--home-wine)',
+                cancelButtonColor: '#aaa',
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal2-premium' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    ejecutarActualizacion(numero, { notasSeguimiento: result.value });
+                }
+            });
+        }
+
+        function archivarCotizacion(numero, nombre) {
+            Swal.fire({
+                title: '¿Archivar Cotización?',
+                html: `Vas a retirar a <b>${nombre}</b> del radar. Haz esto si el cliente desistió de la compra.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ff3b30',
+                cancelButtonColor: '#8e8e93',
+                confirmButtonText: 'Sí, Archivar',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal2-premium' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    ejecutarActualizacion(numero, { nuevoEstado: "ARCHIVADA" }, true);
+                }
+            });
+        }
+
+        async function ejecutarActualizacion(numero, payloadData, removerDePantalla = false) {
+            Swal.fire({ title: 'Sincronizando...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-premium' } });
+            
+            const payload = {
+                tipo: "actualizar_seguimiento",
+                numero: numero,
+                ...payloadData
+            };
+
+            try {
+                const response = await fetch(URL_G, { method: 'POST', body: JSON.stringify(payload) });
+                const res = await response.json();
+                
+                if (res.status === 'success') {
+                    Swal.fire({ icon: 'success', title: '¡Listo!', showConfirmButton: false, timer: 1200, customClass: { popup: 'swal2-premium' } });
+                    
+                    const index = allCotizaciones.findIndex(c => String(c.numero) === String(numero));
+                    if (index !== -1) {
+                        if (payloadData.notasSeguimiento !== undefined) {
+                            allCotizaciones[index].notas_seguimiento = payloadData.notasSeguimiento;
+                        }
+                        if (removerDePantalla) {
+                            allCotizaciones.splice(index, 1); 
+                        }
+                    }
+                    aplicarFiltros(); 
+                } else {
+                    Swal.fire('Error', res.msg, 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Problema de conexión.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
