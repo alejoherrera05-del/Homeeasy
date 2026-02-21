@@ -8,7 +8,6 @@
     <title>HomeEasy | Buscar Cliente</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -29,401 +28,143 @@
             height: 100%; 
             margin: 0; 
             padding: 0; 
-            font-family: 'Montserrat', sans-serif; 
+            /* 🚨 FUENTE ESTILO iOS */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--homeeasy-wine); 
             overscroll-behavior-y: none; 
+            -webkit-font-smoothing: antialiased;
         }
 
         /* --- PANTALLA DE INICIO BUSCADOR --- */
         #pantalla-inicio {
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100vh; 
-            height: 100dvh;       
-            background-color: var(--homeeasy-wine); 
-            z-index: 2000; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between;
-            overflow: hidden; 
-            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100dvh;       
+            background-color: var(--homeeasy-wine); z-index: 2000; 
+            display: flex; flex-direction: column; justify-content: space-between;
+            overflow: hidden; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
         .btn-back-cover { 
-            position: absolute; 
-            top: 60px; 
-            left: 25px; 
-            width: 50px; 
-            height: 50px; 
-            background-color: rgba(255, 255, 255, 0.5); 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            color: var(--brand-wine); 
-            font-size: 1.2rem; 
-            text-decoration: none; 
-            z-index: 3000; 
-            backdrop-filter: blur(5px); 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            position: absolute; top: 60px; left: 25px; width: 50px; height: 50px; 
+            background-color: rgba(255, 255, 255, 0.5); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--brand-wine); font-size: 1.2rem; text-decoration: none; 
+            z-index: 3000; backdrop-filter: blur(5px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
             transition: transform 0.1s; 
         }
-        .btn-back-cover:active { 
-            transform: scale(0.90); 
-            background-color: rgba(255, 255, 255, 0.8); 
-        }
+        .btn-back-cover:active { transform: scale(0.90); background-color: rgba(255, 255, 255, 0.8); }
 
-        .inicio-content { 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            padding-bottom: 20px; 
-        }
-        .brand-box { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            margin-bottom: 30px; 
-        }
-        .logo-img { 
-            width: 38px; 
-            height: auto; 
-        }
-        .brand-txt { 
-            color: var(--brand-wine); 
-            font-size: 2rem; 
-            font-weight: 500; 
-            margin: 0; 
-            letter-spacing: 0.5px; 
-        }
+        .inicio-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 20px; }
+        .brand-box { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+        .logo-img { width: 38px; height: auto; }
+        .brand-txt { color: var(--brand-wine); font-size: 2rem; font-weight: 600; margin: 0; letter-spacing: -0.5px; }
 
-        .main-title { 
-            color: var(--homeeasy-gold); 
-            font-size: 2.8rem; 
-            font-weight: 700; 
-            margin: 0; 
-            line-height: 1.1; 
-            text-align: center; 
-            text-shadow: 0 4px 10px rgba(194, 164, 104, 0.2); 
-        }
-        .sub-title { 
-            color: var(--brand-wine); 
-            font-size: 1.1rem; 
-            margin-top: 8px; 
-            font-weight: 400; 
-            text-align: center; 
-            margin-bottom: 40px; 
-        }
+        .main-title { color: var(--homeeasy-gold); font-size: 2.8rem; font-weight: 700; margin: 0; line-height: 1.1; text-align: center; text-shadow: 0 4px 10px rgba(194, 164, 104, 0.2); letter-spacing: -1px; }
+        .sub-title { color: var(--brand-wine); font-size: 1.1rem; margin-top: 8px; font-weight: 500; text-align: center; margin-bottom: 40px; }
 
-        .search-wrapper { 
-            position: relative; 
-            width: 85%; 
-            max-width: 450px; 
-        }
-        .input-cover { 
-            width: 100%; 
-            border: none; 
-            background: white; 
-            padding: 22px 25px 22px 60px; 
-            border-radius: 50px; 
-            font-size: 1.1rem; 
-            color: #333; 
-            font-weight: 500; 
-            box-shadow: 0 10px 30px rgba(166, 69, 90, 0.1); 
-        }
-        .input-cover:focus { 
-            outline: none; 
-            box-shadow: 0 10px 35px rgba(166, 69, 90, 0.25); 
-        }
-        .input-cover::placeholder { 
-            color: #999; 
-            font-weight: 400; 
-        }
-        .icon-cover { 
-            position: absolute; 
-            left: 25px; 
-            top: 50%; 
-            transform: translateY(-50%); 
-            color: #bbb; 
-            font-size: 1.3rem; 
-        }
+        .search-wrapper { position: relative; width: 85%; max-width: 450px; }
+        .input-cover { width: 100%; border: none; background: white; padding: 22px 25px 22px 60px; border-radius: 50px; font-size: 1.1rem; color: #333; font-weight: 500; box-shadow: 0 10px 30px rgba(166, 69, 90, 0.1); }
+        .input-cover:focus { outline: none; box-shadow: 0 10px 35px rgba(166, 69, 90, 0.25); }
+        .input-cover::placeholder { color: #999; font-weight: 400; }
+        .icon-cover { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 1.3rem; }
 
-        .bottom-area { 
-            position: relative; 
-            width: 100%; 
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-end; 
-        }
-        .hommy-img { 
-            width: 240px; 
-            max-width: 60%; 
-            z-index: 2; 
-            margin-bottom: -5px; 
-            pointer-events: none; 
-        }
-        .gold-bar { 
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 55px; 
-            background-color: var(--homeeasy-gold); 
-            z-index: 1; 
-            padding-bottom: env(safe-area-inset-bottom); 
-            box-sizing: content-box; 
-        }
+        .bottom-area { position: relative; width: 100%; display: flex; justify-content: center; align-items: flex-end; }
+        .hommy-img { width: 240px; max-width: 60%; z-index: 2; margin-bottom: -5px; pointer-events: none; }
+        .gold-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 55px; background-color: var(--homeeasy-gold); z-index: 1; padding-bottom: env(safe-area-inset-bottom); box-sizing: content-box; }
 
         /* --- PANTALLA RESULTADOS --- */
-        #pantalla-resultados { 
-            display: none; 
-            padding-top: 130px; 
-            padding-bottom: 40px; 
-            background-color: var(--ios-gray); 
-            min-height: 100vh; 
-        }
-        .header-mini { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            background-color: var(--brand-wine) !important; 
-            padding: 20px 25px 15px; 
-            padding-top: 70px; 
-            z-index: 1000; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15); 
-            height: 110px; 
-        }
-        .mini-brand { 
-            color: white; 
-            font-weight: 700; 
-            font-size: 1.3rem; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-        }
+        #pantalla-resultados { display: none; padding-top: 130px; padding-bottom: 40px; background-color: var(--ios-gray); min-height: 100vh; }
+        .header-mini { position: fixed; top: 0; left: 0; width: 100%; background-color: var(--brand-wine) !important; padding: 20px 25px 15px; padding-top: 70px; z-index: 1000; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 5px 20px rgba(0,0,0,0.15); height: 110px; }
+        .mini-brand { color: white; font-weight: 700; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
         
-        .client-card { 
-            background: white; 
-            border-radius: 28px; 
-            padding: 25px; 
-            margin-bottom: 25px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-            border-left: 8px solid var(--homeeasy-gold); 
-        }
-        .client-name { 
-            font-weight: 800; 
-            color: var(--brand-wine); 
-            font-size: 1.3rem; 
-            letter-spacing: -0.5px; 
-            margin-bottom: 18px; 
-            text-transform: uppercase; 
-            border-bottom: 1px solid #f0f0f0; 
-            padding-bottom: 10px; 
-        }
-        .btn-edit-client { 
-            background: rgba(166, 69, 90, 0.1); 
-            color: var(--brand-wine); 
-            border: none; 
-            border-radius: 12px; 
-            font-weight: 700; 
-            font-size: 0.8rem; 
-            padding: 6px 14px; 
-            transition: all 0.2s; 
-        }
-        .btn-edit-client:active { 
-            transform: scale(0.95); 
-            background: rgba(166, 69, 90, 0.2); 
-        }
+        .client-card { background: white; border-radius: 28px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-left: 8px solid var(--homeeasy-gold); }
+        .client-name { font-weight: 800; color: var(--brand-wine); font-size: 1.3rem; letter-spacing: -0.5px; margin-bottom: 18px; text-transform: uppercase; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+        .btn-edit-client { background: rgba(166, 69, 90, 0.1); color: var(--brand-wine); border: none; border-radius: 12px; font-weight: 600; font-size: 0.8rem; padding: 6px 14px; transition: all 0.2s; }
+        .btn-edit-client:active { transform: scale(0.95); background: rgba(166, 69, 90, 0.2); }
 
-        .nav-tabs-custom { 
-            background: #efeff4; 
-            border-radius: 14px; 
-            padding: 3px; 
-            margin: 20px 0 0; 
-            border: none; 
-        }
-        .nav-tabs-custom .nav-link { 
-            border: none; 
-            color: #8e8e93; 
-            font-weight: 700; 
-            font-size: 0.75rem; 
-            text-transform: uppercase; 
-            border-radius: 11px; 
-            padding: 10px; 
-            flex: 1; 
-        }
-        .nav-tabs-custom .nav-link.active { 
-            background: white; 
-            color: var(--brand-wine); 
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1); 
-        }
+        .nav-tabs-custom { background: #efeff4; border-radius: 14px; padding: 3px; margin: 20px 0 0; border: none; }
+        .nav-tabs-custom .nav-link { border: none; color: #8e8e93; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-radius: 11px; padding: 10px; flex: 1; letter-spacing: 0.5px;}
+        .nav-tabs-custom .nav-link.active { background: white; color: var(--brand-wine); box-shadow: 0 3px 10px rgba(0,0,0,0.1); font-weight: 700;}
 
         /* --- TARJETAS OP Y COTIZACIONES --- */
-        .item-card { 
-            background: white; 
-            border-radius: 22px; 
-            margin-bottom: 18px; 
-            overflow: visible; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03); 
-            position: relative; 
-        }
+        .item-card { background: white; border-radius: 22px; margin-bottom: 18px; overflow: visible; box-shadow: 0 5px 15px rgba(0,0,0,0.03); position: relative; }
         
-        .item-card::before { 
-            content: ""; 
-            position: absolute; 
-            left: 0; 
-            top: 15%; 
-            height: 70%; 
-            width: 7px; 
-            border-radius: 0 10px 10px 0; 
-        }
+        .item-card::before { content: ""; position: absolute; left: 0; top: 15%; height: 70%; width: 7px; border-radius: 0 10px 10px 0; }
         .card-COMPLETADO::before { background: var(--success-ios); }
         .card-ACTIVO::before { background: var(--warning-ios); }
         .card-COT::before { background: #af52de; }
         .card-ANULADA::before { background: #e74c3c; } 
         .card-ANULADA .item-body { opacity: 0.55; }
 
-        .item-header { 
-            padding: 18px 20px 5px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: #fafafa; 
-            border-radius: 22px 22px 0 0; 
-        }
-        .status-badge { 
-            font-size: 0.65rem; 
-            font-weight: 800; 
-            padding: 5px 12px; 
-            border-radius: 10px; 
-        }
+        .item-header { padding: 18px 20px 5px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; border-radius: 22px 22px 0 0; }
+        .status-badge { font-size: 0.65rem; font-weight: 700; padding: 5px 12px; border-radius: 10px; letter-spacing: 0.5px; }
         .status-COMPLETADO { color: #155724; background: #d4edda; }
         .status-ACTIVO { color: #856404; background: #fff3cd; }
         .status-ANULADA { color: #721c24; background: #fadbd8; } 
         .badge-cot { color: #9333ea; background: #f3e8ff; }
 
-        .item-body { 
-            padding: 15px 20px; 
-            transition: opacity 0.3s; 
-        }
-        .item-footer { 
-            padding: 15px 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: white; 
-            border-top: 1px dashed #eee; 
-            border-radius: 0 0 22px 22px; 
-        }
+        .item-body { padding: 15px 20px; transition: opacity 0.3s; }
+        .item-footer { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-top: 1px dashed #eee; border-radius: 0 0 22px 22px; }
         
-        .payment-history { 
-            display: none; 
-            padding: 0 20px 20px; 
-            background: #fff; 
-            animation: slideDown 0.3s ease-out; 
-        }
-        @keyframes slideDown { 
-            from { opacity: 0; transform: translateY(-10px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-        .payment-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 10px; 
-            background: #f9f9f9; 
-            border-radius: 12px; 
-            margin-bottom: 8px; 
-            font-size: 0.75rem; 
-        }
+        .payment-history { display: none; padding: 0 20px 20px; background: #fff; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .payment-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; background: #f9f9f9; border-radius: 12px; margin-bottom: 8px; font-size: 0.8rem; transition: background 0.2s;}
+        .payment-item:active { background: #eee; }
 
-        .total-price { 
-            font-weight: 800; 
-            color: var(--brand-wine); 
-            font-size: 1.1rem; 
-        }
-        .saldo-price { 
-            font-weight: 800; 
-            color: #ff3b30; 
-            font-size: 0.9rem; 
-        }
-        .saldo-finalizado { 
-            color: #8e8e93 !important; 
-        }
+        .total-price { font-weight: 700; color: var(--brand-wine); font-size: 1.1rem; letter-spacing: -0.5px;}
+        .saldo-price { font-weight: 600; color: #ff3b30; font-size: 0.9rem; }
+        .saldo-finalizado { color: #8e8e93 !important; }
 
-        .btn-pdf { 
-            background: white; 
-            color: var(--brand-wine); 
-            border: 1.5px solid var(--brand-wine); 
-            border-radius: 15px; 
-            font-size: 0.65rem; 
-            font-weight: 800; 
-            padding: 6px 14px; 
-            text-decoration: none; 
-            display: inline-block; 
-        }
+        .btn-pdf { background: white; color: var(--brand-wine); border: 1.5px solid var(--brand-wine); border-radius: 15px; font-size: 0.7rem; font-weight: 700; padding: 6px 14px; text-decoration: none; display: inline-block; cursor: pointer; transition: all 0.2s;}
+        .btn-pdf:active { background: rgba(166, 69, 90, 0.1); transform: scale(0.95); }
         
         /* Modal Bootstrap Contactos */
         .modal-content { border-radius: 20px; border: none; }
         .modal-header { background: var(--brand-wine); color: white; border-radius: 20px 20px 0 0; border-bottom: none; }
         
         /* SweetAlert Premium */
-        .swal2-premium { border-radius: 24px !important; }
+        .swal2-premium { border-radius: 24px !important; font-family: inherit !important;}
         
         /* --- NUBECITA DE OPCIONES (Dropdown) --- */
-        .opciones-icono {
-            color: #aaa; 
-            cursor: pointer; 
-            padding: 6px 12px; 
-            border-radius: 50%; 
-            transition: background 0.2s;
-            position: relative;
-        }
+        .opciones-icono { color: #aaa; cursor: pointer; padding: 6px 12px; border-radius: 50%; transition: background 0.2s; position: relative; }
         .opciones-icono:active { background: #eee; }
 
         .dropdown-opciones {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            min-width: 140px;
-            z-index: 2000;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            border: 1px solid #eee;
-            transform-origin: top right;
-            animation: popDropdown 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            position: absolute; top: 100%; right: 0; background: white; border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15); min-width: 140px; z-index: 2000;
+            display: none; flex-direction: column; overflow: hidden; border: 1px solid #eee;
+            transform-origin: top right; animation: popDropdown 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        @keyframes popDropdown {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes popDropdown { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        .drop-item {
-            padding: 12px 18px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            transition: background 0.2s;
-        }
+        .drop-item { padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); cursor: pointer; display: flex; align-items: center; transition: background 0.2s; }
         .drop-item:active { background: #f5f5f5; }
         .drop-item.text-danger { color: #e74c3c !important; border-top: 1px solid #f5f5f5; }
         .drop-item i { width: 20px; text-align: center; margin-right: 6px; }
+
+        /* 🚨 NUEVO: MODAL VISOR DE PDF */
+        #pdf-viewer-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 10000; flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        
+        .pdf-viewer-header {
+            padding: calc(env(safe-area-inset-top) + 15px) 20px 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.5); color: white; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .pdf-viewer-title { font-weight: 600; font-size: 1rem; }
+        .btn-close-pdf {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 18px;
+            display: flex; justify-content: center; align-items: center; font-size: 1.1rem;
+        }
+        .btn-close-pdf:active { background: rgba(255,255,255,0.4); }
+        
+        #pdf-iframe { flex: 1; width: 100%; border: none; background: #ececec; }
 
     </style>
 </head>
@@ -479,7 +220,7 @@
                         <button class="btn-edit-client" onclick="abrirModalEditar()"><i class="fas fa-pen me-1"></i> Editar</button>
                     </div>
                     
-                    <div class="client-info" style="font-size: 0.85rem; font-weight: 600;">
+                    <div class="client-info" style="font-size: 0.85rem; font-weight: 500;">
                         <div class="mb-1"><i class="fas fa-fingerprint me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_cedula"></span></div>
                         <div class="mb-1"><i class="fas fa-phone-alt me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_tel"></span></div>
                         <div class="mb-1"><i class="fas fa-envelope me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_email"></span></div>
@@ -537,6 +278,14 @@
         </div>
     </div>
 
+    <div id="pdf-viewer-overlay">
+        <div class="pdf-viewer-header">
+            <div class="pdf-viewer-title"><i class="fas fa-file-pdf text-danger me-2"></i> Vista Previa</div>
+            <button class="btn-close-pdf" onclick="cerrarVisorPDF()"><i class="fas fa-times"></i></button>
+        </div>
+        <iframe id="pdf-iframe" src=""></iframe>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
@@ -544,12 +293,10 @@
         let clienteActual = null; 
         let modalEditarInstance = null;
 
-        // Cargar caché de clientes al inicio
         window.addEventListener("DOMContentLoaded", async () => {
             const indicador = document.getElementById("cargando_clientes");
             modalEditarInstance = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
             
-            // Leer la URL para las migas de pan
             const params = new URLSearchParams(window.location.search);
             const autoSearchCedula = params.get("search");
 
@@ -574,6 +321,31 @@
                 if (indicador) indicador.innerHTML = "⚠ Error de conexión"; 
             }
         });
+
+        // ==========================================
+        // 🚨 FUNCIONES DEL VISOR PDF
+        // ==========================================
+        function abrirVisorPDF(driveUrl) {
+            if (!driveUrl) {
+                Swal.fire('Atención', 'Este documento no tiene un PDF vinculado.', 'info');
+                return;
+            }
+            let previewUrl = driveUrl;
+            if(previewUrl.includes('/view')) {
+                previewUrl = previewUrl.replace('/view?usp=drivesdk', '/preview');
+                previewUrl = previewUrl.replace('/view', '/preview');
+            }
+
+            document.getElementById('pdf-iframe').src = previewUrl;
+            document.getElementById('pdf-viewer-overlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function cerrarVisorPDF() {
+            document.getElementById('pdf-viewer-overlay').style.display = 'none';
+            document.getElementById('pdf-iframe').src = '';
+            document.body.style.overflow = ''; 
+        }
 
         // ===============================================
         // LÓGICA DE LA NUBECITA (POPOVER)
@@ -604,7 +376,6 @@
             document.getElementById('loader').style.display = 'block';
             document.getElementById('resultado_cliente').style.display = 'none';
 
-            // Guardar historial en la URL (Migas de pan)
             window.history.replaceState({}, '', `clientes.html?search=${cedula}`);
 
             try {
@@ -707,7 +478,6 @@
                 const urlDoc = item.pdf_url || item.url || null;
                 const total = parseFloat(item.total) || 0; 
                 
-                // 🚨 EL SALDO ESTABLE DEL EXCEL
                 const saldo = parseFloat(item.saldo) || 0;
                 
                 const fecha = item.fecha ? new Date(item.fecha).toLocaleDateString() : 'N/A';
@@ -734,17 +504,22 @@
                                   <h6 class="small fw-bold mb-3 border-bottom pb-2">Historial de Pagos</h6>`;
                     
                     item.abonos_detalle.forEach(pago => { 
-                        // 🚨 MAGIA: Identifica y destaca el Abono Inicial en la lista
                         let reciboDisplay = pago.recibo === "INICIAL" 
                             ? `<b style="color:var(--brand-wine)">Abono Inicial</b>` 
                             : `R.C: <b>${pago.recibo || 'N/A'}</b>`;
                             
+                      // 🚨 FIX: El Abono Inicial no muestra el ojito de visor PDF
+                        const esInicial = pago.recibo === "INICIAL";
+                        
                         abonosHtml += `
-                        <div class="payment-item">
-                            <div><i class="fas fa-receipt me-2 text-muted"></i>${reciboDisplay}</div>
+                        <div class="payment-item" ${(!esInicial && pago.url) ? `onclick="event.stopPropagation(); abrirVisorPDF('${pago.url}')" style="cursor:pointer;"` : ''}>
+                            <div>
+                                <i class="fas fa-receipt me-2 text-muted"></i>${reciboDisplay}
+                                ${(!esInicial && pago.url) ? '<i class="fas fa-eye ms-1" style="color:var(--brand-wine); font-size:0.75rem;"></i>' : ''}
+                            </div>
                             <div class="text-center">${pago.fecha || 'N/A'}</div>
                             <div class="fw-bold">$${(parseFloat(pago.valor) || 0).toLocaleString('es-CO')}</div>
-                        </div>`; 
+                        </div>`;
                     });
                     
                     abonosHtml += `</div>`;
@@ -789,8 +564,9 @@
                             ${prefix === 'OP' ? `<div class="${saldoClass}">${saldoTexto}</div>` : ''}
                         </div>
                         <div class="d-flex align-items-center">
-                            ${prefix === 'COT' && !esConvertida && estadoLimpio !== 'ANULADA' ? `<a href="pedido.html?cotizacion=${num}" class="btn-pdf me-2"><i class="fas fa-random me-1"></i> A OP</a>` : ''}
-                            ${urlDoc ? `<a href="${urlDoc}" target="_blank" class="btn-pdf"><i class="fas fa-file-pdf me-1"></i> VER PDF</a>` : ''}
+                            ${prefix === 'COT' && !esConvertida && estadoLimpio !== 'ANULADA' ? `<a href="pedido.html?cotizacion=${num}" class="btn-pdf me-2" style="background:rgba(194, 164, 104, 0.15); color:var(--homeeasy-gold); border-color:transparent;"><i class="fas fa-random me-1"></i> A OP</a>` : ''}
+                            
+                            ${urlDoc ? `<button onclick="event.stopPropagation(); abrirVisorPDF('${urlDoc}')" class="btn-pdf"><i class="fas fa-file-pdf me-1"></i> VER PDF</button>` : ''}
                         </div>
                     </div>
                 </div>`;
