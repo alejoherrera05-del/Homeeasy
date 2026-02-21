@@ -2,89 +2,221 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>HomeEasy | Recibo de Abono</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-green: #28a745; --homeeasy-silver: #f4f4f4; }
-        body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
+        /* --- VARIABLES PREMIUM --- */
+        :root { 
+            --homeeasy-wine: #a6455a;  
+            --homeeasy-gold: #c2a468;  
+            --app-bg: #f8f9fa;
+        }
         
-        /* Prevenir Zoom en iPhone */
-        input, select, textarea { font-size: 16px !important; }
+        body { 
+            background-color: var(--app-bg); 
+            font-family: 'Montserrat', sans-serif; 
+            color: #333; 
+            margin: 0; 
+            padding: 20px 10px;
+        }
+        
+        .text-uppercase-input { text-transform: uppercase; }
+        
+        /* Botón Volver (Optimizado Notch) */
+        .btn-back { 
+            position: fixed; 
+            top: calc(15px + env(safe-area-inset-top)); 
+            left: 15px; 
+            z-index: 1000; 
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(5px);
+            border-radius: 50%; width: 45px; height: 45px; 
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: var(--homeeasy-wine); 
+            text-decoration: none; font-size: 1.2rem; transition: transform 0.2s;
+        }
+        .btn-back:active { transform: scale(0.9); }
+        
+        /* Contenedor Principal PDF */
+        #area-pdf { 
+            background-color: white; 
+            width: 100%; max-width: 800px; 
+            margin: 0 auto; 
+            min-height: 1035px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            display: flex; flex-direction: column; 
+            position: relative;
+        }
+        
+        /* Cabecera */
+        .header-brand { 
+            background-color: var(--homeeasy-wine); 
+            padding: 25px 35px 40px 35px; 
+            display: flex; align-items: center; justify-content: space-between; 
+            position: relative; 
+        }
+        .logo-only { max-width: 130px; height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+        .empresa-info-header { font-size: 0.75rem; color: #ffffff; text-align: right; line-height: 1.5; font-weight: 500;}
+        .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.5px;}
+        .empresa-info-header i { color: var(--homeeasy-gold); width: 18px; text-align: center; margin-right: 4px; }
 
-        .btn-back { position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
-        
-        #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
-        
-        /* ENCABEZADO COMPLETO */
-        .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; display: flex; align-items: center; justify-content: space-between; position: relative; }
-        .logo-only { max-width: 120px; height: auto; }
-        .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
-        .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
-        .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
+        .order-meta { 
+            position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); 
+            background: white; padding: 10px 25px; border-radius: 30px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; 
+            display: flex; gap: 20px; z-index: 10; white-space: nowrap; 
+        }
+        .meta-item { font-size: 0.7rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; letter-spacing: 0.5px;}
 
-        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 25px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
-        .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
-
-        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #ddd; }
+        /* Título Documento */
+        .document-type { 
+            background-color: #ffffff; 
+            color: var(--homeeasy-wine); 
+            text-align: center; 
+            padding: 40px 12px 20px 12px; 
+            font-weight: 300; 
+            text-transform: uppercase; 
+            letter-spacing: 8px; 
+            border-bottom: 1px solid rgba(166, 69, 90, 0.1); 
+            font-size: 1.6rem;
+        }
         
-        /* CUERPO ESTERILIZADO */
-        .card-body { padding: 40px 50px; flex-grow: 1; }
-        .label-modern { font-size: 0.7rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
-        
-        .input-op-box { border: 2px solid #eee; border-radius: 10px; padding: 12px 15px; width: 100%; font-weight: 700; }
-        .input-readonly { background-color: #f2f2f2; border: 1px solid #e0e0e0; color: #666; border-radius: 10px; padding: 12px 15px; font-weight: 600; width: 100%; cursor: not-allowed; text-transform: uppercase; }
+        .card-body { padding: 40px 45px; flex-grow: 1; display: flex; flex-direction: column;}
 
-        .input-pago-verde { border: 2px solid #eee; border-radius: 10px; padding: 15px; font-size: 1.8rem; font-weight: 800; color: var(--homeeasy-green); text-align: center; width: 100%; }
-        .select-modern { border: 2px solid #eee; border-radius: 10px; padding: 12px; width: 100%; background: #fff; font-weight: 600; }
+        /* Estilos de Formulario Premium */
+        .label-modern { font-size: 0.65rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: block; }
+        
+        .input-op-box { 
+            border: none; border-bottom: 2px solid var(--homeeasy-gold); border-radius: 0; 
+            padding: 5px 0; font-size: 1.2rem; font-weight: 800; color: #333; 
+            width: 100%; background: transparent; text-align: center; transition: all 0.3s;
+        }
+        .input-op-box:focus { outline: none; border-bottom-color: var(--homeeasy-wine); }
+        
+        .input-readonly { 
+            background-color: transparent; border: none; border-bottom: 1px dashed #ccc; 
+            color: #555; padding: 5px 0; font-size: 0.95rem; font-weight: 700; width: 100%; text-transform: uppercase;
+        }
+
+        .input-pago-verde { 
+            border: none; border-bottom: 2px solid var(--homeeasy-wine); border-radius: 0; 
+            padding: 5px 0; font-size: 1.8rem; font-weight: 800; color: var(--homeeasy-wine); 
+            text-align: center; width: 100%; background: transparent; transition: all 0.3s;
+        }
+        .input-pago-verde:focus { outline: none; border-bottom-color: var(--homeeasy-gold); }
+
+        .select-modern { 
+            border: none; border-bottom: 1px solid #e0e0e0; border-radius: 0; 
+            padding: 10px 0; width: 100%; background: transparent; font-weight: 700; color: #333; font-size: 0.95rem; outline: none;
+        }
+        .select-modern:focus { border-bottom-color: var(--homeeasy-gold); }
 
         #paz-salvo-banner { 
             display: none; width: 100%; text-align: center; padding: 12px; 
-            background: #e8f5e9; color: #2e7d32; font-weight: 800; 
-            font-size: 0.9rem; letter-spacing: 8px; border-radius: 8px; 
-            margin-bottom: 30px; border: 2px solid #2e7d32;
+            background: rgba(46, 204, 113, 0.1); color: #27ae60; font-weight: 800; 
+            font-size: 1rem; letter-spacing: 6px; border-radius: 8px; 
+            margin-bottom: 30px; border: 2px solid rgba(46, 204, 113, 0.4);
         }
 
-        .saldo-final-container { margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 30px; }
-        .saldo-final-label { font-size: 0.8rem; font-weight: 800; color: #bbb; text-transform: uppercase; letter-spacing: 2px; }
+        .saldo-final-container { margin-top: auto; text-align: center; border-top: 1px solid rgba(166, 69, 90, 0.1); padding-top: 30px; }
+        .saldo-final-label { font-size: 0.8rem; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
         .saldo-final-valor { font-size: 2.2rem; font-weight: 900; color: var(--homeeasy-wine); display: block; margin-top: 5px; }
 
-        .btn-sync { background: var(--homeeasy-wine); color: #fff; border: none; padding: 20px; width: 100%; border-radius: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-top: 30px; }
+        .btn-homeeasy { 
+            background-color: var(--homeeasy-wine); color: white; border: none; 
+            font-weight: 800; padding: 18px; width: 100%; text-transform: uppercase; 
+            border-radius: 12px; margin-top: 30px; font-size: 1rem; letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(166, 69, 90, 0.3); transition: transform 0.2s;
+        }
+        .btn-homeeasy:active { transform: scale(0.98); }
 
-        .pdf-footer { background-color: var(--homeeasy-silver); padding: 20px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
-        .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 10px; filter: grayscale(100%); }
-        .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        .pdf-footer { 
+            background-color: #fafafa; padding: 20px; text-align: center; 
+            border-top: 1px solid #eee; margin-top: auto; 
+        }
+        .footer-logo { max-width: 80px; opacity: 0.4; margin-bottom: 10px; filter: grayscale(100%); }
+        .footer-creds { font-size: 0.65rem; color: #777; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
 
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
+        /* =========================================
+           📱 MODO MÓVIL
+           ========================================= */
+        @media (max-width: 768px) {
+            body { padding: 0; background-color: white; }
+            #area-pdf { box-shadow: none; border-radius: 0; min-height: 100vh; margin: 0; }
+            .header-brand { padding: calc(25px + env(safe-area-inset-top)) 20px 35px 20px; }
+            .logo-only { max-width: 100px; }
+            .empresa-info-header { font-size: 0.65rem; }
+            .empresa-info-header b { font-size: 0.75rem; }
+            .order-meta { width: 85%; padding: 8px 15px; bottom: -20px; font-size: 0.65rem; justify-content: center; }
+            .document-type { padding: 45px 15px 15px 15px; font-size: 1.3rem; letter-spacing: 4px; }
+            .card-body { padding: 30px 20px; }
+        }
+
+        /* =========================================
+           MODO EXPORTACIÓN PDF (FUERZA FORMATO PC)
+           ========================================= */
+        .pdf-export-mode .header-brand { padding: 15px 30px 25px 30px !important; flex-direction: row !important; text-align: right !important; }
+        .pdf-export-mode .empresa-info-header { font-size: 0.75rem !important; }
+        .pdf-export-mode .logo-only { max-width: 130px !important; }
+        .pdf-export-mode .order-meta { width: auto !important; padding: 10px 25px !important; bottom: -18px !important; font-size: 0.7rem !important; }
+        .pdf-export-mode .document-type { padding: 35px 12px 10px 12px !important; font-size: 1.4rem !important; letter-spacing: 8px !important; }
+        .pdf-export-mode .card-body { padding: 25px 45px !important; }
+        .pdf-export-mode .pdf-footer { padding: 10px !important; }
+
+        /* =========================================
+           PANTALLAS DE CARGA Y ÉXITO
+           ========================================= */
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; }
+        .glass-loader { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; }
+        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; }
+        .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; text-align: left; }
+        .step-active { opacity: 1; color: var(--homeeasy-wine); font-weight: 800; }
+        .step-check { opacity: 1; color: #2ecc71; font-weight: 700; }
+
+        /* MODAL ÉXITO */
+        .success-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; justify-content: center; align-items: center; }
+        .success-box { background: white; border-radius: 28px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; border: 1px solid rgba(194, 164, 104, 0.3); animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .success-icon { width: 80px; height: 80px; background: rgba(46, 204, 113, 0.15); color: #27ae60; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; margin: 0 auto 20px; }
+        .success-box h3 { color: var(--homeeasy-wine); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px; letter-spacing: -0.5px;}
+        .success-box p { color: #666; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; font-weight: 500;}
+        .btn-success-home { background: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25); }
+        .btn-success-home:active { transform: scale(0.95); }
+    </style>
     
-.hommy-loader { width: 140px; height: auto; margin-bottom: 15px; animation: bounce 2s infinite ease-in-out; }
-@keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);} }
-.checklist-container { text-align:left;width:280px;margin-top:15px; }
-.step-item { color:#aaa;font-size:0.85rem;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:all .3s; }
-.step-active { color:var(--homeeasy-wine);font-weight:700; }
-.step-done { color:#28a745;font-weight:600; }
-
-</style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </head>
-<body>
+<body ontouchstart="">
 
 <div id="loading" class="loading-overlay">
-    <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy">
-    <div class="text-center">
-        <h6 style="color:var(--homeeasy-wine); font-weight: 800;">ESPERA...</h6>
-        <p class="small text-muted mb-3">Hommy está registrando el abono</p>
-        <div class="checklist-container mx-auto">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Generar recibo PDF...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Sincronizar abono...</div>
-            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Actualizar saldo...</div>
-            <div id="step-4" class="step-item"><i class="far fa-circle"></i> Finalizar proceso...</div>
+    <div class="glass-loader">
+        <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy" onerror="this.src='HOMMY.png'">
+        <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">PROCESANDO...</h6>
+        <p class="small text-muted mb-4">Hommy está registrando el abono</p>
+        
+        <div id="status-list" style="text-align: left; margin-left: 10px;">
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Localizando la orden...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Registrando el pago...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Sincronizando...</div>
+            <div id="step-4" class="step-item"><i class="far fa-circle"></i> ¡Abono exitoso!</div>
         </div>
+    </div>
+</div>
+
+<div id="success-modal" class="success-overlay">
+    <div class="success-box">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <h3>¡Pago Registrado!</h3>
+        <p>El abono fue guardado, el saldo actualizado y el recibo está listo para el cliente.</p>
+        <button class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
     </div>
 </div>
 
@@ -92,7 +224,7 @@
 
 <div id="area-pdf">
     <div class="header-brand">
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
+        <img src="logohomeeasy.png" class="logo-only" alt="HomeEasy" onerror="this.src='triangulogold.png'; this.style.width='60px'">
         <div class="empresa-info-header">
             <b>HOMEEASY POPAYÁN</b><br>
             <span>NIT: 1.061.760.850-1</span><br>
@@ -101,33 +233,29 @@
             <span><i class="fab fa-instagram"></i> @homeeasypopayan</span>
         </div>
         <div class="order-meta">
-            <div class="meta-item">RECIBO N°: <span id="n_recibo_display">...</span></div>
-            <div class="meta-item">FECHA: <span id="fecha_header_display">...</span></div>
+            <div class="meta-item">RECIBO N°: <span id="n_recibo_display" style="color: #333;">...</span></div>
+            <div class="meta-item">FECHA: <span id="fecha_header_display" style="color: #333;">...</span></div>
         </div>
     </div>
     
-    <div class="document-type">Comprobante de Ingreso</div>
+    <div class="document-type">RECIBO DE ABONO</div>
     
     <div class="card-body">
         <div id="paz-salvo-banner">PAZ Y SALVO</div>
 
-        <div class="row g-4 mb-4">
+        <div class="row g-4 mb-5">
             <div class="col-6 position-relative">
                 <label class="label-modern">Fecha del Recibo</label>
                 <input type="text" id="fecha_cuerpo_display" class="input-readonly" readonly>
             </div>
             <div class="col-6 position-relative">
-                <label class="label-modern">Localizar N° OP</label>
-                <input type="text" id="numeroOP" class="input-op-box" placeholder="Ej: 125" inputmode="numeric" onblur="buscarOrden()">
-                <div id="sugerencias_orden"
-     style="position:absolute;background:white;width:100%;
-     max-height:200px;overflow:auto;z-index:1000;
-     border-radius:10px;box-shadow:0 10px 20px rgba(0,0,0,0.15);"></div>
-
+                <label class="label-modern">Localizar OP o Nombre</label>
+                <input type="text" id="numeroOP" class="input-op-box" placeholder="Ej: 125 o Juan..." autocomplete="off">
+                <div id="sugerencias_orden" style="position:absolute;background:white;width:100%;max-height:200px;overflow:auto;z-index:1000;border-radius:10px;box-shadow:0 10px 20px rgba(0,0,0,0.15);display:none;"></div>
             </div>
-            <div class="col-12">
+            <div class="col-12 mt-4">
                 <label class="label-modern">Nombre del Cliente</label>
-                <input type="text" id="nombre" class="input-readonly" readonly placeholder="Esperando número de orden...">
+                <input type="text" id="nombre" class="input-readonly" readonly placeholder="Esperando selección de orden...">
                 <input type="hidden" id="cedula">
             </div>
         </div>
@@ -151,18 +279,18 @@
         <div class="saldo-final-container">
             <span class="saldo-final-label">Nuevo Saldo Pendiente</span>
             <span id="nuevo_saldo_val" class="saldo-final-valor">$ 0</span>
-            <div style="font-size: 0.65rem; color: #ccc; margin-top: 10px; text-transform: uppercase;">
-                Saldo anterior: <span id="saldo_anterior_val">$ 0</span>
+            <div style="font-size: 0.75rem; color: #999; margin-top: 10px; font-weight: 600;">
+                Saldo anterior al abono: <span id="saldo_anterior_val" style="color:#666;">$ 0</span>
             </div>
         </div>
 
-        <button class="btn-sync no-print shadow" onclick="finalizarAbono()">Confirmar y Sincronizar</button>
+        <button class="btn-homeeasy no-print" onclick="finalizarAbono()"><i class="fas fa-cloud-upload-alt me-2"></i> Confirmar y Sincronizar</button>
     </div>
 
     <div class="pdf-footer">
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo">
-        <div class="footer-creds">HomeEasy Popayán - Expertos en Decoración</div>
-        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema HomeEasy</div>
+        <img src="Hommypiedepagina.png" alt="Hommy" style="height: 35px; opacity: 0.5; margin-bottom: 8px;">
+        <div class="footer-creds">HomeEasy - Viste tu hogar con estilo</div>
+        <div style="font-size: 0.6rem; color: #aaa; margin-top: 5px;">Documento generado automáticamente • Sistema Hommy V2.0</div>
     </div>
 </div>
 
@@ -174,65 +302,74 @@
         const fechaHoy = new Date().toLocaleDateString('es-CO');
         document.getElementById('fecha_header_display').innerText = fechaHoy;
         document.getElementById('fecha_cuerpo_display').value = fechaHoy;
+        
         fetch(`${URL_G}?nextRecibo=1`).then(r => r.json()).then(d => { 
             if(d.status === "ok") document.getElementById("n_recibo_display").innerText = d.nextRecibo; 
         });
+
+        // Carga de caché silenciosa
+        fetch(`${URL_G}?init=LOAD`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === "ok" && data.ordenes) {
+                    const ordenesArr = [];
+                    for (let i = 1; i < data.ordenes.length; i++) {
+                        const o = data.ordenes[i];
+                        if(o) ordenesArr.push({ numero: o[1], cedula: o[2], nombre: o[3], total: o[6], saldo: o[10] });
+                    }
+                    localStorage.setItem("CACHE_ORDENES", JSON.stringify(ordenesArr));
+                }
+            }).catch(err => console.error("Error parchando caché:", err));
     };
 
-   function buscarOrden() {
+    function normalizarTexto(texto) {
+        if (!texto) return "";
+        return String(texto).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
 
-    const numero = document.getElementById('numeroOP').value.trim();
-    const cache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
+    function buscarOrden() {
+        const numero = document.getElementById('numeroOP').value.trim();
+        const cache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
+        const orden = cache.find(o => String(o.numero) === numero);
 
-    const orden = cache.find(o => String(o.numero) === numero);
+        if (!orden) {
+            document.getElementById('nombre').value = "";
+            document.getElementById('cedula').value = "";
+            saldoBase = 0;
+            document.getElementById('saldo_anterior_val').innerText = "$ 0";
+            calcularSaldo();
+            document.getElementById('valorAbono').disabled = false;
+            document.getElementById('medioPago').disabled = false;
+            return;
+        }
 
-    if (!orden) {
-        document.getElementById('nombre').value = "";
-        document.getElementById('cedula').value = "";
-        saldoBase = 0;
-        document.getElementById('saldo_anterior_val').innerText = "$ 0";
+        document.getElementById('nombre').value = (orden.nombre || "").toUpperCase();
+        document.getElementById('cedula').value = orden.cedula || "";
+
+        saldoBase = parseFloat(orden.saldo) || 0;
+        document.getElementById('saldo_anterior_val').innerText = `$ ${saldoBase.toLocaleString('es-CO')}`;
+
         calcularSaldo();
 
-        // 🔓 Rehabilitar campos si estaba bloqueado
-        document.getElementById('valorAbono').disabled = false;
-        document.getElementById('medioPago').disabled = false;
-
-        return;
+        // VALIDACIÓN DE ORDEN COMPLETADA
+        if (saldoBase <= 0) {
+            document.getElementById('valorAbono').disabled = true;
+            document.getElementById('medioPago').disabled = true;
+            Swal.fire({
+                icon: 'info',
+                iconColor: '#c2a468',
+                title: 'Orden Completada',
+                html: '<b style="color:#a6455a;">Esta orden ya está en estado COMPLETADO</b><br>No tiene saldo pendiente.',
+                confirmButtonColor: '#a6455a',
+                confirmButtonText: 'Entendido',
+                customClass: { popup: 'swal2-premium' }
+            });
+        } else {
+            document.getElementById('valorAbono').disabled = false;
+            document.getElementById('medioPago').disabled = false;
+        }
     }
 
-    document.getElementById('nombre').value = (orden.nombre || "").toUpperCase();
-    document.getElementById('cedula').value = orden.cedula || "";
-
-    saldoBase = parseFloat(orden.saldo) || 0;
-    document.getElementById('saldo_anterior_val').innerText =
-        `$ ${saldoBase.toLocaleString('es-CO')}`;
-
-    calcularSaldo();
-
-    // 💎 VALIDACIÓN SOLO SI SALDO ES 0
-    if (saldoBase <= 0) {
-
-        document.getElementById('valorAbono').disabled = true;
-        document.getElementById('medioPago').disabled = true;
-
-        Swal.fire({
-    icon: 'info',
-    iconColor: '#c3a364',
-    title: 'Orden Completada',
-    html: '<b>Esta orden ya está en estado COMPLETADO</b><br>No tiene saldo pendiente.',
-    confirmButtonColor: '#a63d56',
-    confirmButtonText: 'Entendido'
-});
-
-
-    } else {
-
-        document.getElementById('valorAbono').disabled = false;
-        document.getElementById('medioPago').disabled = false;
-    }
-}
-
- 
     function formatear(i) {
         let v = i.value.replace(/\D/g, "");
         i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : "";
@@ -246,21 +383,30 @@
         banner.style.display = (nuevoSaldo <= 0 && saldoBase > 0) ? 'block' : 'none';
     }
 
-    
-function updateStep(num, status) {
-    const el = document.getElementById('step-' + num);
-    if(status === 'active'){
-        el.classList.add('step-active');
-        el.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ` + el.innerText;
-    }
-    if(status === 'done'){
-        el.classList.remove('step-active');
-        el.classList.add('step-done');
-        el.innerHTML = `<i class="fas fa-check-circle"></i> ` + el.innerText;
-    }
-}
+    const loadingTexts = [
+        "Localizando la orden...",
+        "Registrando el pago...",
+        "Sincronizando...",
+        "¡Abono exitoso!"
+    ];
 
-async function finalizarAbono() {
+    function setStep(num, status) {
+        const step = document.getElementById('step-' + num);
+        if (status === 'active') {
+            step.classList.add('step-active');
+            step.classList.remove('step-check');
+            step.innerHTML = `<i class="fas fa-circle-notch fa-spin text-warning"></i> ` + loadingTexts[num-1];
+        } else if (status === 'check') {
+            step.classList.remove('step-active');
+            step.classList.add('step-check');
+            step.innerHTML = `<i class="fas fa-check-circle"></i> ` + loadingTexts[num-1];
+        } else {
+            step.className = 'step-item';
+            step.innerHTML = `<i class="far fa-circle"></i> ` + loadingTexts[num-1];
+        }
+    }
+
+    async function finalizarAbono() {
         const ced = document.getElementById('cedula').value;
         const valAbono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
         const mPago = document.getElementById('medioPago').value;
@@ -269,80 +415,106 @@ async function finalizarAbono() {
         const nom = document.getElementById('nombre').value;
 
         if(!ced){
-    Swal.fire({
-        icon: 'warning',
-        title: 'Orden no válida',
-        text: 'Primero debes buscar una orden válida.',
-        confirmButtonColor: '#a63d56'
-    });
-    return;
-}
+            Swal.fire({ icon: 'warning', title: 'Orden no válida', text: 'Primero debes buscar una orden válida.', confirmButtonColor: '#a6455a' });
+            return;
+        }
+        if (saldoBase <= 0) {
+            Swal.fire({ icon: 'info', iconColor: '#c2a468', title: 'Orden Completada', html: '<b style="color:#a6455a;">Esta orden ya está en estado COMPLETADO</b><br>No tiene saldo pendiente.', confirmButtonColor: '#a6455a', confirmButtonText: 'Entendido' });
+            return;
+        }
+        if(valAbono <= 0 || !mPago){
+            Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Debes ingresar el valor del abono y seleccionar el medio de pago.', confirmButtonColor: '#a6455a' });
+            return;
+        }
+        if(valAbono > saldoBase){
+            Swal.fire({ icon: 'error', title: 'Abono inválido', html: 'El valor del abono no puede ser mayor al saldo pendiente.<br><b>Saldo actual:</b> $ ' + saldoBase.toLocaleString('es-CO'), confirmButtonColor: '#a6455a' });
+            return;
+        }
 
-if (saldoBase <= 0) {
-    Swal.fire({
-        icon: 'info',
-        title: 'Orden Completada',
-        html: '<b>Esta orden ya está en estado COMPLETADO</b><br>No tiene saldo pendiente.',
-        confirmButtonColor: '#a63d56',
-        confirmButtonText: 'Entendido'
-    });
-    return;
-}
-       if(valAbono <= 0 || !mPago){
-    Swal.fire({
-        icon: 'warning',
-        title: 'Datos incompletos',
-        text: 'Debes ingresar el valor del abono y seleccionar el medio de pago.',
-        confirmButtonColor: '#a63d56'
-    });
-    return;
-}
-
-       if(valAbono > saldoBase){
-    Swal.fire({
-        icon: 'error',
-        title: 'Abono inválido',
-        html: 'El valor del abono no puede ser mayor al saldo pendiente.<br><b>Saldo actual:</b> $ ' + saldoBase.toLocaleString('es-CO'),
-        confirmButtonColor: '#a63d56'
-    });
-    return;
-}
-
-
-        document.getElementById('loading').style.display = 'flex';
-        updateStep(1,'active');
+        const loading = document.getElementById('loading');
+        loading.style.display = 'flex';
+        
+        for(let i=1; i<=4; i++) setStep(i, 'reset');
+        setStep(1, 'active');
 
         try {
-            const { jsPDF } = window.jspdf;
-            const element = document.getElementById("area-pdf");
-            
-            const btns = document.querySelectorAll('.no-print, button, .btn');
-            btns.forEach(b => {
-                b.dataset.originalDisplay = b.style.display;
-                b.style.display = 'none';
-            });
+            const origBodyPadding = document.body.style.padding;
+            document.body.style.padding = '0';
 
-            const canvas = await html2canvas(element, { 
-                scale: 2, 
+            const areaPdf = document.getElementById('area-pdf');
+            areaPdf.classList.add('pdf-export-mode');
+
+            const origBorderRadius = areaPdf.style.borderRadius;
+            const origBoxShadow = areaPdf.style.boxShadow;
+            areaPdf.style.borderRadius = '0px';
+            areaPdf.style.boxShadow = 'none';
+            areaPdf.style.width = '800px';
+            areaPdf.style.maxWidth = '800px';
+            areaPdf.style.margin = '0'; 
+
+            await new Promise(r => setTimeout(r, 50));
+
+            const canvas = await html2canvas(areaPdf, { 
+                scale: 3, 
                 useCORS: true, 
                 width: 800,
-                windowWidth: 800 
+                windowWidth: 800,
+                x: areaPdf.offsetLeft, 
+                y: areaPdf.offsetTop,
+                onclone: function(clonedDoc) {
+                    clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
+
+                    // Limpieza Inputs para PDF
+                    clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(input => {
+                        const span = clonedDoc.createElement('span');
+                        span.innerText = input.value;
+                        span.className = input.className;
+                        span.style.display = 'inline-block';
+                        span.style.border = 'none';
+                        span.style.background = 'transparent';
+                        if(input.id === 'valorAbono' || input.classList.contains('text-end')) span.style.textAlign = 'right';
+                        if(input.classList.contains('text-center') || input.id === 'numeroOP') span.style.textAlign = 'center';
+                        input.parentNode.replaceChild(span, input);
+                    });
+
+                    // Limpieza especial para el Select
+                    clonedDoc.querySelectorAll('select').forEach(sel => {
+                        const span = clonedDoc.createElement('span');
+                        span.innerText = sel.options[sel.selectedIndex].text;
+                        span.className = sel.className;
+                        span.style.display = 'inline-block';
+                        span.style.border = 'none';
+                        span.style.background = 'transparent';
+                        sel.parentNode.replaceChild(span, sel);
+                    });
+                }
             });
-            
-            btns.forEach(b => b.style.display = b.dataset.originalDisplay || '');
 
-            updateStep(1,'done');
-            updateStep(2,'active');
+            setStep(1, 'check');
+            setStep(2, 'active');
 
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF("p", "mm", "a4");
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            areaPdf.classList.remove('pdf-export-mode');
+            document.body.style.padding = origBodyPadding; 
+            areaPdf.style.borderRadius = origBorderRadius;
+            areaPdf.style.boxShadow = origBoxShadow;
+            areaPdf.style.width = '100%';
+            areaPdf.style.margin = '0 auto';
 
-            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF("p", "mm", "letter"); 
+            const pdfWidth = pdf.internal.pageSize.getWidth(); 
+            const canvasRatio = canvas.width / canvas.height;
+            const finalWidth = pdfWidth; 
+            const finalHeight = finalWidth / canvasRatio; 
+            const imgData = canvas.toDataURL("image/jpeg", 1.0); 
 
-            const pdfBase64 = pdf.output("datauristring").split(',')[1];
-            const nombreArchivo = `Recibo_${nRecibo}_OP${numOP}.pdf`;
+            pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
+
+            const pdfBase64 = pdf.output('datauristring').split(',')[1];
+            const nombreArchivo = `Recibo_N_${nRecibo}_OP_${numOP}.pdf`;
+
+            setStep(2, 'check');
+            setStep(3, 'active');
 
             const response = await fetch(URL_G, {
                 method: "POST",
@@ -360,85 +532,82 @@ if (saldoBase <= 0) {
 
             const json = await response.json();
 
-            updateStep(2,'done');
-            updateStep(3,'active');
-
             if (json.status === "success") {
-
-    updateStep(3,'done');
-    updateStep(4,'active');
-
-    pdf.save(nombreArchivo);
-
-    setTimeout(()=>{
-        updateStep(4,'done');
-        alert("¡Éxito! Abono registrado correctamente. Hommy finalizó el proceso.");
-        window.location.replace("index.html");
-    },800);
+                setStep(3, 'check');
+                setStep(4, 'active');
+                
+                setTimeout(() => {
+                    setStep(4, 'check');
+                    pdf.save(nombreArchivo);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('success-modal').style.display = 'flex';
+                }, 800);
             } else {
-                alert("Error: " + (json.msg || "No se pudo registrar el abono"));
+                throw new Error(json.msg || "No se pudo registrar el abono");
             }
-        } catch (err) { alert("Error de conexión: " + err.message); } finally {
+        } catch (err) { 
+            alert("Error de conexión: " + err.message); 
             document.getElementById('loading').style.display = 'none';
-        }
+        } 
     }
+
     // ===============================
-// 🔎 SUGERENCIAS ORDENES CACHE
-// ===============================
-const ordenesCache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
+    // 🔎 SUGERENCIAS ORDENES CACHE
+    // ===============================
+    document.getElementById("numeroOP").addEventListener("input", function() {
+        buscarOrden(); // Check exact match silently 
+        
+        const valorOriginal = this.value.trim();
+        const valor = normalizarTexto(valorOriginal);
+        const cont = document.getElementById("sugerencias_orden");
 
-document.getElementById("numeroOP").addEventListener("input", function() {
+        cont.innerHTML = "";
+        cont.style.display = "none";
 
-    const numero = this.value.trim();
-    const cont = document.getElementById("sugerencias_orden");
+        if (valor.length < 1) return;
 
-    cont.innerHTML = "";
-    cont.style.display = "none";
+        const cache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
 
-    const cache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
+        cache.forEach(o => {
+            const numStr = String(o.numero);
+            const nombreStr = normalizarTexto(o.nombre);
 
-   // Mientras escribe, solo limpiar
-document.getElementById('nombre').value = "";
-document.getElementById('cedula').value = "";
-saldoBase = 0;
-document.getElementById('saldo_anterior_val').innerText = "$ 0";
-calcularSaldo();
+            if (numStr.includes(valor) || nombreStr.includes(valor)) {
+                const div = document.createElement("div");
+                div.style.padding = "12px 15px";
+                div.style.cursor = "pointer";
+                div.style.borderBottom = "1px solid #eee";
+                div.style.fontSize = "0.85rem";
+                div.onmouseover = () => div.style.background = "#f9f9f9";
+                div.onmouseout = () => div.style.background = "white";
+                div.innerHTML = `<strong style="color:var(--homeeasy-wine)">OP ${o.numero}</strong> - ${o.nombre}`;
 
+                div.onclick = function() {
+                    document.getElementById("numeroOP").value = o.numero;
+                    buscarOrden();
+                    cont.innerHTML = "";
+                    cont.style.display = "none";
+                };
 
-    if (numero.length < 1) return;
-
-    // 🔽 SUGERENCIAS (esto sigue igual)
-    cache.forEach(o => {
-
-        if (String(o.numero).includes(numero)) {
-
-            const div = document.createElement("div");
-            div.style.padding = "8px";
-            div.style.cursor = "pointer";
-            div.style.borderBottom = "1px solid #eee";
-            div.onmouseover = () => div.style.background = "#f5f5f5";
-            div.onmouseout = () => div.style.background = "white";
-
-            div.innerHTML = `<b>OP ${o.numero}</b> - ${o.nombre}`;
-
-            div.onclick = function() {
-                document.getElementById("numeroOP").value = o.numero;
-                buscarOrden();
-                cont.innerHTML = "";
-                cont.style.display = "none";
-            };
-
-            cont.appendChild(div);
-            cont.style.display = "block";
-        }
-
+                cont.appendChild(div);
+                cont.style.display = "block";
+            }
+        });
     });
 
-});
+    document.addEventListener("click", function(e) {
+        const input = document.getElementById("numeroOP");
+        const div = document.getElementById("sugerencias_orden");
+        if(e.target !== input && e.target !== div) {
+            div.style.display = "none";
+        }
+    });
 
 </script>
+
+<style>
+    /* Ajustes específicos de SweetAlert para modo Premium */
+    .swal2-premium { border-radius: 20px !important; }
+</style>
 </body>
 </html>
-
-
-
