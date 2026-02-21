@@ -27,7 +27,7 @@
         
         .text-uppercase-input { text-transform: uppercase; }
         
-        /* Botón Volver (Optimizado Notch iPhone) */
+        /* Botón Volver */
         .btn-back { 
             position: fixed; 
             top: calc(15px + env(safe-area-inset-top)); 
@@ -73,180 +73,74 @@
             justify-content: space-between; 
             position: relative; 
         }
-        .logo-only { 
-            max-width: 130px; 
-            height: auto; 
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); 
-        }
-        .empresa-info-header { 
-            font-size: 0.75rem; 
-            color: #ffffff; 
-            text-align: right; 
-            line-height: 1.5; 
-            font-weight: 500;
-        }
-        .empresa-info-header b { 
-            color: var(--homeeasy-gold); 
-            font-size: 0.85rem; 
-            font-weight: 800; 
-            letter-spacing: 0.5px;
-        }
-        .empresa-info-header i { 
-            color: var(--homeeasy-gold); 
-            width: 18px; 
-            text-align: center; 
-            margin-right: 4px; 
-        }
+        .logo-only { max-width: 130px; height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+        .empresa-info-header { font-size: 0.75rem; color: #ffffff; text-align: right; line-height: 1.5; font-weight: 500;}
+        .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.5px;}
+        .empresa-info-header i { color: var(--homeeasy-gold); width: 18px; text-align: center; margin-right: 4px; }
 
         /* Etiqueta N° Orden */
         .order-meta { 
-            position: absolute; 
-            bottom: -18px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            background: white; 
-            padding: 10px 25px; 
-            border-radius: 30px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
-            border: 1px solid #f0f0f0; 
-            display: flex; 
-            gap: 20px; 
-            z-index: 10; 
-            white-space: nowrap; 
+            position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); 
+            background: white; padding: 10px 25px; border-radius: 30px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; 
+            display: flex; gap: 20px; z-index: 10; white-space: nowrap; 
         }
-        .meta-item { 
-            font-size: 0.7rem; 
-            font-weight: 800; 
-            color: var(--homeeasy-wine); 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px;
-        }
+        .meta-item { font-size: 0.7rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; letter-spacing: 0.5px;}
 
         /* Título del Documento */
         .document-type { 
-            background-color: #ffffff; 
-            color: var(--homeeasy-wine); 
-            text-align: center; 
-            padding: 40px 12px 20px 12px; 
-            font-weight: 300; 
-            text-transform: uppercase; 
-            letter-spacing: 8px; 
-            border-bottom: 1px solid rgba(166, 69, 90, 0.1); 
-            font-size: 1.6rem;
+            background-color: #ffffff; color: var(--homeeasy-wine); text-align: center; 
+            padding: 40px 12px 20px 12px; font-weight: 300; text-transform: uppercase; 
+            letter-spacing: 8px; border-bottom: 1px solid rgba(166, 69, 90, 0.1); font-size: 1.6rem;
         }
         
-        .card-body { 
-            padding: 30px 35px; 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column;
-        }
+        .card-body { padding: 30px 35px; flex-grow: 1; display: flex; flex-direction: column;}
 
         .section-title { 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            font-size: 0.8rem; 
-            color: var(--homeeasy-wine); 
-            border-bottom: 2px solid #f0f0f0; 
-            padding-bottom: 5px; 
-            margin-bottom: 15px; 
-            display: block; 
-            letter-spacing: 1px;
+            font-weight: 800; text-transform: uppercase; font-size: 0.8rem; 
+            color: var(--homeeasy-wine); border-bottom: 2px solid #f0f0f0; 
+            padding-bottom: 5px; margin-bottom: 15px; display: block; letter-spacing: 1px;
         }
         
-        .form-label-small { 
-            font-size: 0.65rem; 
-            font-weight: 700; 
-            color: #aaa; 
-            text-transform: uppercase; 
-            margin-bottom: 2px; 
-        }
+        .form-label-small { font-size: 0.65rem; font-weight: 700; color: #aaa; text-transform: uppercase; margin-bottom: 2px; }
         .form-control-compact { 
-            border: none; 
-            border-bottom: 1px solid #e0e0e0; 
-            border-radius: 0; 
-            padding: 5px 0; 
-            font-size: 0.9rem; 
-            font-weight: 600; 
-            background: transparent; 
-            width: 100%; 
-            transition: all 0.3s; 
-            color: #333;
+            border: none; border-bottom: 1px solid #e0e0e0; border-radius: 0; 
+            padding: 5px 0; font-size: 0.9rem; font-weight: 600; background: transparent; 
+            width: 100%; transition: all 0.3s; color: #333;
         }
-        .form-control-compact:focus { 
-            outline: none; 
-            border-bottom-color: var(--homeeasy-gold); 
-            box-shadow: none; 
-        }
-        .form-control-compact::placeholder { 
-            color: #ccc; 
-            font-weight: 400; 
-        }
+        .form-control-compact:focus { outline: none; border-bottom-color: var(--homeeasy-gold); box-shadow: none; }
+        .form-control-compact::placeholder { color: #ccc; font-weight: 400; }
 
         /* Tabla */
         .table { margin-bottom: 5px; }
         .table th { 
-            font-size: 0.7rem; 
-            text-transform: uppercase; 
-            font-weight: 800; 
-            color: #555; 
-            border-bottom: 2px solid var(--homeeasy-wine) !important; 
-            padding: 10px 5px; 
+            font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #555; 
+            border-bottom: 2px solid var(--homeeasy-wine) !important; padding: 10px 5px; 
         }
-        .table td { 
-            padding: 8px 5px; 
-            border-bottom: 1px solid #f5f5f5; 
-            vertical-align: middle;
-        }
+        .table td { padding: 8px 5px; border-bottom: 1px solid #f5f5f5; vertical-align: middle;}
         
         /* Caja Finanzas */
         .finance-box { 
-            background-color: #fafafa; 
-            border-radius: 12px; 
-            padding: 20px; 
-            border-left: 6px solid var(--homeeasy-gold); 
-            height: 100%;
+            background-color: #fafafa; border-radius: 12px; padding: 20px; 
+            border-left: 6px solid var(--homeeasy-gold); height: 100%;
         }
         
         /* Botón Guardar */
         .btn-homeeasy { 
-            background-color: var(--homeeasy-wine); 
-            color: white; 
-            border: none; 
-            font-weight: 800; 
-            padding: 18px; 
-            width: 100%; 
-            text-transform: uppercase; 
-            border-radius: 12px; 
-            margin-top: 30px; 
-            font-size: 1rem; 
-            letter-spacing: 1px;
-            box-shadow: 0 8px 20px rgba(166, 69, 90, 0.3); 
-            transition: transform 0.2s;
+            background-color: var(--homeeasy-wine); color: white; border: none; 
+            font-weight: 800; padding: 18px; width: 100%; text-transform: uppercase; 
+            border-radius: 12px; margin-top: 30px; font-size: 1rem; letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(166, 69, 90, 0.3); transition: transform 0.2s;
         }
         .btn-homeeasy:active { transform: scale(0.98); }
         
         /* Footer */
         .pdf-footer { 
-            background-color: #fafafa; 
-            padding: 20px; 
-            text-align: center; 
-            border-top: 1px solid #eee; 
-            margin-top: auto; 
+            background-color: #fafafa; padding: 20px; text-align: center; 
+            border-top: 1px solid #eee; margin-top: auto; 
         }
-        .footer-logo { 
-            max-width: 80px; 
-            opacity: 0.4; 
-            margin-bottom: 10px; 
-            filter: grayscale(100%); 
-        }
-        .footer-creds { 
-            font-size: 0.65rem; 
-            color: #777; 
-            font-weight: 700; 
-            letter-spacing: 1.5px; 
-            text-transform: uppercase; 
-        }
+        .footer-logo { max-width: 80px; opacity: 0.4; margin-bottom: 10px; filter: grayscale(100%); }
+        .footer-creds { font-size: 0.65rem; color: #777; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
 
         /* 📱 RESPONSIVE MÓVIL */
         @media (max-width: 768px) {
@@ -280,55 +174,20 @@
         .pdf-export-mode .pdf-footer { padding: 10px !important; }
 
         /* PANTALLAS DE CARGA Y ÉXITO */
-        .loading-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            z-index: 9999; justify-content: center; align-items: center; 
-        }
-        .glass-loader { 
-            background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); 
-            border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
-            text-align: center; width: 85%; max-width: 340px; 
-        }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; }
+        .glass-loader { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; }
         .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; }
-        
-        .step-item { 
-            font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; 
-            transition: all 0.3s; margin-bottom: 10px; display: flex; 
-            align-items: center; justify-content: start; gap: 10px; text-align: left; 
-        }
+        .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; text-align: left; }
         .step-active { opacity: 1; color: var(--homeeasy-wine); font-weight: 800; }
         .step-check { opacity: 1; color: #2ecc71; font-weight: 700; }
 
-        .success-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            z-index: 10000; justify-content: center; align-items: center; 
-        }
-        .success-box { 
-            background: white; border-radius: 28px; padding: 40px 30px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; 
-            width: 85%; max-width: 340px; border: 1px solid rgba(194, 164, 104, 0.3);
-            animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
+        .success-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; justify-content: center; align-items: center; }
+        .success-box { background: white; border-radius: 28px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; border: 1px solid rgba(194, 164, 104, 0.3); animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .success-icon { 
-            width: 80px; height: 80px; background: rgba(46, 204, 113, 0.15); 
-            color: #27ae60; border-radius: 50%; display: flex; justify-content: center; 
-            align-items: center; font-size: 40px; margin: 0 auto 20px; 
-        }
-        .success-box h3 { 
-            color: var(--homeeasy-wine); font-weight: 800; font-size: 1.5rem; 
-            margin-bottom: 10px; letter-spacing: -0.5px;
-        }
-        .success-box p { 
-            color: #666; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; font-weight: 500;
-        }
-        .btn-success-home { 
-            background: var(--homeeasy-wine); color: white; border: none; 
-            font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; 
-            font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25);
-        }
+        .success-icon { width: 80px; height: 80px; background: rgba(46, 204, 113, 0.15); color: #27ae60; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; margin: 0 auto 20px; }
+        .success-box h3 { color: var(--homeeasy-wine); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px; letter-spacing: -0.5px;}
+        .success-box p { color: #666; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; font-weight: 500;}
+        .btn-success-home { background: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25);}
         .btn-success-home:active { transform: scale(0.95); }
 
         .row-desc, #notas { height: auto !important; min-height: 35px; }
@@ -453,12 +312,23 @@
             
             <div class="col-md-6 col-12">
                 <div class="finance-box">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span style="font-size: 0.8rem; font-weight: 800; color: #888;">TOTAL PEDIDO:</span>
-                        <span id="total_pedido_val" style="font-weight: 700; color: #555;">$ 0</span>
-                    </div>
                     
                     <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: #888;">SUBTOTAL:</span>
+                        <span id="subtotal_val" style="font-weight: 700; color: #555;">$ 0</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2" id="desc_row">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-gold);">DESCUENTO:</span>
+                        <input type="text" id="descuento_input" class="form-control-compact text-end p-0" style="width: 100px; font-weight: 800; color: #e74c3c; border-bottom: 1px dashed #e74c3c;" placeholder="-$ 0" inputmode="numeric" oninput="formatear(this); calcular()">
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: #333;">TOTAL PEDIDO:</span>
+                        <span id="total_pedido_val" style="font-weight: 800; color: #333;">$ 0</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2 mt-3">
                         <span style="font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-gold);">ABONO INICIAL:</span>
                         <input type="text" id="abono" class="form-control-compact text-end p-0" style="width: 120px; font-weight: 800; color: var(--homeeasy-wine); border-bottom: 2px solid var(--homeeasy-wine);" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()">
                     </div>
@@ -498,7 +368,6 @@
         numeroCot = params.get("cotizacion");
         returnCedula = params.get("return_cedula"); 
 
-        // Si hay migas de pan, ajustar el botón de retroceso
         if (returnCedula) {
             document.getElementById("btn-back").href = `clientes.html?search=${returnCedula}`;
         }
@@ -508,7 +377,7 @@
             document.getElementById("n_orden_display").innerText = editNum;
             document.getElementById("btnProcesar").innerHTML = '<i class="fas fa-save me-2"></i> Guardar Cambios';
             
-            // Cargar datos desde la nube para EDITAR OP
+            // Cargar OP existente
             fetch(`${URL_G}?tipo=EDITAR_OP&numero=${editNum}`)
             .then(r => r.json())
             .then(d => {
@@ -516,30 +385,21 @@
                     document.getElementById('fecha_display').innerText = new Date(d.fecha).toLocaleDateString('es-CO');
                     document.getElementById('cedula').value = d.cedula;
                     document.getElementById('nombre').value = d.nombre;
-                    
-                    // 🚨 LAS OBSERVACIONES SE CARGAN EN LAS NOTAS
                     document.getElementById('notas').value = d.observaciones || ""; 
-                    
                     document.getElementById('abono').value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(d.abono || 0);
                     
                     buscarCliente(); 
                     
                     let items = [];
                     
-                    // INTENTAR CARGAR JSON MODERNO
                     try { 
                         if(d.itemsJSON && d.itemsJSON !== "[]" && d.itemsJSON !== "") {
                             let parsed = JSON.parse(d.itemsJSON);
-                            if(typeof parsed === 'string') {
-                                parsed = JSON.parse(parsed); 
-                            }
-                            if(Array.isArray(parsed)) {
-                                items = parsed;
-                            }
+                            if(typeof parsed === 'string') parsed = JSON.parse(parsed); 
+                            if(Array.isArray(parsed)) items = parsed;
                         }
                     } catch(e) { console.warn("JSON error"); }
 
-                    // FALLBACK PARA OP ANTIGUAS
                     if(items.length === 0 && d.descripcion && d.descripcion.includes(" x ")) {
                         let partes = d.descripcion.split('/');
                         partes.forEach(p => {
@@ -547,23 +407,16 @@
                             if(txt) {
                                 let div = txt.split(' x ');
                                 if(div.length === 2) {
-                                    items.push({ 
-                                        cantidad: parseFloat(div[0]) || 1, 
-                                        descripcion: div[1].trim(), 
-                                        precio: 0 
-                                    });
+                                    items.push({ cantidad: parseFloat(div[0]) || 1, descripcion: div[1].trim(), precio: 0 });
                                 } else {
-                                    items.push({ 
-                                        cantidad: 1, 
-                                        descripcion: txt, 
-                                        precio: 0 
-                                    });
+                                    items.push({ cantidad: 1, descripcion: txt, precio: 0 });
                                 }
                             }
                         });
                     }
 
-                    // PINTAR LA TABLA DE PRODUCTOS
+                    let subtotalCarga = 0;
+
                     if(items.length > 0) {
                         const tbody = document.getElementById("tabla-body");
                         tbody.innerHTML = ""; 
@@ -581,10 +434,22 @@
                             
                             tr.querySelector(".row-desc").value = item.descripcion || "";
                             tr.querySelector(".cant").value = item.cantidad || 1;
-                            if (item.precio) {
-                                tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio);
+                            
+                            let pr = parseFloat(item.precio) || 0;
+                            if (pr > 0) {
+                                tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(pr);
                             }
+                            
+                            subtotalCarga += (item.cantidad || 1) * pr;
                         });
+                        
+                        // 🚨 LÓGICA DE DETECCIÓN DE DESCUENTO EN OP
+                        let totalGuardado = parseFloat(d.total) || 0;
+                        if (totalGuardado > 0 && subtotalCarga > totalGuardado) {
+                            let descuentoDetectado = subtotalCarga - totalGuardado;
+                            document.getElementById('descuento_input').value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(descuentoDetectado);
+                        }
+
                         calcular();
                     }
                 }
@@ -599,7 +464,6 @@
                 .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
         }
 
-        // Cargar Caché de Clientes
         fetch(`${URL_G}?init=LOAD`)
             .then(r => r.json())
             .then(data => {
@@ -616,7 +480,7 @@
                 }
             }).catch(err => console.error("Error parchando caché:", err));
 
-        // 🚨 CONVERTIR DE COTIZACIÓN A OP (LA MAGIA FINAL)
+        // 🚨 MAGIA: CONVERTIR DE COTIZACIÓN A OP (TRAYENDO DESCUENTOS Y NOTAS)
         if (numeroCot && !isEditMode) {
             fetch(`${URL_G}?convertirCot=${numeroCot}`)
                 .then(r => r.json())
@@ -625,14 +489,12 @@
                         document.getElementById("cedula").value = d.cedula;
                         document.getElementById("nombre").value = d.nombre.toUpperCase();
                         
-                        // 🚨 PASAMOS LAS NOTAS DE LA COTIZACIÓN AL PEDIDO
                         document.getElementById("notas").value = d.observaciones || ""; 
                         
                         buscarCliente(); 
 
                         let items = [];
                         
-                        // Rescatar JSON
                         try { 
                             if(d.itemsJSON && d.itemsJSON !== "[]" && d.itemsJSON !== "") {
                                 let parsed = JSON.parse(d.itemsJSON);
@@ -641,7 +503,6 @@
                             }
                         } catch(e) {}
 
-                        // Rescate Antiguo
                         if(items.length === 0 && d.descripcion && d.descripcion.includes(" x ")) {
                             let partes = d.descripcion.split('/');
                             partes.forEach(p => {
@@ -656,6 +517,8 @@
                                 }
                             });
                         }
+
+                        let subtotalCarga = 0;
 
                         if (items.length > 0) {
                             const tbody = document.getElementById("tabla-body");
@@ -672,10 +535,22 @@
                                 tbody.appendChild(tr);
                                 tr.querySelector(".row-desc").value = item.descripcion || "";
                                 tr.querySelector(".cant").value = item.cantidad || 1;
-                                if (item.precio) { 
-                                    tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio); 
+                                
+                                let pr = parseFloat(item.precio) || 0;
+                                if (pr > 0) { 
+                                    tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(pr); 
                                 }
+                                
+                                subtotalCarga += (item.cantidad || 1) * pr;
                             });
+
+                            // 🚨 LÓGICA DE DETECCIÓN DE DESCUENTO AL CONVERTIR COTIZACIÓN
+                            let totalGuardado = parseFloat(d.total) || 0;
+                            if (totalGuardado > 0 && subtotalCarga > totalGuardado) {
+                                let descuentoDetectado = subtotalCarga - totalGuardado;
+                                document.getElementById('descuento_input').value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(descuentoDetectado);
+                            }
+
                             calcular();
                         }
                     }
@@ -684,7 +559,7 @@
     };
 
     // ==========================================
-    // 2. MATEMÁTICAS Y FORMATOS
+    // 2. MATEMÁTICAS FINANCIERAS (NUEVAS)
     // ==========================================
     function capFirst(input) { 
         let val = input.value; 
@@ -699,19 +574,31 @@
     }
 
     function calcular() {
-        let total = 0;
+        let subtotal = 0;
         document.querySelectorAll('#tabla-body tr').forEach(tr => {
             let c = parseFloat(tr.querySelector('.cant').value) || 0; 
             let p = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0; 
             let sub = c * p;
             tr.querySelector('.item-total').innerText = `$ ${sub.toLocaleString('es-CO')}`; 
-            total += sub;
+            subtotal += sub;
         });
         
-        let abono = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
-        document.getElementById('total_pedido_val').innerText = `$ ${total.toLocaleString('es-CO')}`;
+        // 1. Mostrar Subtotal
+        document.getElementById('subtotal_val').innerText = `$ ${subtotal.toLocaleString('es-CO')}`;
         
-        let saldo = total - abono; 
+        // 2. Descontar
+        let descInput = document.getElementById('descuento_input').value; 
+        let descuento = parseFloat(descInput.replace(/\D/g, "")) || 0;
+        
+        let totalFinal = subtotal - descuento; 
+        if(totalFinal < 0) totalFinal = 0;
+        
+        // 3. Mostrar Total Real
+        document.getElementById('total_pedido_val').innerText = `$ ${totalFinal.toLocaleString('es-CO')}`;
+        
+        // 4. Calcular Saldo post Abono
+        let abono = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+        let saldo = totalFinal - abono; 
         if(saldo < 0) saldo = 0;
         
         document.getElementById('saldo_pendiente_val').innerText = `$ ${saldo.toLocaleString('es-CO')}`;
@@ -808,6 +695,17 @@
                         if(!desc || !desc.value.trim()) f.remove(); 
                     });
                     
+                    const descInput = clonedDoc.getElementById('descuento_input'); 
+                    const descRow = clonedDoc.getElementById('desc_row');
+                    if (descInput && descRow) { 
+                        const descVal = parseFloat(descInput.value.replace(/\D/g, "")); 
+                        if (isNaN(descVal) || descVal === 0) { 
+                            descRow.parentNode.removeChild(descRow); 
+                        } else { 
+                            descInput.style.border = 'none'; 
+                        } 
+                    }
+
                     const abonoInputClone = clonedDoc.getElementById('abono'); 
                     if (abonoInputClone) { 
                         abonoInputClone.style.borderBottom = 'none'; 
@@ -879,7 +777,7 @@
 
             // 🚨 CONSTRUCCIÓN DE LAS VARIABLES PARA LA NUBE
             let descripcionTexto = ""; // Ítems (Col E)
-            let itemsJSON = [];        // JSON  (Col N)
+            let itemsJSON = [];        // JSON
             
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
                 let descEl = tr.querySelector('.row-desc');
