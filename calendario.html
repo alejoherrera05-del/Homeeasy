@@ -59,10 +59,7 @@
             z-index: 1; width: 60%; display: flex; justify-content: center;
         }
 
-        .header-brand {
-            display: flex; align-items: center; gap: 8px; white-space: nowrap; 
-        }
-
+        .header-brand { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
         .header-brand img { height: 24px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
         .header-brand h1 { font-size: 1.1rem; color: var(--primary-wine); font-weight: 700; margin: 0; letter-spacing: -0.5px;}
 
@@ -73,8 +70,7 @@
         .calendar-container {
             background-color: var(--white); padding: 0 20px 20px 20px;
             border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
-            box-shadow: var(--shadow); z-index: 5;
-            touch-action: pan-y; 
+            box-shadow: var(--shadow); z-index: 5; touch-action: pan-y; 
         }
 
         .month-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-top: 15px; }
@@ -90,18 +86,13 @@
 
         /* --- Agenda Section --- */
         .agenda-container { flex: 1; padding: 20px; padding-bottom: 110px; overflow-y: auto; }
-        .agenda-header { 
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.95rem; color: var(--primary-wine); margin-bottom: 15px; font-weight: 700; text-transform: capitalize; border-bottom: 1px dashed #e0e0e0; padding-bottom: 8px; 
-        }
+        .agenda-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; color: var(--primary-wine); margin-bottom: 15px; font-weight: 700; text-transform: capitalize; border-bottom: 1px dashed #e0e0e0; padding-bottom: 8px; }
 
-        /* Botón Deshacer Mágico */
         #undoContainer {
             display: none; align-items: center; gap: 5px; cursor: pointer;
             color: var(--primary-wine); font-weight: 600; font-size: 0.75rem;
             background: rgba(166, 69, 90, 0.1); padding: 5px 12px; border-radius: 20px;
-            transition: transform 0.2s, background 0.2s;
-            box-shadow: 0 2px 8px rgba(166, 69, 90, 0.15);
+            transition: transform 0.2s, background 0.2s; box-shadow: 0 2px 8px rgba(166, 69, 90, 0.15);
         }
         #undoContainer:active { transform: scale(0.95); background: rgba(166, 69, 90, 0.2); }
 
@@ -114,15 +105,13 @@
         .vencidos-container.collapsed { display: none; }
 
         /* ==== TARJETAS EVENTOS ==== */
-        .evento-swipe-wrapper { position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 12px; background-color: transparent; box-shadow: 0 2px 10px rgba(0,0,0,0.04); transition: transform 0.4s ease; }
-        .evento-accion-borrar { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: white; background-color: #FF3B30;}
+        .evento-swipe-wrapper { position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 12px; background-color: #FF3B30; box-shadow: 0 2px 10px rgba(0,0,0,0.04); transition: transform 0.4s ease; }
+        .evento-accion-borrar { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: white; background-color: #FF3B30; }
         
-        /* 🚨 FIX: Tareas completadas sin fondo rojo ni papelera fantasma */
-        .evento-swipe-wrapper.completed { background-color: transparent !important; box-shadow: none !important; }
-        .evento-swipe-wrapper.completed .evento-accion-borrar { display: none !important; }
-
         .evento-card-content { position: relative; z-index: 1; background-color: #FFFFFF; padding: 18px 16px; border-radius: 12px; width: 100%; box-sizing: border-box; display: flex; align-items: center; border-left: 5px solid transparent; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease; }
         .evento-card-content.vencido { border-left: 5px solid var(--danger) !important; background-color: var(--white) !important; border: 1px solid #f0f0f0 !important; }
+        
+        /* Estética Tarea Completada */
         .evento-card-content.completed { background-color: #f5f5f5 !important; border-left-color: #dcdcdc !important; opacity: 0.8 !important; }
         .evento-card-content.completed * { text-decoration: line-through !important; color: #a0a0a0 !important; }
 
@@ -177,32 +166,37 @@
         .footer-title { font-size: 0.8rem; font-weight: 600; color: var(--text-dark); }
         .footer-version { font-size: 0.65rem; color: var(--text-light); font-weight: 500; letter-spacing: 0.5px; }
 
-        /* Modales */
+        /* Modales Generales */
         .fullscreen-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 3000; flex-direction: column; }
         .fs-header { background: var(--white); padding: calc(15px + env(safe-area-inset-top)) 20px 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .fs-header input { flex: 1; border: none; outline: none; font-size: 1rem; background: #f0f0f0; padding: 10px 15px; border-radius: 20px; color: var(--text-dark); }
         .fs-content { flex: 1; overflow-y: auto; padding: 20px; }
-
-        /* Títulos Próximas Tareas (Vinotinto) */
-        .group-header {
-            font-size: 0.75rem; font-weight: 800; color: var(--primary-wine);
-            text-transform: uppercase; letter-spacing: 2px;
-            margin: 25px 0 10px 0; border-bottom: 1px dashed rgba(166, 69, 90, 0.2); padding-bottom: 5px;
-        }
+        .group-header { font-size: 0.75rem; font-weight: 800; color: var(--primary-wine); text-transform: uppercase; letter-spacing: 2px; margin: 25px 0 10px 0; border-bottom: 1px dashed rgba(166, 69, 90, 0.2); padding-bottom: 5px; }
         .group-header:first-child { margin-top: 0; }
 
-        /* Modal Evento Nuevo / Edición */
-        .modal { display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
-        .modal-content { background-color: var(--white); width: 90%; max-width: 420px; border-radius: 24px; padding: 30px 25px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-        
-        .form-layout { display: flex; flex-direction: column; gap: 16px; }
-        .form-group { margin: 0; }
-        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 12px; outline: none; font-weight: 500; color: var(--text-dark); transition: border 0.3s; background: #fafafa; }
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-gold); background: #fff;}
+        /* =========================================
+           MODAL EVENTO NUEVO (ESTRUCTURADO Y COMPACTO)
+           ========================================= */
+        .modal { 
+            display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; 
+        }
+        .modal-content { 
+            background-color: var(--white); width: 92%; max-width: 400px; border-radius: 20px; 
+            padding: 25px 20px; max-height: 85vh; overflow-y: auto; overflow-x: hidden; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: flex; flex-direction: column; 
+        }
+        .form-layout { display: flex; flex-direction: column; gap: 12px; }
+        .form-group { margin: 0; width: 100%; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 10px; 
+            outline: none; font-weight: 500; color: var(--text-dark); transition: border 0.3s; background: #fafafa; font-size: 0.95rem;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent-gold); background: #fff;}
         .form-group textarea { resize: none; }
         
-        .btn-submit { background-color: var(--primary-wine); color: var(--white); border: none; width: 100%; padding: 16px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 1rem; box-shadow: 0 5px 15px rgba(166, 69, 90, 0.2);}
+        .btn-submit { background-color: var(--primary-wine); color: var(--white); border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; margin-top: 10px; font-size: 1rem; box-shadow: 0 5px 15px rgba(166, 69, 90, 0.2);}
         .btn-submit:active { transform: scale(0.98); }
         .btn-cancel { background: transparent; color: var(--text-light); border: none; width: 100%; padding: 10px; font-weight: 600; margin-top: 5px; }
 
@@ -210,11 +204,11 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .spin-anim { animation: spin 0.6s ease; }
 
-        /* PC vs Movil Time Inputs (Solución Simple y Efectiva) */
+        /* PC vs Movil Time Inputs */
         .time-desktop { display: none; }
         .time-mobile { display: block; }
         
-        /* 🚨 FIX: Si la pantalla es ancha (PC/Tablet), forzamos el formato Desktop */
+        /* 🚨 FIX: Detecta PC por tamaño de pantalla para mostrar AM/PM */
         @media (min-width: 768px) {
             .time-desktop { display: flex !important; gap: 10px; }
             .time-mobile { display: none !important; }
@@ -350,15 +344,15 @@
                 </div>
 
                 <div id="recurrenteContainer" style="display:none; padding: 12px; background: #fff8eb; border-radius: 10px; border: 1px dashed var(--accent-gold);">
-                    <label style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight: 600; color: var(--accent-gold); cursor: pointer; text-transform: none; margin: 0;" onclick="animarRueda()">
-                        <input type="checkbox" id="mensualCheckbox" style="width: auto; transform: scale(1.3);">
+                    <label style="display:flex; align-items:center; gap:10px; font-size:0.85rem; font-weight: 600; color: var(--accent-gold); cursor: pointer; text-transform: none; margin: 0;" onclick="animarRueda()">
+                        <input type="checkbox" id="mensualCheckbox" style="width: 18px; height: 18px;">
                         <i class="fas fa-sync-alt" id="syncIcon"></i> Crear para cada mes (1 año)
                     </label>
                 </div>
 
                 <div id="usarClienteContainer" style="display:none;">
                     <label style="display:flex; align-items:center; gap:8px; font-size:13px; text-transform: none; margin: 0;">
-                        <input type="checkbox" id="usarClienteCheckbox" onchange="toggleCliente()" style="width: auto; transform: scale(1.3);">
+                        <input type="checkbox" id="usarClienteCheckbox" onchange="toggleCliente()" style="width: 16px; height: 16px;">
                         Vincular con un Cliente
                     </label>
                 </div>
@@ -400,8 +394,6 @@
 
     let isEditing = false;
     let editingEventId = null;
-    
-    // Variables Botón Deshacer
     let ultimoEventoBorrado = null;
     let undoTimeout = null;
 
@@ -826,10 +818,11 @@
         const wrapper = iconoCheck.closest('.evento-swipe-wrapper');
         const content = wrapper.querySelector('.evento-card-content');
         const contenedorPadre = wrapper.parentElement;
+        const accionBorrar = wrapper.querySelector('.evento-accion-borrar');
 
-        // 🚨 FIX: Eliminamos el fondo rojo para que no haya flash al hacer check
+        // 🚨 FIX: Ocultamos la papelera temporalmente para que no haya flash al hacer check
+        accionBorrar.style.opacity = '0';
         wrapper.style.backgroundColor = 'transparent';
-        wrapper.style.boxShadow = 'none';
 
         iconoCheck.style.transition = "transform 0.5s ease, opacity 0.5s ease";
         iconoCheck.style.transform = "scale(1.5) rotate(360deg)";
@@ -842,6 +835,10 @@
             content.onclick = null; 
             contenedorPadre.appendChild(wrapper);
             actualizarContadorVencidas(); 
+            
+            // 🚨 FIX: Restauramos el fondo y la papelera por si el usuario quiere borrar la tarea completada!
+            wrapper.style.backgroundColor = '';
+            accionBorrar.style.opacity = '';
         }, 350); 
 
         const evIndex = eventosGlobales.findIndex(e => String(e.id) === String(id));
@@ -881,9 +878,6 @@
             let startX = 0; let currentX = 0; let isDragging = false;
 
             content.addEventListener("touchstart", (e) => {
-                // 🚨 FIX: Bloquea interacción si ya está completado
-                if (wrapper.classList.contains('completed')) return;
-
                 startX = e.touches[0].clientX; 
                 currentX = startX; 
                 
@@ -903,9 +897,8 @@
                 currentX = e.touches[0].clientX;
                 const diff = currentX - startX;
                 
-                // 🚨 FIX: Dureza. Solo muestra el fondo rojo si de verdad se empieza a mover hacia la izquierda
+                // 🚨 FIX: Dureza. Solo desliza si se mueve más de 15px hacia la izquierda
                 if (diff < -15) { 
-                    wrapper.style.backgroundColor = '#FF3B30'; 
                     content.style.transform = `translateX(${diff > -120 ? diff : -(120 + Math.abs(diff + 120) * 0.2)}px)`; 
                 }
             }, {passive: true});
@@ -915,7 +908,7 @@
                 isDragging = false;
                 content.style.transition = "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
                 
-                // 🚨 FIX: Aumentamos la fuerza requerida para borrar (de -60 a -80px)
+                // Aumentamos la fuerza requerida para borrar permanentemente
                 if ((currentX - startX) < -80) { 
                     content.style.transform = "translateX(-120%)";
                     setTimeout(() => { eliminarEventoVisual(wrapper, wrapper.id.split('-').pop()); }, 300);
@@ -987,7 +980,7 @@
         manejarCambioCategoria(); 
         document.getElementById('eventDate').value = ev.fecha.split("T")[0];
         
-        // 🚨 FIX: Detectar si el campo de escritorio está visible en vez de usar window.innerWidth
+        // Detectar si el campo de escritorio está visible (Manejo correcto PC/Móvil)
         let isDesktop = window.getComputedStyle(document.querySelector('.time-desktop')).display !== 'none';
         
         let [time, ampm] = ev.hora.split(' ');
