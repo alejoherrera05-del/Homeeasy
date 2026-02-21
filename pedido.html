@@ -2,72 +2,263 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>HomeEasy | Orden de Pedido</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --homeeasy-wine: #a63d56; --homeeasy-gold: #d4af37; --homeeasy-silver: #f4f4f4; }
-        body { background-color: #f8f9fa; font-family: 'Montserrat', sans-serif; color: #333; margin: 0; }
+        /* --- VARIABLES PREMIUM --- */
+        :root { 
+            --homeeasy-wine: #a6455a;  
+            --homeeasy-gold: #c2a468;  
+            --app-bg: #f8f9fa;
+        }
+        
+        body { 
+            background-color: var(--app-bg); 
+            font-family: 'Montserrat', sans-serif; 
+            color: #333; 
+            margin: 0; 
+            padding: 20px 10px;
+        }
+        
         .text-uppercase-input { text-transform: uppercase; }
         
-        /* 1. BOTÓN DE RETROCESO (Z-INDEX ALTO PARA EMERGENCIAS) */
-        .btn-back { position: fixed; top: 15px; left: 15px; z-index: 4000; background: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: var(--homeeasy-wine); text-decoration: none; }
+        /* Botón Volver (Optimizado para el Notch de iPhone) */
+        .btn-back { 
+            position: fixed; 
+            top: calc(15px + env(safe-area-inset-top)); 
+            left: 15px; 
+            z-index: 1000; 
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(5px);
+            border-radius: 50%; width: 45px; height: 45px; 
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: var(--homeeasy-wine); 
+            text-decoration: none; font-size: 1.2rem; transition: transform 0.2s;
+        }
+        .btn-back:active { transform: scale(0.9); }
         
-        #area-pdf { background-color: white; width: 100%; max-width: 800px; margin: auto; min-height: 100vh; border: 1px solid #eee; position: relative; display: flex; flex-direction: column; }
-        .header-brand { background-color: var(--homeeasy-wine); padding: 25px 30px; text-align: left; display: flex; align-items: center; justify-content: space-between; position: relative; }
-        .logo-only { max-width: 120px; height: auto; }
-        .empresa-info-header { font-size: 0.68rem; color: #ffffff; text-align: right; line-height: 1.4; }
-        .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.75rem; }
-        .empresa-info-header i { color: var(--homeeasy-gold); width: 15px; text-align: center; margin-right: 2px; }
-
-        .order-meta { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 5px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; gap: 15px; z-index: 10; white-space: nowrap; }
-        .meta-item { font-size: 0.65rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; }
-
-        .document-type { background-color: var(--homeeasy-silver); color: #444; text-align: center; padding: 35px 12px 12px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #ddd; }
-        .card-body { padding: 30px 20px; flex-grow: 1; }
-
-        .section-title { font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--homeeasy-wine); border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 15px; display: block; }
-        .form-label-small { font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; margin: 0; }
-        .form-control-compact { border: none; border-bottom: 1px solid #eee; border-radius: 0; padding: 2px 0; font-size: 0.88rem; background: transparent; height: 32px; width: 100%; transition: all 0.3s; }
-
-        .table th { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #333; border-bottom: 2px solid var(--homeeasy-wine); padding: 12px 5px; }
-        .table td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
+        /* Contenedor Principal (Aspecto de Papel Físico en PC) */
+        #area-pdf { 
+            background-color: white; 
+            width: 100%; max-width: 800px; 
+            margin: 0 auto; 
+            min-height: 1035px; /* Proporción Carta */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            display: flex; flex-direction: column; 
+            position: relative;
+        }
         
-        .finance-box { background-color: #fdfafb; border-radius: 10px; padding: 20px; border-left: 5px solid var(--homeeasy-gold); }
-        .btn-homeeasy { background-color: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; text-transform: uppercase; border-radius: 6px; margin-top: 20px; font-size: 0.95rem; }
-        
-        /* 2. PANTALLA DE CARGA HOMMY */
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
-        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; animation: bounce 2s infinite ease-in-out; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        .checklist-container { text-align: left; width: 280px; margin-top: 15px; }
-        .step-item { color: #aaa; font-size: 0.85rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; }
-        .step-active { color: var(--homeeasy-wine); font-weight: 700; opacity: 1; }
-        .step-done { color: #28a745; font-weight: 600; opacity: 1; }
+        /* Cabecera del Documento */
+        .header-brand { 
+            background-color: var(--homeeasy-wine); 
+            padding: 25px 35px 40px 35px; 
+            display: flex; align-items: center; justify-content: space-between; 
+            position: relative; 
+        }
+        .logo-only { max-width: 130px; height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+        .empresa-info-header { font-size: 0.75rem; color: #ffffff; text-align: right; line-height: 1.5; font-weight: 500;}
+        .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.5px;}
+        .empresa-info-header i { color: var(--homeeasy-gold); width: 18px; text-align: center; margin-right: 4px; }
 
-        .pdf-footer { background-color: var(--homeeasy-silver); padding: 15px; text-align: center; border-top: 1px solid #ddd; margin-top: auto; }
-        .footer-logo { max-width: 70px; opacity: 0.5; margin-bottom: 5px; filter: grayscale(100%); }
-        .footer-creds { font-size: 0.6rem; color: #888; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        /* Meta Etiqueta Flotante */
+        .order-meta { 
+            position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); 
+            background: white; padding: 10px 25px; border-radius: 30px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; 
+            display: flex; gap: 20px; z-index: 10; white-space: nowrap; 
+        }
+        .meta-item { font-size: 0.7rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; letter-spacing: 0.5px;}
+
+        /* Título del Documento PREMIUM */
+        .document-type { 
+            background-color: #ffffff; 
+            color: var(--homeeasy-wine); 
+            text-align: center; 
+            padding: 40px 12px 20px 12px; 
+            font-weight: 300; 
+            text-transform: uppercase; 
+            letter-spacing: 8px; 
+            border-bottom: 1px solid rgba(166, 69, 90, 0.1); 
+            font-size: 1.6rem;
+        }
+        
+        .card-body { padding: 30px 35px; flex-grow: 1; display: flex; flex-direction: column;}
+
+        /* Títulos de Sección */
+        .section-title { 
+            font-weight: 800; text-transform: uppercase; font-size: 0.8rem; 
+            color: var(--homeeasy-wine); border-bottom: 2px solid #f0f0f0; 
+            padding-bottom: 5px; margin-bottom: 15px; display: block; letter-spacing: 1px;
+        }
+        
+        /* Campos de Formulario Premium */
+        .form-label-small { font-size: 0.65rem; font-weight: 700; color: #aaa; text-transform: uppercase; margin-bottom: 2px; }
+        .form-control-compact { 
+            border: none; border-bottom: 1px solid #e0e0e0; border-radius: 0; 
+            padding: 5px 0; font-size: 0.9rem; font-weight: 600; background: transparent; 
+            width: 100%; transition: all 0.3s; color: #333;
+        }
+        .form-control-compact:focus { outline: none; border-bottom-color: var(--homeeasy-gold); box-shadow: none; }
+        .form-control-compact::placeholder { color: #ccc; font-weight: 400; }
+
+        /* Tabla Premium */
+        .table { margin-bottom: 5px; }
+        .table th { 
+            font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #555; 
+            border-bottom: 2px solid var(--homeeasy-wine) !important; padding: 10px 5px; 
+        }
+        .table td { padding: 8px 5px; border-bottom: 1px solid #f5f5f5; vertical-align: middle;}
+        
+        /* Caja Financiera y Abono */
+        .finance-box { 
+            background-color: #fafafa; border-radius: 12px; padding: 20px; 
+            border-left: 6px solid var(--homeeasy-gold); height: 100%;
+        }
+        
+        /* Botón Principal */
+        .btn-homeeasy { 
+            background-color: var(--homeeasy-wine); color: white; border: none; 
+            font-weight: 800; padding: 18px; width: 100%; text-transform: uppercase; 
+            border-radius: 12px; margin-top: 30px; font-size: 1rem; letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(166, 69, 90, 0.3); transition: transform 0.2s;
+        }
+        .btn-homeeasy:active { transform: scale(0.98); }
+        
+        /* Footer del Documento */
+        .pdf-footer { 
+            background-color: #fafafa; padding: 20px; text-align: center; 
+            border-top: 1px solid #eee; margin-top: auto; 
+        }
+        .footer-logo { max-width: 80px; opacity: 0.4; margin-bottom: 10px; filter: grayscale(100%); }
+        .footer-creds { font-size: 0.65rem; color: #777; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+
+        /* =========================================
+           📱 MODO MÓVIL (RESPONSIVE PARA IPHONE)
+           ========================================= */
+        @media (max-width: 768px) {
+            body { padding: 0; background-color: white; }
+            #area-pdf { 
+                box-shadow: none; border-radius: 0; min-height: 100vh; margin: 0;
+            }
+            .header-brand { 
+                padding: calc(25px + env(safe-area-inset-top)) 20px 35px 20px; 
+            }
+            .logo-only { max-width: 100px; }
+            .empresa-info-header { font-size: 0.65rem; }
+            .empresa-info-header b { font-size: 0.75rem; }
+            .order-meta { 
+                width: 85%; padding: 8px 15px; bottom: -20px; font-size: 0.65rem;
+                justify-content: center;
+            }
+            .document-type { 
+                padding: 45px 15px 15px 15px; 
+                font-size: 1.3rem; 
+                letter-spacing: 4px; 
+            }
+            .card-body { padding: 25px 15px; }
+            .finance-box { padding: 15px; }
+            .table th { font-size: 0.65rem; }
+            .table td { font-size: 0.8rem; }
+        }
+
+        /* =========================================
+           MODO EXPORTACIÓN PDF (FUERZA EL FORMATO PC)
+           ========================================= */
+        .pdf-export-mode .header-brand { padding: 15px 30px 25px 30px !important; flex-direction: row !important; text-align: right !important; }
+        .pdf-export-mode .empresa-info-header { font-size: 0.75rem !important; }
+        .pdf-export-mode .logo-only { max-width: 130px !important; }
+        .pdf-export-mode .order-meta { width: auto !important; padding: 10px 25px !important; bottom: -18px !important; font-size: 0.7rem !important; }
+        .pdf-export-mode .document-type { padding: 35px 12px 10px 12px !important; font-size: 1.4rem !important; letter-spacing: 8px !important; }
+        .pdf-export-mode .card-body { padding: 15px 30px !important; }
+        .pdf-export-mode .finance-box { padding: 10px 20px !important; }
+        .pdf-export-mode .section-title { margin-bottom: 5px !important; }
+        .pdf-export-mode .row.g-4 { row-gap: 0.5rem !important; }
+        .pdf-export-mode .mb-5 { margin-bottom: 0.8rem !important; }
+        .pdf-export-mode .mb-4 { margin-bottom: 0.5rem !important; }
+        .pdf-export-mode .table th, .pdf-export-mode .table td { padding: 6px 5px !important; font-size: 0.8rem !important;}
+        .pdf-export-mode .pdf-footer { padding: 10px !important; }
+
+        /* =========================================
+           PANTALLAS DE CARGA Y ÉXITO
+           ========================================= */
+        .loading-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 9999; justify-content: center; align-items: center; 
+        }
+        .glass-loader { 
+            background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); 
+            border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
+            text-align: center; width: 85%; max-width: 340px; 
+        }
+        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; }
+        
+        .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; text-align: left; }
+        .step-active { opacity: 1; color: var(--homeeasy-wine); font-weight: 800; }
+        .step-check { opacity: 1; color: #2ecc71; font-weight: 700; }
+
+        /* MODAL DE ÉXITO PREMIUM */
+        .success-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            z-index: 10000; justify-content: center; align-items: center; 
+        }
+        .success-box { 
+            background: white; border-radius: 28px; padding: 40px 30px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; 
+            width: 85%; max-width: 340px; border: 1px solid rgba(194, 164, 104, 0.3);
+            animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .success-icon { 
+            width: 80px; height: 80px; background: rgba(46, 204, 113, 0.15); 
+            color: #27ae60; border-radius: 50%; display: flex; justify-content: center; 
+            align-items: center; font-size: 40px; margin: 0 auto 20px; 
+        }
+        .success-box h3 { color: var(--homeeasy-wine); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px; letter-spacing: -0.5px;}
+        .success-box p { color: #666; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; font-weight: 500;}
+        .btn-success-home { 
+            background: var(--homeeasy-wine); color: white; border: none; 
+            font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; 
+            font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25);
+        }
+        .btn-success-home:active { transform: scale(0.95); }
+
+        .row-desc, #notas { height: auto !important; min-height: 35px; }
     </style>
-
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body>
+<body ontouchstart="">
 
 <div id="loading" class="loading-overlay">
-    <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy">
-    <div id="loader-content" class="text-center">
-        <h6 style="color:var(--homeeasy-wine); font-weight: 800;">ESPERA...</h6>
-        <p class="small text-muted mb-3">Hommy está realizando la orden de pedido</p>
-        <div class="checklist-container mx-auto">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Paso 1: Generar op...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Paso 2: Sincronizar datos en la nube...</div>
-            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Paso 3: Guardar respaldo...</div>
-            <div id="step-4" class="step-item"><i class="far fa-circle"></i> Paso 4: Finalizar proceso...</div>
+    <div class="glass-loader">
+        <img src="hommysaludando.png" class="hommy-loader" alt="Hommy" onerror="this.src='HOMMY.png'">
+        <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">PROCESANDO...</h6>
+        <p class="small text-muted mb-4">Hommy está generando tu orden</p>
+        
+        <div id="status-list" style="text-align: left; margin-left: 10px;">
+            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Acomodando el diseño final...</div>
+            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Imprimiendo PDF en 4K...</div>
+            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Programando la fabricación...</div>
+            <div id="step-4" class="step-item"><i class="far fa-circle"></i> ¡Orden sellada y lista!</div>
         </div>
+    </div>
+</div>
+
+<div id="success-modal" class="success-overlay">
+    <div class="success-box">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <h3>¡Orden Confirmada!</h3>
+        <p>La orden fue generada, sincronizada con el taller y está lista para enviarse al cliente.</p>
+        <button class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
     </div>
 </div>
 
@@ -75,7 +266,7 @@
 
 <div id="area-pdf">
     <div class="header-brand">
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="logo-only" crossorigin="anonymous">
+        <img src="logohomeeasy.png" class="logo-only" alt="HomeEasy" onerror="this.src='triangulogold.png'; this.style.width='60px'">
         <div class="empresa-info-header">
             <b>HOMEEASY POPAYÁN</b><br>
             <span>NIT: 1.061.760.850-1</span><br>
@@ -84,109 +275,147 @@
             <span><i class="fab fa-instagram"></i> @homeeasypopayan</span>
         </div>
         <div class="order-meta">
-            <div class="meta-item">ORDEN N°: <span id="n_orden_display">...</span></div>
-            <div class="meta-item">Fecha: <span id="fecha_display"></span></div>
+            <div class="meta-item">ORDEN N°: <span id="n_orden_display" style="color: #333;">...</span></div>
+            <div class="meta-item">Fecha: <span id="fecha_display" style="color: #333;"></span></div>
         </div>
     </div>
     
     <div class="document-type">ORDEN DE PEDIDO</div>
     
     <div class="card-body">
+        
         <span class="section-title">Información del Cliente</span>
         <div class="row g-3 mb-4">
-            <div class="col-4 position-relative">
-  <label class="form-label-small">Cédula / NIT</label>
-  <input type="text" id="cedula" inputmode="numeric" pattern="[0-9]*"
-         class="form-control-compact" oninput="validarYLimpiar()" onblur="buscarCliente()">
-
-  <div id="sugerencias_cliente"
-       style="background:white;
-       border-radius:10px;
-       max-height:200px;
-       overflow:auto;
-       box-shadow:0 10px 20px rgba(0,0,0,0.15);
-       margin-top:5px;
-       display:none;">
-  </div>
-</div>
-            <div class="col-8"><label class="form-label-small">Nombre Completo</label><input type="text" id="nombre" class="form-control-compact text-uppercase-input"></div>
-            <div class="col-6"><label class="form-label-small">Teléfono</label><input type="tel" id="telefono" inputmode="numeric" pattern="[0-9]*" class="form-control-compact"></div>
-            <div class="col-6"><label class="form-label-small">Email</label><input type="email" id="email" class="form-control-compact"></div>
-            <div class="col-12"><label class="form-label-small">Dirección de Instalación</label><input type="text" id="direccion" class="form-control-compact text-uppercase-input"></div>
+            <div class="col-md-4 col-12">
+                <label class="form-label-small">Cédula / NIT</label>
+                <input type="text" id="cedula" class="form-control-compact" placeholder="Buscar por cédula o nombre..." autocomplete="off">
+                <div id="sugerencias_cliente" style="background:white; border-radius:10px; max-height:200px; overflow:auto; box-shadow:0 10px 20px rgba(0,0,0,0.15); margin-top:5px; display:none; position: absolute; z-index: 100; width: 90%;"></div>
+            </div>
+            <div class="col-md-8 col-12">
+                <label class="form-label-small">Nombre Completo</label>
+                <input type="text" id="nombre" class="form-control-compact text-uppercase-input" oninput="capFirst(this)">
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="form-label-small">Teléfono</label>
+                <input type="tel" id="telefono" inputmode="numeric" class="form-control-compact">
+            </div>
+            <div class="col-md-8 col-12">
+                <label class="form-label-small">Correo Electrónico</label>
+                <input type="email" id="email" class="form-control-compact" style="text-transform: lowercase;">
+            </div>
+            <div class="col-12">
+                <label class="form-label-small">Dirección / Ciudad</label>
+                <input type="text" id="direccion" class="form-control-compact text-uppercase-input" oninput="capFirst(this)">
+            </div>
         </div>
 
-        <span class="section-title">Detalle de Fabricación</span>
-        <div class="table-responsive">
+        <span class="section-title mt-2">Detalle de Fabricación</span>
+        <div class="table-responsive" style="overflow-x: visible;">
             <table class="table align-middle">
-                <thead><tr><th>Descripción</th><th width="80">Cant.</th><th width="150">V. Unit</th><th width="120" class="text-end">Total</th><th width="40" class="no-print"></th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Descripción del Artículo</th>
+                        <th width="70" class="text-center">Cant.</th>
+                        <th width="130" class="text-center">V. Unitario</th>
+                        <th width="130" class="text-end">V. Total</th>
+                        <th width="30" class="no-print"></th>
+                    </tr>
+                </thead>
                 <tbody id="tabla-body">
                     <tr>
-                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance Blanca"></td>
+                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance Blanca" oninput="capFirst(this)"></td>
                         <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
-                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" pattern="[0-9]*" oninput="formatear(this); calcular()"></td>
-                        <td class="item-total fw-bold text-end">$ 0</td>
-                        <td class="no-print"></td>
+                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
+                        <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
+                        <td class="no-print text-end"><button class="btn btn-sm" style="color:#e74c3c; padding:0;" onclick="eliminarFila(this)"><i class="fas fa-times"></i></button></td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <button class="btn btn-sm btn-outline-secondary no-print mb-3" onclick="agregarFila()">+ AÑADIR PRODUCTO</button>
+        <button class="btn btn-sm no-print mb-4" style="background: rgba(194, 164, 104, 0.15); color: var(--homeeasy-gold); font-weight: 700; border-radius: 8px;" onclick="agregarFila()">+ Añadir Línea</button>
 
         <div class="mb-4">
             <label class="form-label-small">Observaciones de Fabricación</label>
-            <textarea id="notes" class="form-control-compact" style="height: 50px; min-height: 50px;" placeholder="Detalles de medidas o accesorios..."></textarea>
+            <textarea id="notas" class="form-control-compact" style="height: 40px; resize: none;" placeholder="Ej: Medidas exactas, lado del mando, accesorios..." oninput="capFirst(this)"></textarea>
         </div>
 
-        <div class="row g-4">
-            <div class="col-md-7">
-                <span class="section-title">Condiciones de Venta</span>
-                <div style="font-size: 0.72rem; color: #555; background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 8px; line-height: 1.5;">
+        <div class="row g-4 mt-auto">
+            <div class="col-md-6 col-12 d-flex flex-column justify-content-end">
+                <span class="section-title mb-2">Condiciones de Venta</span>
+                <div style="font-size: 0.75rem; color: #666; line-height: 1.6;">
                     • <b>Garantía:</b> 3 años (aplica términos y condiciones).<br>
                     • <b>Tiempo de entrega:</b> 10 días hábiles.<br>
                     • <b>Saldo:</b> Se cancela contra entrega e instalación.<br>
                     • <b>Instalación:</b> Incluida en el valor total pactado.
                 </div>
             </div>
-            <div class="col-md-5">
-                <div class="finance-box text-end">
-                    <p class="mb-1 small text-muted">Total Pedido: <span id="total_pedido_val">$ 0</span></p>
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-bold small">ABONO INICIAL:</span>
-                        <input type="text" id="abono" class="form-control-compact text-end fw-bold" style="width:110px; border-bottom: 2px solid var(--homeeasy-wine)" inputmode="numeric" pattern="[0-9]*" oninput="formatear(this); calcular()">
+            
+            <div class="col-md-6 col-12">
+                <div class="finance-box">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: #888;">TOTAL PEDIDO:</span>
+                        <span id="total_pedido_val" style="font-weight: 700; color: #555;">$ 0</span>
                     </div>
-                    <hr>
-                    <p class="h5 fw-bold mb-0" style="color:var(--homeeasy-wine)">SALDO: <span id="saldo_pendiente_val">$ 0</span></p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-gold);">ABONO INICIAL:</span>
+                        <input type="text" id="abono" class="form-control-compact text-end p-0" style="width: 120px; font-weight: 800; color: var(--homeeasy-wine); border-bottom: 2px solid var(--homeeasy-wine);" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()">
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 2px solid #eaeaea;">
+                        <span style="font-size: 1.1rem; font-weight: 800; color: var(--homeeasy-wine);">SALDO:</span>
+                        <span id="saldo_pendiente_val" style="font-size: 1.4rem; font-weight: 800; color: var(--homeeasy-wine);">$ 0</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <button class="btn btn-homeeasy no-print shadow" onclick="finalizar()">Finalizar y Sincronizar</button>
+        <button class="btn btn-homeeasy no-print" onclick="finalizar()"><i class="fas fa-cloud-upload-alt me-2"></i> Generar Orden de Pedido</button>
     </div>
 
     <div class="pdf-footer">
-        <img src="https://i.ibb.co/kVrX85J5/logo.jpg" class="footer-logo">
-        <div class="footer-creds">HomeEasy Popayán - Expertos en Decoración</div>
-        <div style="font-size: 0.55rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema HomeEasy</div>
+        <img src="Hommypiedepagina.png" alt="Hommy" style="height: 35px; opacity: 0.5; margin-bottom: 8px;">
+        <div class="footer-creds">HomeEasy - Viste tu hogar con estilo</div>
+        <div style="font-size: 0.6rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema Hommy V2.0</div>
     </div>
 </div>
 
 <script>
     const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-    let ultimaCedulaBuscada = "";
     let numeroCot = null;
 
+    // ==========================================
+    // 1. CARGA INICIAL Y VERIFICACIÓN DE URL
+    // ==========================================
     window.onload = () => {
         document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
         
+        // Obtener consecutivo
         fetch(`${URL_G}?nextPedido=1`)
             .then(r => r.json())
             .then(d => { 
                 if(d.status === "ok") {
                     document.getElementById("n_orden_display").innerText = d.nextPedido || "001"; 
                 }
-            })
-            .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
+            }).catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
 
+        // Actualizar Caché silenciosamente
+        fetch(`${URL_G}?init=LOAD`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === "ok" && data.clientes) {
+                    const clientesObj = {};
+                    for (let i = 1; i < data.clientes.length; i++) {
+                        const c = data.clientes[i];
+                        if(c && c[0]) {
+                            clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] };
+                        }
+                    }
+                    localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
+                }
+            }).catch(err => console.error("Error parchando caché:", err));
+
+        // Verificar si viene de una cotización
         const params = new URLSearchParams(window.location.search);
         numeroCot = params.get("cotizacion");
 
@@ -199,7 +428,7 @@
                         document.getElementById("nombre").value = d.nombre.toUpperCase();
                         buscarCliente(); 
 
-                       let items = [];
+                        let items = [];
                         if (d.items) { items = d.items; } 
                         else if (d.itemsJSON) { try { items = JSON.parse(d.itemsJSON); } catch(e) { items = []; } }
 
@@ -209,13 +438,11 @@
                             items.forEach(item => {
                                 const tr = document.createElement("tr");
                                 tr.innerHTML = `
-                                    <td><input type="text" class="form-control-compact row-desc"></td>
-                                    <td><input type="number" class="form-control-compact text-center cant" value="1" oninput="calcular()"></td>
-                                    <td><input type="text" class="form-control-compact text-center precio" oninput="formatear(this); calcular()"></td>
-                                    <td class="item-total fw-bold text-end">$ 0</td>
-                                    <td class="no-print text-end">
-                                        <button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button>
-                                    </td>
+                                    <td><input type="text" class="form-control-compact row-desc" oninput="capFirst(this)"></td>
+                                    <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
+                                    <td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" oninput="formatear(this); calcular()"></td>
+                                    <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
+                                    <td class="no-print text-end"><button class="btn btn-sm" style="color:#e74c3c; padding:0;" onclick="eliminarFila(this)"><i class="fas fa-times"></i></button></td>
                                 `;
                                 tbody.appendChild(tr);
                                 tr.querySelector(".row-desc").value = item.descripcion || "";
@@ -231,33 +458,12 @@
         }
     };
 
-    function validarYLimpiar() {
-        const ced = document.getElementById('cedula').value.trim();
-        if (ced !== ultimaCedulaBuscada) {
-            ['nombre', 'telefono', 'email', 'direccion'].forEach(id => document.getElementById(id).value = "");
+    function capFirst(input) {
+        let val = input.value;
+        if (val.length > 0) {
+            input.value = val.charAt(0).toUpperCase() + val.slice(1);
         }
     }
-
-    function buscarCliente() {
-
-    const ced = document.getElementById('cedula').value.trim();
-    const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
-
-    if (!ced || !cache[ced]) {
-        document.getElementById('nombre').value = "";
-        document.getElementById('telefono').value = "";
-        document.getElementById('email').value = "";
-        document.getElementById('direccion').value = "";
-        return;
-    }
-
-    const cliente = cache[ced];
-
-    document.getElementById('nombre').value = (cliente.nombre || "").toUpperCase();
-    document.getElementById('telefono').value = cliente.telefono || "";
-    document.getElementById('email').value = (cliente.email || "").toLowerCase();
-    document.getElementById('direccion').value = (cliente.direccion || "").toUpperCase();
-}
 
     function formatear(i) {
         let v = i.value.replace(/\D/g, "");
@@ -273,76 +479,182 @@
             tr.querySelector('.item-total').innerText = `$ ${sub.toLocaleString('es-CO')}`;
             total += sub;
         });
+        
         let abono = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+        
         document.getElementById('total_pedido_val').innerText = `$ ${total.toLocaleString('es-CO')}`;
-        document.getElementById('saldo_pendiente_val').innerText = `$ ${(total - abono).toLocaleString('es-CO')}`;
+        
+        let saldo = total - abono;
+        if(saldo < 0) saldo = 0;
+        
+        document.getElementById('saldo_pendiente_val').innerText = `$ ${saldo.toLocaleString('es-CO')}`;
     }
 
     function agregarFila() {
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td><input type="text" class="form-control-compact row-desc"></td><td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td><td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" pattern="[0-9]*" oninput="formatear(this); calcular()"></td><td class="item-total fw-bold text-end">$ 0</td><td class="no-print text-end"><button class="btn btn-sm text-danger" onclick="this.parentElement.parentElement.remove(); calcular()">✕</button></td>`;
+        tr.innerHTML = `
+            <td><input type="text" class="form-control-compact row-desc" placeholder="Descripción..." oninput="capFirst(this)"></td>
+            <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
+            <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
+            <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
+            <td class="no-print text-end"><button class="btn btn-sm" style="color:#e74c3c; padding:0;" onclick="eliminarFila(this)"><i class="fas fa-times"></i></button></td>
+        `;
         document.getElementById('tabla-body').appendChild(tr);
     }
+    
+    function eliminarFila(btn) {
+        btn.closest('tr').remove();
+        calcular();
+    }
 
-    // 3. FUNCIÓN PARA CONTROLAR EL CHECKLIST PROFESIONAL
-    function updateStep(num, status) {
-        const el = document.getElementById('step-' + num);
+    const loadingTexts = [
+        "Acomodando el diseño final...",
+        "Imprimiendo PDF en 4K...",
+        "Programando la fabricación...",
+        "¡Orden sellada y lista!"
+    ];
+
+    function setStep(num, status) {
+        const step = document.getElementById('step-' + num);
         if (status === 'active') {
-            el.classList.add('step-active');
-            el.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ` + el.innerText.split(': ')[1];
-        } else if (status === 'done') {
-            el.classList.remove('step-active');
-            el.classList.add('step-done');
-            el.innerHTML = `<i class="fas fa-check-circle"></i> ` + el.innerText;
+            step.classList.add('step-active');
+            step.classList.remove('step-check');
+            step.innerHTML = `<i class="fas fa-circle-notch fa-spin text-warning"></i> ` + loadingTexts[num-1];
+        } else if (status === 'check') {
+            step.classList.remove('step-active');
+            step.classList.add('step-check');
+            step.innerHTML = `<i class="fas fa-check-circle"></i> ` + loadingTexts[num-1];
+        } else {
+            step.className = 'step-item';
+            step.innerHTML = `<i class="far fa-circle"></i> ` + loadingTexts[num-1];
         }
     }
 
+    // ============================================================
+    // 🖨️ MOTOR GENERADOR DE PDF CERO BORDES (VERSIÓN PEDIDOS)
+    // ============================================================
     async function finalizar() {
         const cedula = document.getElementById('cedula').value.trim();
-        const nombre = document.getElementById('nombre').value.toUpperCase();
-        
-        if(!cedula || !nombre) return alert("Cédula y Nombre son requeridos.");
-        document.getElementById('nombre').value = nombre;
+        let nombre = document.getElementById('nombre').value.toUpperCase();
+        let email = document.getElementById('email').value.toLowerCase();
+        let numeroOP = document.getElementById("n_orden_display").innerText.trim() || "001";
+
+        if (!cedula || !nombre) return alert("Por favor, ingresa al menos Cédula y Nombre.");
 
         const loading = document.getElementById('loading');
         loading.style.display = 'flex';
         
-        // Iniciar Checklist
-        updateStep(1, 'active');
+        for(let i=1; i<=4; i++) {
+            setStep(i, 'reset');
+        }
 
         try {
-            const elementosNoDeseados = document.querySelectorAll('.no-print, button, .btn');
-            elementosNoDeseados.forEach(el => el.style.display = 'none');
+            setStep(1, 'active');
+            
+            const origBodyPadding = document.body.style.padding;
+            document.body.style.padding = '0';
 
-            const filas = document.querySelectorAll('#tabla-body tr');
-            filas.forEach(fila => {
-                const descInput = fila.querySelector('.row-desc');
-                if (descInput && descInput.value.trim() === "") fila.style.display = 'none';
+            const areaPdf = document.getElementById('area-pdf');
+            areaPdf.classList.add('pdf-export-mode');
+
+            const origBorderRadius = areaPdf.style.borderRadius;
+            const origBoxShadow = areaPdf.style.boxShadow;
+            areaPdf.style.borderRadius = '0px';
+            areaPdf.style.boxShadow = 'none';
+            areaPdf.style.width = '800px';
+            areaPdf.style.maxWidth = '800px';
+            areaPdf.style.margin = '0'; 
+
+            await new Promise(r => setTimeout(r, 50));
+
+            const canvas = await html2canvas(areaPdf, { 
+                scale: 3, 
+                useCORS: true, 
+                width: 800,
+                windowWidth: 800,
+                x: areaPdf.offsetLeft, 
+                y: areaPdf.offsetTop,
+                onclone: function(clonedDoc) {
+                    clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
+
+                    clonedDoc.querySelectorAll('#tabla-body tr').forEach(f => {
+                        const desc = f.querySelector('.row-desc');
+                        if(!desc || !desc.value.trim()) f.remove();
+                    });
+
+                    // Limpieza específica para el input de Abono
+                    const abonoInputClone = clonedDoc.getElementById('abono');
+                    if (abonoInputClone) {
+                        abonoInputClone.style.borderBottom = 'none';
+                        abonoInputClone.style.background = 'transparent';
+                    }
+
+                    clonedDoc.querySelectorAll('.form-control-compact').forEach(input => {
+                        input.style.borderBottom = 'none';
+                        input.style.background = 'transparent';
+                        input.style.color = '#222';
+                    });
+
+                    clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(input => {
+                        const span = clonedDoc.createElement('span');
+                        span.innerText = input.value;
+                        span.className = input.className;
+                        span.style.display = 'inline-block';
+                        span.style.border = 'none';
+                        span.style.background = 'transparent';
+                        if(input.classList.contains('text-end')) span.style.textAlign = 'right';
+                        if(input.classList.contains('text-center')) span.style.textAlign = 'center';
+                        input.parentNode.replaceChild(span, input);
+                    });
+
+                    clonedDoc.querySelectorAll('textarea').forEach(ta => {
+                        const div = clonedDoc.createElement('div');
+                        div.innerText = ta.value;
+                        div.className = ta.className;
+                        div.style.border = 'none';
+                        div.style.background = 'transparent';
+                        div.style.whiteSpace = 'pre-wrap';
+                        ta.parentNode.replaceChild(div, ta);
+                    });
+                }
             });
+
+            setStep(1, 'check');
+            setStep(2, 'active');
+
+            areaPdf.classList.remove('pdf-export-mode');
+            document.body.style.padding = origBodyPadding; 
+            areaPdf.style.borderRadius = origBorderRadius;
+            areaPdf.style.boxShadow = origBoxShadow;
+            areaPdf.style.width = '100%';
+            areaPdf.style.margin = '0 auto';
 
             const { jsPDF } = window.jspdf;
-            const element = document.getElementById("area-pdf");
+            const pdf = new jsPDF("p", "mm", "letter"); 
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth(); 
+            const pdfHeight = pdf.internal.pageSize.getHeight(); 
+            const canvasRatio = canvas.width / canvas.height;
+            
+            const finalWidth = pdfWidth; 
+            let finalHeight = finalWidth / canvasRatio; 
 
-            const canvas = await html2canvas(element, { 
-                scale: 3, 
-                useCORS: true,
-                logging: false,
-                width: 800,
-                windowWidth: 800 
-            });
+            const imgData = canvas.toDataURL("image/jpeg", 1.0); 
+            
+            let heightLeft = finalHeight;
+            let position = 0;
 
-            elementosNoDeseados.forEach(el => el.style.display = '');
-            filas.forEach(fila => fila.style.display = '');
+            pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight);
+            heightLeft -= pdfHeight;
 
-            updateStep(1, 'done');
-            updateStep(2, 'active');
+            while (heightLeft > 0) {
+                position -= pdfHeight; 
+                pdf.addPage();
+                pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight);
+                heightLeft -= pdfHeight;
+            }
 
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF("p", "mm", "a4");
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-            const pdfBase64 = pdf.output("datauristring").split(',')[1];
+            const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
             let descripcionTexto = "";
             let itemsJSON = [];
@@ -355,104 +667,124 @@
                 itemsJSON.push({ descripcion: descripcion, cantidad: cantidad, precio: precio, subtotal: cantidad * precio });
             });
 
-            const total = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, ""));
+            const totalFinal = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")) || 0;
             const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
+            const nombreArchivo = `Orden_N_${numeroOP}_${cedula}.pdf`;
 
-            const response = await fetch(URL_G, {
-                method: "POST",
+            setStep(2, 'check');
+            setStep(3, 'active');
+
+            const response = await fetch(URL_G, { 
+                method: 'POST', 
                 body: JSON.stringify({
                     tipo: "pedido",
                     numeroCotizacion: numeroCot || null,
                     cedula: cedula,
                     nombre: nombre,
+                    telefono: document.getElementById('telefono').value,
+                    email: email,
+                    direccion: document.getElementById('direccion').value,
                     descripcion: descripcionTexto,
-                    itemsJSON: JSON.stringify(itemsJSON),
-                    observaciones: document.getElementById('notes').value, // SE MANTUVO ID 'notes' DEL ORIGINAL
-                    valorTotal: total,
+                    valorTotal: totalFinal,
                     abonoInicial: abonoInicial,
+                    itemsJSON: JSON.stringify(itemsJSON), // Para Op se envia en string (backend)
+                    observaciones: document.getElementById('notas').value,
                     pdfBase64: pdfBase64,
-                    nombreArchivo: `Orden_${cedula}_${nombre.replace(/ /g,"_")}.pdf`
-                })
+                    nombreArchivo: nombreArchivo
+                }) 
             });
 
-            updateStep(2, 'done');
-            updateStep(3, 'active');
-
-            const json = await response.json();
+            const result = await response.json();
             
-            if (json.status === "success") {
-                updateStep(3, 'done');
-                updateStep(4, 'active');
-                
-                pdf.save(`Orden_Pedido_${json.numero_op}.pdf`);
+            if (result.status === "success") {
+                setStep(3, 'check');
+                setStep(4, 'active');
                 
                 setTimeout(() => {
-                    updateStep(4, 'done');
-                    alert(`¡Éxito! Orden N° ${json.numero_op} guardada. Hommy finalizó la operación.`);
-                    // REDIRECCIÓN SEGURA
-                    window.location.replace("index.html");
+                    setStep(4, 'check');
+                    pdf.save(nombreArchivo);
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('success-modal').style.display = 'flex';
                 }, 800);
-
             } else {
-                alert("Error: " + (json.msg || "No se pudo crear la orden"));
-                loading.style.display = 'none';
+                throw new Error(result.msg || "El servidor no respondió con éxito.");
             }
-
-        } catch (err) {
-            alert("Error: " + err.message);
+        } catch (e) {
+            alert("Error: No se pudo procesar. Intenta nuevamente.");
+            console.error(e);
             loading.style.display = 'none';
         }
     }
+
     // ===============================
-// 🔎 SUGERENCIAS CLIENTES CACHE
-// ===============================
-const clientesCache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
+    // 🔎 SUGERENCIAS Y AUTOCOMPLETADO
+    // ===============================
+    document.getElementById("cedula").addEventListener("input", function() {
+        buscarCliente(); 
 
-document.getElementById("cedula").addEventListener("input", function() {
+        const valor = this.value.trim().toLowerCase();
+        const cont = document.getElementById("sugerencias_cliente");
 
-    buscarCliente(); // limpia o llena en tiempo real
+        cont.innerHTML = "";
+        cont.style.display = "none";
 
-    const valor = this.value.trim().toLowerCase();
-    const cont = document.getElementById("sugerencias_cliente");
+        if (valor.length < 2) return;
 
-    cont.innerHTML = "";
-    cont.style.display = "none";
+        const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
 
-    if (valor.length < 2) return;
+        Object.values(cache).forEach(cliente => {
+            if (String(cliente.cedula).includes(valor) || cliente.nombre.toLowerCase().includes(valor)) {
+                const div = document.createElement("div");
+                div.style.padding = "12px 15px";
+                div.style.cursor = "pointer";
+                div.style.borderBottom = "1px solid #eee";
+                div.style.fontSize = "0.85rem";
+                div.onmouseover = () => div.style.background = "#f9f9f9";
+                div.onmouseout = () => div.style.background = "white";
+                div.innerHTML = `<strong style="color:var(--homeeasy-wine)">${cliente.cedula}</strong> - ${cliente.nombre}`;
 
-    const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
+                div.onclick = function() {
+                    document.getElementById("cedula").value = cliente.cedula;
+                    buscarCliente();
+                    cont.innerHTML = "";
+                    cont.style.display = "none";
+                };
 
-    Object.values(cache).forEach(cliente => {
-
-        if (
-            String(cliente.cedula).includes(valor) ||
-            cliente.nombre.toLowerCase().includes(valor)
-        ) {
-
-            const div = document.createElement("div");
-            div.style.padding = "8px";
-            div.style.cursor = "pointer";
-            div.style.borderBottom = "1px solid #eee";
-            div.onmouseover = () => div.style.background = "#f5f5f5";
-            div.onmouseout = () => div.style.background = "white";
-            div.innerHTML = `<b>${cliente.cedula}</b> - ${cliente.nombre}`;
-
-            div.onclick = function() {
-                document.getElementById("cedula").value = cliente.cedula;
-                buscarCliente();
-                cont.innerHTML = "";
-                cont.style.display = "none";
-            };
-
-            cont.appendChild(div);
-            cont.style.display = "block";
-        }
-
+                cont.appendChild(div);
+                cont.style.display = "block";
+            }
+        });
     });
 
-});
+    document.addEventListener("click", function(e) {
+        const input = document.getElementById("cedula");
+        const div = document.getElementById("sugerencias_cliente");
+        if(e.target !== input && e.target !== div) {
+            div.style.display = "none";
+        }
+    });
 
+    function buscarCliente() {
+        const ced = document.getElementById('cedula').value.trim();
+        const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
+
+        if (!ced) {
+            document.getElementById('nombre').value = "";
+            document.getElementById('telefono').value = "";
+            document.getElementById('email').value = "";
+            document.getElementById('direccion').value = "";
+            return;
+        }
+
+        if (cache[ced]) {
+            const cliente = cache[ced];
+            document.getElementById('nombre').value = (cliente.nombre || "").toUpperCase();
+            document.getElementById('telefono').value = cliente.telefono || "";
+            document.getElementById('email').value = (cliente.email || "").toLowerCase();
+            document.getElementById('direccion').value = (cliente.direccion || "").toUpperCase();
+        }
+    }
 </script>
 </body>
 </html>
-
