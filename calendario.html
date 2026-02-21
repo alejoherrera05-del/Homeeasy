@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Calendario - Sistema Hommy</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --bg-color: #f8f9fa;
-            --primary-wine: #a6455a;  /* Nuevo Vinotinto */
-            --accent-gold: #c2a468;   /* Nuevo Dorado */
+            --primary-wine: #a6455a;  
+            --accent-gold: #c2a468;   
             --text-dark: #333333;
             --text-light: #888888;
             --white: #ffffff;
@@ -20,256 +21,114 @@
         }
 
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            margin: 0; padding: 0; box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            background-color: var(--bg-color); color: var(--text-dark);
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* 🚫 EVITAR ZOOM EN IPHONE */
+        /* 🚫 EVITAR ZOOM EN IPHONE Y ANDROID AL ESCRIBIR */
         input, select, textarea { font-size: 16px !important; }
 
         /* --- Header Premium --- */
         header {
             background-color: var(--white);
             padding: calc(15px + env(safe-area-inset-top)) 20px 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.04);
-            z-index: 10;
-            position: relative; 
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.04); z-index: 10; position: relative; 
         }
 
         .header-left { z-index: 2; }
 
-        .he-btn-back {
-            width: 45px;
-            height: 45px;
-            background-color: rgba(166, 69, 90, 0.08);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-wine);
-            font-size: 1.2rem;
-            text-decoration: none;
-            z-index: 3000;
-            transition: transform 0.1s ease;
+        /* BOTÓN DE RETROCESO (IGUAL A COTIZACIONES Y ÓRDENES) */
+        .btn-back { 
+            background: rgba(166, 69, 90, 0.08); backdrop-filter: blur(5px);
+            border-radius: 50%; width: 45px; height: 45px; 
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); color: var(--primary-wine); 
+            text-decoration: none; font-size: 1.2rem; transition: transform 0.2s;
         }
-        .he-btn-back:active { transform: scale(0.90); }
-        .he-btn-back span { font-size: 26px; }
+        .btn-back:active { transform: scale(0.9); background: rgba(166, 69, 90, 0.15); }
 
         .header-center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1;
-            width: 50%; /* Permite ajuste en móviles */
-            display: flex;
-            justify-content: center;
+            position: absolute; left: 50%; transform: translateX(-50%);
+            z-index: 1; width: 60%; display: flex; justify-content: center;
         }
 
         .header-brand {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap; /* Fuerza a una sola línea */
+            display: flex; align-items: center; gap: 8px; white-space: nowrap; 
         }
 
-        .header-brand img { height: 26px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
-        .header-brand h1 { font-size: 1.15rem; color: var(--primary-wine); font-weight: 700; margin: 0; }
+        .header-brand img { height: 24px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .header-brand h1 { font-size: 1.1rem; color: var(--primary-wine); font-weight: 700; margin: 0; letter-spacing: -0.5px;}
 
         .header-icons { display: flex; gap: 15px; z-index: 2; }
         .header-icons span { color: var(--primary-wine); font-size: 24px; cursor: pointer; padding: 5px; }
 
-        /* --- Calendario --- */
+        /* --- Calendario con Swipe --- */
         .calendar-container {
-            background-color: var(--white);
-            padding: 0 20px 20px 20px;
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
-            box-shadow: var(--shadow);
-            z-index: 5;
-            touch-action: pan-y; /* Permite scroll vertical pero detecta swipe horizontal */
+            background-color: var(--white); padding: 0 20px 20px 20px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            box-shadow: var(--shadow); z-index: 5;
+            touch-action: pan-y; 
         }
 
-        .month-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-top: 15px;
-        }
-
+        .month-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-top: 15px; }
         .month-header h2 { font-size: 1.1rem; color: var(--text-dark); font-weight: 600; text-transform: capitalize; }
         .month-nav { color: var(--accent-gold); cursor: pointer; font-size: 26px; padding: 5px; }
 
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-light);
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            row-gap: 12px;
-        }
-
-        .day {
-            font-size: 0.95rem;
-            cursor: pointer;
-            position: relative;
-            height: 38px;
-            width: 38px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto;
-            border-radius: 50%;
-            transition: 0.2s;
-            font-weight: 500;
-        }
-
-        .day.active {
-            background-color: var(--primary-wine);
-            color: var(--white);
-            font-weight: 700;
-            box-shadow: 0 4px 10px rgba(166, 69, 90, 0.35);
-        }
-
-        .day.has-event::after {
-            content: '';
-            position: absolute;
-            bottom: 4px;
-            width: 5px;
-            height: 5px;
-            background-color: var(--accent-gold);
-            border-radius: 50%;
-        }
+        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.75rem; color: var(--text-light); margin-bottom: 10px; font-weight: 600; }
+        .days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; row-gap: 12px; }
+        .day { font-size: 0.95rem; cursor: pointer; position: relative; height: 38px; width: 38px; display: flex; justify-content: center; align-items: center; margin: 0 auto; border-radius: 50%; transition: 0.2s; font-weight: 500; }
+        .day.active { background-color: var(--primary-wine); color: var(--white); font-weight: 700; box-shadow: 0 4px 10px rgba(166, 69, 90, 0.35); }
+        .day.has-event::after { content: ''; position: absolute; bottom: 4px; width: 5px; height: 5px; background-color: var(--accent-gold); border-radius: 50%; }
         .day.active.has-event::after { background-color: var(--white); }
 
         /* --- Agenda Section --- */
-        .agenda-container {
-            flex: 1;
-            padding: 20px;
-            padding-bottom: 110px; 
-            overflow-y: auto;
+        .agenda-container { flex: 1; padding: 20px; padding-bottom: 110px; overflow-y: auto; }
+        .agenda-header { 
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.95rem; color: var(--primary-wine); margin-bottom: 15px; font-weight: 700; text-transform: capitalize; border-bottom: 1px dashed #e0e0e0; padding-bottom: 8px; 
         }
 
-        .agenda-header {
-            font-size: 0.95rem;
-            color: var(--primary-wine);
-            margin-bottom: 15px;
-            font-weight: 700;
-            text-transform: capitalize;
-            border-bottom: 1px dashed #e0e0e0;
-            padding-bottom: 8px;
+        /* Botón Deshacer */
+        #undoContainer {
+            display: none; align-items: center; gap: 5px; cursor: pointer;
+            color: var(--primary-wine); font-weight: 600; font-size: 0.75rem;
+            background: rgba(166, 69, 90, 0.1); padding: 4px 10px; border-radius: 20px;
+            transition: all 0.3s;
         }
+        #undoContainer:active { transform: scale(0.95); background: rgba(166, 69, 90, 0.2); }
 
         /* --- TAREAS VENCIDAS --- */
-        #vencidosWrapper {
-            margin-bottom: 20px;
-            background: var(--white); 
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.08); 
-            border: 1px solid rgba(231, 76, 60, 0.15); 
-        }
-
-        .vencidos-toggle {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 18px; cursor: pointer;
-            background: linear-gradient(to right, #fffafa, #ffffff);
-            border-bottom: 1px solid rgba(231, 76, 60, 0.05);
-        }
-        .vencidos-toggle .label-box {
-            display: flex; align-items: center; gap: 8px; color: var(--danger); font-weight: 600; font-size: 0.9rem;
-        }
+        #vencidosWrapper { margin-bottom: 20px; background: var(--white); border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.15); }
+        .vencidos-toggle { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; cursor: pointer; background: linear-gradient(to right, #fffafa, #ffffff); border-bottom: 1px solid rgba(231, 76, 60, 0.05); }
+        .vencidos-toggle .label-box { display: flex; align-items: center; gap: 8px; color: var(--danger); font-weight: 600; font-size: 0.9rem; }
         .vencidos-count { background: var(--danger); color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; margin-left: 5px; }
         .vencidos-container { display: block; padding: 10px 15px; background-color: #fafafa; }
         .vencidos-container.collapsed { display: none; }
 
         /* ==== TARJETAS EVENTOS ==== */
-        .evento-swipe-wrapper {
-            position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            background-color: #FF3B30; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-            transition: transform 0.4s ease; 
-        }
-
-        .evento-accion-borrar {
-            position: absolute; top: 0; right: 0; bottom: 0; width: 80px;
-            display: flex; align-items: center; justify-content: center; color: white;
-        }
-
-        .evento-card-content {
-            position: relative;
-            z-index: 1;
-            background-color: #FFFFFF;
-            padding: 18px 16px;
-            border-radius: 12px;
-            width: 100%;
-            box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            border-left: 5px solid transparent; 
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease;
-        }
-
-        .evento-card-content.vencido {
-            border-left: 5px solid var(--danger) !important; 
-            background-color: var(--white) !important; 
-            border: 1px solid #f0f0f0 !important;
-        }
-
-        .evento-card-content.completed {
-            background-color: #f5f5f5 !important;
-            border-left-color: #dcdcdc !important;
-            opacity: 0.8 !important; 
-        }
+        .evento-swipe-wrapper { position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 12px; background-color: #FF3B30; box-shadow: 0 2px 10px rgba(0,0,0,0.04); transition: transform 0.4s ease; }
+        .evento-accion-borrar { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: white; }
+        
+        .evento-card-content { position: relative; z-index: 1; background-color: #FFFFFF; padding: 18px 16px; border-radius: 12px; width: 100%; box-sizing: border-box; display: flex; align-items: center; border-left: 5px solid transparent; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease; }
+        .evento-card-content.vencido { border-left: 5px solid var(--danger) !important; background-color: var(--white) !important; border: 1px solid #f0f0f0 !important; }
+        .evento-card-content.completed { background-color: #f5f5f5 !important; border-left-color: #dcdcdc !important; opacity: 0.8 !important; }
         .evento-card-content.completed * { text-decoration: line-through !important; color: #a0a0a0 !important; }
 
-        .event-time {
-            font-size: 0.85rem; font-weight: 700; color: var(--primary-wine);
-            min-width: 65px; margin-right: 15px; text-align: center;
-        }
-
+        .event-time { font-size: 0.85rem; font-weight: 700; color: var(--primary-wine); min-width: 65px; margin-right: 15px; text-align: center; }
         .event-details { flex: 1; }
         .event-details h3 { font-size: 0.7rem; color: var(--text-light); text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;}
         .event-details p { font-size: 0.8rem; margin-bottom: 2px; line-height: 1.3; color: var(--text-dark); }
         .event-details p.titulo-tarea { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
         
-        .nota-box {
-            font-size: 0.75rem; color: #666; font-style: italic; 
-            background: #fdfdfd; padding: 6px 10px; border-radius: 6px; 
-            margin-top: 6px; border-left: 2px solid var(--accent-gold);
-            display: block;
-        }
-
-        .vencido-badge {
-            color: var(--danger); font-size: 10px; font-weight: 700; text-transform: uppercase;
-            display: inline-block; margin-top: 4px; background: rgba(231, 76, 60, 0.08); padding: 4px 8px; border-radius: 6px;
-        }
+        .nota-box { font-size: 0.75rem; color: #666; font-style: italic; background: #fdfdfd; padding: 6px 10px; border-radius: 6px; margin-top: 6px; border-left: 2px solid var(--accent-gold); display: block; }
+        .vencido-badge { color: var(--danger); font-size: 10px; font-weight: 700; text-transform: uppercase; display: inline-block; margin-top: 4px; background: rgba(231, 76, 60, 0.08); padding: 4px 8px; border-radius: 6px; }
 
         /* Tipos de eventos */
         .type-instalacion { border-left-color: var(--primary-wine); }
@@ -277,25 +136,29 @@
         .type-garantia { border-left-color: #3498db; }
         .type-recordatorio { border-left-color: #27ae60; }
         .type-obligacion { border-left-color: #9b59b6; }
-
         .cat-instalacion { color: var(--primary-wine); font-weight: 600; }
         .cat-visita { color: var(--accent-gold); font-weight: 600; }
 
         /* =========================================
-           BOTÓN FLOTANTE (DORADO) 
+           BOTÓN FLOTANTE (CON ANIMACIÓN ESTEROIDES)
            ========================================= */
         .fab {
-            position: fixed;
-            bottom: 95px; right: 20px;
-            width: 60px; height: 60px;
+            position: fixed; bottom: 95px; right: 20px; width: 60px; height: 60px;
             background: linear-gradient(135deg, var(--accent-gold), #b39556); 
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
             color: var(--white); box-shadow: 0 4px 20px rgba(194, 164, 104, 0.5);
             z-index: 100; cursor: pointer;
+            animation: pulse-steroids 2s infinite; /* REGRESARON LOS ESTEROIDES */
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .fab:active { transform: scale(0.9); }
         .fab .material-icons-round { font-size: 32px; }
+
+        @keyframes pulse-steroids {
+            0% { box-shadow: 0 0 0 0 rgba(194, 164, 104, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(194, 164, 104, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(194, 164, 104, 0); }
+        }
 
         /* =========================================
            PIE DE PÁGINA 
@@ -311,46 +174,25 @@
         .footer-version { font-size: 0.65rem; color: var(--text-light); font-weight: 500; letter-spacing: 0.5px; }
 
         /* Modales */
-        .fullscreen-modal {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--bg-color); z-index: 3000; flex-direction: column;
-        }
-        .fs-header {
-            background: var(--white); padding: calc(15px + env(safe-area-inset-top)) 20px 15px;
-            display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .fs-header input {
-            flex: 1; border: none; outline: none; font-size: 1rem; background: #f0f0f0;
-            padding: 10px 15px; border-radius: 20px; color: var(--text-dark);
-        }
+        .fullscreen-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 3000; flex-direction: column; }
+        .fs-header { background: var(--white); padding: calc(15px + env(safe-area-inset-top)) 20px 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .fs-header input { flex: 1; border: none; outline: none; font-size: 1rem; background: #f0f0f0; padding: 10px 15px; border-radius: 20px; color: var(--text-dark); }
         .fs-content { flex: 1; overflow-y: auto; padding: 20px; }
 
-        /* Títulos de agrupación en Próximas Tareas */
+        /* Títulos Próximas Tareas en Vinotinto */
         .group-header {
-            font-size: 0.75rem; font-weight: 800; color: var(--accent-gold);
+            font-size: 0.75rem; font-weight: 800; color: var(--primary-wine);
             text-transform: uppercase; letter-spacing: 2px;
-            margin: 25px 0 10px 0; border-bottom: 1px dashed rgba(194, 164, 104, 0.3); padding-bottom: 5px;
+            margin: 25px 0 10px 0; border-bottom: 1px dashed rgba(166, 69, 90, 0.2); padding-bottom: 5px;
         }
         .group-header:first-child { margin-top: 0; }
 
         /* Modal Evento Nuevo / Edición */
-        .modal {
-            display: none; position: fixed; z-index: 4000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
-            align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background-color: var(--white); width: 85%; max-width: 400px;
-            border-radius: 20px; padding: 25px; max-height: 85vh; overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
+        .modal { display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+        .modal-content { background-color: var(--white); width: 85%; max-width: 400px; border-radius: 20px; padding: 25px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px; }
-        .form-group input, .form-group select, .form-group textarea { 
-            width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; outline: none; font-weight: 500; color: var(--text-dark);
-            transition: border 0.3s; background: #fafafa;
-        }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; outline: none; font-weight: 500; color: var(--text-dark); transition: border 0.3s; background: #fafafa; }
         .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-gold); background: #fff;}
         .form-group textarea { resize: none; }
         
@@ -358,20 +200,14 @@
         .btn-submit:active { transform: scale(0.98); }
         .btn-cancel { background: transparent; color: var(--text-light); border: none; width: 100%; padding: 10px; font-weight: 600; margin-top: 5px; }
 
-        /* CSS para celulares pequeños */
         @media (max-width: 380px) {
-            .header-brand h1 { font-size: 1rem; }
-            .header-brand img { height: 22px; }
-            .header-icons span { font-size: 22px; }
+            .header-brand h1 { font-size: 0.95rem; }
+            .header-brand img { height: 20px; }
             .fab { bottom: 85px; width: 50px; height: 50px; }
             .fab .material-icons-round { font-size: 28px; }
         }
 
-        .sugerencias-dropdown {
-            position: absolute; top: 100%; left: 0; right: 0; background: white;
-            border: 1px solid #ddd; border-radius: 0 0 10px 10px; z-index: 1000;
-            max-height: 150px; overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none;
-        }
+        .sugerencias-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 0 0 10px 10px; z-index: 1000; max-height: 150px; overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; }
         .sugerencia-item { padding: 10px; font-size: 0.85rem; cursor: pointer; border-bottom: 1px solid #f9f9f9; }
     </style>
 </head>
@@ -379,7 +215,7 @@
 
     <header>
         <div class="header-left">
-            <a href="index.html" class="he-btn-back"><span class="material-icons-round">chevron_left</span></a>
+            <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i></a>
         </div>
         <div class="header-center">
             <div class="header-brand">
@@ -406,7 +242,12 @@
     </div>
 
     <div class="agenda-container">
-        <div class="agenda-header" id="selectedDateText">Hoy</div>
+        <div class="agenda-header">
+            <span id="selectedDateText">Hoy</span>
+            <div id="undoContainer" onclick="deshacerBorrado()">
+                <i class="fas fa-undo-alt"></i> Deshacer
+            </div>
+        </div>
         <div class="events-container"></div>
     </div>
 
@@ -459,26 +300,24 @@
                 <input type="text" id="eventTitle" placeholder="Ej: Entrega de Comedor">
             </div>
 
-            <div class="row" style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Fecha</label>
-                    <input type="date" id="eventDate">
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Hora</label>
-                    <input type="time" id="eventTimeRaw">
-                </div>
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="eventDate">
+            </div>
+            <div class="form-group">
+                <label>Hora</label>
+                <input type="time" id="eventTimeRaw">
             </div>
 
             <div class="form-group">
                 <label>¿Algo importante que añadir?</label>
-                <textarea id="eventNota" placeholder="Ej: Llevar taladro extra, llamar antes de ir..." rows="2"></textarea>
+                <textarea id="eventNota" placeholder="Ej: Detalles adicionales..." rows="2"></textarea>
             </div>
 
             <div id="recurrenteContainer" style="display:none; margin-bottom: 15px; padding: 12px; background: #fff8eb; border-radius: 10px; border: 1px dashed var(--accent-gold);">
-                <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight: 600; color: #b8860b; cursor: pointer; text-transform: none;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight: 600; color: var(--accent-gold); cursor: pointer; text-transform: none;">
                     <input type="checkbox" id="mensualCheckbox" style="width: auto; transform: scale(1.3);">
-                    🔄 Crear para cada mes (1 año)
+                    Crear para cada mes (1 año)
                 </label>
             </div>
 
@@ -523,9 +362,12 @@
     let fechaActiva = null;
     let eventosGlobales = []; 
 
-    // Banderas de edición
     let isEditing = false;
     let editingEventId = null;
+    
+    // Variables para el Botón "Deshacer"
+    let ultimoEventoBorrado = null;
+    let undoTimeout = null;
 
     // ==========================================
     // GESTIÓN DE HORAS (24h nativo <-> AM/PM)
@@ -536,14 +378,14 @@
         h = parseInt(h, 10);
         let ampm = h >= 12 ? 'PM' : 'AM';
         h = h % 12;
-        h = h ? h : 12; // 0 becomes 12
+        h = h ? h : 12; 
         return `${h}:${m} ${ampm}`;
     }
 
     function parseTimeTo24h(timeAMPM) {
         if(!timeAMPM) return "";
         let [time, ampm] = timeAMPM.split(' ');
-        if(!time || !ampm) return timeAMPM; // Fallback
+        if(!time || !ampm) return timeAMPM; 
         let [h, m] = time.split(':');
         h = parseInt(h, 10);
         if (ampm.toUpperCase() === 'PM' && h < 12) h += 12;
@@ -561,7 +403,6 @@
 
     function comprobarSiEsVencido(fechaEv, horaEv, estado) {
         if (estado === "COMPLETADO") return false;
-        
         const ahora = new Date();
         const fechaHoyStr = getFechaLocal();
         const fechaSolo = fechaEv.split("T")[0]; 
@@ -600,7 +441,6 @@
         let notaHtml = "";
         let isRecurrente = refLimpia.includes("REC-");
         
-        // Separar la nota si existe
         if (refLimpia.includes(" / Nota: ")) {
             let partes = refLimpia.split(" / Nota: ");
             refLimpia = partes[0];
@@ -616,7 +456,7 @@
         }
         if (notaHtml) html += notaHtml;
         if (isRecurrente) {
-            html += `<p style="color: var(--accent-gold); font-weight: 700; font-size: 0.7rem; margin-top:6px; display:flex; align-items:center; gap:4px;"><span class="material-icons-round" style="font-size: 14px;">autorenew</span> Evento Mensual</p>`;
+            html += `<p style="color: var(--accent-gold); font-weight: 700; font-size: 0.7rem; margin-top:6px; display:flex; align-items:center; gap:4px;"><i class="fas fa-sync-alt"></i> Evento Mensual</p>`;
         }
         return html;
     }
@@ -631,14 +471,13 @@
     calZone.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, {passive: true});
     calZone.addEventListener('touchend', e => { 
         touchendX = e.changedTouches[0].screenX; 
-        if (touchendX < touchstartX - 50) changeMonth(1); 
-        if (touchendX > touchstartX + 50) changeMonth(-1); 
+        if (touchendX < touchstartX - 60) changeMonth(1); 
+        if (touchendX > touchstartX + 60) changeMonth(-1); 
     });
 
-    // =========================================================================
-    // 🚀 ARQUITECTURA OFFLINE-FIRST 
-    // =========================================================================
-
+    // ==========================================
+    // INICIALIZAR Y RENDERIZAR
+    // ==========================================
     async function inicializarCalendario() {
         const cacheEventos = localStorage.getItem('CACHE_EVENTOS');
         if (cacheEventos) {
@@ -730,7 +569,6 @@
         cerrarProximos();
         
         const [anio, mes, dia] = fechaStr.split("-");
-        
         date.setFullYear(parseInt(anio));
         date.setMonth(parseInt(mes) - 1);
         
@@ -743,14 +581,14 @@
 
         document.querySelectorAll('.day').forEach(d => {
             d.classList.remove('active');
-            if(d.innerText.padStart(2, "0") === dia) {
-                d.classList.add('active');
-            }
+            if(d.innerText.padStart(2, "0") === dia) { d.classList.add('active'); }
         });
-
         renderizarEventosDia(fechaActiva);
     }
 
+    // ==========================================
+    // BUSCADORES Y PRÓXIMAS TAREAS
+    // ==========================================
     function abrirBuscador() {
         document.getElementById('searchModal').style.display = 'flex';
         document.getElementById('searchInput').focus();
@@ -786,12 +624,12 @@
         resultados.forEach(ev => {
             const { claseTipo, claseCategoria } = obtenerClasesCategoria(ev.categoria);
             const fechaFormateada = new Date(ev.fecha.split("T")[0] + 'T00:00:00').toLocaleDateString("es-ES", { day: "2-digit", month: "short", year:"numeric" });
-            const estadoTexto = ev.estado === "COMPLETADO" ? " (Completada)" : (ev.estado === "PENDIENTE" && comprobarSiEsVencido(ev.fecha, ev.hora, ev.estado) ? " (Vencida)" : "");
+            const estadoTexto = ev.estado === "COMPLETADO" ? " (Completada)" : "";
 
             const tarjeta = `
                 <div class="evento-card-content ${claseTipo} ${ev.estado === 'COMPLETADO' ? 'completed' : ''}" onclick="irAFecha('${ev.fecha.split("T")[0]}')" style="margin-bottom:12px; cursor:pointer; box-shadow: var(--shadow); border: 1px solid #eee;">
                     <div class="event-details">
-                        <div style="font-size: 0.7rem; color: var(--text-light); font-weight: 600; margin-bottom: 4px;">📅 ${fechaFormateada}${estadoTexto}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 600; margin-bottom: 4px;"><i class="far fa-calendar-alt me-1"></i> ${fechaFormateada}${estadoTexto}</div>
                         <h3 class="${claseCategoria}" style="font-size: 0.8rem;">${ev.categoria}</h3>
                         <p class="titulo-tarea ${claseCategoria}" style="font-size: 0.95rem; margin-bottom: 2px;">${ev.titulo}</p>
                         ${ev.cliente && ev.cliente !== 'Sin asignar' ? `<p style="font-size:0.75rem; color:var(--text-dark);"><strong>C:</strong> ${ev.cliente}</p>` : ''}
@@ -804,9 +642,6 @@
         });
     }
 
-    // ==========================================
-    // PRÓXIMAS TAREAS AGRUPADAS Y ORDENADAS
-    // ==========================================
     function abrirProximos() {
         document.getElementById('upcomingModal').style.display = 'flex';
         const contenedor = document.getElementById("upcomingResults");
@@ -821,14 +656,13 @@
         });
 
         proximos.sort((a, b) => a.fecha.localeCompare(b.fecha));
-        proximos = proximos.slice(0, 30); // Mostrar hasta 30 próximos
+        proximos = proximos.slice(0, 30); 
 
         if(proximos.length === 0) {
             contenedor.innerHTML = "<p style='text-align:center; color:#bbb; margin-top:20px;'>Tu agenda está limpia. No hay tareas próximas.</p>";
             return;
         }
 
-        // Agrupación Inteligente
         let groups = {};
         proximos.forEach(ev => {
             const evDate = new Date(ev.fecha.split("T")[0] + 'T00:00:00');
@@ -858,7 +692,7 @@
                 const tarjeta = `
                     <div class="evento-card-content ${claseTipo}" onclick="irAFecha('${ev.fecha.split("T")[0]}')" style="margin-bottom:12px; cursor:pointer; box-shadow: var(--shadow); border: 1px solid #eee;">
                         <div class="event-details">
-                            <div style="font-size: 0.75rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 4px;">📅 ${fechaFormateada} - 🕒 ${ev.hora}</div>
+                            <div style="font-size: 0.75rem; color: var(--primary-wine); font-weight: 700; margin-bottom: 4px;"><i class="far fa-calendar-alt me-1"></i> ${fechaFormateada} &nbsp;|&nbsp; <i class="far fa-clock me-1"></i> ${ev.hora}</div>
                             <h3 class="${claseCategoria}" style="font-size: 0.8rem;">${ev.categoria}</h3>
                             <p class="titulo-tarea ${claseCategoria}" style="font-size: 0.95rem; margin-bottom: 0;">${ev.titulo}</p>
                             ${getReferenciaHtml(ev.referencia)}
@@ -1003,7 +837,7 @@
             wrapper.classList.add('completed');
             content.classList.remove('vencido'); 
             content.classList.add('completed');
-            content.onclick = null; // Quitar edición al completar
+            content.onclick = null; 
             contenedorPadre.appendChild(wrapper);
             actualizarContadorVencidas(); 
         }, 350); 
@@ -1029,17 +863,14 @@
             countBadge.innerText = tareasRestantes;
 
             if (tareasRestantes === 0) {
-                wrapper.style.transition = "all 0.4s ease";
-                wrapper.style.opacity = "0";
-                wrapper.style.height = "0px";
-                wrapper.style.marginBottom = "0px";
+                wrapper.style.transition = "all 0.4s ease"; wrapper.style.opacity = "0"; wrapper.style.height = "0px"; wrapper.style.marginBottom = "0px";
                 setTimeout(() => wrapper.remove(), 400);
             }
         }
     }
 
     // ==========================================
-    // NUEVO / EDICIÓN DE EVENTOS (TRUCO DB)
+    // NUEVO / EDICIÓN DE EVENTOS 
     // ==========================================
     function abrirNuevoEvento() {
         isEditing = false;
@@ -1064,7 +895,7 @@
 
         document.getElementById('eventTitle').value = ev.titulo;
         document.getElementById('eventType').value = ev.categoria;
-        manejarCambioCategoria();
+        manejarCambioCategoria(); 
         document.getElementById('eventDate').value = ev.fecha.split("T")[0];
         document.getElementById('eventTimeRaw').value = parseTimeTo24h(ev.hora);
         
@@ -1081,7 +912,6 @@
             document.getElementById('usarClienteCheckbox').checked = true;
             toggleCliente();
             document.getElementById('clienteBusqueda').value = ev.cliente;
-            // Para mantener la referencia tocaría cargar la lista o simplemente dejar "Venta Directa" visual
             document.getElementById('eventReferencia').innerHTML = `<option value="${refBase}">${refBase}</option>`;
         }
         
@@ -1103,13 +933,14 @@
         document.getElementById('recurrenteContainer').style.display = 'none';
         const ref = document.getElementById('eventReferencia');
         if (ref) ref.innerHTML = '<option value="">Cargando referencias...</option>';
+        document.getElementById("eventNota").placeholder = "Ej: Detalles adicionales...";
     }
 
     async function guardarEvento() {
         const titulo = document.getElementById('eventTitle').value.trim();
         const categoria = document.getElementById('eventType').value;
         const timeRaw = document.getElementById('eventTimeRaw').value; 
-        const hora = formatTimeForSave(timeRaw); // Convierte 24h a AM/PM
+        const hora = formatTimeForSave(timeRaw); 
         const cliente = document.getElementById('clienteBusqueda').value;
         const nota = document.getElementById('eventNota').value.trim();
         
@@ -1131,18 +962,18 @@
         btn.disabled = true;
 
         const baseRef = referenciaFinal || "N/A";
-        let refLimpia = baseRef.split(" | REC-")[0]; // Por si se edita uno que ya tenía
+        let refLimpia = baseRef.split(" | REC-")[0]; 
 
-        // Si es Edición, el truco es ELIMINAR el anterior primero silenciosamente.
+        // Si es Edición, borramos el anterior silenciosamente.
         if(isEditing && editingEventId) {
             try {
                 await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: editingEventId }) });
                 eventosGlobales = eventosGlobales.filter(e => String(e.id) !== String(editingEventId));
-            } catch(e) { console.error("Fallo al eliminar edición previa", e); }
+            } catch(e) {}
         }
 
         const groupId = esMensual ? "REC-" + Date.now() : "";
-        const iteraciones = esMensual && !isEditing ? 12 : 1; // Si edita, solo modifica la instancia actual.
+        const iteraciones = esMensual && !isEditing ? 12 : 1; 
         const [anio, mes, dia] = fechaSeleccionada.split("-");
         const fechaBase = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
 
@@ -1154,19 +985,15 @@
                 const d = String(fechaIteracionObj.getDate()).padStart(2, '0');
                 const fechaIteracionStr = `${y}-${m}-${d}`;
 
-                // Construcción de la referencia final con la Nota.
+                // Empacar la Nota
                 let refGuardar = refLimpia;
                 if (nota) refGuardar += ` / Nota: ${nota}`;
                 if (esMensual && !isEditing) refGuardar += ` | ${groupId}`;
 
                 const datos = {
                     tipo: "nuevo_evento",
-                    fecha: fechaIteracionStr,
-                    hora: hora,
-                    titulo: titulo,
-                    categoria: categoria,
-                    cliente: cliente || "Sin asignar",
-                    referencia: refGuardar
+                    fecha: fechaIteracionStr, hora: hora, titulo: titulo, categoria: categoria,
+                    cliente: cliente || "Sin asignar", referencia: refGuardar
                 };
 
                 const response = await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify(datos) });
@@ -1182,7 +1009,6 @@
             } 
 
             localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
-            alert(isEditing ? "¡Evento actualizado!" : (esMensual ? "¡Eventos de todo el año programados!" : "Evento guardado exitosamente"));
             closeModal();
             procesarEventosLocales();
 
@@ -1191,6 +1017,94 @@
         } finally {
             btn.disabled = false;
         }
+    }
+
+    // ==========================================
+    // BORRADO Y DESHACER (CTRL+Z MÁGICO)
+    // ==========================================
+    function inicializarEventosSwipe() {
+        const wrappers = document.querySelectorAll('.evento-swipe-wrapper');
+        wrappers.forEach(wrapper => {
+            const content = wrapper.querySelector('.evento-card-content');
+            if (wrapper.dataset.swipeActivo) return;
+            wrapper.dataset.swipeActivo = "true";
+
+            let startX = 0; let currentX = 0; let isDragging = false;
+
+            content.addEventListener("touchstart", (e) => {
+                startX = e.touches[0].clientX; currentX = startX; isDragging = true; content.style.transition = "none";
+            }, {passive: true});
+
+            content.addEventListener("touchmove", (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+                if (diff < 0) {
+                    content.style.transform = `translateX(${diff > -120 ? diff : -(120 + Math.abs(diff + 120) * 0.2)}px)`;
+                }
+            }, {passive: true});
+
+            content.addEventListener("touchend", () => {
+                if (!isDragging) return;
+                isDragging = false;
+                content.style.transition = "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
+                if ((currentX - startX) < -120) { // Mayor sensibilidad
+                    content.style.transform = "translateX(-120%)";
+                    setTimeout(() => { eliminarEventoVisual(wrapper, wrapper.id.split('-').pop()); }, 300);
+                } else {
+                    content.style.transform = "translateX(0)";
+                }
+            });
+        });
+    }
+
+    function eliminarEventoVisual(elemento, eventId) {
+        const ev = eventosGlobales.find(e => String(e.id) === String(eventId));
+        if(ev) ultimoEventoBorrado = {...ev}; 
+
+        elemento.style.transition = "all 0.3s ease"; elemento.style.opacity = "0"; elemento.style.height = "0px"; elemento.style.marginBottom = "0px";
+        
+        setTimeout(() => {
+            elemento.remove();
+            eventosGlobales = eventosGlobales.filter(e => String(e.id) !== String(eventId));
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+            fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: eventId }) });
+            
+            actualizarContadorVencidas(); 
+            procesarEventosLocales(); 
+
+            // Activar botón deshacer
+            if(ultimoEventoBorrado) {
+                const btnUndo = document.getElementById("undoContainer");
+                btnUndo.style.display = "flex";
+                clearTimeout(undoTimeout);
+                undoTimeout = setTimeout(() => {
+                    btnUndo.style.display = "none";
+                    ultimoEventoBorrado = null;
+                }, 15000); // 15 segundos para arrepentirse
+            }
+        }, 300);
+    }
+
+    async function deshacerBorrado() {
+        if (!ultimoEventoBorrado) return;
+        
+        const btnUndo = document.getElementById("undoContainer");
+        btnUndo.style.display = "none";
+        clearTimeout(undoTimeout);
+
+        eventosGlobales.push(ultimoEventoBorrado);
+        localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+
+        try {
+            await fetch(WEBAPP_URL, {
+                method: "POST",
+                body: JSON.stringify({ tipo: "restaurar_evento", ...ultimoEventoBorrado })
+            });
+        } catch(e) {}
+
+        ultimoEventoBorrado = null;
+        procesarEventosLocales(); 
     }
 
     // ==========================================
@@ -1290,59 +1204,28 @@
         } catch (e) {}
     }
 
-    function inicializarEventosSwipe() {
-        const wrappers = document.querySelectorAll('.evento-swipe-wrapper');
-        wrappers.forEach(wrapper => {
-            const content = wrapper.querySelector('.evento-card-content');
-            if (wrapper.dataset.swipeActivo) return;
-            wrapper.dataset.swipeActivo = "true";
-
-            let startX = 0; let currentX = 0; let isDragging = false;
-
-            content.addEventListener("touchstart", (e) => {
-                startX = e.touches[0].clientX; currentX = startX; isDragging = true; content.style.transition = "none";
-            }, {passive: true});
-
-            content.addEventListener("touchmove", (e) => {
-                if (!isDragging) return;
-                currentX = e.touches[0].clientX;
-                const diff = currentX - startX;
-                if (diff < 0) {
-                    content.style.transform = `translateX(${diff > -100 ? diff : -(100 + Math.abs(diff + 100) * 0.2)}px)`;
-                }
-            }, {passive: true});
-
-            content.addEventListener("touchend", () => {
-                if (!isDragging) return;
-                isDragging = false;
-                content.style.transition = "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
-                if ((currentX - startX) < -60) {
-                    content.style.transform = "translateX(-120%)";
-                    setTimeout(() => { eliminarEventoVisual(wrapper, wrapper.id.split('-').pop()); }, 300);
-                } else {
-                    content.style.transform = "translateX(0)";
-                }
-            });
-        });
-    }
-
-    function eliminarEventoVisual(elemento, eventId) {
-        elemento.style.transition = "all 0.3s ease"; elemento.style.opacity = "0"; elemento.style.height = "0px"; elemento.style.marginBottom = "0px";
-        setTimeout(() => {
-            elemento.remove();
-            eventosGlobales = eventosGlobales.filter(e => String(e.id) !== String(eventId));
-            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
-            fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: eventId }) });
-            actualizarContadorVencidas(); procesarEventosLocales(); 
-        }, 300);
-    }
-
     inicializarCalendario(); 
 
     function manejarCambioCategoria() {
         const categoria = document.getElementById("eventType").value;
         const contenedorCliente = document.getElementById("usarClienteContainer");
         const contenedorRecurrente = document.getElementById("recurrenteContainer");
+        const notaInput = document.getElementById("eventNota");
+
+        // Cambiar Placeholder Dinámicamente
+        if (categoria === "Instalaciones") {
+            notaInput.placeholder = "Ej: Llamar al piaggio antes, confirmar con la cliente...";
+        } else if (categoria === "Visitas técnicas") {
+            notaInput.placeholder = "Ej: No olvidar el metro, llevar catálogo de sheer...";
+        } else if (categoria === "Recordatorios de pago") {
+            notaInput.placeholder = "Ej: Número de referencia de pago, contrato, llevar efectivo...";
+        } else if (categoria === "Obligaciones tributarias") {
+            notaInput.placeholder = "Ej: Formulario N° de la DIAN...";
+        } else if (categoria === "Garantías") {
+            notaInput.placeholder = "Ej: Llevar nuevos herrajes, llevar cordón...";
+        } else {
+            notaInput.placeholder = "Ej: Detalles adicionales...";
+        }
 
         if (categoria === "Instalaciones" || categoria === "Visitas técnicas") {
             contenedorCliente.style.display = "block";
