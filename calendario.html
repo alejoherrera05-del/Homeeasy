@@ -111,8 +111,8 @@
         .evento-card-content { position: relative; z-index: 1; background-color: #FFFFFF; padding: 18px 16px; border-radius: 12px; width: 100%; box-sizing: border-box; display: flex; align-items: center; border-left: 5px solid transparent; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease; }
         .evento-card-content.vencido { border-left: 5px solid var(--danger) !important; background-color: var(--white) !important; border: 1px solid #f0f0f0 !important; }
         
-        /* Estética Tarea Completada */
-        .evento-card-content.completed { background-color: #f5f5f5 !important; border-left-color: #dcdcdc !important; opacity: 0.8 !important; }
+        /* 🚨 SOLUCIÓN: Tarjetas Completadas - Opacidad al 100% para no mostrar el fondo rojo */
+        .evento-card-content.completed { background-color: #f5f5f5 !important; border-left-color: #dcdcdc !important; opacity: 1 !important; border: 1px solid #eee; }
         .evento-card-content.completed * { text-decoration: line-through !important; color: #a0a0a0 !important; }
 
         .event-time { font-size: 0.85rem; font-weight: 700; color: var(--primary-wine); min-width: 65px; margin-right: 15px; text-align: center; }
@@ -208,7 +208,7 @@
         .time-desktop { display: none; }
         .time-mobile { display: block; }
         
-        /* 🚨 FIX: Detecta PC por tamaño de pantalla para mostrar AM/PM */
+        /* Detecta PC por tamaño de pantalla para mostrar AM/PM */
         @media (min-width: 768px) {
             .time-desktop { display: flex !important; gap: 10px; }
             .time-mobile { display: none !important; }
@@ -818,11 +818,6 @@
         const wrapper = iconoCheck.closest('.evento-swipe-wrapper');
         const content = wrapper.querySelector('.evento-card-content');
         const contenedorPadre = wrapper.parentElement;
-        const accionBorrar = wrapper.querySelector('.evento-accion-borrar');
-
-        // 🚨 FIX: Ocultamos la papelera temporalmente para que no haya flash al hacer check
-        accionBorrar.style.opacity = '0';
-        wrapper.style.backgroundColor = 'transparent';
 
         iconoCheck.style.transition = "transform 0.5s ease, opacity 0.5s ease";
         iconoCheck.style.transform = "scale(1.5) rotate(360deg)";
@@ -835,10 +830,6 @@
             content.onclick = null; 
             contenedorPadre.appendChild(wrapper);
             actualizarContadorVencidas(); 
-            
-            // 🚨 FIX: Restauramos el fondo y la papelera por si el usuario quiere borrar la tarea completada!
-            wrapper.style.backgroundColor = '';
-            accionBorrar.style.opacity = '';
         }, 350); 
 
         const evIndex = eventosGlobales.findIndex(e => String(e.id) === String(id));
@@ -881,7 +872,7 @@
                 startX = e.touches[0].clientX; 
                 currentX = startX; 
                 
-                // 🚨 FIX: SEGURO RÍGIDO - Solo permite iniciar el arrastre si tocas la mitad derecha de la tarjeta
+                // SEGURO RÍGIDO - Solo permite iniciar el arrastre si tocas la mitad derecha de la tarjeta
                 const rect = content.getBoundingClientRect();
                 if (startX < rect.left + (rect.width * 0.4)) {
                     isDragging = false;
@@ -897,7 +888,7 @@
                 currentX = e.touches[0].clientX;
                 const diff = currentX - startX;
                 
-                // 🚨 FIX: Dureza. Solo desliza si se mueve más de 15px hacia la izquierda
+                // Dureza. Solo desliza si se mueve más de 15px hacia la izquierda
                 if (diff < -15) { 
                     content.style.transform = `translateX(${diff > -120 ? diff : -(120 + Math.abs(diff + 120) * 0.2)}px)`; 
                 }
