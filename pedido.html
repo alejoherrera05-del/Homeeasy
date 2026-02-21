@@ -158,14 +158,21 @@
             .table td { font-size: 0.8rem; }
         }
 
-        /* 🖨️ PDF EXPORT MODE (Congela para PDF) */
-        .pdf-export-mode .header-brand { padding: 15px 30px 25px 30px !important; flex-direction: row !important; text-align: right !important; }
+        /* 🖨️ PDF EXPORT MODE (Congela para PDF y comprime espacios) */
+        #area-pdf.pdf-export-mode { min-height: 1000px !important; }
+        .pdf-export-mode .header-brand { padding: 15px 30px 20px 30px !important; flex-direction: row !important; text-align: right !important; }
         .pdf-export-mode .empresa-info-header { font-size: 0.75rem !important; }
-        .pdf-export-mode .logo-only { max-width: 130px !important; }
-        .pdf-export-mode .order-meta { width: auto !important; padding: 10px 25px !important; bottom: -18px !important; font-size: 0.7rem !important; }
-        .pdf-export-mode .document-type { padding: 35px 12px 10px 12px !important; font-size: 1.4rem !important; letter-spacing: 8px !important; }
+        .pdf-export-mode .logo-only { max-width: 120px !important; }
+        .pdf-export-mode .order-meta { width: auto !important; padding: 8px 25px !important; bottom: -15px !important; font-size: 0.7rem !important; }
+        .pdf-export-mode .document-type { padding: 30px 12px 10px 12px !important; font-size: 1.4rem !important; letter-spacing: 8px !important; }
         .pdf-export-mode .card-body { padding: 15px 30px !important; }
-        .pdf-export-mode .finance-box { padding: 10px 20px !important; }
+        
+        /* 🚨 COMPRESIÓN DE LA CAJA FINANCIERA PARA EL PDF */
+        .pdf-export-mode .finance-box { padding: 10px 15px !important; }
+        .pdf-export-mode .finance-box .mb-2 { margin-bottom: 4px !important; }
+        .pdf-export-mode .finance-box .mt-3 { margin-top: 8px !important; }
+        .pdf-export-mode .finance-box .pt-3 { padding-top: 8px !important; }
+
         .pdf-export-mode .section-title { margin-bottom: 5px !important; }
         .pdf-export-mode .row.g-4 { row-gap: 0.5rem !important; }
         .pdf-export-mode .mb-5 { margin-bottom: 0.8rem !important; }
@@ -359,9 +366,6 @@
     let editNum = null;
     let returnCedula = null; 
 
-    // ==========================================
-    // 1. CARGA INICIAL Y MODO EDICIÓN
-    // ==========================================
     window.onload = () => {
         const params = new URLSearchParams(window.location.search);
         editNum = params.get("edit");
@@ -377,7 +381,6 @@
             document.getElementById("n_orden_display").innerText = editNum;
             document.getElementById("btnProcesar").innerHTML = '<i class="fas fa-save me-2"></i> Guardar Cambios';
             
-            // Cargar OP existente
             fetch(`${URL_G}?tipo=EDITAR_OP&numero=${editNum}`)
             .then(r => r.json())
             .then(d => {
@@ -398,7 +401,7 @@
                             if(typeof parsed === 'string') parsed = JSON.parse(parsed); 
                             if(Array.isArray(parsed)) items = parsed;
                         }
-                    } catch(e) { console.warn("JSON error"); }
+                    } catch(e) {}
 
                     if(items.length === 0 && d.descripcion && d.descripcion.includes(" x ")) {
                         let partes = d.descripcion.split('/');
@@ -443,7 +446,6 @@
                             subtotalCarga += (item.cantidad || 1) * pr;
                         });
                         
-                        // 🚨 LÓGICA DE DETECCIÓN DE DESCUENTO EN OP
                         let totalGuardado = parseFloat(d.total) || 0;
                         if (totalGuardado > 0 && subtotalCarga > totalGuardado) {
                             let descuentoDetectado = subtotalCarga - totalGuardado;
@@ -456,7 +458,6 @@
             });
 
         } else {
-            // Flujo Normal: Crear Pedido Nuevo
             document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
             fetch(`${URL_G}?nextPedido=1`)
                 .then(r => r.json())
@@ -480,7 +481,6 @@
                 }
             }).catch(err => console.error("Error parchando caché:", err));
 
-        // 🚨 MAGIA: CONVERTIR DE COTIZACIÓN A OP (TRAYENDO DESCUENTOS Y NOTAS)
         if (numeroCot && !isEditMode) {
             fetch(`${URL_G}?convertirCot=${numeroCot}`)
                 .then(r => r.json())
@@ -488,7 +488,6 @@
                     if (d.status === "found") {
                         document.getElementById("cedula").value = d.cedula;
                         document.getElementById("nombre").value = d.nombre.toUpperCase();
-                        
                         document.getElementById("notas").value = d.observaciones || ""; 
                         
                         buscarCliente(); 
@@ -544,7 +543,6 @@
                                 subtotalCarga += (item.cantidad || 1) * pr;
                             });
 
-                            // 🚨 LÓGICA DE DETECCIÓN DE DESCUENTO AL CONVERTIR COTIZACIÓN
                             let totalGuardado = parseFloat(d.total) || 0;
                             if (totalGuardado > 0 && subtotalCarga > totalGuardado) {
                                 let descuentoDetectado = subtotalCarga - totalGuardado;
@@ -558,9 +556,6 @@
         }
     };
 
-    // ==========================================
-    // 2. MATEMÁTICAS FINANCIERAS (NUEVAS)
-    // ==========================================
     function capFirst(input) { 
         let val = input.value; 
         if (val.length > 0) { 
@@ -583,20 +578,16 @@
             subtotal += sub;
         });
         
-        // 1. Mostrar Subtotal
         document.getElementById('subtotal_val').innerText = `$ ${subtotal.toLocaleString('es-CO')}`;
         
-        // 2. Descontar
         let descInput = document.getElementById('descuento_input').value; 
         let descuento = parseFloat(descInput.replace(/\D/g, "")) || 0;
         
         let totalFinal = subtotal - descuento; 
         if(totalFinal < 0) totalFinal = 0;
         
-        // 3. Mostrar Total Real
         document.getElementById('total_pedido_val').innerText = `$ ${totalFinal.toLocaleString('es-CO')}`;
         
-        // 4. Calcular Saldo post Abono
         let abono = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
         let saldo = totalFinal - abono; 
         if(saldo < 0) saldo = 0;
@@ -644,9 +635,6 @@
         }
     }
 
-    // ============================================================
-    // 3. 🖨️ MOTOR PDF FINAL Y GUARDADO EN LA NUBE
-    // ============================================================
     async function finalizar() {
         const cedula = document.getElementById('cedula').value.trim();
         let nombre = document.getElementById('nombre').value.toUpperCase();
@@ -699,6 +687,7 @@
                     const descRow = clonedDoc.getElementById('desc_row');
                     if (descInput && descRow) { 
                         const descVal = parseFloat(descInput.value.replace(/\D/g, "")); 
+                        // 🚨 MAGIA: Si el descuento es cero, borra la fila para que no salga en el PDF
                         if (isNaN(descVal) || descVal === 0) { 
                             descRow.parentNode.removeChild(descRow); 
                         } else { 
@@ -767,7 +756,8 @@
             pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); 
             heightLeft -= pdfHeight;
             
-            while (heightLeft > 0) { 
+            // 🚨 FIX: Tolerancia de 2 milímetros para evitar páginas en blanco indeseadas
+            while (heightLeft > 2) { 
                 position -= pdfHeight; 
                 pdf.addPage(); 
                 pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); 
@@ -775,9 +765,8 @@
             }
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            // 🚨 CONSTRUCCIÓN DE LAS VARIABLES PARA LA NUBE
-            let descripcionTexto = ""; // Ítems (Col E)
-            let itemsJSON = [];        // JSON
+            let descripcionTexto = ""; 
+            let itemsJSON = [];        
             
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
                 let descEl = tr.querySelector('.row-desc');
@@ -803,7 +792,7 @@
 
             const totalFinal = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")) || 0;
             const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
-            const notas = document.getElementById('notas').value; // Notas (Col F)
+            const notas = document.getElementById('notas').value; 
             const nombreArchivo = `Orden_N_${numeroOP}_${cedula}.pdf`;
 
             setStep(2, 'check'); 
@@ -822,8 +811,8 @@
                     telefono: document.getElementById('telefono').value,
                     email: email,
                     direccion: document.getElementById('direccion').value,
-                    descripcion: descripcionTexto, // 👈 Ítems al tubo E
-                    observaciones: notas,          // 👈 Notas al tubo F
+                    descripcion: descripcionTexto, 
+                    observaciones: notas,          
                     valorTotal: totalFinal,
                     abonoInicial: abonoInicial,
                     itemsJSON: JSON.stringify(itemsJSON), 
@@ -847,7 +836,6 @@
                         document.getElementById('exito-msg').innerText = "La orden fue actualizada en el sistema y el PDF ha sido reemplazado.";
                     }
                     
-                    // Configurar botón de éxito según si hay migas de pan
                     const btnSuccess = document.getElementById('btn-success-home');
                     if (returnCedula) {
                         btnSuccess.setAttribute('onclick', `window.location.replace('clientes.html?search=${returnCedula}')`);
