@@ -485,14 +485,16 @@
     
     let isEditMode = false;
     let editNum = null;
-    let returnCedula = null; // 🚨 Módulo de Migas de pan
+    let returnCedula = null; 
 
+    // ==========================================
+    // 1. CARGA INICIAL Y MODO EDICIÓN
+    // ==========================================
     window.onload = () => {
         const params = new URLSearchParams(window.location.search);
         editNum = params.get("edit");
         returnCedula = params.get("return_cedula"); 
 
-        // Si existe el rastro de migas de pan, modificar la flecha de regreso
         if (returnCedula) {
             document.getElementById("btn-back").href = `clientes.html?search=${returnCedula}`;
         }
@@ -502,7 +504,6 @@
             document.getElementById("n_cot_display").innerText = editNum;
             document.getElementById("btnProcesar").innerHTML = '<i class="fas fa-save me-2"></i> Guardar Cambios';
             
-            // 🚨 CONEXIÓN AL CEREBRO: Traer datos de la cotización existente
             fetch(`${URL_G}?tipo=EDITAR_COT&numero=${editNum}`)
             .then(r => r.json())
             .then(d => {
@@ -510,17 +511,17 @@
                     document.getElementById('fecha_display').innerText = new Date(d.fecha).toLocaleDateString('es-CO');
                     document.getElementById('cedula').value = d.cedula;
                     document.getElementById('nombre').value = d.nombre;
-                    document.getElementById('notas').value = d.descripcion || "";
                     
-                    buscarCliente(); // Recupera datos extra (teléfono, email)
+                    // 🚨 AHORA SÍ: Las observaciones (Col F) van a las notas
+                    document.getElementById('notas').value = d.observaciones || ""; 
+                    
+                    buscarCliente(); 
                     
                     let items = [];
                     
-                    // 1. INTENTAR CARGAR JSON MODERNO
                     try { 
                         if(d.itemsJSON && d.itemsJSON !== "[]" && d.itemsJSON !== "") {
                             let parsed = JSON.parse(d.itemsJSON);
-                            // Prevenir doble stringify (Bug antiguo)
                             if(typeof parsed === 'string') {
                                 parsed = JSON.parse(parsed); 
                             }
@@ -528,11 +529,9 @@
                                 items = parsed;
                             }
                         }
-                    } catch(e) { 
-                        console.warn("La cotización no tiene JSON válido"); 
-                    }
+                    } catch(e) { console.warn("JSON error"); }
 
-                    // 2. LA MÁQUINA DEL TIEMPO (FALLBACK PARA COTIZACIONES ANTIGUAS)
+                    // FALLBACK MAGICO PARA COTIZACIONES ANTIGUAS
                     if(items.length === 0 && d.descripcion && d.descripcion.includes(" x ")) {
                         let partes = d.descripcion.split('/');
                         partes.forEach(p => {
@@ -554,11 +553,10 @@
                                 }
                             }
                         });
-                        // Limpiamos las notas porque eran los ítems
-                        document.getElementById('notas').value = ""; 
                     }
                     
-                    // 3. PINTAR LA TABLA DE PRODUCTOS
+                    let subtotalCarga = 0;
+
                     if(items.length > 0) {
                         const tbody = document.getElementById("tabla-body");
                         tbody.innerHTML = ""; 
@@ -576,24 +574,34 @@
                             
                             tr.querySelector(".row-desc").value = item.descripcion || "";
                             tr.querySelector(".cant").value = item.cantidad || 1;
-                            if (item.precio) {
-                                tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio);
+                            
+                            let pr = parseFloat(item.precio) || 0;
+                            if (pr > 0) {
+                                tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(pr);
                             }
+                            
+                            subtotalCarga += (item.cantidad || 1) * pr;
                         });
+                        
+                        // RECUPERACIÓN INTELIGENTE DE DESCUENTOS
+                        let totalGuardado = parseFloat(d.total) || 0;
+                        if (totalGuardado > 0 && subtotalCarga > totalGuardado) {
+                            let descuentoDetectado = subtotalCarga - totalGuardado;
+                            document.getElementById('descuento_input').value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(descuentoDetectado);
+                        }
+                        
                         calcular();
                     }
                 }
             });
 
         } else {
-            // Flujo Normal: Crear Cotización Nueva
             document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
             fetch(`${URL_G}?nextCotizacion=1`)
                 .then(r => r.json())
                 .then(d => { if(d.status === "ok") document.getElementById("n_cot_display").innerText = d.nextCotizacion; });
         }
 
-        // Cargar Caché de Clientes en Silencio
         fetch(`${URL_G}?init=LOAD`)
             .then(r => r.json())
             .then(data => {
@@ -611,6 +619,9 @@
             }).catch(err => console.error("Error parchando caché:", err));
     };
 
+    // ==========================================
+    // 2. MATEMÁTICAS Y FORMATOS
+    // ==========================================
     function capFirst(input) { 
         let val = input.value; 
         if (val.length > 0) { 
@@ -685,7 +696,7 @@
     }
 
     // ============================================================
-    // 🖨️ MOTOR PDF FINAL Y GUARDADO EN LA NUBE
+    // 3. 🖨️ MOTOR PDF FINAL Y GUARDADO EN LA NUBE
     // ============================================================
     async function finalizar() {
         const cedula = document.getElementById('cedula').value.trim();
@@ -809,23 +820,39 @@
             }
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-            // Recolectar la tabla para guardar el JSON en la base de datos
-            let itemsJSON = [];
+            // 🚨 CONSTRUCCIÓN CORRECTA DE LAS VARIABLES PARA LA NUBE
+            let descripcionTexto = ""; // Esto irá a la columna E (Ítems en plano)
+            let itemsJSON = [];        // Esto irá a la columna I (JSON)
+            
             document.querySelectorAll('#tabla-body tr').forEach(tr => {
-                let descripcion = tr.querySelector('.row-desc').value.trim(); 
-                let cantidad = parseFloat(tr.querySelector('.cant').value) || 0; 
-                let precio = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0;
-                if (!descripcion) return;
-                itemsJSON.push({ descripcion: descripcion, cantidad: cantidad, precio: precio, subtotal: cantidad * precio });
+                let descEl = tr.querySelector('.row-desc');
+                let cantEl = tr.querySelector('.cant');
+                let precioEl = tr.querySelector('.precio');
+                
+                if (descEl && cantEl && precioEl) {
+                    let descripcion = descEl.value.trim(); 
+                    let cantidad = parseFloat(cantEl.value) || 0; 
+                    let precio = parseFloat(precioEl.value.replace(/\D/g, "")) || 0;
+                    
+                    if (descripcion) {
+                        descripcionTexto += `${cantidad} x ${descripcion} / `;
+                        itemsJSON.push({ 
+                            descripcion: descripcion, 
+                            cantidad: cantidad, 
+                            precio: precio, 
+                            subtotal: cantidad * precio 
+                        });
+                    }
+                }
             });
 
             const totalFinal = document.getElementById('total_val').innerText.replace(/\D/g, "");
+            const notas = document.getElementById('notas').value; // Esto irá a la columna F (Observaciones)
             const nombreArchivo = `Cotizacion_N_${numeroCot}_${cedula}.pdf`;
 
             setStep(2, 'check'); 
             setStep(3, 'active');
 
-            // Determinar si creamos una nueva o editamos la actual
             const payloadType = isEditMode ? "edit_cotizacion" : "cotizacion";
 
             const response = await fetch(URL_G, { 
@@ -838,9 +865,11 @@
                     telefono: document.getElementById('telefono').value,
                     email: email,
                     direccion: document.getElementById('direccion').value,
-                    descripcion: document.getElementById('notas').value, 
+                    descripcion: descripcionTexto, // 👈 Ítems al tubo E
+                    observaciones: notas,          // 👈 Notas al tubo F
                     total: totalFinal,
                     items: itemsJSON,
+                    itemsJSON: JSON.stringify(itemsJSON), 
                     pdfBase64: pdfBase64,
                     nombreArchivo: nombreArchivo
                 }) 
@@ -861,7 +890,6 @@
                         document.getElementById('exito-msg').innerText = "La cotización fue actualizada y el PDF ha sido reemplazado.";
                     }
                     
-                    // 🚨 NUEVO: Configurar botón de éxito según si hay migas de pan
                     const btnSuccess = document.getElementById('btn-success-home');
                     if (returnCedula) {
                         btnSuccess.setAttribute('onclick', `window.location.replace('clientes.html?search=${returnCedula}')`);
@@ -884,7 +912,7 @@
     }
 
     // ===============================
-    // 🔎 SUGERENCIAS Y AUTOCOMPLETADO
+    // 4. 🔎 SUGERENCIAS Y AUTOCOMPLETADO
     // ===============================
     document.getElementById("cedula").addEventListener("input", function() {
         buscarCliente(); 
