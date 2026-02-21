@@ -379,6 +379,20 @@
         </div>
     </div>
 
+    <div class="modal" id="deleteRecurringModal">
+        <div class="modal-content" style="text-align: center; max-width: 320px; padding: 30px 20px;">
+            <i class="fas fa-sync-alt" style="font-size: 40px; color: var(--accent-gold); margin-bottom: 15px;"></i>
+            <h2 style="color: var(--primary-wine); font-weight: 800; font-size: 1.2rem; margin-bottom: 10px;">Evento Mensual</h2>
+            <p style="font-size: 0.9rem; color: var(--text-dark); margin-bottom: 25px; line-height: 1.4;">Estás a punto de eliminar una tarea que se repite todos los meses. ¿Qué deseas borrar?</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn-submit" style="background-color: var(--text-light);" onclick="confirmarBorradoRecurrente('solo_este')">Borrar solo este mes</button>
+                <button class="btn-submit" style="background-color: var(--danger); box-shadow: 0 5px 15px rgba(231, 76, 60, 0.2);" onclick="confirmarBorradoRecurrente('todos')">Borrar todos los meses</button>
+                <button class="btn-cancel" onclick="cancelarBorradoRecurrente()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
 <script>
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
     const date = new Date();
@@ -902,7 +916,8 @@
                 // Aumentamos la fuerza requerida para borrar permanentemente
                 if ((currentX - startX) < -80) { 
                     content.style.transform = "translateX(-120%)";
-                    setTimeout(() => { eliminarEventoVisual(wrapper, wrapper.id.split('-').pop()); }, 300);
+                    // EN VEZ DE BORRAR DIRECTO, VERIFICAMOS:
+                    setTimeout(() => { verificarBorrado(wrapper, content, wrapper.id.split('-').pop()); }, 300);
                 } else {
                     content.style.transform = "translateX(0)";
                 }
@@ -944,6 +959,81 @@
 
         try { await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "restaurar_evento", ...ultimoEventoBorrado }) }); } catch(e) {}
         ultimoEventoBorrado = null; procesarEventosLocales(); 
+    }
+
+    // ==========================================
+    // LÓGICA DE EVENTOS RECURRENTES
+    // ==========================================
+    let eventoABorrarId = null;
+    let elementoABorrar = null;
+    let elementoContentABorrar = null;
+    let grupoABorrar = null;
+
+    function verificarBorrado(wrapper, content, eventId) {
+        const ev = eventosGlobales.find(e => String(e.id) === String(eventId));
+        
+        // Comprobar si tiene el identificador "REC-"
+        if (ev && ev.referencia && ev.referencia.includes("REC-")) {
+            let match = ev.referencia.match(/REC-\d+/);
+            if (match) {
+                grupoABorrar = match[0];
+                eventoABorrarId = eventId;
+                elementoABorrar = wrapper;
+                elementoContentABorrar = content; // Guardamos el content para devolverlo si cancela
+                document.getElementById('deleteRecurringModal').style.display = 'flex';
+                return;
+            }
+        }
+        
+        // Si no es recurrente, borramos normalmente
+        eliminarEventoVisual(wrapper, eventId);
+    }
+
+    function cancelarBorradoRecurrente() {
+        document.getElementById('deleteRecurringModal').style.display = 'none';
+        if (elementoContentABorrar) {
+            // Regresamos la tarjeta a su posición original
+            elementoContentABorrar.style.transform = "translateX(0)";
+        }
+        // Limpiamos variables
+        eventoABorrarId = null; elementoABorrar = null; elementoContentABorrar = null; grupoABorrar = null;
+    }
+
+    function confirmarBorradoRecurrente(tipo) {
+        document.getElementById('deleteRecurringModal').style.display = 'none';
+
+        if (tipo === 'solo_este') {
+            // Borra solo el evento que deslizamos
+            eliminarEventoVisual(elementoABorrar, eventoABorrarId);
+        } else if (tipo === 'todos') {
+            // Borra todo el grupo
+            const eventosDelGrupo = eventosGlobales.filter(e => e.referencia && e.referencia.includes(grupoABorrar));
+            
+            // 1. Filtrar de la memoria local
+            eventosGlobales = eventosGlobales.filter(e => !(e.referencia && e.referencia.includes(grupoABorrar)));
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+
+            // 2. Borrar de la base de datos y de la vista
+            eventosDelGrupo.forEach(ev => {
+                // Si la tarjeta está renderizada en pantalla, la quitamos
+                const elVisual = document.getElementById(`evento-${ev.id}`) || document.getElementById(`evento-vencido-${ev.id}`);
+                if (elVisual) elVisual.remove();
+                
+                // Petición silenciosa al backend
+                fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: ev.id }) });
+            });
+
+            // 3. Actualizar interfaz
+            actualizarContadorVencidas();
+            procesarEventosLocales();
+            
+            // Por seguridad, limpiamos la opción de deshacer cuando se borra un grupo masivo
+            ultimoEventoBorrado = null;
+            document.getElementById("undoContainer").style.display = "none";
+        }
+        
+        // Limpiamos variables
+        eventoABorrarId = null; elementoABorrar = null; elementoContentABorrar = null; grupoABorrar = null;
     }
 
     // ==========================================
