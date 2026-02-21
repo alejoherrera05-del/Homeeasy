@@ -279,10 +279,20 @@
         let clienteActual = null; 
         let modalEditarInstance = null;
 
-        // Cargar caché de clientes al inicio
+        // Cargar caché y verificar si venimos de un regreso automático
         window.addEventListener("DOMContentLoaded", async () => {
             const indicador = document.getElementById("cargando_clientes");
             modalEditarInstance = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
+            
+            // 🚨 NUEVO: Leer la URL para ver si Hommy nos está mandando de regreso
+            const params = new URLSearchParams(window.location.search);
+            const autoSearchCedula = params.get("search");
+
+            if (autoSearchCedula) {
+                document.getElementById('cedula_busqueda').value = autoSearchCedula;
+                buscarHistorial(); // Iniciar búsqueda automáticamente
+            }
+
             try {
                 const response = await fetch(`${URL_G}?listaClientes=1`);
                 const data = await response.json();
@@ -297,16 +307,13 @@
         // LÓGICA DE LA NUBECITA (POPOVER)
         // ===============================================
         function toggleDropdown(id) {
-            // Cerrar cualquier otra nubecita que esté abierta
             document.querySelectorAll('.dropdown-opciones').forEach(el => {
                 if(el.id !== id) el.style.display = 'none';
             });
-            
             const drop = document.getElementById(id);
             drop.style.display = drop.style.display === 'flex' ? 'none' : 'flex';
         }
 
-        // Si tocas en cualquier lugar de la pantalla, cierra las nubecitas
         document.addEventListener('click', function() {
             document.querySelectorAll('.dropdown-opciones').forEach(el => el.style.display = 'none');
         });
@@ -324,6 +331,9 @@
             document.getElementById('pantalla-resultados').style.display = "block";
             document.getElementById('loader').style.display = 'block';
             document.getElementById('resultado_cliente').style.display = 'none';
+
+            // Actualizar URL sin recargar para que si refresca, se quede ahí
+            window.history.replaceState({}, '', `clientes.html?search=${cedula}`);
 
             try {
                 const response = await fetch(`${URL_G}?tipo=HISTORIAL_CLIENTE&cedula=${cedula}`);
@@ -381,6 +391,7 @@
 
         function reiniciarBusqueda() {
             document.getElementById('pantalla-inicio').style.transform = "translateY(0%)";
+            window.history.replaceState({}, '', 'clientes.html'); // Limpiar URL
             setTimeout(() => { 
                 document.getElementById('pantalla-resultados').style.display = "none"; 
                 document.getElementById('cedula_busqueda').value = ""; 
@@ -408,7 +419,6 @@
                 let badgeClass = prefix === 'COT' ? 'badge-cot' : `status-${estadoLimpio}`;
                 if (esConvertida) badgeClass = 'status-COMPLETADO';
                 
-                // Si está anulada, sobreescribir la estética
                 if (estadoLimpio === 'ANULADA') { 
                     badgeClass = 'status-ANULADA'; 
                     cardTypeClass = 'card-ANULADA'; 
@@ -426,7 +436,6 @@
                     abonosHtml = `<div class="payment-history" id="pagos-${num}"><p class="text-center small text-muted">No hay abonos registrados.</p></div>`;
                 }
 
-                // Ocultar la nubecita si está anulada o convertida (para proteger el archivo)
                 const mostrarOpciones = (estadoLimpio !== 'ANULADA' && !esConvertida);
 
                 html += `
@@ -477,7 +486,7 @@
         // MÓDULO OPCIONES (CONFIRMACIONES DE LA NUBECITA)
         // ===============================================
         function confirmarEdicion(prefix, num) {
-            toggleDropdown('drop-' + prefix + '-' + num); // Cierra la nubecita
+            toggleDropdown('drop-' + prefix + '-' + num); 
             
             Swal.fire({
                 title: '¿Editar este documento?',
@@ -491,13 +500,15 @@
                 customClass: { popup: 'swal2-premium' }
             }).then((res) => {
                 if(res.isConfirmed) {
-                    window.location.href = `${prefix === 'OP' ? 'pedido.html' : 'cotizacion.html'}?edit=${num}`;
+                    // 🚨 NUEVO: Enviamos "las migas de pan" (la cédula) en el enlace
+                    const returnCedula = clienteActual ? `&return_cedula=${clienteActual.cedula}` : '';
+                    window.location.href = `${prefix === 'OP' ? 'pedido.html' : 'cotizacion.html'}?edit=${num}${returnCedula}`;
                 }
             });
         }
 
         function confirmarAnulacion(prefix, num) {
-            toggleDropdown('drop-' + prefix + '-' + num); // Cierra la nubecita
+            toggleDropdown('drop-' + prefix + '-' + num); 
             
             Swal.fire({
                 title: '¿Anular Documento?',
