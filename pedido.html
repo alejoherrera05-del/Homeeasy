@@ -258,11 +258,11 @@
         <div class="success-icon"><i class="fas fa-check"></i></div>
         <h3>¡Orden Confirmada!</h3>
         <p id="exito-msg">La orden fue creada, sincronizada y está lista para enviarse al cliente.</p>
-        <button class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
+        <button id="btn-success-home" class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
     </div>
 </div>
 
-<a href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
+<a id="btn-back" href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
 
 <div id="area-pdf">
     <div class="header-brand">
@@ -385,6 +385,7 @@
     let numeroCot = null;
     let isEditMode = false;
     let editNum = null;
+    let returnCedula = null;
 
     // ==========================================
     // 1. CARGA INICIAL Y VERIFICACIÓN DE URL
@@ -393,13 +394,18 @@
         const params = new URLSearchParams(window.location.search);
         editNum = params.get("edit");
         numeroCot = params.get("cotizacion");
+        returnCedula = params.get("return_cedula"); // 🚨 NUEVO: Migas de pan
+
+        // Si existe el rastro de migas de pan, modificar el botón de regreso
+        if (returnCedula) {
+            document.getElementById("btn-back").href = `clientes.html?search=${returnCedula}`;
+        }
 
         if (editNum) {
             isEditMode = true;
             document.getElementById("n_orden_display").innerText = editNum;
             document.getElementById("btnProcesar").innerHTML = '<i class="fas fa-save me-2"></i> Guardar Cambios';
             
-            // Cargar datos originales
             fetch(`${URL_G}?tipo=EDITAR_OP&numero=${editNum}`)
             .then(r => r.json())
             .then(d => {
@@ -413,7 +419,32 @@
                     buscarCliente(); 
                     
                     let items = [];
-                    try { items = JSON.parse(d.itemsJSON); } catch(e) {}
+                    // 1. INTENTAR CARGAR JSON MODERNO
+                    try { 
+                        if(d.itemsJSON && d.itemsJSON !== "[]" && d.itemsJSON !== "") {
+                            let parsed = JSON.parse(d.itemsJSON);
+                            if(typeof parsed === 'string') parsed = JSON.parse(parsed);
+                            if(Array.isArray(parsed)) items = parsed;
+                        }
+                    } catch(e) { console.warn("La orden no tiene JSON moderno"); }
+
+                    // 2. FALLBACK MÁGICO PARA ÓRDENES ANTIGUAS
+                    if(items.length === 0 && d.descripcion) {
+                        let partes = d.descripcion.split('/');
+                        partes.forEach(p => {
+                            let txt = p.trim();
+                            if(txt) {
+                                let div = txt.split(' x ');
+                                if(div.length === 2) {
+                                    items.push({ cantidad: parseFloat(div[0]) || 1, descripcion: div[1].trim(), precio: 0 });
+                                } else {
+                                    items.push({ cantidad: 1, descripcion: txt, precio: 0 });
+                                }
+                            }
+                        });
+                    }
+
+                    // 3. RENDERIZAR LA TABLA
                     if(items.length > 0) {
                         const tbody = document.getElementById("tabla-body");
                         tbody.innerHTML = "";
@@ -444,7 +475,6 @@
                 .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
         }
 
-        // Actualizar Caché silenciosamente
         fetch(`${URL_G}?init=LOAD`)
             .then(r => r.json())
             .then(data => {
@@ -459,7 +489,6 @@
                 }
             }).catch(err => console.error("Error parchando caché:", err));
 
-        // Verificar si viene de una cotización (Solo si no estamos editando una OP)
         if (numeroCot && !isEditMode) {
             fetch(`${URL_G}?convertirCot=${numeroCot}`)
                 .then(r => r.json())
@@ -648,6 +677,17 @@
                     pdf.save(nombreArchivo);
                     document.getElementById('loading').style.display = 'none';
                     if(isEditMode) document.getElementById('exito-msg').innerText = "La orden fue actualizada en el sistema y el PDF ha sido reemplazado.";
+                    
+                    // 🚨 NUEVO: Configurar botón de éxito según si hay migas de pan
+                    const btnSuccess = document.getElementById('btn-success-home');
+                    if (returnCedula) {
+                        btnSuccess.setAttribute('onclick', `window.location.replace('clientes.html?search=${returnCedula}')`);
+                        btnSuccess.innerHTML = '<i class="fas fa-user me-2"></i> Volver al Cliente';
+                    } else {
+                        btnSuccess.setAttribute('onclick', `window.location.replace('index.html')`);
+                        btnSuccess.innerHTML = '<i class="fas fa-home me-2"></i> Volver al Menú';
+                    }
+
                     document.getElementById('success-modal').style.display = 'flex';
                 }, 800);
             } else { throw new Error(result.msg || "El servidor no respondió con éxito."); }
