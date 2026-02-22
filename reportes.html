@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>HomeEasy | Inteligencia Financiera</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --home-wine: #a6455a;
+            --home-gold: #c2a468;
+            --ios-bg: #f2f2f7;
+            --text-dark: #1c1c1e;
+        }
+
+        body {
+            /* Fuente San Francisco */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--ios-bg); 
+            margin: 0; padding: 0;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 🚨 OPTIMIZACIÓN RESPONSIVE PC / MÓVIL */
+        .app-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: var(--ios-bg);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        
+        .content-container { padding: 0 20px; margin-top: -25px; position: relative; z-index: 10;}
+
+        @media (min-width: 992px) {
+            .app-wrapper { max-width: 1200px; padding: 20px; border-radius: 20px; margin-top: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+            .report-header { border-radius: 24px !important; }
+            .content-container { margin-top: 20px; }
+            
+            /* Grids para PC */
+            .grid-desktop-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+            .grid-desktop-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+            .meta-card { margin: 0 !important; height: 100%; }
+        }
+
+        /* --- CABECERA --- */
+        .report-header {
+            background: linear-gradient(135deg, var(--home-wine) 0%, #823646 100%);
+            padding: calc(20px + env(safe-area-inset-top)) 25px 45px;
+            border-radius: 0 0 32px 32px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(166, 69, 90, 0.2);
+            position: relative;
+            display: flex; flex-direction: column;
+        }
+        
+        .no-export { display: flex; }
+
+        .header-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white; width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+            backdrop-filter: blur(5px); flex-shrink: 0; transition: transform 0.2s;
+        }
+        .btn-back:active { transform: scale(0.9); }
+        
+        .hommy-header-img { width: 85px; height: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25)); margin-right: 5px; }
+
+        .header-titles { flex: 1; }
+        .header-titles h1 { font-weight: 700; font-size: 1.4rem; margin:0; letter-spacing: -0.3px; }
+        .header-titles p { margin:0; opacity:0.85; font-size:0.8rem; font-weight: 400; }
+
+        /* Selector de Periodo */
+        .period-controls { display: flex; gap: 10px; align-items: center; }
+        .period-selector { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 6px 12px; backdrop-filter: blur(5px); flex: 1;}
+        .period-selector select { background: transparent; border: none; color: white; font-weight: 600; font-size: 0.85rem; outline: none; width: 100%; cursor: pointer;}
+        .period-selector select option { color: #333; }
+        .date-display { font-size: 0.75rem; opacity: 0.8; font-weight: 500; margin-top: 5px; }
+
+        /* --- TARJETA DE META --- */
+        .meta-card {
+            background: white; border-radius: 24px;
+            padding: 22px; margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            position: relative; 
+        }
+        .meta-label { font-size: 0.75rem; font-weight: 600; color: #8e8e93; letter-spacing: 0.2px; text-transform: uppercase; }
+        .meta-current { font-size: 1.6rem; font-weight: 700; color: var(--home-wine); letter-spacing: -0.5px; margin: 4px 0; display: flex; align-items: center; gap: 10px; }
+        .btn-edit-meta { font-size: 1rem; color: #d1d1d6; cursor: pointer; transition: color 0.2s; }
+        .btn-edit-meta:hover, .btn-edit-meta:active { color: var(--home-gold); }
+
+        .meta-progress-container { width: 100%; height: 10px; background: #f2f2f7; border-radius: 10px; overflow: hidden; margin: 15px 0 12px; }
+        .meta-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--home-gold) 0%, #e3c07d 100%); border-radius: 10px; transition: width 1s ease-out; }
+        .meta-footer { font-size: 0.8rem; color: #8e8e93; font-weight: 500; display: flex; justify-content: space-between; }
+
+        /* --- TARJETA VENTA ESTRELLA 👑 --- */
+        .estrella-card {
+            background: linear-gradient(135deg, #fdfbf5 0%, #ffffff 100%);
+            border: 1px solid rgba(194, 164, 104, 0.3);
+            border-radius: 24px; padding: 22px; margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(194, 164, 104, 0.1);
+        }
+        .estrella-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
+        .estrella-title { font-size: 0.8rem; font-weight: 700; color: #a48644; text-transform: uppercase; letter-spacing: 0.5px; }
+        .crown-icon { font-size: 1.5rem; color: #f1c40f; filter: drop-shadow(0 2px 4px rgba(241, 196, 15, 0.4)); animation: bounceCrown 2s infinite; }
+        .estrella-val { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); letter-spacing: -0.5px; }
+        .estrella-sub { font-size: 0.85rem; color: #666; font-weight: 500; margin-top: 4px; }
+        
+        @keyframes bounceCrown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+        /* --- KPIs RÁPIDOS --- */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: white; border-radius: 20px; padding: 18px 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: flex-start; }
+        .stat-icon-wrapper { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 1rem; }
+        
+        .icon-green { background: rgba(52, 199, 89, 0.12); color: #34c759; }
+        .icon-red { background: rgba(255, 59, 48, 0.12); color: #ff3b30; }
+        .icon-blue { background: rgba(0, 122, 255, 0.12); color: #007aff; }
+
+        .stat-box .val { font-size: 1.2rem; font-weight: 700; display: block; letter-spacing: -0.3px; color: var(--text-dark); margin-bottom: 2px;}
+        .stat-box .lbl { font-size: 0.7rem; color: #8e8e93; font-weight: 600; text-transform: uppercase; }
+        .stat-box .sub { font-size: 0.65rem; font-weight: 600; margin-top: 5px; }
+        
+        /* Colores dinámicos para crecimiento */
+        .text-up { color: #34c759; }
+        .text-down { color: #ff3b30; }
+        .text-neutral { color: #8e8e93; }
+
+        /* --- GRÁFICOS --- */
+        .chart-card { background: white; border-radius: 24px; padding: 22px 20px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .chart-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 20px; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+        .chart-container { position: relative; height: 230px; width: 100%; display: flex; justify-content: center;}
+
+        /* --- BOTÓN EXPORTAR --- */
+        .footer-action { padding: 10px 0 30px; }
+        .btn-export { width: 100%; background: var(--text-dark); color: white; border: none; border-radius: 16px; padding: 15px; font-size: 0.95rem; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: transform 0.2s;}
+        .btn-export:active { transform: scale(0.96); }
+
+        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .swal2-premium { border-radius: 24px !important; font-family: inherit !important; }
+
+        /* 🚨 MODO PDF (Ajuste para impresión perfecta) */
+        .pdf-mode { padding: 20px !important; background: white !important; }
+        .pdf-mode .report-header { border-radius: 20px; padding: 20px; margin-bottom: 20px;}
+        .pdf-mode .app-wrapper { max-width: none !important; box-shadow: none !important; }
+        .pdf-mode .meta-card, .pdf-mode .estrella-card, .pdf-mode .stat-box, .pdf-mode .chart-card { box-shadow: none !important; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper" id="informe-exportar">
+        <div id="loader-finance" class="loader-overlay">
+            <div class="spinner-border mb-3" style="color: var(--home-wine) !important;"></div>
+            <h6 style="color: var(--home-wine); font-weight: 600; letter-spacing: -0.3px;">Analizando Finanzas...</h6>
+        </div>
+            
+        <header class="report-header">
+            <div class="header-top">
+                <a href="index.html" class="btn-back no-export" id="btn-volver"><i class="fas fa-chevron-left"></i></a>
+                <img src="hommydinero.png" class="hommy-header-img" alt="Hommy" onerror="this.src='HOMMY.png'">
+                <div class="header-titles">
+                    <h1>Reporte Financiero</h1>
+                    <p>Resumen comercial de Hommy</p>
+                </div>
+            </div>
+            
+            <div class="period-controls no-export" id="selector-container">
+                <div class="period-selector">
+                    <select id="select-periodo" onchange="cambiarPeriodo()">
+                        <option value="este_mes" selected>Este Mes</option>
+                        <option value="mes_pasado">Mes Pasado</option>
+                        <option value="esta_semana">Esta Semana</option>
+                        <option value="semana_pasada">Semana Pasada</option>
+                        <option value="este_anio">Todo el Año</option>
+                        <option value="personalizado">Personalizado...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="date-display" id="fechas-display">Calculando fechas...</div>
+        </header>
+
+        <div class="content-container">
+            
+            <div class="grid-desktop-2">
+                <div class="meta-card">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="meta-label" id="lbl-mes-meta">Meta de Ventas</span>
+                        <span class="badge" id="pct-badge" style="background: rgba(194, 164, 104, 0.15); color: #a48644; border-radius: 8px; font-weight: 700; font-size: 0.75rem;">0%</span>
+                    </div>
+                    <div class="meta-current">
+                        <span id="label-meta-valor">$0</span>
+                        <i class="fas fa-pen-to-square btn-edit-meta no-export" id="btn-editar-meta" onclick="ajustarMeta()"></i>
+                    </div>
+                    <div class="meta-progress-container">
+                        <div class="meta-progress-bar" id="meta-bar"></div>
+                    </div>
+                    <div class="meta-footer">
+                        <span id="txt-logrado" style="color: var(--home-wine); font-weight: 600;">Logrado: $0</span>
+                        <span id="txt-restante">Faltan: $0</span>
+                    </div>
+                </div>
+
+                <div class="estrella-card">
+                    <div class="estrella-header">
+                        <span class="estrella-title">OP Ganadora del Periodo</span>
+                        <i class="fas fa-crown crown-icon"></i>
+                    </div>
+                    <div class="estrella-val" id="estrella-monto">$0</div>
+                    <div class="estrella-sub" id="estrella-detalle">Sin ventas registradas en este periodo</div>
+                </div>
+            </div>
+
+            <div class="stats-grid grid-desktop-4" style="margin-top: 20px;">
+                <div class="stat-box">
+                    <div class="stat-icon-wrapper icon-blue"><i class="fas fa-chart-line"></i></div>
+                    <span class="val" id="kpi-crecimiento">0%</span>
+                    <span class="lbl">Crecimiento</span>
+                    <span class="sub" id="sub-crecimiento">vs periodo anterior</span>
+                </div>
+                
+                <div class="stat-box">
+                    <div class="stat-icon-wrapper icon-green" style="background: rgba(166,69,90,0.1); color: var(--home-wine);"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <span class="val" id="kpi-vendido">$0</span>
+                    <span class="lbl">Total Vendido</span>
+                    <span class="sub text-neutral">En OPs generadas</span>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-icon-wrapper icon-green"><i class="fas fa-sack-dollar"></i></div>
+                    <span class="val" id="kpi-recaudado">$0</span>
+                    <span class="lbl">Caja (Recaudado)</span>
+                    <span class="sub text-neutral">Abonos efectivos</span>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-icon-wrapper icon-red"><i class="fas fa-hand-holding-dollar"></i></div>
+                    <span class="val" id="kpi-calle">$0</span>
+                    <span class="lbl">Por Cobrar</span>
+                    <span class="sub text-neutral">Saldo pendiente global</span>
+                </div>
+            </div>
+
+            <div class="grid-desktop-2">
+                <div class="chart-card">
+                    <div class="chart-title"><i class="fas fa-chart-column" style="color: var(--home-wine);"></i> Tendencia del Año</div>
+                    <div class="chart-container">
+                        <canvas id="chartBarras"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title"><i class="fas fa-chart-pie" style="color: var(--home-gold);"></i> Medios de Pago (Periodo)</div>
+                    <div class="chart-container" style="height: 200px;">
+                        <canvas id="chartDona"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-action no-export" id="btn-exportar-container">
+                <button class="btn-export" onclick="exportarAPDF()">
+                    <i class="fas fa-file-pdf" style="color: #ff3b30;"></i> Exportar Informe
+                </button>
+            </div>
+
+        </div> </div> <script>
+        const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+        let metaVentas = 0;
+        let dataFinanzas = null;
+        let chartBarrasInstancia = null;
+        let chartDonaInstancia = null;
+
+        // Variables de Rango Personalizado
+        let customStart = null;
+        let customEnd = null;
+
+        const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+        window.onload = async () => {
+            await cargarMeta();
+            await cargarFinanzas();
+            document.getElementById('loader-finance').style.display = 'none';
+        };
+
+        async function cargarMeta() {
+            try {
+                const res = await fetch(`${URL_G}?tipo=GET_META`);
+                const data = await res.json();
+                metaVentas = parseFloat(data.meta) || 10000000;
+                document.getElementById('label-meta-valor').innerText = "$" + metaVentas.toLocaleString('es-CO');
+            } catch (e) {
+                metaVentas = 10000000;
+                document.getElementById('label-meta-valor').innerText = "$10.000.000";
+            }
+        }
+
+        async function cargarFinanzas() {
+            try {
+                const res = await fetch(`${URL_G}?tipo=GET_REPORTES`);
+                dataFinanzas = await res.json();
+                procesarDatos();
+            } catch (e) {
+                Swal.fire('Error', 'No se pudieron cargar los datos.', 'error');
+            }
+        }
+
+        // ==========================================
+        // 📅 MOTOR LÓGICO DE FECHAS Y COMPARATIVAS
+        // ==========================================
+        async function cambiarPeriodo() {
+            const selector = document.getElementById('select-periodo');
+            if(selector.value === 'personalizado') {
+                const { value: formValues } = await Swal.fire({
+                    title: 'Rango Personalizado',
+                    html:
+                        '<input id="swal-input1" type="date" class="swal2-input">' +
+                        '<input id="swal-input2" type="date" class="swal2-input">',
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonColor: 'var(--home-wine)',
+                    customClass: { popup: 'swal2-premium' },
+                    preConfirm: () => {
+                        return [ document.getElementById('swal-input1').value, document.getElementById('swal-input2').value ];
+                    }
+                });
+
+                if (formValues && formValues[0] && formValues[1]) {
+                    customStart = new Date(formValues[0] + "T00:00:00");
+                    customEnd = new Date(formValues[1] + "T23:59:59");
+                    procesarDatos();
+                } else {
+                    selector.value = "este_mes"; // Restaurar si cancela
+                    procesarDatos();
+                }
+            } else {
+                procesarDatos();
+            }
+        }
+
+        function obtenerRangosDeFechas(periodo) {
+            const hoy = new Date();
+            let inicio, fin, prevInicio, prevFin;
+            let texto = "";
+
+            if(periodo === 'este_mes') {
+                inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
+                prevInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+                prevFin = new Date(hoy.getFullYear(), hoy.getMonth(), 0, 23, 59, 59);
+                texto = nombresMeses[hoy.getMonth()];
+            } 
+            else if(periodo === 'mes_pasado') {
+                inicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+                fin = new Date(hoy.getFullYear(), hoy.getMonth(), 0, 23, 59, 59);
+                prevInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
+                prevFin = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 0, 23, 59, 59);
+                texto = nombresMeses[inicio.getMonth()];
+            }
+            else if(periodo === 'esta_semana') {
+                const dia = hoy.getDay() || 7; 
+                inicio = new Date(hoy); inicio.setDate(hoy.getDate() - dia + 1); inicio.setHours(0,0,0,0);
+                fin = new Date(inicio); fin.setDate(inicio.getDate() + 6); fin.setHours(23,59,59);
+                prevInicio = new Date(inicio); prevInicio.setDate(inicio.getDate() - 7);
+                prevFin = new Date(fin); prevFin.setDate(fin.getDate() - 7);
+                texto = "Esta Semana";
+            }
+            else if(periodo === 'semana_pasada') {
+                const dia = hoy.getDay() || 7; 
+                let lunesActual = new Date(hoy); lunesActual.setDate(hoy.getDate() - dia + 1); lunesActual.setHours(0,0,0,0);
+                inicio = new Date(lunesActual); inicio.setDate(lunesActual.getDate() - 7);
+                fin = new Date(inicio); fin.setDate(inicio.getDate() + 6); fin.setHours(23,59,59);
+                prevInicio = new Date(inicio); prevInicio.setDate(inicio.getDate() - 7);
+                prevFin = new Date(fin); prevFin.setDate(fin.getDate() - 7);
+                texto = "Semana Pasada";
+            }
+            else if(periodo === 'este_anio') {
+                inicio = new Date(hoy.getFullYear(), 0, 1);
+                fin = new Date(hoy.getFullYear(), 11, 31, 23, 59, 59);
+                prevInicio = new Date(hoy.getFullYear() - 1, 0, 1);
+                prevFin = new Date(hoy.getFullYear() - 1, 11, 31, 23, 59, 59);
+                texto = "Año " + hoy.getFullYear();
+            }
+            else if(periodo === 'personalizado') {
+                inicio = customStart; fin = customEnd;
+                // Para personalizado, asumimos el mismo número de días hacia atrás
+                const diffTime = Math.abs(fin - inicio);
+                prevFin = new Date(inicio.getTime() - 1);
+                prevInicio = new Date(prevFin.getTime() - diffTime);
+                texto = `${inicio.toLocaleDateString()} al ${fin.toLocaleDateString()}`;
+            }
+
+            return { inicio, fin, prevInicio, prevFin, texto };
+        }
+
+        function procesarDatos() {
+            if(!dataFinanzas) return;
+
+            const periodoSel = document.getElementById('select-periodo').value;
+            const rangos = obtenerRangosDeFechas(periodoSel);
+            
+            document.getElementById('lbl-mes-meta').innerText = `Meta de Ventas (${rangos.texto})`;
+            document.getElementById('fechas-display').innerText = `Mostrando: ${rangos.inicio.toLocaleDateString()} - ${rangos.fin.toLocaleDateString()}`;
+
+            let totalVendidoActual = 0;
+            let totalVendidoAnterior = 0;
+            let totalRecaudadoActual = 0; 
+            let totalVendidoHistorico = 0; 
+            let totalRecaudadoHistorico = 0; 
+            
+            // OP Ganadora
+            let maxVentaOP = null;
+            
+            const pagos = {};
+            const ventasPorMes = [0,0,0,0,0,0,0,0,0,0,0,0];
+            const anioActual = new Date().getFullYear();
+
+            // 1. Procesar Órdenes
+            dataFinanzas.ordenes.forEach(op => {
+                if(op.estado !== "ANULADA") {
+                    const f = new Date(op.fecha);
+                    const total = parseFloat(op.total) || 0;
+                    
+                    totalVendidoHistorico += total;
+
+                    if(f.getFullYear() === anioActual) ventasPorMes[f.getMonth()] += total;
+
+                    // Periodo Actual
+                    if(f >= rangos.inicio && f <= rangos.fin) {
+                        totalVendidoActual += total;
+                        
+                        // Lógica OP Ganadora
+                        if(!maxVentaOP || total > parseFloat(maxVentaOP.total)) {
+                            maxVentaOP = op;
+                        }
+                    }
+                    
+                    // Periodo Anterior (Para comparar)
+                    if(f >= rangos.prevInicio && f <= rangos.prevFin) {
+                        totalVendidoAnterior += total;
+                    }
+                }
+            });
+
+            // 2. Procesar Abonos
+            dataFinanzas.abonos.forEach(ab => {
+                const f = new Date(ab.fecha);
+                const valor = parseFloat(ab.valor) || 0;
+                
+                totalRecaudadoHistorico += valor;
+
+                if(f >= rangos.inicio && f <= rangos.fin) {
+                    totalRecaudadoActual += valor;
+                    const medio = ab.medio ? ab.medio.toUpperCase().trim() : "OTRO";
+                    pagos[medio] = (pagos[medio] || 0) + valor;
+                }
+            });
+
+            // 3. Pintar Meta y Crecimiento
+            const porcentaje = Math.min((totalVendidoActual / metaVentas) * 100, 100).toFixed(1);
+            setTimeout(() => { document.getElementById('meta-bar').style.width = porcentaje + "%"; }, 100);
+            document.getElementById('pct-badge').innerText = porcentaje + "%";
+            document.getElementById('txt-logrado').innerText = "Logrado: $" + totalVendidoActual.toLocaleString('es-CO');
+            document.getElementById('txt-restante').innerText = "Faltan: $" + Math.max(metaVentas - totalVendidoActual, 0).toLocaleString('es-CO');
+
+            // Crecimiento Lógica
+            let textCrecimiento = "0%";
+            let claseCrecimiento = "text-neutral";
+            let iconoCrecimiento = '<i class="fas fa-minus"></i>';
+            
+            if(totalVendidoAnterior === 0 && totalVendidoActual > 0) {
+                textCrecimiento = "100%"; claseCrecimiento = "text-up"; iconoCrecimiento = '<i class="fas fa-arrow-up"></i>';
+            } else if (totalVendidoAnterior > 0) {
+                const crec = ((totalVendidoActual - totalVendidoAnterior) / totalVendidoAnterior) * 100;
+                textCrecimiento = Math.abs(crec).toFixed(1) + "%";
+                if(crec > 0) { claseCrecimiento = "text-up"; iconoCrecimiento = '<i class="fas fa-arrow-up"></i>'; }
+                if(crec < 0) { claseCrecimiento = "text-down"; iconoCrecimiento = '<i class="fas fa-arrow-down"></i>'; }
+            }
+
+            const cajaCrecimiento = document.getElementById('kpi-crecimiento');
+            cajaCrecimiento.innerHTML = `${iconoCrecimiento} ${textCrecimiento}`;
+            cajaCrecimiento.className = `val ${claseCrecimiento}`;
+
+            // OP Estrella
+            if(maxVentaOP) {
+                document.getElementById('estrella-monto').innerText = "$" + parseFloat(maxVentaOP.total).toLocaleString('es-CO');
+                document.getElementById('estrella-detalle').innerText = `OP #${maxVentaOP.numero} - Fecha: ${new Date(maxVentaOP.fecha).toLocaleDateString()}`;
+            } else {
+                document.getElementById('estrella-monto').innerText = "$0";
+                document.getElementById('estrella-detalle').innerText = "Sin ventas en este periodo";
+            }
+
+            // 4. Pintar Resto KPIs
+            document.getElementById('kpi-vendido').innerText = "$" + totalVendidoActual.toLocaleString('es-CO');
+            document.getElementById('kpi-recaudado').innerText = "$" + totalRecaudadoActual.toLocaleString('es-CO');
+            // La calle siempre es un global histórico (lo que te deben en total)
+            document.getElementById('kpi-calle').innerText = "$" + Math.max(0, totalVendidoHistorico - totalRecaudadoHistorico).toLocaleString('es-CO');
+
+            renderCharts(pagos, nombresMeses, ventasPorMes);
+        }
+
+        function renderCharts(pagosData, labelsBarras, dataBarras) {
+            Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
+            Chart.defaults.color = '#8e8e93';
+
+            if(chartDonaInstancia) chartDonaInstancia.destroy();
+            if(chartBarrasInstancia) chartBarrasInstancia.destroy();
+
+            // Dona (Medios de Pago)
+            const ctxDona = document.getElementById('chartDona').getContext('2d');
+            chartDonaInstancia = new Chart(ctxDona, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(pagosData).length > 0 ? Object.keys(pagosData) : ['Sin pagos'],
+                    datasets: [{
+                        data: Object.keys(pagosData).length > 0 ? Object.values(pagosData) : [1],
+                        backgroundColor: ['#a6455a', '#c2a468', '#34c759', '#5856d6', '#ff9500', '#e5e5ea'],
+                        borderWidth: 2, borderColor: '#ffffff', hoverOffset: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { weight: '600', size: 11 } } } } 
+                }
+            });
+
+            // Barras (Ventas del Año)
+            const ctxBarras = document.getElementById('chartBarras').getContext('2d');
+            chartBarrasInstancia = new Chart(ctxBarras, {
+                type: 'bar',
+                data: {
+                    labels: labelsBarras,
+                    datasets: [{
+                        label: 'Ventas', data: dataBarras, 
+                        backgroundColor: '#a6455a', borderRadius: 4, barPercentage: 0.6
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#f2f2f7', drawBorder: false }, ticks: { font:{weight:'500'}, callback: function(value) { return '$' + (value/1000000).toFixed(1) + 'M'; } } }, 
+                        x: { grid: { display: false, drawBorder: false }, ticks: { font:{weight:'600'}, maxRotation: 45, minRotation: 45 } } 
+                    } 
+                }
+            });
+        }
+
+        async function ajustarMeta() {
+            const { value: nuevaMeta } = await Swal.fire({
+                title: 'Ajustar Meta',
+                input: 'number',
+                inputLabel: 'Meta de ventas sin puntos ni comas:',
+                inputValue: metaVentas,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar Meta',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: 'var(--home-wine)',
+                customClass: { popup: 'swal2-premium' }
+            });
+
+            if (nuevaMeta && parseFloat(nuevaMeta) > 0) {
+                Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-premium' } });
+                try {
+                    await fetch(URL_G, { method: 'POST', body: JSON.stringify({ tipo: "SET_META", valor: nuevaMeta }) });
+                    location.reload();
+                } catch(e) {
+                    Swal.fire('Error', 'No se pudo guardar la meta.', 'error');
+                }
+            }
+        }
+
+       // 🚨 FUNCIÓN EXPORTAR A PDF (CORREGIDA Y BLINDADA)
+        function exportarAPDF() {
+            const element = document.getElementById('informe-exportar');
+            
+            // 1. Preparar la vista para la "foto"
+            document.querySelectorAll('.no-export').forEach(el => el.style.display = 'none');
+            element.classList.add('pdf-mode');
+
+            // 2. Configuración súper estable para PC y Móvil
+            const opt = {
+                margin:       10, 
+                filename:     `Dashboard_Hommy_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // 3. Darle medio segundo a los gráficos para que se ajusten al nuevo tamaño antes de tomar la foto
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save()
+                .then(() => {
+                    // Restaurar la vista a la normalidad
+                    document.querySelectorAll('.no-export').forEach(el => el.style.display = '');
+                    element.classList.remove('pdf-mode');
+                })
+                .catch(err => {
+                    console.error("Error PDF:", err);
+                    // Restaurar la vista
+                    document.querySelectorAll('.no-export').forEach(el => el.style.display = '');
+                    element.classList.remove('pdf-mode');
+                    // Si el navegador bloquea la librería, abrimos el motor de impresión nativo del celular/PC
+                    window.print();
+                });
+            }, 500);
+        }
+    </script>
+</body>
+</html>
