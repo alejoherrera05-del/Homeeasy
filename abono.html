@@ -100,6 +100,16 @@
         }
         .input-op-box:focus { outline: none; border-bottom-color: var(--homeeasy-wine); }
         
+        /* 🚨 NUEVO: ESTILO DEL BOTÓN LUPA */
+        .btn-search-op {
+            background: var(--homeeasy-gold); color: white; border: none;
+            border-radius: 10px; width: 42px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(194, 164, 104, 0.3); flex-shrink: 0;
+            transition: transform 0.2s; cursor: pointer;
+        }
+        .btn-search-op:active { transform: scale(0.95); }
+        
         .input-readonly { 
             background-color: transparent; border: none; border-bottom: 1px dashed #ccc; 
             color: #555; padding: 5px 0; font-size: 0.95rem; font-weight: 700; width: 100%; text-transform: uppercase;
@@ -250,8 +260,11 @@
             </div>
             <div class="col-6 position-relative">
                 <label class="label-modern">Localizar OP o Nombre</label>
-                <input type="text" id="numeroOP" class="input-op-box" placeholder="Ej: 125 o Juan..." autocomplete="off">
-                <div id="sugerencias_orden" style="position:absolute;background:white;width:100%;max-height:200px;overflow:auto;z-index:1000;border-radius:10px;box-shadow:0 10px 20px rgba(0,0,0,0.15);display:none;"></div>
+                <div style="display: flex; align-items: flex-end; gap: 8px;">
+                    <input type="text" id="numeroOP" class="input-op-box" placeholder="Ej: 125 o Juan..." autocomplete="off" onkeypress="if(event.key === 'Enter') buscarOrden()">
+                    <button class="btn-search-op no-print" onclick="buscarOrden()"><i class="fas fa-search"></i></button>
+                </div>
+                <div id="sugerencias_orden" style="position:absolute; top: 100%; left: 0; background:white;width:100%;max-height:200px;overflow:auto;z-index:1000;border-radius:10px;box-shadow:0 10px 20px rgba(0,0,0,0.15);display:none;"></div>
             </div>
             <div class="col-12 mt-4">
                 <label class="label-modern">Nombre del Cliente</label>
@@ -340,6 +353,14 @@
             calcularSaldo();
             document.getElementById('valorAbono').disabled = false;
             document.getElementById('medioPago').disabled = false;
+            
+            Swal.fire({
+                icon: 'warning',
+                title: 'No encontrada',
+                text: 'La orden ' + numero + ' no existe o no está en el caché. Revisa el número.',
+                confirmButtonColor: '#a6455a',
+                customClass: { popup: 'swal2-premium' }
+            });
             return;
         }
 
@@ -552,10 +573,10 @@
     }
 
     // ===============================
-    // 🔎 SUGERENCIAS ORDENES CACHE
+    // 🔎 SUGERENCIAS ORDENES CACHE (CORREGIDO)
     // ===============================
     document.getElementById("numeroOP").addEventListener("input", function() {
-        buscarOrden(); // Check exact match silently 
+        // 🚨 Se eliminó la búsqueda automática que interrumpía todo.
         
         const valorOriginal = this.value.trim();
         const valor = normalizarTexto(valorOriginal);
@@ -584,7 +605,7 @@
 
                 div.onclick = function() {
                     document.getElementById("numeroOP").value = o.numero;
-                    buscarOrden();
+                    buscarOrden(); // 🚨 Aquí SÍ se busca, porque ya elegiste a quién quieres.
                     cont.innerHTML = "";
                     cont.style.display = "none";
                 };
