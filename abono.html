@@ -176,6 +176,55 @@
             border-top: 2px solid var(--homeeasy-gold); padding-top: 12px; margin-top: 8px;
         }
 
+        /* CAJA ABONO DESTACADO */
+        .abono-destacado-box {
+            display: none;
+            background: linear-gradient(135deg, rgba(166, 69, 90, 0.06) 0%, rgba(194, 164, 104, 0.08) 100%);
+            border: 2px solid var(--homeeasy-wine);
+            border-radius: 14px;
+            padding: 25px 20px;
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .abono-destacado-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--homeeasy-wine), var(--homeeasy-gold), var(--homeeasy-wine));
+        }
+        .abono-destacado-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--homeeasy-gold);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+        .abono-destacado-valor {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--homeeasy-wine);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .abono-destacado-medio {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .abono-destacado-recibo {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #aaa;
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
         .saldo-final-container { text-align: center; padding-top: 20px; }
         .saldo-final-label { font-size: 0.8rem; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
         .saldo-final-valor { font-size: 2.2rem; font-weight: 900; color: var(--homeeasy-wine); display: block; margin-top: 5px; }
@@ -320,7 +369,7 @@
             </table>
         </div>
         
-        <!-- ABONO ACTUAL -->
+                <!-- ABONO ACTUAL - INPUTS -->
         <div class="row g-4 mb-3">
             <div class="col-7">
                 <label class="label-modern">Valor de este Abono</label>
@@ -335,6 +384,14 @@
                     <option value="TARJETA">TARJETA</option>
                 </select>
             </div>
+        </div>
+
+        <!-- CAJA ABONO DESTACADO (se llena al procesar) -->
+        <div id="abono_destacado" class="abono-destacado-box">
+            <div class="abono-destacado-label">Abono Registrado</div>
+            <div class="abono-destacado-valor" id="abono_dest_valor">$ 0</div>
+            <div class="abono-destacado-medio" id="abono_dest_medio">—</div>
+            <div class="abono-destacado-recibo" id="abono_dest_recibo">—</div>
         </div>
 
 
@@ -614,7 +671,7 @@
             if (!continuar.isConfirmed) return;
         }
 
-               // ✅ AGREGAR FILA DEL ABONO ACTUAL + TOTALES A LA TABLA ANTES DE CAPTURAR PDF
+         // ✅ AGREGAR FILA DEL ABONO ACTUAL + TOTALES A LA TABLA ANTES DE CAPTURAR PDF
         var tbody = document.getElementById('tbody_pagos');
         var fechaHoy = new Date().toLocaleDateString('es-CO');
         var trActual = document.createElement('tr');
@@ -636,6 +693,16 @@
         var trSaldo = document.createElement('tr');
         trSaldo.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:var(--homeeasy-wine);">SALDO PENDIENTE</td><td style="font-weight:900; color:var(--homeeasy-wine);">' + fmtCOP(nuevoSaldoFinal) + '</td>';
         tbody.appendChild(trSaldo);
+
+        // ✅ ACTIVAR CAJA DESTACADA DEL ABONO
+        document.getElementById('abono_dest_valor').innerText = fmtCOP(valAbono);
+        document.getElementById('abono_dest_medio').innerText = mPago;
+        document.getElementById('abono_dest_recibo').innerText = 'Recibo N° ' + nRecibo + '  •  OP-' + numOP;
+        document.getElementById('abono_destacado').style.display = 'block';
+
+        // Ocultar inputs del abono para el PDF (ya se muestra en la caja)
+        document.querySelector('.col-7').style.display = 'none';
+        document.querySelector('.col-5').style.display = 'none';
         // ✅ PASÓ LA VALIDACIÓN — Continúa el proceso normal
         var loading = document.getElementById('loading');
         loading.style.display = 'flex';
@@ -696,9 +763,13 @@
                 }
             });
 
-            // 🚨 FIX: RESTAURAR EL SELECT DESPUÉS DE CAPTURAR
+                       // 🚨 FIX: RESTAURAR EL SELECT DESPUÉS DE CAPTURAR
             var spanTemp = document.getElementById('medioPago_span_temp');
             spanTemp.parentNode.replaceChild(selectMedio, spanTemp);
+
+            // Restaurar inputs del abono
+            document.querySelector('.col-7').style.display = '';
+            document.querySelector('.col-5').style.display = '';
 
             setStep(1, 'check');
             setStep(2, 'active');
@@ -818,4 +889,5 @@
 </style>
 </body>
 </html>
+
 
