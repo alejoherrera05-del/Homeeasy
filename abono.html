@@ -304,23 +304,14 @@
             </div>
         </div>
 
-        <!-- RESUMEN DE LA ORDEN -->
-        <div id="seccion_resumen" style="display:none;">
-            <div class="seccion-titulo"><i class="fas fa-file-invoice me-2"></i>Resumen de la Orden</div>
-            <div class="resumen-orden-box">
-                <div class="detalle-texto" id="resumen_descripcion">—</div>
-                <div class="total-orden">Total de la orden: <span id="resumen_total">$ 0</span></div>
-            </div>
-        </div>
-
-        <!-- HISTORIAL DE PAGOS -->
+               <!-- HISTORIAL DE PAGOS -->
         <div id="seccion_historial" style="display:none;">
             <div class="seccion-titulo"><i class="fas fa-receipt me-2"></i>Historial de Pagos</div>
             <table class="tabla-pagos">
                 <thead>
                     <tr>
-                        <th>Concepto</th>
-                        <th>Medio</th>
+                        <th>Fecha</th>
+                        <th># Recibo</th>
                         <th>Valor</th>
                     </tr>
                 </thead>
@@ -328,7 +319,7 @@
                 </tbody>
             </table>
         </div>
-
+        
         <!-- ABONO ACTUAL -->
         <div class="row g-4 mb-3">
             <div class="col-7">
@@ -346,21 +337,6 @@
             </div>
         </div>
 
-        <!-- TOTALES -->
-        <div class="totales-box" id="seccion_totales" style="display:none;">
-            <div class="totales-row">
-                <span>Total de la orden</span>
-                <span id="totales_total">$ 0</span>
-            </div>
-            <div class="totales-row">
-                <span>Total pagado (con este abono)</span>
-                <span id="totales_pagado" style="color: #27ae60; font-weight: 800;">$ 0</span>
-            </div>
-            <div class="totales-row destacado">
-                <span>Saldo Pendiente</span>
-                <span id="totales_saldo">$ 0</span>
-            </div>
-        </div>
 
         <!-- SALDO FINAL GRANDE -->
         <div class="saldo-final-container">
@@ -463,21 +439,17 @@
         saldoBase = parseFloat(orden.saldo) || 0;
         document.getElementById('saldo_anterior_val').innerText = fmtCOP(saldoBase);
 
-        // LLENAR RESUMEN DE LA ORDEN
-        document.getElementById('resumen_descripcion').innerText = orden.descripcion || 'Sin descripción';
-        document.getElementById('resumen_total').innerText = fmtCOP(orden.total);
-        document.getElementById('seccion_resumen').style.display = 'block';
-
-        // LLENAR HISTORIAL DE PAGOS
+                // LLENAR HISTORIAL DE PAGOS
         var tbody = document.getElementById('tbody_pagos');
         tbody.innerHTML = '';
         var totalPagado = 0;
+        var fechaHoy = new Date().toLocaleDateString('es-CO');
 
         var abonoInicial = parseFloat(orden.abonoInicial) || 0;
         if (abonoInicial > 0) {
             totalPagado += abonoInicial;
             var tr1 = document.createElement('tr');
-            tr1.innerHTML = '<td>Abono Inicial</td><td style="color:#999;">Al crear orden</td><td>' + fmtCOP(abonoInicial) + '</td>';
+            tr1.innerHTML = '<td>' + (orden.fechaOrden || fechaHoy) + '</td><td>OP-' + orden.numero + '</td><td>' + fmtCOP(abonoInicial) + '</td>';
             tbody.appendChild(tr1);
         }
 
@@ -485,7 +457,7 @@
         if (abono2 > 0) {
             totalPagado += abono2;
             var tr2 = document.createElement('tr');
-            tr2.innerHTML = '<td>Abono #2</td><td style="color:#999;">Registrado</td><td>' + fmtCOP(abono2) + '</td>';
+            tr2.innerHTML = '<td>—</td><td>Recibo</td><td>' + fmtCOP(abono2) + '</td>';
             tbody.appendChild(tr2);
         }
 
@@ -493,12 +465,11 @@
         if (abono3 > 0) {
             totalPagado += abono3;
             var tr3 = document.createElement('tr');
-            tr3.innerHTML = '<td>Abono #3</td><td style="color:#999;">Registrado</td><td>' + fmtCOP(abono3) + '</td>';
+            tr3.innerHTML = '<td>—</td><td>Recibo</td><td>' + fmtCOP(abono3) + '</td>';
             tbody.appendChild(tr3);
         }
 
         document.getElementById('seccion_historial').style.display = 'block';
-        document.getElementById('seccion_totales').style.display = 'block';
 
         // LLENAR TOTALES
         document.getElementById('totales_total').innerText = fmtCOP(orden.total);
@@ -537,15 +508,7 @@
         var banner = document.getElementById('paz-salvo-banner');
         banner.style.display = (nuevoSaldo <= 0 && saldoBase > 0) ? 'block' : 'none';
 
-        // Actualizar totales en tiempo real
-        if (ordenActual) {
-            var abonoIni = parseFloat(ordenActual.abonoInicial) || 0;
-            var ab2 = parseFloat(ordenActual.abono2) || 0;
-            var ab3 = parseFloat(ordenActual.abono3) || 0;
-            var totalPagadoConEste = abonoIni + ab2 + ab3 + abono;
-            document.getElementById('totales_pagado').innerText = fmtCOP(totalPagadoConEste);
-            document.getElementById('totales_saldo').innerText = fmtCOP(nuevoSaldo);
-        }
+               // No necesita actualizar totales externos, van en la tabla
     }
 
     var loadingTexts = [
@@ -651,13 +614,28 @@
             if (!continuar.isConfirmed) return;
         }
 
-        // ✅ AGREGAR FILA DEL ABONO ACTUAL A LA TABLA ANTES DE CAPTURAR PDF
+               // ✅ AGREGAR FILA DEL ABONO ACTUAL + TOTALES A LA TABLA ANTES DE CAPTURAR PDF
         var tbody = document.getElementById('tbody_pagos');
+        var fechaHoy = new Date().toLocaleDateString('es-CO');
         var trActual = document.createElement('tr');
         trActual.className = 'fila-actual';
-        trActual.innerHTML = '<td>► Este abono</td><td>' + mPago + '</td><td>' + fmtCOP(valAbono) + '</td>';
+        trActual.innerHTML = '<td>' + fechaHoy + '</td><td>► REC-' + nRecibo + '</td><td>' + fmtCOP(valAbono) + '</td>';
         tbody.appendChild(trActual);
 
+        // Fila total pagado
+        var abonoIni = parseFloat(ordenActual.abonoInicial) || 0;
+        var ab2 = parseFloat(ordenActual.abono2) || 0;
+        var ab3 = parseFloat(ordenActual.abono3) || 0;
+        var totalPagadoFinal = abonoIni + ab2 + ab3 + valAbono;
+        var nuevoSaldoFinal = saldoBase - valAbono;
+
+        var trTotalPagado = document.createElement('tr');
+        trTotalPagado.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:#27ae60; border-top:2px solid #e0e0e0; padding-top:12px;">TOTAL PAGADO</td><td style="font-weight:900; color:#27ae60; border-top:2px solid #e0e0e0; padding-top:12px;">' + fmtCOP(totalPagadoFinal) + '</td>';
+        tbody.appendChild(trTotalPagado);
+
+        var trSaldo = document.createElement('tr');
+        trSaldo.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:var(--homeeasy-wine);">SALDO PENDIENTE</td><td style="font-weight:900; color:var(--homeeasy-wine);">' + fmtCOP(nuevoSaldoFinal) + '</td>';
+        tbody.appendChild(trSaldo);
         // ✅ PASÓ LA VALIDACIÓN — Continúa el proceso normal
         var loading = document.getElementById('loading');
         loading.style.display = 'flex';
@@ -840,3 +818,4 @@
 </style>
 </body>
 </html>
+
