@@ -660,19 +660,21 @@
         trSaldo.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:var(--homeeasy-wine);">SALDO PENDIENTE</td><td style="font-weight:900; color:var(--homeeasy-wine);">' + fmtCOP(nuevoSaldoFinal) + '</td>';
         tbody.appendChild(trSaldo);
 
+                    // ✅ MOSTRAR LOADING PRIMERO
+        var loading = document.getElementById('loading');
+        loading.style.display = 'flex';
+        
+        for(var i=1; i<=4; i++) setStep(i, 'reset');
+        setStep(1, 'active');
+
+        await new Promise(function(r){ setTimeout(r, 100); });
+
         // ✅ ACTIVAR CAJA DESTACADA Y OCULTAR INPUTS
         document.getElementById('abono_dest_valor').innerText = fmtCOP(valAbono);
         document.getElementById('abono_dest_medio').innerText = mPago;
         document.getElementById('abono_dest_recibo').innerText = 'Recibo N° ' + nRecibo + '  •  OP-' + numOP;
         document.getElementById('abono_destacado').style.display = 'block';
         document.getElementById('inputs_abono').style.display = 'none';
-
-        // ✅ CONTINÚA EL PROCESO NORMAL
-        var loading = document.getElementById('loading');
-        loading.style.display = 'flex';
-        
-        for(var i=1; i<=4; i++) setStep(i, 'reset');
-        setStep(1, 'active');
 
         try {
             var origBodyPadding = document.body.style.padding;
@@ -683,15 +685,17 @@
 
             var origBorderRadius = areaPdf.style.borderRadius;
             var origBoxShadow = areaPdf.style.boxShadow;
+            var origMaxWidth = areaPdf.style.maxWidth;
             areaPdf.style.borderRadius = '0px';
             areaPdf.style.boxShadow = 'none';
             areaPdf.style.width = '800px';
             areaPdf.style.maxWidth = '800px';
-            areaPdf.style.margin = '0'; 
+            areaPdf.style.margin = '0';
+            areaPdf.style.overflow = 'visible';
 
-            await new Promise(function(r){ setTimeout(r, 50); });
+            await new Promise(function(r){ setTimeout(r, 100); });
 
-            // 🚨 FIX: CONVERTIR SELECT A TEXTO ANTES DE CLONAR (ya está oculto pero por seguridad)
+            // FIX: CONVERTIR SELECT A TEXTO
             var selectMedio = document.getElementById('medioPago');
             var textoMedio = selectMedio.options[selectMedio.selectedIndex] ? selectMedio.options[selectMedio.selectedIndex].text : '';
             var spanReemplazo = document.createElement('span');
@@ -703,14 +707,29 @@
             spanReemplazo.id = 'medioPago_span_temp';
             selectMedio.parentNode.replaceChild(spanReemplazo, selectMedio);
 
+            // Medir el alto real del contenido
+            var realHeight = areaPdf.scrollHeight;
+            var realWidth = 800;
+
             var canvas = await html2canvas(areaPdf, { 
-                scale: 3, 
+                scale: 2, 
                 useCORS: true, 
-                width: 800,
-                windowWidth: 800,
-                x: areaPdf.offsetLeft, 
-                y: areaPdf.offsetTop,
+                width: realWidth,
+                height: realHeight,
+                windowWidth: realWidth,
+                scrollX: 0,
+                scrollY: 0,
+                x: 0, 
+                y: 0,
                 onclone: function(clonedDoc) {
+                    var clonedArea = clonedDoc.getElementById('area-pdf');
+                    clonedArea.style.width = realWidth + 'px';
+                    clonedArea.style.maxWidth = realWidth + 'px';
+                    clonedArea.style.margin = '0';
+                    clonedArea.style.borderRadius = '0';
+                    clonedArea.style.boxShadow = 'none';
+                    clonedArea.style.overflow = 'visible';
+
                     clonedDoc.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
 
                     clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(function(input) {
@@ -727,7 +746,7 @@
                 }
             });
 
-            // 🚨 FIX: RESTAURAR SELECT E INPUTS
+            // RESTAURAR SELECT E INPUTS
             var spanTemp = document.getElementById('medioPago_span_temp');
             spanTemp.parentNode.replaceChild(selectMedio, spanTemp);
             document.getElementById('inputs_abono').style.display = '';
@@ -739,25 +758,30 @@
             document.body.style.padding = origBodyPadding; 
             areaPdf.style.borderRadius = origBorderRadius;
             areaPdf.style.boxShadow = origBoxShadow;
+            areaPdf.style.maxWidth = origMaxWidth;
             areaPdf.style.width = '100%';
             areaPdf.style.margin = '0 auto';
+            areaPdf.style.overflow = '';
 
             var jsPDFLib = window.jspdf;
             var pdf = new jsPDFLib.jsPDF("p", "mm", "letter"); 
             var pdfWidth = pdf.internal.pageSize.getWidth(); 
             var pdfHeight = pdf.internal.pageSize.getHeight();
-            var canvasRatio = canvas.width / canvas.height;
-            var finalWidth = pdfWidth; 
-            var finalHeight = finalWidth / canvasRatio;
+            var imgWidth = pdfWidth;
+            var imgHeight = (canvas.height * pdfWidth) / canvas.width;
             
-            // Si el contenido es más alto que la página, ajustar
-            if (finalHeight > pdfHeight) {
-                finalHeight = pdfHeight;
-                finalWidth = finalHeight * canvasRatio;
+            // Si cabe en una página, centrar verticalmente
+            if (imgHeight <= pdfHeight) {
+                var imgData = canvas.toDataURL("image/jpeg", 0.95); 
+                pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
+            } else {
+                // Si es más alto que la página, escalar para que quepa
+                imgHeight = pdfHeight;
+                imgWidth = (canvas.width * pdfHeight) / canvas.height;
+                var xOffset = (pdfWidth - imgWidth) / 2;
+                var imgData = canvas.toDataURL("image/jpeg", 0.95); 
+                pdf.addImage(imgData, "JPEG", xOffset, 0, imgWidth, imgHeight);
             }
-            
-            var imgData = canvas.toDataURL("image/jpeg", 1.0); 
-            pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
 
             var pdfBase64 = pdf.output('datauristring').split(',')[1];
             var nombreArchivo = 'Recibo_N_' + nRecibo + '_OP_' + numOP + '.pdf';
@@ -858,3 +882,4 @@
 </style>
 </body>
 </html>
+
