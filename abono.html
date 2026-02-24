@@ -25,8 +25,6 @@
             padding: 20px 10px;
         }
         
-        .text-uppercase-input { text-transform: uppercase; }
-        
         .btn-back { 
             position: fixed; 
             top: calc(15px + env(safe-area-inset-top)); 
@@ -44,7 +42,6 @@
             background-color: white; 
             width: 100%; max-width: 800px; 
             margin: 0 auto; 
-            min-height: 1035px; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.05); 
             border-radius: 12px; 
             overflow: hidden; 
@@ -75,7 +72,7 @@
             background-color: #ffffff; 
             color: var(--homeeasy-wine); 
             text-align: center; 
-            padding: 40px 12px 20px 12px; 
+            padding: 40px 12px 15px 12px; 
             font-weight: 300; 
             text-transform: uppercase; 
             letter-spacing: 8px; 
@@ -83,7 +80,7 @@
             font-size: 1.6rem;
         }
         
-        .card-body { padding: 35px 45px; flex-grow: 1; display: flex; flex-direction: column;}
+        .card-body { padding: 30px 45px; flex-grow: 1; display: flex; flex-direction: column;}
 
         .label-modern { font-size: 0.65rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: block; }
         
@@ -122,40 +119,29 @@
         .select-modern:focus { border-bottom-color: var(--homeeasy-gold); }
 
         #paz-salvo-banner { 
-            display: none; width: 100%; text-align: center; padding: 12px; 
+            display: none; width: 100%; text-align: center; padding: 10px; 
             background: rgba(46, 204, 113, 0.1); color: #27ae60; font-weight: 800; 
-            font-size: 1rem; letter-spacing: 6px; border-radius: 8px; 
-            margin-top: 20px; border: 2px solid rgba(46, 204, 113, 0.4);
+            font-size: 0.9rem; letter-spacing: 6px; border-radius: 8px; 
+            margin-top: 15px; border: 2px solid rgba(46, 204, 113, 0.4);
         }
 
-        /* SECCIÓN RESUMEN DE ORDEN */
+        /* SECCIÓN HISTORIAL */
         .seccion-titulo { 
             font-size: 0.7rem; font-weight: 800; color: var(--homeeasy-wine); 
             text-transform: uppercase; letter-spacing: 2px; 
-            margin-bottom: 12px; padding-bottom: 8px;
+            margin-bottom: 10px; padding-bottom: 6px;
             border-bottom: 2px solid var(--homeeasy-gold);
         }
-        .resumen-orden-box {
-            background: #fafafa; border-radius: 10px; padding: 18px;
-            margin-bottom: 25px; border: 1px solid #f0f0f0;
-        }
-        .resumen-orden-box .detalle-texto {
-            font-size: 0.85rem; color: #555; font-weight: 600; line-height: 1.6;
-        }
-        .resumen-orden-box .total-orden {
-            font-size: 1rem; font-weight: 800; color: #333; text-align: right; margin-top: 10px;
-        }
 
-        /* TABLA HISTORIAL DE PAGOS */
-        .tabla-pagos { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .tabla-pagos { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
         .tabla-pagos th { 
             background: var(--homeeasy-wine); color: white; 
-            font-size: 0.65rem; font-weight: 700; text-transform: uppercase; 
-            letter-spacing: 1px; padding: 10px 12px; text-align: left;
+            font-size: 0.6rem; font-weight: 700; text-transform: uppercase; 
+            letter-spacing: 1px; padding: 8px 10px; text-align: left;
         }
         .tabla-pagos th:last-child { text-align: right; }
         .tabla-pagos td { 
-            padding: 10px 12px; font-size: 0.8rem; font-weight: 600; 
+            padding: 7px 10px; font-size: 0.75rem; font-weight: 600; 
             color: #555; border-bottom: 1px solid #f0f0f0;
         }
         .tabla-pagos td:last-child { text-align: right; font-weight: 800; color: #333; }
@@ -163,28 +149,15 @@
         .tabla-pagos .fila-actual { background: rgba(166, 69, 90, 0.06); }
         .tabla-pagos .fila-actual td { color: var(--homeeasy-wine); font-weight: 800; }
 
-        .totales-box { 
-            background: #fafafa; border-radius: 10px; padding: 15px 18px; 
-            border: 1px solid #f0f0f0; margin-bottom: 15px;
-        }
-        .totales-row { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 6px 0; font-size: 0.85rem; font-weight: 600; color: #666;
-        }
-        .totales-row.destacado { 
-            font-size: 1.1rem; font-weight: 900; color: var(--homeeasy-wine); 
-            border-top: 2px solid var(--homeeasy-gold); padding-top: 12px; margin-top: 8px;
-        }
-
         /* CAJA ABONO DESTACADO */
         .abono-destacado-box {
             display: none;
             background: linear-gradient(135deg, rgba(166, 69, 90, 0.06) 0%, rgba(194, 164, 104, 0.08) 100%);
             border: 2px solid var(--homeeasy-wine);
             border-radius: 14px;
-            padding: 25px 20px;
+            padding: 20px 15px;
             text-align: center;
-            margin: 20px 0;
+            margin: 15px 0;
             position: relative;
             overflow: hidden;
         }
@@ -196,77 +169,63 @@
             background: linear-gradient(90deg, var(--homeeasy-wine), var(--homeeasy-gold), var(--homeeasy-wine));
         }
         .abono-destacado-label {
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: var(--homeeasy-gold);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 8px;
+            font-size: 0.6rem; font-weight: 800; color: var(--homeeasy-gold);
+            text-transform: uppercase; letter-spacing: 3px; margin-bottom: 6px;
         }
         .abono-destacado-valor {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--homeeasy-wine);
-            line-height: 1;
-            margin-bottom: 8px;
+            font-size: 2.2rem; font-weight: 900; color: var(--homeeasy-wine);
+            line-height: 1; margin-bottom: 6px;
         }
         .abono-destacado-medio {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #888;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            font-size: 0.75rem; font-weight: 700; color: #888;
+            letter-spacing: 2px; text-transform: uppercase;
         }
         .abono-destacado-recibo {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #aaa;
-            margin-top: 6px;
-            letter-spacing: 1px;
+            font-size: 0.65rem; font-weight: 600; color: #aaa;
+            margin-top: 4px; letter-spacing: 1px;
         }
 
-        .saldo-final-container { text-align: center; padding-top: 20px; }
-        .saldo-final-label { font-size: 0.8rem; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
-        .saldo-final-valor { font-size: 2.2rem; font-weight: 900; color: var(--homeeasy-wine); display: block; margin-top: 5px; }
+        .saldo-final-container { text-align: center; padding-top: 15px; }
+        .saldo-final-label { font-size: 0.75rem; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
+        .saldo-final-valor { font-size: 2rem; font-weight: 900; color: var(--homeeasy-wine); display: block; margin-top: 5px; }
 
         .btn-homeeasy { 
             background-color: var(--homeeasy-wine); color: white; border: none; 
             font-weight: 800; padding: 18px; width: 100%; text-transform: uppercase; 
-            border-radius: 12px; margin-top: 25px; font-size: 1rem; letter-spacing: 1px;
+            border-radius: 12px; margin-top: 20px; font-size: 1rem; letter-spacing: 1px;
             box-shadow: 0 8px 20px rgba(166, 69, 90, 0.3); transition: transform 0.2s;
         }
         .btn-homeeasy:active { transform: scale(0.98); }
 
         .pdf-footer { 
-            background-color: #fafafa; padding: 20px; text-align: center; 
+            background-color: #fafafa; padding: 15px; text-align: center; 
             border-top: 1px solid #eee; margin-top: auto; 
         }
         .footer-creds { font-size: 0.65rem; color: #777; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
 
         @media (max-width: 768px) {
             body { padding: 0; background-color: white; }
-            #area-pdf { box-shadow: none; border-radius: 0; min-height: 100vh; margin: 0; }
+            #area-pdf { box-shadow: none; border-radius: 0; margin: 0; }
             .header-brand { padding: calc(25px + env(safe-area-inset-top)) 20px 35px 20px; }
             .logo-only { max-width: 100px; }
             .empresa-info-header { font-size: 0.65rem; }
             .empresa-info-header b { font-size: 0.75rem; }
             .order-meta { width: 85%; padding: 8px 15px; bottom: -20px; font-size: 0.65rem; justify-content: center; }
-            .document-type { padding: 45px 15px 15px 15px; font-size: 1.3rem; letter-spacing: 4px; }
+            .document-type { padding: 45px 15px 10px 15px; font-size: 1.3rem; letter-spacing: 4px; }
             .card-body { padding: 25px 20px; }
-            .tabla-pagos th, .tabla-pagos td { padding: 8px 8px; font-size: 0.7rem; }
+            .tabla-pagos th, .tabla-pagos td { padding: 6px 6px; font-size: 0.65rem; }
         }
 
-        .pdf-export-mode .header-brand { padding: 15px 30px 25px 30px !important; flex-direction: row !important; text-align: right !important; }
+        .pdf-export-mode .header-brand { padding: 15px 30px 25px 30px !important; }
         .pdf-export-mode .empresa-info-header { font-size: 0.75rem !important; }
         .pdf-export-mode .logo-only { max-width: 130px !important; }
         .pdf-export-mode .order-meta { width: auto !important; padding: 10px 25px !important; bottom: -18px !important; font-size: 0.7rem !important; }
-        .pdf-export-mode .document-type { padding: 35px 12px 10px 12px !important; font-size: 1.4rem !important; letter-spacing: 8px !important; }
-        .pdf-export-mode .card-body { padding: 25px 45px !important; }
+        .pdf-export-mode .document-type { padding: 30px 12px 10px 12px !important; font-size: 1.4rem !important; letter-spacing: 8px !important; }
+        .pdf-export-mode .card-body { padding: 20px 45px !important; }
         .pdf-export-mode .pdf-footer { padding: 10px !important; }
 
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; }
         .glass-loader { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; }
-                .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; }
         .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; text-align: left; }
         .step-active { opacity: 1; color: var(--homeeasy-wine); font-weight: 800; }
         .step-check { opacity: 1; color: #2ecc71; font-weight: 700; }
@@ -353,7 +312,7 @@
             </div>
         </div>
 
-               <!-- HISTORIAL DE PAGOS -->
+        <!-- HISTORIAL DE PAGOS (se llena desde el servidor) -->
         <div id="seccion_historial" style="display:none;">
             <div class="seccion-titulo"><i class="fas fa-receipt me-2"></i>Historial de Pagos</div>
             <table class="tabla-pagos">
@@ -368,9 +327,9 @@
                 </tbody>
             </table>
         </div>
-        
-                <!-- ABONO ACTUAL - INPUTS -->
-        <div class="row g-4 mb-3">
+
+        <!-- ABONO ACTUAL - INPUTS -->
+        <div id="inputs_abono" class="row g-4 mb-3">
             <div class="col-7">
                 <label class="label-modern">Valor de este Abono</label>
                 <input type="text" id="valorAbono" class="input-pago-verde" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcularSaldo()">
@@ -386,7 +345,7 @@
             </div>
         </div>
 
-        <!-- CAJA ABONO DESTACADO (se llena al procesar) -->
+        <!-- CAJA ABONO DESTACADO (se muestra solo en el PDF) -->
         <div id="abono_destacado" class="abono-destacado-box">
             <div class="abono-destacado-label">Abono Registrado</div>
             <div class="abono-destacado-valor" id="abono_dest_valor">$ 0</div>
@@ -394,12 +353,11 @@
             <div class="abono-destacado-recibo" id="abono_dest_recibo">—</div>
         </div>
 
-
-        <!-- SALDO FINAL GRANDE -->
+        <!-- SALDO -->
         <div class="saldo-final-container">
             <span class="saldo-final-label">Nuevo Saldo Pendiente</span>
             <span id="nuevo_saldo_val" class="saldo-final-valor">$ 0</span>
-            <div style="font-size: 0.75rem; color: #999; margin-top: 10px; font-weight: 600;">
+            <div style="font-size: 0.75rem; color: #999; margin-top: 8px; font-weight: 600;">
                 Saldo anterior al abono: <span id="saldo_anterior_val" style="color:#666;">$ 0</span>
             </div>
         </div>
@@ -414,23 +372,26 @@
         <div class="footer-creds">HomeEasy - Viste tu hogar con estilo</div>
         <div style="font-size: 0.6rem; color: #aaa; margin-top: 5px;">Documento generado automáticamente • Sistema Hommy V2.0</div>
     </div>
-</div><script>
-    const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-    let saldoBase = 0;
-    let ordenActual = null;
+</div>
 
-    window.onload = () => {
-        const fechaHoy = new Date().toLocaleDateString('es-CO');
+<script>
+    var URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+    var saldoBase = 0;
+    var ordenActual = null;
+    var historialAbonos = [];
+
+    window.onload = function() {
+        var fechaHoy = new Date().toLocaleDateString('es-CO');
         document.getElementById('fecha_header_display').innerText = fechaHoy;
         document.getElementById('fecha_cuerpo_display').value = fechaHoy;
         
-        fetch(URL_G + '?nextRecibo=1').then(r => r.json()).then(d => { 
+        fetch(URL_G + '?nextRecibo=1').then(function(r){ return r.json(); }).then(function(d) { 
             if(d.status === "ok") document.getElementById("n_recibo_display").innerText = d.nextRecibo; 
         });
 
         fetch(URL_G + '?init=LOAD')
-            .then(r => r.json())
-            .then(data => {
+            .then(function(r){ return r.json(); })
+            .then(function(data) {
                 if (data.status === "ok" && data.ordenes) {
                     var ordenesArr = [];
                     for (var i = 1; i < data.ordenes.length; i++) {
@@ -439,11 +400,7 @@
                             numero: o[1], 
                             cedula: o[2], 
                             nombre: o[3], 
-                            descripcion: o[4] || '',
                             total: o[6], 
-                            abonoInicial: o[7] || 0,
-                            abono2: o[8] || 0,
-                            abono3: o[9] || 0,
                             saldo: o[10] 
                         });
                     }
@@ -471,13 +428,10 @@
             document.getElementById('cedula').value = "";
             saldoBase = 0;
             ordenActual = null;
+            historialAbonos = [];
             document.getElementById('saldo_anterior_val').innerText = "$ 0";
-            document.getElementById('seccion_resumen').style.display = 'none';
+            document.getElementById('nuevo_saldo_val').innerText = "$ 0";
             document.getElementById('seccion_historial').style.display = 'none';
-            document.getElementById('seccion_totales').style.display = 'none';
-            calcularSaldo();
-            document.getElementById('valorAbono').disabled = false;
-            document.getElementById('medioPago').disabled = false;
             
             Swal.fire({
                 icon: 'warning',
@@ -489,68 +443,84 @@
             return;
         }
 
-        ordenActual = orden;
         document.getElementById('nombre').value = (orden.nombre || "").toUpperCase();
         document.getElementById('cedula').value = orden.cedula || "";
+        ordenActual = orden;
 
         saldoBase = parseFloat(orden.saldo) || 0;
         document.getElementById('saldo_anterior_val').innerText = fmtCOP(saldoBase);
-
-                // LLENAR HISTORIAL DE PAGOS
-        var tbody = document.getElementById('tbody_pagos');
-        tbody.innerHTML = '';
-        var totalPagado = 0;
-        var fechaHoy = new Date().toLocaleDateString('es-CO');
-
-        var abonoInicial = parseFloat(orden.abonoInicial) || 0;
-        if (abonoInicial > 0) {
-            totalPagado += abonoInicial;
-            var tr1 = document.createElement('tr');
-            tr1.innerHTML = '<td>' + (orden.fechaOrden || fechaHoy) + '</td><td>OP-' + orden.numero + '</td><td>' + fmtCOP(abonoInicial) + '</td>';
-            tbody.appendChild(tr1);
-        }
-
-        var abono2 = parseFloat(orden.abono2) || 0;
-        if (abono2 > 0) {
-            totalPagado += abono2;
-            var tr2 = document.createElement('tr');
-            tr2.innerHTML = '<td>—</td><td>Recibo</td><td>' + fmtCOP(abono2) + '</td>';
-            tbody.appendChild(tr2);
-        }
-
-        var abono3 = parseFloat(orden.abono3) || 0;
-        if (abono3 > 0) {
-            totalPagado += abono3;
-            var tr3 = document.createElement('tr');
-            tr3.innerHTML = '<td>—</td><td>Recibo</td><td>' + fmtCOP(abono3) + '</td>';
-            tbody.appendChild(tr3);
-        }
-
-        document.getElementById('seccion_historial').style.display = 'block';
-
-        // LLENAR TOTALES
-        document.getElementById('totales_total').innerText = fmtCOP(orden.total);
-        document.getElementById('totales_pagado').innerText = fmtCOP(totalPagado);
-        document.getElementById('totales_saldo').innerText = fmtCOP(saldoBase);
-
-        calcularSaldo();
+        document.getElementById('nuevo_saldo_val').innerText = fmtCOP(saldoBase);
 
         if (saldoBase <= 0) {
             document.getElementById('valorAbono').disabled = true;
             document.getElementById('medioPago').disabled = true;
             Swal.fire({
-                icon: 'info',
-                iconColor: '#c2a468',
-                title: 'Orden Completada',
+                icon: 'info', iconColor: '#c2a468', title: 'Orden Completada',
                 html: '<b style="color:#a6455a;">Esta orden ya está en estado COMPLETADO</b><br>No tiene saldo pendiente.',
-                confirmButtonColor: '#a6455a',
-                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#a6455a', confirmButtonText: 'Entendido',
                 customClass: { popup: 'swal2-premium' }
             });
         } else {
             document.getElementById('valorAbono').disabled = false;
             document.getElementById('medioPago').disabled = false;
         }
+
+        // CARGAR HISTORIAL REAL DESDE EL SERVIDOR
+        Swal.fire({
+            title: 'Cargando historial...',
+            text: 'Hommy está consultando los pagos anteriores',
+            allowOutsideClick: false,
+            didOpen: function() { Swal.showLoading(); },
+            customClass: { popup: 'swal2-premium' }
+        });
+
+        fetch(URL_G + '?tipo=HISTORIAL_ABONOS&numeroOP=' + numero)
+            .then(function(r){ return r.json(); })
+            .then(function(data) {
+                Swal.close();
+                if (data.status === "ok") {
+                    historialAbonos = data.abonos || [];
+                    var tbody = document.getElementById('tbody_pagos');
+                    tbody.innerHTML = '';
+
+                    // Abono inicial (fecha de la orden, # = OP-xxx)
+                    var abonoInicial = data.abonoInicial || 0;
+                    if (abonoInicial > 0) {
+                        var tr1 = document.createElement('tr');
+                        tr1.innerHTML = '<td>' + (data.fechaOrden || '—') + '</td><td>OP-' + numero + '</td><td>' + fmtCOP(abonoInicial) + '</td>';
+                        tbody.appendChild(tr1);
+                    }
+
+                    // Abonos registrados (con fecha y recibo reales)
+                    for (var i = 0; i < historialAbonos.length; i++) {
+                        var ab = historialAbonos[i];
+                        var tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + (ab.fecha || '—') + '</td><td>REC-' + ab.recibo + '</td><td>' + fmtCOP(ab.valor) + '</td>';
+                        tbody.appendChild(tr);
+                    }
+
+                    document.getElementById('seccion_historial').style.display = 'block';
+
+                    // Actualizar saldo real
+                    if (data.totalOrden) {
+                        var totalPagado = abonoInicial;
+                        for (var j = 0; j < historialAbonos.length; j++) {
+                            totalPagado += historialAbonos[j].valor;
+                        }
+                        saldoBase = data.totalOrden - totalPagado;
+                        document.getElementById('saldo_anterior_val').innerText = fmtCOP(saldoBase);
+                        document.getElementById('nuevo_saldo_val').innerText = fmtCOP(saldoBase);
+                        ordenActual.total = data.totalOrden;
+                        ordenActual.totalPagadoPrevio = totalPagado;
+                    }
+                }
+            }).catch(function(err) {
+                Swal.close();
+                console.error("Error cargando historial:", err);
+                // Si falla, seguimos con los datos del caché
+            });
+
+        calcularSaldo();
     }
 
     function formatear(i) {
@@ -564,8 +534,6 @@
         document.getElementById('nuevo_saldo_val').innerText = fmtCOP(nuevoSaldo);
         var banner = document.getElementById('paz-salvo-banner');
         banner.style.display = (nuevoSaldo <= 0 && saldoBase > 0) ? 'block' : 'none';
-
-               // No necesita actualizar totales externos, van en la tabla
     }
 
     var loadingTexts = [
@@ -671,39 +639,35 @@
             if (!continuar.isConfirmed) return;
         }
 
-         // ✅ AGREGAR FILA DEL ABONO ACTUAL + TOTALES A LA TABLA ANTES DE CAPTURAR PDF
+        // ✅ PREPARAR PDF: Agregar fila actual + totales a la tabla
         var tbody = document.getElementById('tbody_pagos');
         var fechaHoy = new Date().toLocaleDateString('es-CO');
+        
         var trActual = document.createElement('tr');
         trActual.className = 'fila-actual';
         trActual.innerHTML = '<td>' + fechaHoy + '</td><td>► REC-' + nRecibo + '</td><td>' + fmtCOP(valAbono) + '</td>';
         tbody.appendChild(trActual);
 
-        // Fila total pagado
-        var abonoIni = parseFloat(ordenActual.abonoInicial) || 0;
-        var ab2 = parseFloat(ordenActual.abono2) || 0;
-        var ab3 = parseFloat(ordenActual.abono3) || 0;
-        var totalPagadoFinal = abonoIni + ab2 + ab3 + valAbono;
+        var totalPagadoPrevio = ordenActual.totalPagadoPrevio || 0;
+        var totalPagadoFinal = totalPagadoPrevio + valAbono;
         var nuevoSaldoFinal = saldoBase - valAbono;
 
         var trTotalPagado = document.createElement('tr');
-        trTotalPagado.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:#27ae60; border-top:2px solid #e0e0e0; padding-top:12px;">TOTAL PAGADO</td><td style="font-weight:900; color:#27ae60; border-top:2px solid #e0e0e0; padding-top:12px;">' + fmtCOP(totalPagadoFinal) + '</td>';
+        trTotalPagado.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:#27ae60; border-top:2px solid #e0e0e0; padding-top:10px;">TOTAL PAGADO</td><td style="font-weight:900; color:#27ae60; border-top:2px solid #e0e0e0; padding-top:10px;">' + fmtCOP(totalPagadoFinal) + '</td>';
         tbody.appendChild(trTotalPagado);
 
         var trSaldo = document.createElement('tr');
         trSaldo.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:var(--homeeasy-wine);">SALDO PENDIENTE</td><td style="font-weight:900; color:var(--homeeasy-wine);">' + fmtCOP(nuevoSaldoFinal) + '</td>';
         tbody.appendChild(trSaldo);
 
-        // ✅ ACTIVAR CAJA DESTACADA DEL ABONO
+        // ✅ ACTIVAR CAJA DESTACADA Y OCULTAR INPUTS
         document.getElementById('abono_dest_valor').innerText = fmtCOP(valAbono);
         document.getElementById('abono_dest_medio').innerText = mPago;
         document.getElementById('abono_dest_recibo').innerText = 'Recibo N° ' + nRecibo + '  •  OP-' + numOP;
         document.getElementById('abono_destacado').style.display = 'block';
+        document.getElementById('inputs_abono').style.display = 'none';
 
-        // Ocultar inputs del abono para el PDF (ya se muestra en la caja)
-        document.querySelector('.col-7').style.display = 'none';
-        document.querySelector('.col-5').style.display = 'none';
-        // ✅ PASÓ LA VALIDACIÓN — Continúa el proceso normal
+        // ✅ CONTINÚA EL PROCESO NORMAL
         var loading = document.getElementById('loading');
         loading.style.display = 'flex';
         
@@ -727,9 +691,9 @@
 
             await new Promise(function(r){ setTimeout(r, 50); });
 
-            // 🚨 FIX: CONVERTIR SELECT A TEXTO ANTES DE CLONAR
+            // 🚨 FIX: CONVERTIR SELECT A TEXTO ANTES DE CLONAR (ya está oculto pero por seguridad)
             var selectMedio = document.getElementById('medioPago');
-            var textoMedio = selectMedio.options[selectMedio.selectedIndex].text;
+            var textoMedio = selectMedio.options[selectMedio.selectedIndex] ? selectMedio.options[selectMedio.selectedIndex].text : '';
             var spanReemplazo = document.createElement('span');
             spanReemplazo.innerText = textoMedio;
             spanReemplazo.className = selectMedio.className;
@@ -763,13 +727,10 @@
                 }
             });
 
-                       // 🚨 FIX: RESTAURAR EL SELECT DESPUÉS DE CAPTURAR
+            // 🚨 FIX: RESTAURAR SELECT E INPUTS
             var spanTemp = document.getElementById('medioPago_span_temp');
             spanTemp.parentNode.replaceChild(selectMedio, spanTemp);
-
-            // Restaurar inputs del abono
-            document.querySelector('.col-7').style.display = '';
-            document.querySelector('.col-5').style.display = '';
+            document.getElementById('inputs_abono').style.display = '';
 
             setStep(1, 'check');
             setStep(2, 'active');
@@ -784,11 +745,18 @@
             var jsPDFLib = window.jspdf;
             var pdf = new jsPDFLib.jsPDF("p", "mm", "letter"); 
             var pdfWidth = pdf.internal.pageSize.getWidth(); 
+            var pdfHeight = pdf.internal.pageSize.getHeight();
             var canvasRatio = canvas.width / canvas.height;
             var finalWidth = pdfWidth; 
-            var finalHeight = finalWidth / canvasRatio; 
+            var finalHeight = finalWidth / canvasRatio;
+            
+            // Si el contenido es más alto que la página, ajustar
+            if (finalHeight > pdfHeight) {
+                finalHeight = pdfHeight;
+                finalWidth = finalHeight * canvasRatio;
+            }
+            
             var imgData = canvas.toDataURL("image/jpeg", 1.0); 
-
             pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
 
             var pdfBase64 = pdf.output('datauristring').split(',')[1];
@@ -829,6 +797,7 @@
         } catch (err) { 
             alert("Error de conexión: " + err.message); 
             document.getElementById('loading').style.display = 'none';
+            document.getElementById('inputs_abono').style.display = '';
         } 
     }
 
@@ -889,5 +858,3 @@
 </style>
 </body>
 </html>
-
-
