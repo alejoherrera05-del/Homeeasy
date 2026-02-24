@@ -566,15 +566,18 @@
                         input.parentNode.replaceChild(span, input);
                     });
 
-                    // Limpieza especial para el Select
+                                        // Limpieza especial para el Select
                     clonedDoc.querySelectorAll('select').forEach(sel => {
-                        const span = clonedDoc.createElement('span');
-                        span.innerText = sel.options[sel.selectedIndex].text;
-                        span.className = sel.className;
-                        span.style.display = 'inline-block';
-                        span.style.border = 'none';
-                        span.style.background = 'transparent';
-                        sel.parentNode.replaceChild(span, sel);
+                        try {
+                            const span = clonedDoc.createElement('span');
+                            const idx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
+                            span.innerText = sel.options[idx] ? sel.options[idx].text : '';
+                            span.className = sel.className;
+                            span.style.display = 'inline-block';
+                            span.style.border = 'none';
+                            span.style.background = 'transparent';
+                            sel.parentNode.replaceChild(span, sel);
+                        } catch(e) {}
                     });
                 }
             });
@@ -700,4 +703,5 @@
 </style>
 </body>
 </html>
+
 
