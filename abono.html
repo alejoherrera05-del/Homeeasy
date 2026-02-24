@@ -543,6 +543,18 @@
 
             await new Promise(r => setTimeout(r, 50));
 
+                      // 🚨 CONVERTIR SELECT A TEXTO ANTES DE CLONAR
+            const selectMedio = document.getElementById('medioPago');
+            const textoMedio = selectMedio.options[selectMedio.selectedIndex].text;
+            const spanReemplazo = document.createElement('span');
+            spanReemplazo.innerText = textoMedio;
+            spanReemplazo.className = selectMedio.className;
+            spanReemplazo.style.display = 'inline-block';
+            spanReemplazo.style.border = 'none';
+            spanReemplazo.style.background = 'transparent';
+            spanReemplazo.id = 'medioPago_span_temp';
+            selectMedio.parentNode.replaceChild(spanReemplazo, selectMedio);
+
             const canvas = await html2canvas(areaPdf, { 
                 scale: 3, 
                 useCORS: true, 
@@ -565,20 +577,12 @@
                         if(input.classList.contains('text-center') || input.id === 'numeroOP') span.style.textAlign = 'center';
                         input.parentNode.replaceChild(span, input);
                     });
+                }
+            });
 
-                                        // Limpieza especial para el Select
-                    clonedDoc.querySelectorAll('select').forEach(sel => {
-                        try {
-                            const span = clonedDoc.createElement('span');
-                            const idx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
-                            span.innerText = sel.options[idx] ? sel.options[idx].text : '';
-                            span.className = sel.className;
-                            span.style.display = 'inline-block';
-                            span.style.border = 'none';
-                            span.style.background = 'transparent';
-                            sel.parentNode.replaceChild(span, sel);
-                        } catch(e) {}
-                    });
+            // 🚨 RESTAURAR EL SELECT DESPUÉS DE CAPTURAR
+            const spanTemp = document.getElementById('medioPago_span_temp');
+            spanTemp.parentNode.replaceChild(selectMedio, spanTemp);
                 }
             });
 
@@ -703,5 +707,6 @@
 </style>
 </body>
 </html>
+
 
 
