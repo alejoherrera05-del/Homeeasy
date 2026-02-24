@@ -452,6 +452,74 @@
             return;
         }
 
+                // 🚨 VALIDACIÓN EN TIEMPO REAL DEL SALDO ANTES DE PROCESAR
+        Swal.fire({
+            title: 'Verificando saldo...',
+            text: 'Hommy está confirmando el saldo en tiempo real',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+            customClass: { popup: 'swal2-premium' }
+        });
+
+        try {
+            const verificacion = await fetch(`${URL_G}?tipo=VERIFICAR_SALDO&numeroOP=${numOP}`);
+            const check = await verificacion.json();
+            Swal.close();
+
+            if (check.status === "not_found") {
+                Swal.fire({ icon: 'error', title: 'Orden no encontrada', text: 'La orden no existe en el servidor.', confirmButtonColor: '#a6455a' });
+                return;
+            }
+
+            const saldoReal = check.saldoReal || 0;
+
+            // Si el saldo cambió desde que se cargó el caché
+            if (saldoReal !== saldoBase) {
+                saldoBase = saldoReal;
+                document.getElementById('saldo_anterior_val').innerText = `$ ${saldoBase.toLocaleString('es-CO')}`;
+                calcularSaldo();
+            }
+
+            // Si el abono supera el saldo real
+            if (valAbono > saldoReal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Saldo actualizado',
+                    html: `El saldo real actual es <b>$${saldoReal.toLocaleString('es-CO')}</b>.<br>Alguien pudo haber registrado un pago mientras trabajabas.`,
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
+                return;
+            }
+
+            if (saldoReal <= 0) {
+                Swal.fire({
+                    icon: 'info',
+                    iconColor: '#c2a468',
+                    title: 'Orden ya completada',
+                    html: '<b style="color:#a6455a;">Esta orden ya no tiene saldo pendiente.</b>',
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
+                return;
+            }
+        } catch (errorVerificacion) {
+            Swal.close();
+            // Si falla la verificación (sin internet), preguntamos si quiere continuar
+            const continuar = await Swal.fire({
+                icon: 'warning',
+                title: 'Sin conexión para verificar',
+                text: 'No se pudo verificar el saldo en tiempo real. ¿Deseas continuar con el dato en caché?',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'No, esperar',
+                confirmButtonColor: '#a6455a',
+                customClass: { popup: 'swal2-premium' }
+            });
+            if (!continuar.isConfirmed) return;
+        }
+
+        // ✅ PASÓ LA VALIDACIÓN — Continúa el proceso normal
         const loading = document.getElementById('loading');
         loading.style.display = 'flex';
         
@@ -632,3 +700,4 @@
 </style>
 </body>
 </html>
+
