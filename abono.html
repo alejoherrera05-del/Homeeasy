@@ -730,12 +730,20 @@
             setStep(1, 'check');
             setStep(2, 'active');
 
-            var jsPDFLib = window.jspdf;
+                       var jsPDFLib = window.jspdf;
             var pdf = new jsPDFLib.jsPDF("p", "mm", "letter"); 
             var pdfWidth = pdf.internal.pageSize.getWidth(); 
+            var pdfHeight = pdf.internal.pageSize.getHeight();
             var canvasRatio = canvas.width / canvas.height;
             var finalWidth = pdfWidth; 
             var finalHeight = finalWidth / canvasRatio; 
+            
+            // Si se pasa de la página, escalar para que quepa completo
+            if (finalHeight > pdfHeight) {
+                finalHeight = pdfHeight;
+                finalWidth = finalHeight * canvasRatio;
+            }
+            
             var imgData = canvas.toDataURL("image/jpeg", 1.0); 
             pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
             var pdfBase64 = pdf.output('datauristring').split(',')[1];
@@ -837,5 +845,6 @@
 </style>
 </body>
 </html>
+
 
 
