@@ -226,6 +226,7 @@
 
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; }
         .glass-loader { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; }
+                .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; }
         .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; text-align: left; }
         .step-active { opacity: 1; color: var(--homeeasy-wine); font-weight: 800; }
         .step-check { opacity: 1; color: #2ecc71; font-weight: 700; }
@@ -659,8 +660,7 @@
         var trSaldo = document.createElement('tr');
         trSaldo.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:var(--homeeasy-wine);">SALDO PENDIENTE</td><td style="font-weight:900; color:var(--homeeasy-wine);">' + fmtCOP(nuevoSaldoFinal) + '</td>';
         tbody.appendChild(trSaldo);
-
-                    // ✅ MOSTRAR LOADING PRIMERO
+        // ✅ MOSTRAR LOADING PRIMERO
         var loading = document.getElementById('loading');
         loading.style.display = 'flex';
         
@@ -676,25 +676,9 @@
         document.getElementById('abono_destacado').style.display = 'block';
         document.getElementById('inputs_abono').style.display = 'none';
 
+        await new Promise(function(r){ setTimeout(r, 50); });
+
         try {
-            var origBodyPadding = document.body.style.padding;
-            document.body.style.padding = '0';
-
-            var areaPdf = document.getElementById('area-pdf');
-            areaPdf.classList.add('pdf-export-mode');
-
-            var origBorderRadius = areaPdf.style.borderRadius;
-            var origBoxShadow = areaPdf.style.boxShadow;
-            var origMaxWidth = areaPdf.style.maxWidth;
-            areaPdf.style.borderRadius = '0px';
-            areaPdf.style.boxShadow = 'none';
-            areaPdf.style.width = '800px';
-            areaPdf.style.maxWidth = '800px';
-            areaPdf.style.margin = '0';
-            areaPdf.style.overflow = 'visible';
-
-            await new Promise(function(r){ setTimeout(r, 100); });
-
             // FIX: CONVERTIR SELECT A TEXTO
             var selectMedio = document.getElementById('medioPago');
             var textoMedio = selectMedio.options[selectMedio.selectedIndex] ? selectMedio.options[selectMedio.selectedIndex].text : '';
@@ -707,28 +691,20 @@
             spanReemplazo.id = 'medioPago_span_temp';
             selectMedio.parentNode.replaceChild(spanReemplazo, selectMedio);
 
-            // Medir el alto real del contenido
-            var realHeight = areaPdf.scrollHeight;
-            var realWidth = 800;
+            var areaPdf = document.getElementById('area-pdf');
 
             var canvas = await html2canvas(areaPdf, { 
-                scale: 2, 
+                scale: 3, 
                 useCORS: true, 
-                width: realWidth,
-                height: realHeight,
-                windowWidth: realWidth,
-                scrollX: 0,
-                scrollY: 0,
-                x: 0, 
-                y: 0,
+                width: 800,
+                windowWidth: 800,
                 onclone: function(clonedDoc) {
                     var clonedArea = clonedDoc.getElementById('area-pdf');
-                    clonedArea.style.width = realWidth + 'px';
-                    clonedArea.style.maxWidth = realWidth + 'px';
+                    clonedArea.style.width = '800px';
+                    clonedArea.style.maxWidth = '800px';
                     clonedArea.style.margin = '0';
                     clonedArea.style.borderRadius = '0';
                     clonedArea.style.boxShadow = 'none';
-                    clonedArea.style.overflow = 'visible';
 
                     clonedDoc.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
 
@@ -754,35 +730,14 @@
             setStep(1, 'check');
             setStep(2, 'active');
 
-            areaPdf.classList.remove('pdf-export-mode');
-            document.body.style.padding = origBodyPadding; 
-            areaPdf.style.borderRadius = origBorderRadius;
-            areaPdf.style.boxShadow = origBoxShadow;
-            areaPdf.style.maxWidth = origMaxWidth;
-            areaPdf.style.width = '100%';
-            areaPdf.style.margin = '0 auto';
-            areaPdf.style.overflow = '';
-
             var jsPDFLib = window.jspdf;
             var pdf = new jsPDFLib.jsPDF("p", "mm", "letter"); 
             var pdfWidth = pdf.internal.pageSize.getWidth(); 
-            var pdfHeight = pdf.internal.pageSize.getHeight();
-            var imgWidth = pdfWidth;
-            var imgHeight = (canvas.height * pdfWidth) / canvas.width;
-            
-            // Si cabe en una página, centrar verticalmente
-            if (imgHeight <= pdfHeight) {
-                var imgData = canvas.toDataURL("image/jpeg", 0.95); 
-                pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
-            } else {
-                // Si es más alto que la página, escalar para que quepa
-                imgHeight = pdfHeight;
-                imgWidth = (canvas.width * pdfHeight) / canvas.height;
-                var xOffset = (pdfWidth - imgWidth) / 2;
-                var imgData = canvas.toDataURL("image/jpeg", 0.95); 
-                pdf.addImage(imgData, "JPEG", xOffset, 0, imgWidth, imgHeight);
-            }
-
+            var canvasRatio = canvas.width / canvas.height;
+            var finalWidth = pdfWidth; 
+            var finalHeight = finalWidth / canvasRatio; 
+            var imgData = canvas.toDataURL("image/jpeg", 1.0); 
+            pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
             var pdfBase64 = pdf.output('datauristring').split(',')[1];
             var nombreArchivo = 'Recibo_N_' + nRecibo + '_OP_' + numOP + '.pdf';
 
@@ -882,4 +837,5 @@
 </style>
 </body>
 </html>
+
 
