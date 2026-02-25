@@ -743,6 +743,15 @@
                 }
             });
 
+                        // RECORTAR CANVAS AL ANCHO EXACTO (elimina franja blanca)
+            var cropWidth = 800 * 3; // 800px * scale 3
+            var cropCanvas = document.createElement('canvas');
+            cropCanvas.width = cropWidth;
+            cropCanvas.height = canvas.height;
+            var cropCtx = cropCanvas.getContext('2d');
+            cropCtx.drawImage(canvas, 0, 0, cropWidth, canvas.height, 0, 0, cropWidth, canvas.height);
+            canvas = cropCanvas;
+
             // RESTAURAR TODO
             document.body.style.padding = origBodyPadding;
             areaPdf.style.width = origWidth || '100%';
@@ -872,6 +881,7 @@
 </style>
 </body>
 </html>
+
 
 
 
