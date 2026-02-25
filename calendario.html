@@ -1371,9 +1371,6 @@
             }
         } catch (e) {
             console.log("Error cargando referencias de red:", e);
-            // Ya no ponemos "Sin conexión" a la fuerza si hay datos en caché.
-        }
-    }
             // Si falla la red y no hay nada cargado, mostrar opción por defecto
             if (selectElement.options.length <= 1) {
                 selectElement.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option><option value="N/A">Sin conexión - Sin registros</option>';
@@ -1426,4 +1423,5 @@
 </script>
 </body>
 </html>
+
 
