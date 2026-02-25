@@ -741,8 +741,8 @@
                         <p class="titulo-tarea ${claseCategoria}" style="font-size: 0.95rem; margin-bottom: 2px;">${ev.titulo}</p>
                         ${ev.cliente && ev.cliente !== 'Sin asignar' ? `<p style="font-size:0.75rem; color:var(--text-dark);"><strong>C:</strong> ${ev.cliente}</p>` : ''}
                         ${getReferenciaHtml(ev.referencia)}
-                    </div
-                                        <i class="fas fa-chevron-right" style="color: #ddd;"></i>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: #ddd;"></i>
                 </div>
             `;
             contenedor.innerHTML += tarjeta;
@@ -1006,6 +1006,415 @@
         }, 300);
     }
 
+       async function deshacerBorrado() {
+        if (!ultimoEventoBorrado) return;
+        const btnUndo = document.getElementById("undoContainer");
+        btnUndo.style.display = "none"; clearTimeout(undoTimeout);
+
+        eventosGlobales.push(ultimoEventoBorrado);
+        localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+
+        try { await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "restaurar_evento", ...ultimoEventoBorrado }) }); } catch(e) {}
+        ultimoEventoBorrado = null; procesarEventosLocales(); 
+    }
     async function deshacerBorrado() {
         if (!ultimoEventoBorrado) return;
-        const btnUndo
+        const btnUndo = document.getElementById("undoContainer");
+        btnUndo.style.display = "none"; clearTimeout(undoTimeout);
+
+        eventosGlobales.push(ultimoEventoBorrado);
+        localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+
+        try { await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "restaurar_evento", ...ultimoEventoBorrado }) }); } catch(e) {}
+        ultimoEventoBorrado = null; procesarEventosLocales(); 
+    }
+
+    // ==========================================
+    // LÓGICA DE EVENTOS RECURRENTES
+    // ==========================================
+    let eventoABorrarId = null;
+    let elementoABorrar = null;
+    let elementoContentABorrar = null;
+    let grupoABorrar = null;
+
+    function verificarBorrado(wrapper, content, eventId) {
+        const ev = eventosGlobales.find(e => String(e.id) === String(eventId));
+        
+        if (ev && ev.referencia && ev.referencia.includes("REC-")) {
+            let match = ev.referencia.match(/REC-\d+/);
+            if (match) {
+                grupoABorrar = match[0];
+                eventoABorrarId = eventId;
+                elementoABorrar = wrapper;
+                elementoContentABorrar = content;
+                document.getElementById('deleteRecurringModal').style.display = 'flex';
+                return;
+            }
+        }
+        eliminarEventoVisual(wrapper, eventId);
+    }
+
+    function cancelarBorradoRecurrente() {
+        document.getElementById('deleteRecurringModal').style.display = 'none';
+        if (elementoContentABorrar) {
+            elementoContentABorrar.style.transform = "translateX(0)";
+        }
+        eventoABorrarId = null; elementoABorrar = null; elementoContentABorrar = null; grupoABorrar = null;
+    }
+
+    function confirmarBorradoRecurrente(tipo) {
+        document.getElementById('deleteRecurringModal').style.display = 'none';
+
+        if (tipo === 'solo_este') {
+            eliminarEventoVisual(elementoABorrar, eventoABorrarId);
+        } else if (tipo === 'todos') {
+            const eventosDelGrupo = eventosGlobales.filter(e => e.referencia && e.referencia.includes(grupoABorrar));
+            
+            eventosGlobales = eventosGlobales.filter(e => !(e.referencia && e.referencia.includes(grupoABorrar)));
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+
+            eventosDelGrupo.forEach(ev => {
+                const elVisual = document.getElementById(`evento-${ev.id}`) || document.getElementById(`evento-vencido-${ev.id}`);
+                if (elVisual) elVisual.remove();
+                fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: ev.id }) });
+            });
+
+            actualizarContadorVencidas();
+            procesarEventosLocales();
+            
+            ultimoEventoBorrado = null;
+            document.getElementById("undoContainer").style.display = "none";
+        }
+        
+        eventoABorrarId = null; elementoABorrar = null; elementoContentABorrar = null; grupoABorrar = null;
+    }
+
+    // ==========================================
+    // NUEVO / EDICIÓN DE EVENTOS 
+    // ==========================================
+    function abrirNuevoEvento() {
+        isEditing = false; editingEventId = null; limpiarFormulario();
+        document.getElementById('modalTitle').innerText = "Nuevo Evento";
+        document.getElementById('eventDate').value = fechaActiva || getFechaLocal();
+        document.getElementById('btnGuardarEvent').innerText = "Guardar Agenda";
+        modal.style.display = 'flex';
+    }
+
+    function abrirEdicion(id) {
+        let ev = eventosGlobales.find(e => String(e.id) === String(id));
+        if(!ev) return;
+        
+        isEditing = true; editingEventId = id;
+        document.getElementById('modalTitle').innerText = "Editar Evento";
+        document.getElementById('btnGuardarEvent').innerText = "Guardar Cambios";
+        limpiarFormulario();
+
+        document.getElementById('eventTitle').value = ev.titulo;
+        document.getElementById('eventType').value = ev.categoria;
+        manejarCambioCategoria(); 
+        document.getElementById('eventDate').value = ev.fecha.split("T")[0];
+        
+        let isDesktop = window.getComputedStyle(document.querySelector('.time-desktop')).display !== 'none';
+        
+        let [time, ampm] = ev.hora.split(' ');
+        if (isDesktop) {
+            document.getElementById('eventTimeDesktop').value = time || "";
+            document.getElementById('eventAmPmDesktop').value = ampm || "AM";
+        } else {
+            document.getElementById('eventTimeMobile').value = parseTimeTo24h(ev.hora);
+        }
+        
+        let notaVal = ""; let refBase = ev.referencia || "";
+        if(refBase.includes(" / Nota: ")) {
+            let partes = refBase.split(" / Nota: ");
+            refBase = partes[0];
+            notaVal = partes[1].split(" | REC-")[0];
+        }
+        document.getElementById('eventNota').value = notaVal;
+        
+        if(ev.cliente && ev.cliente !== 'Sin asignar') {
+            document.getElementById('usarClienteCheckbox').checked = true; toggleCliente();
+            document.getElementById('clienteBusqueda').value = ev.cliente;
+            document.getElementById('eventReferencia').innerHTML = `<option value="${refBase}">${refBase}</option>`;
+        }
+        modal.style.display = 'flex';
+    }
+    
+    function closeModal() { modal.style.display = 'none'; }
+
+    function limpiarFormulario() {
+        document.getElementById('eventType').selectedIndex = 0; document.getElementById('eventTitle').value = "";
+        document.getElementById('eventTimeMobile').value = ""; document.getElementById('eventTimeDesktop').value = "";
+        document.getElementById('eventNota').value = ""; document.getElementById('clienteBusqueda').value = "";
+        document.getElementById('clienteSeleccionadoId').value = ""; document.getElementById('usarClienteCheckbox').checked = false;
+        document.getElementById('mensualCheckbox').checked = false; document.getElementById('seccionCliente').style.display = 'none';
+        document.getElementById('recurrenteContainer').style.display = 'none';
+        document.getElementById('usarClienteContainer').style.display = 'none';
+        const ref = document.getElementById('eventReferencia');
+        if (ref) ref.innerHTML = '<option value="">Cargando referencias...</option>';
+        document.getElementById("eventNota").placeholder = "Ej: Detalles adicionales...";
+    }
+
+    async function guardarEvento() {
+        const titulo = document.getElementById('eventTitle').value.trim();
+        const categoria = document.getElementById('eventType').value;
+        const cliente = document.getElementById('clienteBusqueda').value;
+        const nota = document.getElementById('eventNota').value.trim();
+        const fechaSeleccionada = document.getElementById('eventDate').value;
+        
+        let isDesktop = window.getComputedStyle(document.querySelector('.time-desktop')).display !== 'none';
+        let hora = "";
+        if (isDesktop) {
+            let t = document.getElementById('eventTimeDesktop').value;
+            let ampm = document.getElementById('eventAmPmDesktop').value;
+            if(t) hora = `${t} ${ampm}`;
+        } else {
+            hora = formatTimeForSave(document.getElementById('eventTimeMobile').value);
+        }
+
+        const referencia = document.getElementById('eventReferencia') ? document.getElementById('eventReferencia').value : "N/A";
+        let referenciaFinal = referencia;
+        const esMensual = document.getElementById('mensualCheckbox').checked;
+
+        if (!fechaSeleccionada) return alert("Por favor selecciona una fecha");
+        if (!titulo || !hora) return alert("Por favor completa el título y la hora");
+
+        if (referencia && referencia !== "N/A" && referencia !== "VENTA DIRECTA" && !referencia.includes("OP-") && !referencia.includes("COT-")) {
+            if (categoria === "Instalaciones") referenciaFinal = "OP-" + referencia;
+            if (categoria === "Visitas técnicas") referenciaFinal = "COT-" + referencia;
+        }
+
+        const btn = document.getElementById('btnGuardarEvent');
+        btn.innerText = "Procesando..."; btn.disabled = true;
+
+        const baseRef = referenciaFinal || "N/A";
+        let refLimpia = baseRef.split(" | REC-")[0]; 
+
+        if(isEditing && editingEventId) {
+            try {
+                await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: editingEventId }) });
+                eventosGlobales = eventosGlobales.filter(e => String(e.id) !== String(editingEventId));
+            } catch(e) {}
+        }
+
+        const groupId = esMensual ? "REC-" + Date.now() : "";
+        const iteraciones = esMensual && !isEditing ? 12 : 1; 
+        const [anio, mes, dia] = fechaSeleccionada.split("-");
+        const fechaBase = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+
+        try {
+            for (let i = 0; i < iteraciones; i++) {
+                const fechaIteracionObj = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + i, fechaBase.getDate());
+                const y = fechaIteracionObj.getFullYear();
+                const m = String(fechaIteracionObj.getMonth() + 1).padStart(2, '0');
+                const d = String(fechaIteracionObj.getDate()).padStart(2, '0');
+                const fechaIteracionStr = `${y}-${m}-${d}`;
+
+                let refGuardar = refLimpia;
+                if (nota) refGuardar += ` / Nota: ${nota}`;
+                if (esMensual && !isEditing) refGuardar += ` | ${groupId}`;
+
+                const datos = {
+                    tipo: "nuevo_evento", fecha: fechaIteracionStr, hora: hora, titulo: titulo, categoria: categoria,
+                    cliente: cliente || "Sin asignar", referencia: refGuardar
+                };
+
+                const response = await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify(datos) });
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    eventosGlobales.push({
+                        id: data.id || Date.now() + i, fecha: fechaIteracionStr, hora: hora, titulo: titulo, categoria: categoria,
+                        cliente: cliente || "Sin asignar", referencia: refGuardar, estado: "PENDIENTE"
+                    });
+                }
+            } 
+
+            localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
+            closeModal(); procesarEventosLocales();
+
+        } catch (error) { alert("Hubo un problema al conectar con el servidor"); } finally { btn.disabled = false; }
+    }
+
+    // ==========================================
+    // BUSCADOR CLIENTES — CORREGIDO
+    // ==========================================
+    let timeoutBusqueda;
+    async function buscarClienteApp(valor) {
+        const lista = document.getElementById('listaSugerencias');
+        if (valor.length < 3) { lista.style.display = 'none'; return; }
+        const texto = valor.toLowerCase().trim();
+        lista.innerHTML = "";
+        
+        let encontradosLocal = false;
+
+        // 1. Buscar en CACHE_CLIENTES (formato objeto {cedula: {nombre, cedula...}})
+        const cacheClientes = localStorage.getItem("CACHE_CLIENTES");
+        if (cacheClientes) {
+            try {
+                const clientesObj = JSON.parse(cacheClientes);
+                let clientesArr = [];
+                
+                // Soportar tanto objeto como array
+                if (Array.isArray(clientesObj)) {
+                    clientesArr = clientesObj;
+                } else {
+                    clientesArr = Object.values(clientesObj);
+                }
+                
+                const resultadosLocales = clientesArr.filter(c => {
+                    const nombre = (c.nombre || c[1] || "").toString().toLowerCase();
+                    const cedula = (c.cedula || c[0] || "").toString().toLowerCase();
+                    return nombre.includes(texto) || cedula.includes(texto);
+                }).slice(0, 8);
+
+                if (resultadosLocales.length > 0) {
+                    lista.style.display = 'block';
+                    encontradosLocal = true;
+                    resultadosLocales.forEach(c => {
+                        const nombre = c.nombre || c[1] || "";
+                        const cedula = c.cedula || c[0] || "";
+                        const div = document.createElement('div'); div.className = 'sugerencia-item';
+                        div.innerHTML = `<strong>${nombre}</strong> <br> <small>${cedula}</small>`;
+                        div.onclick = () => seleccionarCliente(nombre, cedula);
+                        lista.appendChild(div);
+                    });
+                }
+            } catch(e) { console.log("Error parseando cache clientes:", e); }
+        }
+
+        // 2. Siempre buscar en red también (para datos frescos)
+        clearTimeout(timeoutBusqueda);
+        timeoutBusqueda = setTimeout(async () => {
+            try {
+                const res = await fetch(`${WEBAPP_URL}?buscarCliente=${encodeURIComponent(valor)}`);
+                const data = await res.json();
+                if (data.status === "ok" && data.resultados.length > 0) {
+                    if (!encontradosLocal) lista.innerHTML = "";
+                    lista.style.display = 'block';
+                    
+                    // Evitar duplicados si ya se mostraron del caché
+                    const nombresYaMostrados = Array.from(lista.querySelectorAll('.sugerencia-item strong')).map(el => el.textContent.toLowerCase());
+                    
+                    data.resultados.forEach(c => {
+                        if (!nombresYaMostrados.includes(c.nombre.toLowerCase())) {
+                            const div = document.createElement('div'); div.className = 'sugerencia-item';
+                            div.innerHTML = `<strong>${c.nombre}</strong> <br> <small>${c.cedula}</small>`;
+                            div.onclick = () => seleccionarCliente(c.nombre, c.cedula);
+                            lista.appendChild(div);
+                        }
+                    });
+                }
+            } catch (e) { console.log("Error buscando en red:", e); }
+        }, 400);
+    }
+
+    async function seleccionarCliente(nombre, cedula) {
+        document.getElementById('clienteBusqueda').value = nombre;
+        document.getElementById('clienteSeleccionadoId').value = cedula;
+                document.getElementById('listaSugerencias').style.display = 'none';
+        
+        const seccionRef = document.getElementById('seccionReferencia');
+        const selectRef = document.getElementById('eventReferencia');
+        const categoriaSeleccionada = document.getElementById('eventType').value;
+
+        seccionRef.style.display = 'block';
+        selectRef.innerHTML = '<option value="">Cargando referencias...</option>';
+
+        // 1. Intentar cargar desde caché local primero
+        const cacheOrdenesStr = localStorage.getItem("CACHE_ORDENES");
+        if (cacheOrdenesStr) {
+            try {
+                const ordenes = JSON.parse(cacheOrdenesStr);
+                let previas = [];
+                
+                if (Array.isArray(ordenes)) {
+                    previas = ordenes.filter(o => {
+                        const ced = (o.cedula || o[2] || "").toString().trim();
+                        return ced === String(cedula).trim();
+                    });
+                }
+                
+                selectRef.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option>';
+                if (previas.length > 0) {
+                    previas.forEach(ref => {
+                        const num = ref.numero || ref[1] || "";
+                        const saldo = ref.saldo || ref[10] || 0;
+                        selectRef.innerHTML += `<option value="${num}">OP-${num} | Saldo: $${saldo}</option>`;
+                    });
+                } else {
+                    selectRef.innerHTML += '<option value="N/A">Sin registros previos</option>';
+                }
+            } catch(e) { console.log("Error parseando cache ordenes:", e); }
+        }
+
+        // 2. Siempre consultar red para datos frescos
+        await cargarReferenciasRedSilenciosa(cedula, categoriaSeleccionada, selectRef);
+    }
+
+    async function cargarReferenciasRedSilenciosa(cedula, categoriaSeleccionada, selectElement) {
+        try {
+            const res = await fetch(`${WEBAPP_URL}?tipo=BUSCAR_REFERENCIAS&cedula=${cedula}&categoria=${encodeURIComponent(categoriaSeleccionada)}`);
+            const data = await res.json();
+            selectElement.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option>';
+            if (data.status === "ok" && data.referencias && data.referencias.length > 0) {
+                data.referencias.forEach(ref => {
+                    selectElement.innerHTML += `<option value="${ref.id}">${ref.detalle}</option>`;
+                });
+            } else {
+                selectElement.innerHTML += '<option value="N/A">Sin registros previos</option>';
+            }
+        } catch (e) {
+            console.log("Error cargando referencias de red:", e);
+            // Si falla la red y no hay nada cargado, mostrar opción por defecto
+            if (selectElement.options.length <= 1) {
+                selectElement.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option><option value="N/A">Sin conexión - Sin registros</option>';
+            }
+        }
+    }
+
+    // ==========================================
+    // CATEGORÍAS Y TOGGLE CLIENTE
+    // ==========================================
+    function manejarCambioCategoria() {
+        const categoria = document.getElementById("eventType").value;
+        const contenedorCliente = document.getElementById("usarClienteContainer");
+        const contenedorRecurrente = document.getElementById("recurrenteContainer");
+        const notaInput = document.getElementById("eventNota");
+
+        if (categoria === "Instalaciones") notaInput.placeholder = "Ej: Llamar al piaggio antes, confirmar con la cliente...";
+        else if (categoria === "Visitas técnicas") notaInput.placeholder = "Ej: No olvidar el metro, llevar catálogo de sheer...";
+        else if (categoria === "Recordatorios de pago") notaInput.placeholder = "Ej: Número de referencia de pago, contrato, llevar efectivo...";
+        else if (categoria === "Obligaciones tributarias") notaInput.placeholder = "Ej: Formulario N° de la DIAN...";
+        else if (categoria === "Garantías") notaInput.placeholder = "Ej: Llevar nuevos herrajes, llevar cordón...";
+        else notaInput.placeholder = "Ej: Detalles adicionales...";
+
+        if (categoria === "Instalaciones" || categoria === "Visitas técnicas") {
+            contenedorCliente.style.display = "block";
+        } else {
+            contenedorCliente.style.display = "none";
+            document.getElementById("usarClienteCheckbox").checked = false;
+            document.getElementById("seccionCliente").style.display = "none";
+        }
+
+        if (categoria === "Recordatorios de pago" || categoria === "Obligaciones tributarias") {
+            contenedorRecurrente.style.display = "block";
+        } else {
+            contenedorRecurrente.style.display = "none";
+            document.getElementById("mensualCheckbox").checked = false;
+        }
+    }
+
+    function toggleCliente() {
+        const usar = document.getElementById("usarClienteCheckbox").checked;
+        document.getElementById("seccionCliente").style.display = usar ? "block" : "none";
+    }
+
+    // ==========================================
+    // INICIALIZAR
+    // ==========================================
+    inicializarCalendario(); 
+
+</script>
+</body>
+</html>
