@@ -676,7 +676,7 @@
         document.getElementById('abono_destacado').style.display = 'block';
         document.getElementById('inputs_abono').style.display = 'none';
 
-        await new Promise(function(r){ setTimeout(r, 50); });
+               await new Promise(function(r){ setTimeout(r, 50); });
 
         try {
             // FIX: CONVERTIR SELECT A TEXTO
@@ -692,20 +692,39 @@
             selectMedio.parentNode.replaceChild(spanReemplazo, selectMedio);
 
             var areaPdf = document.getElementById('area-pdf');
+            
+            // FORZAR ANCHO REAL A 800px PARA QUE html2canvas MIDA BIEN LA ALTURA
+            var origWidth = areaPdf.style.width;
+            var origMaxWidth = areaPdf.style.maxWidth;
+            var origMargin = areaPdf.style.margin;
+            var origBorderRadius = areaPdf.style.borderRadius;
+            var origBoxShadow = areaPdf.style.boxShadow;
+            var origOverflow = areaPdf.style.overflow;
+            var origBodyPadding = document.body.style.padding;
+            
+            document.body.style.padding = '0';
+            areaPdf.style.width = '800px';
+            areaPdf.style.maxWidth = '800px';
+            areaPdf.style.margin = '0';
+            areaPdf.style.borderRadius = '0';
+            areaPdf.style.boxShadow = 'none';
+            areaPdf.style.overflow = 'visible';
+            
+            // Esperar a que el DOM recalcule con el nuevo ancho
+            await new Promise(function(r){ setTimeout(r, 200); });
+            
+            // Ahora medir la altura REAL del contenido a 800px
+            var realHeight = areaPdf.scrollHeight;
 
             var canvas = await html2canvas(areaPdf, { 
-                scale: 3, 
+                scale: 2, 
                 useCORS: true, 
                 width: 800,
+                height: realHeight,
                 windowWidth: 800,
+                scrollX: 0,
+                scrollY: -window.scrollY,
                 onclone: function(clonedDoc) {
-                    var clonedArea = clonedDoc.getElementById('area-pdf');
-                    clonedArea.style.width = '800px';
-                    clonedArea.style.maxWidth = '800px';
-                    clonedArea.style.margin = '0';
-                    clonedArea.style.borderRadius = '0';
-                    clonedArea.style.boxShadow = 'none';
-
                     clonedDoc.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
 
                     clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(function(input) {
@@ -722,7 +741,15 @@
                 }
             });
 
-            // RESTAURAR SELECT E INPUTS
+            // RESTAURAR TODO
+            document.body.style.padding = origBodyPadding;
+            areaPdf.style.width = origWidth || '100%';
+            areaPdf.style.maxWidth = origMaxWidth || '800px';
+            areaPdf.style.margin = origMargin || '0 auto';
+            areaPdf.style.borderRadius = origBorderRadius;
+            areaPdf.style.boxShadow = origBoxShadow;
+            areaPdf.style.overflow = origOverflow;
+            
             var spanTemp = document.getElementById('medioPago_span_temp');
             spanTemp.parentNode.replaceChild(selectMedio, spanTemp);
             document.getElementById('inputs_abono').style.display = '';
@@ -730,18 +757,16 @@
             setStep(1, 'check');
             setStep(2, 'active');
 
-                       var jsPDFLib = window.jspdf;
+            var jsPDFLib = window.jspdf;
             var pdf = new jsPDFLib.jsPDF("p", "mm", "letter"); 
             var pdfWidth = pdf.internal.pageSize.getWidth(); 
             var pdfHeight = pdf.internal.pageSize.getHeight();
-            var canvasRatio = canvas.width / canvas.height;
             var finalWidth = pdfWidth; 
-            var finalHeight = finalWidth / canvasRatio; 
+            var finalHeight = (canvas.height * pdfWidth) / canvas.width; 
             
-            // Si se pasa de la página, escalar para que quepa completo
             if (finalHeight > pdfHeight) {
                 finalHeight = pdfHeight;
-                finalWidth = finalHeight * canvasRatio;
+                finalWidth = (canvas.width * pdfHeight) / canvas.height;
             }
             
             var imgData = canvas.toDataURL("image/jpeg", 1.0); 
@@ -845,6 +870,7 @@
 </style>
 </body>
 </html>
+
 
 
 
