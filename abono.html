@@ -716,14 +716,16 @@
             // Ahora medir la altura REAL del contenido a 800px
             var realHeight = areaPdf.scrollHeight;
 
-            var canvas = await html2canvas(areaPdf, { 
-                scale: 2, 
+                       var canvas = await html2canvas(areaPdf, { 
+                scale: 3, 
                 useCORS: true, 
-                width: 800,
+                width: areaPdf.scrollWidth,
                 height: realHeight,
-                windowWidth: 800,
+                windowWidth: areaPdf.scrollWidth,
                 scrollX: 0,
                 scrollY: -window.scrollY,
+                x: areaPdf.offsetLeft,
+                y: areaPdf.offsetTop,
                 onclone: function(clonedDoc) {
                     clonedDoc.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
 
@@ -870,6 +872,7 @@
 </style>
 </body>
 </html>
+
 
 
 
