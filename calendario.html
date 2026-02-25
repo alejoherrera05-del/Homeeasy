@@ -1356,16 +1356,24 @@
         try {
             const res = await fetch(`${WEBAPP_URL}?tipo=BUSCAR_REFERENCIAS&cedula=${cedula}&categoria=${encodeURIComponent(categoriaSeleccionada)}`);
             const data = await res.json();
-            selectElement.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option>';
-            if (data.status === "ok" && data.referencias && data.referencias.length > 0) {
-                data.referencias.forEach(ref => {
-                    selectElement.innerHTML += `<option value="${ref.id}">${ref.detalle}</option>`;
-                });
-            } else {
-                selectElement.innerHTML += '<option value="N/A">Sin registros previos</option>';
+            
+            // CIRUGÍA: Solo modificamos el select si el servidor responde 'ok'. 
+            // Si devuelve 'no_action' o falla, dejamos intacta la información de la caché.
+            if (data.status === "ok") {
+                selectElement.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option>';
+                if (data.referencias && data.referencias.length > 0) {
+                    data.referencias.forEach(ref => {
+                        selectElement.innerHTML += `<option value="${ref.id}">${ref.detalle}</option>`;
+                    });
+                } else {
+                    selectElement.innerHTML += '<option value="N/A">Sin registros previos</option>';
+                }
             }
         } catch (e) {
             console.log("Error cargando referencias de red:", e);
+            // Ya no ponemos "Sin conexión" a la fuerza si hay datos en caché.
+        }
+    }
             // Si falla la red y no hay nada cargado, mostrar opción por defecto
             if (selectElement.options.length <= 1) {
                 selectElement.innerHTML = '<option value="VENTA DIRECTA">Sin referencia (Venta directa)</option><option value="N/A">Sin conexión - Sin registros</option>';
@@ -1418,3 +1426,4 @@
 </script>
 </body>
 </html>
+
