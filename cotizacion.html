@@ -409,7 +409,7 @@
 
         <div class="mb-4">
             <label class="form-label-small">Observaciones Especiales</label>
-            <textarea id="notas" class="form-control-compact" style="height: 40px; resize: none;" placeholder="Ej: Las medidas son aproximadas..." oninput="capFirst(this)"></textarea>
+            <textarea id="notas" class="form-control-compact" style="min-height: 40px; overflow-y: hidden; resize: none;" placeholder="Ej: Las medidas son aproximadas..." oninput="capFirst(this); autoResize(this)"></textarea>
         </div>
 
         <div class="row g-4 mt-auto">
@@ -480,9 +480,12 @@
                     document.getElementById('fecha_display').innerText = new Date(d.fecha).toLocaleDateString('es-CO');
                     document.getElementById('cedula').value = d.cedula;
                     document.getElementById('nombre').value = d.nombre;
-                    document.getElementById('notas').value = d.observaciones || ""; 
                     
-                    buscarCliente(); 
+                    // ✅ AHORA SÍ: Limpio y solo con la función que le toca
+                    document.getElementById('notas').value = d.observaciones || ""; 
+                    autoResize(document.getElementById('notas'));
+                    
+                    buscarCliente();
                     
                     let items = [];
                     
@@ -595,6 +598,11 @@
     function formatear(i) { 
         let v = i.value.replace(/\D/g, ""); 
         i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : ""; 
+    }
+    
+    function autoResize(textarea) {
+        textarea.style.height = 'auto'; // Reinicia la altura
+        textarea.style.height = textarea.scrollHeight + 'px'; // Ajusta la altura al contenido exacto
     }
 
     function calcular() {
@@ -807,9 +815,12 @@
                 }
             });
 
+
+            // ✅ LE DEVOLVEMOS SUS VARIABLES A LA FUNCIÓN DE GUARDAR
             const totalFinal = document.getElementById('total_val').innerText.replace(/\D/g, "");
             const notas = document.getElementById('notas').value; 
             const nombreArchivo = `Cotizacion_N_${numeroCot}_${cedula}.pdf`;
+           
 
             setStep(2, 'check'); 
             setStep(3, 'active');
@@ -940,3 +951,4 @@
 </script>
 </body>
 </html>
+
