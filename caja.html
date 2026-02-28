@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>HomeEasy | Flujo de Caja</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --home-wine: #a6455a;
+            --home-gold: #c2a468;
+            --ios-bg: #f2f2f7;
+            --text-dark: #1c1c1e;
+            --success-green: #34c759;
+            --danger-red: #ff3b30;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--ios-bg); 
+            margin: 0; padding: 0;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: var(--ios-bg);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        
+        .content-container { padding: 0 20px; position: relative; z-index: 10;}
+
+        @media (min-width: 992px) {
+            .app-wrapper { max-width: 800px; padding: 20px; border-radius: 30px; margin-top: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+            .caja-header { border-radius: 24px !important; }
+        }
+
+        /* --- PANTALLA DE PIN (SEGURIDAD BANCARIA) --- */
+        .pin-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--ios-bg); z-index: 99999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .pin-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        
+        .pin-container { width: 100%; max-width: 320px; text-align: center; }
+        .pin-logo { width: 70px; height: auto; margin-bottom: 25px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); }
+        .pin-header h2 { font-weight: 800; font-size: 1.6rem; color: var(--text-dark); margin: 0; letter-spacing: -0.5px; }
+        .pin-header p { font-size: 0.95rem; color: #8e8e93; font-weight: 500; margin-top: 5px; margin-bottom: 35px; }
+        
+        .pin-dots { display: flex; justify-content: center; gap: 18px; margin-bottom: 45px; }
+        .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #d1d1d6; background: transparent; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .dot.filled { background: var(--home-wine); border-color: var(--home-wine); transform: scale(1.15); }
+        .dot.error { border-color: var(--danger-red); background: var(--danger-red); }
+        
+        .pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 25px; justify-items: center; }
+        .num-key {
+            width: 75px; height: 75px; border-radius: 50%; border: none;
+            background: white; font-size: 2rem; font-weight: 400; color: var(--text-dark);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center;
+            transition: transform 0.1s, background 0.2s; cursor: pointer;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+        }
+        .num-key:active { transform: scale(0.9); background: #e5e5ea; }
+        .fn-key { background: transparent; box-shadow: none; font-size: 1.6rem; color: #8e8e93; }
+        .fn-key:active { background: rgba(0,0,0,0.05); }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-12px); }
+            40%, 80% { transform: translateX(12px); }
+        }
+        .shake-animation { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in-anim { animation: slideIn 0.4s ease-out forwards; }
+
+        /* --- CABECERA LIMPIA --- */
+        .caja-header {
+            background: linear-gradient(135deg, var(--home-wine) 0%, #823646 100%);
+            padding: calc(20px + env(safe-area-inset-top)) 25px 90px;
+            border-radius: 0 0 32px 32px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(166, 69, 90, 0.2);
+            position: relative;
+        }
+
+        .header-top { display: flex; align-items: center; gap: 15px; }
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white; width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+            backdrop-filter: blur(5px); flex-shrink: 0; transition: transform 0.2s;
+        }
+        .btn-back:active { transform: scale(0.9); }
+
+        .header-titles h1 { font-weight: 700; font-size: 1.4rem; margin:0; letter-spacing: -0.3px; }
+        .header-titles p { margin:0; opacity:0.85; font-size:0.8rem; font-weight: 500; }
+
+        /* --- TARJETA VIP --- */
+        .card-wrapper {
+            display: flex; justify-content: center;
+            margin-top: -65px;
+            margin-bottom: 25px;
+        }
+        
+        .credit-card {
+            width: 100%; max-width: 340px; height: 215px;    
+            background: linear-gradient(135deg, #ffffff 0%, #fcf9f2 60%, #f4ebd6 100%);
+            border-radius: 20px; padding: 22px 25px;
+            box-shadow: 0 15px 35px rgba(194, 164, 104, 0.25), inset 0 2px 5px rgba(255,255,255,1);
+            border: 1px solid rgba(194, 164, 104, 0.4);
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: space-between;
+            color: var(--home-wine);
+        }
+        
+        .credit-card::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transform: skewX(-25deg); animation: cardShine 7s infinite;
+        }
+        @keyframes cardShine { 0% { left: -100%; } 15% { left: 200%; } 100% { left: 200%; } }
+
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; z-index: 1;}
+        .card-chip-group { display: flex; align-items: center; gap: 15px; }
+        
+        .card-chip {
+            width: 38px; height: 28px; 
+            background: linear-gradient(135deg, #e3c07d 0%, #c2a468 100%); 
+            border-radius: 6px; position: relative; overflow: hidden; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5);
+            border: 1px solid rgba(164, 134, 68, 0.5);
+        }
+        .card-chip::after { content:''; position:absolute; top: 13px; left:0; width:100%; height:1px; background: rgba(164, 134, 68, 0.6); }
+        .card-chip::before { content:''; position:absolute; top: 0; left:12px; width:1px; height:100%; background: rgba(164, 134, 68, 0.6); }
+        .card-chip-line { position:absolute; top: 0; right:12px; width:1px; height:100%; background: rgba(164, 134, 68, 0.6); }
+        
+        .card-contactless { font-size: 1.4rem; transform: rotate(90deg); color: #c2a468; opacity: 0.9;}
+        
+        .card-logo { display: flex; align-items: center; font-size: 1rem; font-weight: 800; letter-spacing: 1px; color: var(--home-wine); opacity: 0.9; }
+        .card-logo img { height: 18px; margin-right: 6px; }
+
+        .card-middle { display: flex; flex-direction: column; z-index: 1; margin-top: 10px;}
+        .card-label { font-size: 0.7rem; color: #a48644; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;}
+        .card-balance { font-size: 2.3rem; font-weight: 800; color: var(--text-dark); letter-spacing: -1px; line-height: 1;}
+
+        .card-bottom { display: flex; justify-content: space-between; align-items: flex-end; z-index: 1; }
+        .card-holder { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--home-wine);}
+        .card-expiry { display: flex; flex-direction: column; text-align: right;}
+        .card-expiry-label { font-size: 0.5rem; font-weight: 700; color: #a48644; letter-spacing: 1px;}
+        .card-expiry-val { font-size: 0.75rem; font-weight: 800; color: var(--home-wine); letter-spacing: 0.5px; margin-top: 2px;}
+
+        /* --- BOTONES DE ACCIÓN --- */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .btn-action {
+            background: white; border: none; border-radius: 20px; padding: 18px 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03); display: flex; flex-direction: column;
+            align-items: center; gap: 10px; transition: transform 0.2s; cursor: pointer;
+        }
+        .btn-action:active { transform: scale(0.96); }
+        .btn-action .icon-circle { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .icon-income { background: rgba(52, 199, 89, 0.12); color: var(--success-green); }
+        .icon-expense { background: rgba(255, 59, 48, 0.12); color: var(--danger-red); }
+        .btn-action span { font-size: 0.85rem; font-weight: 700; color: var(--text-dark); letter-spacing: -0.2px;}
+
+        /* --- RESUMEN DEL MES --- */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between;}
+        .stat-info { display: flex; flex-direction: column; }
+        .stat-lbl { font-size: 0.7rem; color: #8e8e93; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;}
+        .stat-val { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px;}
+        .stat-icon { font-size: 1.2rem; opacity: 0.8;}
+
+        /* --- FEED DE MOVIMIENTOS --- */
+        .feed-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; padding: 0 5px; }
+        .feed-title { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin: 0; letter-spacing: -0.3px;}
+        .feed-filter { font-size: 0.8rem; color: var(--home-wine); font-weight: 600; text-decoration: none; cursor: pointer;}
+
+        .transaction-card {
+            background: white; border-radius: 20px; padding: 5px 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03); margin-bottom: 20px;
+        }
+        .transaction-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 0; border-bottom: 1px solid #f2f2f7;
+        }
+        .transaction-item:last-child { border-bottom: none; }
+        
+        .tx-left { display: flex; align-items: center; gap: 15px; }
+        .tx-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .tx-icon.tx-in { background: rgba(52, 199, 89, 0.1); color: var(--success-green); }
+        .tx-icon.tx-out { background: rgba(255, 59, 48, 0.1); color: var(--text-dark); }
+        .tx-icon.tx-wine { background: rgba(166, 69, 90, 0.1); color: var(--home-wine); }
+        
+        .tx-details { display: flex; flex-direction: column; }
+        .tx-title { font-size: 0.9rem; font-weight: 700; color: var(--text-dark); margin-bottom: 2px; }
+        .tx-cat { font-size: 0.75rem; color: #8e8e93; font-weight: 500; text-transform: uppercase; }
+        
+        .tx-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end;}
+        .tx-amount { font-size: 1rem; font-weight: 700; letter-spacing: -0.3px;}
+        .text-green { color: var(--success-green); }
+        .text-dark { color: var(--text-dark); }
+        .tx-date { font-size: 0.7rem; color: #aeaeb2; font-weight: 500; margin-top: 2px; }
+
+        .swal2-premium { border-radius: 24px !important; font-family: inherit !important; }
+        .swal2-premium .swal2-input, .swal2-premium .swal2-select { border-radius: 12px !important; border: 1px solid #e5e5ea !important; }
+        .swal2-premium .swal2-input:focus, .swal2-premium .swal2-select:focus { border-color: var(--home-gold) !important; box-shadow: 0 0 0 3px rgba(194, 164, 104, 0.2) !important;}
+        .swal2-premium .swal2-confirm { border-radius: 12px !important; font-weight: 600 !important; }
+    </style>
+</head>
+<body>
+
+    <div id="pin-screen" class="pin-overlay">
+        <div class="pin-container">
+            <div class="pin-header">
+                <img src="triangulo.png" alt="Logo" onerror="this.src='logohomeeasy.png'" class="pin-logo">
+                <h2>Caja Principal</h2>
+                <p>Ingresa tu PIN de seguridad</p>
+            </div>
+            
+            <div class="pin-dots" id="pin-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            
+            <div class="pin-pad">
+                <button class="num-key" onclick="pressKey('1')">1</button>
+                <button class="num-key" onclick="pressKey('2')">2</button>
+                <button class="num-key" onclick="pressKey('3')">3</button>
+                <button class="num-key" onclick="pressKey('4')">4</button>
+                <button class="num-key" onclick="pressKey('5')">5</button>
+                <button class="num-key" onclick="pressKey('6')">6</button>
+                <button class="num-key" onclick="pressKey('7')">7</button>
+                <button class="num-key" onclick="pressKey('8')">8</button>
+                <button class="num-key" onclick="pressKey('9')">9</button>
+                <button class="num-key fn-key" onclick="showBiometricInfo()"><i class="fas fa-fingerprint"></i></button>
+                <button class="num-key" onclick="pressKey('0')">0</button>
+                <button class="num-key fn-key" onclick="deleteKey()"><i class="fas fa-backspace"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-wrapper">
+        <header class="caja-header">
+            <div class="header-top">
+                <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
+                <div class="header-titles">
+                    <h1>Flujo de Caja</h1>
+                    <p>Control de ingresos y egresos</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-container">
+            <div class="card-wrapper">
+                <div class="credit-card">
+                    <div class="card-top">
+                        <div class="card-chip-group">
+                            <div class="card-chip"><div class="card-chip-line"></div></div>
+                            <i class="fas fa-wifi card-contactless"></i>
+                        </div>
+                        <div class="card-logo">
+                            <img src="triangulo.png" alt="Logo" onerror="this.style.display='none'">HOMEEASY
+                        </div>
+                    </div>
+                    
+                    <div class="card-middle">
+                        <span class="card-label">Saldo Disponible</span>
+                        <span class="card-balance" id="ui-saldo">...</span>
+                    </div>
+                    
+                    <div class="card-bottom">
+                        <span class="card-holder">Caja Principal</span>
+                        <div class="card-expiry">
+                            <span class="card-expiry-label">VÁLIDA</span>
+                            <span class="card-expiry-val"><i class="fas fa-sync-alt fa-spin" style="font-size: 0.6rem; margin-right: 3px;" id="ui-sync-icon"></i> AHORA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-grid">
+                <button class="btn-action" onclick="registrarIngreso()">
+                    <div class="icon-circle icon-income"><i class="fas fa-arrow-down"></i></div>
+                    <span>Ingreso Extra</span>
+                </button>
+                <button class="btn-action" onclick="registrarGasto()">
+                    <div class="icon-circle icon-expense"><i class="fas fa-shopping-bag"></i></div>
+                    <span>Registrar Gasto</span>
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-info">
+                        <span class="stat-lbl">Entradas Mes</span>
+                        <span class="stat-val" id="ui-entradas" style="color: var(--success-green);">...</span>
+                    </div>
+                    <i class="fas fa-arrow-trend-up stat-icon" style="color: var(--success-green);"></i>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-info">
+                        <span class="stat-lbl">Salidas Mes</span>
+                        <span class="stat-val" id="ui-salidas" style="color: var(--danger-red);">...</span>
+                    </div>
+                    <i class="fas fa-arrow-trend-down stat-icon" style="color: var(--danger-red);"></i>
+                </div>
+            </div>
+
+            <div class="feed-header">
+                <h3 class="feed-title">Movimientos Recientes</h3>
+                <span class="feed-filter" onclick="cargarCaja()"><i class="fas fa-sync-alt"></i> Sincronizar</span>
+            </div>
+
+            <div class="transaction-card" id="tx-container">
+                <div style="padding: 20px; text-align: center; color: #8e8e93; font-weight: 600; font-size: 0.85rem;" id="loading-msg">
+                    <i class="fas fa-circle-notch fa-spin"></i> Sincronizando datos...
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // VARIABLES GLOBALES DE ESTADO 
+        // ==========================================
+        const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+        let isDataLoaded = false;
+        let saldoGlobal = 0;
+        let entradasGlobal = 0;
+        let salidasGlobal = 0;
+
+        // INICIA LA "CARGA FANTASMA" APENAS ABRE LA PÁGINA (Antes del PIN)
+        window.onload = () => { cargarCaja(); };
+
+        // ==========================================
+        // LÓGICA DE SEGURIDAD (PIN PAD)
+        // ==========================================
+        let currentPin = "";
+        const PIN_CORRECTO = "2511";
+
+        function pressKey(num) {
+            if (currentPin.length < 4) {
+                currentPin += num;
+                updateDots();
+                if (currentPin.length === 4) setTimeout(checkPin, 150);
+            }
+        }
+
+        function deleteKey() {
+            if (currentPin.length > 0) {
+                currentPin = currentPin.slice(0, -1);
+                updateDots();
+            }
+        }
+
+        function updateDots() {
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                if (index < currentPin.length) {
+                    dot.classList.add('filled');
+                    dot.classList.remove('error');
+                } else {
+                    dot.classList.remove('filled', 'error');
+                }
+            });
+        }
+
+        function checkPin() {
+            if (currentPin === PIN_CORRECTO) {
+                // Si la data ya se descargó durante la "carga fantasma", el mensaje de carga se oculta instantáneamente
+                document.getElementById('pin-screen').classList.add('hidden');
+                if(!isDataLoaded) {
+                    document.getElementById('loading-msg').style.display = 'block';
+                }
+            } else {
+                const dots = document.querySelectorAll('.dot');
+                dots.forEach(dot => { dot.classList.add('error'); });
+                const dotsContainer = document.getElementById('pin-dots');
+                dotsContainer.classList.add('shake-animation');
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                setTimeout(() => {
+                    dotsContainer.classList.remove('shake-animation');
+                    currentPin = "";
+                    updateDots();
+                }, 400);
+            }
+        }
+
+        function showBiometricInfo() {
+            Swal.fire({ title: 'Touch ID / Face ID', text: 'Esta funcionalidad es simulada en el entorno web. Usa tu PIN numérico.', icon: 'info', confirmButtonColor: '#a6455a', customClass: { popup: 'swal2-premium' } });
+        }
+
+        // ==========================================
+        // LÓGICA DE CAJA
+        // ==========================================
+        function fmtCOP(valor) { return '$ ' + Number(valor || 0).toLocaleString('es-CO'); }
+
+        function formatearCaja(input) {
+            let v = input.value.replace(/\D/g, "");
+            input.value = v ? '$ ' + Number(v).toLocaleString('es-CO') : "";
+        }
+
+        function timeAgo(time) {
+            const min = Math.floor((new Date() - new Date(time)) / 60000);
+            if(min < 2) return "Hace un momento";
+            if(min < 60) return `Hace ${min} min`;
+            if(min < 1440) return `Hace ${Math.floor(min/60)} h`;
+            return new Date(time).toLocaleDateString('es-CO');
+        }
+
+        async function cargarCaja() {
+            document.getElementById('ui-sync-icon').classList.add('fa-spin');
+            try {
+                const res = await fetch(`${URL_G}?tipo=GET_CAJA`);
+                const data = await res.json();
+                
+                if(data.status === "ok") {
+                    // Guardamos el estado global
+                    saldoGlobal = data.saldo;
+                    entradasGlobal = data.entradasMes;
+                    salidasGlobal = data.salidasMes;
+                    isDataLoaded = true;
+
+                    // Actualizamos la UI
+                    document.getElementById('ui-saldo').innerText = fmtCOP(saldoGlobal);
+                    document.getElementById('ui-entradas').innerText = fmtCOP(entradasGlobal);
+                    document.getElementById('ui-salidas').innerText = fmtCOP(salidasGlobal);
+
+                    const txContainer = document.getElementById('tx-container');
+                    txContainer.innerHTML = '';
+
+                    if(data.feed.length === 0) {
+                        txContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93; font-weight: 600; font-size: 0.85rem;" id="loading-msg">No hay movimientos recientes</div>';
+                    } else {
+                        data.feed.forEach(tx => {
+                            let iconHTML, amountColor, prefix;
+                            
+                            if(tx.tipo === "IN_AB") {
+                                iconHTML = '<div class="tx-icon tx-wine"><i class="fas fa-file-invoice-dollar"></i></div>';
+                                amountColor = "text-green"; prefix = "+";
+                                let numRecibo = tx.id.replace('REC-', '');
+                                let partesCat = tx.cat.split('•');
+                                let medioPago = partesCat.length > 1 ? partesCat[1].trim() : 'EFECTIVO';
+                                tx.cat = `Recibo N° ${numRecibo} • ${medioPago}`;
+                            } else if(tx.tipo === "IN_OP") {
+                                iconHTML = '<div class="tx-icon tx-wine"><i class="fas fa-file-invoice-dollar"></i></div>';
+                                amountColor = "text-green"; prefix = "+";
+                            } else if(tx.tipo === "IN_EXTRA") {
+                                iconHTML = '<div class="tx-icon tx-in"><i class="fas fa-arrow-down"></i></div>';
+                                amountColor = "text-green"; prefix = "+";
+                            } else {
+                                iconHTML = '<div class="tx-icon tx-out"><i class="fas fa-shopping-bag"></i></div>';
+                                amountColor = "text-dark"; prefix = "-";
+                            }
+
+                            txContainer.innerHTML += `
+                                <div class="transaction-item">
+                                    <div class="tx-left">
+                                        ${iconHTML}
+                                        <div class="tx-details">
+                                            <span class="tx-title">${tx.titulo}</span>
+                                            <span class="tx-cat">${tx.cat}</span>
+                                        </div>
+                                    </div>
+                                    <div class="tx-right">
+                                        <span class="tx-amount ${amountColor}">${prefix} ${fmtCOP(tx.valor)}</span>
+                                        <span class="tx-date">${timeAgo(tx.fecha)}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Error cargando caja", e);
+            } finally {
+                document.getElementById('ui-sync-icon').classList.remove('fa-spin');
+            }
+        }
+
+        function registrarGasto() {
+            Swal.fire({
+                title: 'Registrar Gasto',
+                html: `
+                    <div style="text-align: left; margin-top: 10px;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase;">Valor del gasto</label>
+                        <input type="tel" id="gasto-valor" class="swal2-input" placeholder="$ 0" style="margin-top: 5px; margin-bottom: 20px;" oninput="formatearCaja(this)">
+                        
+                        <label style="font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase;">Categoría</label>
+                        <select id="gasto-cat" class="swal2-select" style="margin-top: 5px; margin-bottom: 20px; width: 100%;">
+                            <option value="Pago proveedor e insumos">Pago proveedor e insumos</option>
+                            <option value="Pago Nómina / Contratistas">Pago Nómina / Contratistas</option>
+                            <option value="Transporte / Fletes">Transporte / Fletes</option>
+                            <option value="Servicios Fijos">Servicios Fijos</option>
+                            <option value="Otros Gastos">Otros Gastos</option>
+                        </select>
+
+                        <label style="font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase;">Descripción</label>
+                        <input type="text" id="gasto-desc" class="swal2-input" placeholder="Ej: Compra a pentagrama..." style="margin-top: 5px;">
+                    </div>
+                `,
+                showCancelButton: true, confirmButtonText: 'Guardar Gasto', cancelButtonText: 'Cancelar', confirmButtonColor: '#ff3b30', customClass: { popup: 'swal2-premium' },
+                preConfirm: () => {
+                    const valRaw = document.getElementById('gasto-valor').value.replace(/\D/g, "");
+                    if (!valRaw) Swal.showValidationMessage('Debes ingresar un valor');
+                    return {
+                        tipo: "movimiento_caja", movimiento: "GASTO",
+                        valor: valRaw, categoria: document.getElementById('gasto-cat').value, descripcion: document.getElementById('gasto-desc').value
+                    };
+                }
+            }).then((result) => { if (result.isConfirmed) procesarMovimientoUiOptimista(result.value); });
+        }
+
+        function registrarIngreso() {
+            Swal.fire({
+                title: 'Ingreso Extra', text: 'Registra un dinero que no provenga de OPs regulares.',
+                html: `
+                    <div style="text-align: left; margin-top: 10px;">
+                        <input type="tel" id="ing-valor" class="swal2-input" placeholder="$ 0" style="margin-top: 5px; margin-bottom: 15px;" oninput="formatearCaja(this)">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase;">Detalle del ingreso</label>
+                        <input type="text" id="ing-desc" class="swal2-input" placeholder="Ej: Venta de sobrantes" style="margin-top: 5px;">
+                    </div>
+                `,
+                showCancelButton: true, confirmButtonText: 'Sumar a Caja', cancelButtonText: 'Cancelar', confirmButtonColor: '#34c759', customClass: { popup: 'swal2-premium' },
+                preConfirm: () => {
+                    const valRaw = document.getElementById('ing-valor').value.replace(/\D/g, "");
+                    if (!valRaw) Swal.showValidationMessage('Debes ingresar un valor');
+                    return {
+                        tipo: "movimiento_caja", movimiento: "INGRESO",
+                        valor: valRaw, categoria: "Ingresos Extra", descripcion: document.getElementById('ing-desc').value
+                    };
+                }
+            }).then((result) => { if (result.isConfirmed) procesarMovimientoUiOptimista(result.value); });
+        }
+
+        // ==========================================
+        // UI OPTIMISTA: Actualiza todo al instante, guarda en segundo plano
+        // ==========================================
+        function procesarMovimientoUiOptimista(payload) {
+            const valorInt = parseInt(payload.valor);
+            let iconHTML, amountColor, prefix;
+
+            // 1. Actualizar Matemática Local Inmediatamente
+            if(payload.movimiento === "INGRESO") {
+                saldoGlobal += valorInt;
+                entradasGlobal += valorInt;
+                iconHTML = '<div class="tx-icon tx-in"><i class="fas fa-arrow-down"></i></div>';
+                amountColor = "text-green"; prefix = "+";
+            } else {
+                saldoGlobal -= valorInt;
+                salidasGlobal += valorInt;
+                iconHTML = '<div class="tx-icon tx-out"><i class="fas fa-shopping-bag"></i></div>';
+                amountColor = "text-dark"; prefix = "-";
+            }
+
+            // 2. Reflejar Matemática en Pantalla
+            document.getElementById('ui-saldo').innerText = fmtCOP(saldoGlobal);
+            document.getElementById('ui-entradas').innerText = fmtCOP(entradasGlobal);
+            document.getElementById('ui-salidas').innerText = fmtCOP(salidasGlobal);
+
+            // 3. Crear el Item en el HTML
+            const nuevoItemHtml = `
+                <div class="transaction-item slide-in-anim">
+                    <div class="tx-left">
+                        ${iconHTML}
+                        <div class="tx-details">
+                            <span class="tx-title">${payload.descripcion || payload.categoria}</span>
+                            <span class="tx-cat">${payload.categoria}</span>
+                        </div>
+                    </div>
+                    <div class="tx-right">
+                        <span class="tx-amount ${amountColor}">${prefix} ${fmtCOP(valorInt)}</span>
+                        <span class="tx-date" style="color:#a6455a;"><i class="fas fa-cloud-upload-alt"></i> Enviando...</span>
+                    </div>
+                </div>
+            `;
+
+            const txContainer = document.getElementById('tx-container');
+            // Quitar mensaje de vacío si existe
+            if(txContainer.innerHTML.includes('No hay movimientos')) txContainer.innerHTML = '';
+            
+            // Insertar de primero
+            txContainer.insertAdjacentHTML('afterbegin', nuevoItemHtml);
+
+            // 4. Mostrar Éxito Inmediato al Usuario
+            Swal.fire({
+                icon: 'success', title: '¡Registrado!', text: 'El saldo se actualizó al instante.', 
+                timer: 1500, showConfirmButton: false, customClass: { popup: 'swal2-premium' }
+            });
+
+            // 5. Enviar al Excel silenciosamente
+            document.getElementById('ui-sync-icon').classList.add('fa-spin');
+            
+            fetch(URL_G, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(res => {
+                document.getElementById('ui-sync-icon').classList.remove('fa-spin');
+                if(res.status === "success") {
+                    // Cambiar el texto de "Enviando..." a "Justo ahora"
+                    const recentDates = document.querySelectorAll('.tx-date');
+                    if(recentDates[0].innerHTML.includes('Enviando')) {
+                        recentDates[0].innerHTML = 'Hace un momento';
+                        recentDates[0].style.color = '#aeaeb2';
+                    }
+                }
+            }).catch(e => {
+                console.error("Error silencioso: ", e);
+                document.getElementById('ui-sync-icon').classList.remove('fa-spin');
+            });
+        }
+    </script>
+</body>
+</html>
