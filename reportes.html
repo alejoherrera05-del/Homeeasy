@@ -422,27 +422,35 @@
             const ventasPorMes = [0,0,0,0,0,0,0,0,0,0,0,0];
             const anioActual = new Date().getFullYear();
 
-            // 1. Procesar Órdenes
+           // 1. Procesar Órdenes
             dataFinanzas.ordenes.forEach(op => {
                 if(op.estado !== "ANULADA") {
                     const f = new Date(op.fecha);
                     const total = parseFloat(op.total) || 0;
+                    const abonoIni = parseFloat(op.abonoInicial) || 0; // 👈 Rescatamos el abono inicial
                     
                     totalVendidoHistorico += total;
+                    totalRecaudadoHistorico += abonoIni; // 👈 Lo sumamos al histórico para que arregle el "Por Cobrar"
 
                     if(f.getFullYear() === anioActual) ventasPorMes[f.getMonth()] += total;
 
                     // Periodo Actual
                     if(f >= rangos.inicio && f <= rangos.fin) {
                         totalVendidoActual += total;
+                        totalRecaudadoActual += abonoIni; // 👈 Sumamos la plata que entró al crear la OP
                         
+                        // Registramos este abono inicial en la dona gráfica de medios de pago
+                        if(abonoIni > 0) {
+                            pagos["PAGO INICIAL (OP)"] = (pagos["PAGO INICIAL (OP)"] || 0) + abonoIni;
+                        }
+
                         // Lógica OP Ganadora
                         if(!maxVentaOP || total > parseFloat(maxVentaOP.total)) {
                             maxVentaOP = op;
                         }
                     }
                     
-                    // Periodo Anterior (Para comparar)
+                    // Periodo Anterior (Para comparar el crecimiento)
                     if(f >= rangos.prevInicio && f <= rangos.prevFin) {
                         totalVendidoAnterior += total;
                     }
@@ -616,3 +624,4 @@
 </body>
 
 </html>
+
