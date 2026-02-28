@@ -247,7 +247,7 @@
                 <button class="num-key" onclick="pressKey('7')">7</button>
                 <button class="num-key" onclick="pressKey('8')">8</button>
                 <button class="num-key" onclick="pressKey('9')">9</button>
-                <button class="num-key fn-key" onclick="showBiometricInfo()"><i class="fas fa-fingerprint"></i></button>
+                <button class="num-key fn-key" onclick="window.location.href='index.html'"><i class="fas fa-arrow-left"></i></button>
                 <button class="num-key" onclick="pressKey('0')">0</button>
                 <button class="num-key fn-key" onclick="deleteKey()"><i class="fas fa-backspace"></i></button>
             </div>
@@ -383,7 +383,6 @@
 
         function checkPin() {
             if (currentPin === PIN_CORRECTO) {
-                // Si la data ya se descargó durante la "carga fantasma", el mensaje de carga se oculta instantáneamente
                 document.getElementById('pin-screen').classList.add('hidden');
                 if(!isDataLoaded) {
                     document.getElementById('loading-msg').style.display = 'block';
@@ -400,10 +399,6 @@
                     updateDots();
                 }, 400);
             }
-        }
-
-        function showBiometricInfo() {
-            Swal.fire({ title: 'Touch ID / Face ID', text: 'Esta funcionalidad es simulada en el entorno web. Usa tu PIN numérico.', icon: 'info', confirmButtonColor: '#a6455a', customClass: { popup: 'swal2-premium' } });
         }
 
         // ==========================================
@@ -431,13 +426,11 @@
                 const data = await res.json();
                 
                 if(data.status === "ok") {
-                    // Guardamos el estado global
                     saldoGlobal = data.saldo;
                     entradasGlobal = data.entradasMes;
                     salidasGlobal = data.salidasMes;
                     isDataLoaded = true;
 
-                    // Actualizamos la UI
                     document.getElementById('ui-saldo').innerText = fmtCOP(saldoGlobal);
                     document.getElementById('ui-entradas').innerText = fmtCOP(entradasGlobal);
                     document.getElementById('ui-salidas').innerText = fmtCOP(salidasGlobal);
@@ -556,7 +549,6 @@
             const valorInt = parseInt(payload.valor);
             let iconHTML, amountColor, prefix;
 
-            // 1. Actualizar Matemática Local Inmediatamente
             if(payload.movimiento === "INGRESO") {
                 saldoGlobal += valorInt;
                 entradasGlobal += valorInt;
@@ -569,12 +561,10 @@
                 amountColor = "text-dark"; prefix = "-";
             }
 
-            // 2. Reflejar Matemática en Pantalla
             document.getElementById('ui-saldo').innerText = fmtCOP(saldoGlobal);
             document.getElementById('ui-entradas').innerText = fmtCOP(entradasGlobal);
             document.getElementById('ui-salidas').innerText = fmtCOP(salidasGlobal);
 
-            // 3. Crear el Item en el HTML
             const nuevoItemHtml = `
                 <div class="transaction-item slide-in-anim">
                     <div class="tx-left">
@@ -592,19 +582,15 @@
             `;
 
             const txContainer = document.getElementById('tx-container');
-            // Quitar mensaje de vacío si existe
             if(txContainer.innerHTML.includes('No hay movimientos')) txContainer.innerHTML = '';
             
-            // Insertar de primero
             txContainer.insertAdjacentHTML('afterbegin', nuevoItemHtml);
 
-            // 4. Mostrar Éxito Inmediato al Usuario
             Swal.fire({
                 icon: 'success', title: '¡Registrado!', text: 'El saldo se actualizó al instante.', 
                 timer: 1500, showConfirmButton: false, customClass: { popup: 'swal2-premium' }
             });
 
-            // 5. Enviar al Excel silenciosamente
             document.getElementById('ui-sync-icon').classList.add('fa-spin');
             
             fetch(URL_G, { method: 'POST', body: JSON.stringify(payload) })
@@ -612,7 +598,6 @@
             .then(res => {
                 document.getElementById('ui-sync-icon').classList.remove('fa-spin');
                 if(res.status === "success") {
-                    // Cambiar el texto de "Enviando..." a "Justo ahora"
                     const recentDates = document.querySelectorAll('.tx-date');
                     if(recentDates[0].innerHTML.includes('Enviando')) {
                         recentDates[0].innerHTML = 'Hace un momento';
