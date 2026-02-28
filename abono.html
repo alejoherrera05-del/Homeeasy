@@ -768,19 +768,22 @@
             setStep(1, 'check');
             setStep(2, 'active');
 
-            var jsPDFLib = window.jspdf;
-            var pdf = new jsPDFLib.jsPDF("p", "mm", "letter"); 
-            var pdfWidth = pdf.internal.pageSize.getWidth(); 
-            var pdfHeight = pdf.internal.pageSize.getHeight();
-            var finalWidth = pdfWidth; 
-            var finalHeight = (canvas.height * pdfWidth) / canvas.width; 
-            
-            if (finalHeight > pdfHeight) {
-                finalHeight = pdfHeight;
-                finalWidth = (canvas.width * pdfHeight) / canvas.height;
-            }
-            
-            var imgData = canvas.toDataURL("image/jpeg", 1.0); 
+           var jsPDFLib = window.jspdf;
+
+// 1. Calculamos las dimensiones directamente en pixeles (px)
+var pdfWidth = canvas.width;
+var pdfHeight = canvas.height;
+
+// 2. Creamos el PDF con un formato personalizado exacto al del canvas
+var pdf = new jsPDFLib.jsPDF({
+    orientation: "p",
+    unit: "px",
+    format: [pdfWidth, pdfHeight]
+});
+
+// 3. Insertamos la imagen ocupando el 100% de la nueva hoja
+var imgData = canvas.toDataURL("image/jpeg", 1.0); 
+pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
             pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
             var pdfBase64 = pdf.output('datauristring').split(',')[1];
             var nombreArchivo = 'Recibo_N_' + nRecibo + '_OP_' + numOP + '.pdf';
@@ -881,6 +884,7 @@
 </style>
 </body>
 </html>
+
 
 
 
