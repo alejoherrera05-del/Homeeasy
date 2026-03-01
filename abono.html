@@ -292,7 +292,6 @@
     
     <div class="card-body">
 
-        <!-- DATOS DEL CLIENTE Y ORDEN -->
         <div class="row g-4 mb-4">
             <div class="col-6 position-relative">
                 <label class="label-modern">Fecha del Recibo</label>
@@ -313,7 +312,6 @@
             </div>
         </div>
 
-        <!-- HISTORIAL DE PAGOS (se llena desde el servidor) -->
         <div id="seccion_historial" style="display:none;">
             <div class="seccion-titulo"><i class="fas fa-receipt me-2"></i>Historial de Pagos</div>
             <table class="tabla-pagos">
@@ -329,7 +327,6 @@
             </table>
         </div>
 
-        <!-- ABONO ACTUAL - INPUTS -->
         <div id="inputs_abono" class="row g-4 mb-3">
             <div class="col-7">
                 <label class="label-modern">Valor de este Abono</label>
@@ -346,7 +343,6 @@
             </div>
         </div>
 
-        <!-- CAJA ABONO DESTACADO (se muestra solo en el PDF) -->
         <div id="abono_destacado" class="abono-destacado-box">
             <div class="abono-destacado-label">Abono Registrado</div>
             <div class="abono-destacado-valor" id="abono_dest_valor">$ 0</div>
@@ -354,7 +350,6 @@
             <div class="abono-destacado-recibo" id="abono_dest_recibo">—</div>
         </div>
 
-        <!-- SALDO -->
         <div class="saldo-final-container">
             <span class="saldo-final-label">Nuevo Saldo Pendiente</span>
             <span id="nuevo_saldo_val" class="saldo-final-valor">$ 0</span>
@@ -518,7 +513,6 @@
             }).catch(function(err) {
                 Swal.close();
                 console.error("Error cargando historial:", err);
-                // Si falla, seguimos con los datos del caché
             });
 
         calcularSaldo();
@@ -660,6 +654,7 @@
         var trSaldo = document.createElement('tr');
         trSaldo.innerHTML = '<td colspan="2" style="text-align:right; font-weight:800; color:var(--homeeasy-wine);">SALDO PENDIENTE</td><td style="font-weight:900; color:var(--homeeasy-wine);">' + fmtCOP(nuevoSaldoFinal) + '</td>';
         tbody.appendChild(trSaldo);
+
         // ✅ MOSTRAR LOADING PRIMERO
         var loading = document.getElementById('loading');
         loading.style.display = 'flex';
@@ -676,10 +671,9 @@
         document.getElementById('abono_destacado').style.display = 'block';
         document.getElementById('inputs_abono').style.display = 'none';
 
-               await new Promise(function(r){ setTimeout(r, 50); });
+        await new Promise(function(r){ setTimeout(r, 50); });
 
         try {
-            // FIX: CONVERTIR SELECT A TEXTO
             var selectMedio = document.getElementById('medioPago');
             var textoMedio = selectMedio.options[selectMedio.selectedIndex] ? selectMedio.options[selectMedio.selectedIndex].text : '';
             var spanReemplazo = document.createElement('span');
@@ -693,7 +687,8 @@
 
             var areaPdf = document.getElementById('area-pdf');
             
-            // FORZAR ANCHO REAL A 800px PARA QUE html2canvas MIDA BIEN LA ALTURA
+            // 🚀 CIRUGÍA: FORZAR ANCHO A TAMAÑO VOUCHER/CELULAR (450px)
+            var anchoVoucher = 450;
             var origWidth = areaPdf.style.width;
             var origMaxWidth = areaPdf.style.maxWidth;
             var origMargin = areaPdf.style.margin;
@@ -703,25 +698,23 @@
             var origBodyPadding = document.body.style.padding;
             
             document.body.style.padding = '0';
-            areaPdf.style.width = '800px';
-            areaPdf.style.maxWidth = '800px';
+            areaPdf.style.width = anchoVoucher + 'px';
+            areaPdf.style.maxWidth = anchoVoucher + 'px';
             areaPdf.style.margin = '0';
             areaPdf.style.borderRadius = '0';
             areaPdf.style.boxShadow = 'none';
             areaPdf.style.overflow = 'visible';
             
-            // Esperar a que el DOM recalcule con el nuevo ancho
             await new Promise(function(r){ setTimeout(r, 200); });
             
-            // Ahora medir la altura REAL del contenido a 800px
             var realHeight = areaPdf.scrollHeight;
 
-                       var canvas = await html2canvas(areaPdf, { 
+            var canvas = await html2canvas(areaPdf, { 
                 scale: 3, 
                 useCORS: true, 
-                width: areaPdf.scrollWidth,
+                width: anchoVoucher,
                 height: realHeight,
-                windowWidth: areaPdf.scrollWidth,
+                windowWidth: anchoVoucher,
                 scrollX: 0,
                 scrollY: -window.scrollY,
                 x: areaPdf.offsetLeft,
@@ -743,8 +736,8 @@
                 }
             });
 
-                        // RECORTAR CANVAS AL ANCHO EXACTO (elimina franja blanca)
-            var cropWidth = 800 * 3; // 800px * scale 3
+            // RECORTAR CANVAS AL ANCHO EXACTO VOUCHER (elimina franja blanca)
+            var cropWidth = anchoVoucher * 3; 
             var cropCanvas = document.createElement('canvas');
             cropCanvas.width = cropWidth;
             cropCanvas.height = canvas.height;
@@ -768,25 +761,25 @@
             setStep(1, 'check');
             setStep(2, 'active');
 
-           var jsPDFLib = window.jspdf;
+            var jsPDFLib = window.jspdf;
 
-// 1. Calculamos las dimensiones directamente en pixeles (px)
-var pdfWidth = canvas.width;
-var pdfHeight = canvas.height;
+            // 1. Calculamos las dimensiones directamente en pixeles (px)
+            var pdfWidth = canvas.width;
+            var pdfHeight = canvas.height;
 
-// 2. Creamos el PDF con un formato personalizado exacto al del canvas
-var pdf = new jsPDFLib.jsPDF({
-    orientation: "p",
-    unit: "px",
-    format: [pdfWidth, pdfHeight]
-});
+            // 2. Creamos el PDF con un formato personalizado exacto al del canvas (Formato Voucher)
+            var pdf = new jsPDFLib.jsPDF({
+                orientation: "p",
+                unit: "px",
+                format: [pdfWidth, pdfHeight]
+            });
 
-// 3. Insertamos la imagen ocupando el 100% de la nueva hoja
-var imgData = canvas.toDataURL("image/jpeg", 1.0); 
-pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+            // 3. Insertamos la imagen (¡Corregido el error de la línea duplicada!)
+            var imgData = canvas.toDataURL("image/jpeg", 1.0); 
+            pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
 
-var pdfBase64 = pdf.output('datauristring').split(',')[1];
-var nombreArchivo = 'Recibo_N_' + nRecibo + '_OP_' + numOP + '.pdf';
+            var pdfBase64 = pdf.output('datauristring').split(',')[1];
+            var nombreArchivo = 'Recibo_N_' + nRecibo + '_OP_' + numOP + '.pdf';
 
             setStep(2, 'check');
             setStep(3, 'active');
@@ -884,11 +877,3 @@ var nombreArchivo = 'Recibo_N_' + nRecibo + '_OP_' + numOP + '.pdf';
 </style>
 </body>
 </html>
-
-
-
-
-
-
-
-
