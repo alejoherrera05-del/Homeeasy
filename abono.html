@@ -784,9 +784,9 @@ var pdf = new jsPDFLib.jsPDF({
 // 3. Insertamos la imagen ocupando el 100% de la nueva hoja
 var imgData = canvas.toDataURL("image/jpeg", 1.0); 
 pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-            pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
-            var pdfBase64 = pdf.output('datauristring').split(',')[1];
-            var nombreArchivo = 'Recibo_N_' + nRecibo + '_OP_' + numOP + '.pdf';
+
+var pdfBase64 = pdf.output('datauristring').split(',')[1];
+var nombreArchivo = 'Recibo_N_' + nRecibo + '_OP_' + numOP + '.pdf';
 
             setStep(2, 'check');
             setStep(3, 'active');
@@ -884,6 +884,7 @@ pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
 </style>
 </body>
 </html>
+
 
 
 
