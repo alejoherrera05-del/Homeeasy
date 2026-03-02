@@ -21,7 +21,7 @@ CORS(app)
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 ELEVENLABS_API_KEY = "sk_df189c9862dd11f5bc6ae7906ce7087891542ff5de41e472"
-VOICE_ID = "YTXAg5s9ZonOv6JuXFXV"
+VOICE_ID = "YTXAg5s9ZonOv6JuXFXV" # <-- ¡VOZ CORREGIDA!
 
 # =====================================================================
 # FUNCIONES DE SOPORTE E INFRAESTRUCTURA
@@ -52,7 +52,7 @@ def limpiar_memoria_segura(historial, limite=35):
 # CARGA DE LA BASE DE DATOS (CEREBRO Y TARIFAS)
 # =====================================================================
 print("=" * 70)
-print("  Iniciando Servidor Hommy Pro (Versión TITANIO + Enciclopedia Pentagrama)...")
+print("  Iniciando Servidor Hommy Pro (Versión DIOS ABSOLUTO)...")
 print("=" * 70)
 
 db_tarifas = []
@@ -91,27 +91,28 @@ MANUAL_PENTAGRAMA = {
 # PERSONALIDAD Y REGLAS DE NEGOCIO (EL MEGA-PROMPT)
 # =====================================================================
 reglas_hommy = [
-    "Eres Hommy, el asistente virtual, VENDEDOR EXPERTO y MENTOR de nuevos asesores en HomeEasy Popayán.",
-    "Tu misión es cotizar con precisión matemática, pero también FORMAR y ASESORAR a cualquier persona del equipo que hable contigo. Tu tono es dulce, entusiasta, experto en diseño de interiores y muy pedagógico.",
+    "Eres Hommy, un robotsito asistente, medio torpe y gracioso, pero a la vez un VENDEDOR EXPERTO, analista de datos y MENTOR en HomeEasy Popayán.",
+    "Siempre llamas al usuario 'Jefe'. Hablas natural, como un amigo cercano y muy gentil.",
+    "Tu misión es cotizar con precisión matemática, pero también FORMAR y ASESORAR a cualquier persona del equipo que hable contigo.",
     "REGLA MAXIMA: JAMAS inventes datos, nombres, telefonos, ventas o precios.",
     f"FECHA ACTUAL DEL SISTEMA: {cerebro.fecha_hoy}.",
     
     "--- 1. REGLAS DE ATENCIÓN Y FORMATO ---",
-    "ACTITUD: Usa expresiones muy cálidas ('¡Claro que sí, Jefe!', '¡Uy, te cuento que...', '¡Con mucho gusto!'). Si un asesor te pide ayuda para un cliente, asume el rol de experto y guíalo paso a paso.",
+    "ACTITUD: Usa expresiones muy cálidas ('¡Claro que sí, Jefe!', '¡Uy, te cuento que...', '¡Con mucho gusto!').",
     "FORMATO FINANCIERO OBLIGATORIO: Cuando des una cifra de dinero, DEBES escribirla SIEMPRE en palabras completas (pesos colombianos) seguidas del número entre paréntesis. Ejemplo EXACTO: '¡Claro, Jefe! Llevamos cuatro millones ochocientos mil pesos ($4.800.000)'.",
-    "REGLA DE TOTALES: Si te preguntan '¿cuánto hemos vendido?', respóndele ÚNICAMENTE con la cifra total. PROHIBIDO dictar listas largas de OPs a menos que te pidan 'el detalle'.",
     "PRIVACIDAD: De los clientes, muestra SOLO: Nombre, Cédula, Teléfono, Email y Dirección.",
     "DOCUMENTOS: Siempre entrega los enlaces PDF usando formato Markdown exacto: [Ver Documento](URL).",
+    "ANÁLISIS E INSIGHTS: Si el Jefe te pide un reporte o análisis de ventas, NO le des solo números fríos. Analiza la info y dale 'Insights' (cuál fue la mejor venta, comparaciones, qué días se vende más, etc).",
     
     "--- 2. CONSEJOS BÁSICOS DE DISEÑO ---",
     "ESTÁNDAR (SIN CABEZAL): Es la opción más económica. Advierte al asesor que el tubo de aluminio y el rollo de tela quedan a la vista.",
     "CABEZALES DE LUJO: Explica que sirven para ocultar el tubo. COVERLIGHT es plano/minimalista; CENEFA DE ALUMINIO es curva; BINOVO/PENTA13 son exclusivos para Sheer Elegance.",
     "REGLA DE HABITACIONES (BLACKOUT): ACONSEJA AL ASESOR: 'Recuérdale al cliente que por los bordes laterales siempre entrará un halo de luz. Para evitar que la luz entre por arriba, véndele la cortina con un cabezal'.",
     "PLAN RENUEVA: Si el cliente ya tiene las persianas Pentagrama instaladas y solo quiere cambiar la decoración, ofrécele el plan 'Renueva' (usa solo_tela_renueva=True) donde solo cobramos la tela.",
-    "MÁS INFO TÉCNICA: Si el asesor te hace preguntas profundas sobre motores, limpieza, recogida de paneles, uniones o garantías, usa SIEMPRE la herramienta 'consultar_manual_pentagrama' para obtener la respuesta oficial.",
+    "MÁS INFO TÉCNICA: Si el asesor te hace preguntas profundas sobre motores, limpieza, recogida o garantías, usa la herramienta 'consultar_manual_pentagrama'.",
 
     "--- 3. MOTOR INTELIGENTE DE COTIZACIONES ---",
-    "HERRAMIENTA OBLIGATORIA: Usa SIEMPRE 'cotizar_producto'. Al Total con IVA que te arroje la herramienta, DEBES sumarle SIEMPRE $50.000 fijos de transporte logístico antes de darle la cifra al Jefe.",
+    "HERRAMIENTA OBLIGATORIA: Usa SIEMPRE 'cotizar_producto'. Al Total con IVA que te arroje la herramienta, DEBES sumarle SIEMPRE $50.000 fijos de transporte logístico antes de darle la cifra final al Jefe.",
     "BÚSQUEDA PROACTIVA: Si te dicen 'un cliente quiere algo económico para su habitación', tú razonas: Habitación = Blackout. Económico = Buscar Blackout económico. Usas 'consultar_catalogo' y le das las 3 mejores opciones."
 ]
 prompt_base = " ".join(reglas_hommy)
@@ -119,7 +120,7 @@ prompt_base = " ".join(reglas_hommy)
 historial_global = [{"role": "system", "content": prompt_base}]
 
 # =====================================================================
-# ARSENAL DE HERRAMIENTAS DE INTELIGENCIA (COMPLETO Y EXPANDIDO)
+# ARSENAL DE HERRAMIENTAS (¡EL MÁS COMPLETO!)
 # =====================================================================
 herramientas_hommy = [
     {
@@ -149,6 +150,14 @@ herramientas_hommy = [
     {
         "type": "function",
         "function": {
+            "name": "obtener_resumen_general",
+            "description": "Muestra las estadísticas generales del negocio (cantidad total de clientes, cotizaciones y OPs en el sistema).",
+            "parameters": {"type": "object", "properties": {}}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "listar_cotizaciones",
             "description": "Muestra una lista general de todas las cotizaciones del sistema.",
             "parameters": {"type": "object", "properties": {}}
@@ -166,7 +175,7 @@ herramientas_hommy = [
         "type": "function",
         "function": {
             "name": "generar_reporte_ventas",
-            "description": "Calcula el total de ventas en un rango de tiempo.",
+            "description": "Calcula el total de ventas en un rango de tiempo. Usar para hacer análisis y dar insights.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -185,7 +194,6 @@ herramientas_hommy = [
             "parameters": {"type": "object", "properties": {"numero_op": {"type": "string"}}, "required": ["numero_op"]}
         }
     },
-    # --- HERRAMIENTAS EXPERTAS DE VENTAS Y MENTORÍA ---
     {
         "type": "function",
         "function": {
@@ -292,7 +300,7 @@ def chat_endpoint():
                     if ops:
                         resultado_busqueda = "OPs con saldo pendiente:\n" + "\n".join([f"OP-{op['numero']} | {op['nombre']} | Saldo: {op['saldo']}" for op in ops])
                     else:
-                        resultado_busqueda = "Todos los clientes están al día, cero deudas."
+                        resultado_busqueda = "Excelente noticia, Jefe. Todos los clientes están al día, cero deudas."
 
                 elif nombre_funcion == "consultar_agenda":
                     fecha_consulta = argumentos.get("fecha")
@@ -301,6 +309,9 @@ def chat_endpoint():
                         resultado_busqueda = f"Agenda {fecha_consulta}:\n" + "\n".join([f"{t['hora']} - {t['titulo']} ({t['cliente']}) [Estado: {t['estado']}]" for t in tareas])
                     else:
                         resultado_busqueda = "No hay eventos programados para esa fecha."
+
+                elif nombre_funcion == "obtener_resumen_general":
+                    resultado_busqueda = f"Hay {len(cerebro.db_clientes)} clientes, {len(cerebro.db_cotizaciones)} cotizaciones y {len(cerebro.db_ordenes)} OPs en el sistema."
 
                 elif nombre_funcion == "listar_cotizaciones":
                     if cerebro.db_cotizaciones:
@@ -386,9 +397,6 @@ def chat_endpoint():
                     sys_req = argumentos.get("sistema", "").lower()
                     tela_req = argumentos.get("tela", "").lower()
                     
-                    # ---------------------------------------------------------
-                    # 🛟 SALVAVIDAS MATEMÁTICO: Conversión Inteligente cm a Metros
-                    # ---------------------------------------------------------
                     ancho_crudo = float(argumentos.get("ancho", 0))
                     alto_crudo = float(argumentos.get("alto", 0))
                     
@@ -414,7 +422,6 @@ def chat_endpoint():
                     if not producto_encontrado:
                         resultado_busqueda = "ERROR TÉCNICO: No encontré esa tela exacta en la base de datos de Tarifas. Pídele al Jefe que revise el nombre o búscalo en el catálogo."
                     else:
-                        # Extraer variables y aplicar lógica de cabezal/Renueva
                         precio_base_m2 = float(producto_encontrado.get("Precio_M2", 0))
                         recargo_txt = str(producto_encontrado.get("Recargos_Mecanismo", "Ninguno"))
                         
@@ -432,7 +439,6 @@ def chat_endpoint():
                             except:
                                 pass
 
-                        # Matemáticas de Mínimos de Cobro Pentagrama
                         min_m2 = float(producto_encontrado.get("Cobro_Min_M2", 0))
                         min_alto = float(producto_encontrado.get("Cobro_Min_Alto", 0))
                         alto_max = float(producto_encontrado.get("Alto_Maximo", 99))
@@ -442,18 +448,13 @@ def chat_endpoint():
                         area_a_cobrar = max(ancho * alto_a_cobrar, min_m2)
                         subtotal_material = area_a_cobrar * precio_base_m2 * cant
                         
-                        # Costos de Instalación Hommy
                         costo_inst_unitario = 50000 if "onda" in sys_req else 30000
                         total_instalacion = costo_inst_unitario * cant
                         
-                        # Impuestos
                         subtotal_sin_iva = subtotal_material + total_instalacion
                         iva = subtotal_sin_iva * 0.19
                         total_con_iva = subtotal_sin_iva + iva
                         
-                        # ---------------------------------------------------------
-                        # 🚨 MOTOR DE ALERTAS TÉCNICAS Y CONSEJOS 
-                        # ---------------------------------------------------------
                         alertas = []
                         if ancho > ancho_max: 
                             alertas.append(f"¡ALERTA ROJA! El ancho ({ancho}m) supera el ancho del rollo de tela ({ancho_max}m). Es FÍSICAMENTE IMPOSIBLE hacerla en una sola pieza. Debes aconsejarle al Jefe que la divida en dos partes por seguridad.")
@@ -488,7 +489,6 @@ def chat_endpoint():
                     
                     resultados_crudos = []
                     
-                    # Filtro 1: Exacto
                     for p in db_tarifas:
                         match = True
                         if sys_req and sys_req not in str(p.get("Sistema", "")).lower(): match = False
@@ -496,7 +496,6 @@ def chat_endpoint():
                         if etiq_req and etiq_req not in str(p.get("Etiqueta_Venta", "")).lower(): match = False
                         if match: resultados_crudos.append(p)
                     
-                    # Filtro 2 (Respaldo inteligente)
                     if not resultados_crudos and etiq_req:
                         for p in db_tarifas:
                             match = True
@@ -592,6 +591,4 @@ if __name__ == '__main__':
     print("=" * 70)
     print("  [OK] Servidor escuchando en: http://127.0.0.1:5000")
     print("=" * 70)
-
     app.run(debug=False, port=5000)
-
