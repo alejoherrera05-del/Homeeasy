@@ -29,7 +29,6 @@
             background-color: var(--app-bg); 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             margin: 0; padding: 0;
-            /* Soporte dinámico para Safari iOS (elimina la franja) */
             height: 100vh; height: 100dvh; 
             overflow: hidden; 
             -webkit-font-smoothing: antialiased;
@@ -61,7 +60,7 @@
         .hommy-avatar { 
             width: 48px; height: 48px; background: white; border-radius: 50%; 
             padding: 2px; border: 2px solid var(--homeeasy-gold); 
-            object-fit: cover; object-position: top center; /* Ajusta la cara */
+            object-fit: contain; object-position: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         
@@ -89,7 +88,6 @@
         /* --- ZONA DE CHAT --- */
         .chat-body {
             height: 100%; overflow-y: auto; scroll-behavior: smooth;
-            /* Mayor padding superior para iOS, evita que el mensaje se corte */
             padding: calc(100px + env(safe-area-inset-top)) 20px calc(100px + env(safe-area-inset-bottom)) 20px; 
             display: flex; flex-direction: column; gap: 18px;
             background-image: radial-gradient(rgba(166, 69, 90, 0.05) 1.5px, transparent 1.5px); 
@@ -180,7 +178,7 @@
             opacity: 0; transition: opacity 0.3s ease;
         }
         #profile-viewer.active { display: flex; opacity: 1; }
-        .profile-img-large { width: 85%; max-width: 400px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); object-fit: cover; }
+        .profile-img-large { width: 85%; max-width: 400px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); object-fit: contain; }
         .btn-close-profile { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; background: rgba(255,255,255,0.2); border: none; color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(5px); }
 
         /* ==========================================
@@ -195,14 +193,14 @@
         }
         #call-screen.active { opacity: 1; visibility: visible; }
 
-        .call-header { text-align: center; color: white; width: 100%; }
+        .call-header { text-align: center; color: white; width: 100%; pointer-events: none; }
         .call-badge { font-size: 0.75rem; color: var(--homeeasy-gold); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 8px;}
         .call-badge i { font-size: 0.6rem; }
         .call-name { font-size: 2.2rem; font-weight: 800; margin: 0 0 8px 0; letter-spacing: 1px; }
         .call-status { font-size: 1.05rem; color: rgba(255,255,255,0.7); font-weight: 400; letter-spacing: 0.5px; }
 
-        .call-avatar-container { position: relative; margin: 40px 0; display: flex; justify-content: center; align-items: center; }
-        .call-avatar { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; object-position: top center; background: white; padding: 4px; border: 4px solid var(--homeeasy-gold); z-index: 10; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        .call-avatar-container { position: relative; margin: 40px 0; display: flex; justify-content: center; align-items: center; pointer-events: none;}
+        .call-avatar { width: 160px; height: 160px; border-radius: 50%; object-fit: contain; object-position: center; background: white; padding: 4px; border: 4px solid var(--homeeasy-gold); z-index: 10; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
         
         .pulse-ring {
             position: absolute; width: 160px; height: 160px; border-radius: 50%;
@@ -214,7 +212,7 @@
         
         @keyframes pulse-call { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
 
-        .waves-container { display: flex; align-items: center; justify-content: center; gap: 8px; height: 90px; margin-bottom: 30px; }
+        .waves-container { display: flex; align-items: center; justify-content: center; gap: 8px; height: 90px; margin-bottom: 30px; pointer-events: none;}
         .wave-bar { width: 7px; background: var(--homeeasy-gold); border-radius: 10px; transition: height 0.2s ease; height: 10px; }
 
         .waves-idle .wave-bar { height: 10px; opacity: 0.4; }
@@ -240,6 +238,7 @@
             background: linear-gradient(135deg, #ff3b30, #d32f2f); color: white; font-size: 2.2rem;
             display: flex; justify-content: center; align-items: center;
             box-shadow: 0 12px 30px rgba(255, 59, 48, 0.4); cursor: pointer; transition: all 0.3s;
+            position: relative; z-index: 20;
         }
         .btn-end-call:hover { transform: translateY(-3px); }
         .btn-end-call:active { transform: scale(0.9); }
@@ -252,6 +251,12 @@
         .pdf-viewer-header { padding: calc(env(safe-area-inset-top) + 15px) 20px 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.6); color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .btn-close-pdf { background: rgba(255,255,255,0.15); border: none; color: white; width: 38px; height: 38px; border-radius: 19px; display: flex; justify-content: center; align-items: center; transition: all 0.2s; cursor: pointer; }
         #pdf-iframe { flex: 1; width: 100%; border: none; background: white; border-radius: 10px 10px 0 0; margin-top: 10px; }
+        
+        /* Hint visual de toque para descongelar */
+        .tap-hint {
+            color: rgba(255,255,255,0.4); font-size: 0.8rem; text-align: center; margin-top: 20px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -303,10 +308,10 @@
 
     <div id="profile-viewer">
         <button class="btn-close-profile" onclick="cerrarFotoPerfil()"><i class="fas fa-times"></i></button>
-        <img src="hommycompleto.png" class="profile-img-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712035.png'">
+        <img src="hommyperfil.png" class="profile-img-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712035.png'">
     </div>
 
-    <div id="call-screen">
+    <div id="call-screen" onclick="descongelarMicrofono()">
         <div class="call-header">
             <div class="call-badge"><i class="fas fa-shield-alt"></i> IA Encriptada</div>
             <h2 class="call-name">Hommy</h2>
@@ -316,14 +321,16 @@
         <div class="call-avatar-container">
             <div class="pulse-ring" id="pulse-1"></div>
             <div class="pulse-ring" id="pulse-2"></div>
-            <img src="hommycompleto.png" class="call-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712035.png'">
+            <img src="hommyperfil.png" class="call-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712035.png'">
         </div>
 
         <div class="waves-container waves-idle" id="wave-container">
             <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
         </div>
 
-        <button class="btn-end-call" onclick="colgarLlamada()">
+        <div class="tap-hint">Si Hommy no te escucha, toca cualquier parte de la pantalla negra</div>
+
+        <button class="btn-end-call" onclick="colgarLlamada(); event.stopPropagation();">
             <i class="fas fa-phone-slash"></i>
         </button>
     </div>
@@ -388,18 +395,43 @@
             recognition.onend = function() {
                 if(!isCallActive) return;
                 const status = document.getElementById('call-status').innerText;
-                if(status.includes("Escuchando") || status.includes("Habla ahora")) {
-                    try { recognition.start(); } catch(e) {}
+                if(status.includes("Escuchando") || status.includes("Habla ahora") || status.includes("Fallo")) {
+                    // Agregado un micro-respiro de 300ms para evitar bloqueos del navegador en iOS
+                    setTimeout(() => {
+                        if(isCallActive && (document.getElementById('call-status').innerText.includes("Escuchando") || document.getElementById('call-status').innerText.includes("Habla ahora"))) {
+                            try { recognition.start(); } catch(e) {}
+                        }
+                    }, 300); 
                 }
             };
             
             recognition.onerror = function(event) {
+                console.log("Micrófono detectó un evento:", event.error);
                 if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
                     actualizarUI_Llamada("Error: Micrófono bloqueado", "waves-idle", false);
-                } else if (event.error === 'no-speech' && isCallActive) {
-                    try { recognition.start(); } catch(e) {}
+                } else if (event.error === 'network') {
+                    actualizarUI_Llamada("Fallo de red. Toca la pantalla.", "waves-idle", false);
                 }
             };
+        }
+
+        // FUNCION NUEVA: Descongelador Manual (Se activa tocando la pantalla negra)
+        function descongelarMicrofono() {
+            if(!isCallActive) return;
+            const status = document.getElementById('call-status').innerText;
+            
+            if(status.includes("Escuchando") || status.includes("Habla ahora") || status.includes("Toca la pantalla")) {
+                actualizarUI_Llamada("Reiniciando micrófono...", "waves-idle", false);
+                try { recognition.abort(); } catch(e) {}
+                
+                setTimeout(() => {
+                    if(isCallActive) {
+                        actualizarUI_Llamada("Habla ahora...", "waves-listening", true);
+                        try { recognition.start(); } catch(e) {}
+                    }
+                }, 400);
+                triggerHaptic('send');
+            }
         }
 
         function iniciarLlamada() {
@@ -409,10 +441,9 @@
             document.getElementById('call-screen').classList.add('active');
             actualizarUI_Llamada("Conectando con Hommy...", "waves-idle", false);
 
-            // 🛑 TRUCO PARA iOS: Desbloqueamos el audio inicializando un sonido vacío con la interacción del usuario
             if(!currentAudio) {
-                currentAudio = new Audio();
-                currentAudio.play().catch(e => console.log("Audio unlock:", e));
+                currentAudio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU5LjI3LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIwADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD//OEExAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//OEExPQAAAANIAAAAAKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
+                currentAudio.play().then(() => { currentAudio.pause(); }).catch(e => console.log("Audio unlock:", e));
             }
 
             setTimeout(() => {
@@ -427,7 +458,9 @@
             triggerHaptic('send');
             isCallActive = false;
             document.getElementById('call-screen').classList.remove('active');
-            if(recognition) recognition.stop();
+            if(recognition) {
+                try { recognition.stop(); } catch(e){}
+            }
             if(currentAudio) { currentAudio.pause(); }
         }
 
@@ -460,18 +493,21 @@
 
                 if(ttsData.audio) {
                     actualizarUI_Llamada("Hommy hablando...", "waves-speaking", true);
-                    // Usamos la instancia de audio que ya desbloqueamos en iOS
                     currentAudio.src = "data:audio/mp3;base64," + ttsData.audio;
                     currentAudio.play();
                     currentAudio.onended = () => {
                         if(isCallActive) {
                             actualizarUI_Llamada("Escuchando...", "waves-listening", true);
-                            try { recognition.start(); } catch(e) {}
+                            setTimeout(() => {
+                                try { recognition.start(); } catch(e) {}
+                            }, 300);
                         }
                     };
                 } else {
                     actualizarUI_Llamada("Escuchando...", "waves-listening", true);
-                    try { recognition.start(); } catch(e) {}
+                    setTimeout(() => {
+                        try { recognition.start(); } catch(e) {}
+                    }, 300);
                 }
             } catch (error) {
                 if(isCallActive) {
@@ -564,4 +600,3 @@
     </script>
 </body>
 </html>
-
