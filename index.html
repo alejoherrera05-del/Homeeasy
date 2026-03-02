@@ -21,9 +21,9 @@
 
 <style>
 :root {
-    --home-red: #a6455a;     /* NUEVO VINOTINTO */
-    --home-yellow: #c2a468;  /* NUEVO DORADO PREMIUM */
-    --brand-dark: #823646;   /* Fondo oscuro ajustado al nuevo vinotinto */
+    --home-red: #a6455a;     
+    --home-yellow: #c2a468;  
+    --brand-dark: #823646;   
     --menu-bg: #f8f9fa; 
     
     --glass-bg: rgba(255,255,255,0.12);
@@ -77,7 +77,7 @@ body {
     padding: 25px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,.25);
 }
 .status-pill { display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.2); padding:10px 18px; border-radius:40px; margin-bottom:15px; font-size: 0.9rem; font-weight: 600;}
-.dot-spinner { width:10px; height:10px; background:var(--home-yellow); border-radius:50%; margin-right:10px; animation:pulse 1.5s infinite; }
+.dot-spinner { width:10px; height:10px; background:var(--home-yellow); border-radius:50%; margin-right:10px; animation:pulse 1.5s infinite; transform: translate3d(0,0,0); }
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.4} }
 .bar-container { width:100%; height:4px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden; }
 .bar-fill { height:100%; width:0%; background:var(--home-yellow); transition:width 1s ease-in-out; }
@@ -96,6 +96,7 @@ body {
 .bell-container {
     position: relative; cursor: pointer; background: white; width: 45px; height: 45px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transform: translate3d(0,0,0); -webkit-transform: translate3d(0,0,0); /* Anti-parpadeo de campana */
 }
 .bell-container i { font-size: 22px; color: var(--home-red); transition: color 0.3s; }
 .notification-badge {
@@ -103,7 +104,7 @@ body {
     width: 18px; height: 18px; border-radius: 50%; display: none; align-items: center; justify-content: center; border: 2px solid #fff;
 }
 @keyframes ring { 0% { transform: rotate(0); } 10% { transform: rotate(15deg); } 20% { transform: rotate(-10deg); } 30% { transform: rotate(10deg); } 40% { transform: rotate(-10deg); } 50% { transform: rotate(0); } 100% { transform: rotate(0); } }
-.ringing { animation: ring 2s infinite; color: var(--home-yellow) !important; }
+.ringing { animation: ring 2s infinite; color: var(--home-yellow) !important; transform-origin: top center; will-change: transform;}
 
 .glass-bubble {
     display: none; position: absolute; top: 55px; right: 0px; width: 260px; max-height: 350px; overflow-y: auto;
@@ -133,14 +134,68 @@ body {
 .header-container { margin-bottom: 40px; }
 .logo-img { width: 180px; display: block; margin: 0 auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); }
 
-.status-online { 
-    display: inline-flex; align-items: center; justify-content: center; margin-top: 15px; padding: 6px 14px; 
-    border-radius: 50px; background: rgba(46, 204, 113, 0.08); border: 1px solid rgba(46, 204, 113, 0.2);
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; color: #27ae60; 
+/* --- NUEVA BARRA IA HOMMY (BLINDADA CONTRA PARPADEO) --- */
+.hommy-ai-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid rgba(194, 164, 104, 0.4); 
+    border-radius: 50px;
+    padding: 10px 12px 10px 20px;
+    margin: 25px auto 0 auto;
+    width: 90%; max-width: 320px;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    /* 1. Transición específica, no "all" */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    /* 2. Jaula de Cristal (Evita repintado general) */
+    transform: translate3d(0,0,0); 
+    -webkit-transform: translate3d(0,0,0);
+    contain: content; 
 }
-.pulse-green { width: 6px; height: 6px; background: #2ecc71; border-radius: 50%; margin-right: 8px; position: relative; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
-.pulse-green::after { content: ""; position: absolute; width: 100%; height: 100%; background: #2ecc71; border-radius: 50%; animation: premium-pulse 2s infinite; }
-@keyframes premium-pulse{ 0%{transform:scale(1);opacity:.8} 100%{transform:scale(2.5);opacity:0} }
+
+.hommy-ai-bar:active {
+    transform: scale(0.96) translate3d(0,0,0); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.ai-bar-left { display: flex; align-items: center; gap: 12px; }
+
+.ai-bar-text { 
+    font-size: 0.9rem; font-weight: 500; color: #95a5a6; 
+    letter-spacing: 0.3px;
+}
+
+.ai-bar-right {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--home-red), var(--brand-dark));
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    color: white;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 10px rgba(166, 69, 90, 0.3);
+}
+
+/* 🛡️ EL PUNTITO VERDE (AISLADO EN GPU) */
+.pulse-green { 
+    width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; 
+    position: relative; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); 
+    flex-shrink: 0;
+    transform: translate3d(0,0,0); 
+    -webkit-transform: translate3d(0,0,0);
+}
+.pulse-green::after { 
+    content: ""; position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; background: #2ecc71; border-radius: 50%; 
+    animation: premium-pulse 2s infinite cubic-bezier(0.25, 1, 0.5, 1); 
+    transform: translate3d(0,0,0); 
+    -webkit-transform: translate3d(0,0,0);
+    will-change: transform, opacity;
+}
+@keyframes premium-pulse{ 
+    0% { transform: scale(1) translate3d(0,0,0); opacity: .8; } 
+    100% { transform: scale(2.8) translate3d(0,0,0); opacity: 0; } 
+}
 
 /* --- CONTENEDOR DE TARJETAS --- */
 .cards-wrapper {
@@ -319,10 +374,16 @@ body {
             
             <div class="header-container">
                 <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy Logo" onerror="this.src='triangulo.png'; this.style.width='80px'">
-                <div class="status-online">
-                    <div class="pulse-green"></div>
-                    HOMMY | ONLINE
-                </div>
+                
+                <a href="Hommychat.html" class="hommy-ai-bar">
+                    <div class="ai-bar-left">
+                        <div class="pulse-green"></div>
+                        <span class="ai-bar-text">Pregúntale a Hommy...</span>
+                    </div>
+                    <div class="ai-bar-right">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                </a>
             </div>
 
             <div class="cards-wrapper">
@@ -416,6 +477,18 @@ body {
 </div>
 
 <script>
+
+
+    <script>
+
+        
+// ==========================================
+// ⚡ DESPERTADOR DE HOMMY (PRE-WARMING)
+// ==========================================
+// Le damos un "toque" silencioso al servidor en Render para que encienda los motores
+// en segundo plano mientras el usuario está en el menú principal.
+fetch("https://homeeasy-l5n1.onrender.com/", { mode: 'no-cors' }).catch(() => {});
+
 // ==========================================
 // 🚨 FUNCIONES DE LAS VENTANAS BONITAS
 // ==========================================
@@ -634,7 +707,7 @@ document.addEventListener("DOMContentLoaded", function() {
             startY = e.touches[0].clientY;
             currentY = startY;
             isDragging = true;
-            sheet.style.transition = 'none'; // Quitamos la animación para que siga al dedo
+            sheet.style.transition = 'none'; 
         }, {passive: true});
 
         sheet.addEventListener('touchmove', (e) => {
@@ -642,7 +715,6 @@ document.addEventListener("DOMContentLoaded", function() {
             currentY = e.touches[0].clientY;
             let deltaY = currentY - startY;
             
-            // Solo permitimos arrastrar hacia abajo
             if (deltaY > 0) {
                 sheet.style.transform = `translateY(${deltaY}px)`;
             }
@@ -653,11 +725,9 @@ document.addEventListener("DOMContentLoaded", function() {
             isDragging = false;
             let deltaY = currentY - startY;
             
-            // Devolvemos la animación original
             sheet.style.transition = ''; 
             sheet.style.transform = ''; 
             
-            // Si deslizó más de 80 píxeles hacia abajo, cerramos la ventana
             if (deltaY > 80) {
                 const overlayId = sheet.parentElement.id;
                 closeSheet(overlayId);
