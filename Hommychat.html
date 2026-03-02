@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hommy | Asistente IA Premium</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        :root { 
+            --homeeasy-wine: #a6455a;  
+            --homeeasy-wine-dark: #823445;
+            --homeeasy-gold: #c2a468;  
+            --homeeasy-gold-light: #e0cca0;
+            --app-bg: #f4f5f7;
+            --text-dark: #2c3e50;
+        }
+        
+        /* Ocultar barra de scroll fea de Windows/Chrome y hacerla Premium */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(166, 69, 90, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(166, 69, 90, 0.5); }
+
+        body, html { 
+            background-color: var(--app-bg); 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            margin: 0; padding: 0;
+            height: 100%; overflow: hidden; 
+            -webkit-font-smoothing: antialiased;
+            color: var(--text-dark);
+        }
+
+        /* Contenedor principal sin Flex para permitir elementos flotantes */
+        .chat-container {
+            display: block; height: 100vh; height: 100dvh; 
+            max-width: 600px; margin: 0 auto; background: var(--app-bg); 
+            box-shadow: 0 0 40px rgba(0,0,0,0.08); position: relative;
+            overflow: hidden;
+        }
+
+        /* --- CABECERA GLASSMORPHISM FLOTANTE --- */
+        .chat-header {
+            position: absolute; top: 0; left: 0; width: 100%;
+            background: rgba(166, 69, 90, 0.85); /* Más transparente para que se note el cristal */
+            backdrop-filter: saturate(180%) blur(20px); 
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            padding: calc(15px + env(safe-area-inset-top)) 20px 15px;
+            display: flex; align-items: center; justify-content: space-between; color: white; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header-profile { display: flex; align-items: center; gap: 14px; }
+        
+        .hommy-avatar { 
+            width: 48px; height: 48px; background: white; border-radius: 50%; 
+            padding: 2px; border: 2px solid var(--homeeasy-gold); object-fit: cover; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .hommy-info h2 { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .status-online { font-size: 0.75rem; color: rgba(255,255,255,0.95); font-weight: 600; display: flex; align-items: center; gap: 6px; margin-top: 3px; letter-spacing: 0.2px; }
+        .status-dot { width: 8px; height: 8px; background-color: #f1c40f; border-radius: 50%; transition: all 0.3s ease; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+        
+        .header-actions { display: flex; align-items: center; gap: 12px; }
+        
+        /* Botón de llamada pulsante para invitar a tocarlo */
+        .btn-call-header { 
+            color: white; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); 
+            font-size: 1.1rem; width: 42px; height: 42px; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            animation: pulse-light 2s infinite;
+        }
+        @keyframes pulse-light {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+        .btn-call-header:active { background: white; color: var(--homeeasy-wine); transform: scale(0.9); animation: none; }
+        
+        .btn-close-chat { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 1.3rem; display: flex; justify-content: center; align-items: center; transition: all 0.2s; padding: 5px; }
+        .btn-close-chat:hover { color: white; }
+        .btn-close-chat:active { transform: scale(0.9); }
+        
+        /* --- ZONA DE CHAT (POR DEBAJO DEL CRISTAL) --- */
+        .chat-body {
+            height: 100%; overflow-y: auto; scroll-behavior: smooth;
+            padding: 100px 20px 110px 20px; /* Padding para que no se oculte tras el header/footer */
+            display: flex; flex-direction: column; gap: 18px;
+            background-image: radial-gradient(rgba(166, 69, 90, 0.05) 1.5px, transparent 1.5px); 
+            background-size: 24px 24px;
+        }
+
+        /* Burbuja del Jefe: Gradiente premium */
+        .msg-jefe { 
+            align-self: flex-end; 
+            background: linear-gradient(135deg, var(--homeeasy-wine), var(--homeeasy-wine-dark)); 
+            color: white; padding: 14px 20px; border-radius: 20px 20px 4px 20px; 
+            max-width: 82%; font-size: 0.95rem; line-height: 1.45; 
+            box-shadow: 0 4px 15px rgba(166, 69, 90, 0.25); 
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            letter-spacing: 0.2px;
+        }
+
+        /* Burbuja de Hommy: Sombra suave y bordes redondeados orgánicos */
+        .msg-hommy { 
+            align-self: flex-start; background-color: white; color: var(--text-dark); 
+            padding: 16px 22px; border-radius: 20px 20px 20px 4px; max-width: 88%; 
+            font-size: 0.95rem; line-height: 1.6; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.04); 
+            border-left: 4px solid var(--homeeasy-gold); 
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        
+        /* ESTILOS DE LECTURA PREMIUM PARA MARKDOWN (Títulos, Listas, Negritas) */
+        .msg-hommy h1, .msg-hommy h2, .msg-hommy h3 { margin-top: 18px; margin-bottom: 10px; color: var(--homeeasy-wine); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.2px; }
+        .msg-hommy h3:first-child { margin-top: 0; }
+        .msg-hommy ul { padding-left: 20px; margin-bottom: 12px; }
+        .msg-hommy li { margin-bottom: 6px; }
+        .msg-hommy li::marker { color: var(--homeeasy-gold); } 
+        .msg-hommy p { margin-bottom: 12px; }
+        .msg-hommy p:last-child { margin-bottom: 0; }
+        .msg-hommy strong { color: var(--homeeasy-wine); font-weight: 700; } /* Sin fondo, más elegante */
+        
+        .btn-pdf-chat { 
+            display: inline-flex; align-items: center; margin-top: 12px; padding: 10px 20px; 
+            background: linear-gradient(135deg, rgba(166, 69, 90, 0.1), rgba(166, 69, 90, 0.05)); 
+            color: var(--homeeasy-wine); border: 1px solid rgba(166, 69, 90, 0.2); 
+            border-radius: 18px; font-size: 0.85rem; font-weight: 700; cursor: pointer; 
+            text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+        }
+        .btn-pdf-chat:hover { background: var(--homeeasy-wine); color: white; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(166, 69, 90, 0.2); }
+        .btn-pdf-chat:hover i { color: white; }
+        .btn-pdf-chat i { font-size: 1.1rem; margin-right: 8px; color: #e74c3c; transition: all 0.3s; }
+        
+        .typing-indicator { display: none; align-self: flex-start; background-color: white; padding: 14px 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 4px solid var(--homeeasy-gold); }
+        .dot { display: inline-block; width: 6px; height: 6px; background-color: var(--homeeasy-gold); border-radius: 50%; margin: 0 2px; animation: typing 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; } .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
+        @keyframes popIn { 0% { transform: scale(0.9) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+
+        /* --- ZONA DE TEXTO (FOOTER GLASSMORPHISM FLOTANTE) --- */
+        .chat-footer {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: saturate(180%) blur(20px); 
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            padding: 12px 15px calc(15px + env(safe-area-inset-bottom));
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.05); display: flex; align-items: flex-end; gap: 12px; z-index: 100;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .input-wrapper { 
+            flex-grow: 1; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0,0,0,0.1); 
+            border-radius: 24px; padding: 10px 18px; display: flex; align-items: center; 
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); transition: all 0.3s;
+        }
+        .input-wrapper:focus-within { border-color: var(--homeeasy-gold); box-shadow: 0 0 0 3px rgba(194, 164, 104, 0.2); }
+        
+        .chat-input { width: 100%; border: none; background: transparent; padding: 2px 0; font-family: inherit; font-size: 0.95rem; color: var(--text-dark); outline: none; resize: none; min-height: 24px; max-height: 120px; overflow-y: auto; line-height: 1.4; }
+        .chat-input::placeholder { color: #a0aab5; }
+
+        .btn-circle { 
+            width: 46px; height: 46px; border: none; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; font-size: 1.1rem; 
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 4px 15px rgba(166, 69, 90, 0.35); flex-shrink: 0; margin-bottom: 2px; 
+            color: white; background: linear-gradient(135deg, var(--homeeasy-wine), var(--homeeasy-wine-dark)); 
+        }
+        .btn-circle:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(166, 69, 90, 0.4); }
+        .btn-circle:active { transform: scale(0.9); }
+
+        /* ==========================================
+           🚨 PANTALLA DE LLAMADA PRO (ESTILO iOS)
+           ========================================== */
+        #call-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999;
+            background: linear-gradient(135deg, #1c0b0e, #0a0405); 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: calc(50px + env(safe-area-inset-top)) 20px calc(50px + env(safe-area-inset-bottom));
+            opacity: 0; visibility: hidden; transition: opacity 0.4s ease;
+        }
+        #call-screen.active { opacity: 1; visibility: visible; }
+
+        .call-header { text-align: center; color: white; width: 100%; }
+        .call-badge { font-size: 0.75rem; color: var(--homeeasy-gold); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .call-badge i { font-size: 0.6rem; }
+        .call-name { font-size: 2.2rem; font-weight: 800; margin: 0 0 8px 0; letter-spacing: 1px; }
+        .call-status { font-size: 1.05rem; color: rgba(255,255,255,0.7); font-weight: 400; letter-spacing: 0.5px; }
+
+        .call-avatar-container { position: relative; margin: 40px 0; display: flex; justify-content: center; align-items: center; }
+        .call-avatar { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; background: white; padding: 4px; border: 4px solid var(--homeeasy-gold); z-index: 10; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        
+        .pulse-ring {
+            position: absolute; width: 160px; height: 160px; border-radius: 50%;
+            background: rgba(194, 164, 104, 0.4); z-index: 1;
+            animation: pulse-call 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            opacity: 0;
+        }
+        .pulse-ring:nth-child(2) { animation-delay: 0.6s; }
+        
+        @keyframes pulse-call {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+
+        /* --- ONDAS DE SONIDO --- */
+        .waves-container { display: flex; align-items: center; justify-content: center; gap: 8px; height: 90px; margin-bottom: 30px; }
+        .wave-bar { width: 7px; background: var(--homeeasy-gold); border-radius: 10px; transition: height 0.2s ease; height: 10px; }
+
+        .waves-idle .wave-bar { height: 10px; opacity: 0.4; }
+        .waves-listening .wave-bar { animation: wave-anim 1s infinite ease-in-out; background: #2ecc71; box-shadow: 0 0 10px rgba(46, 204, 113, 0.5); }
+        .waves-listening .wave-bar:nth-child(1) { animation-delay: 0.0s; }
+        .waves-listening .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .waves-listening .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .waves-listening .wave-bar:nth-child(4) { animation-delay: 0.1s; }
+        .waves-listening .wave-bar:nth-child(5) { animation-delay: 0.0s; }
+
+        .waves-speaking .wave-bar { animation: wave-anim-speak 0.6s infinite ease-in-out; background: var(--homeeasy-gold); box-shadow: 0 0 10px rgba(194, 164, 104, 0.5); }
+        .waves-speaking .wave-bar:nth-child(1) { animation-delay: 0.2s; }
+        .waves-speaking .wave-bar:nth-child(2) { animation-delay: 0.4s; }
+        .waves-speaking .wave-bar:nth-child(3) { animation-delay: 0.0s; }
+        .waves-speaking .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .waves-speaking .wave-bar:nth-child(5) { animation-delay: 0.1s; }
+
+        @keyframes wave-anim { 0%, 100% { height: 10px; } 50% { height: 45px; } }
+        @keyframes wave-anim-speak { 0%, 100% { height: 15px; } 50% { height: 80px; } }
+
+        /* Botón de Colgar */
+        .btn-end-call {
+            width: 80px; height: 80px; border-radius: 50%; border: none;
+            background: linear-gradient(135deg, #ff3b30, #d32f2f); color: white; font-size: 2.2rem;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 12px 30px rgba(255, 59, 48, 0.4); cursor: pointer; transition: all 0.3s;
+        }
+        .btn-end-call:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 59, 48, 0.5); }
+        .btn-end-call:active { transform: scale(0.9); }
+
+        /* --- VISOR PDF PREMIUM --- */
+        #pdf-viewer-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            z-index: 100000; flex-direction: column;
+        }
+        .pdf-viewer-header { padding: calc(env(safe-area-inset-top) + 15px) 20px 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.6); color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .btn-close-pdf { background: rgba(255,255,255,0.15); border: none; color: white; width: 38px; height: 38px; border-radius: 19px; display: flex; justify-content: center; align-items: center; transition: all 0.2s; cursor: pointer; }
+        .btn-close-pdf:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+        #pdf-iframe { flex: 1; width: 100%; border: none; background: white; border-radius: 10px 10px 0 0; margin-top: 10px; box-shadow: 0 -10px 20px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-profile">
+                <img src="hommycompleto.png" class="hommy-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712035.png'">
+                <div class="hommy-info">
+                    <h2>Hommy Pro</h2>
+                    <div class="status-online">
+                        <div id="status-dot" class="status-dot"></div> 
+                        <span id="status-text">Conectando...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-call-header" onclick="iniciarLlamada()"><i class="fas fa-phone-alt"></i></button>
+                <a href="index.html" class="btn-close-chat"><i class="fas fa-times"></i></a>
+            </div>
+        </div>
+
+        <div class="chat-body" id="chat-body">
+            <div class="msg-hommy">
+                ¡Hola, <strong>Jefe</strong>! 👋 Soy Hommy, tu analista y asesor experto. 🚀<br><br>
+                ¿En qué la rompemos hoy? Estoy listo para:<br>
+                <ul>
+                    <li>📏 <strong>Cotizar:</strong> Paneles, Enrollables, Onda Serena y Sheer.</li>
+                    <li>🧠 <strong>Asesorarte:</strong> Resolver dudas de diseño y manuales.</li>
+                    <li>💸 <strong>Finanzas:</strong> Revisar abonos, OPs y saldos.</li>
+                    <li>📅 <strong>Agenda:</strong> Consultar tus visitas.</li>
+                </ul>
+                Escríbeme por aquí, o toca el <strong>icono del teléfono</strong> arriba a la derecha si prefieres que hablemos. ¡Vamos con toda!
+            </div>
+            <div class="typing-indicator" id="typing">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <div class="input-wrapper">
+                <textarea id="chat-input" class="chat-input" rows="1" placeholder="Pídele una cotización o duda a Hommy..."></textarea>
+            </div>
+            <button class="btn-circle btn-send" onclick="enviarMensajeTexto()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="call-screen">
+        <div class="call-header">
+            <div class="call-badge"><i class="fas fa-shield-alt"></i> IA Encriptada</div>
+            <h2 class="call-name">Hommy Pro</h2>
+            <div id="call-status" class="call-status">Conectando...</div>
+        </div>
+
+        <div class="call-avatar-container">
+            <div class="pulse-ring" id="pulse-1"></div>
+            <div class="pulse-ring" id="pulse-2"></div>
+            <img src="hommycompleto.png" class="call-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712035.png'">
+        </div>
+
+        <div class="waves-container waves-idle" id="wave-container">
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+
+        <button class="btn-end-call" onclick="colgarLlamada()">
+            <i class="fas fa-phone-slash"></i>
+        </button>
+    </div>
+
+    <div id="pdf-viewer-overlay">
+        <div class="pdf-viewer-header">
+            <div style="font-weight: 700; font-size: 1.1rem; display: flex; align-items: center;"><i class="fas fa-file-pdf text-danger me-2" style="font-size: 1.3rem;"></i> Visor HomeEasy</div>
+            <button class="btn-close-pdf" onclick="cerrarVisorPDF()"><i class="fas fa-times"></i></button>
+        </div>
+        <iframe id="pdf-iframe" src=""></iframe>
+    </div>
+
+    <script>
+        const chatInput = document.getElementById("chat-input");
+        const chatBody = document.getElementById("chat-body");
+        const typingIndicator = document.getElementById("typing");
+        
+        let isCallActive = false;
+        let currentAudio = null;
+        let recognition;
+
+        // ==========================================
+        // 🚀 VERIFICADOR DE CONSOLA (PING AL SERVIDOR)
+        // ==========================================
+        async function comprobarServidor() {
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            try {
+                await fetch('http://127.0.0.1:5000/', { mode: 'no-cors' });
+                statusDot.style.backgroundColor = '#2ecc71';
+                statusDot.style.boxShadow = '0 0 10px rgba(46, 204, 113, 0.8)';
+                statusText.innerText = 'Analista en línea';
+            } catch (error) {
+                statusDot.style.backgroundColor = '#e74c3c';
+                statusDot.style.boxShadow = '0 0 10px rgba(231, 76, 60, 0.8)';
+                statusText.innerText = 'Consola Apagada';
+            }
+        }
+        comprobarServidor();
+        setInterval(comprobarServidor, 5000);
+
+        // ==========================================
+        // CONFIGURACIÓN DEL RECONOCIMIENTO DE VOZ
+        // ==========================================
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'es-CO'; 
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onstart = function() {
+                if(!isCallActive) return;
+                actualizarUI_Llamada("Escuchando...", "waves-listening", true);
+            };
+            
+            recognition.onresult = function(event) {
+                if(!isCallActive) return;
+                const transcript = event.results[0][0].transcript;
+                imprimirBurbuja("msg-jefe", transcript);
+                procesarVozAInteligencia(transcript);
+            };
+            
+            recognition.onend = function() {
+                if(!isCallActive) return;
+                const status = document.getElementById('call-status').innerText;
+                if(status.includes("Escuchando") || status.includes("Habla ahora")) {
+                    try { recognition.start(); } catch(e) {}
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.error("Error de voz detectado:", event.error);
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    actualizarUI_Llamada("Error: Micrófono bloqueado", "waves-idle", false);
+                    alert("Hommy dice: Jefe, tu navegador me tiene el micrófono bloqueado.");
+                } else if (event.error === 'network') {
+                    actualizarUI_Llamada("Error: Sin conexión al motor", "waves-idle", false);
+                } else if (event.error === 'no-speech' && isCallActive) {
+                    try { recognition.start(); } catch(e) {}
+                } else {
+                    actualizarUI_Llamada("Error raro: " + event.error, "waves-idle", false);
+                }
+            };
+        }
+
+        // ==========================================
+        // LÓGICA DE LA LLAMADA (INTERFAZ)
+        // ==========================================
+        function iniciarLlamada() {
+            if(!recognition) {
+                alert("Tu navegador no soporta llamadas de voz. Usa Google Chrome.");
+                return;
+            }
+            triggerHaptic('receive');
+            isCallActive = true;
+            document.getElementById('call-screen').classList.add('active');
+            actualizarUI_Llamada("Conectando con Hommy...", "waves-idle", false);
+
+            setTimeout(() => {
+                if(isCallActive) {
+                    actualizarUI_Llamada("Habla ahora...", "waves-listening", true);
+                    try { recognition.start(); } catch(e) {}
+                }
+            }, 1000);
+        }
+
+        function colgarLlamada() {
+            triggerHaptic('send');
+            isCallActive = false;
+            document.getElementById('call-screen').classList.remove('active');
+            if(recognition) recognition.stop();
+            if(currentAudio) { currentAudio.pause(); currentAudio = null; }
+        }
+
+        function actualizarUI_Llamada(texto, waveClass, showPulse) {
+            document.getElementById('call-status').innerText = texto;
+            document.getElementById('wave-container').className = "waves-container " + waveClass;
+            document.getElementById('pulse-1').style.display = showPulse ? 'block' : 'none';
+            document.getElementById('pulse-2').style.display = showPulse ? 'block' : 'none';
+        }
+
+        // ==========================================
+        // COMUNICACIÓN CON EL SERVIDOR DURANTE LLAMADA
+        // ==========================================
+        async function procesarVozAInteligencia(texto) {
+            actualizarUI_Llamada("Hommy procesando...", "waves-idle", false);
+            
+            try {
+                const response = await fetch("http://127.0.0.1:5000/api/chat", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pregunta: texto })
+                });
+                const data = await response.json();
+                
+                imprimirBurbuja("msg-hommy", procesarMensajeHommy(data.respuesta));
+                
+                if(!isCallActive) return;
+
+                const ttsResponse = await fetch("http://127.0.0.1:5000/api/tts", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ texto: data.respuesta })
+                });
+                const ttsData = await ttsResponse.json();
+                
+                if(!isCallActive) return;
+
+                if(ttsData.audio) {
+                    actualizarUI_Llamada("Hommy hablando...", "waves-speaking", true);
+                    currentAudio = new Audio("data:audio/mp3;base64," + ttsData.audio);
+                    currentAudio.play();
+                    
+                    currentAudio.onended = () => {
+                        if(isCallActive) {
+                            actualizarUI_Llamada("Escuchando...", "waves-listening", true);
+                            try { recognition.start(); } catch(e) {}
+                        }
+                    };
+                } else {
+                    actualizarUI_Llamada("Escuchando...", "waves-listening", true);
+                    try { recognition.start(); } catch(e) {}
+                }
+            } catch (error) {
+                if(isCallActive) {
+                    actualizarUI_Llamada("Fallo de conexión. Reintentando...", "waves-idle", false);
+                    setTimeout(() => {
+                        if(isCallActive) {
+                            actualizarUI_Llamada("Escuchando...", "waves-listening", true);
+                            try { recognition.start(); } catch(e) {}
+                        }
+                    }, 2500);
+                }
+            }
+        }
+
+        // ==========================================
+        // CHAT DE TEXTO TRADICIONAL
+        // ==========================================
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        chatInput.addEventListener("keydown", function(e) {
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviarMensajeTexto(); }
+        });
+
+        async function enviarMensajeTexto() {
+            const texto = chatInput.value.trim();
+            if(!texto) return;
+
+            triggerHaptic('send');
+            imprimirBurbuja("msg-jefe", texto);
+
+            chatInput.value = ""; chatInput.style.height = 'auto'; 
+            typingIndicator.style.display = "block"; scrollToBottom();
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/api/chat", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pregunta: texto })
+                });
+                const data = await response.json();
+                
+                typingIndicator.style.display = "none";
+                triggerHaptic('receive');
+                imprimirBurbuja("msg-hommy", procesarMensajeHommy(data.respuesta));
+
+            } catch (error) {
+                typingIndicator.style.display = "none";
+                imprimirBurbuja("msg-hommy", "<strong>Jefe</strong>, parece que la consola de Python está apagada. Por favor enciéndela para que yo pueda conectarme a los datos.");
+            }
+        }
+
+        // ==========================================
+        // TRADUCTOR MÁGICO DE MARKDOWN (HTML PRO)
+        // ==========================================
+        function procesarMensajeHommy(textoBruto) {
+            let textoPre = textoBruto.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<br><button class="btn-pdf-chat" onclick="abrirVisorPDF(\'$2\')"><i class="fas fa-file-pdf"></i> $1</button><br>');
+            let htmlTexto = marked.parse(textoPre);
+            return htmlTexto;
+        }
+
+        function imprimirBurbuja(clase, htmlContent) {
+            const msg = document.createElement("div");
+            msg.className = clase;
+            msg.innerHTML = htmlContent;
+            chatBody.insertBefore(msg, typingIndicator);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            // Un pequeño delay ayuda a que el scroll baje exactamente hasta el fondo tras procesar el HTML
+            setTimeout(() => {
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }, 50);
+        }
+
+        function triggerHaptic(type) {
+            if (!navigator.vibrate) return;
+            if (type === 'send') navigator.vibrate(15); 
+            if (type === 'receive') navigator.vibrate([20, 50, 20]); 
+        }
+
+        function abrirVisorPDF(driveUrl) {
+            triggerHaptic('send');
+            let previewUrl = driveUrl;
+            if(previewUrl.includes('/view')) {
+                previewUrl = previewUrl.replace('/view?usp=drivesdk', '/preview');
+                previewUrl = previewUrl.replace('/view', '/preview');
+            }
+            document.getElementById('pdf-iframe').src = previewUrl;
+            document.getElementById('pdf-viewer-overlay').style.display = 'flex';
+        }
+
+        function cerrarVisorPDF() {
+            triggerHaptic('send');
+            document.getElementById('pdf-viewer-overlay').style.display = 'none';
+            document.getElementById('pdf-iframe').src = '';
+        }
+    </script>
+</body>
+</html>
