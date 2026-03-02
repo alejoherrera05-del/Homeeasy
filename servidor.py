@@ -21,7 +21,7 @@ CORS(app)
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 ELEVENLABS_API_KEY = "sk_df189c9862dd11f5bc6ae7906ce7087891542ff5de41e472"
-VOICE_ID = "YnyLKkRl3arSA0f280wr"
+VOICE_ID = "YTXAg5s9ZonOv6JuXFXV"
 
 # =====================================================================
 # FUNCIONES DE SOPORTE E INFRAESTRUCTURA
@@ -592,4 +592,5 @@ if __name__ == '__main__':
     print("=" * 70)
     print("  [OK] Servidor escuchando en: http://127.0.0.1:5000")
     print("=" * 70)
+
     app.run(debug=False, port=5000)
