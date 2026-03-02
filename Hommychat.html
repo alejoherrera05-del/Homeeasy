@@ -348,7 +348,8 @@
             const statusDot = document.getElementById('status-dot');
             const statusText = document.getElementById('status-text');
             try {
-                await fetch('http://127.0.0.1:5000/', { mode: 'no-cors' });
+                // 🛑 CIRUGÍA 1: URL DEL SERVIDOR PARA EL PING
+                await fetch('https://homeeasy-l5n1.onrender.com/', { mode: 'no-cors' });
                 statusDot.style.backgroundColor = '#2ecc71';
                 statusDot.style.boxShadow = '0 0 10px rgba(46, 204, 113, 0.8)';
                 statusText.innerText = 'Analista en línea';
@@ -449,7 +450,8 @@
             actualizarUI_Llamada("Hommy procesando...", "waves-idle", false);
             
             try {
-                const response = await fetch("http://127.0.0.1:5000/api/chat", {
+                // 🛑 CIRUGÍA 2: URL DEL SERVIDOR PARA EL CHAT DE VOZ
+                const response = await fetch("https://homeeasy-l5n1.onrender.com/api/chat", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ pregunta: texto })
                 });
@@ -459,7 +461,8 @@
                 
                 if(!isCallActive) return;
 
-                const ttsResponse = await fetch("http://127.0.0.1:5000/api/tts", {
+                // 🛑 CIRUGÍA 3: URL DEL SERVIDOR PARA EL AUDIO (TTS)
+                const ttsResponse = await fetch("https://homeeasy-l5n1.onrender.com/api/tts", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ texto: data.respuesta })
                 });
@@ -517,7 +520,8 @@
             typingIndicator.style.display = "block"; scrollToBottom();
 
             try {
-                const response = await fetch("http://127.0.0.1:5000/api/chat", {
+                // 🛑 CIRUGÍA 4: URL DEL SERVIDOR PARA EL CHAT DE TEXTO
+                const response = await fetch("https://homeeasy-l5n1.onrender.com/api/chat", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ pregunta: texto })
                 });
