@@ -21,9 +21,9 @@
 
 <style>
 :root {
-    --home-red: #a6455a;     
-    --home-yellow: #c2a468;  
-    --brand-dark: #823646;   
+    --home-red: #a6455a;     /* NUEVO VINOTINTO */
+    --home-yellow: #c2a468;  /* NUEVO DORADO PREMIUM */
+    --brand-dark: #823646;   /* Fondo oscuro ajustado al nuevo vinotinto */
     --menu-bg: #f8f9fa; 
     
     --glass-bg: rgba(255,255,255,0.12);
@@ -77,7 +77,7 @@ body {
     padding: 25px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,.25);
 }
 .status-pill { display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.2); padding:10px 18px; border-radius:40px; margin-bottom:15px; font-size: 0.9rem; font-weight: 600;}
-.dot-spinner { width:10px; height:10px; background:var(--home-yellow); border-radius:50%; margin-right:10px; animation:pulse 1.5s infinite; transform: translate3d(0,0,0); }
+.dot-spinner { width:10px; height:10px; background:var(--home-yellow); border-radius:50%; margin-right:10px; animation:pulse 1.5s infinite; }
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.4} }
 .bar-container { width:100%; height:4px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden; }
 .bar-fill { height:100%; width:0%; background:var(--home-yellow); transition:width 1s ease-in-out; }
@@ -96,7 +96,6 @@ body {
 .bell-container {
     position: relative; cursor: pointer; background: white; width: 45px; height: 45px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    transform: translate3d(0,0,0); -webkit-transform: translate3d(0,0,0); /* Anti-parpadeo de campana */
 }
 .bell-container i { font-size: 22px; color: var(--home-red); transition: color 0.3s; }
 .notification-badge {
@@ -104,7 +103,7 @@ body {
     width: 18px; height: 18px; border-radius: 50%; display: none; align-items: center; justify-content: center; border: 2px solid #fff;
 }
 @keyframes ring { 0% { transform: rotate(0); } 10% { transform: rotate(15deg); } 20% { transform: rotate(-10deg); } 30% { transform: rotate(10deg); } 40% { transform: rotate(-10deg); } 50% { transform: rotate(0); } 100% { transform: rotate(0); } }
-.ringing { animation: ring 2s infinite; color: var(--home-yellow) !important; transform-origin: top center; will-change: transform;}
+.ringing { animation: ring 2s infinite; color: var(--home-yellow) !important; }
 
 .glass-bubble {
     display: none; position: absolute; top: 55px; right: 0px; width: 260px; max-height: 350px; overflow-y: auto;
@@ -134,54 +133,14 @@ body {
 .header-container { margin-bottom: 40px; }
 .logo-img { width: 180px; display: block; margin: 0 auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); }
 
-/* --- NUEVA BARRA IA HOMMY --- */
-.hommy-ai-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #ffffff;
-    border: 1px solid rgba(194, 164, 104, 0.4); 
-    border-radius: 50px;
-    padding: 10px 12px 10px 20px;
-    margin: 25px auto 0 auto;
-    width: 90%; max-width: 320px;
-    text-decoration: none;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+.status-online { 
+    display: inline-flex; align-items: center; justify-content: center; margin-top: 15px; padding: 6px 14px; 
+    border-radius: 50px; background: rgba(46, 204, 113, 0.08); border: 1px solid rgba(46, 204, 113, 0.2);
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; color: #27ae60; 
 }
-
-.hommy-ai-bar:active {
-    transform: scale(0.96); 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-}
-
-.ai-bar-left { display: flex; align-items: center; gap: 12px; }
-
-.ai-bar-text { 
-    font-size: 0.9rem; font-weight: 500; color: #95a5a6; 
-    letter-spacing: 0.3px;
-}
-
-.ai-bar-right {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--home-red), var(--brand-dark));
-    border-radius: 50%;
-    display: flex; justify-content: center; align-items: center;
-    color: white;
-    font-size: 0.85rem;
-    box-shadow: 0 4px 10px rgba(166, 69, 90, 0.3);
-}
-
-/* 🛡️ EL PUNTITO VERDE (VERSIÓN 100% ESTABLE PARA PC Y MÓVIL) */
-.pulse-green { 
-    width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; 
-    flex-shrink: 0;
-    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
-    animation: pc-safe-pulse 2s infinite;
-}
-@keyframes pc-safe-pulse { 
-    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 
-    70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); } 
-    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } 
-}
+.pulse-green { width: 6px; height: 6px; background: #2ecc71; border-radius: 50%; margin-right: 8px; position: relative; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
+.pulse-green::after { content: ""; position: absolute; width: 100%; height: 100%; background: #2ecc71; border-radius: 50%; animation: premium-pulse 2s infinite; }
+@keyframes premium-pulse{ 0%{transform:scale(1);opacity:.8} 100%{transform:scale(2.5);opacity:0} }
 
 /* --- CONTENEDOR DE TARJETAS --- */
 .cards-wrapper {
@@ -360,16 +319,10 @@ body {
             
             <div class="header-container">
                 <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy Logo" onerror="this.src='triangulo.png'; this.style.width='80px'">
-                
-                <a href="Hommychat.html" class="hommy-ai-bar">
-                    <div class="ai-bar-left">
-                        <div class="pulse-green"></div>
-                        <span class="ai-bar-text">Pregúntale a Hommy...</span>
-                    </div>
-                    <div class="ai-bar-right">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    </div>
-                </a>
+                <div class="status-online">
+                    <div class="pulse-green"></div>
+                    HOMMY | ONLINE
+                </div>
             </div>
 
             <div class="cards-wrapper">
@@ -392,15 +345,15 @@ body {
                     <div class="icon-box"><i class="fa-solid fa-receipt"></i></div>
                     <div class="menu-text"><h3>Registrar abono</h3><p>Recibo de ingreso</p></div>
                 </a>
-                
-                <a href="caja.html" class="menu-card">
-                    <div class="icon-box"><i class="fa-solid fa-cash-register"></i></div>
-                    <div class="menu-text"><h3>Flujo de caja</h3><p>Control de ingresos y egresos</p></div>
-                </a>
 
                 <a href="calendario.html" class="menu-card calendar-card">
                     <div class="icon-box"><i class="fa-solid fa-calendar-check"></i></div>
                     <div class="menu-text"><h3>Agenda & Calendario</h3><p>Crea y revisa compromisos</p></div>
+                </a>
+
+                <a href="ar-homeeasy-v3.html" class="menu-card gold-card">
+                    <div class="icon-box"><i class="fa-solid fa-cube"></i></div>
+                    <div class="menu-text"><h3>Vista AR</h3><p>Muéstrale al cliente cómo se verá</p></div>
                 </a>
             </div>
             
@@ -463,13 +416,6 @@ body {
 </div>
 
 <script>
-// ==========================================
-// ⚡ DESPERTADOR DE HOMMY (PRE-WARMING)
-// ==========================================
-// Le damos un "toque" silencioso al servidor en Render para que encienda los motores
-// en segundo plano mientras el usuario está en el menú principal.
-fetch("https://homeeasy-l5n1.onrender.com/", { mode: 'no-cors' }).catch(() => {});
-
 // ==========================================
 // 🚨 FUNCIONES DE LAS VENTANAS BONITAS
 // ==========================================
@@ -550,6 +496,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if(data.clientes){
                     for (let i = 1; i < data.clientes.length; i++) {
                         const c = data.clientes[i];
+                        // 🔥 AQUÍ ESTABA EL ERROR: AHORA HOMMY MEMORIZA LOS 5 DATOS
                         if(c && c[0]) clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] };
                     }
                 }
@@ -672,50 +619,6 @@ document.addEventListener('click', function(event) {
 });
 
 window.addEventListener('focus', actualizarCampana);
-
-// ==========================================
-// 📱 MAGIA TÁCTIL: DESLIZAR PARA CERRAR (SWIPE DOWN)
-// ==========================================
-document.addEventListener("DOMContentLoaded", function() {
-    const sheets = document.querySelectorAll('.bottom-sheet-content');
-    
-    sheets.forEach(sheet => {
-        let startY = 0;
-        let currentY = 0;
-        let isDragging = false;
-        
-        sheet.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-            currentY = startY;
-            isDragging = true;
-            sheet.style.transition = 'none'; 
-        }, {passive: true});
-
-        sheet.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            currentY = e.touches[0].clientY;
-            let deltaY = currentY - startY;
-            
-            if (deltaY > 0) {
-                sheet.style.transform = `translateY(${deltaY}px)`;
-            }
-        }, {passive: true});
-
-        sheet.addEventListener('touchend', () => {
-            if (!isDragging) return;
-            isDragging = false;
-            let deltaY = currentY - startY;
-            
-            sheet.style.transition = ''; 
-            sheet.style.transform = ''; 
-            
-            if (deltaY > 80) {
-                const overlayId = sheet.parentElement.id;
-                closeSheet(overlayId);
-            }
-        });
-    });
-});
 
 </script>
 </body>
