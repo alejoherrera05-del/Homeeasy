@@ -101,11 +101,11 @@ canvas#smp{display:none}
 <div class="fgrid"><div class="fg"><i class="fas fa-camera"></i><span>Cámara en vivo</span></div><div class="fg"><i class="fas fa-eye-dropper"></i><span>Color desde cámara</span></div><div class="fg"><i class="fas fa-expand-arrows-alt"></i><span>Tamaño ajustable</span></div><div class="fg"><i class="fas fa-camera-retro"></i><span>Captura con marca</span></div></div>
 <button class="btn-go" onclick="startAR()"><i class="fas fa-play"></i> Iniciar Cámara AR</button>
 </div>
-<div class="cv-ft"><div style="z-index:2;display:flex;flex-direction:column;align-items:center;margin-bottom:-4px"><img src="Hommypiedepagina.png" style="width:130px;height:auto;filter:drop-shadow(0 -5px 15px rgba(0,0,0,.1))" alt="Hommy"><div style="font-size:.55rem;font-weight:800;color:var(--wine);letter-spacing:1px;margin-top:-8px">HOMMY v2.0</div></div><div class="gstrip"></div></div>
+<div class="cv-ft"><footer style="position:relative;z-index:2;width:100%;background:#fff;padding:12px 0;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 -4px 15px rgba(0,0,0,.04);border-radius:25px 25px 0 0"><img src="Hommypiedepagina.png" style="height:38px;width:auto;object-fit:contain;margin-bottom:2px" alt="Hommy"><div style="font-size:.85rem;font-weight:600;color:#333">HomeEasy - Sistema Hommy</div><div style="font-size:.7rem;color:#888;font-weight:500;letter-spacing:.5px">VERSIÓN 2.0 © 2026</div></footer></div>
 </div>
 <div id="ar">
 <video id="cam" autoplay playsinline muted></video>
-<div class="nocam" id="nocam"><i class="fas fa-video-slash"></i><h3>Cámara no disponible</h3><p>Permite acceso o prueba en móvil.</p></div>
+<div class="nocam" id="nocam"><i class="fas fa-video-slash"></i><h3>Cámara no disponible</h3><p>Se requiere conexión HTTPS para acceder a la cámara. Puedes probar la persiana sobre este fondo.</p><div style="margin-top:15px;font-size:.65rem;opacity:.5;line-height:1.5">Si usas hosting local, prueba con:<br><b>https://</b> o un servidor como Netlify/Vercel</div></div>
 <canvas id="cv2"></canvas><canvas id="smp"></canvas>
 <div class="gu" id="gu"><div class="gub"><i class="fas fa-vector-square" style="font-size:1.8rem;color:rgba(255,255,255,.3)"></i></div><div class="gut">Apunta a la ventana del cliente</div></div>
 <div class="ah"><div class="al"><img src="triangulogold.png" style="width:24px;height:24px;object-fit:contain" alt="Logo">HomeEasy AR</div><button class="bx" onclick="closeAR()"><i class="fas fa-times"></i></button></div>
@@ -154,7 +154,31 @@ function bCR(id,s){const r=document.getElementById(id);let h='';COL.forEach(c=>{
 bCR('cr1',1);bCR('cr2',2);bCR('cr3',3);
 function mid(){S.x=innerWidth/2;S.y=innerHeight/2-50}mid();
 
-async function startAR(){document.getElementById('cover').classList.add('gone');document.getElementById('ar').classList.add('on');try{S.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}},audio:false});document.getElementById('cam').srcObject=S.stream;document.getElementById('nocam').style.display='none'}catch(e){document.getElementById('nocam').style.display='flex';document.getElementById('cam').style.display='none'}setTimeout(()=>{document.getElementById('gu').classList.add('h');document.getElementById('pt').classList.add('v')},2500);ren()}
+async function startAR(){
+// 1. Show AR screen immediately
+document.getElementById('cover').classList.add('gone');
+document.getElementById('ar').classList.add('on');
+// 2. Try camera — iOS Safari needs HTTPS and user gesture (onclick is fine)
+try{
+const constraints={video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false};
+S.stream=await navigator.mediaDevices.getUserMedia(constraints);
+const vid=document.getElementById('cam');
+vid.srcObject=S.stream;
+vid.setAttribute('playsinline','');
+vid.setAttribute('autoplay','');
+vid.muted=true;
+await vid.play();
+document.getElementById('nocam').style.display='none';
+vid.style.display='block';
+}catch(e){
+console.warn('Camera error:',e.name,e.message);
+document.getElementById('nocam').style.display='flex';
+document.getElementById('cam').style.display='none';
+}
+// 3. Hide guide, show tag
+setTimeout(()=>{document.getElementById('gu').classList.add('h');document.getElementById('pt').classList.add('v')},2500);
+ren();
+}
 function closeAR(){if(S.stream){S.stream.getTracks().forEach(t=>t.stop());S.stream=null}cancelAnimationFrame(S.af);document.getElementById('ar').classList.remove('on');document.getElementById('cover').classList.remove('gone');stopEye()}
 function stab(id){document.querySelectorAll('.tbb').forEach(b=>b.classList.toggle('a',b.textContent.toLowerCase().startsWith(id.substring(0,3))));document.querySelectorAll('.tc').forEach(t=>t.classList.remove('a'));document.getElementById('t-'+id).classList.add('a')}
 
