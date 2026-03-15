@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -219,7 +218,7 @@ function utag(){const nm=document.querySelector('.tp.a').textContent.trim();cons
 // ======================== RENDER ========================
 function ren(){draw();S.af=requestAnimationFrame(ren)}
 const TH=14; // tube height
-function aF(){return S.ap==='open'?.12:S.ap==='half'?.5:1}
+function aF(){return S.ap==='open' ? 0.12 : S.ap==='half' ? 0.5 : 1}
 
 function draw(){
 cv.width=S.w;cv.height=S.h;cv.style.width=S.w+'px';cv.style.height=S.h+'px';
@@ -255,7 +254,7 @@ if(S.ap!=='closed'){const rH=6+(1-aF())*14;for(let i=0;i<3;i++){const y=TH+i*3;c
 // ====== VENECIANA ======
 function dVenec(){
 const tH=(S.h-TH);const n=16;const gap=tH/n;
-const slatAngle=S.ap==='closed'?1:S.ap==='half'?.6:.2;
+const slatAngle=S.ap==='closed' ? 1 : S.ap==='half' ? 0.6 : 0.2;
 const slatH=gap*slatAngle*.8;
 for(let i=0;i<n;i++){const y=TH+i*gap;
 const g=cx.createLinearGradient(0,y,0,y+slatH);
@@ -309,7 +308,7 @@ function dVertesse(){
 const f=aF();const usedW=S.w*f;
 cx.fillStyle='#bbb';cx.fillRect(0,TH,S.w,4);
 const n=Math.max(4,Math.round(14*f));const lw=usedW/n;
-const rotation=S.ap==='closed'?1:S.ap==='half'?.55:.15;
+const rotation=S.ap==='closed' ? 1 : S.ap==='half' ? 0.55 : 0.15;
 for(let i=0;i<n;i++){const x=i*lw;
 const visW=Math.max(3,lw*.95);
 const g=cx.createLinearGradient(x,0,x+visW,0);
@@ -479,6 +478,5 @@ c.toBlob(b=>{const u=URL.createObjectURL(b);const a=document.createElement('a');
 function toast(m){const t=document.getElementById('tt');t.textContent=m;t.classList.add('sh');setTimeout(()=>t.classList.remove('sh'),2200)}
 utag();
 </script>
-
 </body>
 </html>
