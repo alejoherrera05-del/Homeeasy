@@ -9,8 +9,8 @@
 <style>
 :root{--wine:#8d374f;--wine2:#a63d56;--gold:#c3a364;--gray:#f8f9fa}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;width:100%;font-family:'Montserrat',sans-serif;background:var(--gray);overflow:hidden;user-select:none}
-#cover{position:fixed;top:0;left:0;width:100%;height:100vh;height:100dvh;background:var(--gray);z-index:3000;display:flex;flex-direction:column;justify-content:space-between;transition:transform .7s cubic-bezier(.68,-.3,.27,1.2);overflow:hidden}
+html,body{height:100%;width:100%;font-family:'Montserrat',sans-serif;background:#0a0a0a;overflow:hidden;user-select:none}
+#cover{position:fixed;inset:0;background:var(--gray);z-index:3000;display:flex;flex-direction:column;justify-content:space-between;transition:transform .7s cubic-bezier(.68,-.3,.27,1.2)}
 #cover.gone{transform:translateY(-100%);pointer-events:none}
 .cv-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 25px 10px}
 .cv-back{position:absolute;top:55px;left:20px;width:44px;height:44px;background:rgba(255,255,255,.6);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--wine);font-size:1.1rem;text-decoration:none;backdrop-filter:blur(5px);box-shadow:0 3px 10px rgba(0,0,0,.06);z-index:3100}
@@ -30,10 +30,10 @@ html,body{height:100%;width:100%;font-family:'Montserrat',sans-serif;background:
 .gstrip{position:absolute;bottom:0;left:0;width:100%;height:50px;background:var(--gold);padding-bottom:env(safe-area-inset-bottom);box-sizing:content-box}
 .mascot{width:120px;height:140px;z-index:2;background:linear-gradient(135deg,var(--wine),#b04668);border-radius:60px 60px 30px 30px;display:flex;align-items:center;justify-content:center;flex-direction:column;margin-bottom:-4px}
 .mascot div:first-child{font-size:2.5rem}.mascot div:last-child{color:#fff;font-size:.55rem;font-weight:800;letter-spacing:1px;margin-top:4px}
-#ar{position:fixed;top:0;left:0;width:100%;height:100vh;height:100dvh;background:#0a0a0a;display:none;flex-direction:column;overflow:hidden}#ar.on{display:flex}
-#cam{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+#ar{position:fixed;inset:0;background:#0a0a0a;display:none;flex-direction:column}#ar.on{display:flex}
+#cam{position:absolute;inset:0;object-fit:cover;width:100%;height:100%}
 #cv2{position:absolute;pointer-events:none;z-index:100}
-.nocam{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(145deg,#1a1a2e,#16213e,#0f3460);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:40px}
+.nocam{position:absolute;inset:0;background:linear-gradient(145deg,#1a1a2e,#16213e,#0f3460);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:40px}
 .nocam i{font-size:3rem;color:var(--gold);margin-bottom:18px}.nocam h3{font-weight:800;margin-bottom:8px}.nocam p{font-size:.82rem;opacity:.6}
 .ah{position:fixed;top:0;left:0;width:100%;padding:52px 18px 12px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);display:flex;align-items:center;justify-content:space-between;z-index:500}
 .al{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:.95rem}
@@ -96,19 +96,19 @@ canvas#smp{display:none}
 <div id="cover">
 <a href="index.html" class="cv-back"><i class="fas fa-chevron-left"></i></a>
 <div class="cv-body">
-<div class="br-row"><img src="triangulogold.png" style="width:36px;height:36px;object-fit:contain" alt="Logo"><span class="br-nm">HomeEasy</span></div>
+<div class="br-row"><img src="triangulogold.png" style="width:36px;height:36px;object-fit:contain" alt="Logo" onerror="this.style.display='none'"><span class="br-nm">HomeEasy</span></div>
 <h1 class="cv-t">Vista AR</h1><p class="cv-s">Muéstrale al cliente cómo se verá</p>
 <div class="fgrid"><div class="fg"><i class="fas fa-camera"></i><span>Cámara en vivo</span></div><div class="fg"><i class="fas fa-eye-dropper"></i><span>Color desde cámara</span></div><div class="fg"><i class="fas fa-expand-arrows-alt"></i><span>Tamaño ajustable</span></div><div class="fg"><i class="fas fa-camera-retro"></i><span>Captura con marca</span></div></div>
 <button class="btn-go" onclick="startAR()"><i class="fas fa-play"></i> Iniciar Cámara AR</button>
 </div>
-<div class="cv-ft"><footer style="width:100%;background:#fff;padding:12px 0;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 -4px 15px rgba(0,0,0,.04);border-radius:25px 25px 0 0"><img src="Hommypiedepagina.png" style="height:38px;width:auto;object-fit:contain;margin-bottom:2px" alt="Hommy"><div style="font-size:.85rem;font-weight:600;color:#333">HomeEasy - Sistema Hommy</div><div style="font-size:.7rem;color:#888;font-weight:500;letter-spacing:.5px">VERSIÓN 2.0 &copy; 2026</div></footer></div>
+<div class="cv-ft"><div style="z-index:2;display:flex;flex-direction:column;align-items:center;margin-bottom:-4px"><img src="Hommypiedepagina.png" style="width:130px;height:auto;filter:drop-shadow(0 -5px 15px rgba(0,0,0,.1))" alt="Hommy" onerror="this.style.display='none'"><div style="font-size:.55rem;font-weight:800;color:var(--wine);letter-spacing:1px;margin-top:-8px">HOMMY v2.0</div></div><div class="gstrip"></div></div>
 </div>
 <div id="ar">
 <video id="cam" autoplay playsinline muted></video>
-<div class="nocam" id="nocam"><i class="fas fa-video-slash"></i><h3>Cámara no disponible</h3><p>Se requiere HTTPS para la cámara.</p></div>
+<div class="nocam" id="nocam"><i class="fas fa-video-slash"></i><h3>Cámara no disponible</h3><p>Permite acceso o prueba en móvil.</p></div>
 <canvas id="cv2"></canvas><canvas id="smp"></canvas>
 <div class="gu" id="gu"><div class="gub"><i class="fas fa-vector-square" style="font-size:1.8rem;color:rgba(255,255,255,.3)"></i></div><div class="gut">Apunta a la ventana del cliente</div></div>
-<div class="ah"><div class="al"><img src="triangulogold.png" style="width:24px;height:24px;object-fit:contain" alt="Logo">HomeEasy AR</div><button class="bx" onclick="closeAR()"><i class="fas fa-times"></i></button></div>
+<div class="ah"><div class="al"><img src="triangulogold.png" style="width:24px;height:24px;object-fit:contain" alt="Logo" onerror="this.style.display='none'">HomeEasy AR</div><button class="bx" onclick="closeAR()"><i class="fas fa-times"></i></button></div>
 <div class="pt" id="pt"><div class="d" id="d1"></div><div class="d" id="d2" style="display:none"></div><div class="d" id="d3" style="display:none"></div><span id="ptx">Enrollable — Blanco</span></div>
 <div class="cp">
 <div class="tb"><button class="tbb a" onclick="stab('tipo')">Tipo</button><button class="tbb" onclick="stab('color')">Color</button><button class="tbb" onclick="stab('ajuste')">Ajuste</button></div>
@@ -146,7 +146,7 @@ canvas#smp{display:none}
 const COL=[['#FFFFFF','Blanco'],['#F5F0E8','Marfil'],['#F5E6CA','Beige'],['#E8D5B7','Arena'],['#C4A67D','Madera Clara'],['#8B7355','Madera Oscura'],['#A0522D','Caoba'],['#D4C4A8','Lino'],['#B0B0B0','Gris Plata'],['#6B6B6B','Gris Medio'],['#4A4A4A','Gris Oscuro'],['#1C1C1E','Negro'],['#8d374f','Vinotinto'],['#2C5F7C','Azul Marino'],['#3E6B48','Verde Bosque']];
 const BI=['sheer','panel'];
 let S={type:'enrollable',c1:'#FFFFFF',n1:'Blanco',c2:'#F5E6CA',n2:'Beige',c3:'#FFFFFF',n3:'Blanco',
-w:300,h:280,op:.9,x:0,y:0,ap:'closed',velo:false,vdir:'center',pn:4,drag:true,et:0,sc:null,stream:null,af:null};
+w:300,h:280,op:.9,x:0,y:0,ap:'closed',velo:false,vdir:'center',pn:4,drag:true,et:0,sc:null,stream:null};
 const cv=document.getElementById('cv2'),cx=cv.getContext('2d');
 const sm=document.getElementById('smp'),sx=sm.getContext('2d',{willReadFrequently:true});
 
@@ -155,76 +155,73 @@ bCR('cr1',1);bCR('cr2',2);bCR('cr3',3);
 function mid(){S.x=innerWidth/2;S.y=innerHeight/2-50}mid();
 
 async function startAR(){
-var cover=document.getElementById('cover');
-var arScreen=document.getElementById('ar');
-var vid=document.getElementById('cam');
-var nocam=document.getElementById('nocam');
-// 1. Mostrar pantalla AR inmediatamente
-cover.classList.add('gone');
-arScreen.classList.add('on');
-// 2. Configurar video para iOS Safari
-vid.setAttribute('playsinline','true');
-vid.setAttribute('autoplay','true');
-vid.setAttribute('muted','true');
-vid.muted=true;
-// 3. Intentar cámara
-try{
-if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-throw new Error('Se requiere HTTPS para acceder a la cámara');
+    document.getElementById('cover').classList.add('gone');
+    document.getElementById('ar').classList.add('on');
+    try {
+        // Optimización iOS: Evitamos forzar resoluciones ideales que pueden bloquear la cámara.
+        S.stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false
+        });
+        const cam = document.getElementById('cam');
+        cam.srcObject = S.stream;
+        
+        // Optimización iOS: Play explícito necesario para que no se quede colgado
+        try { await cam.play(); } catch(err) { console.warn("Auto-play warning:", err); }
+        
+        document.getElementById('nocam').style.display='none';
+    } catch(e) {
+        document.getElementById('nocam').style.display='flex';
+        document.getElementById('cam').style.display='none';
+    }
+    setTimeout(()=>{
+        document.getElementById('gu').classList.add('h');
+        document.getElementById('pt').classList.add('v');
+    }, 2500);
+    
+    // Solo dibujamos la cortina una vez al arrancar, no en bucle infinito.
+    draw(); 
 }
-var stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
-S.stream=stream;
-vid.srcObject=stream;
-await vid.play();
-nocam.style.display='none';
-vid.style.display='block';
-}catch(e){
-console.error('Camera error:',e);
-nocam.style.display='flex';
-nocam.querySelector('p').textContent='Error: '+e.message;
-vid.style.display='none';
-}
-// 4. Ocultar guía y mostrar tag
-setTimeout(function(){document.getElementById('gu').classList.add('h');document.getElementById('pt').classList.add('v')},2500);
-ren();
-}
-function closeAR(){if(S.stream){S.stream.getTracks().forEach(t=>t.stop());S.stream=null}cancelAnimationFrame(S.af);document.getElementById('ar').classList.remove('on');document.getElementById('cover').classList.remove('gone');stopEye()}
+
+function closeAR(){if(S.stream){S.stream.getTracks().forEach(t=>t.stop());S.stream=null}document.getElementById('ar').classList.remove('on');document.getElementById('cover').classList.remove('gone');stopEye()}
 function stab(id){document.querySelectorAll('.tbb').forEach(b=>b.classList.toggle('a',b.textContent.toLowerCase().startsWith(id.substring(0,3))));document.querySelectorAll('.tc').forEach(t=>t.classList.remove('a'));document.getElementById('t-'+id).classList.add('a')}
 
+// Se añadió la llamada a draw() en todas las funciones que alteran el estado visual
 function pickT(el){document.querySelectorAll('.tp').forEach(c=>c.classList.remove('a'));el.classList.add('a');S.type=el.dataset.t;
 const bi=BI.includes(S.type);document.getElementById('c2s').style.display=bi?'block':'none';document.getElementById('d2').style.display=bi?'block':'none';document.getElementById('c1l').textContent=bi?'Color Principal':'Color';
 document.getElementById('c3s').style.display=(S.type==='onda'&&S.velo)?'block':'none';document.getElementById('d3').style.display=(S.type==='onda'&&S.velo)?'block':'none';
 document.getElementById('apbox').classList.add('v');
 document.getElementById('ondaex').classList.toggle('v',S.type==='onda');
 document.getElementById('velodir').style.display=S.type==='velo'?'flex':'none';
-document.getElementById('pcbox').classList.toggle('v',S.type==='panel');utag();toast(el.textContent.trim())}
+document.getElementById('pcbox').classList.toggle('v',S.type==='panel');utag();toast(el.textContent.trim()); draw();}
 
-function setAp(el){document.querySelectorAll('#apbox .pill').forEach(p=>p.classList.remove('a'));el.classList.add('a');S.ap=el.dataset.v}
-function setVD(el){document.querySelectorAll('#velodir .pill').forEach(p=>p.classList.remove('a'));el.classList.add('a');S.vdir=el.dataset.v}
-function togVelo(){S.velo=!S.velo;document.getElementById('vpill').innerHTML='<i class="fas fa-layer-group" style="margin-right:4px"></i>Velo '+(S.velo?'ON':'OFF');document.getElementById('vpill').classList.toggle('a',S.velo);document.getElementById('c3s').style.display=S.velo?'block':'none';document.getElementById('d3').style.display=S.velo?'block':'none';utag()}
-function chPn(d){S.pn=Math.max(2,Math.min(8,S.pn+d));document.getElementById('pcv').textContent=S.pn}
-function pickC(w,el){el.parentElement.querySelectorAll('.cb').forEach(c=>c.classList.remove('a'));el.classList.add('a');if(w===1){S.c1=el.dataset.c;S.n1=el.dataset.n}else if(w===2){S.c2=el.dataset.c;S.n2=el.dataset.n}else{S.c3=el.dataset.c;S.n3=el.dataset.n}utag()}
+function setAp(el){document.querySelectorAll('#apbox .pill').forEach(p=>p.classList.remove('a'));el.classList.add('a');S.ap=el.dataset.v; draw();}
+function setVD(el){document.querySelectorAll('#velodir .pill').forEach(p=>p.classList.remove('a'));el.classList.add('a');S.vdir=el.dataset.v; draw();}
+function togVelo(){S.velo=!S.velo;document.getElementById('vpill').innerHTML='<i class="fas fa-layer-group" style="margin-right:4px"></i>Velo '+(S.velo?'ON':'OFF');document.getElementById('vpill').classList.toggle('a',S.velo);document.getElementById('c3s').style.display=S.velo?'block':'none';document.getElementById('d3').style.display=S.velo?'block':'none';utag(); draw();}
+function chPn(d){S.pn=Math.max(2,Math.min(8,S.pn+d));document.getElementById('pcv').textContent=S.pn; draw();}
+function pickC(w,el){el.parentElement.querySelectorAll('.cb').forEach(c=>c.classList.remove('a'));el.classList.add('a');if(w===1){S.c1=el.dataset.c;S.n1=el.dataset.n}else if(w===2){S.c2=el.dataset.c;S.n2=el.dataset.n}else{S.c3=el.dataset.c;S.n3=el.dataset.n}utag(); draw();}
 function startEye(w){if(S.et===w){stopEye();return}S.et=w;S.sc=null;document.getElementById('e'+w).classList.add('s');document.getElementById('xh').classList.add('on');toast('Apunta al color y toca')}
 function stopEye(){if(S.et)document.getElementById('e'+S.et).classList.remove('s');S.et=0;document.getElementById('xh').classList.remove('on')}
 function sampleAt(x,y){if(!S.et)return;const v=document.getElementById('cam');if(!v.srcObject){toast('Sin cámara');stopEye();return}sm.width=v.videoWidth;sm.height=v.videoHeight;sx.drawImage(v,0,0);const r=v.getBoundingClientRect(),mx=(x/r.width)*v.videoWidth,my=(y/r.height)*v.videoHeight;const d=sx.getImageData(Math.max(0,mx-2),Math.max(0,my-2),5,5).data;let rr=0,gg=0,bb=0,n=0;for(let i=0;i<d.length;i+=4){rr+=d[i];gg+=d[i+1];bb+=d[i+2];n++}rr=Math.round(rr/n);gg=Math.round(gg/n);bb=Math.round(bb/n);const hex='#'+[rr,gg,bb].map(c=>c.toString(16).padStart(2,'0')).join('');S.sc=hex;const t=S.et;document.getElementById('cpv'+t).classList.add('v');document.getElementById('cpsw'+t).style.background=hex;document.getElementById('cphx'+t).textContent=hex.toUpperCase();toast('Color: '+hex.toUpperCase());stopEye();stab('color')}
-function applyEye(w){if(!S.sc)return;if(w===1){S.c1=S.sc;S.n1='Custom'}else if(w===2){S.c2=S.sc;S.n2='Custom'}else{S.c3=S.sc;S.n3='Custom'}document.getElementById('cr'+w).querySelectorAll('.cb').forEach(c=>c.classList.remove('a'));utag();toast('Color aplicado')}
+function applyEye(w){if(!S.sc)return;if(w===1){S.c1=S.sc;S.n1='Custom'}else if(w===2){S.c2=S.sc;S.n2='Custom'}else{S.c3=S.sc;S.n3='Custom'}document.getElementById('cr'+w).querySelectorAll('.cb').forEach(c=>c.classList.remove('a'));utag();toast('Color aplicado'); draw();}
 document.addEventListener('click',e=>{if(!S.et)return;if(e.target.closest('.cp,.ah,.bx'))return;sampleAt(e.clientX,e.clientY)});
-function uSz(){S.w=+document.getElementById('rw').value;S.h=+document.getElementById('rh').value;document.getElementById('vw').textContent=S.w+'px';document.getElementById('vhh').textContent=S.h+'px'}
-function uOp(){S.op=+document.getElementById('ro').value/100;document.getElementById('vop').textContent=Math.round(S.op*100)+'%'}
-function ctr(){mid();toast('Centrado')}
+
+function uSz(){S.w=+document.getElementById('rw').value;S.h=+document.getElementById('rh').value;document.getElementById('vw').textContent=S.w+'px';document.getElementById('vhh').textContent=S.h+'px'; draw();}
+// Modificación: La opacidad no necesita redibujar todo el lienzo, solo actualizamos el estilo CSS (Ultra rápido).
+function uOp(){S.op=+document.getElementById('ro').value/100;document.getElementById('vop').textContent=Math.round(S.op*100)+'%'; cv.style.opacity = S.op;}
+function ctr(){mid(); cv.style.left=S.x+'px'; cv.style.top=S.y+'px'; toast('Centrado')}
 function tDrag(el){S.drag=!S.drag;el.classList.toggle('on',S.drag);toast(S.drag?'Arrastrar ON':'OFF')}
 function utag(){const nm=document.querySelector('.tp.a').textContent.trim();const bi=BI.includes(S.type);let t=nm+' — '+S.n1;if(bi)t+=' / '+S.n2;if(S.type==='onda'&&S.velo)t+=' + Velo '+S.n3;document.getElementById('ptx').textContent=t;document.getElementById('d1').style.background=S.c1;document.getElementById('d2').style.background=S.c2;document.getElementById('d3').style.background=S.c3}
 
-// ======================== RENDER ========================
-function ren(){draw();S.af=requestAnimationFrame(ren)}
-const TH=14; // tube height
-function aF(){return S.ap==='open' ? 0.12 : S.ap==='half' ? 0.5 : 1}
+// ======================== RENDER REACTIVO ========================
+// Ya no usamos requestAnimationFrame. La cortina solo se dibuja cuando hay un cambio.
+const TH=14; 
+function aF(){return S.ap==='open'?.12:S.ap==='half'?.5:1}
 
 function draw(){
 cv.width=S.w;cv.height=S.h;cv.style.width=S.w+'px';cv.style.height=S.h+'px';
 cv.style.left=S.x+'px';cv.style.top=S.y+'px';cv.style.transform='translate(-50%,-50%)';cv.style.opacity=S.op;
 cx.clearRect(0,0,S.w,S.h);
-// Shadow
 cx.shadowColor='rgba(0,0,0,.3)';cx.shadowBlur=15;cx.shadowOffsetY=5;
 const fns={enrollable:dEnroll,veneciana:dVenec,romana:dRoman,vertical:dVert,sheer:dSheer,vertesse:dVertesse,onda:dOnda,velo:dVelo,panel:dPanel};
 (fns[S.type]||dEnroll)();
@@ -235,11 +232,9 @@ function dTube(){
 const g=cx.createLinearGradient(0,0,0,TH);
 g.addColorStop(0,dk(S.c1,25));g.addColorStop(.3,lt(S.c1,5));g.addColorStop(.7,S.c1);g.addColorStop(1,dk(S.c1,35));
 cx.fillStyle=g;cx.fillRect(0,0,S.w,TH);
-// Highlight line
 cx.strokeStyle='rgba(255,255,255,.15)';cx.lineWidth=1;cx.beginPath();cx.moveTo(0,3);cx.lineTo(S.w,3);cx.stroke();
 cx.strokeStyle=dk(S.c1,50);cx.lineWidth=.5;cx.strokeRect(0,0,S.w,TH);}
 
-// ====== ENROLLABLE ======
 function dEnroll(){
 const h=(S.h-TH)*aF();
 cx.fillStyle=S.c1;cx.fillRect(0,TH,S.w,h);
@@ -251,10 +246,9 @@ cx.fillStyle=fg;cx.fillRect(0,TH,S.w,h);
 if(h>12){const bG=cx.createLinearGradient(0,TH+h-8,0,TH+h);bG.addColorStop(0,dk(S.c1,10));bG.addColorStop(.5,dk(S.c1,20));bG.addColorStop(1,dk(S.c1,30));cx.fillStyle=bG;cx.fillRect(0,TH+h-8,S.w,8)}
 if(S.ap!=='closed'){const rH=6+(1-aF())*14;for(let i=0;i<3;i++){const y=TH+i*3;const rg=cx.createLinearGradient(0,y,0,y+rH/3);rg.addColorStop(0,dk(S.c1,15+i*5));rg.addColorStop(.5,lt(S.c1,8-i*3));rg.addColorStop(1,dk(S.c1,20+i*5));cx.fillStyle=rg;cx.fillRect(0,y,S.w,rH/3)}}}
 
-// ====== VENECIANA ======
 function dVenec(){
 const tH=(S.h-TH);const n=16;const gap=tH/n;
-const slatAngle=S.ap==='closed' ? 1 : S.ap==='half' ? 0.6 : 0.2;
+const slatAngle=S.ap==='closed'?1:S.ap==='half'?.6:.2;
 const slatH=gap*slatAngle*.8;
 for(let i=0;i<n;i++){const y=TH+i*gap;
 const g=cx.createLinearGradient(0,y,0,y+slatH);
@@ -266,7 +260,6 @@ cx.strokeStyle='rgba(255,255,255,.1)';cx.lineWidth=.5;cx.beginPath();cx.moveTo(0
 cx.strokeStyle=dk(S.c1,35);cx.lineWidth=1.2;
 [S.w*.18,S.w*.82].forEach(x=>{cx.beginPath();cx.moveTo(x,TH);cx.lineTo(x,S.h);cx.stroke()})}
 
-// ====== ROMANA ======
 function dRoman(){
 const vis=(S.h-TH)*aF();const n=Math.max(2,Math.round(5*aF()));const fh=vis/n;
 for(let i=0;i<n;i++){const y=TH+i*fh;
@@ -277,7 +270,6 @@ const sg=cx.createLinearGradient(0,y+fh-12,0,y+fh);sg.addColorStop(0,'transparen
 cx.strokeStyle=dk(S.c1,30);cx.lineWidth=.8;cx.beginPath();cx.moveTo(0,y+fh);cx.lineTo(S.w,y+fh);cx.stroke();
 cx.strokeStyle=dk(S.c1,5);cx.lineWidth=.2;for(let ly=y+4;ly<y+fh;ly+=6){cx.beginPath();cx.moveTo(0,ly);cx.lineTo(S.w,ly);cx.stroke()}}}
 
-// ====== VERTICAL ======
 function dVert(){
 const n=10;const used=Math.max(2,Math.round(n*aF()));const tW=S.w*aF();const sw=tW/used;
 for(let i=0;i<used;i++){const x=i*sw;
@@ -288,14 +280,15 @@ g.addColorStop(.85,dk(S.c1,8));g.addColorStop(1,dk(S.c1,22));
 cx.fillStyle=g;cx.fillRect(x+.5,TH,sw-1,S.h-TH);
 cx.fillStyle=dk(S.c1,20);cx.fillRect(x+.5,S.h-5,sw-1,5)}}
 
-// ====== SHEER ELEGANCE ======
 function dSheer(){
 const bH=16;const vis=(S.h-TH)*aF();let y=TH;let alt=false;
 const offset=S.ap==='closed'?0:S.ap==='half'?bH*.5:bH*.85;
 while(y<TH+vis){
-if(alt){cx.fillStyle=S.c1;cx.fillRect(0,y,S.w,bH);
+if(alt){
+cx.fillStyle=S.c1;cx.fillRect(0,y,S.w,bH);
 cx.strokeStyle=dk(S.c1,6);cx.lineWidth=.2;for(let ly=y+2;ly<y+bH;ly+=4){cx.beginPath();cx.moveTo(0,ly);cx.lineTo(S.w,ly);cx.stroke()}}
-else{const alpha=.25+offset/bH*.5;cx.fillStyle=S.c2;cx.globalAlpha=alpha;cx.fillRect(0,y,S.w,bH);cx.globalAlpha=1;
+else{
+const alpha=.25+offset/bH*.5;cx.fillStyle=S.c2;cx.globalAlpha=alpha;cx.fillRect(0,y,S.w,bH);cx.globalAlpha=1;
 cx.strokeStyle=dk(S.c2,15);cx.globalAlpha=.4;cx.lineWidth=.2;
 for(let ly=y;ly<y+bH;ly+=2.5){cx.beginPath();cx.moveTo(0,ly);cx.lineTo(S.w,ly);cx.stroke()}
 cx.globalAlpha=1}
@@ -303,12 +296,11 @@ y+=bH;alt=!alt}
 if(vis>10){const bG=cx.createLinearGradient(0,TH+vis-7,0,TH+vis);bG.addColorStop(0,dk(S.c1,10));bG.addColorStop(1,dk(S.c1,28));cx.fillStyle=bG;cx.fillRect(0,TH+vis-7,S.w,7)}
 if(S.ap!=='closed'){const rH=5+(1-aF())*10;const rg=cx.createLinearGradient(0,TH,0,TH+rH);rg.addColorStop(0,dk(S.c1,10));rg.addColorStop(1,dk(S.c1,22));cx.fillStyle=rg;cx.fillRect(0,TH,S.w,rH)}}
 
-// ====== SHEER VERTESSE ======
 function dVertesse(){
 const f=aF();const usedW=S.w*f;
 cx.fillStyle='#bbb';cx.fillRect(0,TH,S.w,4);
 const n=Math.max(4,Math.round(14*f));const lw=usedW/n;
-const rotation=S.ap==='closed' ? 1 : S.ap==='half' ? 0.55 : 0.15;
+const rotation=S.ap==='closed'?1:S.ap==='half'?.55:.15; 
 for(let i=0;i<n;i++){const x=i*lw;
 const visW=Math.max(3,lw*.95);
 const g=cx.createLinearGradient(x,0,x+visW,0);
@@ -316,7 +308,7 @@ g.addColorStop(0,dk(S.c1,20));g.addColorStop(.2,dk(S.c1,5));
 g.addColorStop(.4,lt(S.c1,12));g.addColorStop(.5,lt(S.c1,15));
 g.addColorStop(.6,lt(S.c1,10));g.addColorStop(.8,dk(S.c1,8));g.addColorStop(1,dk(S.c1,25));
 cx.fillStyle=g;
-cx.globalAlpha=.2+rotation*.7;
+cx.globalAlpha=.2+rotation*.7; 
 cx.fillRect(x,TH+4,visW,S.h-TH-4);
 cx.globalAlpha=1;
 cx.strokeStyle=dk(S.c1,12);cx.globalAlpha=.3+rotation*.4;cx.lineWidth=.15;
@@ -329,12 +321,11 @@ for(let i=0;i<folds;i++){const x=usedW+i*(bunchW/folds);const fw=bunchW/folds;
 const g=cx.createLinearGradient(x,0,x+fw,0);g.addColorStop(0,dk(S.c1,15));g.addColorStop(.5,lt(S.c1,8));g.addColorStop(1,dk(S.c1,20));
 cx.fillStyle=g;cx.globalAlpha=.6;cx.fillRect(x,TH+4,fw,S.h-TH-4);cx.globalAlpha=1}}}}
 
-// ====== ONDA SERENA ======
 function dOnda(){
 const f=aF();
 if(S.velo){
 const vc=S.c3;const vh=S.h-TH;
-cx.fillStyle=vc;cx.globalAlpha=.35;
+cx.fillStyle=vc;cx.globalAlpha=.35; 
 cx.fillRect(0,TH,S.w,vh);cx.globalAlpha=1;
 cx.strokeStyle=dk(vc,15);cx.lineWidth=.3;cx.globalAlpha=.6;
 for(let y=TH;y<S.h;y+=3){cx.beginPath();cx.moveTo(0,y);cx.lineTo(S.w,y);cx.stroke()}
@@ -342,17 +333,21 @@ cx.strokeStyle=dk(vc,8);cx.lineWidth=.15;
 for(let x=0;x<S.w;x+=6){cx.beginPath();cx.moveTo(x,TH);cx.lineTo(x,S.h);cx.stroke()}
 cx.globalAlpha=1;
 cx.fillStyle=dk(vc,20);cx.fillRect(0,S.h-4,S.w,4)}
+
 cx.fillStyle='#aaa';const rg=cx.createLinearGradient(0,TH-2,0,TH+4);
 rg.addColorStop(0,'#ccc');rg.addColorStop(1,'#888');cx.fillStyle=rg;cx.fillRect(0,TH-2,S.w,5);
-if(S.velo){if(S.ap==='closed'){drawOndaCyl(0,S.w)}
+
+if(S.velo){
+if(S.ap==='closed'){drawOndaCyl(0,S.w)}
 else{
-const openGap=S.w*(1-f)*.7;
+const openGap=S.w*(1-f)*.7; 
 const leftEnd=S.w/2-openGap/2;const rightStart=S.w/2+openGap/2;
 drawOndaCyl(0,leftEnd);
 drawGathered(leftEnd-S.w*.05,leftEnd+5);
 drawOndaCyl(rightStart,S.w);
 drawGathered(rightStart-5,rightStart+S.w*.05)}}
-else{if(S.ap==='closed'){drawOndaCyl(0,S.w)}
+else{
+if(S.ap==='closed'){drawOndaCyl(0,S.w)}
 else{
 const coveredW=S.w*f;
 drawOndaCyl(0,coveredW);
@@ -364,9 +359,15 @@ const waveW=Math.max(10,Math.min(28,w/Math.max(4,Math.round(w/20))));
 const waves=Math.ceil(w/waveW);
 for(let i=0;i<waves;i++){const x=x0+i*waveW;const ww=Math.min(waveW,x1-x);if(ww<3)continue;
 const g=cx.createLinearGradient(x,0,x+ww,0);
-g.addColorStop(0,dk(S.c1,30));g.addColorStop(.08,dk(S.c1,18));g.addColorStop(.25,lt(S.c1,5));
-g.addColorStop(.4,lt(S.c1,18));g.addColorStop(.5,lt(S.c1,20));g.addColorStop(.6,lt(S.c1,15));
-g.addColorStop(.75,S.c1);g.addColorStop(.92,dk(S.c1,20));g.addColorStop(1,dk(S.c1,32));
+g.addColorStop(0,dk(S.c1,30));
+g.addColorStop(.08,dk(S.c1,18));
+g.addColorStop(.25,lt(S.c1,5));
+g.addColorStop(.4,lt(S.c1,18)); 
+g.addColorStop(.5,lt(S.c1,20)); 
+g.addColorStop(.6,lt(S.c1,15));
+g.addColorStop(.75,S.c1);
+g.addColorStop(.92,dk(S.c1,20));
+g.addColorStop(1,dk(S.c1,32));
 cx.fillStyle=g;cx.fillRect(x,TH+3,ww,S.h-TH-3);
 cx.strokeStyle=dk(S.c1,5);cx.lineWidth=.15;
 for(let ly=TH+8;ly<S.h;ly+=5){cx.beginPath();cx.moveTo(x+2,ly);cx.lineTo(x+ww-2,ly);cx.stroke()}}
@@ -384,10 +385,10 @@ const g=cx.createLinearGradient(x,0,x+fw,0);
 g.addColorStop(0,dk(S.c1,25));g.addColorStop(.3,lt(S.c1,5));g.addColorStop(.5,lt(S.c1,10));g.addColorStop(.7,dk(S.c1,5));g.addColorStop(1,dk(S.c1,28));
 cx.fillStyle=g;cx.fillRect(x,TH+3,fw,S.h-TH-3)}}
 
-// ====== VELO ======
 function dVelo(){
 const f=aF();
 cx.fillStyle='#aaa';cx.fillRect(0,TH-1,S.w,3);
+
 if(S.ap==='closed'){drawVeloFabric(0,S.w);return}
 if(S.vdir==='ltr'){
 const covW=S.w*f;
@@ -398,10 +399,10 @@ const startX=S.w*(1-f);
 drawVeloFabric(startX,S.w);
 drawVeloGather(startX-Math.max(10,S.w*.06),startX)}
 else{
-const openGap=S.w*(1-f);
+const openGap=S.w*(1-f); 
 const halfGap=openGap/2;
-const leftEnd=S.w/2-halfGap;
-const rightStart=S.w/2+halfGap;
+const leftEnd=S.w/2-halfGap; 
+const rightStart=S.w/2+halfGap; 
 if(leftEnd>4) drawVeloFabric(0,leftEnd);
 drawVeloGather(leftEnd,leftEnd+Math.max(8,S.w*.04));
 if(S.w-rightStart>4) drawVeloFabric(rightStart,S.w);
@@ -426,7 +427,6 @@ for(let i=0;i<folds;i++){const x=a+i*fw;
 const g=cx.createLinearGradient(x,0,x+fw,0);g.addColorStop(0,'rgba(0,0,0,.05)');g.addColorStop(.5,'rgba(255,255,255,.04)');g.addColorStop(1,'rgba(0,0,0,.06)');
 cx.fillStyle=S.c1;cx.globalAlpha=.3;cx.fillRect(x,TH,fw,S.h-TH);cx.globalAlpha=1;cx.fillStyle=g;cx.fillRect(x,TH,fw,S.h-TH)}}
 
-// ====== PANEL JAPONÉS ======
 function dPanel(){
 const n=S.pn;const colors=[S.c1,S.c2];
 const rg=cx.createLinearGradient(0,TH,0,TH+5);rg.addColorStop(0,'#bbb');rg.addColorStop(1,'#888');
@@ -451,22 +451,37 @@ cx.fillStyle=sg;cx.fillRect(x+w-10,TH+5,10,S.h-TH-5);
 const bg=cx.createLinearGradient(0,S.h-6,0,S.h);bg.addColorStop(0,dk(c,15));bg.addColorStop(1,dk(c,25));
 cx.fillStyle=bg;cx.fillRect(x,S.h-6,w,6)}
 
-// ====== COLOR UTILS ======
 function hexRgb(h){return{r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)}}
 function rgbHex(r,g,b){return'#'+[r,g,b].map(c=>Math.max(0,Math.min(255,Math.round(c))).toString(16).padStart(2,'0')).join('')}
 function dk(h,a){const{r,g,b}=hexRgb(h);return rgbHex(r-a,g-a,b-a)}
 function lt(h,a){const{r,g,b}=hexRgb(h);return rgbHex(r+a,g+a,b+a)}
 
-// ====== DRAG ======
+// ======================== GESTIÓN DE ARRASTRE OPTIMIZADO ========================
+// Al arrastrar modificamos el estilo CSS del canvas (X/Y) sin repintar su contenido. 
+// Esto es infinitamente más suave para dispositivos móviles.
 let dr=false,dtx,dty,dbx,dby;
 document.addEventListener('touchstart',e=>{if(!S.drag||S.et)return;const t=e.touches[0];if(t.clientY>innerHeight-260)return;const dx=t.clientX-S.x,dy=t.clientY-S.y;if(Math.abs(dx)<S.w/2+30&&Math.abs(dy)<S.h/2+30){dr=true;dtx=t.clientX;dty=t.clientY;dbx=S.x;dby=S.y;e.preventDefault()}},{passive:false});
-document.addEventListener('touchmove',e=>{if(!dr)return;const t=e.touches[0];S.x=dbx+(t.clientX-dtx);S.y=dby+(t.clientY-dty);e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',e=>{
+    if(!dr)return;
+    const t=e.touches[0];
+    S.x=dbx+(t.clientX-dtx);
+    S.y=dby+(t.clientY-dty);
+    cv.style.left = S.x + 'px'; // Actualización directa de DOM
+    cv.style.top = S.y + 'px';  // Sin redibujar el canvas
+    e.preventDefault();
+},{passive:false});
 document.addEventListener('touchend',()=>{dr=false});
+
 document.addEventListener('mousedown',e=>{if(!S.drag||S.et||e.target.closest('.cp,.ah,.bx'))return;const dx=e.clientX-S.x,dy=e.clientY-S.y;if(Math.abs(dx)<S.w/2+30&&Math.abs(dy)<S.h/2+30){dr=true;dtx=e.clientX;dty=e.clientY;dbx=S.x;dby=S.y}});
-document.addEventListener('mousemove',e=>{if(!dr)return;S.x=dbx+(e.clientX-dtx);S.y=dby+(e.clientY-dty)});
+document.addEventListener('mousemove',e=>{
+    if(!dr)return;
+    S.x=dbx+(e.clientX-dtx);
+    S.y=dby+(e.clientY-dty);
+    cv.style.left = S.x + 'px';
+    cv.style.top = S.y + 'px';
+});
 document.addEventListener('mouseup',()=>{dr=false});
 
-// ====== CAPTURE ======
 function snap(){const fl=document.getElementById('fl');fl.classList.add('f');setTimeout(()=>fl.classList.remove('f'),200);
 const c=document.createElement('canvas');const v=document.getElementById('cam');c.width=innerWidth*2;c.height=innerHeight*2;const g=c.getContext('2d');g.scale(2,2);
 if(v.srcObject)g.drawImage(v,0,0,innerWidth,innerHeight);else{g.fillStyle='#1a1a2e';g.fillRect(0,0,innerWidth,innerHeight)}
