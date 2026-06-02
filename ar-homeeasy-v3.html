@@ -166,10 +166,16 @@ vid.setAttribute('autoplay','true');
 vid.setAttribute('muted','true');
 vid.muted=true;
 try{
-if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-throw new Error('Se requiere HTTPS para acceder a la cámara');
+if(!window.isSecureContext){throw new Error('INSECURE');}
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){throw new Error('NOAPI');}
+var stream;
+try{
+stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+}catch(err1){
+if(err1&&(err1.name==='OverconstrainedError'||err1.name==='NotFoundError')){
+stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+}else{throw err1;}
 }
-var stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
 S.stream=stream;
 vid.srcObject=stream;
 await vid.play();
@@ -177,8 +183,20 @@ nocam.style.display='none';
 vid.style.display='block';
 }catch(e){
 console.error('Camera error:',e);
+var msg;
+if(e.message==='INSECURE'||e.message==='NOAPI'){
+msg='Esta vista necesita una conexión segura (HTTPS).<br>Ábrela tocando un enlace que empiece por <b>https://</b> en <b>Safari</b>. No funciona abriendo el archivo descargado ni dentro de otra app.';
+}else if(e.name==='NotAllowedError'||e.name==='SecurityError'){
+msg='Bloqueaste el permiso de cámara.<br>Ve a <b>Ajustes &rarr; Safari &rarr; Cámara &rarr; Permitir</b>, vuelve y recarga la página.';
+}else if(e.name==='NotReadableError'){
+msg='La cámara está siendo usada por otra app. Ciérrala e intenta de nuevo.';
+}else if(e.name==='NotFoundError'||e.name==='OverconstrainedError'){
+msg='No se encontró una cámara disponible en este dispositivo.';
+}else{
+msg='No se pudo iniciar la cámara: '+(e.message||e.name);
+}
 nocam.style.display='flex';
-nocam.querySelector('p').textContent='Error: '+e.message;
+nocam.querySelector('p').innerHTML=msg;
 vid.style.display='none';
 }
 setTimeout(function(){document.getElementById('gu').classList.add('h');document.getElementById('pt').classList.add('v')},2500);
