@@ -397,7 +397,7 @@
                             cedula: o[2], 
                             nombre: o[3], 
                             total: o[6], 
-                            saldo: o[10] 
+                            saldo: o[17] // K(saldo) se movió a R tras ampliar abonos 
                         });
                     }
                     localStorage.setItem("CACHE_ORDENES", JSON.stringify(ordenesArr));
