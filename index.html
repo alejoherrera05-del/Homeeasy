@@ -83,8 +83,25 @@ body {
 .bar-fill { height:100%; width:0%; background:var(--home-yellow); transition:width 1s ease-in-out; }
 
 /* =================================================
-   3. CAMPANA Y NOTIFICACIONES
+   3. ACCESOS SUPERIORES Y NOTIFICACIONES
    ================================================= */
+.settings-action {
+    position: fixed;
+    top: env(safe-area-inset-top, 15px);
+    left: 20px;
+    z-index: 2000;
+    margin-top: 15px;
+    text-decoration: none;
+}
+.settings-container {
+    cursor: pointer; background: white; width: 45px; height: 45px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transform: translate3d(0,0,0); -webkit-transform: translate3d(0,0,0);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.settings-container i { font-size: 21px; color: var(--home-red); transition: transform 0.25s ease; }
+.settings-container:active { transform: scale(0.92); }
+
 .top-actions {
     position: fixed;
     top: env(safe-area-inset-top, 15px);
@@ -245,6 +262,11 @@ body {
    🖥️ RESPONSIVE DESKTOP Y EFECTOS HOVER 
    ================================================= */
 @media (hover: hover) and (pointer: fine) {
+    .settings-container:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+    }
+    .settings-container:hover i { transform: rotate(28deg); }
     .menu-card:hover { 
         transform: translateY(-5px) scale(1.02); 
         box-shadow: 0 15px 35px rgba(0,0,0,0.08); 
@@ -339,6 +361,10 @@ body {
             </div>
         </div>
     </div>
+
+    <a href="configuracion.html" class="settings-action" aria-label="Abrir configuración">
+        <div class="settings-container"><i class="fa-solid fa-gear"></i></div>
+    </a>
 
     <div class="top-actions" id="bell-wrapper">
         <div class="bell-container" onclick="toggleNotificationBubble(event)">
@@ -562,7 +588,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if(data.ordenes){
                     for (let i = 1; i < data.ordenes.length; i++) {
                         const o = data.ordenes[i];
-                        if(o) ordenesArr.push({ numero: o[1], cedula: o[2], nombre: o[3], total: o[6], saldo: o[10] });
+                        if(o) ordenesArr.push({ numero: o[1], cedula: o[2], nombre: o[3], total: o[6], saldo: o[17] });
                     }
                 }
                 localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
