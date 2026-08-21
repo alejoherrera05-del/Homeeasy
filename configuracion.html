@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="homeeasy-core.js?v=2.1"></script>
+    <script src="homeeasy-core.js?v=2.2"></script>
 
     <style>
         :root {
@@ -44,115 +44,158 @@
         a { color: inherit; }
 
         /* =================================================
-           ACCESO
+           ACCESO — ESCENA HOMEEASY CON PANEL GLASS
            ================================================= */
         .access-screen {
             position: fixed;
             inset: 0;
             z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: calc(22px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom));
-            background: var(--menu-bg);
-            transition: opacity .28s ease, visibility .28s ease;
+            overflow: hidden;
+            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+            background:
+                radial-gradient(circle at 18% 18%, rgba(194,164,104,.30), transparent 31%),
+                radial-gradient(circle at 82% 78%, rgba(255,255,255,.18), transparent 28%),
+                linear-gradient(145deg, #7a3040 0%, var(--home-red) 48%, #bc6f80 100%);
+            transition: opacity .32s ease, visibility .32s ease;
+        }
+        .access-screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 90%);
         }
         .access-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         .access-back {
             position: absolute;
             top: calc(18px + env(safe-area-inset-top));
             left: 20px;
+            z-index: 5;
             width: 45px;
             height: 45px;
             border-radius: 50%;
-            background: white;
-            color: var(--home-red);
+            border: 1px solid rgba(255,255,255,.48);
+            background: rgba(255,255,255,.22);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,.07);
-            transition: transform .15s ease;
+            box-shadow: 0 8px 25px rgba(62,17,27,.18);
+            backdrop-filter: blur(16px) saturate(150%);
+            -webkit-backdrop-filter: blur(16px) saturate(150%);
+            transition: transform .15s ease, background .15s ease;
         }
-        .access-back:active { transform: scale(.92); }
-        .access-shell { width: 100%; max-width: 410px; text-align: center; }
-        .access-logo { width: 176px; max-width: 58vw; height: auto; display: block; margin: 0 auto 30px; }
-        .access-card {
-            background: white;
-            border: 1px solid rgba(194,164,104,.24);
-            border-radius: 28px;
-            padding: 30px 26px 26px;
-            box-shadow: 0 18px 45px rgba(0,0,0,.07);
-        }
-        .access-icon {
-            width: 52px;
-            height: 52px;
-            margin: 0 auto 16px;
-            border-radius: 16px;
-            background: var(--soft-wine);
-            color: var(--home-red);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-        }
-        .access-card h1 { margin: 0; color: var(--home-red); font-size: 1.55rem; font-weight: 800; letter-spacing: -.55px; }
-        .access-card p { margin: 8px 0 24px; color: var(--muted); font-size: .86rem; line-height: 1.45; font-weight: 500; }
-        .pin-field { position: relative; }
-        .pin-field > i:first-child {
+        .access-back:active { transform: scale(.92); background: rgba(255,255,255,.32); }
+        .access-stage { position: relative; width: min(1180px, 100%); height: 100%; min-height: 100vh; min-height: 100dvh; margin: 0 auto; }
+        .access-hommy {
             position: absolute;
-            left: 17px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--home-yellow);
+            z-index: 1;
+            left: clamp(-145px, -5vw, 16px);
+            bottom: -4.5vh;
+            height: min(94vh, 900px);
+            width: auto;
+            max-width: 72vw;
+            object-fit: contain;
+            object-position: bottom left;
+            pointer-events: none;
+            user-select: none;
+            filter: drop-shadow(0 30px 38px rgba(48,12,20,.34));
         }
+        .access-card {
+            position: absolute;
+            z-index: 3;
+            top: 50%;
+            right: clamp(24px, 6vw, 92px);
+            width: min(390px, calc(100% - 40px));
+            transform: translateY(-50%);
+            padding: 30px 28px 25px;
+            border: 1px solid rgba(255,255,255,.62);
+            border-radius: 30px;
+            background: linear-gradient(145deg, rgba(255,255,255,.72), rgba(255,255,255,.48));
+            box-shadow: 0 28px 70px rgba(54,13,22,.28), inset 0 1px 0 rgba(255,255,255,.82);
+            backdrop-filter: blur(26px) saturate(165%);
+            -webkit-backdrop-filter: blur(26px) saturate(165%);
+            text-align: left;
+        }
+        .access-logo { width: 150px; max-width: 58%; height: auto; display: block; margin: 0 0 23px; filter: drop-shadow(0 5px 10px rgba(0,0,0,.08)); }
+        .access-eyebrow { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 11px; color: var(--home-red); font-size: .67rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.25px; }
+        .access-eyebrow i { color: var(--home-yellow); }
+        .access-card h1 { margin: 0; color: #472128; font-size: 1.72rem; font-weight: 800; letter-spacing: -.72px; }
+        .access-card p { margin: 9px 0 23px; color: #6f5c61; font-size: .85rem; line-height: 1.52; font-weight: 550; }
+        .pin-field { position: relative; }
+        .pin-field > i:first-child { position: absolute; left: 17px; top: 50%; transform: translateY(-50%); color: var(--home-yellow); }
         .pin-input {
             width: 100%;
             height: 56px;
             padding: 0 52px 0 47px;
-            border: 1.5px solid var(--line);
+            border: 1.5px solid rgba(166,69,90,.18);
             border-radius: 16px;
-            background: #fcfbfb;
+            background: rgba(255,255,255,.74);
             color: var(--text);
             text-align: center;
             letter-spacing: 8px;
             font-size: 1.22rem;
             font-weight: 800;
             outline: none;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
             transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
         }
-        .pin-input:focus { border-color: var(--home-yellow); background: white; box-shadow: 0 0 0 4px rgba(194,164,104,.13); }
+        .pin-input:focus { border-color: var(--home-yellow); background: rgba(255,255,255,.94); box-shadow: 0 0 0 4px rgba(194,164,104,.16); }
         .pin-input.error { border-color: var(--danger); box-shadow: 0 0 0 4px rgba(255,59,48,.1); }
-        .pin-eye {
-            position: absolute;
-            top: 50%;
-            right: 8px;
-            transform: translateY(-50%);
-            width: 42px;
-            height: 42px;
-            border: none;
-            border-radius: 12px;
-            background: transparent;
-            color: #a5a0a3;
-        }
+        .pin-eye { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); width: 42px; height: 42px; border: none; border-radius: 12px; background: transparent; color: #92868a; }
         .access-submit {
             width: 100%;
             margin-top: 14px;
             min-height: 52px;
             border: none;
             border-radius: 15px;
-            background: var(--home-red);
+            background: linear-gradient(135deg, var(--home-red), #843546);
             color: white;
             font-weight: 800;
-            box-shadow: 0 8px 20px rgba(166,69,90,.23);
+            box-shadow: 0 10px 24px rgba(166,69,90,.28);
             transition: transform .15s ease, opacity .15s ease;
         }
         .access-submit:active { transform: scale(.98); }
         .access-submit:disabled { opacity: .65; cursor: wait; }
-        .access-status { min-height: 20px; margin-top: 13px; color: var(--danger); font-size: .75rem; font-weight: 600; }
-        .access-caption { margin-top: 18px; color: #aaa4a8; font-size: .68rem; font-weight: 600; letter-spacing: .2px; }
-        @keyframes accessShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-9px)} 75%{transform:translateX(9px)} }
-        .access-card.shake { animation: accessShake .34s ease; }
+        .access-status { min-height: 20px; margin-top: 12px; color: #bd2935; font-size: .73rem; font-weight: 700; text-align: center; }
+        .access-caption { margin-top: 5px; color: rgba(71,33,40,.58); font-size: .64rem; font-weight: 650; text-align: center; }
+        @keyframes accessShakeDesktop { 0%,100%{transform:translateY(-50%) translateX(0)} 25%{transform:translateY(-50%) translateX(-9px)} 75%{transform:translateY(-50%) translateX(9px)} }
+        .access-card.shake { animation: accessShakeDesktop .34s ease; }
+
+        @media (max-width: 720px) {
+            .access-stage { min-height: 100vh; min-height: 100dvh; }
+            .access-hommy {
+                left: 50%;
+                bottom: -5.5vh;
+                height: min(66vh, 610px);
+                max-width: none;
+                transform: translateX(-50%);
+                object-position: bottom center;
+                filter: drop-shadow(0 24px 30px rgba(48,12,20,.31));
+                clip-path: inset(22% 0 0 0);
+            }
+            .access-card {
+                top: calc(72px + env(safe-area-inset-top));
+                left: 50%;
+                right: auto;
+                width: calc(100% - 28px);
+                max-width: 405px;
+                transform: translateX(-50%);
+                padding: 23px 21px 20px;
+                border-radius: 25px;
+                background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(255,255,255,.56));
+            }
+            .access-logo { width: 132px; margin-bottom: 17px; }
+            .access-card h1 { font-size: 1.43rem; }
+            .access-card p { margin-bottom: 18px; font-size: .79rem; }
+            .pin-input { height: 53px; }
+            .access-submit { min-height: 49px; }
+            @keyframes accessShakeMobile { 0%,100%{transform:translateX(-50%)} 25%{transform:translateX(calc(-50% - 9px))} 75%{transform:translateX(calc(-50% + 9px))} }
+            .access-card.shake { animation: accessShakeMobile .34s ease; }
+        }
 
         /* =================================================
            APP
@@ -496,29 +539,40 @@
         .info-box span { display: block; color: var(--muted); font-size: .61rem; font-weight: 700; text-transform: uppercase; letter-spacing: .45px; }
         .info-box strong { display: block; margin-top: 6px; color: var(--text); font-size: .78rem; overflow-wrap: anywhere; }
 
-        /* Movimientos */
-        .movement-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 13px; }
-        .movement-toolbar a { color: var(--home-red); font-size: .68rem; font-weight: 800; text-decoration: none; }
-        .refresh-button { border: none; background: transparent; color: var(--home-red); font-size: .7rem; font-weight: 800; }
-        .movement-list { border: 1px solid var(--line); border-radius: 17px; overflow: hidden; background: white; }
-        .movement-item { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px; border-bottom: 1px solid var(--line); }
-        .movement-item:last-child { border-bottom: none; }
-        .movement-left { min-width: 0; display: flex; align-items: center; gap: 11px; }
-        .movement-icon { width: 39px; height: 39px; flex: 0 0 auto; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .movement-icon.income { background: rgba(52,199,89,.11); color: var(--success); }
-        .movement-icon.sale { background: var(--soft-wine); color: var(--home-red); }
-        .movement-icon.expense { background: rgba(255,59,48,.09); color: var(--danger); }
-        .movement-copy { min-width: 0; }
-        .movement-copy strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; }
-        .movement-copy span { display: block; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: .61rem; }
-        .movement-right { flex: 0 0 auto; text-align: right; }
-        .movement-value { display: block; font-size: .76rem; font-weight: 800; color: var(--success); }
-        .movement-value.out { color: var(--text); }
-        .movement-date { display: block; margin-top: 4px; color: #aaa4a8; font-size: .58rem; }
+        /* Actividad de la aplicación */
+        .activity-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .activity-toolbar-copy strong { display: block; color: var(--text); font-size: .8rem; }
+        .activity-toolbar-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: .64rem; line-height: 1.4; }
+        .refresh-button { border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--home-red); padding: 9px 12px; font-size: .68rem; font-weight: 800; white-space: nowrap; }
+        .activity-filters { display: grid; grid-template-columns: 1fr 1fr minmax(190px,1.4fr); gap: 10px; margin-bottom: 14px; }
+        .activity-filter { width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 12px; background: #fbfbfb; color: var(--text); padding: 0 12px; font-size: .7rem; font-weight: 650; outline: none; }
+        .activity-filter:focus { border-color: var(--home-yellow); background: white; box-shadow: 0 0 0 3px rgba(194,164,104,.11); }
+        .activity-search-wrap { position: relative; }
+        .activity-search-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #aaa4a8; font-size: .75rem; }
+        .activity-search-wrap .activity-filter { padding-left: 34px; }
+        .activity-list { position: relative; border: 1px solid var(--line); border-radius: 17px; overflow: hidden; background: white; }
+        .activity-item { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 15px 14px; border-bottom: 1px solid var(--line); }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon { width: 40px; height: 40px; border-radius: 13px; display: flex; align-items: center; justify-content: center; background: var(--soft-wine); color: var(--home-red); }
+        .activity-icon.cotizaciones { background: rgba(194,164,104,.15); color: #a48644; }
+        .activity-icon.ordenes { background: rgba(166,69,90,.11); color: var(--home-red); }
+        .activity-icon.abonos { background: rgba(52,199,89,.11); color: #269b47; }
+        .activity-icon.caja { background: rgba(0,122,255,.10); color: #007aff; }
+        .activity-icon.agenda { background: rgba(88,86,214,.10); color: #5856d6; }
+        .activity-icon.clientes { background: rgba(175,82,222,.10); color: #af52de; }
+        .activity-icon.configuracion, .activity-icon.seguridad { background: rgba(142,142,147,.12); color: #6f6f73; }
+        .activity-copy { min-width: 0; }
+        .activity-copy strong { display: block; color: var(--text); font-size: .77rem; line-height: 1.35; }
+        .activity-copy .activity-context { display: block; margin-top: 5px; color: var(--muted); font-size: .62rem; line-height: 1.45; }
+        .activity-copy .activity-context i { width: 14px; color: var(--home-yellow); text-align: center; margin-right: 3px; }
+        .activity-side { min-width: 112px; text-align: right; }
+        .activity-action { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 8px; background: #f4f2f3; color: #6f696d; font-size: .56rem; font-weight: 800; text-transform: uppercase; letter-spacing: .35px; }
+        .activity-date { display: block; margin-top: 6px; color: #aaa4a8; font-size: .57rem; line-height: 1.3; }
+        .activity-note { margin-bottom: 14px; padding: 11px 13px; border-radius: 13px; background: rgba(194,164,104,.09); color: #756641; font-size: .66rem; line-height: 1.5; }
         .empty-state { padding: 38px 20px; text-align: center; color: var(--muted); }
         .empty-state i { color: #d7d2d5; font-size: 2rem; }
         .empty-state strong { display: block; margin-top: 12px; color: #827c81; font-size: .82rem; }
-        .empty-state span { display: block; margin-top: 5px; font-size: .67rem; }
+        .empty-state span { display: block; margin: 6px auto 0; max-width: 410px; font-size: .67rem; line-height: 1.5; }
 
         /* Barra guardar */
         .save-bar {
@@ -596,9 +650,11 @@
             .card-header { margin-bottom: 17px; }
             .security-row { align-items: flex-start; flex-direction: column; }
             .secondary-button { width: 100%; }
-            .movement-item { padding: 13px 11px; gap: 8px; }
-            .movement-icon { width: 36px; height: 36px; }
-            .movement-right { max-width: 105px; }
+            .activity-filters { grid-template-columns: 1fr; }
+            .activity-item { grid-template-columns: 38px minmax(0,1fr); padding: 13px 11px; gap: 9px; }
+            .activity-icon { width: 36px; height: 36px; }
+            .activity-side { grid-column: 2; min-width: 0; text-align: left; display: flex; align-items: center; gap: 8px; }
+            .activity-date { margin-top: 0; }
             .save-inner { gap: 8px; }
             .save-message { display: none; }
             .discard-button, .save-button { flex: 1; padding: 0 10px; }
@@ -610,12 +666,13 @@
 
     <section class="access-screen" id="accessScreen" aria-label="Acceso a configuración">
         <a href="index.html" class="access-back" aria-label="Volver al inicio"><i class="fa-solid fa-chevron-left"></i></a>
-        <div class="access-shell">
-            <img src="logohomeeasy.png" class="access-logo" alt="HomeEasy" onerror="this.src='triangulo.png'; this.style.width='70px'">
+        <div class="access-stage">
+            <img src="hommyconfiguracion.png" class="access-hommy" alt="Hommy, asistente de HomeEasy" onerror="this.style.display='none'">
             <div class="access-card" id="accessCard">
-                <div class="access-icon"><i class="fa-solid fa-gear"></i></div>
+                <img src="logohomeeasy.png" class="access-logo" alt="HomeEasy" onerror="this.src='triangulo.png'; this.style.width='62px'">
+                <div class="access-eyebrow"><i class="fa-solid fa-gear"></i> Ajustes de HomeEasy</div>
                 <h1>Configuración</h1>
-                <p>Ingresa el PIN de seguridad para administrar la información de HomeEasy.</p>
+                <p>Ingresa el PIN para administrar los datos de la empresa, documentos y preferencias de la aplicación.</p>
                 <div class="pin-field">
                     <i class="fa-solid fa-lock"></i>
                     <input id="pinInput" class="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="PIN de seguridad">
@@ -623,8 +680,8 @@
                 </div>
                 <button type="button" class="access-submit" id="accessSubmit">Entrar</button>
                 <div class="access-status" id="accessStatus" role="status"></div>
+                <div class="access-caption">Acceso administrativo · Sistema Hommy</div>
             </div>
-            <div class="access-caption">HomeEasy · Sistema Hommy</div>
         </div>
     </section>
 
@@ -650,7 +707,7 @@
                 <button class="mobile-tab" data-section="operacion">Operación</button>
                 <button class="mobile-tab" data-section="vista">Vista previa</button>
                 <button class="mobile-tab" data-section="seguridad">Seguridad</button>
-                <button class="mobile-tab" data-section="movimientos">Movimientos</button>
+                <button class="mobile-tab" data-section="actividad">Actividad</button>
             </nav>
         </header>
 
@@ -666,7 +723,7 @@
                     <button class="nav-button" data-section="operacion"><i class="fa-solid fa-sliders"></i> Operación</button>
                     <button class="nav-button" data-section="vista"><i class="fa-solid fa-eye"></i> Vista previa</button>
                     <button class="nav-button" data-section="seguridad"><i class="fa-solid fa-shield-halved"></i> Seguridad</button>
-                    <button class="nav-button" data-section="movimientos"><i class="fa-solid fa-clock-rotate-left"></i> Movimientos</button>
+                    <button class="nav-button" data-section="actividad"><i class="fa-solid fa-clock-rotate-left"></i> Actividad</button>
                 </nav>
                 <div class="operator-box">
                     <label for="operatorSelect">Editando como</label>
@@ -976,6 +1033,33 @@
                     <div class="card">
                         <div class="card-header">
                             <div>
+                                <h3>Este dispositivo</h3>
+                                <p>Identifica quién usa este equipo para que la actividad quede correctamente registrada.</p>
+                            </div>
+                            <div class="card-icon"><i class="fa-solid fa-laptop-mobile"></i></div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="operatorSelectSecurity">Usuario habitual</label>
+                                <select id="operatorSelectSecurity" class="control">
+                                    <option value="Alejandro">Alejandro</option>
+                                    <option value="Daniela">Daniela</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="deviceNameInput">Nombre del dispositivo</label>
+                                <input id="deviceNameInput" class="control" type="text" maxlength="80" placeholder="Ej: Portátil de Alejo">
+                                <div class="field-help" id="deviceTechnicalInfo">Se reconocerá en el historial de actividad.</div>
+                            </div>
+                            <div class="field full">
+                                <button type="button" class="secondary-button" id="saveDeviceButton"><i class="fa-solid fa-check"></i> Guardar identidad de este dispositivo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
                                 <h3>Información</h3>
                                 <p>Referencia de la configuración que está cargada en este dispositivo.</p>
                             </div>
@@ -989,19 +1073,35 @@
                     </div>
                 </div>
 
-                <div class="panel" id="panel-movimientos" data-panel="movimientos">
+                <div class="panel" id="panel-actividad" data-panel="actividad">
                     <div class="page-heading">
-                        <h2>Movimientos</h2>
-                        <p>Ingresos y gastos recientes registrados en HomeEasy.</p>
+                        <h2>Actividad</h2>
+                        <p>Historial de cambios realizados en toda la aplicación HomeEasy.</p>
                     </div>
 
                     <div class="card">
-                        <div class="movement-toolbar">
-                            <button type="button" class="refresh-button" id="refreshMovements"><i class="fa-solid fa-rotate"></i> Actualizar</button>
-                            <a href="caja.html">Abrir flujo de caja <i class="fa-solid fa-chevron-right"></i></a>
+                        <div class="activity-toolbar">
+                            <div class="activity-toolbar-copy">
+                                <strong>Actividad reciente</strong>
+                                <span>Cotizaciones, órdenes, abonos, clientes, Caja, Agenda y ajustes.</span>
+                            </div>
+                            <button type="button" class="refresh-button" id="refreshActivity"><i class="fa-solid fa-rotate"></i> Actualizar</button>
                         </div>
-                        <div class="movement-list" id="movementList">
-                            <div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i><strong>Cargando movimientos</strong></div>
+                        <div class="activity-note"><i class="fa-solid fa-circle-info"></i> El historial registra las acciones nuevas desde esta actualización. Los registros anteriores no contienen información confiable de usuario o dispositivo.</div>
+                        <div class="activity-filters">
+                            <select id="activityModuleFilter" class="activity-filter" aria-label="Filtrar por módulo">
+                                <option value="">Todos los módulos</option>
+                            </select>
+                            <select id="activityOperatorFilter" class="activity-filter" aria-label="Filtrar por usuario">
+                                <option value="">Todos los usuarios</option>
+                            </select>
+                            <div class="activity-search-wrap">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input id="activitySearch" class="activity-filter" type="search" placeholder="Buscar documento, acción o dispositivo">
+                            </div>
+                        </div>
+                        <div class="activity-list" id="activityList">
+                            <div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i><strong>Cargando actividad</strong></div>
                         </div>
                     </div>
                 </div>
@@ -1070,7 +1170,9 @@
             updatedAt: '',
             lastActivity: Date.now(),
             idleTimer: null,
-            busy: false
+            busy: false,
+            activityItems: [],
+            activityLoaded: false
         };
 
         const MIN_PIN_LENGTH = 4;
@@ -1086,8 +1188,8 @@
             const allowedOperators = ['Alejandro', 'Daniela'];
             const savedOperator = HomeEasyCore.getOperator();
             const operator = allowedOperators.includes(savedOperator) ? savedOperator : 'Alejandro';
-            document.getElementById('operatorSelect').value = operator;
-            HomeEasyCore.setOperator(operator);
+            syncOperatorControls(operator);
+            populateDeviceControls();
 
             bindEvents();
             startIdleLock();
@@ -1106,8 +1208,13 @@
             document.getElementById('changePinButton').addEventListener('click', changePin);
             document.getElementById('saveButton').addEventListener('click', saveChanges);
             document.getElementById('discardButton').addEventListener('click', discardChanges);
-            document.getElementById('refreshMovements').addEventListener('click', loadMovements);
-            document.getElementById('operatorSelect').addEventListener('change', event => HomeEasyCore.setOperator(event.target.value));
+            document.getElementById('refreshActivity').addEventListener('click', () => loadActivity(true));
+            document.getElementById('operatorSelect').addEventListener('change', event => syncOperatorControls(event.target.value));
+            document.getElementById('operatorSelectSecurity').addEventListener('change', event => syncOperatorControls(event.target.value));
+            document.getElementById('saveDeviceButton').addEventListener('click', saveDeviceIdentity);
+            document.getElementById('activityModuleFilter').addEventListener('change', applyActivityFilters);
+            document.getElementById('activityOperatorFilter').addEventListener('change', applyActivityFilters);
+            document.getElementById('activitySearch').addEventListener('input', applyActivityFilters);
 
             document.querySelectorAll('[data-section]').forEach(button => {
                 button.addEventListener('click', () => showSection(button.dataset.section));
@@ -1221,7 +1328,7 @@
             try {
                 const response = await HomeEasyCore.getConfiguration({ force: true, allowFallback: true });
                 applyConfiguration(response);
-                await loadMovements();
+                await loadActivity();
 
                 if (response.source === 'fallback') {
                     Swal.fire({
@@ -1294,7 +1401,21 @@
             return values;
         }
 
-        function onConfigChange() {
+        function onConfigChange(event) {
+            if (event && event.target && event.target.dataset) {
+                const key = event.target.dataset.configKey;
+                const channelMap = {
+                    'empresa.email': 'documentos.mostrar_email',
+                    'empresa.web': 'documentos.mostrar_web',
+                    'empresa.whatsapp': 'documentos.mostrar_whatsapp',
+                    'empresa.instagram': 'documentos.mostrar_instagram'
+                };
+                const toggleKey = channelMap[key];
+                if (toggleKey && String(event.target.value || '').trim()) {
+                    const toggle = document.querySelector('[data-config-key="' + toggleKey + '"]');
+                    if (toggle) toggle.checked = true;
+                }
+            }
             state.dirty = hasChanges();
             updateDirtyUi();
             updatePreview();
@@ -1412,6 +1533,7 @@
 
                 HomeEasyCore.clearConfigCache();
                 applyConfiguration(response);
+                state.activityLoaded = false;
                 Swal.fire({
                     toast: true,
                     position: 'top',
@@ -1453,6 +1575,7 @@
             document.querySelectorAll('[data-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.panel === section));
             history.replaceState(null, '', '#' + section);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (section === 'actividad' && !state.activityLoaded) loadActivity();
         }
 
         function getValue(key, fallback) {
@@ -1496,7 +1619,7 @@
             const showWeb = Boolean(getValue('documentos.mostrar_web'));
             const lines = [];
 
-            if (nit) lines.push('NIT: ' + HomeEasyCore.escapeHtml(nit));
+            if (nit) lines.push('<i class="fa-solid fa-fingerprint"></i>NIT: ' + HomeEasyCore.escapeHtml(nit));
             const location = [address, city].filter(Boolean).join(' · ');
             if (location) lines.push('<i class="fa-solid fa-location-dot"></i>' + HomeEasyCore.escapeHtml(location));
 
@@ -1513,7 +1636,7 @@
             if (showWeb && web) lines.push('<i class="fa-solid fa-globe"></i>' + HomeEasyCore.escapeHtml(web));
 
             let html = '<strong>' + HomeEasyCore.escapeHtml(name || 'HomeEasy') + '</strong>';
-            if (legalName && legalName.toLowerCase() !== name.toLowerCase()) {
+            if (legalName && legalName.toLowerCase() !== String(name || '').toLowerCase()) {
                 html += '<br><span class="legal-name">' + HomeEasyCore.escapeHtml(legalName) + '</span>';
             }
             if (lines.length) html += '<br>' + lines.join('<br>');
@@ -1579,37 +1702,121 @@
                 : '&nbsp;';
         }
 
-        async function loadMovements() {
-            const container = document.getElementById('movementList');
-            container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i><strong>Cargando movimientos</strong></div>';
+        function syncOperatorControls(value) {
+            const operator = ['Alejandro', 'Daniela'].includes(value) ? value : 'Alejandro';
+            const desktop = document.getElementById('operatorSelect');
+            const security = document.getElementById('operatorSelectSecurity');
+            if (desktop) desktop.value = operator;
+            if (security) security.value = operator;
+            HomeEasyCore.setOperator(operator);
+        }
+
+        function populateDeviceControls() {
+            const info = HomeEasyCore.getDeviceInfo();
+            const input = document.getElementById('deviceNameInput');
+            const technical = document.getElementById('deviceTechnicalInfo');
+            if (input) input.value = info.name;
+            if (technical) technical.textContent = info.platform + ' · ' + info.browser + ' · ID ' + info.id.slice(0, 8).toUpperCase();
+        }
+
+        function saveDeviceIdentity() {
+            const input = document.getElementById('deviceNameInput');
+            const clean = HomeEasyCore.setDeviceName(input ? input.value : '');
+            if (input) input.value = clean;
+            populateDeviceControls();
+            Swal.fire({
+                toast: true,
+                position: 'top',
+                icon: 'success',
+                title: 'Dispositivo identificado',
+                showConfirmButton: false,
+                timer: 1700
+            });
+        }
+
+        async function loadActivity(force) {
+            const container = document.getElementById('activityList');
+            if (!container || !state.sessionPin) return;
+            if (state.activityLoaded && !force) {
+                applyActivityFilters();
+                return;
+            }
+
+            container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i><strong>Cargando actividad</strong></div>';
             try {
-                const data = await HomeEasyCore.get({ tipo: 'GET_CAJA', t: Date.now() }, { timeoutMs: 25000 });
-                if (!data || data.status !== 'ok') throw new Error('No se pudieron cargar los movimientos.');
-                renderMovements(Array.isArray(data.feed) ? data.feed.slice(0, 12) : []);
+                const data = await HomeEasyCore.post({
+                    tipo: 'GET_AUDITORIA',
+                    pin: state.sessionPin,
+                    limite: 100
+                }, { timeoutMs: 25000 });
+                if (!data || data.status !== 'ok') throw new Error(data && data.msg ? data.msg : 'No se pudo cargar la actividad.');
+                state.activityItems = Array.isArray(data.actividad) ? data.actividad : [];
+                state.activityLoaded = true;
+                populateActivityFilters(state.activityItems);
+                applyActivityFilters();
             } catch (error) {
                 container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-wifi"></i><strong>No fue posible actualizar</strong><span>' + HomeEasyCore.escapeHtml(error.message || 'Revisa la conexión.') + '</span></div>';
             }
         }
 
-        function renderMovements(items) {
-            const container = document.getElementById('movementList');
+        function populateActivityFilters(items) {
+            const moduleSelect = document.getElementById('activityModuleFilter');
+            const operatorSelect = document.getElementById('activityOperatorFilter');
+            const selectedModule = moduleSelect.value;
+            const selectedOperator = operatorSelect.value;
+            const modules = [...new Set(items.map(item => item.modulo).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'es'));
+            const operators = [...new Set(items.map(item => item.operador).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'es'));
+            moduleSelect.innerHTML = '<option value="">Todos los módulos</option>' + modules.map(value => '<option value="' + HomeEasyCore.escapeHtml(value) + '">' + HomeEasyCore.escapeHtml(value) + '</option>').join('');
+            operatorSelect.innerHTML = '<option value="">Todos los usuarios</option>' + operators.map(value => '<option value="' + HomeEasyCore.escapeHtml(value) + '">' + HomeEasyCore.escapeHtml(value) + '</option>').join('');
+            if (modules.includes(selectedModule)) moduleSelect.value = selectedModule;
+            if (operators.includes(selectedOperator)) operatorSelect.value = selectedOperator;
+        }
+
+        function applyActivityFilters() {
+            const moduleValue = document.getElementById('activityModuleFilter').value;
+            const operatorValue = document.getElementById('activityOperatorFilter').value;
+            const search = String(document.getElementById('activitySearch').value || '').trim().toLowerCase();
+            const filtered = state.activityItems.filter(item => {
+                if (moduleValue && item.modulo !== moduleValue) return false;
+                if (operatorValue && item.operador !== operatorValue) return false;
+                if (!search) return true;
+                const haystack = [item.resumen, item.modulo, item.accion, item.entidadId, item.operador, item.dispositivo, item.pagina]
+                    .map(value => String(value || '').toLowerCase()).join(' ');
+                return haystack.includes(search);
+            });
+            renderActivity(filtered);
+        }
+
+        function activityVisual(item) {
+            const module = String(item.modulo || 'Sistema').toLowerCase();
+            if (module.includes('cotiza')) return { className: 'cotizaciones', icon: 'fa-file-invoice-dollar' };
+            if (module.includes('orden')) return { className: 'ordenes', icon: 'fa-clipboard-list' };
+            if (module.includes('abono')) return { className: 'abonos', icon: 'fa-receipt' };
+            if (module.includes('caja')) return { className: 'caja', icon: 'fa-cash-register' };
+            if (module.includes('agenda')) return { className: 'agenda', icon: 'fa-calendar-check' };
+            if (module.includes('cliente')) return { className: 'clientes', icon: 'fa-user' };
+            if (module.includes('seguridad')) return { className: 'seguridad', icon: 'fa-shield-halved' };
+            return { className: 'configuracion', icon: 'fa-gear' };
+        }
+
+        function renderActivity(items) {
+            const container = document.getElementById('activityList');
             if (!items.length) {
-                container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-receipt"></i><strong>No hay movimientos recientes</strong></div>';
+                const hasAny = state.activityItems.length > 0;
+                container.innerHTML = '<div class="empty-state"><i class="fa-solid ' + (hasAny ? 'fa-filter-circle-xmark' : 'fa-clock-rotate-left') + '"></i><strong>' + (hasAny ? 'No hay coincidencias' : 'Aún no hay actividad registrada') + '</strong><span>' + (hasAny ? 'Cambia los filtros para ver otros resultados.' : 'Las próximas acciones realizadas en la app aparecerán aquí con usuario y dispositivo.') + '</span></div>';
                 return;
             }
 
             container.innerHTML = items.map(item => {
-                const isOut = item.tipo === 'OUT_GASTO';
-                const isSale = item.tipo === 'IN_OP' || item.tipo === 'IN_AB';
-                const iconClass = isOut ? 'expense' : (isSale ? 'sale' : 'income');
-                const icon = isOut ? 'fa-bag-shopping' : (isSale ? 'fa-file-invoice-dollar' : 'fa-arrow-down');
-                const prefix = isOut ? '−' : '+';
-                return '<div class="movement-item">' +
-                    '<div class="movement-left">' +
-                        '<div class="movement-icon ' + iconClass + '"><i class="fa-solid ' + icon + '"></i></div>' +
-                        '<div class="movement-copy"><strong>' + HomeEasyCore.escapeHtml(item.titulo || item.id || 'Movimiento') + '</strong><span>' + HomeEasyCore.escapeHtml(item.cat || '') + '</span></div>' +
-                    '</div>' +
-                    '<div class="movement-right"><span class="movement-value ' + (isOut ? 'out' : '') + '">' + prefix + ' ' + HomeEasyCore.formatCOP(item.valor) + '</span><span class="movement-date">' + HomeEasyCore.formatDateTime(item.fecha) + '</span></div>' +
+                const visual = activityVisual(item);
+                const operator = HomeEasyCore.escapeHtml(item.operador || 'Sin identificar');
+                const device = HomeEasyCore.escapeHtml(item.dispositivo || 'Dispositivo sin identificar');
+                const page = item.pagina ? ' · ' + HomeEasyCore.escapeHtml(item.pagina) : '';
+                return '<div class="activity-item">' +
+                    '<div class="activity-icon ' + visual.className + '"><i class="fa-solid ' + visual.icon + '"></i></div>' +
+                    '<div class="activity-copy"><strong>' + HomeEasyCore.escapeHtml(item.resumen || 'Actividad registrada') + '</strong>' +
+                    '<span class="activity-context"><i class="fa-solid fa-user"></i>' + operator + ' &nbsp; <i class="fa-solid fa-laptop"></i>' + device + page + '</span></div>' +
+                    '<div class="activity-side"><span class="activity-action">' + HomeEasyCore.escapeHtml(item.accion || item.modulo || 'Acción') + '</span><span class="activity-date">' + HomeEasyCore.formatDateTime(item.fecha) + '</span></div>' +
                 '</div>';
             }).join('');
         }
@@ -1645,6 +1852,7 @@
                 });
                 if (!response || response.status !== 'success') throw new Error(response && response.msg ? response.msg : 'No se pudo cambiar el PIN.');
                 state.sessionPin = result.value;
+                state.activityLoaded = false;
                 Swal.fire({ icon: 'success', title: 'PIN actualizado', text: 'El nuevo PIN ya está activo.', confirmButtonColor: '#a6455a' });
             } catch (error) {
                 Swal.fire({ icon: 'error', title: 'No se pudo cambiar', text: error.message, confirmButtonColor: '#a6455a' });
@@ -1677,6 +1885,8 @@
         function lockImmediately(message) {
             state.sessionPin = '';
             state.lastActivity = Date.now();
+            state.activityLoaded = false;
+            state.activityItems = [];
             document.getElementById('settingsApp').classList.remove('ready');
             document.getElementById('accessScreen').classList.remove('hidden');
             document.getElementById('pinInput').value = '';
