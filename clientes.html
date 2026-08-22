@@ -496,8 +496,10 @@
                     cardTypeClass = 'card-ANULADA'; 
                 }
 
-                const saldoClass = (saldo <= 0) ? 'saldo-price saldo-finalizado' : 'saldo-price';
-                const saldoTexto = (saldo <= 0) ? 'Orden Completa' : `Saldo: $${saldo.toLocaleString('es-CO')}`;
+                const saldoClass = (estadoLimpio === 'ANULADA' || saldo <= 0) ? 'saldo-price saldo-finalizado' : 'saldo-price';
+                const saldoTexto = estadoLimpio === 'ANULADA'
+                    ? 'Orden anulada'
+                    : ((saldo <= 0) ? 'Orden Completa' : `Saldo: $${saldo.toLocaleString('es-CO')}`);
 
                 let abonosHtml = "";
                 if (item.abonos_detalle && item.abonos_detalle.length > 0) {
@@ -511,11 +513,18 @@
                             
                       // 🚨 FIX: El Abono Inicial no muestra el ojito de visor PDF
                         const esInicial = pago.recibo === "INICIAL";
+                        const estadoPago = String(pago.estado || 'ACTIVO').toUpperCase();
+                        const estadoBadge = estadoPago !== 'ACTIVO' && estadoPago !== 'SIN_PAGO'
+                            ? `<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:7px;background:#fff1f0;color:#a6455a;font-size:.55rem;font-weight:800;">${estadoPago.replace(/_/g, ' ')}</span>`
+                            : '';
+                        const tipoBadge = String(pago.tipoRegistro || '').toUpperCase() === 'TRASLADO_CREDITO'
+                            ? '<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:7px;background:#eef6ff;color:#2371b7;font-size:.55rem;font-weight:800;">TRASLADO</span>'
+                            : '';
                         
                         abonosHtml += `
                         <div class="payment-item" ${(!esInicial && pago.url) ? `onclick="event.stopPropagation(); abrirVisorPDF('${pago.url}')" style="cursor:pointer;"` : ''}>
                             <div>
-                                <i class="fas fa-receipt me-2 text-muted"></i>${reciboDisplay}
+                                <i class="fas fa-receipt me-2 text-muted"></i>${reciboDisplay}${tipoBadge}${estadoBadge}
                                 ${(!esInicial && pago.url) ? '<i class="fas fa-eye ms-1" style="color:var(--brand-wine); font-size:0.75rem;"></i>' : ''}
                             </div>
                             <div class="text-center">${pago.fecha || 'N/A'}</div>
@@ -669,15 +678,24 @@
                     throw new Error(resultado && resultado.msg ? resultado.msg : 'No fue posible analizar el documento.');
                 }
 
-                await Swal.fire({
+                const ejecucion = resultado.ejecucion || {};
+                const diagnostico = await Swal.fire({
                     title: resultado.documento.etiqueta + ' ' + (prefix === 'OP' ? 'OP-' : 'COT-') + resultado.documento.numero,
                     html: construirDiagnosticoAnulacion(resultado),
                     width: 720,
                     icon: iconoDiagnosticoAnulacion(resultado.diagnostico.nivel),
-                    confirmButtonText: 'Entendido',
-                    confirmButtonColor: '#a6455a',
+                    showCancelButton: Boolean(ejecucion.permitida),
+                    confirmButtonText: ejecucion.permitida ? 'Continuar con la anulación' : 'Entendido',
+                    cancelButtonText: 'Cerrar',
+                    confirmButtonColor: ejecucion.permitida ? '#d14a55' : '#a6455a',
+                    cancelButtonColor: '#aaa',
+                    reverseButtons: true,
                     customClass: { popup: 'swal2-premium' }
                 });
+
+                if (ejecucion.permitida && diagnostico.isConfirmed) {
+                    await solicitarConfirmacionFinalAnulacion(resultado, pin);
+                }
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
@@ -759,11 +777,268 @@
                     ${financiero}
                     ${relacionesHtml}
                     ${advertenciasHtml}
-                    <div style="margin-top:16px;padding:10px 12px;border-radius:12px;background:#f1faf3;color:#27763b;font-size:.73rem;font-weight:750;text-align:center;">
+                    ${construirEstadoEjecucionAnulacion(resultado)}
+                    <div style="margin-top:12px;padding:10px 12px;border-radius:12px;background:#f1faf3;color:#27763b;font-size:.73rem;font-weight:750;text-align:center;">
                         <i class="fas fa-lock me-1"></i> Revisión terminada: no se modificaron datos, saldos ni archivos.
                     </div>
                 </div>`;
         }
+
+        function construirEstadoEjecucionAnulacion(resultado) {
+            const ejecucion = resultado.ejecucion || {};
+            const safe = value => HomeEasyCore.escapeHtml(value === undefined || value === null ? '' : String(value));
+            if (ejecucion.permitida) {
+                const eventos = Number(ejecucion.eventosPendientes || 0);
+                const requiereTratamiento = Boolean(ejecucion.requiereTratamiento);
+                return `
+                    <div style="margin-top:14px;padding:12px 14px;border-radius:13px;background:${requiereTratamiento ? '#fff7ea' : '#eefaf1'};border:1px solid ${requiereTratamiento ? '#f5dfb9' : '#d6f1dc'};color:${requiereTratamiento ? '#8d5c08' : '#27763b'};font-size:.77rem;line-height:1.5;">
+                        <b><i class="fas ${requiereTratamiento ? 'fa-scale-balanced' : 'fa-circle-check'} me-1"></i> ${requiereTratamiento ? 'Anulación disponible con tratamiento financiero' : 'Anulación segura disponible'}</b><br>
+                        ${safe(ejecucion.mensaje || 'El documento puede anularse de forma controlada.')}
+                        ${eventos ? `<br><span>Hay ${eventos} evento${eventos === 1 ? '' : 's'} pendiente${eventos === 1 ? '' : 's'} que podrás cancelar en la confirmación final.</span>` : ''}
+                        ${ejecucion.requiereConfirmacionCaja ? '<br><span><b>Importante:</b> deberás confirmar que revisaste las referencias manuales encontradas en Caja.</span>' : ''}
+                    </div>`;
+            }
+            const codigo = safe(ejecucion.codigo || 'BLOQUEADA');
+            return `
+                <div style="margin-top:14px;padding:12px 14px;border-radius:13px;background:#fff7ea;border:1px solid #f5dfb9;color:#8d5c08;font-size:.77rem;line-height:1.5;">
+                    <b><i class="fas fa-shield-halved me-1"></i> Ejecución bloqueada</b><br>
+                    ${safe(ejecucion.mensaje || 'El documento requiere una revisión adicional antes de anular.')}
+                    <div style="margin-top:5px;font-size:.65rem;color:#a47a35;">Control: ${codigo}</div>
+                </div>`;
+        }
+
+
+        function etiquetaTratamientoAnulacion(codigo) {
+            const labels = {
+                'NO_APLICA_SIN_PAGOS': 'Sin movimiento financiero',
+                'REEMBOLSO_TOTAL': 'Reembolso total al cliente',
+                'TRASLADO_TOTAL_A_OP': 'Traslado total a otra OP',
+                'RETENCION_POR_ACUERDO': 'Dinero retenido por acuerdo',
+                'CORRECCION_ADMINISTRATIVA': 'Corrección administrativa'
+            };
+            return labels[codigo] || codigo;
+        }
+
+        function descripcionTratamientoAnulacion(codigo, monto) {
+            const money = '$' + Number(monto || 0).toLocaleString('es-CO');
+            if (codigo === 'REEMBOLSO_TOTAL') return `HomeEasy registrará una salida en Caja por ${money}. Los recibos originales se conservarán marcados como reembolsados.`;
+            if (codigo === 'TRASLADO_TOTAL_A_OP') return `HomeEasy aplicará ${money} como crédito interno a otra OP del mismo cliente. No crea una entrada ni salida nueva en Caja.`;
+            if (codigo === 'RETENCION_POR_ACUERDO') return `Los ${money} permanecerán en HomeEasy conforme al acuerdo comercial. No se crea una salida en Caja.`;
+            if (codigo === 'CORRECCION_ADMINISTRATIVA') return `Se declarará que los ${money} fueron registrados por error y que no existió dinero real. Esos registros dejarán de afectar Caja y saldos.`;
+            return 'No se realizará ningún movimiento financiero.';
+        }
+
+        function opcionesTratamientoHtml(resultado) {
+            const ejecucion = resultado.ejecucion || {};
+            const tratamientos = Array.isArray(ejecucion.tratamientos) ? ejecucion.tratamientos : [];
+            return tratamientos.map(codigo => `<option value="${HomeEasyCore.escapeHtml(codigo)}">${HomeEasyCore.escapeHtml(etiquetaTratamientoAnulacion(codigo))}</option>`).join('');
+        }
+
+        function renderDetalleTratamientoAnulacion(resultado) {
+            const container = document.getElementById('anulacion-tratamiento-detalle');
+            const select = document.getElementById('anulacion-tratamiento');
+            if (!container || !select) return;
+            const codigo = select.value;
+            const dep = resultado.dependencias || {};
+            const total = Number(dep.totalPagado || 0);
+            const opciones = (resultado.ejecucion && resultado.ejecucion.opcionesTraslado) || dep.opcionesTraslado || [];
+            let campos = '';
+            if (codigo === 'REEMBOLSO_TOTAL') {
+                campos = `
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Medio del reembolso</label>
+                    <select id="anulacion-medio-reembolso" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;">
+                        <option value="">Seleccionar…</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="OTRO">Otro</option>
+                    </select>`;
+            } else if (codigo === 'TRASLADO_TOTAL_A_OP') {
+                const disponibles = opciones.filter(item => item.disponible);
+                campos = `
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">OP de destino</label>
+                    <select id="anulacion-op-destino" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;">
+                        <option value="">Seleccionar…</option>
+                        ${disponibles.map(item => `<option value="${HomeEasyCore.escapeHtml(item.numero)}">OP-${HomeEasyCore.escapeHtml(item.numero)} · saldo $${Number(item.saldo || 0).toLocaleString('es-CO')}</option>`).join('')}
+                    </select>
+                    ${disponibles.length ? '' : '<div style="margin-top:7px;color:#b34b56;font-size:.72rem;font-weight:700;">No hay otra OP del mismo cliente con saldo y cupo suficiente.</div>'}`;
+            } else if (codigo === 'RETENCION_POR_ACUERDO') {
+                campos = `
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Confirmación especial</label>
+                    <input id="anulacion-confirmacion-especial" type="text" placeholder="DINERO RETENIDO" autocomplete="off" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 12px;text-align:center;font-weight:800;text-transform:uppercase;outline:none;">`;
+            } else if (codigo === 'CORRECCION_ADMINISTRATIVA') {
+                campos = `
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Confirmación especial</label>
+                    <input id="anulacion-confirmacion-especial" type="text" placeholder="NO HUBO DINERO" autocomplete="off" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 12px;text-align:center;font-weight:800;text-transform:uppercase;outline:none;">`;
+            }
+            container.innerHTML = `
+                <div style="margin-top:10px;padding:10px 12px;border-radius:11px;background:#fff8ed;color:#80570f;font-size:.74rem;line-height:1.45;">${HomeEasyCore.escapeHtml(descripcionTratamientoAnulacion(codigo, total))}</div>
+                ${campos}
+                ${codigo !== 'NO_APLICA_SIN_PAGOS' ? `<label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Detalle del tratamiento (opcional)</label><textarea id="anulacion-detalle-tratamiento" maxlength="300" rows="2" placeholder="Ej: comprobante de transferencia, acuerdo firmado, observación interna…" style="width:100%;border:1px solid #e5e5ea;border-radius:11px;padding:9px 11px;resize:none;outline:none;font:inherit;font-size:.78rem;"></textarea>` : ''}`;
+        }
+
+        async function solicitarConfirmacionFinalAnulacion(resultado, pin) {
+            const doc = resultado.documento || {};
+            const dep = resultado.dependencias || {};
+            const ejecucion = resultado.ejecucion || {};
+            const codigo = (doc.tipo === 'OP' ? 'OP-' : 'COT-') + doc.numero;
+            const eventos = Number(ejecucion.eventosPendientes || 0);
+            const requiereTratamiento = Boolean(ejecucion.requiereTratamiento);
+            const cotizacionesOrigen = Array.isArray(dep.cotizacionesOrigen) ? dep.cotizacionesOrigen : [];
+            const referenciasCaja = Array.isArray(dep.movimientosCajaPosibles) ? dep.movimientosCajaPosibles.length : 0;
+            const eventosHtml = eventos > 0
+                ? `<label style="display:flex;align-items:flex-start;gap:9px;margin:14px 0 4px;padding:10px 11px;border-radius:11px;background:#f8f9fa;color:#5f5a5d;font-size:.76rem;line-height:1.4;cursor:pointer;"><input id="anulacion-cancelar-eventos" type="checkbox" checked style="margin-top:2px;width:17px;height:17px;accent-color:#a6455a;"><span>Cancelar también ${eventos} evento${eventos === 1 ? '' : 's'} pendiente${eventos === 1 ? '' : 's'} de Agenda.</span></label>`
+                : '';
+            const origenHtml = doc.tipo === 'OP' && cotizacionesOrigen.length
+                ? `<label style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Cotización de origen</label><select id="anulacion-cotizacion-origen" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;"><option value="ARCHIVAR">Archivar cotización de origen</option><option value="REACTIVAR">Reactivar como cotización</option></select>`
+                : '';
+            const cajaHtml = referenciasCaja
+                ? `<label style="display:flex;align-items:flex-start;gap:9px;margin:14px 0 4px;padding:10px 11px;border-radius:11px;background:#fff6e8;color:#80570f;font-size:.75rem;line-height:1.4;cursor:pointer;"><input id="anulacion-confirmar-caja" type="checkbox" style="margin-top:2px;width:17px;height:17px;accent-color:#a6455a;"><span>Revisé las ${referenciasCaja} posible${referenciasCaja === 1 ? '' : 's'} referencia${referenciasCaja === 1 ? '' : 's'} manual${referenciasCaja === 1 ? '' : 'es'} encontradas en Caja y confirmo continuar.</span></label>`
+                : '';
+            const tratamientoHtml = requiereTratamiento
+                ? `<label style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">¿Qué ocurrió con $${Number(dep.totalPagado || 0).toLocaleString('es-CO')}?</label><select id="anulacion-tratamiento" style="width:100%;height:46px;border:1px solid #e5e5ea;border-radius:12px;padding:0 11px;background:white;font-weight:700;outline:none;">${opcionesTratamientoHtml(resultado)}</select><div id="anulacion-tratamiento-detalle"></div>`
+                : `<input id="anulacion-tratamiento" type="hidden" value="NO_APLICA_SIN_PAGOS">`;
+
+            const confirmacion = await Swal.fire({
+                icon: 'warning',
+                title: 'Confirmación final',
+                width: 650,
+                html: `
+                    <div style="text-align:left;color:#5f5a5d;font-size:.82rem;line-height:1.5;max-height:62vh;overflow-y:auto;padding-right:4px;">
+                        Esta acción marcará <b>${codigo}</b> como <b>ANULADA</b>. Los PDF y recibos originales se conservarán.
+                        ${tratamientoHtml}
+                        ${cajaHtml}
+                        ${origenHtml}
+                        ${eventosHtml}
+                        <label for="anulacion-motivo" style="display:block;margin:15px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Motivo</label>
+                        <textarea id="anulacion-motivo" maxlength="300" rows="3" placeholder="Explica por qué se anula este documento…" style="width:100%;border:1px solid #e5e5ea;border-radius:12px;padding:11px 12px;resize:none;outline:none;font:inherit;font-size:.82rem;"></textarea>
+                        <label for="anulacion-confirmacion" style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Escribe ${codigo}</label>
+                        <input id="anulacion-confirmacion" type="text" autocomplete="off" placeholder="${codigo}" style="width:100%;height:46px;border:1px solid #e5e5ea;border-radius:12px;padding:0 13px;text-align:center;font-weight:800;letter-spacing:1px;outline:none;text-transform:uppercase;">
+                    </div>`,
+                showCancelButton: true,
+                confirmButtonText: 'Anular documento',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#d14a55',
+                cancelButtonColor: '#aaa',
+                focusConfirm: false,
+                reverseButtons: true,
+                customClass: { popup: 'swal2-premium' },
+                didOpen: () => {
+                    const select = document.getElementById('anulacion-tratamiento');
+                    if (select && requiereTratamiento) {
+                        select.addEventListener('change', () => renderDetalleTratamientoAnulacion(resultado));
+                        renderDetalleTratamientoAnulacion(resultado);
+                    }
+                    const motivo = document.getElementById('anulacion-motivo');
+                    if (motivo) motivo.focus();
+                },
+                preConfirm: () => {
+                    const motivo = String(document.getElementById('anulacion-motivo').value || '').trim();
+                    const escrito = String(document.getElementById('anulacion-confirmacion').value || '').trim().toUpperCase();
+                    const tratamiento = String(document.getElementById('anulacion-tratamiento').value || 'NO_APLICA_SIN_PAGOS');
+                    if (motivo.length < 10) { Swal.showValidationMessage('Explica el motivo con al menos 10 caracteres.'); return false; }
+                    if (escrito !== codigo.toUpperCase()) { Swal.showValidationMessage('Escribe exactamente ' + codigo + '.'); return false; }
+                    const cajaCheck = document.getElementById('anulacion-confirmar-caja');
+                    if (cajaCheck && !cajaCheck.checked) { Swal.showValidationMessage('Confirma que revisaste las referencias manuales de Caja.'); return false; }
+                    let medioReembolso = '';
+                    let opDestino = '';
+                    let confirmacionEspecial = '';
+                    if (tratamiento === 'REEMBOLSO_TOTAL') {
+                        medioReembolso = String(document.getElementById('anulacion-medio-reembolso')?.value || '');
+                        if (!medioReembolso) { Swal.showValidationMessage('Selecciona el medio del reembolso.'); return false; }
+                    }
+                    if (tratamiento === 'TRASLADO_TOTAL_A_OP') {
+                        opDestino = String(document.getElementById('anulacion-op-destino')?.value || '');
+                        if (!opDestino) { Swal.showValidationMessage('Selecciona la OP de destino.'); return false; }
+                    }
+                    if (tratamiento === 'RETENCION_POR_ACUERDO' || tratamiento === 'CORRECCION_ADMINISTRATIVA') {
+                        confirmacionEspecial = String(document.getElementById('anulacion-confirmacion-especial')?.value || '').trim().toUpperCase();
+                        const requerida = tratamiento === 'RETENCION_POR_ACUERDO' ? 'DINERO RETENIDO' : 'NO HUBO DINERO';
+                        if (confirmacionEspecial !== requerida) { Swal.showValidationMessage('Escribe exactamente ' + requerida + '.'); return false; }
+                    }
+                    const checkbox = document.getElementById('anulacion-cancelar-eventos');
+                    const origen = document.getElementById('anulacion-cotizacion-origen');
+                    return {
+                        motivo,
+                        confirmacion: escrito,
+                        cancelarEventos: checkbox ? checkbox.checked : false,
+                        tratamientoFinanciero: tratamiento,
+                        medioReembolso,
+                        opDestino,
+                        confirmacionEspecial,
+                        detalleTratamiento: String(document.getElementById('anulacion-detalle-tratamiento')?.value || '').trim(),
+                        confirmarCajaManual: cajaCheck ? cajaCheck.checked : false,
+                        reactivarCotizacionOrigen: origen ? origen.value === 'REACTIVAR' : false
+                    };
+                }
+            });
+            if (!confirmacion.isConfirmed) return;
+            await ejecutarAnulacionSegura(resultado, pin, confirmacion.value);
+        }
+
+
+        async function ejecutarAnulacionSegura(resultado, pin, datosConfirmacion) {
+            const doc = resultado.documento || {};
+            const ejecucion = resultado.ejecucion || {};
+            Swal.fire({
+                title: 'Aplicando anulación segura…',
+                html: '<span style="font-size:.82rem;color:#8e8e93;">HomeEasy revalidará el documento, el dinero, Caja y las relaciones antes de guardar.</span>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => Swal.showLoading(),
+                customClass: { popup: 'swal2-premium' }
+            });
+
+            try {
+                const response = await HomeEasyCore.post({
+                    tipo: 'EJECUTAR_ANULACION_SEGURA',
+                    docType: doc.tipo,
+                    numero: doc.numero,
+                    pin: pin,
+                    token: ejecucion.token,
+                    motivo: datosConfirmacion.motivo,
+                    confirmacion: datosConfirmacion.confirmacion,
+                    cancelarEventos: Boolean(datosConfirmacion.cancelarEventos),
+                    tratamientoFinanciero: datosConfirmacion.tratamientoFinanciero,
+                    medioReembolso: datosConfirmacion.medioReembolso,
+                    opDestino: datosConfirmacion.opDestino,
+                    confirmacionEspecial: datosConfirmacion.confirmacionEspecial,
+                    detalleTratamiento: datosConfirmacion.detalleTratamiento,
+                    confirmarCajaManual: Boolean(datosConfirmacion.confirmarCajaManual),
+                    reactivarCotizacionOrigen: Boolean(datosConfirmacion.reactivarCotizacionOrigen)
+                }, { timeoutMs: 120000 });
+
+                if (!response || response.status !== 'success') {
+                    throw new Error(response && response.msg ? response.msg : 'No se pudo completar la anulación.');
+                }
+
+                const extras = [];
+                if (Number(response.montoReembolsado || 0)) extras.push('Reembolso registrado: $' + Number(response.montoReembolsado).toLocaleString('es-CO'));
+                if (response.opDestino) extras.push('Crédito trasladado a OP-' + response.opDestino);
+                if (Number(response.recibosMarcados || 0)) extras.push(response.recibosMarcados + ' recibo(s) conservados y marcados');
+                if (Number(response.eventosCancelados || 0)) extras.push(response.eventosCancelados + ' evento(s) de Agenda cancelados');
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Anulación completada',
+                    html: `
+                        <div style="font-size:.84rem;color:#5f5a5d;line-height:1.6;">
+                            <b>${doc.tipo === 'OP' ? 'OP-' : 'COT-'}${doc.numero}</b> quedó en estado <b>ANULADA</b>.<br>
+                            <span style="color:#a6455a;font-weight:750;">${HomeEasyCore.escapeHtml(etiquetaTratamientoAnulacion(response.tratamientoFinanciero || 'NO_APLICA_SIN_PAGOS'))}</span>
+                            ${extras.length ? '<div style="margin-top:10px;padding:10px;border-radius:10px;background:#f8f9fa;text-align:left;">' + extras.map(item => '• ' + HomeEasyCore.escapeHtml(item)).join('<br>') + '</div>' : ''}
+                            <span style="display:block;margin-top:10px;font-size:.72rem;color:#8e8e93;">Registro: ${HomeEasyCore.escapeHtml(response.idAnulacion || 'creado')}</span>
+                        </div>`,
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
+                await buscarHistorial();
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No se completó la anulación',
+                    text: error.message || 'El documento se mantuvo sin cambios.',
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
+            }
+        }
+
 
         // ===============================================
         // BUSCADOR CON AUTOCOMPLETADO
@@ -834,5 +1109,4 @@
     </script>
 </body>
 </html>
-
 
