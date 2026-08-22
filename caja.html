@@ -56,8 +56,8 @@
         .pin-header h2 { font-weight: 800; font-size: 1.6rem; color: var(--text-dark); margin: 0; letter-spacing: -0.5px; }
         .pin-header p { font-size: 0.95rem; color: #8e8e93; font-weight: 500; margin-top: 5px; margin-bottom: 35px; }
         
-        .pin-dots { display: flex; justify-content: center; gap: 18px; margin-bottom: 45px; }
-        .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #d1d1d6; background: transparent; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .pin-dots { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; min-height: 14px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #d1d1d6; background: transparent; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .dot.filled { background: var(--home-wine); border-color: var(--home-wine); transform: scale(1.15); }
         .dot.error { border-color: var(--danger-red); background: var(--danger-red); }
         
@@ -218,6 +218,24 @@
         .swal2-premium .swal2-input, .swal2-premium .swal2-select { border-radius: 12px !important; border: 1px solid #e5e5ea !important; }
         .swal2-premium .swal2-input:focus, .swal2-premium .swal2-select:focus { border-color: var(--home-gold) !important; box-shadow: 0 0 0 3px rgba(194, 164, 104, 0.2) !important;}
         .swal2-premium .swal2-confirm { border-radius: 12px !important; font-weight: 600 !important; }
+
+        .pin-submit {
+            width: 100%; margin-top: 28px; border: none; border-radius: 16px; padding: 15px 18px;
+            background: var(--home-wine); color: white; font-size: 0.95rem; font-weight: 700;
+            box-shadow: 0 8px 22px rgba(166,69,90,0.24); cursor: pointer; transition: transform .2s, opacity .2s;
+        }
+        .pin-submit:active { transform: scale(.97); }
+        .pin-submit:disabled { opacity: .4; box-shadow: none; cursor: default; }
+        .pin-status { min-height: 20px; margin-top: 12px; font-size: .78rem; font-weight: 600; color: #8e8e93; line-height: 1.35; }
+        .pin-status.error { color: var(--danger-red); }
+        .pin-status.success { color: var(--success-green); }
+        .pin-security-note { margin-top: 22px; font-size: .7rem; color: #aeaeb2; font-weight: 500; line-height: 1.45; }
+        .btn-lock-caja {
+            margin-left: auto; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+            color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; backdrop-filter: blur(5px); cursor: pointer; transition: transform .2s;
+        }
+        .btn-lock-caja:active { transform: scale(.9); }
     </style>
     <script src="homeeasy-core.js?v=2.2"></script>
 </head>
@@ -227,15 +245,13 @@
         <div class="pin-container">
             <div class="pin-header">
                 <img src="triangulo.png" alt="Logo" onerror="this.src='logohomeeasy.png'" class="pin-logo">
-                <h2>Caja Principal</h2>
-                <p>Ingresa tu PIN de seguridad</p>
+                <h2 id="pin-cash-name">Caja Principal</h2>
+                <p>Ingresa el PIN de Caja</p>
             </div>
             
             <div class="pin-dots" id="pin-dots">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
             </div>
             
             <div class="pin-pad">
@@ -248,10 +264,13 @@
                 <button class="num-key" onclick="pressKey('7')">7</button>
                 <button class="num-key" onclick="pressKey('8')">8</button>
                 <button class="num-key" onclick="pressKey('9')">9</button>
-                <button class="num-key fn-key" onclick="window.location.href='index.html'"><i class="fas fa-arrow-left"></i></button>
+                <button class="num-key fn-key" onclick="window.location.href='index.html'" aria-label="Volver"><i class="fas fa-arrow-left"></i></button>
                 <button class="num-key" onclick="pressKey('0')">0</button>
-                <button class="num-key fn-key" onclick="deleteKey()"><i class="fas fa-backspace"></i></button>
+                <button class="num-key fn-key" onclick="deleteKey()" aria-label="Borrar"><i class="fas fa-backspace"></i></button>
             </div>
+            <button class="pin-submit" id="pin-submit" onclick="checkPin()" disabled>Entrar a Caja</button>
+            <div class="pin-status" id="pin-status">PIN de 4 a 8 números</div>
+            <div class="pin-security-note"><i class="fas fa-shield-halved"></i> El PIN se valida de forma segura en HomeEasy y no está guardado en este archivo.</div>
         </div>
     </div>
 
@@ -263,6 +282,7 @@
                     <h1>Flujo de Caja</h1>
                     <p>Control de ingresos y egresos</p>
                 </div>
+                <button class="btn-lock-caja" type="button" onclick="lockCaja(true)" aria-label="Bloquear Caja" title="Bloquear Caja"><i class="fas fa-lock"></i></button>
             </div>
         </header>
 
@@ -285,7 +305,7 @@
                     </div>
                     
                     <div class="card-bottom">
-                        <span class="card-holder">Caja Principal</span>
+                        <span class="card-holder" id="card-cash-name">Caja Principal</span>
                         <div class="card-expiry">
                             <span class="card-expiry-label">VÁLIDA</span>
                             <span class="card-expiry-val"><i class="fas fa-sync-alt fa-spin" style="font-size: 0.6rem; margin-right: 3px;" id="ui-sync-icon"></i> AHORA</span>
@@ -337,278 +357,364 @@
     </div>
 
     <script>
-        // ==========================================
-        // VARIABLES GLOBALES DE ESTADO 
-        // ==========================================
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+        const CAJA_SESSION_KEY = "HOMEEASY_CAJA_SESSION_V1";
+        const CAJA_IDLE_MS = 20 * 60 * 1000;
+        const MAX_PIN_LENGTH = 8;
+        const MIN_PIN_LENGTH = 4;
+
+        let currentPin = "";
+        let cajaSessionToken = "";
         let isDataLoaded = false;
         let saldoGlobal = 0;
         let entradasGlobal = 0;
         let salidasGlobal = 0;
+        let authBusy = false;
+        let idleTimer = null;
+        let lastActivityAt = Date.now();
 
-        // INICIA LA "CARGA FANTASMA" APENAS ABRE LA PÁGINA (Antes del PIN)
-        window.onload = () => { cargarCaja(); };
+        document.addEventListener("DOMContentLoaded", initCaja);
 
-        // ==========================================
-        // LÓGICA DE SEGURIDAD (PIN PAD)
-        // ==========================================
-        let currentPin = "";
-        const PIN_CORRECTO = "2511";
+        async function initCaja() {
+            if (!window.HomeEasyCore) {
+                setPinStatus("No se pudo cargar el archivo central de HomeEasy.", "error");
+                return;
+            }
+
+            bindSecurityEvents();
+            updateDots();
+            cargarNombreCaja();
+            await intentarRestaurarSesion();
+        }
+
+        async function cargarNombreCaja() {
+            try {
+                const response = await HomeEasyCore.getConfiguration({ allowFallback: true });
+                const nombre = HomeEasyCore.getByPath(response.configuracion, "caja.nombre", "Caja Principal") || "Caja Principal";
+                document.getElementById("pin-cash-name").textContent = nombre;
+                document.getElementById("card-cash-name").textContent = nombre;
+            } catch (error) {
+                // Se mantiene el nombre de respaldo sin bloquear el acceso.
+            }
+        }
+
+        function bindSecurityEvents() {
+            document.addEventListener("keydown", event => {
+                const locked = !document.getElementById("pin-screen").classList.contains("hidden");
+                if (!locked || Swal.isVisible()) return;
+                if (/^\d$/.test(event.key)) { event.preventDefault(); pressKey(event.key); }
+                else if (event.key === "Backspace") { event.preventDefault(); deleteKey(); }
+                else if (event.key === "Enter") { event.preventDefault(); checkPin(); }
+            });
+
+            ["pointerdown", "keydown", "touchstart"].forEach(eventName => {
+                document.addEventListener(eventName, registerCajaActivity, { passive: true });
+            });
+
+            document.addEventListener("visibilitychange", () => {
+                if (!document.hidden && cajaSessionToken && Date.now() - lastActivityAt >= CAJA_IDLE_MS) lockCaja(true);
+            });
+        }
+
+        function sessionStorageGet() {
+            try { return sessionStorage.getItem(CAJA_SESSION_KEY) || ""; } catch (error) { return ""; }
+        }
+
+        function sessionStorageSet(token) {
+            try {
+                if (token) sessionStorage.setItem(CAJA_SESSION_KEY, token);
+                else sessionStorage.removeItem(CAJA_SESSION_KEY);
+            } catch (error) {}
+        }
+
+        async function intentarRestaurarSesion() {
+            const token = sessionStorageGet();
+            if (!token) return;
+            setPinStatus("Comprobando sesión segura…", "");
+            try {
+                const response = await HomeEasyCore.post({ tipo: "VALIDAR_SESION_CAJA", cajaSessionToken: token });
+                if (response && response.status === "success" && response.valido) {
+                    cajaSessionToken = token;
+                    await unlockCaja();
+                    return;
+                }
+            } catch (error) {}
+            sessionStorageSet("");
+            setPinStatus("Ingresa el PIN de Caja", "");
+        }
 
         function pressKey(num) {
-            if (currentPin.length < 4) {
-                currentPin += num;
-                updateDots();
-                if (currentPin.length === 4) setTimeout(checkPin, 150);
-            }
+            if (authBusy || currentPin.length >= MAX_PIN_LENGTH) return;
+            currentPin += String(num).replace(/\D/g, "").slice(0, 1);
+            updateDots();
+            setPinStatus("", "");
         }
 
         function deleteKey() {
-            if (currentPin.length > 0) {
-                currentPin = currentPin.slice(0, -1);
-                updateDots();
-            }
+            if (authBusy || !currentPin.length) return;
+            currentPin = currentPin.slice(0, -1);
+            updateDots();
+            setPinStatus("", "");
         }
 
         function updateDots() {
-            const dots = document.querySelectorAll('.dot');
-            dots.forEach((dot, index) => {
-                if (index < currentPin.length) {
-                    dot.classList.add('filled');
-                    dot.classList.remove('error');
-                } else {
-                    dot.classList.remove('filled', 'error');
-                }
+            document.querySelectorAll("#pin-dots .dot").forEach((dot, index) => {
+                dot.classList.toggle("filled", index < currentPin.length);
+                dot.classList.remove("error");
             });
+            const button = document.getElementById("pin-submit");
+            button.disabled = authBusy || currentPin.length < MIN_PIN_LENGTH;
+            button.textContent = authBusy ? "Verificando…" : "Entrar a Caja";
         }
 
-        function checkPin() {
-            if (currentPin === PIN_CORRECTO) {
-                document.getElementById('pin-screen').classList.add('hidden');
-                if(!isDataLoaded) {
-                    document.getElementById('loading-msg').style.display = 'block';
+        function setPinStatus(message, type) {
+            const status = document.getElementById("pin-status");
+            status.textContent = message || (currentPin.length ? currentPin.length + " dígitos" : "PIN de 4 a 8 números");
+            status.className = "pin-status" + (type ? " " + type : "");
+        }
+
+        function animatePinError() {
+            document.querySelectorAll("#pin-dots .dot").forEach(dot => dot.classList.add("error"));
+            const container = document.getElementById("pin-dots");
+            container.classList.add("shake-animation");
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            setTimeout(() => {
+                container.classList.remove("shake-animation");
+                currentPin = "";
+                updateDots();
+            }, 450);
+        }
+
+        async function checkPin() {
+            if (authBusy) return;
+            if (!/^\d{4,8}$/.test(currentPin)) {
+                setPinStatus("El PIN debe tener entre 4 y 8 números.", "error");
+                animatePinError();
+                return;
+            }
+
+            authBusy = true;
+            updateDots();
+            setPinStatus("Validando acceso…", "");
+            try {
+                const response = await HomeEasyCore.post({ tipo: "VALIDAR_PIN_CAJA", pin: currentPin });
+                if (!response || response.status !== "success" || !response.valido || !response.sessionToken) {
+                    throw new Error(response && response.msg ? response.msg : "PIN incorrecto.");
                 }
-            } else {
-                const dots = document.querySelectorAll('.dot');
-                dots.forEach(dot => { dot.classList.add('error'); });
-                const dotsContainer = document.getElementById('pin-dots');
-                dotsContainer.classList.add('shake-animation');
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                setTimeout(() => {
-                    dotsContainer.classList.remove('shake-animation');
-                    currentPin = "";
-                    updateDots();
-                }, 400);
+                cajaSessionToken = response.sessionToken;
+                sessionStorageSet(cajaSessionToken);
+                setPinStatus("Acceso autorizado", "success");
+                await unlockCaja();
+            } catch (error) {
+                setPinStatus(error.message || "No se pudo validar el PIN.", "error");
+                animatePinError();
+            } finally {
+                authBusy = false;
             }
         }
 
-        // ==========================================
-        // LÓGICA DE CAJA
-        // ==========================================
-        function fmtCOP(valor) { return '$ ' + Number(valor || 0).toLocaleString('es-CO'); }
+        async function unlockCaja() {
+            currentPin = "";
+            updateDots();
+            document.getElementById("pin-screen").classList.add("hidden");
+            registerCajaActivity();
+            await cargarCaja();
+        }
+
+        async function lockCaja(notifyServer) {
+            const token = cajaSessionToken || sessionStorageGet();
+            cajaSessionToken = "";
+            sessionStorageSet("");
+            clearTimeout(idleTimer);
+            currentPin = "";
+            authBusy = false;
+            isDataLoaded = false;
+            resetCajaVisual();
+            document.getElementById("pin-screen").classList.remove("hidden");
+            setPinStatus("Ingresa el PIN de Caja", "");
+            updateDots();
+
+            if (notifyServer && token && window.HomeEasyCore) {
+                HomeEasyCore.post({ tipo: "CERRAR_SESION_CAJA", cajaSessionToken: token }).catch(() => {});
+            }
+        }
+
+        function registerCajaActivity() {
+            if (!cajaSessionToken) return;
+            lastActivityAt = Date.now();
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => lockCaja(true), CAJA_IDLE_MS);
+        }
+
+        function resetCajaVisual() {
+            document.getElementById("ui-saldo").textContent = "…";
+            document.getElementById("ui-entradas").textContent = "…";
+            document.getElementById("ui-salidas").textContent = "…";
+            document.getElementById("tx-container").innerHTML = '<div style="padding:20px;text-align:center;color:#8e8e93;font-weight:600;font-size:.85rem;"><i class="fas fa-lock"></i> Caja bloqueada</div>';
+        }
+
+        function isSessionError(response) {
+            return !response || response.requiresPin === true || (response.status === "error" && /sesión|session|pin/i.test(response.msg || ""));
+        }
+
+        function fmtCOP(valor) { return "$ " + Number(valor || 0).toLocaleString("es-CO"); }
 
         function formatearCaja(input) {
-            let v = input.value.replace(/\D/g, "");
-            input.value = v ? '$ ' + Number(v).toLocaleString('es-CO') : "";
+            const value = input.value.replace(/\D/g, "");
+            input.value = value ? "$ " + Number(value).toLocaleString("es-CO") : "";
         }
 
         function timeAgo(time) {
-            const min = Math.floor((new Date() - new Date(time)) / 60000);
-            if(min < 2) return "Hace un momento";
-            if(min < 60) return `Hace ${min} min`;
-            if(min < 1440) return `Hace ${Math.floor(min/60)} h`;
-            return new Date(time).toLocaleDateString('es-CO');
+            const date = new Date(time);
+            if (Number.isNaN(date.getTime())) return "—";
+            const min = Math.floor((new Date() - date) / 60000);
+            if (min < 2) return "Hace un momento";
+            if (min < 60) return "Hace " + min + " min";
+            if (min < 1440) return "Hace " + Math.floor(min / 60) + " h";
+            return date.toLocaleDateString("es-CO");
         }
 
         async function cargarCaja() {
-            document.getElementById('ui-sync-icon').classList.add('fa-spin');
+            if (!cajaSessionToken) { await lockCaja(false); return; }
+            const syncIcon = document.getElementById("ui-sync-icon");
+            syncIcon.classList.add("fa-spin");
+            document.getElementById("tx-container").innerHTML = '<div style="padding:20px;text-align:center;color:#8e8e93;font-weight:600;font-size:.85rem;"><i class="fas fa-circle-notch fa-spin"></i> Sincronizando datos…</div>';
+
             try {
-                const res = await fetch(`${URL_G}?tipo=GET_CAJA`);
-                const data = await res.json();
-                
-                if(data.status === "ok") {
-                    saldoGlobal = data.saldo;
-                    entradasGlobal = data.entradasMes;
-                    salidasGlobal = data.salidasMes;
-                    isDataLoaded = true;
-
-                    document.getElementById('ui-saldo').innerText = fmtCOP(saldoGlobal);
-                    document.getElementById('ui-entradas').innerText = fmtCOP(entradasGlobal);
-                    document.getElementById('ui-salidas').innerText = fmtCOP(salidasGlobal);
-
-                    const txContainer = document.getElementById('tx-container');
-                    txContainer.innerHTML = '';
-
-                    if(data.feed.length === 0) {
-                        txContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93; font-weight: 600; font-size: 0.85rem;" id="loading-msg">No hay movimientos recientes</div>';
-                    } else {
-                        data.feed.forEach(tx => {
-                            let iconHTML, amountColor, prefix;
-                            
-                            if(tx.tipo === "IN_AB") {
-                                iconHTML = '<div class="tx-icon tx-wine"><i class="fas fa-file-invoice-dollar"></i></div>';
-                                amountColor = "text-green"; prefix = "+";
-                                let numRecibo = tx.id.replace('REC-', '');
-                                let partesCat = tx.cat.split('•');
-                                let medioPago = partesCat.length > 1 ? partesCat[1].trim() : 'EFECTIVO';
-                                tx.cat = `Recibo N° ${numRecibo} • ${medioPago}`;
-                            } else if(tx.tipo === "IN_OP") {
-                                iconHTML = '<div class="tx-icon tx-wine"><i class="fas fa-file-invoice-dollar"></i></div>';
-                                amountColor = "text-green"; prefix = "+";
-                            } else if(tx.tipo === "IN_EXTRA") {
-                                iconHTML = '<div class="tx-icon tx-in"><i class="fas fa-arrow-down"></i></div>';
-                                amountColor = "text-green"; prefix = "+";
-                            } else {
-                                iconHTML = '<div class="tx-icon tx-out"><i class="fas fa-shopping-bag"></i></div>';
-                                amountColor = "text-dark"; prefix = "-";
-                            }
-
-                            txContainer.innerHTML += `
-                                <div class="transaction-item">
-                                    <div class="tx-left">
-                                        ${iconHTML}
-                                        <div class="tx-details">
-                                            <span class="tx-title">${tx.titulo}</span>
-                                            <span class="tx-cat">${tx.cat}</span>
-                                        </div>
-                                    </div>
-                                    <div class="tx-right">
-                                        <span class="tx-amount ${amountColor}">${prefix} ${fmtCOP(tx.valor)}</span>
-                                        <span class="tx-date">${timeAgo(tx.fecha)}</span>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                    }
+                const data = await HomeEasyCore.post({ tipo: "GET_CAJA_SEGURA", cajaSessionToken: cajaSessionToken });
+                if (isSessionError(data)) {
+                    await lockCaja(false);
+                    throw new Error(data && data.msg ? data.msg : "La sesión de Caja venció.");
                 }
-            } catch (e) {
-                console.error("Error cargando caja", e);
+                if (!data || data.status !== "ok") throw new Error(data && data.msg ? data.msg : "No se pudieron cargar los datos de Caja.");
+                renderCaja(data);
+                isDataLoaded = true;
+                registerCajaActivity();
+            } catch (error) {
+                if (cajaSessionToken) {
+                    document.getElementById("tx-container").innerHTML = '<div style="padding:20px;text-align:center;color:#8e8e93;font-weight:600;font-size:.85rem;"><i class="fas fa-triangle-exclamation"></i> ' + HomeEasyCore.escapeHtml(error.message) + '</div>';
+                } else {
+                    Swal.fire({ icon: "info", title: "Caja bloqueada", text: error.message, confirmButtonColor: "#a6455a", customClass: { popup: "swal2-premium" } });
+                }
             } finally {
-                document.getElementById('ui-sync-icon').classList.remove('fa-spin');
+                syncIcon.classList.remove("fa-spin");
             }
+        }
+
+        function renderCaja(data) {
+            saldoGlobal = Number(data.saldo) || 0;
+            entradasGlobal = Number(data.entradasMes) || 0;
+            salidasGlobal = Number(data.salidasMes) || 0;
+            document.getElementById("ui-saldo").textContent = fmtCOP(saldoGlobal);
+            document.getElementById("ui-entradas").textContent = fmtCOP(entradasGlobal);
+            document.getElementById("ui-salidas").textContent = fmtCOP(salidasGlobal);
+
+            const container = document.getElementById("tx-container");
+            const feed = Array.isArray(data.feed) ? data.feed : [];
+            if (!feed.length) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#8e8e93;font-weight:600;font-size:.85rem;">No hay movimientos recientes</div>';
+                return;
+            }
+
+            container.innerHTML = feed.map(tx => {
+                let iconClass = "tx-out";
+                let icon = "fa-shopping-bag";
+                let amountClass = "text-dark";
+                let prefix = "-";
+                let category = tx.cat || "";
+
+                if (tx.tipo === "IN_AB") {
+                    iconClass = "tx-wine"; icon = "fa-file-invoice-dollar"; amountClass = "text-green"; prefix = "+";
+                    const receipt = String(tx.id || "").replace("REC-", "");
+                    const parts = String(category).split("•");
+                    category = "Recibo N° " + receipt + " • " + (parts[1] ? parts[1].trim() : "EFECTIVO");
+                } else if (tx.tipo === "IN_OP") {
+                    iconClass = "tx-wine"; icon = "fa-file-invoice-dollar"; amountClass = "text-green"; prefix = "+";
+                } else if (tx.tipo === "IN_EXTRA") {
+                    iconClass = "tx-in"; icon = "fa-arrow-down"; amountClass = "text-green"; prefix = "+";
+                }
+
+                return '<div class="transaction-item">' +
+                    '<div class="tx-left"><div class="tx-icon ' + iconClass + '"><i class="fas ' + icon + '"></i></div>' +
+                    '<div class="tx-details"><span class="tx-title">' + HomeEasyCore.escapeHtml(tx.titulo || "Movimiento") + '</span>' +
+                    '<span class="tx-cat">' + HomeEasyCore.escapeHtml(category) + '</span></div></div>' +
+                    '<div class="tx-right"><span class="tx-amount ' + amountClass + '">' + prefix + ' ' + fmtCOP(tx.valor) + '</span>' +
+                    '<span class="tx-date">' + timeAgo(tx.fecha) + '</span></div></div>';
+            }).join("");
         }
 
         function registrarGasto() {
+            if (!cajaSessionToken) { lockCaja(false); return; }
             Swal.fire({
-                title: 'Registrar Gasto',
-                html: `
-                    <div style="text-align: left; margin-top: 10px;">
-                        <label style="font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase;">Valor del gasto</label>
-                        <input type="tel" id="gasto-valor" class="swal2-input" placeholder="$ 0" style="margin-top: 5px; margin-bottom: 20px;" oninput="formatearCaja(this)">
-                        
-                        <label style="font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase;">Categoría</label>
-                        <select id="gasto-cat" class="swal2-select" style="margin-top: 5px; margin-bottom: 20px; width: 100%;">
-                            <option value="Pago proveedor e insumos">Pago proveedor e insumos</option>
-                            <option value="Pago Nómina / Contratistas">Pago Nómina / Contratistas</option>
-                            <option value="Transporte / Fletes">Transporte / Fletes</option>
-                            <option value="Servicios Fijos">Servicios Fijos</option>
-                            <option value="Otros Gastos">Otros Gastos</option>
-                        </select>
-
-                        <label style="font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase;">Descripción</label>
-                        <input type="text" id="gasto-desc" class="swal2-input" placeholder="Ej: Compra a pentagrama..." style="margin-top: 5px;">
-                    </div>
-                `,
-                showCancelButton: true, confirmButtonText: 'Guardar Gasto', cancelButtonText: 'Cancelar', confirmButtonColor: '#ff3b30', customClass: { popup: 'swal2-premium' },
+                title: "Registrar Gasto",
+                html:
+                    '<div style="text-align:left;margin-top:10px;">' +
+                    '<label style="font-size:.75rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Valor del gasto</label>' +
+                    '<input type="tel" id="gasto-valor" class="swal2-input" placeholder="$ 0" style="margin-top:5px;margin-bottom:20px;" oninput="formatearCaja(this)">' +
+                    '<label style="font-size:.75rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Categoría</label>' +
+                    '<select id="gasto-cat" class="swal2-select" style="margin-top:5px;margin-bottom:20px;width:100%;">' +
+                    '<option value="Pago proveedor e insumos">Pago proveedor e insumos</option>' +
+                    '<option value="Pago Nómina / Contratistas">Pago Nómina / Contratistas</option>' +
+                    '<option value="Transporte / Fletes">Transporte / Fletes</option>' +
+                    '<option value="Servicios Fijos">Servicios Fijos</option>' +
+                    '<option value="Otros Gastos">Otros Gastos</option></select>' +
+                    '<label style="font-size:.75rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Descripción</label>' +
+                    '<input type="text" id="gasto-desc" class="swal2-input" placeholder="Ej: Compra a proveedor" style="margin-top:5px;"></div>',
+                showCancelButton: true,
+                confirmButtonText: "Guardar Gasto",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#ff3b30",
+                customClass: { popup: "swal2-premium" },
                 preConfirm: () => {
-                    const valRaw = document.getElementById('gasto-valor').value.replace(/\D/g, "");
-                    if (!valRaw) Swal.showValidationMessage('Debes ingresar un valor');
-                    return {
-                        tipo: "movimiento_caja", movimiento: "GASTO",
-                        valor: valRaw, categoria: document.getElementById('gasto-cat').value, descripcion: document.getElementById('gasto-desc').value
-                    };
+                    const value = document.getElementById("gasto-valor").value.replace(/\D/g, "");
+                    const description = document.getElementById("gasto-desc").value.trim();
+                    if (!value || Number(value) <= 0) return Swal.showValidationMessage("Debes ingresar un valor mayor que cero.");
+                    if (!description) return Swal.showValidationMessage("Escribe una descripción del gasto.");
+                    return { tipo: "movimiento_caja", movimiento: "GASTO", valor: value, categoria: document.getElementById("gasto-cat").value, descripcion: description };
                 }
-            }).then((result) => { if (result.isConfirmed) procesarMovimientoUiOptimista(result.value); });
+            }).then(result => { if (result.isConfirmed) procesarMovimientoSeguro(result.value); });
         }
 
         function registrarIngreso() {
+            if (!cajaSessionToken) { lockCaja(false); return; }
             Swal.fire({
-                title: 'Ingreso Extra', text: 'Registra un dinero que no provenga de OPs regulares.',
-                html: `
-                    <div style="text-align: left; margin-top: 10px;">
-                        <input type="tel" id="ing-valor" class="swal2-input" placeholder="$ 0" style="margin-top: 5px; margin-bottom: 15px;" oninput="formatearCaja(this)">
-                        <label style="font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase;">Detalle del ingreso</label>
-                        <input type="text" id="ing-desc" class="swal2-input" placeholder="Ej: Venta de sobrantes" style="margin-top: 5px;">
-                    </div>
-                `,
-                showCancelButton: true, confirmButtonText: 'Sumar a Caja', cancelButtonText: 'Cancelar', confirmButtonColor: '#34c759', customClass: { popup: 'swal2-premium' },
+                title: "Ingreso Extra",
+                text: "Registra un dinero que no provenga de una orden regular.",
+                html:
+                    '<div style="text-align:left;margin-top:10px;">' +
+                    '<input type="tel" id="ing-valor" class="swal2-input" placeholder="$ 0" style="margin-top:5px;margin-bottom:15px;" oninput="formatearCaja(this)">' +
+                    '<label style="font-size:.75rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Detalle del ingreso</label>' +
+                    '<input type="text" id="ing-desc" class="swal2-input" placeholder="Ej: Venta de sobrantes" style="margin-top:5px;"></div>',
+                showCancelButton: true,
+                confirmButtonText: "Sumar a Caja",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#34c759",
+                customClass: { popup: "swal2-premium" },
                 preConfirm: () => {
-                    const valRaw = document.getElementById('ing-valor').value.replace(/\D/g, "");
-                    if (!valRaw) Swal.showValidationMessage('Debes ingresar un valor');
-                    return {
-                        tipo: "movimiento_caja", movimiento: "INGRESO",
-                        valor: valRaw, categoria: "Ingresos Extra", descripcion: document.getElementById('ing-desc').value
-                    };
+                    const value = document.getElementById("ing-valor").value.replace(/\D/g, "");
+                    const description = document.getElementById("ing-desc").value.trim();
+                    if (!value || Number(value) <= 0) return Swal.showValidationMessage("Debes ingresar un valor mayor que cero.");
+                    if (!description) return Swal.showValidationMessage("Escribe el detalle del ingreso.");
+                    return { tipo: "movimiento_caja", movimiento: "INGRESO", valor: value, categoria: "Ingresos Extra", descripcion: description };
                 }
-            }).then((result) => { if (result.isConfirmed) procesarMovimientoUiOptimista(result.value); });
+            }).then(result => { if (result.isConfirmed) procesarMovimientoSeguro(result.value); });
         }
 
-        // ==========================================
-        // UI OPTIMISTA: Actualiza todo al instante, guarda en segundo plano
-        // ==========================================
-        function procesarMovimientoUiOptimista(payload) {
-            const valorInt = parseInt(payload.valor);
-            let iconHTML, amountColor, prefix;
-
-            if(payload.movimiento === "INGRESO") {
-                saldoGlobal += valorInt;
-                entradasGlobal += valorInt;
-                iconHTML = '<div class="tx-icon tx-in"><i class="fas fa-arrow-down"></i></div>';
-                amountColor = "text-green"; prefix = "+";
-            } else {
-                saldoGlobal -= valorInt;
-                salidasGlobal += valorInt;
-                iconHTML = '<div class="tx-icon tx-out"><i class="fas fa-shopping-bag"></i></div>';
-                amountColor = "text-dark"; prefix = "-";
-            }
-
-            document.getElementById('ui-saldo').innerText = fmtCOP(saldoGlobal);
-            document.getElementById('ui-entradas').innerText = fmtCOP(entradasGlobal);
-            document.getElementById('ui-salidas').innerText = fmtCOP(salidasGlobal);
-
-            const nuevoItemHtml = `
-                <div class="transaction-item slide-in-anim">
-                    <div class="tx-left">
-                        ${iconHTML}
-                        <div class="tx-details">
-                            <span class="tx-title">${payload.descripcion || payload.categoria}</span>
-                            <span class="tx-cat">${payload.categoria}</span>
-                        </div>
-                    </div>
-                    <div class="tx-right">
-                        <span class="tx-amount ${amountColor}">${prefix} ${fmtCOP(valorInt)}</span>
-                        <span class="tx-date" style="color:#a6455a;"><i class="fas fa-cloud-upload-alt"></i> Enviando...</span>
-                    </div>
-                </div>
-            `;
-
-            const txContainer = document.getElementById('tx-container');
-            if(txContainer.innerHTML.includes('No hay movimientos')) txContainer.innerHTML = '';
-            
-            txContainer.insertAdjacentHTML('afterbegin', nuevoItemHtml);
-
-            Swal.fire({
-                icon: 'success', title: '¡Registrado!', text: 'El saldo se actualizó al instante.', 
-                timer: 1500, showConfirmButton: false, customClass: { popup: 'swal2-premium' }
-            });
-
-            document.getElementById('ui-sync-icon').classList.add('fa-spin');
-            
-            fetch(URL_G, { method: 'POST', body: JSON.stringify(payload) })
-            .then(res => res.json())
-            .then(res => {
-                document.getElementById('ui-sync-icon').classList.remove('fa-spin');
-                if(res.status === "success") {
-                    const recentDates = document.querySelectorAll('.tx-date');
-                    if(recentDates[0].innerHTML.includes('Enviando')) {
-                        recentDates[0].innerHTML = 'Hace un momento';
-                        recentDates[0].style.color = '#aeaeb2';
-                    }
+        async function procesarMovimientoSeguro(payload) {
+            if (!cajaSessionToken) { await lockCaja(false); return; }
+            Swal.fire({ title: "Guardando…", text: "HomeEasy está confirmando el movimiento.", allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: "swal2-premium" } });
+            try {
+                const response = await HomeEasyCore.post({ ...payload, cajaSessionToken: cajaSessionToken });
+                if (isSessionError(response)) {
+                    await lockCaja(false);
+                    throw new Error(response && response.msg ? response.msg : "La sesión de Caja venció.");
                 }
-            }).catch(e => {
-                console.error("Error silencioso: ", e);
-                document.getElementById('ui-sync-icon').classList.remove('fa-spin');
-            });
+                if (!response || response.status !== "success") throw new Error(response && response.msg ? response.msg : "No se pudo guardar el movimiento.");
+                await cargarCaja();
+                Swal.fire({ icon: "success", title: "Movimiento registrado", text: "Caja quedó sincronizada con la base de datos.", timer: 1700, showConfirmButton: false, customClass: { popup: "swal2-premium" } });
+            } catch (error) {
+                Swal.fire({ icon: "error", title: cajaSessionToken ? "No se pudo guardar" : "Caja bloqueada", text: error.message, confirmButtonColor: "#a6455a", customClass: { popup: "swal2-premium" } });
+            }
         }
     </script>
 </body>
