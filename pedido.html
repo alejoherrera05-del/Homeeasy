@@ -202,7 +202,8 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="homeeasy-docs.js"></script>
+    <script src="homeeasy-docs.js?v=4.0"></script>
+    <script src="homeeasy-core.js?v=2.2"></script>
 </head>
 <body ontouchstart="">
 
@@ -641,9 +642,7 @@
     }
 
     async function finalizar() {
-        if (window.__homeeasyDocsReady) {
-            try { await window.__homeeasyDocsReady; } catch (e) { console.warn("No fue posible cargar la configuración dinámica.", e); }
-        }
+        if (window.__homeeasyDocsReady) { try { await window.__homeeasyDocsReady; } catch (e) { console.warn("No fue posible cargar la configuración dinámica.", e); } }
         const cedula = document.getElementById('cedula').value.trim();
         let nombre = document.getElementById('nombre').value.toUpperCase();
         let email = document.getElementById('email').value.toLowerCase();
