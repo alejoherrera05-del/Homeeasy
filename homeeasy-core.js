@@ -1,347 +1,202 @@
-/**
- * HomeEasy Core v2.2
- * Comunicación central, identificación del dispositivo y trazabilidad.
- * No cambia la lógica de negocio de los formularios existentes.
- */
-(function (global) {
-    'use strict';
+(function (window) {
+  const FALLBACK = {
+    "empresa.nombre_comercial": "HOMEEASY POPAYÁN",
+    "empresa.razon_social": "",
+    "empresa.nit": "1.061.760.852-1",
+    "empresa.direccion": "Trav. 9 # 6N-26",
+    "empresa.telefono": "3334319374",
+    "empresa.whatsapp": "",
+    "empresa.email": "",
+    "empresa.web": "",
+    "empresa.instagram": "@homeeasypopayan",
+    "empresa.eslogan": "Viste tu hogar con estilo",
+    "documentos.cotizacion.titulo": "COTIZACIÓN",
+    "documentos.cotizacion.validez_dias": "15",
+    "documentos.cotizacion.medicion_instalacion": "Incluye toma de medidas e instalación GRATIS (Popayán).",
+    "documentos.cotizacion.forma_pago": "50% anticipo, 50% contra entrega.",
+    "documentos.pedido.titulo": "ORDEN DE PEDIDO",
+    "documentos.pedido.garantia_anios": "3",
+    "documentos.pedido.entrega_dias_habiles": "10",
+    "documentos.pedido.condicion_saldo": "Se cancela contra entrega e instalación.",
+    "documentos.pedido.instalacion": "Incluida en el valor total pactado.",
+    "documentos.recibo.titulo": "RECIBO DE ABONO",
+    "documentos.pie_principal": "HomeEasy - Viste tu hogar con estilo",
+    "documentos.pie_sistema": "Documento generado automáticamente • Sistema Hommy V2.0",
+    "documentos.mostrar_email": false,
+    "documentos.mostrar_web": false,
+    "documentos.mostrar_whatsapp": false,
+    "documentos.mostrar_instagram": true
+  };
 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
-    const APP_VERSION = '2.2';
-    const CONFIG_CACHE_KEY = 'HOMEEASY_CONFIG_BROWSER_V1';
-    const CONFIG_CACHE_FRESH_MS = 5 * 60 * 1000;
-    const CONFIG_CACHE_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
-    const DEFAULT_TIMEOUT_MS = 25000;
-    const OPERATOR_KEY = 'HOMEEASY_OPERADOR_LOCAL';
-    const DEVICE_ID_KEY = 'HOMEEASY_DEVICE_ID';
-    const DEVICE_NAME_KEY = 'HOMEEASY_DEVICE_NAME';
-    const FETCH_PATCH_FLAG = '__HOMEEASY_FETCH_PATCHED_V22__';
+  const state = { promise: null, config: null, version: null };
 
-    const nativeFetch = global.fetch.bind(global);
+  function boolValue(value) {
+    if (typeof value === 'boolean') return value;
+    const raw = String(value == null ? '' : value).trim().toLowerCase();
+    return raw === 'true' || raw === '1' || raw === 'si' || raw === 'sí' || raw === 'yes';
+  }
 
-    function buildQuery(params) {
-        const search = new URLSearchParams();
-        Object.entries(params || {}).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && value !== '') {
-                search.set(key, String(value));
-            }
-        });
-        return search.toString();
+  function clean(value) {
+    return String(value == null ? '' : value).trim();
+  }
+
+  function escapeHtml(value) {
+    return clean(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function key(cfg, name, fallback) {
+    const value = cfg && Object.prototype.hasOwnProperty.call(cfg, name) ? cfg[name] : undefined;
+    if (value === undefined || value === null || value === '') {
+      if (fallback !== undefined) return fallback;
+      return FALLBACK[name] !== undefined ? FALLBACK[name] : '';
     }
+    return value;
+  }
 
-    function createUuid() {
-        if (global.crypto && typeof global.crypto.randomUUID === 'function') {
-            return global.crypto.randomUUID();
+  function displayWeb(value) {
+    let text = clean(value);
+    if (!text) return '';
+    text = text.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+    return text;
+  }
+
+  function displayInstagram(value) {
+    const text = clean(value);
+    if (!text) return '';
+    return text.startsWith('@') ? text : '@' + text;
+  }
+
+  function line(icon, text) {
+    if (!clean(text)) return '';
+    return '<span><i class="' + icon + '"></i> ' + escapeHtml(text) + '</span><br>';
+  }
+
+  function buildHeader(cfg) {
+    const name = clean(key(cfg, 'empresa.nombre_comercial')) || FALLBACK['empresa.nombre_comercial'];
+    const razon = clean(key(cfg, 'empresa.razon_social', ''));
+    const nit = clean(key(cfg, 'empresa.nit'));
+    const direccion = clean(key(cfg, 'empresa.direccion'));
+    const telefono = clean(key(cfg, 'empresa.telefono'));
+    const whatsapp = clean(key(cfg, 'empresa.whatsapp', ''));
+    const email = clean(key(cfg, 'empresa.email', ''));
+    const web = displayWeb(key(cfg, 'empresa.web', ''));
+    const instagram = displayInstagram(key(cfg, 'empresa.instagram', ''));
+    const showWhatsapp = boolValue(key(cfg, 'documentos.mostrar_whatsapp', false));
+    const showEmail = boolValue(key(cfg, 'documentos.mostrar_email', false));
+    const showWeb = boolValue(key(cfg, 'documentos.mostrar_web', false));
+    const showInstagram = boolValue(key(cfg, 'documentos.mostrar_instagram', true));
+
+    let html = '<b>' + escapeHtml(name.toUpperCase()) + '</b><br>';
+    if (razon) html += '<span>' + escapeHtml(razon) + '</span><br>';
+    if (nit) html += '<span><i class="fas fa-id-card"></i> NIT: ' + escapeHtml(nit) + '</span><br>';
+    if (direccion) html += line('fas fa-map-marker-alt', direccion);
+    if (telefono) html += line('fas fa-phone-alt', telefono);
+    if (showWhatsapp && whatsapp) html += line('fab fa-whatsapp', whatsapp);
+    if (showEmail && email) html += line('fas fa-envelope', email.toLowerCase());
+    if (showWeb && web) html += line('fas fa-globe', web);
+    if (showInstagram && instagram) html += line('fab fa-instagram', instagram);
+
+    html = html.replace(/<br>$/, '');
+    return html;
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function setHtml(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = value;
+  }
+
+  function applyCommon(cfg, kind) {
+    setHtml('empresa-info-header', buildHeader(cfg));
+    const docTitleKey = kind === 'cotizacion'
+      ? 'documentos.cotizacion.titulo'
+      : kind === 'pedido'
+        ? 'documentos.pedido.titulo'
+        : 'documentos.recibo.titulo';
+    setText('document-type', String(key(cfg, docTitleKey)).toUpperCase());
+    setText('footer-creds', key(cfg, 'documentos.pie_principal'));
+    setText('footer-system-line', key(cfg, 'documentos.pie_sistema'));
+    document.title = 'HomeEasy | ' + String(key(cfg, docTitleKey)).trim();
+  }
+
+  function applyCotizacion(cfg) {
+    const validez = clean(key(cfg, 'documentos.cotizacion.validez_dias', '15')) || '15';
+    const medicion = clean(key(cfg, 'documentos.cotizacion.medicion_instalacion', ''));
+    const formaPago = clean(key(cfg, 'documentos.cotizacion.forma_pago', ''));
+    const lines = [
+      '• Validez de la oferta: <b>' + escapeHtml(validez) + ' días calendario</b>.'
+    ];
+    if (medicion) lines.push('• ' + escapeHtml(medicion));
+    if (formaPago) lines.push('• Forma de pago: ' + escapeHtml(formaPago));
+    setHtml('condiciones-comerciales', lines.join('<br>'));
+  }
+
+  function applyPedido(cfg) {
+    const garantia = clean(key(cfg, 'documentos.pedido.garantia_anios', '3')) || '3';
+    const entrega = clean(key(cfg, 'documentos.pedido.entrega_dias_habiles', '10')) || '10';
+    const saldo = clean(key(cfg, 'documentos.pedido.condicion_saldo', ''));
+    const instalacion = clean(key(cfg, 'documentos.pedido.instalacion', ''));
+    const lines = [
+      '• <b>Garantía:</b> ' + escapeHtml(garantia) + ' años (aplica términos y condiciones).',
+      '• <b>Tiempo de entrega:</b> ' + escapeHtml(entrega) + ' días hábiles.'
+    ];
+    if (saldo) lines.push('• <b>Saldo:</b> ' + escapeHtml(saldo));
+    if (instalacion) lines.push('• <b>Instalación:</b> ' + escapeHtml(instalacion));
+    setHtml('pedido-condiciones', lines.join('<br>'));
+  }
+
+  function applyRecibo() {}
+
+  function apply(cfg, kind) {
+    applyCommon(cfg, kind);
+    if (kind === 'cotizacion') applyCotizacion(cfg);
+    else if (kind === 'pedido') applyPedido(cfg);
+    else applyRecibo(cfg);
+  }
+
+  function fetchConfig(url) {
+    return fetch(url + '?tipo=GET_CONFIGURACION', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && data.status === 'ok' && data.configuracion) {
+          return {
+            config: Object.assign({}, FALLBACK, data.configuracion),
+            version: data.version || 1
+          };
         }
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
-            const random = Math.random() * 16 | 0;
-            const value = character === 'x' ? random : (random & 0x3 | 0x8);
-            return value.toString(16);
-        });
-    }
+        return { config: Object.assign({}, FALLBACK), version: 1 };
+      })
+      .catch(function () {
+        return { config: Object.assign({}, FALLBACK), version: 1 };
+      });
+  }
 
-    function safeStorageGet(key, fallback) {
-        try {
-            const value = localStorage.getItem(key);
-            return value === null || value === '' ? fallback : value;
-        } catch (error) {
-            return fallback;
-        }
-    }
-
-    function safeStorageSet(key, value) {
-        try { localStorage.setItem(key, String(value)); } catch (error) {}
-    }
-
-    function detectBrowser() {
-        const ua = navigator.userAgent || '';
-        if (/Edg\//.test(ua)) return 'Microsoft Edge';
-        if (/OPR\//.test(ua)) return 'Opera';
-        if (/CriOS\//.test(ua)) return 'Chrome';
-        if (/FxiOS\//.test(ua)) return 'Firefox';
-        if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) return 'Chrome';
-        if (/Firefox\//.test(ua)) return 'Firefox';
-        if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 'Safari';
-        return 'Navegador';
-    }
-
-    function detectPlatform() {
-        const ua = navigator.userAgent || '';
-        const platform = navigator.userAgentData && navigator.userAgentData.platform
-            ? navigator.userAgentData.platform
-            : (navigator.platform || '');
-        if (/iPad/i.test(ua) || (/Mac/i.test(platform) && navigator.maxTouchPoints > 1)) return 'iPad';
-        if (/iPhone/i.test(ua)) return 'iPhone';
-        if (/Android/i.test(ua)) return /Mobile/i.test(ua) ? 'Android' : 'Tablet Android';
-        if (/Win/i.test(platform)) return 'PC Windows';
-        if (/Mac/i.test(platform)) return 'Mac';
-        if (/Linux/i.test(platform)) return 'Linux';
-        return 'Dispositivo';
-    }
-
-    function defaultDeviceName() {
-        return detectPlatform() + ' · ' + detectBrowser();
-    }
-
-    function getDeviceId() {
-        let id = safeStorageGet(DEVICE_ID_KEY, '');
-        if (!id) {
-            id = createUuid();
-            safeStorageSet(DEVICE_ID_KEY, id);
-        }
-        return id;
-    }
-
-    function getDeviceName() {
-        return safeStorageGet(DEVICE_NAME_KEY, defaultDeviceName());
-    }
-
-    function setDeviceName(name) {
-        const clean = String(name || '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 80) || defaultDeviceName();
-        safeStorageSet(DEVICE_NAME_KEY, clean);
-        return clean;
-    }
-
-    function getDeviceInfo() {
-        return Object.freeze({
-            id: getDeviceId(),
-            name: getDeviceName(),
-            platform: detectPlatform(),
-            browser: detectBrowser()
-        });
-    }
-
-    function getOperator() {
-        return safeStorageGet(OPERATOR_KEY, 'Sin identificar');
-    }
-
-    function setOperator(name) {
-        const clean = String(name || '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 80) || 'Sin identificar';
-        safeStorageSet(OPERATOR_KEY, clean);
-        return clean;
-    }
-
-    function currentPageName() {
-        const value = (global.location && global.location.pathname ? global.location.pathname.split('/').pop() : '') || 'index.html';
-        return value.slice(0, 120);
-    }
-
-    function buildMeta() {
-        const device = getDeviceInfo();
-        return {
-            operador: getOperator(),
-            dispositivoId: device.id,
-            dispositivoNombre: device.name,
-            plataforma: device.platform,
-            navegador: device.browser,
-            pagina: currentPageName(),
-            versionApp: APP_VERSION,
-            horaCliente: new Date().toISOString()
-        };
-    }
-
-    function enrichPayload(payload) {
-        const source = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
-        return {
-            ...source,
-            requestId: source.requestId || createUuid(),
-            meta: {
-                ...buildMeta(),
-                ...(source.meta && typeof source.meta === 'object' ? source.meta : {})
-            }
-        };
-    }
-
-    function installFetchInstrumentation() {
-        if (global[FETCH_PATCH_FLAG]) return;
-        global[FETCH_PATCH_FLAG] = true;
-
-        global.fetch = function homeEasyTrackedFetch(resource, init) {
-            const url = typeof resource === 'string' ? resource : (resource && resource.url ? resource.url : '');
-            const options = { ...(init || {}) };
-            const method = String(options.method || (resource && resource.method) || 'GET').toUpperCase();
-
-            if (url.startsWith(API_URL) && method === 'POST' && typeof options.body === 'string') {
-                try {
-                    const parsed = JSON.parse(options.body);
-                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                        options.body = JSON.stringify(enrichPayload(parsed));
-                    }
-                } catch (error) {
-                    // Se conserva el cuerpo original cuando no es JSON.
-                }
-            }
-
-            return nativeFetch(resource, options);
-        };
-    }
-
-    async function fetchJson(url, options, timeoutMs) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs || DEFAULT_TIMEOUT_MS);
-
-        try {
-            const response = await global.fetch(url, {
-                redirect: 'follow',
-                cache: 'no-store',
-                ...(options || {}),
-                signal: controller.signal
-            });
-
-            const raw = await response.text();
-            let data;
-            try {
-                data = JSON.parse(raw);
-            } catch (error) {
-                throw new Error('HomeEasy devolvió una respuesta que no se pudo leer.');
-            }
-
-            if (!response.ok) {
-                throw new Error(data && data.msg ? data.msg : 'La solicitud no se completó.');
-            }
-            return data;
-        } catch (error) {
-            if (error && error.name === 'AbortError') {
-                throw new Error('La conexión tardó demasiado. Revisa internet e intenta nuevamente.');
-            }
-            throw error;
-        } finally {
-            clearTimeout(timer);
-        }
-    }
-
-    async function get(params, options) {
-        const query = buildQuery(params);
-        return fetchJson(API_URL + (query ? '?' + query : ''), { method: 'GET' }, options && options.timeoutMs);
-    }
-
-    async function post(payload, options) {
-        return fetchJson(API_URL, {
-            method: 'POST',
-            // No se agrega Content-Type para conservar compatibilidad con la Web App de Apps Script.
-            body: JSON.stringify(enrichPayload(payload || {}))
-        }, options && options.timeoutMs);
-    }
-
-    function readConfigCache() {
-        try {
-            const raw = localStorage.getItem(CONFIG_CACHE_KEY);
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            if (!parsed || !parsed.savedAt || !parsed.payload) return null;
-            return parsed;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    function writeConfigCache(payload) {
-        try {
-            localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), payload }));
-        } catch (error) {}
-    }
-
-    function clearConfigCache() {
-        try { localStorage.removeItem(CONFIG_CACHE_KEY); } catch (error) {}
-    }
-
-    async function getConfiguration(options) {
-        const opts = { force: false, allowFallback: true, ...(options || {}) };
-        const cached = readConfigCache();
-        const cacheAge = cached ? Date.now() - cached.savedAt : Infinity;
-
-        if (!opts.force && cached && cacheAge <= CONFIG_CACHE_FRESH_MS) {
-            return { ...cached.payload, source: 'cache' };
-        }
-
-        try {
-            const data = await get({ tipo: 'GET_CONFIGURACION', t: Date.now() });
-            if (!data || data.status !== 'ok' || !data.configuracion) {
-                throw new Error(data && data.msg ? data.msg : 'No se pudo cargar la configuración central.');
-            }
-            writeConfigCache(data);
-            return { ...data, source: 'network' };
-        } catch (error) {
-            if (opts.allowFallback && cached && cacheAge <= CONFIG_CACHE_FALLBACK_MS) {
-                return { ...cached.payload, source: 'fallback', warning: error.message };
-            }
-            throw error;
-        }
-    }
-
-    function flattenObject(value, prefix, result) {
-        const out = result || {};
-        const base = prefix || '';
-        if (value && typeof value === 'object' && !Array.isArray(value)) {
-            Object.keys(value).forEach(key => {
-                const path = base ? base + '.' + key : key;
-                const item = value[key];
-                if (item && typeof item === 'object' && !Array.isArray(item)) flattenObject(item, path, out);
-                else out[path] = item;
-            });
-        }
-        return out;
-    }
-
-    function getByPath(object, path, fallback) {
-        const parts = String(path || '').split('.');
-        let cursor = object;
-        for (const part of parts) {
-            if (!cursor || typeof cursor !== 'object' || !(part in cursor)) return fallback;
-            cursor = cursor[part];
-        }
-        return cursor === undefined || cursor === null ? fallback : cursor;
-    }
-
-    function normalizeComparable(value, type) {
-        if (type === 'boolean') return Boolean(value);
-        if (type === 'number') return Number(value);
-        return String(value === undefined || value === null ? '' : value).trim();
-    }
-
-    function escapeHtml(value) {
-        return String(value === undefined || value === null ? '' : value)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
-    function formatCOP(value) {
-        return '$ ' + Number(value || 0).toLocaleString('es-CO');
-    }
-
-    function formatDateTime(value) {
-        if (!value) return '—';
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return '—';
-        return date.toLocaleString('es-CO', {
-            year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit'
-        });
-    }
-
-    installFetchInstrumentation();
-
-    global.HomeEasyCore = Object.freeze({
-        API_URL,
-        APP_VERSION,
-        get,
-        post,
-        getConfiguration,
-        clearConfigCache,
-        flattenObject,
-        getByPath,
-        normalizeComparable,
-        escapeHtml,
-        formatCOP,
-        formatDateTime,
-        getOperator,
-        setOperator,
-        getDeviceInfo,
-        getDeviceName,
-        setDeviceName,
-        buildMeta,
-        createRequestId: createUuid
+  function init(options) {
+    const opts = options || {};
+    const url = opts.url || window.URL_G || '';
+    const kind = opts.documentType || 'cotizacion';
+    state.promise = fetchConfig(url).then(function (payload) {
+      state.config = payload.config;
+      state.version = payload.version;
+      apply(state.config, kind);
+      return payload;
     });
+    return state.promise;
+  }
+
+  window.HomeEasyDocs = {
+    init: init,
+    apply: apply,
+    key: key,
+    state: state
+  };
 })(window);
