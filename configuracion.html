@@ -1010,7 +1010,7 @@
                 <div class="panel" id="panel-seguridad" data-panel="seguridad">
                     <div class="page-heading">
                         <h2>Seguridad</h2>
-                        <p>Protección del acceso a los ajustes de HomeEasy.</p>
+                        <p>Controla el acceso a los ajustes y al flujo de Caja.</p>
                     </div>
 
                     <div class="card">
@@ -1020,6 +1020,13 @@
                                 <div class="security-copy"><strong>PIN de configuración</strong><span>Protege los datos de la empresa y los textos de los documentos.</span></div>
                             </div>
                             <button type="button" class="secondary-button" id="changePinButton">Cambiar PIN</button>
+                        </div>
+                        <div class="security-row">
+                            <div class="security-info">
+                                <div class="security-icon"><i class="fa-solid fa-cash-register"></i></div>
+                                <div class="security-copy"><strong>PIN de Caja</strong><span>Se valida desde HomeEasy. Al cambiarlo, se cerrarán las sesiones abiertas de Caja.</span></div>
+                            </div>
+                            <button type="button" class="secondary-button" id="changeCashPinButton">Cambiar PIN</button>
                         </div>
                         <div class="security-row">
                             <div class="security-info">
@@ -1206,6 +1213,7 @@
             document.getElementById('lockButton').addEventListener('click', lockSettings);
             document.getElementById('lockNowButton').addEventListener('click', lockSettings);
             document.getElementById('changePinButton').addEventListener('click', changePin);
+            document.getElementById('changeCashPinButton').addEventListener('click', changeCashPin);
             document.getElementById('saveButton').addEventListener('click', saveChanges);
             document.getElementById('discardButton').addEventListener('click', discardChanges);
             document.getElementById('refreshActivity').addEventListener('click', () => loadActivity(true));
@@ -1819,6 +1827,50 @@
                     '<div class="activity-side"><span class="activity-action">' + HomeEasyCore.escapeHtml(item.accion || item.modulo || 'Acción') + '</span><span class="activity-date">' + HomeEasyCore.formatDateTime(item.fecha) + '</span></div>' +
                 '</div>';
             }).join('');
+        }
+
+        async function changeCashPin() {
+            const result = await Swal.fire({
+                title: 'Cambiar PIN de Caja',
+                html:
+                    '<input id="new-cash-pin" class="swal2-input" type="password" inputmode="numeric" maxlength="8" placeholder="Nuevo PIN (4 a 8 números)">' +
+                    '<input id="confirm-cash-pin" class="swal2-input" type="password" inputmode="numeric" maxlength="8" placeholder="Confirmar nuevo PIN">' +
+                    '<div style="font-size:.78rem;color:#8e8e93;text-align:left;margin:10px 2.5em 0;line-height:1.45;"><i class="fa-solid fa-shield-halved" style="color:#c2a468;margin-right:6px;"></i>Las sesiones abiertas de Caja se cerrarán automáticamente.</div>',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar PIN de Caja',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#a6455a',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const next = document.getElementById('new-cash-pin').value.replace(/\D/g, '');
+                    const confirmation = document.getElementById('confirm-cash-pin').value.replace(/\D/g, '');
+                    if (!/^\d{4,8}$/.test(next)) return Swal.showValidationMessage('El PIN debe tener entre 4 y 8 números.');
+                    if (next !== confirmation) return Swal.showValidationMessage('La confirmación no coincide.');
+                    return next;
+                }
+            });
+
+            if (!result.isConfirmed) return;
+            setSync(true, 'Actualizando Caja', 'Guardando el nuevo PIN de forma segura.');
+            try {
+                const response = await HomeEasyCore.post({
+                    tipo: 'CAMBIAR_PIN_CAJA',
+                    pinConfiguracion: state.sessionPin,
+                    nuevoPin: result.value
+                });
+                if (!response || response.status !== 'success') throw new Error(response && response.msg ? response.msg : 'No se pudo cambiar el PIN de Caja.');
+                state.activityLoaded = false;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'PIN de Caja actualizado',
+                    text: response.msg || 'El nuevo PIN ya está activo y las sesiones anteriores se cerraron.',
+                    confirmButtonColor: '#a6455a'
+                });
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'No se pudo cambiar', text: error.message, confirmButtonColor: '#a6455a' });
+            } finally {
+                setSync(false);
+            }
         }
 
         async function changePin() {
