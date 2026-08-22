@@ -528,7 +528,9 @@
                     abonosHtml = `<div class="payment-history" id="pagos-${num}"><p class="text-center small text-muted">No hay abonos registrados.</p></div>`;
                 }
 
-                const mostrarOpciones = (estadoLimpio !== 'ANULADA' && !esConvertida);
+                const mostrarEditar = (estadoLimpio !== 'ANULADA' && !esConvertida);
+                const mostrarRevisionAnulacion = (estadoLimpio !== 'ANULADA');
+                const mostrarOpciones = mostrarEditar || mostrarRevisionAnulacion;
 
                 html += `
                 <div class="item-card ${cardTypeClass}">
@@ -542,12 +544,14 @@
                                 <i class="fas fa-ellipsis-v opciones-icono" onclick="event.stopPropagation(); toggleDropdown('drop-${prefix}-${num}')"></i>
                                 
                                 <div class="dropdown-opciones" id="drop-${prefix}-${num}">
+                                    ${mostrarEditar ? `
                                     <div class="drop-item" onclick="event.stopPropagation(); confirmarEdicion('${prefix}', '${num}')">
                                         <i class="fas fa-edit" style="color: var(--brand-wine);"></i> Editar
-                                    </div>
+                                    </div>` : ''}
+                                    ${mostrarRevisionAnulacion ? `
                                     <div class="drop-item text-danger" onclick="event.stopPropagation(); confirmarAnulacion('${prefix}', '${num}')">
-                                        <i class="fas fa-ban"></i> Anular
-                                    </div>
+                                        <i class="fas fa-shield-halved"></i> Revisar anulación
+                                    </div>` : ''}
                                 </div>
                                 ` : ''}
 
@@ -580,7 +584,7 @@
             
             Swal.fire({
                 title: '¿Editar este documento?',
-                text: "Se cargará toda la información en el formulario para que la modifiques. Al guardar, se reemplazará el PDF original.",
+                text: "Se cargará la información en el formulario. Al guardar se creará una nueva versión y el PDF anterior permanecerá protegido en el historial.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#a6455a',
@@ -596,45 +600,169 @@
             });
         }
 
-        function confirmarAnulacion(prefix, num) {
-            toggleDropdown('drop-' + prefix + '-' + num); 
-            
-            Swal.fire({
-                title: '¿Anular Documento?',
-                text: "Esta acción cambiará el estado permanentemente a ANULADA y no se contará en tus balances.",
-                icon: 'warning',
+        async function confirmarAnulacion(prefix, num) {
+            toggleDropdown('drop-' + prefix + '-' + num);
+            const etiqueta = prefix === 'OP' ? 'orden OP-' + num : 'cotización COT-' + num;
+
+            const respuesta = await Swal.fire({
+                title: 'Revisar anulación',
+                html: `
+                    <div style="text-align:left; font-size:.86rem; line-height:1.55; color:#5f5a5d;">
+                        HomeEasy revisará pagos, recibos, Caja, Agenda y versiones antes de permitir cualquier cambio en la <b>${etiqueta}</b>.
+                        <div style="margin:14px 0 12px; padding:11px 13px; border-radius:12px; background:#f8f3f4; color:#8a3b4c; font-size:.78rem; font-weight:700;">
+                            <i class="fas fa-shield-halved me-2"></i>Esta revisión no anula ni modifica ningún dato.
+                        </div>
+                        <label for="anulacion-pin" style="display:block; margin-bottom:6px; font-size:.7rem; font-weight:800; color:#8e8e93; text-transform:uppercase;">PIN de Configuración</label>
+                        <input id="anulacion-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off"
+                               style="width:100%; height:48px; border:1px solid #e5e5ea; border-radius:13px; padding:0 15px; font-size:1.05rem; text-align:center; letter-spacing:5px; outline:none;">
+                    </div>`,
+                icon: 'info',
                 showCancelButton: true,
-                confirmButtonColor: '#e74c3c',
+                confirmButtonColor: '#a6455a',
                 cancelButtonColor: '#aaa',
-                confirmButtonText: 'Sí, anular',
+                confirmButtonText: 'Analizar',
                 cancelButtonText: 'Cancelar',
-                customClass: { popup: 'swal2-premium' }
-            }).then((res) => {
-                if(res.isConfirmed) {
-                    ejecutarAnulacion(prefix, num);
+                focusConfirm: false,
+                customClass: { popup: 'swal2-premium' },
+                didOpen: () => {
+                    const input = document.getElementById('anulacion-pin');
+                    if (input) {
+                        input.focus();
+                        input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 8); });
+                        input.addEventListener('keydown', event => { if (event.key === 'Enter') Swal.clickConfirm(); });
+                    }
+                },
+                preConfirm: () => {
+                    const pin = String(document.getElementById('anulacion-pin').value || '').replace(/\D/g, '');
+                    if (pin.length < 4 || pin.length > 8) {
+                        Swal.showValidationMessage('Ingresa un PIN de 4 a 8 números.');
+                        return false;
+                    }
+                    return pin;
                 }
             });
+
+            if (respuesta.isConfirmed) {
+                await analizarAnulacion(prefix, num, respuesta.value);
+            }
         }
 
-        async function ejecutarAnulacion(prefix, num) {
-            Swal.fire({ title: 'Anulando...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-premium' } });
-            
+        async function analizarAnulacion(prefix, num, pin) {
+            Swal.fire({
+                title: 'Analizando dependencias…',
+                html: '<span style="font-size:.82rem;color:#8e8e93;">No cierres esta ventana. Solo estamos leyendo información.</span>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => Swal.showLoading(),
+                customClass: { popup: 'swal2-premium' }
+            });
+
             try {
-                const response = await fetch(URL_G, {
-                    method: 'POST',
-                    body: JSON.stringify({ tipo: "anular_documento", docType: prefix, numero: num })
-                });
-                const res = await response.json();
-                
-                if(res.status === 'success') {
-                    Swal.fire({ icon: 'success', title: '¡Documento Anulado!', showConfirmButton: false, timer: 1500, customClass: { popup: 'swal2-premium' } });
-                    buscarHistorial(); 
-                } else {
-                    Swal.fire('Error', res.msg, 'error');
+                const resultado = await HomeEasyCore.post({
+                    tipo: 'ANALIZAR_ANULACION_DOCUMENTO',
+                    docType: prefix,
+                    numero: num,
+                    pin: pin
+                }, { timeoutMs: 45000 });
+
+                if (!resultado || resultado.status !== 'ok') {
+                    throw new Error(resultado && resultado.msg ? resultado.msg : 'No fue posible analizar el documento.');
                 }
-            } catch(e) {
-                Swal.fire('Error', 'Problema de red al intentar anular el documento.', 'error');
+
+                await Swal.fire({
+                    title: resultado.documento.etiqueta + ' ' + (prefix === 'OP' ? 'OP-' : 'COT-') + resultado.documento.numero,
+                    html: construirDiagnosticoAnulacion(resultado),
+                    width: 720,
+                    icon: iconoDiagnosticoAnulacion(resultado.diagnostico.nivel),
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No se pudo completar la revisión',
+                    text: error.message || 'Revisa la conexión e intenta nuevamente.',
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
             }
+        }
+
+        function iconoDiagnosticoAnulacion(nivel) {
+            const value = String(nivel || '').toUpperCase();
+            if (value === 'BLOQUEADO' || value === 'ALTO') return 'warning';
+            if (value === 'INFORMATIVO') return 'info';
+            return 'success';
+        }
+
+        function colorDiagnosticoAnulacion(nivel) {
+            const value = String(nivel || '').toUpperCase();
+            if (value === 'BLOQUEADO') return { fondo: '#fff1f0', borde: '#ff3b30', texto: '#9f241d' };
+            if (value === 'ALTO') return { fondo: '#fff6e8', borde: '#ff9500', texto: '#9a5b00' };
+            if (value === 'MEDIO') return { fondo: '#fffbe8', borde: '#c2a468', texto: '#806a34' };
+            if (value === 'INFORMATIVO') return { fondo: '#eef6ff', borde: '#007aff', texto: '#145a9c' };
+            return { fondo: '#eefaf1', borde: '#34c759', texto: '#1e7b38' };
+        }
+
+        function construirDiagnosticoAnulacion(resultado) {
+            const doc = resultado.documento || {};
+            const dep = resultado.dependencias || {};
+            const diag = resultado.diagnostico || {};
+            const colores = colorDiagnosticoAnulacion(diag.nivel);
+            const safe = value => HomeEasyCore.escapeHtml(value === undefined || value === null || value === '' ? '—' : String(value));
+            const money = value => '$' + Number(value || 0).toLocaleString('es-CO');
+            const row = (label, value, strong) => `
+                <div style="display:flex;justify-content:space-between;gap:18px;padding:8px 0;border-bottom:1px solid #f0edef;font-size:.79rem;">
+                    <span style="color:#8e8e93;font-weight:650;">${safe(label)}</span>
+                    <span style="color:#292629;font-weight:${strong ? '800' : '650'};text-align:right;">${value}</span>
+                </div>`;
+
+            let resumen = row('Estado actual', safe(doc.estado), true) +
+                          row('Cliente', safe(doc.cliente), false) +
+                          row('Total', money(doc.total), true) +
+                          row('PDF activo', doc.pdfDisponible ? 'Disponible' : 'No disponible', false) +
+                          row('Versiones', safe((doc.versiones && doc.versiones.total) || 0) + ' registradas', false);
+
+            let financiero = '';
+            if (doc.tipo === 'OP') {
+                financiero = `
+                    <div style="margin-top:14px;font-size:.72rem;font-weight:800;color:#a6455a;text-transform:uppercase;letter-spacing:.7px;">Impacto financiero</div>
+                    ${row('Abono inicial', money(dep.abonoInicial), false)}
+                    ${row('Recibos posteriores', safe((dep.recibos || []).length) + ' · ' + money(dep.totalRecibos), false)}
+                    ${row('Total pagado', money(dep.totalPagado), true)}
+                    ${row('Saldo guardado', money(doc.saldo), false)}
+                    ${row('Saldo calculado', money(dep.saldoCalculado), false)}`;
+            }
+
+            const relaciones = [];
+            if ((dep.ordenesVinculadas || []).length) relaciones.push((dep.ordenesVinculadas || []).length + ' OP vinculada(s)');
+            if ((dep.cotizacionesOrigen || []).length) relaciones.push((dep.cotizacionesOrigen || []).length + ' cotización(es) de origen');
+            if ((dep.eventosAgenda || []).length) relaciones.push((dep.eventosAgenda || []).length + ' evento(s) de Agenda');
+            if ((dep.movimientosCajaPosibles || []).length) relaciones.push((dep.movimientosCajaPosibles || []).length + ' posible(s) referencia(s) manual(es) en Caja');
+            const relacionesHtml = relaciones.length
+                ? `<div style="margin-top:14px;padding:11px 13px;border-radius:12px;background:#f8f9fa;color:#5f5a5d;font-size:.77rem;line-height:1.5;"><b>Relaciones encontradas:</b><br>${relaciones.map(safe).join('<br>')}</div>`
+                : `<div style="margin-top:14px;padding:11px 13px;border-radius:12px;background:#f8f9fa;color:#7c777a;font-size:.77rem;">No se encontraron referencias adicionales.</div>`;
+
+            const advertencias = Array.isArray(diag.advertencias) ? diag.advertencias : [];
+            const advertenciasHtml = advertencias.length
+                ? `<div style="margin-top:14px;text-align:left;"><div style="font-size:.72rem;font-weight:800;color:#a6455a;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;">Observaciones</div>${advertencias.map(item => `<div style="display:flex;gap:8px;margin:6px 0;color:#655f62;font-size:.76rem;line-height:1.4;"><i class="fas fa-circle-exclamation" style="color:#c2a468;margin-top:2px;"></i><span>${safe(item)}</span></div>`).join('')}</div>`
+                : '';
+
+            return `
+                <div style="text-align:left;">
+                    <div style="padding:13px 15px;border-radius:14px;background:${colores.fondo};border-left:5px solid ${colores.borde};color:${colores.texto};font-size:.82rem;line-height:1.5;font-weight:650;">
+                        <div style="font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Riesgo ${safe(diag.nivel)}</div>
+                        ${safe(diag.mensaje)}
+                    </div>
+                    <div style="margin-top:14px;">${resumen}</div>
+                    ${financiero}
+                    ${relacionesHtml}
+                    ${advertenciasHtml}
+                    <div style="margin-top:16px;padding:10px 12px;border-radius:12px;background:#f1faf3;color:#27763b;font-size:.73rem;font-weight:750;text-align:center;">
+                        <i class="fas fa-lock me-1"></i> Revisión terminada: no se modificaron datos, saldos ni archivos.
+                    </div>
+                </div>`;
         }
 
         // ===============================================
