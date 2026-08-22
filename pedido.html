@@ -202,7 +202,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="homeeasy-core.js?v=2.2"></script>
+    <script src="homeeasy-docs.js"></script>
 </head>
 <body ontouchstart="">
 
@@ -235,7 +235,7 @@
 <div id="area-pdf">
     <div class="header-brand">
         <img src="logohomeeasy.png" class="logo-only" alt="HomeEasy" onerror="this.src='triangulogold.png'; this.style.width='60px'">
-        <div class="empresa-info-header">
+        <div class="empresa-info-header" id="empresa-info-header">
             <b>HOMEEASY POPAYÁN</b><br>
             <span>NIT: 1.061.760.850-1</span><br>
             <span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26</span><br>
@@ -248,7 +248,7 @@
         </div>
     </div>
     
-    <div class="document-type">ORDEN DE PEDIDO</div>
+    <div class="document-type" id="document-type">ORDEN DE PEDIDO</div>
     
     <div class="card-body">
         
@@ -310,7 +310,7 @@
         <div class="row g-4 mt-auto">
             <div class="col-md-6 col-12 d-flex flex-column justify-content-end">
                 <span class="section-title mb-2">Condiciones de Venta</span>
-                <div style="font-size: 0.75rem; color: #666; line-height: 1.6;">
+                <div id="pedido-condiciones" style="font-size: 0.75rem; color: #666; line-height: 1.6;">
                     • <b>Garantía:</b> 3 años (aplica términos y condiciones).<br>
                     • <b>Tiempo de entrega:</b> 10 días hábiles.<br>
                     • <b>Saldo:</b> Se cancela contra entrega e instalación.<br>
@@ -354,8 +354,8 @@
 
     <div class="pdf-footer">
         <img src="Hommypiedepagina.png" alt="Hommy" style="height: 35px; opacity: 0.5; margin-bottom: 8px;">
-        <div class="footer-creds">HomeEasy - Viste tu hogar con estilo</div>
-        <div style="font-size: 0.6rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema Hommy V2.0</div>
+        <div class="footer-creds" id="footer-creds">HomeEasy - Viste tu hogar con estilo</div>
+        <div id="footer-system-line" style="font-size: 0.6rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema Hommy V2.0</div>
     </div>
 </div>
 
@@ -371,6 +371,7 @@
     // 1. CARGA INICIAL Y MODO EDICIÓN
     // ==========================================
     window.onload = () => {
+        window.__homeeasyDocsReady = (window.HomeEasyDocs ? window.HomeEasyDocs.init({ url: URL_G, documentType: 'pedido' }) : Promise.resolve());
         const params = new URLSearchParams(window.location.search);
         editNum = params.get("edit");
         numeroCot = params.get("cotizacion");
@@ -640,6 +641,9 @@
     }
 
     async function finalizar() {
+        if (window.__homeeasyDocsReady) {
+            try { await window.__homeeasyDocsReady; } catch (e) { console.warn("No fue posible cargar la configuración dinámica.", e); }
+        }
         const cedula = document.getElementById('cedula').value.trim();
         let nombre = document.getElementById('nombre').value.toUpperCase();
         let email = document.getElementById('email').value.toLowerCase();
