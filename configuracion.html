@@ -574,6 +574,46 @@
         .policy-pill { padding:11px 12px; border-radius:14px; background:#f8f6f7; border:1px solid var(--line); }
         .policy-pill strong { display:block; color:var(--text); font-size:.67rem; }
         .policy-pill span { display:block; margin-top:3px; color:var(--muted); font-size:.58rem; line-height:1.35; }
+
+        .cleanup-plan-card { margin-bottom:14px; padding:15px; border:1px solid rgba(194,164,104,.24); border-radius:18px; background:linear-gradient(145deg,#fff,#fdfbf7); box-shadow:0 8px 22px rgba(194,164,104,.06); }
+        .cleanup-plan-head { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:12px; }
+        .cleanup-plan-copy { min-width:0; }
+        .cleanup-plan-copy strong { display:block; color:var(--text); font-size:.8rem; }
+        .cleanup-plan-copy span { display:block; margin-top:4px; color:var(--muted); font-size:.62rem; line-height:1.45; }
+        .cleanup-plan-button { flex:0 0 auto; min-height:38px; border:1px solid rgba(166,69,90,.18); border-radius:12px; background:#fff; color:var(--home-red); padding:0 12px; font-size:.65rem; font-weight:800; white-space:nowrap; }
+        .cleanup-plan-button:disabled { opacity:.55; cursor:default; }
+        .cleanup-mode { display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; padding:11px 12px; border-radius:14px; background:rgba(0,122,255,.06); border:1px solid rgba(0,122,255,.12); color:#315f91; }
+        .cleanup-mode i { margin-top:2px; color:#007aff; }
+        .cleanup-mode strong { display:block; font-size:.68rem; }
+        .cleanup-mode span { display:block; margin-top:3px; font-size:.58rem; line-height:1.4; color:#5e7791; }
+        .cleanup-plan-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-bottom:12px; }
+        .cleanup-plan-stat { min-width:0; padding:11px 12px; border:1px solid var(--line); border-radius:14px; background:#fff; }
+        .cleanup-plan-stat span { display:block; color:var(--muted); font-size:.52rem; font-weight:800; text-transform:uppercase; letter-spacing:.35px; }
+        .cleanup-plan-stat strong { display:block; margin-top:5px; color:var(--text); font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .cleanup-plan-stat.candidate strong { color:#c92b25; }
+        .cleanup-plan-stat.grace strong { color:#c98220; }
+        .cleanup-plan-stat.ready strong { color:#af52de; }
+        .cleanup-plan-stat.space strong { color:var(--home-red); }
+        .cleanup-plan-list { border:1px solid var(--line); border-radius:15px; overflow:hidden; background:#fff; }
+        .cleanup-plan-empty { padding:22px 16px; text-align:center; color:var(--muted); }
+        .cleanup-plan-empty i { color:#269b47; font-size:1.25rem; }
+        .cleanup-plan-empty strong { display:block; margin-top:8px; color:var(--text); font-size:.72rem; }
+        .cleanup-plan-empty span { display:block; margin-top:4px; font-size:.59rem; line-height:1.45; }
+        .cleanup-plan-item { display:grid; grid-template-columns:minmax(150px,1.1fr) minmax(190px,1.5fr) 130px 118px; gap:12px; align-items:center; padding:12px 13px; border-top:1px solid var(--line); }
+        .cleanup-plan-item:first-child { border-top:none; }
+        .cleanup-plan-doc strong { display:block; color:var(--text); font-size:.68rem; }
+        .cleanup-plan-doc span, .cleanup-plan-file span { display:block; margin-top:3px; color:var(--muted); font-size:.56rem; line-height:1.4; }
+        .cleanup-plan-file { min-width:0; }
+        .cleanup-plan-file strong { display:block; color:#686267; font-size:.62rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .cleanup-reasons { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+        .cleanup-reason { display:inline-flex; align-items:center; padding:4px 7px; border-radius:999px; background:rgba(194,164,104,.11); color:#8a6d2e; font-size:.48rem; font-weight:800; }
+        .cleanup-grace { display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:6px 8px; border-radius:999px; font-size:.53rem; font-weight:800; text-transform:uppercase; letter-spacing:.2px; }
+        .cleanup-grace.wait { color:#ad6d14; background:rgba(255,149,0,.11); }
+        .cleanup-grace.ready { color:#8c36ad; background:rgba(175,82,222,.10); }
+        .cleanup-plan-actions { display:flex; flex-direction:column; gap:6px; }
+        .cleanup-plan-actions a, .cleanup-plan-actions button { min-height:33px; border:1px solid rgba(166,69,90,.18); border-radius:10px; background:#fff; color:var(--home-red); padding:0 8px; font-size:.57rem; font-weight:800; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; }
+        .cleanup-plan-actions button { border-color:rgba(52,199,89,.22); color:#238940; }
+
         .hash-progress-card { margin-bottom:14px; padding:13px 14px; border:1px solid var(--line); border-radius:15px; background:#fbfbfb; }
         .hash-progress-copy { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:9px; }
         .hash-progress-copy strong { color:var(--text); font-size:.7rem; }
@@ -733,6 +773,12 @@
             .activity-filters { grid-template-columns: 1fr 1fr; }
             .activity-search-wrap { grid-column: 1 / -1; }
             .inventory-stats, .inventory-hash-stats, .inventory-policy { grid-template-columns: repeat(2,minmax(0,1fr)); }
+            .cleanup-plan-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+            .cleanup-plan-head { flex-direction:column; }
+            .cleanup-plan-button { width:100%; }
+            .cleanup-plan-item { grid-template-columns:1fr auto; gap:9px; }
+            .cleanup-plan-file, .cleanup-plan-grace-wrap { grid-column:1 / -1; }
+            .cleanup-plan-actions { grid-column:2; grid-row:1; min-width:116px; }
             .inventory-filters { grid-template-columns: 1fr 1fr; }
             .inventory-search-wrap { grid-column: 1 / -1; }
             .inventory-head { display:none; }
@@ -1318,7 +1364,7 @@
 
                     <div class="inventory-banner">
                         <i class="fa-solid fa-fingerprint"></i>
-                        <div><strong>Huellas digitales y versionado limitado</strong><span>HomeEasy identifica cada PDF con SHA-256. Si editas una cotización u orden y el contenido cambió, conserva la anterior y crea una nueva versión; si el PDF es idéntico, no genera otra copia. La depuración todavía está desactivada.</span></div>
+                        <div><strong>Huellas digitales y versionado limitado</strong><span>HomeEasy identifica cada PDF con SHA-256. Si editas una cotización u orden y el contenido cambió, conserva la anterior y crea una nueva versión; si el PDF es idéntico, no genera otra copia. El plan de espacio funciona únicamente en modo simulación.</span></div>
                     </div>
 
                     <div class="inventory-stats">
@@ -1342,7 +1388,31 @@
                         <div class="policy-pill"><strong>Cotizaciones</strong><span>Versionado activo · hasta 2 históricas · 180 días.</span></div>
                         <div class="policy-pill"><strong>Órdenes</strong><span>Versionado activo · hasta 4 históricas · 365 días.</span></div>
                         <div class="policy-pill"><strong>Recibos</strong><span>Inmutables y protegidos: se anulan y corrigen, no se editan.</span></div>
-                        <div class="policy-pill"><strong>Depuración</strong><span>Solo marca candidatas. No mueve ni elimina archivos en esta etapa.</span></div>
+                        <div class="policy-pill"><strong>Depuración</strong><span>Modo simulación · 15 días de gracia · no mueve ni elimina archivos.</span></div>
+                    </div>
+
+                    <div class="cleanup-plan-card">
+                        <div class="cleanup-plan-head">
+                            <div class="cleanup-plan-copy">
+                                <strong>Plan de depuración segura</strong>
+                                <span>Revisa qué versiones podrían liberar espacio, por qué fueron marcadas y cuánto tiempo de gracia les queda. En esta fase no existe ningún botón para borrar.</span>
+                            </div>
+                            <button type="button" class="cleanup-plan-button" id="refreshCleanupPlan"><i class="fa-solid fa-arrows-rotate"></i> Reevaluar plan</button>
+                        </div>
+                        <div class="cleanup-mode">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <div><strong>Modo simulación</strong><span>HomeEasy solo calcula y muestra. No mueve PDF, no los envía a la papelera y no ejecuta procesos automáticos.</span></div>
+                        </div>
+                        <div class="cleanup-plan-stats">
+                            <div class="cleanup-plan-stat"><span>Históricas</span><strong id="cleanupHistorical">—</strong></div>
+                            <div class="cleanup-plan-stat candidate"><span>Candidatas</span><strong id="cleanupCandidates">—</strong></div>
+                            <div class="cleanup-plan-stat grace"><span>En gracia</span><strong id="cleanupGrace">—</strong></div>
+                            <div class="cleanup-plan-stat ready"><span>Listas revisión</span><strong id="cleanupReady">—</strong></div>
+                            <div class="cleanup-plan-stat space"><span>Espacio potencial</span><strong id="cleanupSpace">—</strong></div>
+                        </div>
+                        <div class="cleanup-plan-list" id="cleanupPlanList">
+                            <div class="cleanup-plan-empty"><i class="fa-solid fa-circle-notch fa-spin"></i><strong>Cargando plan</strong><span>Calculando reglas sin modificar archivos.</span></div>
+                        </div>
                     </div>
 
                     <div class="card">
@@ -1493,7 +1563,10 @@
             inventoryPageSize: 25,
             inventoryPagination: { pagina: 1, totalPaginas: 1, totalFiltrado: 0, tieneAnterior: false, tieneSiguiente: false },
             inventorySearchTimer: null,
-            inventoryHashBusy: false
+            inventoryHashBusy: false,
+            cleanupPlanLoaded: false,
+            cleanupPlanBusy: false,
+            cleanupPlan: null
         };
 
         const MIN_PIN_LENGTH = 4;
@@ -1540,6 +1613,7 @@
             document.getElementById('activitySearch').addEventListener('input', applyActivityFilters);
             document.getElementById('refreshInventory').addEventListener('click', refreshInventory);
             document.getElementById('calculateInventoryHashes').addEventListener('click', calculateInventoryHashes);
+            document.getElementById('refreshCleanupPlan').addEventListener('click', reevaluateCleanupPlan);
             document.getElementById('inventoryTypeFilter').addEventListener('change', () => { state.inventoryPage = 1; loadInventory(true); });
             document.getElementById('inventoryStatusFilter').addEventListener('change', () => { state.inventoryPage = 1; loadInventory(true); });
             document.getElementById('inventoryHashFilter').addEventListener('change', () => { state.inventoryPage = 1; loadInventory(true); });
@@ -1966,7 +2040,10 @@
             history.replaceState(null, '', '#' + section);
             window.scrollTo({ top: 0, behavior: 'smooth' });
             if (section === 'actividad' && !state.activityLoaded) loadActivity();
-            if (section === 'inventario' && !state.inventoryLoaded) loadInventory();
+            if (section === 'inventario') {
+                if (!state.inventoryLoaded) loadInventory();
+                if (!state.cleanupPlanLoaded) loadCleanupPlan();
+            }
         }
 
         function getValue(key, fallback) {
@@ -2166,30 +2243,30 @@
 
             state.busy = true;
             setSync(true, 'Actualizando inventario', 'Leyendo únicamente metadatos de los PDF enlazados.');
+            let success = false;
+            let message = '';
             try {
                 const response = await HomeEasyCore.post({ tipo: 'REFRESCAR_INVENTARIO_DOCUMENTAL', pin: state.sessionPin }, { timeoutMs: 120000 });
                 if (!response || response.status !== 'ok') throw new Error(response && response.msg ? response.msg : 'No se pudo actualizar el inventario.');
                 state.inventoryLoaded = false;
+                state.cleanupPlanLoaded = false;
                 state.inventoryPage = 1;
                 state.activityLoaded = false;
-                await loadInventory(true);
-                Swal.fire({
-                    toast: true,
-                    position: 'top',
-                    icon: 'success',
-                    title: 'Inventario actualizado',
-                    showConfirmButton: false,
-                    timer: 2200,
-                    timerProgressBar: true
-                });
+                await Promise.all([loadInventory(true), loadCleanupPlan(true)]);
+                success = true;
+                message = 'Inventario y plan actualizados';
             } catch (error) {
-                Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: error.message, confirmButtonColor: '#a6455a' });
+                message = error.message || 'No se pudo actualizar el inventario.';
             } finally {
                 state.busy = false;
                 setSync(false);
             }
+            if (success) {
+                Swal.fire({ toast: true, position: 'top', icon: 'success', title: message, showConfirmButton: false, timer: 2200, timerProgressBar: true });
+            } else {
+                Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: message, confirmButtonColor: '#a6455a' });
+            }
         }
-
 
         async function calculateInventoryHashes() {
             if (state.busy || state.inventoryHashBusy || !state.sessionPin) return;
@@ -2256,9 +2333,10 @@
                 }
 
                 state.inventoryLoaded = false;
+                state.cleanupPlanLoaded = false;
                 state.inventoryPage = 1;
                 state.activityLoaded = false;
-                await loadInventory(true);
+                await Promise.all([loadInventory(true), loadCleanupPlan(true)]);
                 const finalStats = state.inventoryStats || {};
                 const remaining = Number(finalStats.hashesPendientes || 0);
                 const errors = Number(finalStats.hashesError || 0);
@@ -2438,6 +2516,8 @@
 
             state.busy = true;
             setSync(true, protect ? 'Protegiendo versión' : 'Actualizando protección', 'Guardando la preferencia sin mover ni eliminar el PDF.');
+            let success = false;
+            let message = '';
             try {
                 const response = await HomeEasyCore.post({
                     tipo: 'CAMBIAR_PROTECCION_VERSION_DOCUMENTAL',
@@ -2447,14 +2527,21 @@
                 }, { timeoutMs: 30000 });
                 if (!response || response.status !== 'ok') throw new Error(response && response.msg ? response.msg : 'No se pudo actualizar la protección.');
                 state.inventoryLoaded = false;
+                state.cleanupPlanLoaded = false;
                 state.activityLoaded = false;
-                await loadInventory(true);
-                Swal.fire({ toast: true, position: 'top', icon: 'success', title: response.msg || 'Protección actualizada', showConfirmButton: false, timer: 1900 });
+                await Promise.all([loadInventory(true), loadCleanupPlan(true)]);
+                success = true;
+                message = response.msg || 'Protección actualizada';
             } catch (error) {
-                Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: error.message, confirmButtonColor: '#a6455a' });
+                message = error.message || 'No se pudo actualizar la protección.';
             } finally {
                 state.busy = false;
                 setSync(false);
+            }
+            if (success) {
+                Swal.fire({ toast: true, position: 'top', icon: 'success', title: message, showConfirmButton: false, timer: 1900 });
+            } else {
+                Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: message, confirmButtonColor: '#a6455a' });
             }
         }
 
@@ -2466,6 +2553,123 @@
             document.getElementById('inventoryPageInfo').textContent = 'Página ' + page + ' de ' + totalPages + ' · ' + total.toLocaleString('es-CO') + ' resultado' + (total === 1 ? '' : 's');
             document.getElementById('inventoryPrev').disabled = !pagination.tieneAnterior;
             document.getElementById('inventoryNext').disabled = !pagination.tieneSiguiente;
+        }
+
+
+        async function loadCleanupPlan(force) {
+            const container = document.getElementById('cleanupPlanList');
+            if (!container || !state.sessionPin) return;
+            if (state.cleanupPlanLoaded && !force) {
+                renderCleanupPlan();
+                return;
+            }
+            container.innerHTML = '<div class="cleanup-plan-empty"><i class="fa-solid fa-circle-notch fa-spin"></i><strong>Cargando plan</strong><span>Calculando reglas sin modificar archivos.</span></div>';
+            try {
+                const response = await HomeEasyCore.post({
+                    tipo: 'GET_PLAN_DEPURACION_DOCUMENTAL',
+                    pin: state.sessionPin
+                }, { timeoutMs: 30000 });
+                if (!response || response.status !== 'ok') throw new Error(response && response.msg ? response.msg : 'No se pudo cargar el plan.');
+                state.cleanupPlan = response;
+                state.cleanupPlanLoaded = true;
+                renderCleanupPlan();
+            } catch (error) {
+                state.cleanupPlanLoaded = false;
+                container.innerHTML = '<div class="cleanup-plan-empty"><i class="fa-solid fa-wifi"></i><strong>No fue posible cargar el plan</strong><span>' + HomeEasyCore.escapeHtml(error.message || 'Revisa la conexión.') + '</span></div>';
+                updateCleanupPlanStats(null);
+            }
+        }
+
+        function updateCleanupPlanStats(plan) {
+            const stats = plan && plan.estadisticas ? plan.estadisticas : {};
+            document.getElementById('cleanupHistorical').textContent = Number(stats.historicas || 0).toLocaleString('es-CO');
+            document.getElementById('cleanupCandidates').textContent = Number(stats.candidatas || 0).toLocaleString('es-CO');
+            document.getElementById('cleanupGrace').textContent = Number(stats.enGracia || 0).toLocaleString('es-CO');
+            document.getElementById('cleanupReady').textContent = Number(stats.listasRevision || 0).toLocaleString('es-CO');
+            document.getElementById('cleanupSpace').textContent = formatFileSize(stats.espacioPotencialBytes || 0);
+        }
+
+        function renderCleanupPlan() {
+            const container = document.getElementById('cleanupPlanList');
+            const plan = state.cleanupPlan || {};
+            const items = Array.isArray(plan.candidatas) ? plan.candidatas : [];
+            updateCleanupPlanStats(plan);
+            if (!items.length) {
+                container.innerHTML = '<div class="cleanup-plan-empty"><i class="fa-solid fa-circle-check"></i><strong>No hay versiones candidatas</strong><span>Las versiones activas y los recibos permanecen protegidos. El plan se actualizará cuando existan versiones históricas que superen las reglas.</span></div>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const doc = HomeEasyCore.escapeHtml((item.tipoEtiqueta || item.tipo || 'Documento') + ' ' + (item.numero || '—') + ' · v' + Number(item.version || 0));
+                const client = HomeEasyCore.escapeHtml(item.cliente || 'Sin cliente');
+                const file = HomeEasyCore.escapeHtml(item.nombreArchivo || 'Sin nombre');
+                const size = formatFileSize(item.tamanoBytes || 0);
+                const reasons = (Array.isArray(item.motivos) ? item.motivos : []).map(reason => '<span class="cleanup-reason">' + HomeEasyCore.escapeHtml(reason.texto || reason.codigo || 'Regla documental') + '</span>').join('');
+                const ready = Boolean(item.listaRevision);
+                const graceText = ready ? 'Lista para revisión' : Number(item.diasRestantesGracia || 0) + ' día' + (Number(item.diasRestantesGracia || 0) === 1 ? '' : 's') + ' de gracia';
+                const open = item.url
+                    ? '<a href="' + HomeEasyCore.escapeHtml(item.url) + '" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i>Abrir PDF</a>'
+                    : '';
+                const protect = '<button type="button" data-cleanup-protect="' + HomeEasyCore.escapeHtml(item.idVersion || '') + '"><i class="fa-solid fa-shield-halved"></i>Conservar</button>';
+                return '<div class="cleanup-plan-item">' +
+                    '<div class="cleanup-plan-doc"><strong>' + doc + '</strong><span>' + client + '</span></div>' +
+                    '<div class="cleanup-plan-file"><strong>' + file + '</strong><span>' + size + '</span><div class="cleanup-reasons">' + reasons + '</div></div>' +
+                    '<div class="cleanup-plan-grace-wrap"><span class="cleanup-grace ' + (ready ? 'ready' : 'wait') + '"><i class="fa-solid ' + (ready ? 'fa-magnifying-glass' : 'fa-hourglass-half') + '"></i>' + HomeEasyCore.escapeHtml(graceText) + '</span></div>' +
+                    '<div class="cleanup-plan-actions">' + open + protect + '</div>' +
+                '</div>';
+            }).join('');
+
+            container.querySelectorAll('[data-cleanup-protect]').forEach(button => {
+                button.addEventListener('click', () => toggleVersionProtection(button.dataset.cleanupProtect, true));
+            });
+        }
+
+        async function reevaluateCleanupPlan() {
+            if (state.busy || state.cleanupPlanBusy || !state.sessionPin) return;
+            const confirmation = await Swal.fire({
+                icon: 'info',
+                title: 'Reevaluar plan de espacio',
+                html: 'HomeEasy aplicará nuevamente las reglas de cantidad, antigüedad y protección.<br><br><b>No moverá ni eliminará archivos.</b>',
+                showCancelButton: true,
+                confirmButtonText: 'Reevaluar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#a6455a'
+            });
+            if (!confirmation.isConfirmed) return;
+
+            state.busy = true;
+            state.cleanupPlanBusy = true;
+            document.getElementById('refreshCleanupPlan').disabled = true;
+            setSync(true, 'Reevaluando plan', 'Aplicando reglas sin modificar archivos.');
+            let success = false;
+            let message = '';
+            try {
+                const response = await HomeEasyCore.post({
+                    tipo: 'REEVALUAR_CANDIDATAS_DOCUMENTALES',
+                    pin: state.sessionPin
+                }, { timeoutMs: 60000 });
+                if (!response || response.status !== 'ok') throw new Error(response && response.msg ? response.msg : 'No se pudo reevaluar el plan.');
+                state.cleanupPlan = response;
+                state.cleanupPlanLoaded = true;
+                state.inventoryLoaded = false;
+                state.activityLoaded = false;
+                renderCleanupPlan();
+                await loadInventory(true);
+                success = true;
+                message = Number(response.estadisticas && response.estadisticas.candidatas || 0) + ' candidata' + (Number(response.estadisticas && response.estadisticas.candidatas || 0) === 1 ? '' : 's') + ' en el plan.';
+            } catch (error) {
+                message = error.message || 'No se pudo reevaluar el plan.';
+            } finally {
+                state.busy = false;
+                state.cleanupPlanBusy = false;
+                document.getElementById('refreshCleanupPlan').disabled = false;
+                setSync(false);
+            }
+            if (success) {
+                Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'Plan actualizado', text: message, showConfirmButton: false, timer: 2200, timerProgressBar: true });
+            } else {
+                Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: message, confirmButtonColor: '#a6455a' });
+            }
         }
 
         async function loadActivity(force) {
@@ -2824,6 +3028,9 @@
             state.inventoryLoaded = false;
             state.inventoryItems = [];
             state.inventoryPage = 1;
+            state.cleanupPlanLoaded = false;
+            state.cleanupPlanBusy = false;
+            state.cleanupPlan = null;
             document.getElementById('settingsApp').classList.remove('ready');
             document.getElementById('accessScreen').classList.remove('hidden');
             document.getElementById('pinInput').value = '';
