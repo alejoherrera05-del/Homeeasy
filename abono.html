@@ -245,7 +245,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="homeeasy-core.js?v=2.2"></script>
+    <script src="homeeasy-docs.js"></script>
 </head>
 <body ontouchstart="">
 
@@ -278,7 +278,7 @@
 <div id="area-pdf">
     <div class="header-brand">
         <img src="logohomeeasy.png" class="logo-only" alt="HomeEasy" onerror="this.src='triangulogold.png'; this.style.width='60px'">
-        <div class="empresa-info-header">
+        <div class="empresa-info-header" id="empresa-info-header">
             <b>HOMEEASY POPAYÁN</b><br>
             <span>NIT: 1.061.760.850-1</span><br>
             <span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26</span><br>
@@ -291,7 +291,7 @@
         </div>
     </div>
     
-    <div class="document-type">RECIBO DE ABONO</div>
+    <div class="document-type" id="document-type">RECIBO DE ABONO</div>
     
     <div class="card-body">
 
@@ -377,8 +377,8 @@
 
     <div class="pdf-footer">
         <img src="Hommypiedepagina.png" alt="Hommy" style="height: 35px; opacity: 0.5; margin-bottom: 8px;">
-        <div class="footer-creds">HomeEasy - Viste tu hogar con estilo</div>
-        <div style="font-size: 0.6rem; color: #aaa; margin-top: 5px;">Documento generado automáticamente • Sistema Hommy V2.0</div>
+        <div class="footer-creds" id="footer-creds">HomeEasy - Viste tu hogar con estilo</div>
+        <div id="footer-system-line" style="font-size: 0.6rem; color: #aaa; margin-top: 5px;">Documento generado automáticamente • Sistema Hommy V2.0</div>
     </div>
 </div>
 
@@ -389,6 +389,7 @@
     var historialAbonos = [];
 
     window.onload = function() {
+        window.__homeeasyDocsReady = (window.HomeEasyDocs ? window.HomeEasyDocs.init({ url: URL_G, documentType: 'recibo' }) : Promise.resolve());
         var fechaHoy = new Date().toLocaleDateString('es-CO');
         document.getElementById('fecha_header_display').innerText = fechaHoy;
         document.getElementById('fecha_cuerpo_display').value = fechaHoy;
@@ -567,6 +568,9 @@
     }
 
     async function finalizarAbono() {
+        if (window.__homeeasyDocsReady) {
+            try { await window.__homeeasyDocsReady; } catch (e) { console.warn("No fue posible cargar la configuración dinámica.", e); }
+        }
         var ced = document.getElementById('cedula').value;
         var valAbono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
         var mPago = document.getElementById('medioPago').value;
