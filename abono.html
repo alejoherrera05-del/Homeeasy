@@ -245,7 +245,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="homeeasy-docs.js?v=4.0"></script>
+    <script src="homeeasy-docs.js?v=4.1"></script>
     <script src="homeeasy-core.js?v=2.2"></script>
 </head>
 <body ontouchstart="">
@@ -279,13 +279,7 @@
 <div id="area-pdf">
     <div class="header-brand">
         <img src="logohomeeasy.png" class="logo-only" alt="HomeEasy" onerror="this.src='triangulogold.png'; this.style.width='60px'">
-        <div class="empresa-info-header" id="empresa-info-header">
-            <b>HOMEEASY POPAYÁN</b><br>
-            <span>NIT: 1.061.760.850-1</span><br>
-            <span><i class="fas fa-map-marker-alt"></i> Trav. 9 # 6N-26</span><br>
-            <span><i class="fas fa-phone-alt"></i> 3334319374</span><br>
-            <span><i class="fab fa-instagram"></i> @homeeasypopayan</span>
-        </div>
+        <div class="empresa-info-header" id="empresa-info-header" aria-live="polite" aria-busy="true"></div>
         <div class="order-meta">
             <div class="meta-item">RECIBO N°: <span id="n_recibo_display" style="color: #333;">...</span></div>
             <div class="meta-item">FECHA: <span id="fecha_header_display" style="color: #333;">...</span></div>
