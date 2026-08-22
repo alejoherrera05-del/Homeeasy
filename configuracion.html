@@ -2223,6 +2223,7 @@
             let safetyCounter = 0;
             let lastProcessed = 0;
             let stopReason = '';
+            let completionDialog = null;
             try {
                 while (safetyCounter < 60) {
                     safetyCounter++;
@@ -2262,22 +2263,36 @@
                 const remaining = Number(finalStats.hashesPendientes || 0);
                 const errors = Number(finalStats.hashesError || 0);
                 if (remaining === 0 && errors === 0) {
-                    await Swal.fire({ icon: 'success', title: 'Huellas completadas', text: 'Todos los PDF disponibles quedaron identificados y el control de duplicados está activo.', confirmButtonColor: '#a6455a' });
+                    completionDialog = {
+                        icon: 'success',
+                        title: 'Huellas completadas',
+                        text: 'Todos los PDF disponibles quedaron identificados y el control de duplicados está activo.',
+                        confirmButtonColor: '#a6455a'
+                    };
                 } else {
-                    await Swal.fire({
+                    completionDialog = {
                         icon: errors ? 'warning' : 'info',
                         title: errors ? 'Proceso completado con observaciones' : 'Proceso pausado',
                         text: stopReason || (errors ? errors + ' archivo' + (errors === 1 ? '' : 's') + ' no pudieron leerse. Puedes reintentarlos desde este mismo botón.' : remaining + ' huellas siguen pendientes; pulsa nuevamente para continuar.'),
                         confirmButtonColor: '#a6455a'
-                    });
+                    };
                 }
             } catch (error) {
-                Swal.fire({ icon: 'error', title: 'No se pudo continuar', text: error.message, confirmButtonColor: '#a6455a' });
+                completionDialog = {
+                    icon: 'error',
+                    title: 'No se pudo continuar',
+                    text: error.message,
+                    confirmButtonColor: '#a6455a'
+                };
             } finally {
                 state.busy = false;
                 state.inventoryHashBusy = false;
                 setSync(false);
                 updateInventoryStats();
+            }
+
+            if (completionDialog) {
+                await Swal.fire(completionDialog);
             }
         }
 
