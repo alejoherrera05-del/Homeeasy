@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="homeeasy-core.js?v=2.2"></script>
+    <script src="homeeasy-docs.js?v=4.1"></script>
 
     <style>
         :root {
@@ -381,6 +382,22 @@
             letter-spacing: .65px;
         }
         .field label em { color: #b6b0b4; font-style: normal; font-weight: 600; text-transform: none; letter-spacing: 0; }
+        .same-number-option {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            margin-top: 9px;
+            color: #777;
+            font-size: .69rem;
+            font-weight: 650;
+            line-height: 1.35;
+            cursor: pointer;
+            text-transform: none;
+        }
+        .same-number-option input { width: 17px; height: 17px; accent-color: var(--home-red); flex: 0 0 auto; }
+        .same-number-option i { color: #25d366; }
+        .control.linked-contact { background: #f7f5f6; color: #777; }
         .control {
             width: 100%;
             min-height: 47px;
@@ -471,7 +488,7 @@
         }
         .preview-logo { width: 130px; max-width: 100%; height: auto; }
         .preview-company { text-align: right; font-size: .7rem; line-height: 1.52; font-weight: 500; }
-        .preview-company strong { color: var(--home-yellow); font-size: .82rem; font-weight: 800; letter-spacing: .35px; }
+        .preview-company strong, .preview-company b { color: var(--home-yellow); font-size: .82rem; font-weight: 800; letter-spacing: .35px; }
         .preview-company .legal-name { color: rgba(255,255,255,.75); font-size: .61rem; }
         .preview-company i { color: var(--home-yellow); width: 16px; text-align: center; margin-right: 3px; }
         .preview-meta {
@@ -794,6 +811,10 @@
                             <div class="field">
                                 <label for="companyWhatsapp">WhatsApp <em>opcional</em></label>
                                 <input id="companyWhatsapp" class="control" type="tel" inputmode="tel" maxlength="30" data-config-key="empresa.whatsapp">
+                                <label class="same-number-option" for="samePhoneWhatsapp">
+                                    <input id="samePhoneWhatsapp" type="checkbox">
+                                    <span><i class="fa-brands fa-whatsapp"></i> Usar el mismo número del teléfono</span>
+                                </label>
                             </div>
                             <div class="field">
                                 <label for="companyEmail">Correo electrónico <em>opcional</em></label>
@@ -917,7 +938,7 @@
                                 <label class="switch"><input type="checkbox" data-config-key="documentos.mostrar_web" data-config-type="boolean"><span class="slider"></span></label>
                             </div>
                             <div class="switch-row">
-                                <div class="switch-copy"><strong>WhatsApp</strong><span>Si coincide con el teléfono, se muestra como una sola línea.</span></div>
+                                <div class="switch-copy"><strong>Mostrar WhatsApp</strong><span>Si ambos números coinciden, los dos iconos aparecen juntos y el número se escribe una sola vez.</span></div>
                                 <label class="switch"><input type="checkbox" data-config-key="documentos.mostrar_whatsapp" data-config-type="boolean"><span class="slider"></span></label>
                             </div>
                             <div class="switch-row">
@@ -1223,6 +1244,7 @@
             document.getElementById('activityModuleFilter').addEventListener('change', applyActivityFilters);
             document.getElementById('activityOperatorFilter').addEventListener('change', applyActivityFilters);
             document.getElementById('activitySearch').addEventListener('input', applyActivityFilters);
+            document.getElementById('samePhoneWhatsapp').addEventListener('change', onSamePhoneToggle);
 
             document.querySelectorAll('[data-section]').forEach(button => {
                 button.addEventListener('click', () => showSection(button.dataset.section));
@@ -1381,6 +1403,8 @@
                 element.classList.remove('invalid');
             });
 
+            syncSamePhoneControlFromValues();
+
             state.version = response.version || HomeEasyCore.getByPath(configuration, 'sistema.version_configuracion', '—');
             state.updatedAt = response.actualizadoEn || '';
             state.original = collectValues();
@@ -1412,6 +1436,12 @@
         function onConfigChange(event) {
             if (event && event.target && event.target.dataset) {
                 const key = event.target.dataset.configKey;
+                if (key === 'empresa.telefono' && document.getElementById('samePhoneWhatsapp').checked) {
+                    const whatsappInput = document.getElementById('companyWhatsapp');
+                    whatsappInput.value = event.target.value;
+                    const whatsappToggle = document.querySelector('[data-config-key="documentos.mostrar_whatsapp"]');
+                    if (whatsappToggle && String(event.target.value || '').trim()) whatsappToggle.checked = true;
+                }
                 const channelMap = {
                     'empresa.email': 'documentos.mostrar_email',
                     'empresa.web': 'documentos.mostrar_web',
@@ -1427,6 +1457,48 @@
             state.dirty = hasChanges();
             updateDirtyUi();
             updatePreview();
+        }
+
+        function setSamePhoneUi(enabled) {
+            const checkbox = document.getElementById('samePhoneWhatsapp');
+            const whatsappInput = document.getElementById('companyWhatsapp');
+            checkbox.checked = Boolean(enabled);
+            whatsappInput.readOnly = Boolean(enabled);
+            whatsappInput.classList.toggle('linked-contact', Boolean(enabled));
+        }
+
+        function syncSamePhoneControlFromValues() {
+            const phone = document.getElementById('companyPhone').value;
+            const whatsapp = document.getElementById('companyWhatsapp').value;
+            const same = Boolean(phone && whatsapp && normalizePhone(phone) === normalizePhone(whatsapp));
+            setSamePhoneUi(same);
+        }
+
+        function onSamePhoneToggle(event) {
+            const phoneInput = document.getElementById('companyPhone');
+            const whatsappInput = document.getElementById('companyWhatsapp');
+            if (event.target.checked && !normalizePhone(phoneInput.value)) {
+                setSamePhoneUi(false);
+                phoneInput.focus();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Primero escribe el teléfono',
+                    text: 'Después podrás usar ese mismo número para WhatsApp.',
+                    confirmButtonColor: '#a6455a'
+                });
+                return;
+            }
+
+            setSamePhoneUi(event.target.checked);
+            if (event.target.checked) {
+                whatsappInput.value = phoneInput.value;
+                const whatsappToggle = document.querySelector('[data-config-key="documentos.mostrar_whatsapp"]');
+                if (whatsappToggle) whatsappToggle.checked = true;
+            }
+            state.dirty = hasChanges();
+            updateDirtyUi();
+            updatePreview();
+            if (!event.target.checked) whatsappInput.focus();
         }
 
         function hasChanges() {
@@ -1576,6 +1648,7 @@
                 else element.value = value === undefined || value === null ? '' : String(value);
                 element.classList.remove('invalid');
             });
+            syncSamePhoneControlFromValues();
         }
 
         function showSection(section) {
@@ -1611,44 +1684,29 @@
         }
 
         function buildCompanyHtml() {
-            const name = getValue('empresa.nombre_comercial', 'HomeEasy');
-            const legalName = getValue('empresa.razon_social');
             const nit = formatNit(getValue('empresa.nit'));
-            const address = getValue('empresa.direccion');
-            const city = getValue('empresa.ciudad');
-            const phone = getValue('empresa.telefono');
-            const whatsapp = getValue('empresa.whatsapp');
-            const email = getValue('empresa.email');
-            const instagram = getValue('empresa.instagram');
-            const web = cleanWebLabel(getValue('empresa.web'));
-            const showWhatsapp = Boolean(getValue('documentos.mostrar_whatsapp'));
-            const showEmail = Boolean(getValue('documentos.mostrar_email'));
-            const showInstagram = Boolean(getValue('documentos.mostrar_instagram'));
-            const showWeb = Boolean(getValue('documentos.mostrar_web'));
-            const lines = [];
+            const previewConfig = {
+                'empresa.nombre_comercial': getValue('empresa.nombre_comercial', 'HomeEasy'),
+                'empresa.razon_social': getValue('empresa.razon_social'),
+                'empresa.nit': getValue('empresa.nit'),
+                'empresa.nit_formateado': nit,
+                'empresa.direccion': getValue('empresa.direccion'),
+                'empresa.ciudad': getValue('empresa.ciudad'),
+                'empresa.telefono': getValue('empresa.telefono'),
+                'empresa.whatsapp': getValue('empresa.whatsapp'),
+                'empresa.email': getValue('empresa.email'),
+                'empresa.instagram': getValue('empresa.instagram'),
+                'empresa.web': getValue('empresa.web'),
+                'documentos.mostrar_whatsapp': Boolean(getValue('documentos.mostrar_whatsapp')),
+                'documentos.mostrar_email': Boolean(getValue('documentos.mostrar_email')),
+                'documentos.mostrar_instagram': Boolean(getValue('documentos.mostrar_instagram')),
+                'documentos.mostrar_web': Boolean(getValue('documentos.mostrar_web'))
+            };
 
-            if (nit) lines.push('<i class="fa-solid fa-fingerprint"></i>NIT: ' + HomeEasyCore.escapeHtml(nit));
-            const location = [address, city].filter(Boolean).join(' · ');
-            if (location) lines.push('<i class="fa-solid fa-location-dot"></i>' + HomeEasyCore.escapeHtml(location));
-
-            const samePhone = phone && whatsapp && normalizePhone(phone) === normalizePhone(whatsapp);
-            if (phone && showWhatsapp && samePhone) {
-                lines.push('<i class="fa-brands fa-whatsapp"></i>' + HomeEasyCore.escapeHtml(phone));
-            } else {
-                if (phone) lines.push('<i class="fa-solid fa-phone"></i>' + HomeEasyCore.escapeHtml(phone));
-                if (showWhatsapp && whatsapp) lines.push('<i class="fa-brands fa-whatsapp"></i>' + HomeEasyCore.escapeHtml(whatsapp));
+            if (window.HomeEasyDocs && typeof HomeEasyDocs.buildHeaderHtml === 'function') {
+                return HomeEasyDocs.buildHeaderHtml(previewConfig);
             }
-
-            if (showEmail && email) lines.push('<i class="fa-solid fa-envelope"></i>' + HomeEasyCore.escapeHtml(email));
-            if (showInstagram && instagram) lines.push('<i class="fa-brands fa-instagram"></i>' + HomeEasyCore.escapeHtml(instagram));
-            if (showWeb && web) lines.push('<i class="fa-solid fa-globe"></i>' + HomeEasyCore.escapeHtml(web));
-
-            let html = '<strong>' + HomeEasyCore.escapeHtml(name || 'HomeEasy') + '</strong>';
-            if (legalName && legalName.toLowerCase() !== String(name || '').toLowerCase()) {
-                html += '<br><span class="legal-name">' + HomeEasyCore.escapeHtml(legalName) + '</span>';
-            }
-            if (lines.length) html += '<br>' + lines.join('<br>');
-            return html;
+            return '<b>' + HomeEasyCore.escapeHtml(previewConfig['empresa.nombre_comercial'] || 'HomeEasy') + '</b>';
         }
 
         function buildConditionLines() {
