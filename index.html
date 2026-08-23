@@ -8,14 +8,13 @@
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#a6455a">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F2F2F7">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 <title>HomeEasy | Gestión</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
@@ -43,7 +42,7 @@ body {
     margin: 0; padding: 0; 
     width: 100%; height: 100%; 
     background-color: var(--menu-bg);
-    font-family: 'Montserrat', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow: hidden; 
     -webkit-tap-highlight-color: transparent;
@@ -56,7 +55,7 @@ body {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: 99999; 
-    background: radial-gradient(circle at center, var(--home-red) 0%, var(--brand-dark) 100%);
+    background: var(--home-red);
     display: flex; justify-content: center; align-items: center;
     color: white;
     transition: opacity 0.8s ease, visibility 0.8s ease;
@@ -179,7 +178,7 @@ body {
 
 .ai-bar-right {
     width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--home-red), var(--brand-dark));
+    background: var(--home-red);
     border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
     color: white;
@@ -240,7 +239,7 @@ body {
 /* Tarjeta Destacada Calendario */
 .calendar-card { 
     border: 2px solid var(--home-red); 
-    background: linear-gradient(to right, #ffffff, #fffdfd); 
+    background: #ffffff; 
 }
 .calendar-card .icon-box { background: var(--home-red); }
 .calendar-card .menu-text h3 { color: var(--home-red); }
@@ -337,6 +336,581 @@ body {
 .sheet-btn-content { display: flex; flex-direction: column; text-align: left; }
 .sheet-btn-title { margin: 0; line-height: 1; }
 .sheet-btn-subtitle { font-size: 0.7rem; color: #999; font-weight: 500; margin-top: 4px; }
+
+/* ==========================================================
+   HOMEEASY INDEX 4 — APPLE EDITORIAL / SIN LOOK DE PLANTILLA
+   La imagen del banner aporta identidad. El resto usa jerarquía,
+   tipografía y espaciado; sin gradientes decorativos.
+   ========================================================== */
+:root {
+    --ios-bg: #F2F2F7;
+    --ios-surface: #FFFFFF;
+    --ios-separator: rgba(60,60,67,.16);
+    --ios-label: #1C1C1E;
+    --ios-secondary: #6E6E73;
+    --ios-tertiary: #8E8E93;
+    --ios-chevron: #C7C7CC;
+    --ios-radius: 20px;
+    --ios-shadow: 0 8px 28px rgba(43,36,39,.07);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--ios-bg); }
+body {
+    background: var(--ios-bg);
+    color: var(--ios-label);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    letter-spacing: -0.012em;
+}
+button, input, select, textarea { font-family: inherit; }
+#app-scroll-wrapper {
+    background: var(--ios-bg);
+    padding-top: env(safe-area-inset-top);
+}
+.menu-container {
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 18px 18px 34px;
+}
+
+/* Controles superiores: pequeños, funcionales y alineados al hero */
+.settings-action { left: 20px; margin-top: 10px; }
+.top-actions { right: 20px; margin-top: 10px; }
+.settings-container, .bell-container {
+    width: 42px; height: 42px;
+    background: rgba(255,255,255,.92);
+    border: 1px solid rgba(255,255,255,.96);
+    box-shadow: 0 2px 10px rgba(31,24,27,.09);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.settings-container i, .bell-container i { color: var(--home-red); font-size: 18px; }
+.notification-badge {
+    top: -3px; right: -3px;
+    width: 18px; height: 18px;
+    background: var(--home-yellow);
+    border: 2px solid white;
+    font-size: 9px;
+}
+
+/* Hero: una sola pieza rica. No se añaden fondos artificiales. */
+.home-hero {
+    position: relative;
+    width: 100%;
+    height: clamp(300px, 34vw, 380px);
+    overflow: hidden;
+    border-radius: 28px;
+    background: #F7F3F1;
+    border: 1px solid rgba(60,60,67,.08);
+    box-shadow: var(--ios-shadow);
+    text-align: left;
+    isolation: isolate;
+}
+.home-hero-media {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+}
+.home-hero-copy {
+    position: relative;
+    z-index: 2;
+    width: 54%;
+    height: 100%;
+    padding: 28px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.home-brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 28px;
+    color: var(--home-red);
+    font-weight: 700;
+    font-size: .92rem;
+    letter-spacing: -.025em;
+}
+.home-brand-lockup img { width: 24px; height: 24px; object-fit: contain; }
+.home-greeting {
+    margin: 5px 0 0;
+    color: #251F21;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: .98;
+    letter-spacing: -.052em;
+    font-weight: 700;
+}
+.home-date {
+    margin-top: auto;
+    color: #6F6669;
+    font-size: .76rem;
+    font-weight: 550;
+    letter-spacing: -.01em;
+}
+.home-quote-desktop {
+    margin-top: 20px;
+    max-width: 480px;
+    padding-left: 12px;
+    border-left: 2px solid rgba(166,69,90,.42);
+}
+.home-quote-text {
+    margin: 0;
+    color: #50484B;
+    font-size: .72rem;
+    line-height: 1.48;
+    font-weight: 520;
+}
+.home-quote-source {
+    display: block;
+    margin-top: 5px;
+    color: #8A7F83;
+    font-size: .58rem;
+    font-weight: 600;
+}
+.home-quote-mobile { display: none; }
+
+/* Hommy Chat: una acción, no una segunda portada */
+.hommy-ai-bar {
+    width: 100%;
+    max-width: 560px;
+    min-height: 56px;
+    margin: 14px 0 0;
+    padding: 0 14px;
+    background: #fff;
+    border: 1px solid rgba(60,60,67,.10);
+    border-radius: 17px;
+    box-shadow: 0 2px 10px rgba(43,36,39,.035);
+}
+.ai-bar-left { gap: 11px; }
+.ai-bar-text {
+    color: #4D4548;
+    font-size: .82rem;
+    font-weight: 600;
+    letter-spacing: -.015em;
+}
+.ai-bar-right {
+    width: 32px; height: 32px;
+    background: var(--home-red);
+    box-shadow: none;
+    font-size: .72rem;
+}
+.pulse-green { width: 8px; height: 8px; }
+
+/* Navegación tipo Settings: dos grupos, filas familiares. */
+.nav-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 22px;
+    margin-top: 30px;
+    text-align: left;
+}
+.nav-section-title {
+    margin: 0 0 8px 16px;
+    color: #6E6E73;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: -.01em;
+}
+.nav-list {
+    overflow: hidden;
+    border-radius: var(--ios-radius);
+    background: var(--ios-surface);
+    border: 1px solid rgba(60,60,67,.08);
+    box-shadow: 0 2px 12px rgba(43,36,39,.025);
+}
+.nav-row {
+    position: relative;
+    min-height: 70px;
+    padding: 10px 42px 10px 13px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    transition: background .14s ease, transform .12s ease;
+}
+.nav-row + .nav-row::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; left: 62px;
+    height: 1px;
+    background: var(--ios-separator);
+    transform: scaleY(.5);
+    transform-origin: top;
+}
+.nav-row:active { background: #F2F2F7; transform: scale(.997); }
+.nav-icon {
+    width: 36px; height: 36px;
+    min-width: 36px;
+    margin-right: 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: .90rem;
+}
+.nav-icon.wine { background: var(--home-red); }
+.nav-icon.gold { background: #B39152; }
+.nav-icon.gray { background: #6E6E73; }
+.nav-icon.green { background: #4D9A61; }
+.nav-icon.blue { background: #4E84A8; }
+.nav-copy { min-width: 0; flex: 1; }
+.nav-copy strong {
+    display: block;
+    color: #2C292A;
+    font-size: .88rem;
+    line-height: 1.18;
+    font-weight: 600;
+    letter-spacing: -.018em;
+}
+.nav-copy span {
+    display: block;
+    margin-top: 3px;
+    color: var(--ios-secondary);
+    font-size: .66rem;
+    line-height: 1.22;
+    font-weight: 400;
+}
+.nav-chevron {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ios-chevron);
+    font-size: .78rem;
+}
+
+/* Campana: mini agenda, sin tarjeta dentro de tarjeta. */
+.glass-bubble {
+    top: 52px;
+    right: 0;
+    width: 330px;
+    max-width: calc(100vw - 36px);
+    max-height: 450px;
+    padding: 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.96);
+    border: 1px solid rgba(60,60,67,.10);
+    box-shadow: 0 18px 44px rgba(31,24,27,.16);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+.glass-bubble h6 {
+    margin: 0;
+    padding: 9px 8px 11px;
+    border-bottom: 1px solid rgba(60,60,67,.10);
+    color: #2C292A;
+    font-size: .76rem;
+    font-weight: 650;
+}
+.noti-item {
+    width: 100%;
+    min-height: 58px;
+    margin: 0;
+    padding: 9px 28px 9px 13px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    border-bottom: 1px solid rgba(60,60,67,.10);
+    border-left: 0 !important;
+    border-radius: 0;
+    background: transparent;
+    text-align: left;
+    color: inherit;
+}
+.noti-item:active { background: #F2F2F7; }
+.noti-color { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; }
+.noti-copy { min-width: 0; display: block; flex: 1; }
+.noti-time { display: block; margin: 0 0 2px; font-size: .57rem; font-weight: 650; }
+.noti-title { display: block; color: #2C292A; font-size: .72rem; line-height: 1.2; font-weight: 600; }
+.noti-client { display: block; margin-top: 3px; color: var(--ios-secondary); font-size: .58rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.noti-chevron { position: absolute; right: 10px; color: var(--ios-chevron); font-size: .58rem; }
+.notification-calendar-link {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 6px;
+    border: 0;
+    border-radius: 12px;
+    background: #F2F2F7;
+    color: var(--home-red);
+    font-size: .65rem;
+    font-weight: 600;
+}
+
+/* Footer silencioso */
+.app-footer {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    border-top: 0;
+    padding: 26px 0 calc(20px + env(safe-area-inset-bottom));
+}
+.footer-logo { height: 30px; opacity: .82; }
+.footer-title { color: #686166; font-size: .72rem; font-weight: 550; }
+.footer-version { color: #9B9498; font-size: .60rem; }
+
+/* Bottom sheets mantienen su comportamiento, con tipografía del sistema */
+.bottom-sheet-content, .sheet-btn { font-family: inherit; }
+
+@media (hover:hover) and (pointer:fine) {
+    .nav-row:hover { background: #F8F8FA; }
+    .settings-container:hover, .bell-container:hover { transform: translateY(-1px); }
+    .hommy-ai-bar:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(43,36,39,.06); }
+}
+
+@media (min-width: 1100px) {
+    .settings-action { left: calc(50% - 520px); }
+    .top-actions { right: calc(50% - 520px); }
+}
+
+@media (max-width: 767px) {
+    .menu-container { padding: 14px 14px 28px; }
+    .home-hero {
+        height: 235px;
+        border-radius: 24px;
+    }
+    .home-hero-media {
+        object-position: 68% center;
+    }
+    .home-hero-copy {
+        width: 59%;
+        padding: 20px 17px 17px;
+    }
+    .home-brand-lockup { font-size: .78rem; gap: 7px; }
+    .home-brand-lockup img { width: 20px; height: 20px; }
+    .home-greeting {
+        margin-top: auto;
+        font-size: clamp(1.75rem, 9vw, 2.35rem);
+        line-height: .98;
+        max-width: 170px;
+    }
+    .home-date { margin-top: 7px; font-size: .66rem; max-width: 170px; line-height: 1.25; }
+    .home-quote-desktop { display: none; }
+    .home-quote-mobile {
+        display: block;
+        padding: 16px 5px 0;
+        text-align: left;
+    }
+    .home-quote-mobile .home-quote-text {
+        color: #3F393C;
+        font-size: .80rem;
+        line-height: 1.45;
+        font-weight: 520;
+    }
+    .home-quote-mobile .home-quote-source { font-size: .61rem; }
+    .hommy-ai-bar { margin-top: 14px; min-height: 54px; border-radius: 16px; max-width: none; }
+    .nav-groups { grid-template-columns: 1fr; gap: 24px; margin-top: 28px; }
+    .nav-section-title { margin-left: 15px; }
+    .nav-row { min-height: 68px; }
+    .settings-action { left: 14px; }
+    .top-actions { right: 14px; }
+    .settings-container, .bell-container { width: 40px; height: 40px; }
+}
+
+@media (max-width: 380px) {
+    .home-hero { height: 224px; }
+    .home-hero-media { object-position: 70% center; }
+    .home-hero-copy { width: 61%; padding-left: 15px; padding-right: 8px; }
+    .home-greeting { font-size: 1.72rem; max-width: 145px; }
+    .home-date { font-size: .61rem; max-width: 145px; }
+    .nav-copy strong { font-size: .84rem; }
+    .nav-copy span { font-size: .63rem; }
+}
+
+
+/* ==========================================================
+   HOMEEASY INDEX 4.1 — AJUSTES TRAS AUDITORÍA DE DISEÑO
+   ========================================================== */
+:root {
+    --brand-wine: #A6455A;
+    --brand-gold: #C2A468;
+    --brand-gold-strong: #A88A4E;
+}
+
+/* Accesibilidad: objetivo táctil >= 44px y foco visible en PC */
+:where(a, button, [role="button"]):focus-visible {
+    outline: 3px solid rgba(0,122,255,.42);
+    outline-offset: 3px;
+}
+.hero-actions {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 8;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    pointer-events: none;
+}
+.hero-actions > * { pointer-events: auto; }
+.settings-action, .top-actions {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    margin: 0;
+    z-index: 1;
+}
+.settings-container, .bell-container {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(60,60,67,.10);
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 3px 12px rgba(44,35,39,.10);
+    color: var(--brand-wine);
+}
+.bell-container { appearance: none; -webkit-appearance: none; }
+.settings-container i, .bell-container i { font-size: 17px; }
+.notification-badge {
+    background: var(--brand-wine);
+    color: #fff;
+    border-color: #fff;
+    font-weight: 700;
+}
+
+/* Hero: menos efecto "card", más pieza editorial */
+.home-hero {
+    border-radius: 26px;
+    border-color: rgba(60,60,67,.06);
+    box-shadow: 0 5px 20px rgba(43,36,39,.055);
+}
+.home-brand-lockup { color: var(--brand-wine); }
+.home-quote-desktop { border-left-color: rgba(166,69,90,.30); }
+.home-quote-text { color: #3F393C; font-size: .77rem; line-height: 1.50; max-width: 470px; }
+.home-quote-source { color: #6E666A; font-size: .66rem; line-height: 1.35; font-weight: 560; }
+
+/* HomeEasy usa vino/dorado como identidad de módulo. Otros colores quedan para estados. */
+.nav-icon.wine, .nav-icon.gray, .nav-icon.green, .nav-icon.blue { background: var(--brand-wine); }
+.nav-icon.gold { background: var(--brand-gold-strong); }
+.nav-icon { box-shadow: inset 0 0 0 .5px rgba(255,255,255,.16); }
+.nav-list { box-shadow: none; }
+.nav-row { min-height: 68px; }
+
+/* Hommy chat: disponible es un estado, por eso el punto verde sí conserva significado semántico. */
+.hommy-ai-bar { box-shadow: none; }
+
+/* Campana: popover funcional, con controles accesibles */
+.notification-close {
+    width: 32px;
+    height: 32px;
+    margin: -6px -4px -6px 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #8E8E93;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.notification-close .material-icons-round { font-size: 17px; }
+.notification-close:active { background: #F2F2F7; }
+.glass-bubble { border-radius: 18px; }
+.notification-calendar-link { min-height: 44px; }
+
+/* Bottom sheets: mismo lenguaje que la navegación agrupada del Index */
+.bottom-sheet-overlay {
+    background: rgba(28,28,30,.28);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.bottom-sheet-content {
+    width: min(100%, 540px);
+    margin: 0 auto;
+    padding: 10px 16px calc(18px + env(safe-area-inset-bottom));
+    background: #F2F2F7;
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -16px 50px rgba(28,28,30,.16);
+}
+.sheet-handle { width: 36px; height: 5px; margin: 2px auto 18px; background: #C7C7CC; }
+.sheet-title {
+    margin: 0 4px 4px;
+    color: #1C1C1E;
+    font-size: 1.16rem;
+    font-weight: 700;
+    letter-spacing: -.03em;
+}
+.sheet-desc { margin: 0 4px 16px; color: #6E6E73; font-size: .78rem; font-weight: 400; }
+.sheet-btn {
+    min-height: 66px;
+    margin: 0;
+    padding: 10px 42px 10px 12px;
+    position: relative;
+    gap: 11px;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    color: #1C1C1E;
+    box-shadow: none;
+    font-size: .90rem;
+}
+.sheet-btn:first-of-type { border-radius: 16px 16px 0 0; }
+.sheet-btn:last-child { border-radius: 0 0 16px 16px; }
+.sheet-btn + .sheet-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 61px;
+    right: 0;
+    height: 1px;
+    background: rgba(60,60,67,.16);
+    transform: scaleY(.5);
+    transform-origin: top;
+}
+.sheet-btn::after {
+    content: '›';
+    position: absolute;
+    right: 17px;
+    top: 50%;
+    transform: translateY(-52%);
+    color: #C7C7CC;
+    font-size: 1.35rem;
+    font-weight: 400;
+}
+.sheet-btn:active { background: #F7F7F8; transform: none; }
+.sheet-btn .icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: .90rem;
+    color: #fff !important;
+}
+.sheet-btn-wine .icon-wrapper, .sheet-btn-green .icon-wrapper, .sheet-btn-blue .icon-wrapper { background: var(--brand-wine); }
+.sheet-btn-gold .icon-wrapper { background: var(--brand-gold-strong); }
+.sheet-btn-title { color: #2C292A; font-size: .88rem; font-weight: 600; }
+.sheet-btn-subtitle { color: #777075; font-size: .66rem; font-weight: 400; }
+
+/* Footer mínimo: la marca ya fue expresada en el hero. */
+.app-footer { padding: 22px 0 calc(22px + env(safe-area-inset-bottom)); }
+.footer-version { color: #9A9397; font-size: .61rem; font-weight: 500; letter-spacing: 0; }
+
+@media (min-width: 768px) {
+    .bottom-sheet-content {
+        margin-bottom: 22px;
+        border-radius: 28px;
+        padding-bottom: 18px;
+    }
+}
+
+@media (max-width: 767px) {
+    .hero-actions { top: 14px; left: 14px; right: 14px; }
+    .settings-container, .bell-container { width: 44px; height: 44px; }
+    .home-quote-mobile { padding-top: 15px; }
+    .home-quote-mobile .home-quote-text { font-size: .82rem; line-height: 1.48; }
+    .home-quote-mobile .home-quote-source { margin-top: 6px; color: #6E666A; font-size: .66rem; line-height: 1.35; }
+}
+
 </style>
     <script src="homeeasy-core.js?v=2.2"></script>
 </head>
@@ -363,85 +937,116 @@ body {
         </div>
     </div>
 
-    <a href="configuracion.html" class="settings-action" aria-label="Abrir configuración">
-        <div class="settings-container"><i class="fa-solid fa-gear"></i></div>
-    </a>
-
-    <div class="top-actions" id="bell-wrapper">
-        <div class="bell-container" onclick="toggleNotificationBubble(event)">
-            <i class="fa-solid fa-bell" id="notification-bell-icon"></i>
-            <span class="notification-badge" id="notification-badge">0</span>
-        </div>
-        <div class="glass-bubble" id="notification-bubble">
-            <h6>
-                Tareas para hoy
-                <span class="material-icons-round" style="font-size: 16px; cursor:pointer;" onclick="toggleNotificationBubble(event)">close</span>
-            </h6>
-            <div id="notification-content"></div>
-        </div>
-    </div>
-
     <div id="app-scroll-wrapper">
         
         <div class="menu-container">
             
-            <div class="header-container">
-                <img src="logohomeeasy.png" class="logo-img" alt="HomeEasy Logo" onerror="this.src='triangulo.png'; this.style.width='80px'">
-                
-                <a href="Hommychat.html" class="hommy-ai-bar">
-                    <div class="ai-bar-left">
-                        <div class="pulse-green"></div>
-                        <span class="ai-bar-text">Pregúntale a Hommy...</span>
+            <section class="home-hero" aria-label="Inicio HomeEasy">
+
+                <div class="hero-actions" aria-label="Acciones rápidas">
+                    <a href="configuracion.html" class="settings-action" aria-label="Abrir configuración">
+                        <span class="settings-container"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
+                    </a>
+                    <div class="top-actions" id="bell-wrapper">
+                        <button type="button" class="bell-container" onclick="toggleNotificationBubble(event)" aria-label="Abrir recordatorios de hoy">
+                            <i class="fa-solid fa-bell" id="notification-bell-icon" aria-hidden="true"></i>
+                            <span class="notification-badge" id="notification-badge">0</span>
+                        </button>
+                        <div class="glass-bubble" id="notification-bubble">
+                            <h6>
+                                Tareas para hoy
+                                <button type="button" class="notification-close" onclick="toggleNotificationBubble(event)" aria-label="Cerrar recordatorios"><span class="material-icons-round">close</span></button>
+                            </h6>
+                            <div id="notification-content"></div>
+                        </div>
                     </div>
-                    <div class="ai-bar-right">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <img src="banner2.png" class="home-hero-media" alt="Hommy saludando en HomeEasy" onerror="this.onerror=null;this.src='hommysaludando.png';this.style.objectFit='contain';this.style.objectPosition='right bottom'">
+                <div class="home-hero-copy">
+                    <div class="home-brand-lockup">
+                        <img src="triangulogold.png" alt="" onerror="this.src='triangulo.png'">
+                        <span>HomeEasy</span>
                     </div>
-                </a>
+                    <div class="home-date" id="homeDate">Hoy</div>
+                    <h1 class="home-greeting" id="homeGreeting">Buenos días</h1>
+                    <div class="home-quote-desktop">
+                        <p class="home-quote-text" data-daily-quote></p>
+                        <span class="home-quote-source" data-daily-source></span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="home-quote-mobile" aria-label="Idea empresarial del día">
+                <p class="home-quote-text" data-daily-quote></p>
+                <span class="home-quote-source" data-daily-source></span>
             </div>
 
-            <div class="cards-wrapper">
-                <a href="clientes.html" class="menu-card">
-                    <div class="icon-box"><i class="fa-solid fa-magnifying-glass"></i></div>
-                    <div class="menu-text"><h3>Consultar cliente</h3><p>Datos e historial</p></div>
-                </a>
+            <a href="Hommychat.html" class="hommy-ai-bar" aria-label="Preguntarle a Hommy">
+                <div class="ai-bar-left">
+                    <div class="pulse-green"></div>
+                    <span class="ai-bar-text">Pregúntale a Hommy</span>
+                </div>
+                <div class="ai-bar-right"><i class="fa-solid fa-arrow-up"></i></div>
+            </a>
 
-                <a href="#" onclick="event.preventDefault(); openSheet('sheet-cotizacion')" class="menu-card gold-card">
-                    <div class="icon-box"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                    <div class="menu-text"><h3>Cotización</h3><p>Formulario y Seguimiento</p></div>
-                </a>
+            <div class="nav-groups">
+                <section class="nav-section" aria-labelledby="gestion-title">
+                    <h2 class="nav-section-title" id="gestion-title">Gestión</h2>
+                    <div class="nav-list">
+                        <a href="clientes.html" class="nav-row">
+                            <div class="nav-icon wine"><i class="fa-solid fa-magnifying-glass"></i></div>
+                            <div class="nav-copy"><strong>Consultar cliente</strong><span>Datos, cotizaciones y órdenes</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                        <a href="ventas.html" class="nav-row">
+                            <div class="nav-icon wine"><i class="fa-solid fa-table-list"></i></div>
+                            <div class="nav-copy"><strong>Historial de ventas</strong><span>OP, pagos, saldos y filtros</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                        <a href="#" onclick="event.preventDefault(); openSheet('sheet-cotizacion')" class="nav-row">
+                            <div class="nav-icon gold"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <div class="nav-copy"><strong>Cotización</strong><span>Crear y hacer seguimiento</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                        <a href="#" onclick="event.preventDefault(); openSheet('sheet-pedido')" class="nav-row">
+                            <div class="nav-icon wine"><i class="fa-solid fa-clipboard-list"></i></div>
+                            <div class="nav-copy"><strong>Orden de pedido</strong><span>Crear e informes</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                    </div>
+                </section>
 
-                <a href="#" onclick="event.preventDefault(); openSheet('sheet-pedido')" class="menu-card">
-                    <div class="icon-box"><i class="fa-solid fa-clipboard-list"></i></div>
-                    <div class="menu-text"><h3>Orden de pedido</h3><p>Formulario e Informes</p></div>
-                </a>
-
-                <a href="abono.html" class="menu-card gold-card">
-                    <div class="icon-box"><i class="fa-solid fa-receipt"></i></div>
-                    <div class="menu-text"><h3>Registrar abono</h3><p>Recibo de ingreso</p></div>
-                </a>
-                
-                <a href="caja.html" class="menu-card">
-                    <div class="icon-box"><i class="fa-solid fa-cash-register"></i></div>
-                    <div class="menu-text"><h3>Flujo de caja</h3><p>Control de ingresos y egresos</p></div>
-                </a>
-
-                <a href="ar-homeeasy-v3.html" class="menu-card gold-card">
-                    <div class="icon-box"><i class="fa-solid fa-cube"></i></div>
-                    <div class="menu-text"><h3>Vista AR</h3><p>Muéstrale al cliente cómo se verá</p></div>
-                </a>
-
-                <a href="calendario.html" class="menu-card calendar-card">
-                    <div class="icon-box"><i class="fa-solid fa-calendar-check"></i></div>
-                    <div class="menu-text"><h3>Agenda & Calendario</h3><p>Crea y revisa compromisos</p></div>
-                </a>
+                <section class="nav-section" aria-labelledby="operacion-title">
+                    <h2 class="nav-section-title" id="operacion-title">Operación</h2>
+                    <div class="nav-list">
+                        <a href="abono.html" class="nav-row">
+                            <div class="nav-icon gold"><i class="fa-solid fa-receipt"></i></div>
+                            <div class="nav-copy"><strong>Registrar abono</strong><span>Recibo de ingreso</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                        <a href="caja.html" class="nav-row">
+                            <div class="nav-icon wine"><i class="fa-solid fa-cash-register"></i></div>
+                            <div class="nav-copy"><strong>Flujo de caja</strong><span>Ingresos y egresos</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                        <a href="calendario.html" class="nav-row">
+                            <div class="nav-icon wine"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div class="nav-copy"><strong>Agenda y calendario</strong><span>Compromisos y recordatorios</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                        <a href="ar-homeeasy-v3.html" class="nav-row">
+                            <div class="nav-icon gold"><i class="fa-solid fa-cube"></i></div>
+                            <div class="nav-copy"><strong>Vista AR</strong><span>Visualización para el cliente</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                    </div>
+                </section>
             </div>
-            
+
         </div>
 
-        <footer class="app-footer">
-            <img src="Hommypiedepagina.png" alt="Logo Hommy" class="footer-logo">
-            <div class="footer-title">HomeEasy - Sistema Hommy</div>
-            <div class="footer-version">VERSIÓN 2.0 &copy; 2026</div>
+        <footer class="app-footer" aria-label="Versión de HomeEasy">
+            <div class="footer-version">Sistema Hommy · v2.0 · 2026</div>
         </footer>
 
     </div>
@@ -654,10 +1259,32 @@ function actualizarCampana() {
     }
 }
 
+function colorEventoCampana(categoria) {
+    const cat = String(categoria || '').toLowerCase();
+    if (cat.includes('instalaci')) return '#a6455a';
+    if (cat.includes('visita')) return '#c2a468';
+    if (cat.includes('garant')) return '#3498db';
+    if (cat.includes('recordatorio')) return '#27ae60';
+    if (cat.includes('obligaci')) return '#9b59b6';
+    return '#8f878b';
+}
+
+function abrirEventoDesdeCampana(ev) {
+    const fecha = ev && ev.fecha ? String(ev.fecha).split('T')[0] : getFechaLocal();
+    const eventoId = ev && ev.id !== undefined && ev.id !== null ? String(ev.id) : '';
+    try {
+        sessionStorage.setItem('HOMEEASY_AGENDA_FOCUS', JSON.stringify({ fecha, eventoId }));
+    } catch (e) {}
+    const params = new URLSearchParams();
+    params.set('fecha', fecha);
+    if (eventoId) params.set('evento', eventoId);
+    window.location.href = `calendario.html?${params.toString()}`;
+}
+
 function toggleNotificationBubble(e) {
-    if(e) e.stopPropagation();
+    if (e) e.stopPropagation();
     const bubble = document.getElementById('notification-bubble');
-    
+
     if (bubble.style.display === 'block') {
         bubble.style.display = 'none';
         return;
@@ -668,29 +1295,66 @@ function toggleNotificationBubble(e) {
     content.innerHTML = '';
 
     if (pending.length === 0) {
-        content.innerHTML = `
-            <div style="text-align: center; padding: 15px 0;">
-                <i class="fa-solid fa-check-circle" style="font-size: 30px; color: #ddd; margin-bottom: 5px;"></i>
-                <p style="font-size: 0.85rem; color: #888; margin:0;">No tienes pendientes hoy</p>
-            </div>`;
+        const empty = document.createElement('div');
+        empty.style.cssText = 'text-align:center;padding:22px 10px 18px;color:#888;';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-circle-check';
+        icon.style.cssText = 'font-size:28px;color:#c2a468;margin-bottom:8px;';
+        const copy = document.createElement('p');
+        copy.style.cssText = 'font-size:.72rem;color:#777;margin:0;font-weight:650;';
+        copy.textContent = 'No tienes pendientes hoy';
+        empty.append(icon, copy);
+        content.appendChild(empty);
     } else {
         pending.forEach(ev => {
-            let color = "#888";
-            let cat = (ev.categoria || "").toLowerCase();
-            if (cat.includes("instalaci")) color = "var(--home-red)";
-            else if (cat.includes("visita")) color = "var(--home-yellow)";
-            else if (cat.includes("garant")) color = "#3498db";
-            else if (cat.includes("recordatorio")) color = "#27ae60";
-            else if (cat.includes("obligaci")) color = "#9b59b6";
+            const color = colorEventoCampana(ev.categoria);
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'noti-item';
+            item.setAttribute('aria-label', `Abrir ${ev.titulo || 'tarea'} en calendario`);
+            item.addEventListener('click', event => {
+                event.stopPropagation();
+                abrirEventoDesdeCampana(ev);
+            });
 
-            content.innerHTML += `
-                <div class="noti-item" style="border-left-color: ${color};">
-                    <div class="noti-time" style="color: ${color};">${ev.hora || "Sin hora"}</div>
-                    <div class="noti-title">${ev.titulo}</div>
-                </div>
-            `;
+            const bar = document.createElement('span');
+            bar.className = 'noti-color';
+            bar.style.background = color;
+
+            const copy = document.createElement('span');
+            copy.className = 'noti-copy';
+            const time = document.createElement('span');
+            time.className = 'noti-time';
+            time.style.color = color;
+            time.textContent = ev.hora || 'Sin hora';
+            const title = document.createElement('span');
+            title.className = 'noti-title';
+            title.textContent = ev.titulo || 'Tarea';
+            copy.append(time, title);
+
+            if (ev.cliente && String(ev.cliente).toLowerCase() !== 'sin asignar') {
+                const client = document.createElement('span');
+                client.className = 'noti-client';
+                client.textContent = ev.cliente;
+                copy.appendChild(client);
+            }
+
+            const chevron = document.createElement('i');
+            chevron.className = 'fa-solid fa-chevron-right noti-chevron';
+            item.append(bar, copy, chevron);
+            content.appendChild(item);
         });
     }
+
+    const calendarBtn = document.createElement('button');
+    calendarBtn.type = 'button';
+    calendarBtn.className = 'notification-calendar-link';
+    calendarBtn.innerHTML = '<i class="fa-regular fa-calendar me-1"></i> Abrir calendario completo';
+    calendarBtn.addEventListener('click', event => {
+        event.stopPropagation();
+        window.location.href = 'calendario.html';
+    });
+    content.appendChild(calendarBtn);
 
     bubble.style.display = 'block';
 }
@@ -749,6 +1413,35 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+
+
+// ==========================================
+// PORTADA EDITORIAL + IDEA EMPRESARIAL DIARIA
+// ==========================================
+const HOMEEASY_DAILY_IDEAS = [{"text":"Criterio de negocio para hoy: muévete rápido en el aprendizaje, no en ocultar los errores.","source":"Jensen Huang","theme":"velocidad"},{"text":"Si la mejora es solo incremental, pregúntate qué tendría que cambiar para multiplicar el resultado.","source":"Larry Page","theme":"innovación"},{"text":"Para hoy: reconocer a quien sostiene el trabajo diario también es una decisión de estrategia.","source":"Indra Nooyi","theme":"personas"},{"text":"Criterio de negocio para hoy: no compitas solo por precio; haz que el cliente entienda qué recibe a cambio de lo que paga.","source":"Arturo Calle","theme":"valor"},{"text":"Una empresa gana claridad cuando recuerda esto: escalar en un mercado complejo exige convertir excepciones repetidas en procesos visibles.","source":"Marcos Galperin","theme":"escala"},{"text":"La confianza no es un mensaje de marca; es la suma de decisiones que el cliente puede comprobar.","source":"Marc Benioff","theme":"confianza"},{"text":"En una semana exigente, vuelve a esta idea: el producto abre la puerta; la forma en que haces sentir al cliente decide si vuelve.","source":"Howard Schultz","theme":"experiencia"},{"text":"Una empresa gana claridad cuando recuerda esto: una decisión se vuelve más fácil cuando sabes qué valor no estás dispuesto a negociar.","source":"Oprah Winfrey","theme":"propósito"},{"text":"En una semana exigente, vuelve a esta idea: prueba barato, aprende rápido y reserva las apuestas grandes para lo que ya mostró señales reales.","source":"Jeff Bezos","theme":"experimentación"},{"text":"Reconocer a quien sostiene el trabajo diario también es una decisión de estrategia.","source":"Indra Nooyi","theme":"personas"},{"text":"Una idea regional se vuelve grande cuando resuelve fricciones locales con disciplina operativa.","source":"Marcos Galperin","theme":"ejecución"},{"text":"Para hoy: trata a cada persona como si llevara un mensaje invisible que dijera: hazme sentir importante.","source":"Mary Kay Ash","theme":"liderazgo"},{"text":"Criterio de negocio para hoy: trata a cada persona como si llevara un mensaje invisible que dijera: hazme sentir importante.","source":"Mary Kay Ash","theme":"liderazgo"},{"text":"Para hoy: no toda oportunidad merece una respuesta inmediata; algunas ventajas nacen de saber esperar.","source":"Warren Buffett","theme":"paciencia"},{"text":"Criterio de negocio para hoy: la dificultad de hoy no define la calidad de la oportunidad; define cuánto debes aprender para aprovecharla.","source":"Jack Ma","theme":"persistencia"},{"text":"En una semana exigente, vuelve a esta idea: invierte con horizonte largo, pero revisa con frecuencia si los fundamentos que justificaron la decisión siguen vivos.","source":"Carlos Slim","theme":"inversión"},{"text":"Una empresa gana claridad cuando recuerda esto: la tecnología crea ventaja cuando cambia el trabajo real, no cuando solo hace una demostración impresionante.","source":"Jensen Huang","theme":"innovación"},{"text":"Una empresa gana claridad cuando recuerda esto: acorta la distancia entre el problema del cliente y la persona capaz de corregirlo.","source":"Michael Dell","theme":"feedback"},{"text":"En una semana exigente, vuelve a esta idea: no esperes sentirte completamente preparado para empezar algo que solo puede enseñarte la práctica.","source":"Sara Blakely","theme":"acción"},{"text":"Una empresa gana claridad cuando recuerda esto: la calidad se convierte en marca cuando puede reconocerse incluso antes de ver el logotipo.","source":"Mario Hernández","theme":"oficio y marca"},{"text":"Trata a cada persona como si llevara un mensaje invisible que dijera: hazme sentir importante.","source":"Mary Kay Ash","theme":"liderazgo"},{"text":"En una semana exigente, vuelve a esta idea: el dinero que no necesitas gastar hoy conserva opciones para cuando aparezca una oportunidad mejor.","source":"Warren Buffett","theme":"capital"},{"text":"Una empresa gana claridad cuando recuerda esto: empieza por la fricción del cliente y trabaja hacia atrás hasta encontrar el proceso que debes cambiar.","source":"Jeff Bezos","theme":"cliente"},{"text":"Una empresa gana claridad cuando recuerda esto: el crecimiento estable suele parecer menos emocionante desde fuera porque está construido sobre hábitos repetibles.","source":"Arturo Calle","theme":"disciplina"},{"text":"En una semana exigente, vuelve a esta idea: la forma en que permites que las personas se traten termina convirtiéndose en parte del producto.","source":"Whitney Wolfe Herd","theme":"cultura"},{"text":"En una semana exigente, vuelve a esta idea: la eficiencia no es hacer más cosas; es necesitar menos pasos para producir el mismo valor.","source":"Michael Dell","theme":"operación"},{"text":"Si una tarea depende siempre de una persona excepcional, todavía no tienes un proceso confiable.","source":"Henry Ford","theme":"procesos"},{"text":"Una empresa gana claridad cuando recuerda esto: la velocidad mejora cuando el equipo comparte una definición clara de qué no va a hacer.","source":"Daniel Ek","theme":"foco"},{"text":"Una empresa gana claridad cuando recuerda esto: escuchar sin preparar la respuesta suele revelar la pregunta que el cliente realmente quería hacer.","source":"Oprah Winfrey","theme":"escucha"},{"text":"Criterio de negocio para hoy: diseña para la persona que desconfía del sistema; ganarte su claridad puede mejorar el producto para todos.","source":"David Vélez","theme":"cliente"},{"text":"En una semana exigente, vuelve a esta idea: la dificultad de hoy no define la calidad de la oportunidad; define cuánto debes aprender para aprovecharla.","source":"Jack Ma","theme":"persistencia"},{"text":"Criterio de negocio para hoy: la forma en que permites que las personas se traten termina convirtiéndose en parte del producto.","source":"Whitney Wolfe Herd","theme":"cultura"},{"text":"Escalar en un mercado complejo exige convertir excepciones repetidas en procesos visibles.","source":"Marcos Galperin","theme":"escala"},{"text":"En una semana exigente, vuelve a esta idea: la privacidad y la simplicidad también pueden ser ventajas de producto, no solo restricciones técnicas.","source":"Jan Koum","theme":"simplicidad"},{"text":"La velocidad mejora cuando el equipo comparte una definición clara de qué no va a hacer.","source":"Daniel Ek","theme":"foco"},{"text":"Criterio de negocio para hoy: una empresa duradera crea valor sin olvidar a las personas que hacen posible ese valor.","source":"Marc Benioff","theme":"stakeholders"},{"text":"Para hoy: la experiencia premium suele depender más de muchos detalles consistentes que de un único gesto espectacular.","source":"Walt Disney","theme":"estándar"},{"text":"Una empresa gana claridad cuando recuerda esto: escucha especialmente al cliente que se fue; suele explicar mejor la fricción que tus mejores compradores.","source":"Sam Walton","theme":"cliente"},{"text":"El lujo pierde credibilidad cuando un detalle pequeño contradice el cuidado del conjunto.","source":"Mario Hernández","theme":"detalle"},{"text":"No compitas solo por precio; haz que el cliente entienda qué recibe a cambio de lo que paga.","source":"Arturo Calle","theme":"valor"},{"text":"Criterio de negocio para hoy: la calidad se convierte en marca cuando puede reconocerse incluso antes de ver el logotipo.","source":"Mario Hernández","theme":"oficio y marca"},{"text":"En una semana exigente, vuelve a esta idea: una versión útil hoy puede enseñarte más que una versión perfecta que nunca llega al cliente.","source":"Daniel Ek","theme":"iteración"},{"text":"Prueba barato, aprende rápido y reserva las apuestas grandes para lo que ya mostró señales reales.","source":"Jeff Bezos","theme":"experimentación"},{"text":"Una empresa gana claridad cuando recuerda esto: el agotamiento no es una métrica de compromiso; protege la energía con la que tomas decisiones importantes.","source":"Arianna Huffington","theme":"energía"},{"text":"Una empresa gana claridad cuando recuerda esto: no toda oportunidad merece una respuesta inmediata; algunas ventajas nacen de saber esperar.","source":"Warren Buffett","theme":"paciencia"},{"text":"Una empresa gana claridad cuando recuerda esto: cada costo innecesario termina siendo pagado por alguien: por la empresa, por el equipo o por el cliente.","source":"Sam Walton","theme":"costos"},{"text":"Haz visible el cuidado; el cliente no puede valorar un detalle que nunca llega a percibir.","source":"Estée Lauder","theme":"servicio"},{"text":"Criterio de negocio para hoy: una venta empieza mucho antes del cierre: comienza cuando la confianza hace que el precio tenga contexto.","source":"Estée Lauder","theme":"ventas"},{"text":"Criterio de negocio para hoy: la eficiencia no es hacer más cosas; es necesitar menos pasos para producir el mismo valor.","source":"Michael Dell","theme":"operación"},{"text":"Invierte con horizonte largo, pero revisa con frecuencia si los fundamentos que justificaron la decisión siguen vivos.","source":"Carlos Slim","theme":"inversión"},{"text":"Criterio de negocio para hoy: deja espacio para proyectos pequeños que puedan sorprenderte antes de exigirles un plan perfecto.","source":"Sergey Brin","theme":"experimentación"},{"text":"Criterio de negocio para hoy: construir algo distinto exige aceptar que algunas decisiones correctas se sentirán incómodas al principio.","source":"Whitney Wolfe Herd","theme":"coraje"},{"text":"Escucha especialmente al cliente que se fue; suele explicar mejor la fricción que tus mejores compradores.","source":"Sam Walton","theme":"cliente"},{"text":"Criterio de negocio para hoy: convierte el rechazo en información; a veces un no solo revela qué parte de la propuesta todavía no está clara.","source":"Sara Blakely","theme":"resiliencia"},{"text":"Una empresa gana claridad cuando recuerda esto: las personas recuerdan durante mucho tiempo un reconocimiento específico y sincero.","source":"Mary Kay Ash","theme":"reconocimiento"},{"text":"Criterio de negocio para hoy: escalar en un mercado complejo exige convertir excepciones repetidas en procesos visibles.","source":"Marcos Galperin","theme":"escala"},{"text":"Criterio de negocio para hoy: diseña pensando en lo que la persona recordará después, no solo en lo que verá durante la compra.","source":"Walt Disney","theme":"experiencia"},{"text":"Da a las personas información suficiente para tomar buenas decisiones sin pedir permiso por cada detalle.","source":"Reed Hastings","theme":"contexto"},{"text":"Para hoy: una herramienta se vuelve poderosa cuando una persona nueva puede entenderla sin una explicación larga.","source":"Melanie Perkins","theme":"simplicidad"},{"text":"En una semana exigente, vuelve a esta idea: una idea regional se vuelve grande cuando resuelve fricciones locales con disciplina operativa.","source":"Marcos Galperin","theme":"ejecución"},{"text":"Una empresa gana claridad cuando recuerda esto: muévete rápido en el aprendizaje, no en ocultar los errores.","source":"Jensen Huang","theme":"velocidad"},{"text":"Criterio de negocio para hoy: acorta la distancia entre el problema del cliente y la persona capaz de corregirlo.","source":"Michael Dell","theme":"feedback"},{"text":"Criterio de negocio para hoy: crecer sin control de caja puede convertir una buena venta en un problema operativo.","source":"Carlos Slim","theme":"caja"},{"text":"Para hoy: escalar en un mercado complejo exige convertir excepciones repetidas en procesos visibles.","source":"Marcos Galperin","theme":"escala"},{"text":"Criterio de negocio para hoy: pregunta qué información te haría cambiar de opinión antes de defender una conclusión.","source":"Anne Wojcicki","theme":"curiosidad"},{"text":"Criterio de negocio para hoy: los datos son más valiosos cuando cambian una decisión, no cuando solo llenan un tablero.","source":"Anne Wojcicki","theme":"datos"},{"text":"Una empresa gana claridad cuando recuerda esto: la forma en que permites que las personas se traten termina convirtiéndose en parte del producto.","source":"Whitney Wolfe Herd","theme":"cultura"},{"text":"Criterio de negocio para hoy: reconocer a quien sostiene el trabajo diario también es una decisión de estrategia.","source":"Indra Nooyi","theme":"personas"},{"text":"En una semana exigente, vuelve a esta idea: la cultura aparece en la experiencia que recibe tanto el cliente como quien lo atiende.","source":"Howard Schultz","theme":"cultura"},{"text":"El crecimiento estable suele parecer menos emocionante desde fuera porque está construido sobre hábitos repetibles.","source":"Arturo Calle","theme":"disciplina"},{"text":"Criterio de negocio para hoy: las personas recuerdan durante mucho tiempo un reconocimiento específico y sincero.","source":"Mary Kay Ash","theme":"reconocimiento"},{"text":"Criterio de negocio para hoy: escucha especialmente al cliente que se fue; suele explicar mejor la fricción que tus mejores compradores.","source":"Sam Walton","theme":"cliente"},{"text":"Una empresa gana claridad cuando recuerda esto: la simplicidad útil aparece cuando cada elemento puede explicar por qué merece estar ahí.","source":"Steve Jobs","theme":"simplicidad"},{"text":"En una semana exigente, vuelve a esta idea: la calidad se convierte en marca cuando puede reconocerse incluso antes de ver el logotipo.","source":"Mario Hernández","theme":"oficio y marca"},{"text":"Una empresa gana claridad cuando recuerda esto: reconocer a quien sostiene el trabajo diario también es una decisión de estrategia.","source":"Indra Nooyi","theme":"personas"},{"text":"Una empresa gana claridad cuando recuerda esto: un equipo pequeño con claridad y criterio puede avanzar más que uno grande coordinando confusión.","source":"Reed Hastings","theme":"talento"},{"text":"En una semana exigente, vuelve a esta idea: el lujo pierde credibilidad cuando un detalle pequeño contradice el cuidado del conjunto.","source":"Mario Hernández","theme":"detalle"},{"text":"Para hoy: no esperes sentirte completamente preparado para empezar algo que solo puede enseñarte la práctica.","source":"Sara Blakely","theme":"acción"},{"text":"En una semana exigente, vuelve a esta idea: las personas recuerdan durante mucho tiempo un reconocimiento específico y sincero.","source":"Mary Kay Ash","theme":"reconocimiento"},{"text":"Criterio de negocio para hoy: el lujo pierde credibilidad cuando un detalle pequeño contradice el cuidado del conjunto.","source":"Mario Hernández","theme":"detalle"},{"text":"Criterio de negocio para hoy: haz primero algo excepcional para pocos clientes; luego descubre qué parte puede escalar sin perder calidad.","source":"Brian Chesky","theme":"cliente"},{"text":"Quita una función antes de añadir otra cuando ninguna mejora realmente la experiencia.","source":"Steve Jobs","theme":"foco y producto"},{"text":"Pregunta qué información te haría cambiar de opinión antes de defender una conclusión.","source":"Anne Wojcicki","theme":"curiosidad"},{"text":"En una semana exigente, vuelve a esta idea: el agotamiento no es una métrica de compromiso; protege la energía con la que tomas decisiones importantes.","source":"Arianna Huffington","theme":"energía"},{"text":"Para hoy: una visión grande necesita tolerancia para recibir muchos no antes de encontrar el sí correcto.","source":"Melanie Perkins","theme":"persistencia"},{"text":"Para hoy: mantén estructuras ligeras para que el negocio conserve capacidad de moverse cuando cambian las condiciones.","source":"Carlos Slim","theme":"eficiencia"},{"text":"Una empresa gana claridad cuando recuerda esto: haz primero algo excepcional para pocos clientes; luego descubre qué parte puede escalar sin perder calidad.","source":"Brian Chesky","theme":"cliente"},{"text":"Protege la reputación como un activo que tarda años en construirse y puede perderse en una sola mala decisión.","source":"Warren Buffett","theme":"reputación y largo plazo"},{"text":"Una empresa gana claridad cuando recuerda esto: el producto abre la puerta; la forma en que haces sentir al cliente decide si vuelve.","source":"Howard Schultz","theme":"experiencia"},{"text":"Una empresa gana claridad cuando recuerda esto: protege la reputación como un activo que tarda años en construirse y puede perderse en una sola mala decisión.","source":"Warren Buffett","theme":"reputación y largo plazo"},{"text":"No toda oportunidad merece una respuesta inmediata; algunas ventajas nacen de saber esperar.","source":"Warren Buffett","theme":"paciencia"},{"text":"Criterio de negocio para hoy: protege la reputación como un activo que tarda años en construirse y puede perderse en una sola mala decisión.","source":"Warren Buffett","theme":"reputación y largo plazo"},{"text":"En una semana exigente, vuelve a esta idea: la empatía no reemplaza el estándar; ayuda a diseñar un estándar que las personas puedan cumplir.","source":"Satya Nadella","theme":"empatía"},{"text":"Criterio de negocio para hoy: el dinero que no necesitas gastar hoy conserva opciones para cuando aparezca una oportunidad mejor.","source":"Warren Buffett","theme":"capital"},{"text":"Una empresa gana claridad cuando recuerda esto: una pregunta extra puede descubrir una oportunidad que una respuesta rápida habría cerrado.","source":"Sergey Brin","theme":"curiosidad"},{"text":"Criterio de negocio para hoy: antes de acelerar una tarea, pregunta si realmente debería existir tal como está.","source":"Henry Ford","theme":"eficiencia"},{"text":"En una semana exigente, vuelve a esta idea: los valores pesan de verdad cuando aceptar una oportunidad obligaría a traicionarlos.","source":"Yvon Chouinard","theme":"valores"},{"text":"La forma en que permites que las personas se traten termina convirtiéndose en parte del producto.","source":"Whitney Wolfe Herd","theme":"cultura"},{"text":"Para hoy: empieza por la fricción del cliente y trabaja hacia atrás hasta encontrar el proceso que debes cambiar.","source":"Jeff Bezos","theme":"cliente"},{"text":"Criterio de negocio para hoy: una decisión se vuelve más fácil cuando sabes qué valor no estás dispuesto a negociar.","source":"Oprah Winfrey","theme":"propósito"},{"text":"Para hoy: la empatía no reemplaza el estándar; ayuda a diseñar un estándar que las personas puedan cumplir.","source":"Satya Nadella","theme":"empatía"},{"text":"Para hoy: crecer sin control de caja puede convertir una buena venta en un problema operativo.","source":"Carlos Slim","theme":"caja"},{"text":"En una semana exigente, vuelve a esta idea: construye algo que te sentirías cómodo recomendando incluso si no llevara tu logo.","source":"Yvon Chouinard","theme":"calidad"},{"text":"Para hoy: el crecimiento estable suele parecer menos emocionante desde fuera porque está construido sobre hábitos repetibles.","source":"Arturo Calle","theme":"disciplina"},{"text":"Para hoy: la marca se fortalece cuando lo que prometes, lo que entregas y lo que haces después cuentan la misma historia.","source":"Phil Knight","theme":"marca"},{"text":"En una semana exigente, vuelve a esta idea: escuchar sin preparar la respuesta suele revelar la pregunta que el cliente realmente quería hacer.","source":"Oprah Winfrey","theme":"escucha"},{"text":"Criterio de negocio para hoy: cuida a las personas que representan tu marca cuando tú no estás presente.","source":"Richard Branson","theme":"personas"},{"text":"Para hoy: convierte el rechazo en información; a veces un no solo revela qué parte de la propuesta todavía no está clara.","source":"Sara Blakely","theme":"resiliencia"},{"text":"En una semana exigente, vuelve a esta idea: una decisión se vuelve más fácil cuando sabes qué valor no estás dispuesto a negociar.","source":"Oprah Winfrey","theme":"propósito"},{"text":"En una semana exigente, vuelve a esta idea: una venta empieza mucho antes del cierre: comienza cuando la confianza hace que el precio tenga contexto.","source":"Estée Lauder","theme":"ventas"},{"text":"Para hoy: da a las personas información suficiente para tomar buenas decisiones sin pedir permiso por cada detalle.","source":"Reed Hastings","theme":"contexto"},{"text":"Criterio de negocio para hoy: los valores pesan de verdad cuando aceptar una oportunidad obligaría a traicionarlos.","source":"Yvon Chouinard","theme":"valores"},{"text":"En una semana exigente, vuelve a esta idea: haz visible el cuidado; el cliente no puede valorar un detalle que nunca llega a percibir.","source":"Estée Lauder","theme":"servicio"},{"text":"En una semana exigente, vuelve a esta idea: escucha especialmente al cliente que se fue; suele explicar mejor la fricción que tus mejores compradores.","source":"Sam Walton","theme":"cliente"},{"text":"Cuando el cliente mejora, tu negocio encuentra una razón más sólida para crecer.","source":"Jack Ma","theme":"cliente"},{"text":"Diseña pensando en lo que la persona recordará después, no solo en lo que verá durante la compra.","source":"Walt Disney","theme":"experiencia"},{"text":"Para hoy: la privacidad y la simplicidad también pueden ser ventajas de producto, no solo restricciones técnicas.","source":"Jan Koum","theme":"simplicidad"},{"text":"En una semana exigente, vuelve a esta idea: la tecnología crea ventaja cuando cambia el trabajo real, no cuando solo hace una demostración impresionante.","source":"Jensen Huang","theme":"innovación"},{"text":"El producto abre la puerta; la forma en que haces sentir al cliente decide si vuelve.","source":"Howard Schultz","theme":"experiencia"},{"text":"La calidad se convierte en marca cuando puede reconocerse incluso antes de ver el logotipo.","source":"Mario Hernández","theme":"oficio y marca"},{"text":"En una semana exigente, vuelve a esta idea: mantén estructuras ligeras para que el negocio conserve capacidad de moverse cuando cambian las condiciones.","source":"Carlos Slim","theme":"eficiencia"},{"text":"En una semana exigente, vuelve a esta idea: acorta la distancia entre el problema del cliente y la persona capaz de corregirlo.","source":"Michael Dell","theme":"feedback"},{"text":"Para hoy: la tecnología crea ventaja cuando cambia el trabajo real, no cuando solo hace una demostración impresionante.","source":"Jensen Huang","theme":"innovación"},{"text":"En una semana exigente, vuelve a esta idea: si una tarea depende siempre de una persona excepcional, todavía no tienes un proceso confiable.","source":"Henry Ford","theme":"procesos"},{"text":"Criterio de negocio para hoy: una meta suficientemente ambiciosa obliga a cuestionar el proceso, no solo a trabajar más horas.","source":"Larry Page","theme":"ambición"},{"text":"En una semana exigente, vuelve a esta idea: los datos son más valiosos cuando cambian una decisión, no cuando solo llenan un tablero.","source":"Anne Wojcicki","theme":"datos"},{"text":"En una semana exigente, vuelve a esta idea: no toda oportunidad merece una respuesta inmediata; algunas ventajas nacen de saber esperar.","source":"Warren Buffett","theme":"paciencia"},{"text":"En una semana exigente, vuelve a esta idea: una decisión que se ve pequeña hoy puede cambiar mucho si la repites durante cinco años.","source":"Jeff Bezos","theme":"largo plazo"},{"text":"Para hoy: escucha especialmente al cliente que se fue; suele explicar mejor la fricción que tus mejores compradores.","source":"Sam Walton","theme":"cliente"},{"text":"Criterio de negocio para hoy: la empatía no reemplaza el estándar; ayuda a diseñar un estándar que las personas puedan cumplir.","source":"Satya Nadella","theme":"empatía"},{"text":"En una semana exigente, vuelve a esta idea: la velocidad mejora cuando el equipo comparte una definición clara de qué no va a hacer.","source":"Daniel Ek","theme":"foco"},{"text":"En una semana exigente, vuelve a esta idea: muévete rápido en el aprendizaje, no en ocultar los errores.","source":"Jensen Huang","theme":"velocidad"},{"text":"En una semana exigente, vuelve a esta idea: el crecimiento estable suele parecer menos emocionante desde fuera porque está construido sobre hábitos repetibles.","source":"Arturo Calle","theme":"disciplina"},{"text":"En una semana exigente, vuelve a esta idea: hay etapas del negocio en las que avanzar consiste simplemente en seguir haciendo bien lo esencial.","source":"Phil Knight","theme":"persistencia"},{"text":"Para hoy: hay etapas del negocio en las que avanzar consiste simplemente en seguir haciendo bien lo esencial.","source":"Phil Knight","theme":"persistencia"},{"text":"Para hoy: la dificultad de hoy no define la calidad de la oportunidad; define cuánto debes aprender para aprovecharla.","source":"Jack Ma","theme":"persistencia"},{"text":"Una decisión que se ve pequeña hoy puede cambiar mucho si la repites durante cinco años.","source":"Jeff Bezos","theme":"largo plazo"},{"text":"En una semana exigente, vuelve a esta idea: cuida a las personas que representan tu marca cuando tú no estás presente.","source":"Richard Branson","theme":"personas"},{"text":"Criterio de negocio para hoy: construye algo que te sentirías cómodo recomendando incluso si no llevara tu logo.","source":"Yvon Chouinard","theme":"calidad"},{"text":"Hay etapas del negocio en las que avanzar consiste simplemente en seguir haciendo bien lo esencial.","source":"Phil Knight","theme":"persistencia"},{"text":"Criterio de negocio para hoy: la cultura aparece en la experiencia que recibe tanto el cliente como quien lo atiende.","source":"Howard Schultz","theme":"cultura"},{"text":"Una empresa gana claridad cuando recuerda esto: haz visible el cuidado; el cliente no puede valorar un detalle que nunca llega a percibir.","source":"Estée Lauder","theme":"servicio"},{"text":"En una semana exigente, vuelve a esta idea: empieza por la fricción del cliente y trabaja hacia atrás hasta encontrar el proceso que debes cambiar.","source":"Jeff Bezos","theme":"cliente"},{"text":"Una empresa gana claridad cuando recuerda esto: el dinero que no necesitas gastar hoy conserva opciones para cuando aparezca una oportunidad mejor.","source":"Warren Buffett","theme":"capital"},{"text":"Para hoy: una buena oportunidad rara vez llega con todas las respuestas; llega con suficientes razones para dar el primer paso.","source":"Richard Branson","theme":"iniciativa"},{"text":"Para hoy: la velocidad mejora cuando el equipo comparte una definición clara de qué no va a hacer.","source":"Daniel Ek","theme":"foco"},{"text":"Para hoy: construye algo que te sentirías cómodo recomendando incluso si no llevara tu logo.","source":"Yvon Chouinard","theme":"calidad"},{"text":"Una empresa gana claridad cuando recuerda esto: una función que exige explicación constante probablemente todavía necesita diseño.","source":"Jan Koum","theme":"producto"},{"text":"En una semana exigente, vuelve a esta idea: una organización que quiere tener siempre la razón aprende más lento que una que quiere entender mejor.","source":"Satya Nadella","theme":"aprendizaje"},{"text":"Una empresa gana claridad cuando recuerda esto: la marca se fortalece cuando lo que prometes, lo que entregas y lo que haces después cuentan la misma historia.","source":"Phil Knight","theme":"marca"},{"text":"En una semana exigente, vuelve a esta idea: diseña la experiencia completa como si fueras tú quien tuviera que vivir cada pequeño paso.","source":"Brian Chesky","theme":"diseño"},{"text":"Una empresa gana claridad cuando recuerda esto: una meta suficientemente ambiciosa obliga a cuestionar el proceso, no solo a trabajar más horas.","source":"Larry Page","theme":"ambición"},{"text":"Una empresa gana claridad cuando recuerda esto: no esperes sentirte completamente preparado para empezar algo que solo puede enseñarte la práctica.","source":"Sara Blakely","theme":"acción"},{"text":"Para hoy: una organización que quiere tener siempre la razón aprende más lento que una que quiere entender mejor.","source":"Satya Nadella","theme":"aprendizaje"},{"text":"Para hoy: haz visible el cuidado; el cliente no puede valorar un detalle que nunca llega a percibir.","source":"Estée Lauder","theme":"servicio"},{"text":"Para hoy: una meta suficientemente ambiciosa obliga a cuestionar el proceso, no solo a trabajar más horas.","source":"Larry Page","theme":"ambición"},{"text":"Una empresa gana claridad cuando recuerda esto: mantén estructuras ligeras para que el negocio conserve capacidad de moverse cuando cambian las condiciones.","source":"Carlos Slim","theme":"eficiencia"},{"text":"Para hoy: invierte con horizonte largo, pero revisa con frecuencia si los fundamentos que justificaron la decisión siguen vivos.","source":"Carlos Slim","theme":"inversión"},{"text":"Para hoy: cuida a las personas que representan tu marca cuando tú no estás presente.","source":"Richard Branson","theme":"personas"},{"text":"Una empresa gana claridad cuando recuerda esto: diseña la experiencia completa como si fueras tú quien tuviera que vivir cada pequeño paso.","source":"Brian Chesky","theme":"diseño"},{"text":"Una empresa gana claridad cuando recuerda esto: una idea regional se vuelve grande cuando resuelve fricciones locales con disciplina operativa.","source":"Marcos Galperin","theme":"ejecución"},{"text":"Criterio de negocio para hoy: diseña la experiencia completa como si fueras tú quien tuviera que vivir cada pequeño paso.","source":"Brian Chesky","theme":"diseño"},{"text":"Una empresa gana claridad cuando recuerda esto: la cultura aparece en la experiencia que recibe tanto el cliente como quien lo atiende.","source":"Howard Schultz","theme":"cultura"},{"text":"Criterio de negocio para hoy: el agotamiento no es una métrica de compromiso; protege la energía con la que tomas decisiones importantes.","source":"Arianna Huffington","theme":"energía"},{"text":"Criterio de negocio para hoy: si una tarea depende siempre de una persona excepcional, todavía no tienes un proceso confiable.","source":"Henry Ford","theme":"procesos"},{"text":"Criterio de negocio para hoy: haz visible el cuidado; el cliente no puede valorar un detalle que nunca llega a percibir.","source":"Estée Lauder","theme":"servicio"},{"text":"Una empresa gana claridad cuando recuerda esto: una venta empieza mucho antes del cierre: comienza cuando la confianza hace que el precio tenga contexto.","source":"Estée Lauder","theme":"ventas"},{"text":"Para hoy: si la mejora es solo incremental, pregúntate qué tendría que cambiar para multiplicar el resultado.","source":"Larry Page","theme":"innovación"},{"text":"En una semana exigente, vuelve a esta idea: la experiencia premium suele depender más de muchos detalles consistentes que de un único gesto espectacular.","source":"Walt Disney","theme":"estándar"},{"text":"Para hoy: la calidad se convierte en marca cuando puede reconocerse incluso antes de ver el logotipo.","source":"Mario Hernández","theme":"oficio y marca"},{"text":"Para hoy: el dinero que no necesitas gastar hoy conserva opciones para cuando aparezca una oportunidad mejor.","source":"Warren Buffett","theme":"capital"},{"text":"Una empresa gana claridad cuando recuerda esto: si la mejora es solo incremental, pregúntate qué tendría que cambiar para multiplicar el resultado.","source":"Larry Page","theme":"innovación"},{"text":"Una visión grande necesita tolerancia para recibir muchos no antes de encontrar el sí correcto.","source":"Melanie Perkins","theme":"persistencia"},{"text":"Una empresa gana claridad cuando recuerda esto: diseña pensando en lo que la persona recordará después, no solo en lo que verá durante la compra.","source":"Walt Disney","theme":"experiencia"},{"text":"Para hoy: dormir una decisión compleja puede ser más productivo que seguir empujándola con la mente agotada.","source":"Arianna Huffington","theme":"claridad"},{"text":"En una semana exigente, vuelve a esta idea: da contexto antes de pedir velocidad; las personas ejecutan mejor cuando entienden por qué importa el resultado.","source":"Indra Nooyi","theme":"liderazgo"},{"text":"Mantén estructuras ligeras para que el negocio conserve capacidad de moverse cuando cambian las condiciones.","source":"Carlos Slim","theme":"eficiencia"},{"text":"Para hoy: diseña la experiencia completa como si fueras tú quien tuviera que vivir cada pequeño paso.","source":"Brian Chesky","theme":"diseño"},{"text":"Una empresa gana claridad cuando recuerda esto: los valores pesan de verdad cuando aceptar una oportunidad obligaría a traicionarlos.","source":"Yvon Chouinard","theme":"valores"},{"text":"Deja espacio para proyectos pequeños que puedan sorprenderte antes de exigirles un plan perfecto.","source":"Sergey Brin","theme":"experimentación"},{"text":"La empatía no reemplaza el estándar; ayuda a diseñar un estándar que las personas puedan cumplir.","source":"Satya Nadella","theme":"empatía"},{"text":"Para hoy: pregunta qué información te haría cambiar de opinión antes de defender una conclusión.","source":"Anne Wojcicki","theme":"curiosidad"},{"text":"En una semana exigente, vuelve a esta idea: cada costo innecesario termina siendo pagado por alguien: por la empresa, por el equipo o por el cliente.","source":"Sam Walton","theme":"costos"},{"text":"Una experiencia financiera mejora cuando reduce ansiedad además de reducir pasos.","source":"David Vélez","theme":"simplicidad financiera"},{"text":"Haz primero algo excepcional para pocos clientes; luego descubre qué parte puede escalar sin perder calidad.","source":"Brian Chesky","theme":"cliente"},{"text":"Una empresa gana claridad cuando recuerda esto: una visión grande necesita tolerancia para recibir muchos no antes de encontrar el sí correcto.","source":"Melanie Perkins","theme":"persistencia"},{"text":"Para hoy: una versión útil hoy puede enseñarte más que una versión perfecta que nunca llega al cliente.","source":"Daniel Ek","theme":"iteración"},{"text":"Criterio de negocio para hoy: da a las personas información suficiente para tomar buenas decisiones sin pedir permiso por cada detalle.","source":"Reed Hastings","theme":"contexto"},{"text":"Antes de acelerar una tarea, pregunta si realmente debería existir tal como está.","source":"Henry Ford","theme":"eficiencia"},{"text":"Una versión útil hoy puede enseñarte más que una versión perfecta que nunca llega al cliente.","source":"Daniel Ek","theme":"iteración"},{"text":"Una empresa gana claridad cuando recuerda esto: la empatía no reemplaza el estándar; ayuda a diseñar un estándar que las personas puedan cumplir.","source":"Satya Nadella","theme":"empatía"},{"text":"Criterio de negocio para hoy: una herramienta se vuelve poderosa cuando una persona nueva puede entenderla sin una explicación larga.","source":"Melanie Perkins","theme":"simplicidad"},{"text":"En una semana exigente, vuelve a esta idea: la confianza no es un mensaje de marca; es la suma de decisiones que el cliente puede comprobar.","source":"Marc Benioff","theme":"confianza"},{"text":"Para hoy: una función que exige explicación constante probablemente todavía necesita diseño.","source":"Jan Koum","theme":"producto"},{"text":"Para hoy: las personas recuerdan durante mucho tiempo un reconocimiento específico y sincero.","source":"Mary Kay Ash","theme":"reconocimiento"},{"text":"Criterio de negocio para hoy: no toda oportunidad merece una respuesta inmediata; algunas ventajas nacen de saber esperar.","source":"Warren Buffett","theme":"paciencia"},{"text":"Diseña para la persona que desconfía del sistema; ganarte su claridad puede mejorar el producto para todos.","source":"David Vélez","theme":"cliente"},{"text":"En una semana exigente, vuelve a esta idea: convierte el rechazo en información; a veces un no solo revela qué parte de la propuesta todavía no está clara.","source":"Sara Blakely","theme":"resiliencia"},{"text":"La privacidad y la simplicidad también pueden ser ventajas de producto, no solo restricciones técnicas.","source":"Jan Koum","theme":"simplicidad"},{"text":"Una empresa gana claridad cuando recuerda esto: una empresa duradera crea valor sin olvidar a las personas que hacen posible ese valor.","source":"Marc Benioff","theme":"stakeholders"},{"text":"Una empresa gana claridad cuando recuerda esto: no compitas solo por precio; haz que el cliente entienda qué recibe a cambio de lo que paga.","source":"Arturo Calle","theme":"valor"},{"text":"Para hoy: escuchar sin preparar la respuesta suele revelar la pregunta que el cliente realmente quería hacer.","source":"Oprah Winfrey","theme":"escucha"},{"text":"Criterio de negocio para hoy: la simplicidad útil aparece cuando cada elemento puede explicar por qué merece estar ahí.","source":"Steve Jobs","theme":"simplicidad"},{"text":"Criterio de negocio para hoy: escuchar sin preparar la respuesta suele revelar la pregunta que el cliente realmente quería hacer.","source":"Oprah Winfrey","theme":"escucha"},{"text":"Una empresa gana claridad cuando recuerda esto: antes de acelerar una tarea, pregunta si realmente debería existir tal como está.","source":"Henry Ford","theme":"eficiencia"},{"text":"Para hoy: el agotamiento no es una métrica de compromiso; protege la energía con la que tomas decisiones importantes.","source":"Arianna Huffington","theme":"energía"},{"text":"Criterio de negocio para hoy: el producto abre la puerta; la forma en que haces sentir al cliente decide si vuelve.","source":"Howard Schultz","theme":"experiencia"},{"text":"Criterio de negocio para hoy: prueba barato, aprende rápido y reserva las apuestas grandes para lo que ya mostró señales reales.","source":"Jeff Bezos","theme":"experimentación"},{"text":"En una semana exigente, vuelve a esta idea: un equipo pequeño con claridad y criterio puede avanzar más que uno grande coordinando confusión.","source":"Reed Hastings","theme":"talento"},{"text":"En una semana exigente, vuelve a esta idea: una experiencia financiera mejora cuando reduce ansiedad además de reducir pasos.","source":"David Vélez","theme":"simplicidad financiera"},{"text":"La experiencia premium suele depender más de muchos detalles consistentes que de un único gesto espectacular.","source":"Walt Disney","theme":"estándar"},{"text":"Una empresa gana claridad cuando recuerda esto: dormir una decisión compleja puede ser más productivo que seguir empujándola con la mente agotada.","source":"Arianna Huffington","theme":"claridad"},{"text":"Criterio de negocio para hoy: una experiencia financiera mejora cuando reduce ansiedad además de reducir pasos.","source":"David Vélez","theme":"simplicidad financiera"},{"text":"Una empresa gana claridad cuando recuerda esto: la privacidad y la simplicidad también pueden ser ventajas de producto, no solo restricciones técnicas.","source":"Jan Koum","theme":"simplicidad"},{"text":"Para hoy: la simplicidad útil aparece cuando cada elemento puede explicar por qué merece estar ahí.","source":"Steve Jobs","theme":"simplicidad"},{"text":"En una semana exigente, vuelve a esta idea: si la mejora es solo incremental, pregúntate qué tendría que cambiar para multiplicar el resultado.","source":"Larry Page","theme":"innovación"},{"text":"La dificultad de hoy no define la calidad de la oportunidad; define cuánto debes aprender para aprovecharla.","source":"Jack Ma","theme":"persistencia"},{"text":"Una empresa gana claridad cuando recuerda esto: la confianza no es un mensaje de marca; es la suma de decisiones que el cliente puede comprobar.","source":"Marc Benioff","theme":"confianza"},{"text":"En una semana exigente, vuelve a esta idea: escalar en un mercado complejo exige convertir excepciones repetidas en procesos visibles.","source":"Marcos Galperin","theme":"escala"},{"text":"Para hoy: una empresa duradera crea valor sin olvidar a las personas que hacen posible ese valor.","source":"Marc Benioff","theme":"stakeholders"},{"text":"Cuida a las personas que representan tu marca cuando tú no estás presente.","source":"Richard Branson","theme":"personas"},{"text":"Para hoy: una decisión se vuelve más fácil cuando sabes qué valor no estás dispuesto a negociar.","source":"Oprah Winfrey","theme":"propósito"},{"text":"Construir algo distinto exige aceptar que algunas decisiones correctas se sentirán incómodas al principio.","source":"Whitney Wolfe Herd","theme":"coraje"},{"text":"Una pregunta extra puede descubrir una oportunidad que una respuesta rápida habría cerrado.","source":"Sergey Brin","theme":"curiosidad"},{"text":"Para hoy: diseña para la persona que desconfía del sistema; ganarte su claridad puede mejorar el producto para todos.","source":"David Vélez","theme":"cliente"},{"text":"Una empresa gana claridad cuando recuerda esto: invierte con horizonte largo, pero revisa con frecuencia si los fundamentos que justificaron la decisión siguen vivos.","source":"Carlos Slim","theme":"inversión"},{"text":"Para hoy: cuando el cliente mejora, tu negocio encuentra una razón más sólida para crecer.","source":"Jack Ma","theme":"cliente"},{"text":"La simplicidad útil aparece cuando cada elemento puede explicar por qué merece estar ahí.","source":"Steve Jobs","theme":"simplicidad"},{"text":"En una semana exigente, vuelve a esta idea: deja espacio para proyectos pequeños que puedan sorprenderte antes de exigirles un plan perfecto.","source":"Sergey Brin","theme":"experimentación"},{"text":"Una empresa gana claridad cuando recuerda esto: da a las personas información suficiente para tomar buenas decisiones sin pedir permiso por cada detalle.","source":"Reed Hastings","theme":"contexto"},{"text":"Para hoy: construir algo distinto exige aceptar que algunas decisiones correctas se sentirán incómodas al principio.","source":"Whitney Wolfe Herd","theme":"coraje"},{"text":"Una empresa gana claridad cuando recuerda esto: cuida a las personas que representan tu marca cuando tú no estás presente.","source":"Richard Branson","theme":"personas"},{"text":"Criterio de negocio para hoy: la marca se fortalece cuando lo que prometes, lo que entregas y lo que haces después cuentan la misma historia.","source":"Phil Knight","theme":"marca"},{"text":"Para hoy: la confianza no es un mensaje de marca; es la suma de decisiones que el cliente puede comprobar.","source":"Marc Benioff","theme":"confianza"},{"text":"Una empresa gana claridad cuando recuerda esto: la dificultad de hoy no define la calidad de la oportunidad; define cuánto debes aprender para aprovecharla.","source":"Jack Ma","theme":"persistencia"},{"text":"Una empresa gana claridad cuando recuerda esto: deja espacio para proyectos pequeños que puedan sorprenderte antes de exigirles un plan perfecto.","source":"Sergey Brin","theme":"experimentación"},{"text":"Una empresa gana claridad cuando recuerda esto: trata a cada persona como si llevara un mensaje invisible que dijera: hazme sentir importante.","source":"Mary Kay Ash","theme":"liderazgo"},{"text":"En una semana exigente, vuelve a esta idea: antes de acelerar una tarea, pregunta si realmente debería existir tal como está.","source":"Henry Ford","theme":"eficiencia"},{"text":"Para hoy: protege la reputación como un activo que tarda años en construirse y puede perderse en una sola mala decisión.","source":"Warren Buffett","theme":"reputación y largo plazo"},{"text":"Criterio de negocio para hoy: una función que exige explicación constante probablemente todavía necesita diseño.","source":"Jan Koum","theme":"producto"},{"text":"Para hoy: si una tarea depende siempre de una persona excepcional, todavía no tienes un proceso confiable.","source":"Henry Ford","theme":"procesos"},{"text":"Empieza por la fricción del cliente y trabaja hacia atrás hasta encontrar el proceso que debes cambiar.","source":"Jeff Bezos","theme":"cliente"},{"text":"Una buena oportunidad rara vez llega con todas las respuestas; llega con suficientes razones para dar el primer paso.","source":"Richard Branson","theme":"iniciativa"},{"text":"En una semana exigente, vuelve a esta idea: dormir una decisión compleja puede ser más productivo que seguir empujándola con la mente agotada.","source":"Arianna Huffington","theme":"claridad"},{"text":"Criterio de negocio para hoy: una visión grande necesita tolerancia para recibir muchos no antes de encontrar el sí correcto.","source":"Melanie Perkins","theme":"persistencia"},{"text":"Una empresa gana claridad cuando recuerda esto: una organización que quiere tener siempre la razón aprende más lento que una que quiere entender mejor.","source":"Satya Nadella","theme":"aprendizaje"},{"text":"Una empresa gana claridad cuando recuerda esto: prueba barato, aprende rápido y reserva las apuestas grandes para lo que ya mostró señales reales.","source":"Jeff Bezos","theme":"experimentación"},{"text":"Para hoy: muévete rápido en el aprendizaje, no en ocultar los errores.","source":"Jensen Huang","theme":"velocidad"},{"text":"Para hoy: la forma en que permites que las personas se traten termina convirtiéndose en parte del producto.","source":"Whitney Wolfe Herd","theme":"cultura"},{"text":"Muévete rápido en el aprendizaje, no en ocultar los errores.","source":"Jensen Huang","theme":"velocidad"},{"text":"Para hoy: una venta empieza mucho antes del cierre: comienza cuando la confianza hace que el precio tenga contexto.","source":"Estée Lauder","theme":"ventas"},{"text":"El agotamiento no es una métrica de compromiso; protege la energía con la que tomas decisiones importantes.","source":"Arianna Huffington","theme":"energía"},{"text":"Para hoy: diseña pensando en lo que la persona recordará después, no solo en lo que verá durante la compra.","source":"Walt Disney","theme":"experiencia"},{"text":"Criterio de negocio para hoy: no esperes sentirte completamente preparado para empezar algo que solo puede enseñarte la práctica.","source":"Sara Blakely","theme":"acción"},{"text":"Criterio de negocio para hoy: mantén estructuras ligeras para que el negocio conserve capacidad de moverse cuando cambian las condiciones.","source":"Carlos Slim","theme":"eficiencia"},{"text":"Una empresa gana claridad cuando recuerda esto: los datos son más valiosos cuando cambian una decisión, no cuando solo llenan un tablero.","source":"Anne Wojcicki","theme":"datos"},{"text":"Para hoy: no compitas solo por precio; haz que el cliente entienda qué recibe a cambio de lo que paga.","source":"Arturo Calle","theme":"valor"},{"text":"Criterio de negocio para hoy: un equipo pequeño con claridad y criterio puede avanzar más que uno grande coordinando confusión.","source":"Reed Hastings","theme":"talento"},{"text":"Para hoy: una pregunta extra puede descubrir una oportunidad que una respuesta rápida habría cerrado.","source":"Sergey Brin","theme":"curiosidad"},{"text":"Criterio de negocio para hoy: una organización que quiere tener siempre la razón aprende más lento que una que quiere entender mejor.","source":"Satya Nadella","theme":"aprendizaje"},{"text":"Una empresa gana claridad cuando recuerda esto: convierte el rechazo en información; a veces un no solo revela qué parte de la propuesta todavía no está clara.","source":"Sara Blakely","theme":"resiliencia"},{"text":"En una semana exigente, vuelve a esta idea: una pregunta extra puede descubrir una oportunidad que una respuesta rápida habría cerrado.","source":"Sergey Brin","theme":"curiosidad"},{"text":"Para hoy: acorta la distancia entre el problema del cliente y la persona capaz de corregirlo.","source":"Michael Dell","theme":"feedback"},{"text":"Una empresa gana claridad cuando recuerda esto: hay etapas del negocio en las que avanzar consiste simplemente en seguir haciendo bien lo esencial.","source":"Phil Knight","theme":"persistencia"},{"text":"La cultura aparece en la experiencia que recibe tanto el cliente como quien lo atiende.","source":"Howard Schultz","theme":"cultura"},{"text":"Una empresa gana claridad cuando recuerda esto: una herramienta se vuelve poderosa cuando una persona nueva puede entenderla sin una explicación larga.","source":"Melanie Perkins","theme":"simplicidad"},{"text":"Para hoy: un equipo pequeño con claridad y criterio puede avanzar más que uno grande coordinando confusión.","source":"Reed Hastings","theme":"talento"},{"text":"Convierte el rechazo en información; a veces un no solo revela qué parte de la propuesta todavía no está clara.","source":"Sara Blakely","theme":"resiliencia"},{"text":"Criterio de negocio para hoy: hay etapas del negocio en las que avanzar consiste simplemente en seguir haciendo bien lo esencial.","source":"Phil Knight","theme":"persistencia"},{"text":"En una semana exigente, vuelve a esta idea: construir algo distinto exige aceptar que algunas decisiones correctas se sentirán incómodas al principio.","source":"Whitney Wolfe Herd","theme":"coraje"},{"text":"Una empresa gana claridad cuando recuerda esto: el lujo pierde credibilidad cuando un detalle pequeño contradice el cuidado del conjunto.","source":"Mario Hernández","theme":"detalle"},{"text":"Para hoy: quita una función antes de añadir otra cuando ninguna mejora realmente la experiencia.","source":"Steve Jobs","theme":"foco y producto"},{"text":"Para hoy: la cultura aparece en la experiencia que recibe tanto el cliente como quien lo atiende.","source":"Howard Schultz","theme":"cultura"},{"text":"Una empresa gana claridad cuando recuerda esto: si una tarea depende siempre de una persona excepcional, todavía no tienes un proceso confiable.","source":"Henry Ford","theme":"procesos"},{"text":"Para hoy: cada costo innecesario termina siendo pagado por alguien: por la empresa, por el equipo o por el cliente.","source":"Sam Walton","theme":"costos"},{"text":"Una herramienta se vuelve poderosa cuando una persona nueva puede entenderla sin una explicación larga.","source":"Melanie Perkins","theme":"simplicidad"},{"text":"Una organización que quiere tener siempre la razón aprende más lento que una que quiere entender mejor.","source":"Satya Nadella","theme":"aprendizaje"},{"text":"En una semana exigente, vuelve a esta idea: haz primero algo excepcional para pocos clientes; luego descubre qué parte puede escalar sin perder calidad.","source":"Brian Chesky","theme":"cliente"},{"text":"Para hoy: la eficiencia no es hacer más cosas; es necesitar menos pasos para producir el mismo valor.","source":"Michael Dell","theme":"operación"},{"text":"En una semana exigente, vuelve a esta idea: da a las personas información suficiente para tomar buenas decisiones sin pedir permiso por cada detalle.","source":"Reed Hastings","theme":"contexto"},{"text":"Los datos son más valiosos cuando cambian una decisión, no cuando solo llenan un tablero.","source":"Anne Wojcicki","theme":"datos"},{"text":"Una empresa gana claridad cuando recuerda esto: una buena oportunidad rara vez llega con todas las respuestas; llega con suficientes razones para dar el primer paso.","source":"Richard Branson","theme":"iniciativa"},{"text":"Una empresa gana claridad cuando recuerda esto: construye algo que te sentirías cómodo recomendando incluso si no llevara tu logo.","source":"Yvon Chouinard","theme":"calidad"},{"text":"Criterio de negocio para hoy: la experiencia premium suele depender más de muchos detalles consistentes que de un único gesto espectacular.","source":"Walt Disney","theme":"estándar"},{"text":"Una meta suficientemente ambiciosa obliga a cuestionar el proceso, no solo a trabajar más horas.","source":"Larry Page","theme":"ambición"},{"text":"En una semana exigente, vuelve a esta idea: la marca se fortalece cuando lo que prometes, lo que entregas y lo que haces después cuentan la misma historia.","source":"Phil Knight","theme":"marca"},{"text":"Criterio de negocio para hoy: la velocidad mejora cuando el equipo comparte una definición clara de qué no va a hacer.","source":"Daniel Ek","theme":"foco"},{"text":"No esperes sentirte completamente preparado para empezar algo que solo puede enseñarte la práctica.","source":"Sara Blakely","theme":"acción"},{"text":"En una semana exigente, vuelve a esta idea: una buena oportunidad rara vez llega con todas las respuestas; llega con suficientes razones para dar el primer paso.","source":"Richard Branson","theme":"iniciativa"},{"text":"Criterio de negocio para hoy: la tecnología crea ventaja cuando cambia el trabajo real, no cuando solo hace una demostración impresionante.","source":"Jensen Huang","theme":"innovación"},{"text":"Criterio de negocio para hoy: una pregunta extra puede descubrir una oportunidad que una respuesta rápida habría cerrado.","source":"Sergey Brin","theme":"curiosidad"},{"text":"Crecer sin control de caja puede convertir una buena venta en un problema operativo.","source":"Carlos Slim","theme":"caja"},{"text":"Una empresa gana claridad cuando recuerda esto: quita una función antes de añadir otra cuando ninguna mejora realmente la experiencia.","source":"Steve Jobs","theme":"foco y producto"},{"text":"Para hoy: antes de acelerar una tarea, pregunta si realmente debería existir tal como está.","source":"Henry Ford","theme":"eficiencia"},{"text":"Una empresa gana claridad cuando recuerda esto: da contexto antes de pedir velocidad; las personas ejecutan mejor cuando entienden por qué importa el resultado.","source":"Indra Nooyi","theme":"liderazgo"},{"text":"Una empresa gana claridad cuando recuerda esto: la eficiencia no es hacer más cosas; es necesitar menos pasos para producir el mismo valor.","source":"Michael Dell","theme":"operación"},{"text":"Construye algo que te sentirías cómodo recomendando incluso si no llevara tu logo.","source":"Yvon Chouinard","theme":"calidad"},{"text":"Criterio de negocio para hoy: da contexto antes de pedir velocidad; las personas ejecutan mejor cuando entienden por qué importa el resultado.","source":"Indra Nooyi","theme":"liderazgo"},{"text":"Para hoy: los datos son más valiosos cuando cambian una decisión, no cuando solo llenan un tablero.","source":"Anne Wojcicki","theme":"datos"},{"text":"En una semana exigente, vuelve a esta idea: pregunta qué información te haría cambiar de opinión antes de defender una conclusión.","source":"Anne Wojcicki","theme":"curiosidad"},{"text":"Para hoy: haz primero algo excepcional para pocos clientes; luego descubre qué parte puede escalar sin perder calidad.","source":"Brian Chesky","theme":"cliente"},{"text":"Una empresa gana claridad cuando recuerda esto: una experiencia financiera mejora cuando reduce ansiedad además de reducir pasos.","source":"David Vélez","theme":"simplicidad financiera"},{"text":"La tecnología crea ventaja cuando cambia el trabajo real, no cuando solo hace una demostración impresionante.","source":"Jensen Huang","theme":"innovación"},{"text":"Criterio de negocio para hoy: dormir una decisión compleja puede ser más productivo que seguir empujándola con la mente agotada.","source":"Arianna Huffington","theme":"claridad"},{"text":"Criterio de negocio para hoy: quita una función antes de añadir otra cuando ninguna mejora realmente la experiencia.","source":"Steve Jobs","theme":"foco y producto"},{"text":"Criterio de negocio para hoy: cuando el cliente mejora, tu negocio encuentra una razón más sólida para crecer.","source":"Jack Ma","theme":"cliente"},{"text":"Criterio de negocio para hoy: si la mejora es solo incremental, pregúntate qué tendría que cambiar para multiplicar el resultado.","source":"Larry Page","theme":"innovación"},{"text":"En una semana exigente, vuelve a esta idea: protege la reputación como un activo que tarda años en construirse y puede perderse en una sola mala decisión.","source":"Warren Buffett","theme":"reputación y largo plazo"},{"text":"Una empresa duradera crea valor sin olvidar a las personas que hacen posible ese valor.","source":"Marc Benioff","theme":"stakeholders"},{"text":"Criterio de negocio para hoy: la confianza no es un mensaje de marca; es la suma de decisiones que el cliente puede comprobar.","source":"Marc Benioff","theme":"confianza"},{"text":"Una empresa gana claridad cuando recuerda esto: una versión útil hoy puede enseñarte más que una versión perfecta que nunca llega al cliente.","source":"Daniel Ek","theme":"iteración"},{"text":"En una semana exigente, vuelve a esta idea: una herramienta se vuelve poderosa cuando una persona nueva puede entenderla sin una explicación larga.","source":"Melanie Perkins","theme":"simplicidad"},{"text":"Para hoy: una experiencia financiera mejora cuando reduce ansiedad además de reducir pasos.","source":"David Vélez","theme":"simplicidad financiera"},{"text":"La eficiencia no es hacer más cosas; es necesitar menos pasos para producir el mismo valor.","source":"Michael Dell","theme":"operación"},{"text":"En una semana exigente, vuelve a esta idea: cuando el cliente mejora, tu negocio encuentra una razón más sólida para crecer.","source":"Jack Ma","theme":"cliente"},{"text":"Criterio de negocio para hoy: una idea regional se vuelve grande cuando resuelve fricciones locales con disciplina operativa.","source":"Marcos Galperin","theme":"ejecución"},{"text":"Las personas recuerdan durante mucho tiempo un reconocimiento específico y sincero.","source":"Mary Kay Ash","theme":"reconocimiento"},{"text":"Para hoy: deja espacio para proyectos pequeños que puedan sorprenderte antes de exigirles un plan perfecto.","source":"Sergey Brin","theme":"experimentación"},{"text":"Una empresa gana claridad cuando recuerda esto: crecer sin control de caja puede convertir una buena venta en un problema operativo.","source":"Carlos Slim","theme":"caja"},{"text":"Una empresa gana claridad cuando recuerda esto: cuando el cliente mejora, tu negocio encuentra una razón más sólida para crecer.","source":"Jack Ma","theme":"cliente"},{"text":"En una semana exigente, vuelve a esta idea: diseña pensando en lo que la persona recordará después, no solo en lo que verá durante la compra.","source":"Walt Disney","theme":"experiencia"},{"text":"Criterio de negocio para hoy: una decisión que se ve pequeña hoy puede cambiar mucho si la repites durante cinco años.","source":"Jeff Bezos","theme":"largo plazo"},{"text":"Una empresa gana claridad cuando recuerda esto: una decisión que se ve pequeña hoy puede cambiar mucho si la repites durante cinco años.","source":"Jeff Bezos","theme":"largo plazo"},{"text":"En una semana exigente, vuelve a esta idea: trata a cada persona como si llevara un mensaje invisible que dijera: hazme sentir importante.","source":"Mary Kay Ash","theme":"liderazgo"},{"text":"Cada costo innecesario termina siendo pagado por alguien: por la empresa, por el equipo o por el cliente.","source":"Sam Walton","theme":"costos"},{"text":"Para hoy: prueba barato, aprende rápido y reserva las apuestas grandes para lo que ya mostró señales reales.","source":"Jeff Bezos","theme":"experimentación"},{"text":"Para hoy: una decisión que se ve pequeña hoy puede cambiar mucho si la repites durante cinco años.","source":"Jeff Bezos","theme":"largo plazo"},{"text":"Una venta empieza mucho antes del cierre: comienza cuando la confianza hace que el precio tenga contexto.","source":"Estée Lauder","theme":"ventas"},{"text":"En una semana exigente, vuelve a esta idea: una función que exige explicación constante probablemente todavía necesita diseño.","source":"Jan Koum","theme":"producto"},{"text":"Criterio de negocio para hoy: cada costo innecesario termina siendo pagado por alguien: por la empresa, por el equipo o por el cliente.","source":"Sam Walton","theme":"costos"},{"text":"Para hoy: los valores pesan de verdad cuando aceptar una oportunidad obligaría a traicionarlos.","source":"Yvon Chouinard","theme":"valores"},{"text":"Una empresa gana claridad cuando recuerda esto: la experiencia premium suele depender más de muchos detalles consistentes que de un único gesto espectacular.","source":"Walt Disney","theme":"estándar"},{"text":"El dinero que no necesitas gastar hoy conserva opciones para cuando aparezca una oportunidad mejor.","source":"Warren Buffett","theme":"capital"},{"text":"Criterio de negocio para hoy: una versión útil hoy puede enseñarte más que una versión perfecta que nunca llega al cliente.","source":"Daniel Ek","theme":"iteración"},{"text":"Dormir una decisión compleja puede ser más productivo que seguir empujándola con la mente agotada.","source":"Arianna Huffington","theme":"claridad"},{"text":"Criterio de negocio para hoy: la privacidad y la simplicidad también pueden ser ventajas de producto, no solo restricciones técnicas.","source":"Jan Koum","theme":"simplicidad"},{"text":"Para hoy: el producto abre la puerta; la forma en que haces sentir al cliente decide si vuelve.","source":"Howard Schultz","theme":"experiencia"},{"text":"En una semana exigente, vuelve a esta idea: una meta suficientemente ambiciosa obliga a cuestionar el proceso, no solo a trabajar más horas.","source":"Larry Page","theme":"ambición"},{"text":"Una empresa gana claridad cuando recuerda esto: pregunta qué información te haría cambiar de opinión antes de defender una conclusión.","source":"Anne Wojcicki","theme":"curiosidad"},{"text":"Para hoy: da contexto antes de pedir velocidad; las personas ejecutan mejor cuando entienden por qué importa el resultado.","source":"Indra Nooyi","theme":"liderazgo"},{"text":"En una semana exigente, vuelve a esta idea: crecer sin control de caja puede convertir una buena venta en un problema operativo.","source":"Carlos Slim","theme":"caja"},{"text":"Diseña la experiencia completa como si fueras tú quien tuviera que vivir cada pequeño paso.","source":"Brian Chesky","theme":"diseño"},{"text":"Un equipo pequeño con claridad y criterio puede avanzar más que uno grande coordinando confusión.","source":"Reed Hastings","theme":"talento"},{"text":"La marca se fortalece cuando lo que prometes, lo que entregas y lo que haces después cuentan la misma historia.","source":"Phil Knight","theme":"marca"},{"text":"En una semana exigente, vuelve a esta idea: quita una función antes de añadir otra cuando ninguna mejora realmente la experiencia.","source":"Steve Jobs","theme":"foco y producto"},{"text":"Acorta la distancia entre el problema del cliente y la persona capaz de corregirlo.","source":"Michael Dell","theme":"feedback"},{"text":"Criterio de negocio para hoy: el crecimiento estable suele parecer menos emocionante desde fuera porque está construido sobre hábitos repetibles.","source":"Arturo Calle","theme":"disciplina"},{"text":"Una empresa gana claridad cuando recuerda esto: construir algo distinto exige aceptar que algunas decisiones correctas se sentirán incómodas al principio.","source":"Whitney Wolfe Herd","theme":"coraje"},{"text":"En una semana exigente, vuelve a esta idea: no compitas solo por precio; haz que el cliente entienda qué recibe a cambio de lo que paga.","source":"Arturo Calle","theme":"valor"},{"text":"Los valores pesan de verdad cuando aceptar una oportunidad obligaría a traicionarlos.","source":"Yvon Chouinard","theme":"valores"},{"text":"En una semana exigente, vuelve a esta idea: la simplicidad útil aparece cuando cada elemento puede explicar por qué merece estar ahí.","source":"Steve Jobs","theme":"simplicidad"},{"text":"Para hoy: el lujo pierde credibilidad cuando un detalle pequeño contradice el cuidado del conjunto.","source":"Mario Hernández","theme":"detalle"},{"text":"En una semana exigente, vuelve a esta idea: una visión grande necesita tolerancia para recibir muchos no antes de encontrar el sí correcto.","source":"Melanie Perkins","theme":"persistencia"},{"text":"En una semana exigente, vuelve a esta idea: reconocer a quien sostiene el trabajo diario también es una decisión de estrategia.","source":"Indra Nooyi","theme":"personas"},{"text":"Criterio de negocio para hoy: invierte con horizonte largo, pero revisa con frecuencia si los fundamentos que justificaron la decisión siguen vivos.","source":"Carlos Slim","theme":"inversión"},{"text":"Criterio de negocio para hoy: una buena oportunidad rara vez llega con todas las respuestas; llega con suficientes razones para dar el primer paso.","source":"Richard Branson","theme":"iniciativa"},{"text":"En una semana exigente, vuelve a esta idea: una empresa duradera crea valor sin olvidar a las personas que hacen posible ese valor.","source":"Marc Benioff","theme":"stakeholders"},{"text":"Una empresa gana claridad cuando recuerda esto: diseña para la persona que desconfía del sistema; ganarte su claridad puede mejorar el producto para todos.","source":"David Vélez","theme":"cliente"},{"text":"En una semana exigente, vuelve a esta idea: diseña para la persona que desconfía del sistema; ganarte su claridad puede mejorar el producto para todos.","source":"David Vélez","theme":"cliente"},{"text":"Escuchar sin preparar la respuesta suele revelar la pregunta que el cliente realmente quería hacer.","source":"Oprah Winfrey","theme":"escucha"},{"text":"Criterio de negocio para hoy: empieza por la fricción del cliente y trabaja hacia atrás hasta encontrar el proceso que debes cambiar.","source":"Jeff Bezos","theme":"cliente"},{"text":"Una decisión se vuelve más fácil cuando sabes qué valor no estás dispuesto a negociar.","source":"Oprah Winfrey","theme":"propósito"},{"text":"Da contexto antes de pedir velocidad; las personas ejecutan mejor cuando entienden por qué importa el resultado.","source":"Indra Nooyi","theme":"liderazgo"},{"text":"Una función que exige explicación constante probablemente todavía necesita diseño.","source":"Jan Koum","theme":"producto"},{"text":"Para hoy: una idea regional se vuelve grande cuando resuelve fricciones locales con disciplina operativa.","source":"Marcos Galperin","theme":"ejecución"}];
+
+function homeEasyDayOfYear(date) {
+    const start = new Date(date.getFullYear(), 0, 0);
+    return Math.floor((date - start) / 86400000);
+}
+
+function actualizarPortadaHomeEasy() {
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const greeting = document.getElementById('homeGreeting');
+    const dateEl = document.getElementById('homeDate');
+    if (greeting) greeting.textContent = hora < 12 ? 'Buenos días' : (hora < 19 ? 'Buenas tardes' : 'Buenas noches');
+    if (dateEl) {
+        const fecha = new Intl.DateTimeFormat('es-CO', { weekday:'long', day:'numeric', month:'long' }).format(ahora);
+        dateEl.textContent = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+    }
+    const idx = (homeEasyDayOfYear(ahora) - 1 + HOMEEASY_DAILY_IDEAS.length) % HOMEEASY_DAILY_IDEAS.length;
+    const idea = HOMEEASY_DAILY_IDEAS[idx];
+    document.querySelectorAll('[data-daily-quote]').forEach(el => el.textContent = idea.text);
+    document.querySelectorAll('[data-daily-source]').forEach(el => el.textContent = 'Inspiración del día · ' + idea.source + ' · ' + idea.theme);
+}
+
+document.addEventListener('DOMContentLoaded', actualizarPortadaHomeEasy);
 </script>
 </body>
 </html>
