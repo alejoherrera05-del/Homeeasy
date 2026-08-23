@@ -286,6 +286,18 @@
             .fab { bottom: 85px; width: 50px; height: 50px; }
             .fab .material-icons-round { font-size: 28px; }
         }
+
+
+        /* Enlace directo desde la campana del inicio */
+        @keyframes agendaFocusGlow {
+            0%, 100% { box-shadow: var(--shadow); }
+            35% { box-shadow: 0 0 0 4px rgba(194,164,104,.20), 0 16px 36px rgba(166,69,90,.17); }
+        }
+        .agenda-deeplink-focus .evento-card-content {
+            border-color: rgba(194,164,104,.72) !important;
+            animation: agendaFocusGlow 1.05s ease 2;
+        }
+
     </style>
     <script src="homeeasy-core.js?v=2.2"></script>
 </head>
@@ -1417,9 +1429,47 @@
     }
 
     // ==========================================
+    // ENLACE DIRECTO DESDE INICIO / CAMPANA
+    // ==========================================
+    function aplicarEnlaceAgendaDesdeUrl() {
+        const params = new URLSearchParams(window.location.search);
+        let fecha = params.get('fecha') || '';
+        let eventoId = params.get('evento') || '';
+
+        if (!fecha) {
+            try {
+                const raw = sessionStorage.getItem('HOMEEASY_AGENDA_FOCUS');
+                if (raw) {
+                    const focus = JSON.parse(raw);
+                    fecha = focus.fecha || '';
+                    eventoId = eventoId || focus.eventoId || '';
+                }
+            } catch (e) {}
+        }
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return;
+        irAFecha(fecha);
+
+        if (eventoId) {
+            setTimeout(() => {
+                const target = document.getElementById(`evento-${eventoId}`) || document.getElementById(`evento-vencido-${eventoId}`);
+                if (!target) return;
+                target.classList.add('agenda-deeplink-focus');
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => target.classList.remove('agenda-deeplink-focus'), 2600);
+            }, 140);
+        }
+
+        try { sessionStorage.removeItem('HOMEEASY_AGENDA_FOCUS'); } catch (e) {}
+        setTimeout(() => {
+            try { window.history.replaceState({}, '', 'calendario.html'); } catch (e) {}
+        }, 450);
+    }
+
+    // ==========================================
     // INICIALIZAR
     // ==========================================
-    inicializarCalendario(); 
+    inicializarCalendario().then(aplicarEnlaceAgendaDesdeUrl); 
 
 </script>
 </body>
