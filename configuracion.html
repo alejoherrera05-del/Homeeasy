@@ -36,7 +36,7 @@
         body {
             background: var(--menu-bg);
             color: var(--text);
-            font-family: 'Montserrat', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
         button, input, select, textarea { font: inherit; }
@@ -1218,6 +1218,252 @@
             .discard-button, .save-button { flex: 1; padding: 0 10px; }
             .preview-top { grid-template-columns: 90px minmax(0,1fr); }
         }
+            /* =================================================
+           CONFIGURACIÓN 4.0 — PULIDO VISUAL DEL LOGIN
+           Solo capa visual del acceso. Sin cambios funcionales.
+           ================================================= */
+        .access-screen {
+            background:
+                radial-gradient(circle at 16% 14%, rgba(230,190,120,.22), transparent 24%),
+                radial-gradient(circle at 82% 18%, rgba(255,232,238,.10), transparent 28%),
+                linear-gradient(155deg, #8f4153 0%, #a7465c 55%, #bc6a7d 100%);
+        }
+        .access-screen::before {
+            inset: -6%;
+            opacity: .85;
+            background:
+                radial-gradient(circle at 12% 22%, rgba(255,255,255,.06), transparent 18%),
+                radial-gradient(circle at 80% 68%, rgba(255,255,255,.04), transparent 22%);
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+        .access-screen::after {
+            top: 10%;
+            width: min(920px, 118vw);
+            height: 60vh;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,.08) 0%, rgba(194,164,104,.08) 38%, transparent 70%);
+            filter: blur(14px);
+            opacity: .9;
+        }
+        .access-back {
+            width: 52px;
+            height: 52px;
+            border-color: rgba(255,255,255,.34);
+            background: rgba(255,255,255,.14);
+            box-shadow: 0 12px 28px rgba(52,12,24,.16), inset 0 1px 0 rgba(255,255,255,.42);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .access-stage { width: min(1220px, 100%); }
+        .access-hommy {
+            left: clamp(-104px, -2vw, 24px);
+            bottom: -2vh;
+            height: min(90vh, 860px);
+            filter: drop-shadow(0 28px 36px rgba(43,10,21,.28)) drop-shadow(0 8px 18px rgba(96,35,48,.14));
+        }
+        .access-card {
+            width: min(408px, calc(100% - 42px));
+            padding: 30px 28px 24px;
+            border-radius: 32px;
+            border: 1px solid rgba(255,255,255,.46);
+            background: linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.16) 42%, rgba(255,255,255,.11) 100%);
+            box-shadow:
+                0 30px 72px rgba(47,11,24,.28),
+                0 10px 24px rgba(63,18,30,.16),
+                inset 0 1px 0 rgba(255,255,255,.62),
+                inset 0 -1px 0 rgba(255,255,255,.08);
+            backdrop-filter: blur(26px) saturate(165%);
+            -webkit-backdrop-filter: blur(26px) saturate(165%);
+        }
+        .access-card::before {
+            background:
+                linear-gradient(140deg, rgba(255,255,255,.24), rgba(255,255,255,.08) 36%, rgba(255,255,255,.04) 100%);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+        }
+        .access-card::after {
+            left: 10%; right: 10%; bottom: -16px; height: 32px;
+            background: rgba(47,11,24,.28); filter: blur(22px); opacity: .55;
+        }
+        .access-icon-badge {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 0 16px;
+            background: linear-gradient(145deg, rgba(255,255,255,.74), rgba(255,255,255,.48));
+            border: 1px solid rgba(255,255,255,.5);
+            color: var(--home-red);
+            box-shadow: 0 12px 24px rgba(73,24,38,.12), inset 0 1px 0 rgba(255,255,255,.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .access-icon-badge i {
+            font-size: 1.34rem;
+            color: var(--brand-dark);
+            text-shadow: 0 1px 0 rgba(255,255,255,.6);
+        }
+        .access-logo { display: none !important; }
+        .access-eyebrow {
+            margin-bottom: 10px;
+            color: rgba(79,34,46,.82);
+            font-size: .72rem;
+            letter-spacing: 1.18px;
+        }
+        .access-card h1 {
+            color: #2f2126;
+            font-size: 1.96rem;
+            line-height: 1.02;
+            letter-spacing: -.9px;
+        }
+        .access-card p {
+            margin: 10px 0 20px;
+            color: rgba(47,33,38,.78);
+            font-size: .95rem;
+            line-height: 1.48;
+            font-weight: 500;
+            max-width: 31ch;
+        }
+        .pin-field > i:first-child {
+            left: 18px;
+            color: #b69a5f;
+        }
+        .pin-input {
+            height: 58px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,.52);
+            background: rgba(255,255,255,.78);
+            color: #31262a;
+            letter-spacing: 7px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-align: center;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.72), 0 8px 18px rgba(62,17,29,.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .pin-input::placeholder { color: rgba(49,38,42,.36); letter-spacing: 4px; }
+        .pin-input:focus {
+            border-color: rgba(194,164,104,.78);
+            background: rgba(255,255,255,.86);
+            box-shadow: 0 0 0 4px rgba(194,164,104,.14), 0 9px 20px rgba(62,17,29,.08), inset 0 1px 0 rgba(255,255,255,.88);
+        }
+        .pin-eye {
+            width: 44px;
+            height: 44px;
+            right: 7px;
+            border-radius: 14px;
+            color: #8a8084;
+            transition: transform .16s ease, background .16s ease, color .16s ease;
+        }
+        .pin-eye:active { transform: scale(.92); background: rgba(255,255,255,.52); }
+        .access-submit {
+            min-height: 55px;
+            margin-top: 14px;
+            border-radius: 17px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: linear-gradient(135deg, #ba4d68 0%, #8b3148 100%);
+            font-size: 1rem;
+            letter-spacing: -.2px;
+            box-shadow: 0 14px 26px rgba(91,22,41,.24), inset 0 1px 0 rgba(255,255,255,.16);
+        }
+        .access-status {
+            min-height: 18px;
+            margin-top: 10px;
+            color: #9f2434;
+            font-size: .76rem;
+        }
+        .access-caption {
+            margin-top: 4px;
+            color: rgba(47,33,38,.58);
+            font-size: .69rem;
+            letter-spacing: .02em;
+        }
+
+        @media (max-width: 720px) {
+            .access-screen {
+                background:
+                    radial-gradient(circle at 16% 12%, rgba(230,190,120,.18), transparent 24%),
+                    linear-gradient(160deg, #934658 0%, #a9485f 56%, #bf6e7f 100%);
+            }
+            .access-back {
+                top: calc(16px + env(safe-area-inset-top));
+                left: 18px;
+                width: 50px;
+                height: 50px;
+            }
+            .access-hommy {
+                left: 53%;
+                top: calc(env(safe-area-inset-top) + clamp(56px, 7.4vh, 76px));
+                height: min(78vh, 655px);
+                filter: drop-shadow(0 26px 30px rgba(43,10,21,.28)) drop-shadow(0 6px 12px rgba(96,35,48,.12));
+            }
+            .access-card {
+                top: calc(env(safe-area-inset-top) + clamp(224px, 28.4vh, 262px));
+                width: calc(100% - 28px);
+                max-width: 398px;
+                padding: 24px 22px 18px;
+                border-radius: 29px;
+                background: linear-gradient(145deg, rgba(255,255,255,.24), rgba(255,255,255,.14) 44%, rgba(255,255,255,.10));
+                backdrop-filter: blur(24px) saturate(160%);
+                -webkit-backdrop-filter: blur(24px) saturate(160%);
+            }
+            .access-icon-badge {
+                width: 54px;
+                height: 54px;
+                border-radius: 17px;
+                margin-bottom: 13px;
+            }
+            .access-icon-badge i { font-size: 1.23rem; }
+            .access-eyebrow {
+                font-size: .66rem;
+                margin-bottom: 9px;
+            }
+            .access-card h1 {
+                font-size: 1.74rem;
+                letter-spacing: -.78px;
+            }
+            .access-card p {
+                margin: 9px 0 16px;
+                font-size: .90rem;
+                line-height: 1.44;
+                max-width: none;
+            }
+            .pin-input {
+                height: 54px;
+                font-size: 1.08rem;
+                letter-spacing: 6px;
+                border-radius: 16px;
+            }
+            .access-submit {
+                min-height: 52px;
+                margin-top: 12px;
+                border-radius: 16px;
+            }
+            .access-caption { font-size: .66rem; }
+        }
+
+        @media (max-width: 720px) and (max-height: 740px) {
+            .access-hommy {
+                top: calc(env(safe-area-inset-top) + 52px);
+                height: min(77vh, 575px);
+            }
+            .access-card {
+                top: calc(env(safe-area-inset-top) + clamp(198px, 28vh, 220px));
+                padding: 20px 18px 15px;
+                border-radius: 26px;
+            }
+            .access-icon-badge { width: 48px; height: 48px; margin-bottom: 11px; }
+            .access-icon-badge i { font-size: 1.12rem; }
+            .access-eyebrow { font-size: .61rem; margin-bottom: 7px; }
+            .access-card h1 { font-size: 1.54rem; }
+            .access-card p { margin: 8px 0 13px; font-size: .82rem; }
+            .pin-input { height: 50px; }
+            .access-submit { min-height: 47px; }
+            .access-caption { font-size: .61rem; }
+        }
+
     </style>
 </head>
 <body>
@@ -1227,7 +1473,7 @@
         <div class="access-stage">
             <img src="hommyconfiguracion.png" class="access-hommy" alt="Hommy, asistente de HomeEasy" onerror="this.style.display='none'">
             <div class="access-card" id="accessCard">
-                <img src="logohomeeasy.png" class="access-logo" alt="HomeEasy" onerror="this.src='triangulo.png'; this.style.width='62px'">
+                <div class="access-icon-badge" aria-hidden="true"><i class="fa-solid fa-gear"></i></div>
                 <div class="access-eyebrow"><i class="fa-solid fa-gear"></i> Ajustes de HomeEasy</div>
                 <h1>Configuración</h1>
                 <p>Ingresa el PIN para administrar los datos de la empresa, documentos y preferencias de la aplicación.</p>
