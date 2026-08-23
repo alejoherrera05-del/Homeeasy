@@ -1368,6 +1368,26 @@ button, input, select, textarea { font-family: inherit; }
         animation-iteration-count: 1 !important;
     }
 }
+
+
+/* ==========================================================
+   HOMEEASY INDEX 4.4 — SHELLS SEPARADOS IOS 26
+   Loader vino y menú gris con safe-area independiente.
+   Solo CSS. Sin cambios de lógica, HTML o rutas.
+   ========================================================== */
+#app-scroll-wrapper {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    height: calc(100dvh + env(safe-area-inset-bottom, 0px));
+    min-height: calc(100svh + env(safe-area-inset-bottom, 0px));
+    background: var(--ios-bg);
+}
+
 </style>
     <script src="homeeasy-core.js?v=2.2"></script>
 </head>
