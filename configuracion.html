@@ -46,65 +46,112 @@
 
         /* =================================================
            ACCESO — ESCENA HOMEEASY CON PANEL GLASS
+           Ajuste visual premium iOS — sin cambios funcionales
            ================================================= */
         .access-screen {
             position: fixed;
             inset: 0;
             z-index: 99999;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            min-height: 100svh;
             overflow: hidden;
+            isolation: isolate;
             padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
             background:
-                radial-gradient(circle at 18% 18%, rgba(194,164,104,.30), transparent 31%),
-                radial-gradient(circle at 82% 78%, rgba(255,255,255,.18), transparent 28%),
-                linear-gradient(145deg, #7a3040 0%, var(--home-red) 48%, #bc6f80 100%);
+                radial-gradient(circle at 17% 13%, rgba(226,188,118,.30), transparent 29%),
+                radial-gradient(circle at 84% 26%, rgba(255,206,218,.17), transparent 32%),
+                radial-gradient(circle at 52% 92%, rgba(69,16,31,.27), transparent 43%),
+                linear-gradient(153deg, #78303f 0%, var(--home-red) 49%, #bd6d7f 100%);
             transition: opacity .32s ease, visibility .32s ease;
         }
         .access-screen::before {
             content: '';
             position: absolute;
-            inset: 0;
+            inset: -8%;
+            z-index: 0;
             pointer-events: none;
-            background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-            background-size: 42px 42px;
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 90%);
+            opacity: .54;
+            background-image:
+                linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+            background-size: 46px 46px;
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.58), transparent 78%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,.58), transparent 78%);
+        }
+        .access-screen::after {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            top: 4%;
+            left: 50%;
+            width: min(860px, 116vw);
+            height: 66vh;
+            transform: translateX(-50%);
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse at center, rgba(255,232,237,.22) 0%, rgba(194,164,104,.10) 36%, transparent 72%);
+            filter: blur(18px);
+            opacity: .95;
         }
         .access-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
         .access-back {
             position: absolute;
             top: calc(18px + env(safe-area-inset-top));
             left: 20px;
-            z-index: 5;
-            width: 45px;
-            height: 45px;
+            z-index: 10;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            border: 1px solid rgba(255,255,255,.48);
-            background: rgba(255,255,255,.22);
+            border: 1px solid rgba(255,255,255,.42);
+            background: linear-gradient(145deg, rgba(255,255,255,.28), rgba(255,255,255,.12));
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 8px 25px rgba(62,17,27,.18);
-            backdrop-filter: blur(16px) saturate(150%);
-            -webkit-backdrop-filter: blur(16px) saturate(150%);
-            transition: transform .15s ease, background .15s ease;
+            box-shadow:
+                0 14px 34px rgba(52,12,24,.20),
+                inset 0 1px 0 rgba(255,255,255,.58),
+                0 0 0 1px rgba(255,255,255,.05);
+            backdrop-filter: blur(22px) saturate(170%);
+            -webkit-backdrop-filter: blur(22px) saturate(170%);
+            transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
         }
-        .access-back:active { transform: scale(.92); background: rgba(255,255,255,.32); }
-        .access-stage { position: relative; width: min(1180px, 100%); height: 100%; min-height: 100vh; min-height: 100dvh; margin: 0 auto; }
+        .access-back:active {
+            transform: scale(.92);
+            background: rgba(255,255,255,.32);
+            box-shadow: 0 8px 20px rgba(52,12,24,.18), inset 0 1px 0 rgba(255,255,255,.62);
+        }
+
+        .access-stage {
+            position: relative;
+            z-index: 1;
+            width: min(1180px, 100%);
+            height: 100%;
+            min-height: 100%;
+            margin: 0 auto;
+        }
+
         .access-hommy {
             position: absolute;
             z-index: 1;
-            left: clamp(-145px, -5vw, 16px);
-            bottom: -4.5vh;
-            height: min(94vh, 900px);
+            left: clamp(-128px, -3vw, 22px);
+            bottom: -5vh;
+            height: min(92vh, 880px);
             width: auto;
-            max-width: 72vw;
+            max-width: 70vw;
             object-fit: contain;
             object-position: bottom left;
             pointer-events: none;
             user-select: none;
-            filter: drop-shadow(0 30px 38px rgba(48,12,20,.34));
+            filter:
+                drop-shadow(0 34px 40px rgba(43,10,21,.34))
+                drop-shadow(0 8px 18px rgba(96,35,48,.16));
         }
+
         .access-card {
             position: absolute;
             z-index: 3;
@@ -112,90 +159,325 @@
             right: clamp(24px, 6vw, 92px);
             width: min(390px, calc(100% - 40px));
             transform: translateY(-50%);
-            padding: 30px 28px 25px;
-            border: 1px solid rgba(255,255,255,.62);
+            padding: 28px 27px 23px;
+            border: 1px solid rgba(255,255,255,.52);
             border-radius: 30px;
-            background: linear-gradient(145deg, rgba(255,255,255,.72), rgba(255,255,255,.48));
-            box-shadow: 0 28px 70px rgba(54,13,22,.28), inset 0 1px 0 rgba(255,255,255,.82);
-            backdrop-filter: blur(26px) saturate(165%);
-            -webkit-backdrop-filter: blur(26px) saturate(165%);
+            background:
+                linear-gradient(145deg,
+                    rgba(255,255,255,.43),
+                    rgba(255,245,247,.24) 44%,
+                    rgba(240,205,213,.19));
+            box-shadow:
+                0 34px 82px rgba(47,11,24,.34),
+                0 12px 30px rgba(63,18,30,.18),
+                0 0 0 1px rgba(255,255,255,.08),
+                inset 0 1px 0 rgba(255,255,255,.78),
+                inset 0 -1px 0 rgba(100,30,47,.08);
+            backdrop-filter: blur(34px) saturate(180%) brightness(1.04);
+            -webkit-backdrop-filter: blur(34px) saturate(180%) brightness(1.04);
             text-align: left;
+            isolation: isolate;
         }
-        .access-logo { width: 150px; max-width: 58%; height: auto; display: block; margin: 0 0 23px; filter: drop-shadow(0 5px 10px rgba(0,0,0,.08)); }
-        .access-eyebrow { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 11px; color: var(--home-red); font-size: .67rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.25px; }
-        .access-eyebrow i { color: var(--home-yellow); }
-        .access-card h1 { margin: 0; color: #472128; font-size: 1.72rem; font-weight: 800; letter-spacing: -.72px; }
-        .access-card p { margin: 9px 0 23px; color: #6f5c61; font-size: .85rem; line-height: 1.52; font-weight: 550; }
+        .access-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                linear-gradient(132deg,
+                    rgba(255,255,255,.34),
+                    transparent 24%,
+                    transparent 67%,
+                    rgba(194,164,104,.10));
+            box-shadow: inset 0 0 30px rgba(255,255,255,.05);
+        }
+        .access-card::after {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            left: 8%;
+            right: 8%;
+            bottom: -19px;
+            height: 38px;
+            border-radius: 50%;
+            pointer-events: none;
+            background: rgba(47,11,24,.34);
+            filter: blur(25px);
+            opacity: .62;
+        }
+        .access-card > * { position: relative; z-index: 1; }
+
+        .access-logo {
+            width: 138px;
+            max-width: 54%;
+            height: auto;
+            display: block;
+            margin: 0 0 20px;
+            filter: drop-shadow(0 10px 20px rgba(70,17,31,.15));
+        }
+        .access-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 10px;
+            color: #8a3449;
+            font-size: .66rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+        .access-eyebrow i {
+            color: var(--home-yellow);
+            filter: drop-shadow(0 2px 5px rgba(194,164,104,.22));
+        }
+        .access-card h1 {
+            margin: 0;
+            color: #442028;
+            font-size: 1.72rem;
+            font-weight: 800;
+            line-height: 1.06;
+            letter-spacing: -.72px;
+        }
+        .access-card p {
+            margin: 9px 0 20px;
+            color: rgba(68,32,40,.70);
+            font-size: .83rem;
+            line-height: 1.5;
+            font-weight: 560;
+        }
+
         .pin-field { position: relative; }
-        .pin-field > i:first-child { position: absolute; left: 17px; top: 50%; transform: translateY(-50%); color: var(--home-yellow); }
+        .pin-field > i:first-child {
+            position: absolute;
+            z-index: 2;
+            left: 17px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--home-yellow);
+            filter: drop-shadow(0 2px 5px rgba(194,164,104,.18));
+        }
         .pin-input {
             width: 100%;
-            height: 56px;
+            height: 55px;
             padding: 0 52px 0 47px;
-            border: 1.5px solid rgba(166,69,90,.18);
-            border-radius: 16px;
-            background: rgba(255,255,255,.74);
+            border: 1px solid rgba(255,255,255,.58);
+            border-radius: 17px;
+            background:
+                linear-gradient(145deg, rgba(255,255,255,.66), rgba(255,255,255,.39));
             color: var(--text);
             text-align: center;
             letter-spacing: 8px;
-            font-size: 1.22rem;
+            font-size: 1.18rem;
             font-weight: 800;
             outline: none;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+            box-shadow:
+                0 8px 20px rgba(62,17,29,.10),
+                inset 0 1px 0 rgba(255,255,255,.84),
+                inset 0 0 0 1px rgba(194,164,104,.09);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
         }
-        .pin-input:focus { border-color: var(--home-yellow); background: rgba(255,255,255,.94); box-shadow: 0 0 0 4px rgba(194,164,104,.16); }
-        .pin-input.error { border-color: var(--danger); box-shadow: 0 0 0 4px rgba(255,59,48,.1); }
-        .pin-eye { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); width: 42px; height: 42px; border: none; border-radius: 12px; background: transparent; color: #92868a; }
+        .pin-input:focus {
+            border-color: rgba(194,164,104,.72);
+            background: rgba(255,255,255,.73);
+            box-shadow:
+                0 9px 22px rgba(62,17,29,.11),
+                0 0 0 4px rgba(194,164,104,.14),
+                inset 0 1px 0 rgba(255,255,255,.90);
+        }
+        .pin-input.error {
+            border-color: rgba(255,59,48,.68);
+            box-shadow: 0 0 0 4px rgba(255,59,48,.10), inset 0 1px 0 rgba(255,255,255,.86);
+        }
+        .pin-eye {
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 12px;
+            background: transparent;
+            color: #8d8185;
+        }
+
         .access-submit {
             width: 100%;
-            margin-top: 14px;
+            margin-top: 13px;
             min-height: 52px;
-            border: none;
-            border-radius: 15px;
-            background: linear-gradient(135deg, var(--home-red), #843546);
+            border: 1px solid rgba(255,255,255,.16);
+            border-radius: 16px;
+            background: linear-gradient(135deg, #b74762, #8b3148);
             color: white;
             font-weight: 800;
-            box-shadow: 0 10px 24px rgba(166,69,90,.28);
-            transition: transform .15s ease, opacity .15s ease;
+            box-shadow:
+                0 15px 32px rgba(91,22,41,.28),
+                inset 0 1px 0 rgba(255,255,255,.20);
+            transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
         }
-        .access-submit:active { transform: scale(.98); }
+        .access-submit:active {
+            transform: scale(.985);
+            box-shadow: 0 9px 22px rgba(91,22,41,.24), inset 0 1px 0 rgba(255,255,255,.18);
+        }
         .access-submit:disabled { opacity: .65; cursor: wait; }
-        .access-status { min-height: 20px; margin-top: 12px; color: #bd2935; font-size: .73rem; font-weight: 700; text-align: center; }
-        .access-caption { margin-top: 5px; color: rgba(71,33,40,.58); font-size: .64rem; font-weight: 650; text-align: center; }
-        @keyframes accessShakeDesktop { 0%,100%{transform:translateY(-50%) translateX(0)} 25%{transform:translateY(-50%) translateX(-9px)} 75%{transform:translateY(-50%) translateX(9px)} }
+        .access-status {
+            min-height: 20px;
+            margin-top: 11px;
+            color: #9f2434;
+            font-size: .72rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .access-caption {
+            margin-top: 3px;
+            color: rgba(66,31,40,.56);
+            font-size: .63rem;
+            font-weight: 650;
+            text-align: center;
+        }
+
+        @keyframes accessShakeDesktop {
+            0%,100% { transform: translateY(-50%) translateX(0); }
+            25% { transform: translateY(-50%) translateX(-9px); }
+            75% { transform: translateY(-50%) translateX(9px); }
+        }
         .access-card.shake { animation: accessShakeDesktop .34s ease; }
 
+        /* iPhone / móvil:
+           Hommy se muestra completo detrás del glass.
+           El panel queda sobre su torso y deja visibles cabeza + llave. */
         @media (max-width: 720px) {
-            .access-stage { min-height: 100vh; min-height: 100dvh; }
+            .access-stage {
+                width: 100%;
+                height: 100%;
+                min-height: 100%;
+            }
+
+            .access-back {
+                top: calc(17px + env(safe-area-inset-top));
+                left: 18px;
+                width: 46px;
+                height: 46px;
+            }
+
             .access-hommy {
-                left: 50%;
-                bottom: -5.5vh;
-                height: min(66vh, 610px);
+                z-index: 1;
+                left: 53%;
+                top: calc(env(safe-area-inset-top) + clamp(58px, 7.6vh, 78px));
+                bottom: auto;
+                height: min(79vh, 670px);
+                width: auto;
                 max-width: none;
                 transform: translateX(-50%);
-                object-position: bottom center;
-                filter: drop-shadow(0 24px 30px rgba(48,12,20,.31));
-                clip-path: inset(22% 0 0 0);
+                object-position: center top;
+                clip-path: none;
+                -webkit-clip-path: none;
+                opacity: 1;
+                filter:
+                    drop-shadow(0 34px 38px rgba(43,10,21,.34))
+                    drop-shadow(0 7px 16px rgba(96,35,48,.16));
             }
+
             .access-card {
-                top: calc(72px + env(safe-area-inset-top));
+                top: calc(env(safe-area-inset-top) + clamp(230px, 28.5vh, 270px));
                 left: 50%;
                 right: auto;
-                width: calc(100% - 28px);
-                max-width: 405px;
+                width: calc(100% - 30px);
+                max-width: 390px;
                 transform: translateX(-50%);
-                padding: 23px 21px 20px;
-                border-radius: 25px;
-                background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(255,255,255,.56));
+                padding: 21px 20px 17px;
+                border-radius: 28px;
+                background:
+                    linear-gradient(145deg,
+                        rgba(255,255,255,.42),
+                        rgba(255,245,247,.23) 44%,
+                        rgba(238,203,212,.19));
+                box-shadow:
+                    0 36px 86px rgba(47,11,24,.36),
+                    0 13px 30px rgba(63,18,30,.19),
+                    0 0 0 1px rgba(255,255,255,.08),
+                    inset 0 1px 0 rgba(255,255,255,.80),
+                    inset 0 -1px 0 rgba(100,30,47,.08);
+                backdrop-filter: blur(36px) saturate(185%) brightness(1.04);
+                -webkit-backdrop-filter: blur(36px) saturate(185%) brightness(1.04);
             }
-            .access-logo { width: 132px; margin-bottom: 17px; }
-            .access-card h1 { font-size: 1.43rem; }
-            .access-card p { margin-bottom: 18px; font-size: .79rem; }
-            .pin-input { height: 53px; }
-            .access-submit { min-height: 49px; }
-            @keyframes accessShakeMobile { 0%,100%{transform:translateX(-50%)} 25%{transform:translateX(calc(-50% - 9px))} 75%{transform:translateX(calc(-50% + 9px))} }
+
+            .access-logo {
+                width: 106px;
+                max-width: 34%;
+                margin-bottom: 13px;
+                filter: drop-shadow(0 9px 17px rgba(70,17,31,.16));
+            }
+            .access-eyebrow {
+                margin-bottom: 8px;
+                font-size: .62rem;
+                letter-spacing: 1.05px;
+            }
+            .access-card h1 {
+                font-size: 1.55rem;
+                letter-spacing: -.65px;
+            }
+            .access-card p {
+                margin: 8px 0 15px;
+                font-size: .78rem;
+                line-height: 1.48;
+            }
+            .pin-input {
+                height: 51px;
+                border-radius: 15px;
+                font-size: 1.08rem;
+            }
+            .access-submit {
+                min-height: 49px;
+                margin-top: 11px;
+                border-radius: 15px;
+            }
+            .access-status {
+                min-height: 17px;
+                margin-top: 8px;
+                font-size: .68rem;
+            }
+            .access-caption {
+                margin-top: 2px;
+                font-size: .60rem;
+            }
+
+            @keyframes accessShakeMobile {
+                0%,100% { transform: translateX(-50%); }
+                25% { transform: translateX(calc(-50% - 9px)); }
+                75% { transform: translateX(calc(-50% + 9px)); }
+            }
             .access-card.shake { animation: accessShakeMobile .34s ease; }
+        }
+
+        /* iPhone compactos / pantallas con poca altura */
+        @media (max-width: 720px) and (max-height: 740px) {
+            .access-hommy {
+                left: 53%;
+                top: calc(env(safe-area-inset-top) + 52px);
+                height: min(79vh, 585px);
+            }
+            .access-card {
+                top: calc(env(safe-area-inset-top) + clamp(205px, 28vh, 225px));
+                padding: 17px 18px 13px;
+                border-radius: 25px;
+            }
+            .access-logo {
+                width: 85px;
+                margin-bottom: 9px;
+            }
+            .access-eyebrow { margin-bottom: 6px; font-size: .58rem; }
+            .access-card h1 { font-size: 1.38rem; }
+            .access-card p { margin: 6px 0 11px; font-size: .72rem; line-height: 1.42; }
+            .pin-input { height: 46px; }
+            .access-submit { min-height: 44px; margin-top: 9px; }
+            .access-status { min-height: 14px; margin-top: 6px; }
+            .access-caption { margin-top: 1px; font-size: .56rem; }
         }
 
         /* =================================================
