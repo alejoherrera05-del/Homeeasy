@@ -1,0 +1,80 @@
+name: Adaptive Sales History V2
+
+on:
+  push:
+    paths:
+      - '.github/ventas-adaptive.css'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply CSS-only responsive update
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, re
+
+          target = Path('ventas.html')
+          patch_file = Path('.github/ventas-adaptive.css')
+          raw = target.read_bytes()
+          sha = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+          expected = '0f2540effa4ca1f7b4809c59cb87a8a0845b437e'
+          if sha != expected:
+              raise SystemExit(f'SAFETY STOP: ventas.html SHA {sha} != {expected}')
+
+          text = raw.decode('utf-8')
+          css = patch_file.read_text(encoding='utf-8')
+          marker = 'HOMEEASY VENTAS 2.0 — ESCALA ADAPTATIVA'
+          if marker in text:
+              raise SystemExit('SAFETY STOP: responsive patch already present')
+          if marker not in css:
+              raise SystemExit('SAFETY STOP: CSS marker missing')
+          if text.count('</style>') != 1:
+              raise SystemExit('SAFETY STOP: style close count mismatch')
+
+          body_before = text[text.index('<body>'):]
+          ids_before = set(re.findall(r'id="([^"]+)"', text))
+          hrefs_before = re.findall(r'href="([^"]+)"', text)
+          js_before = re.findall(r'<script(?![^>]*src=)[^>]*>(.*?)</script>', text, re.S)
+
+          text = text.replace('</style>', css + '\n</style>', 1)
+
+          if text[text.index('<body>'):] != body_before:
+              raise SystemExit('SAFETY STOP: body/markup changed')
+          if set(re.findall(r'id="([^"]+)"', text)) != ids_before:
+              raise SystemExit('SAFETY STOP: IDs changed')
+          if re.findall(r'href="([^"]+)"', text) != hrefs_before:
+              raise SystemExit('SAFETY STOP: routes changed')
+          if re.findall(r'<script(?![^>]*src=)[^>]*>(.*?)</script>', text, re.S) != js_before:
+              raise SystemExit('SAFETY STOP: inline JavaScript changed')
+          if text.count(marker) != 1:
+              raise SystemExit('SAFETY STOP: marker count invalid')
+
+          target.write_text(text, encoding='utf-8', newline='\n')
+          Path('/tmp/ventas-inline.js').write_text('\n'.join(js_before), encoding='utf-8')
+          PY
+      - name: Validate result
+        shell: bash
+        run: |
+          node --check /tmp/ventas-inline.js
+          grep -q 'HOMEEASY VENTAS 2.0 — ESCALA ADAPTATIVA' ventas.html
+          grep -q 'tbody tr{display:grid' ventas.html
+          grep -q '@media(max-width:560px)' ventas.html
+          grep -q 'font-size:1rem' ventas.html
+      - name: Commit and clean temporary files
+        shell: bash
+        run: |
+          rm -f .github/workflows/ventas-adaptive-v2.yml .github/ventas-adaptive.css
+          git config user.name 'HomeEasy Update'
+          git config user.email 'actions@users.noreply.github.com'
+          git add ventas.html .github/workflows/ventas-adaptive-v2.yml .github/ventas-adaptive.css
+          git commit -m 'Make sales history adaptive and readable'
+          git push
