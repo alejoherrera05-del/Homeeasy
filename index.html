@@ -1158,6 +1158,213 @@ button, input, select, textarea { font-family: inherit; }
     .nav-copy span { font-size: .75rem; }
 }
 
+
+
+/* ==========================================================
+   HOMEEASY INDEX 4.3 — POLISH DE MICROINTERACCIONES
+   Solo experiencia visual. Sin cambios de lógica o rutas.
+   ========================================================== */
+:root {
+    --he-ease-spring: cubic-bezier(.22,.78,.24,1);
+    --he-ease-soft: cubic-bezier(.2,.65,.3,1);
+}
+
+/* Las áreas interactivas anuncian mejor que son accionables. */
+.nav-row,
+.hommy-ai-bar,
+.settings-container,
+.bell-container,
+.sheet-btn,
+.notification-calendar-link,
+.noti-item {
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.nav-list {
+    transition: box-shadow .24s var(--he-ease-soft), border-color .24s ease;
+}
+.nav-row {
+    z-index: 1;
+    transform-origin: center center;
+    transition:
+        background-color .20s ease,
+        transform .22s var(--he-ease-spring),
+        box-shadow .22s ease;
+}
+.nav-icon {
+    transition:
+        transform .24s var(--he-ease-spring),
+        box-shadow .24s ease,
+        filter .24s ease;
+}
+.nav-copy strong {
+    transition: color .18s ease, transform .22s var(--he-ease-spring);
+}
+.nav-copy span {
+    transition: color .18s ease;
+}
+.nav-chevron {
+    transition:
+        transform .24s var(--he-ease-spring),
+        color .20s ease,
+        opacity .20s ease;
+}
+
+/* La barra de Hommy también debe sentirse como una acción primaria. */
+.ai-bar-text { transition: color .18s ease; }
+.ai-bar-right {
+    transition:
+        transform .24s var(--he-ease-spring),
+        box-shadow .22s ease,
+        background-color .20s ease;
+}
+.hommy-ai-bar {
+    transition:
+        transform .24s var(--he-ease-spring),
+        box-shadow .24s ease,
+        border-color .20s ease,
+        background-color .20s ease;
+}
+
+/* El banner no se anima por animarse: solo responde mínimamente al puntero. */
+.settings-container i,
+.bell-container i { transition: transform .24s var(--he-ease-spring), color .20s ease; }
+
+.sheet-btn,
+.sheet-btn .icon-wrapper,
+.sheet-btn::after {
+    transition: transform .22s var(--he-ease-spring), background-color .20s ease, box-shadow .22s ease, color .20s ease;
+}
+
+.home-hero,
+.home-hero-media {
+    transition: transform .48s var(--he-ease-soft), box-shadow .28s ease, border-color .28s ease;
+}
+
+/* Respuesta táctil más clara sin convertirlo en un efecto Android. */
+.nav-row:active {
+    background: #F5ECEF;
+    transform: scale(.982);
+    box-shadow: inset 5px 0 0 rgba(166,69,90,.34);
+}
+.nav-row:active .nav-copy strong { color: var(--brand-wine); }
+.nav-row:active .nav-icon { transform: scale(.91); }
+.nav-row:active .nav-chevron {
+    transform: translateY(-50%) translateX(5px);
+    color: var(--brand-wine);
+}
+.hommy-ai-bar:active .ai-bar-right { transform: translateY(-1px) scale(.93); }
+
+/*
+   any-hover / any-pointer cubre mejor PCs híbridos y Surface con mouse.
+   La versión anterior usaba el puntero primario y en algunos equipos el hover
+   podía quedar prácticamente neutralizado.
+*/
+@media (any-hover: hover) and (any-pointer: fine) {
+    .nav-section:hover .nav-list {
+        border-color: rgba(166,69,90,.14);
+        box-shadow: 0 15px 38px rgba(43,36,39,.095);
+    }
+
+    .nav-row:hover {
+        z-index: 4;
+        background: #FBF2F5;
+        transform: translateY(-1px);
+        box-shadow:
+            inset 5px 0 0 rgba(166,69,90,.84),
+            inset 0 1px 0 rgba(166,69,90,.08),
+            inset 0 -1px 0 rgba(166,69,90,.06);
+    }
+    .nav-row:hover .nav-icon {
+        transform: translateY(-1px) scale(1.085);
+        filter: saturate(1.05);
+        box-shadow:
+            0 10px 22px rgba(100,42,55,.24),
+            inset 0 0 0 .5px rgba(255,255,255,.24);
+    }
+    .nav-row:hover .nav-copy strong {
+        color: var(--brand-wine);
+        transform: translateX(1px);
+    }
+    .nav-row:hover .nav-copy span { color: #5C5559; }
+    .nav-row:hover .nav-chevron {
+        transform: translateY(-50%) translateX(8px);
+        color: var(--brand-wine);
+        opacity: 1;
+    }
+
+    .hommy-ai-bar:hover {
+        transform: translateY(-3px) scale(1.003);
+        background: #FFFFFF;
+        border-color: rgba(166,69,90,.27);
+        box-shadow: 0 15px 34px rgba(43,36,39,.11);
+    }
+    .hommy-ai-bar:hover .ai-bar-text { color: #342E31; }
+    .hommy-ai-bar:hover .ai-bar-right {
+        transform: translateY(-2px) scale(1.08);
+        background: var(--brand-dark);
+        box-shadow: 0 7px 16px rgba(130,54,70,.22);
+    }
+
+    .settings-container:hover,
+    .bell-container:hover {
+        transform: translateY(-3px) scale(1.025);
+        border-color: rgba(166,69,90,.16);
+        box-shadow: 0 13px 30px rgba(42,32,36,.14);
+    }
+    .settings-container:hover i { transform: rotate(38deg) scale(1.05); }
+    .bell-container:hover i { transform: rotate(-7deg) scale(1.08); }
+
+    .home-hero:hover {
+        border-color: rgba(166,69,90,.10);
+        box-shadow: 0 17px 42px rgba(43,36,39,.12);
+    }
+    .home-hero:hover .home-hero-media { transform: scale(1.008); }
+
+    .sheet-btn:hover {
+        z-index: 2;
+        background: #FFFFFF;
+        transform: translateX(3px);
+        box-shadow: 0 8px 20px rgba(43,36,39,.075);
+    }
+    .sheet-btn:hover .icon-wrapper { transform: scale(1.055); }
+    .sheet-btn:hover::after { color: var(--brand-wine); transform: translateY(-52%) translateX(4px); }
+}
+
+/* Foco de teclado visible en PC, sin alterar la experiencia táctil. */
+.nav-row:focus-visible,
+.hommy-ai-bar:focus-visible,
+.settings-action:focus-visible .settings-container,
+.bell-container:focus-visible,
+.sheet-btn:focus-visible,
+.notification-calendar-link:focus-visible,
+.noti-item:focus-visible {
+    outline: 3px solid rgba(166,69,90,.26);
+    outline-offset: 3px;
+}
+
+/* Respeto por la preferencia de reducción de movimiento del sistema. */
+@media (prefers-reduced-motion: reduce) {
+    .nav-row,
+    .nav-icon,
+    .nav-copy strong,
+    .nav-copy span,
+    .nav-chevron,
+    .hommy-ai-bar,
+    .ai-bar-right,
+    .settings-container,
+    .bell-container,
+    .home-hero,
+    .home-hero-media,
+    .sheet-btn,
+    .sheet-btn .icon-wrapper,
+    .sheet-btn::after {
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
 </style>
     <script src="homeeasy-core.js?v=2.2"></script>
 </head>
