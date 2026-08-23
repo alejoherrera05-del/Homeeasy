@@ -44,6 +44,16 @@
         input, select, textarea { font-size: 16px; }
         a { color: inherit; }
 
+        /* Login fijo al viewport: evita franja/overscroll de iOS. */
+        html:has(#accessScreen:not(.hidden)),
+        body:has(#accessScreen:not(.hidden)) {
+            width: 100%;
+            height: 100%;
+            overflow: hidden !important;
+            overscroll-behavior: none;
+            background: #a9485f;
+        }
+
         /* =================================================
            ACCESO — ESCENA HOMEEASY CON PANEL GLASS
            Ajuste visual premium iOS — sin cambios funcionales
@@ -53,10 +63,10 @@
             inset: 0;
             z-index: 99999;
             width: 100%;
-            height: 100vh;
-            height: 100dvh;
-            min-height: 100svh;
+            height: auto;
+            min-height: 0;
             overflow: hidden;
+            overscroll-behavior: none;
             isolation: isolate;
             padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
             background:
