@@ -911,6 +911,253 @@ button, input, select, textarea { font-family: inherit; }
     .home-quote-mobile .home-quote-source { margin-top: 6px; color: #6E666A; font-size: .66rem; line-height: 1.35; }
 }
 
+
+
+/* ==========================================================
+   HOMEEASY INDEX 4.2 — ESCALA, PROFUNDIDAD Y RESPUESTA TÁCTIL
+   Corrección visual basada en prueba real de iPhone.
+   ========================================================== */
+
+/* Barra superior independiente: los controles ya no pisan el banner. */
+.hero-actions {
+    position: relative;
+    inset: auto;
+    z-index: 40;
+    width: 100%;
+    min-height: 64px;
+    margin: 0 0 12px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+}
+.hero-actions > * { pointer-events: auto; }
+.settings-action, .top-actions {
+    position: relative;
+    inset: auto;
+    margin: 0;
+    z-index: 41;
+}
+.settings-container, .bell-container {
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(60,60,67,.10);
+    background: #FFFFFF;
+    box-shadow: 0 7px 20px rgba(42,32,36,.08);
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease, background .18s ease;
+}
+.settings-container i, .bell-container i { font-size: 19px; }
+.settings-container:active, .bell-container:active { transform: scale(.92); background: #F8F5F6; }
+.top-actions .glass-bubble { top: 58px; }
+
+/* Hero: más presencia en teléfono y mejor lectura del saludo. */
+.home-hero {
+    height: clamp(320px, 35vw, 390px);
+    border-radius: 28px;
+    box-shadow: 0 12px 34px rgba(43,36,39,.09);
+}
+.home-hero-copy { padding: 30px 30px 26px; }
+.home-brand-lockup { font-size: 1rem; }
+.home-brand-lockup img { width: 26px; height: 26px; }
+.home-greeting {
+    font-size: clamp(2.25rem, 5vw, 3.4rem);
+    line-height: .96;
+}
+.home-date { font-size: .82rem; }
+.home-quote-text { font-size: .84rem; }
+.home-quote-source { font-size: .70rem; }
+
+/* Acción de Hommy: escala de control principal, no microfila. */
+.hommy-ai-bar {
+    max-width: 640px;
+    min-height: 66px;
+    margin-top: 18px;
+    padding: 0 16px 0 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(60,60,67,.10);
+    box-shadow: 0 8px 24px rgba(43,36,39,.055);
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease, border-color .18s ease;
+}
+.ai-bar-left { gap: 13px; }
+.ai-bar-text { font-size: .98rem; font-weight: 650; }
+.ai-bar-right { width: 40px; height: 40px; font-size: .86rem; }
+.pulse-green { width: 10px; height: 10px; }
+.hommy-ai-bar:active { transform: scale(.985); box-shadow: 0 4px 14px rgba(43,36,39,.07); }
+
+/* Navegación: mayor escala y profundidad, manteniendo estructura agrupada. */
+.nav-groups { gap: 26px; margin-top: 34px; }
+.nav-section-title {
+    margin: 0 0 10px 8px;
+    color: #5F585C;
+    font-size: .92rem;
+    font-weight: 650;
+}
+.nav-list {
+    border-radius: 24px;
+    border: 1px solid rgba(60,60,67,.095);
+    box-shadow: 0 10px 30px rgba(43,36,39,.065);
+}
+.nav-row {
+    min-height: 86px;
+    padding: 14px 54px 14px 16px;
+    transition: background .18s ease, transform .14s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease;
+}
+.nav-row + .nav-row::before { left: 79px; }
+.nav-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    margin-right: 15px;
+    border-radius: 14px;
+    font-size: 1.08rem;
+    box-shadow: 0 5px 13px rgba(100,42,55,.14), inset 0 0 0 .5px rgba(255,255,255,.20);
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease;
+}
+.nav-copy strong {
+    font-size: 1.02rem;
+    line-height: 1.18;
+    font-weight: 650;
+}
+.nav-copy span {
+    margin-top: 4px;
+    font-size: .78rem;
+    line-height: 1.26;
+    color: #716A6E;
+}
+.nav-chevron {
+    right: 18px;
+    font-size: .96rem;
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), color .18s ease;
+}
+.nav-row:active {
+    background: #F7F1F3;
+    transform: scale(.987);
+    box-shadow: inset 4px 0 0 rgba(166,69,90,.30);
+}
+.nav-row:active .nav-icon { transform: scale(.94); }
+.nav-row:active .nav-chevron { transform: translateY(-50%) translateX(3px); color: var(--brand-wine); }
+
+/* Footer: se recupera la identidad original con Hommy. */
+.app-footer {
+    width: 100%;
+    margin-top: 18px;
+    padding: 17px 0 calc(17px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: #FFFFFF;
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -6px 24px rgba(43,36,39,.055);
+}
+.footer-logo { height: 40px; width: auto; object-fit: contain; margin-bottom: 2px; opacity: 1; }
+.footer-title { color: #363134; font-size: .86rem; font-weight: 650; }
+.footer-version { color: #8A8387; font-size: .70rem; font-weight: 500; letter-spacing: .025em; }
+
+/* Bottom sheets: también recuperan escala para que no parezcan miniatura. */
+.sheet-title { font-size: 1.32rem; }
+.sheet-desc { font-size: .90rem; }
+.sheet-btn { min-height: 78px; padding: 12px 46px 12px 14px; }
+.sheet-btn .icon-wrapper { width: 44px; height: 44px; border-radius: 12px; font-size: 1.02rem; }
+.sheet-btn + .sheet-btn::before { left: 70px; }
+.sheet-btn-title { font-size: 1rem; }
+.sheet-btn-subtitle { font-size: .76rem; }
+
+@media (hover:hover) and (pointer:fine) {
+    .settings-container:hover, .bell-container:hover {
+        transform: translateY(-2px);
+        background: #FFFFFF;
+        box-shadow: 0 12px 28px rgba(42,32,36,.12);
+    }
+    .settings-container:hover i { transform: rotate(26deg); }
+    .hommy-ai-bar:hover {
+        transform: translateY(-2px);
+        border-color: rgba(166,69,90,.20);
+        box-shadow: 0 13px 30px rgba(43,36,39,.09);
+    }
+    .nav-row:hover {
+        background: #FBF7F8;
+        box-shadow: inset 4px 0 0 rgba(166,69,90,.55);
+    }
+    .nav-row:hover .nav-icon {
+        transform: scale(1.055);
+        box-shadow: 0 8px 18px rgba(100,42,55,.20), inset 0 0 0 .5px rgba(255,255,255,.20);
+    }
+    .nav-row:hover .nav-chevron {
+        transform: translateY(-50%) translateX(4px);
+        color: var(--brand-wine);
+    }
+    .sheet-btn:hover { background: #FBF7F8; }
+}
+
+@media (min-width: 768px) {
+    .menu-container { max-width: 1160px; padding: 18px 24px 42px; }
+    .hero-actions { min-height: 60px; margin-bottom: 14px; }
+    .nav-row { min-height: 88px; }
+    .nav-copy strong { font-size: 1.04rem; }
+    .nav-copy span { font-size: .79rem; }
+}
+
+@media (max-width: 767px) {
+    .menu-container { padding: 10px 16px 32px; }
+    .hero-actions {
+        min-height: 62px;
+        margin-bottom: 10px;
+        padding: 0 2px;
+    }
+    .settings-container, .bell-container { width: 48px; height: 48px; }
+    .home-hero {
+        height: 258px;
+        border-radius: 25px;
+    }
+    .home-hero-media { object-position: 69% center; }
+    .home-hero-copy {
+        width: 60%;
+        padding: 20px 18px 18px;
+    }
+    .home-brand-lockup { font-size: .88rem; gap: 8px; }
+    .home-brand-lockup img { width: 22px; height: 22px; }
+    .home-greeting {
+        font-size: clamp(2.15rem, 10.4vw, 2.72rem);
+        max-width: 195px;
+        line-height: .94;
+    }
+    .home-date { font-size: .78rem; max-width: 195px; line-height: 1.3; }
+    .home-quote-mobile { padding: 19px 7px 0; }
+    .home-quote-mobile .home-quote-text {
+        font-size: .98rem;
+        line-height: 1.48;
+        font-weight: 550;
+    }
+    .home-quote-mobile .home-quote-source {
+        margin-top: 8px;
+        font-size: .75rem;
+        line-height: 1.35;
+    }
+    .hommy-ai-bar { min-height: 66px; border-radius: 20px; }
+    .nav-groups { gap: 30px; margin-top: 34px; }
+    .nav-section-title { font-size: .94rem; margin-left: 8px; }
+    .nav-row { min-height: 88px; }
+    .nav-copy strong { font-size: 1.04rem; }
+    .nav-copy span { font-size: .79rem; }
+    .glass-bubble { width: min(350px, calc(100vw - 32px)); }
+}
+
+@media (max-width: 380px) {
+    .menu-container { padding-left: 13px; padding-right: 13px; }
+    .home-hero { height: 246px; }
+    .home-hero-copy { width: 61%; padding-left: 15px; padding-right: 8px; }
+    .home-greeting { font-size: 2.08rem; max-width: 160px; }
+    .home-date { font-size: .72rem; max-width: 165px; }
+    .home-quote-mobile .home-quote-text { font-size: .92rem; }
+    .nav-row { min-height: 84px; padding-left: 14px; }
+    .nav-icon { width: 46px; height: 46px; min-width: 46px; margin-right: 13px; }
+    .nav-copy strong { font-size: 1rem; }
+    .nav-copy span { font-size: .75rem; }
+}
+
 </style>
     <script src="homeeasy-core.js?v=2.2"></script>
 </head>
@@ -940,10 +1187,7 @@ button, input, select, textarea { font-family: inherit; }
     <div id="app-scroll-wrapper">
         
         <div class="menu-container">
-            
-            <section class="home-hero" aria-label="Inicio HomeEasy">
-
-                <div class="hero-actions" aria-label="Acciones rápidas">
+            <div class="hero-actions" aria-label="Acciones rápidas">
                     <a href="configuracion.html" class="settings-action" aria-label="Abrir configuración">
                         <span class="settings-container"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
                     </a>
@@ -961,6 +1205,8 @@ button, input, select, textarea { font-family: inherit; }
                         </div>
                     </div>
                 </div>
+
+            <section class="home-hero" aria-label="Inicio HomeEasy">
                 <img src="banner2.png" class="home-hero-media" alt="Hommy saludando en HomeEasy" onerror="this.onerror=null;this.src='hommysaludando.png';this.style.objectFit='contain';this.style.objectPosition='right bottom'">
                 <div class="home-hero-copy">
                     <div class="home-brand-lockup">
@@ -1045,8 +1291,10 @@ button, input, select, textarea { font-family: inherit; }
 
         </div>
 
-        <footer class="app-footer" aria-label="Versión de HomeEasy">
-            <div class="footer-version">Sistema Hommy · v2.0 · 2026</div>
+        <footer class="app-footer" aria-label="HomeEasy Sistema Hommy">
+            <img src="Hommypiedepagina.png" alt="Hommy" class="footer-logo">
+            <div class="footer-title">HomeEasy - Sistema Hommy</div>
+            <div class="footer-version">VERSIÓN 2.0 &copy; 2026</div>
         </footer>
 
     </div>
