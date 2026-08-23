@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#a6455a">
+    <meta name="theme-color" content="#aa485f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>HomeEasy | Configuración</title>
 
@@ -51,7 +51,7 @@
             height: 100%;
             overflow: hidden !important;
             overscroll-behavior: none;
-            background: #a9485f;
+            background: #aa485f;
         }
 
         /* =================================================
@@ -1398,7 +1398,7 @@
             .access-screen {
                 background:
                     radial-gradient(circle at 16% 12%, rgba(230,190,120,.18), transparent 24%),
-                    linear-gradient(160deg, #934658 0%, #a9485f 56%, #bf6e7f 100%);
+                    linear-gradient(160deg, #934658 0%, #a9485f 56%, #aa485f 100%);
             }
             .access-back {
                 top: calc(16px + env(safe-area-inset-top));
@@ -1482,18 +1482,18 @@
            Solo refinamiento visual. Sin cambios funcionales.
            ================================================= */
         .access-card {
-            background: rgba(255,255,255,.36);
+            background: rgba(255,255,255,.32);
             border-color: rgba(255,255,255,.54);
             box-shadow:
                 0 30px 72px rgba(47,11,24,.25),
                 0 10px 24px rgba(63,18,30,.13),
                 inset 0 1px 0 rgba(255,255,255,.72),
                 inset 0 -1px 0 rgba(255,255,255,.10);
-            backdrop-filter: blur(30px) saturate(132%) brightness(1.05);
-            -webkit-backdrop-filter: blur(30px) saturate(132%) brightness(1.05);
+            backdrop-filter: blur(26px) saturate(128%) brightness(1.045);
+            -webkit-backdrop-filter: blur(26px) saturate(128%) brightness(1.045);
         }
         .access-card::before {
-            background: linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.08) 58%, rgba(255,255,255,.03));
+            background: linear-gradient(145deg, rgba(255,255,255,.16), rgba(255,255,255,.06) 58%, rgba(255,255,255,.02));
         }
         .access-heading {
             display: flex;
@@ -1554,9 +1554,9 @@
 
         @media (max-width: 720px) {
             .access-card {
-                background: rgba(255,255,255,.38);
-                backdrop-filter: blur(28px) saturate(128%) brightness(1.055);
-                -webkit-backdrop-filter: blur(28px) saturate(128%) brightness(1.055);
+                background: rgba(255,255,255,.33);
+                backdrop-filter: blur(24px) saturate(124%) brightness(1.045);
+                -webkit-backdrop-filter: blur(24px) saturate(124%) brightness(1.045);
             }
             .access-heading { gap: 13px; margin-bottom: 14px; }
             .access-icon-badge {
