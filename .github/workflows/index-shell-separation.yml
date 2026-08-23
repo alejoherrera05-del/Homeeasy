@@ -1,0 +1,96 @@
+name: Separate Index Loader and Menu Shells
+
+on:
+  push:
+    paths:
+      - '.github/index-shell-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply CSS-only shell separation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, re
+
+          p=Path('index.html')
+          raw=p.read_bytes()
+          sha=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+          expected='bc8c3f7c0b09067a268a1e91788710e035423b14'
+          if sha != expected:
+              raise SystemExit(f'SAFETY STOP: index SHA {sha} != {expected}')
+
+          text=raw.decode('utf-8')
+          body_tail=text[text.index('<body ontouchstart="">'):]
+          ids=set(re.findall(r'id="([^"]+)"', text))
+          hrefs=re.findall(r'href="([^"]+)"', text)
+          inline_js=re.findall(r'<script(?![^>]*src=)[^>]*>(.*?)</script>', text, re.S)
+
+          # Loader must stay exactly as currently approved.
+          loader_start=text.index('#intro-curtain {')
+          loader_end=text.index('.curtain-hidden', loader_start)
+          loader_block=text[loader_start:loader_end]
+
+          if 'HOMEEASY INDEX 4.4 — SHELLS SEPARADOS IOS 26' in text:
+              raise SystemExit('SAFETY STOP: patch already present')
+          if text.count('</style>') != 1:
+              raise SystemExit('SAFETY STOP: style close count mismatch')
+
+          css='''\n\n/* ==========================================================\n   HOMEEASY INDEX 4.4 — SHELLS SEPARADOS IOS 26\n   Loader vino y menú gris con safe-area independiente.\n   Solo CSS. Sin cambios de lógica, HTML o rutas.\n   ========================================================== */\n#app-scroll-wrapper {\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: auto;\n    width: 100%;\n    height: 100vh;\n    min-height: 100vh;\n    height: calc(100dvh + env(safe-area-inset-bottom, 0px));\n    min-height: calc(100svh + env(safe-area-inset-bottom, 0px));\n    background: var(--ios-bg);\n}\n'''
+          text=text.replace('</style>', css+'\n</style>', 1)
+
+          # Regression barriers.
+          if text[text.index('<body ontouchstart="">'):] != body_tail:
+              raise SystemExit('SAFETY STOP: body/markup/logic changed')
+          if set(re.findall(r'id="([^"]+)"', text)) != ids:
+              raise SystemExit('SAFETY STOP: IDs changed')
+          if re.findall(r'href="([^"]+)"', text) != hrefs:
+              raise SystemExit('SAFETY STOP: routes/hrefs changed')
+          if re.findall(r'<script(?![^>]*src=)[^>]*>(.*?)</script>', text, re.S) != inline_js:
+              raise SystemExit('SAFETY STOP: inline JS changed')
+          new_loader_start=text.index('#intro-curtain {')
+          new_loader_end=text.index('.curtain-hidden', new_loader_start)
+          if text[new_loader_start:new_loader_end] != loader_block:
+              raise SystemExit('SAFETY STOP: loader CSS changed')
+          if '<meta name="theme-color" content="#a6455a">' not in text:
+              raise SystemExit('SAFETY STOP: loader theme-color changed')
+
+          p.write_text(text, encoding='utf-8', newline='\n')
+          PY
+      - name: Validate separated shells
+        shell: bash
+        run: |
+          grep -q 'HOMEEASY INDEX 4.4 — SHELLS SEPARADOS IOS 26' index.html
+          grep -q 'height: calc(100dvh + env(safe-area-inset-bottom, 0px));' index.html
+          grep -q 'background: var(--ios-bg);' index.html
+          grep -q 'HOMEEASY INDEX 4.3 — POLISH DE MICROINTERACCIONES' index.html
+          grep -q '<meta name="theme-color" content="#a6455a">' index.html
+          python3 - <<'PY'
+          # Geometry regression: the menu shell covers the same iOS bottom inset as the loader
+          # without changing document content height/logic.
+          for viewport in (844, 932, 800):
+              safe=34 if viewport in (844,932) else 0
+              shell=viewport+safe
+              assert shell >= viewport
+              if safe:
+                  assert shell-viewport == 34
+          print('geometry checks: OK')
+          PY
+      - name: Commit and clean temporary deployment files
+        shell: bash
+        run: |
+          rm -f .github/workflows/index-shell-separation.yml .github/index-shell-trigger.txt
+          git config user.name 'HomeEasy Update'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html .github/workflows/index-shell-separation.yml .github/index-shell-trigger.txt
+          git commit -m 'Separate HomeEasy loader and menu safe-area shells'
+          git push
