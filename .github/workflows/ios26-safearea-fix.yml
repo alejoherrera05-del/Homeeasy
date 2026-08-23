@@ -1,0 +1,109 @@
+name: Fix iOS 26 Safe Area
+
+on:
+  push:
+    paths:
+      - '.github/ios26-safearea-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch Index and Configuracion safely
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, re, json
+
+          def blob_sha(path):
+              raw=Path(path).read_bytes()
+              return hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+
+          cfg=Path('configuracion.html')
+          idx=Path('index.html')
+          cfg_sha=blob_sha(cfg)
+          idx_sha=blob_sha(idx)
+          if cfg_sha != '5b30280d27d4386949337bc495d45ef262e66106':
+              raise SystemExit(f'SAFETY STOP config SHA {cfg_sha}')
+          if idx_sha != '5a7323098dcd7b749544b173592d041f6e693029':
+              raise SystemExit(f'SAFETY STOP index SHA {idx_sha}')
+
+          cfg_text=cfg.read_text(encoding='utf-8')
+          idx_text=idx.read_text(encoding='utf-8')
+
+          cfg_app_tail=cfg_text[cfg_text.index('<main class="settings-app"'):]
+          idx_body=idx_text[idx_text.index('<body ontouchstart="">'):]
+          cfg_ids=set(re.findall(r'id="([^"]+)"', cfg_text))
+          idx_ids=set(re.findall(r'id="([^"]+)"', idx_text))
+          cfg_scripts=re.findall(r'<script(?![^>]*src=)[^>]*>(.*?)</script>', cfg_text, re.S)
+          idx_scripts=re.findall(r'<script(?![^>]*src=)[^>]*>(.*?)</script>', idx_text, re.S)
+
+          # CONFIGURACION: system backdrop + shell compensation
+          old='<meta name="theme-color" content="#f8f9fa">'
+          new='<meta name="theme-color" content="#a6455a">'
+          if cfg_text.count(old)!=1: raise SystemExit('config theme target mismatch')
+          cfg_text=cfg_text.replace(old,new,1)
+
+          old='''            position: fixed;\n            inset: 0;\n            z-index: 99999;\n            width: 100%;\n            height: auto;\n            min-height: 0;\n            overflow: hidden;\n            overscroll-behavior: none;\n            isolation: isolate;'''
+          new='''            position: fixed;\n            top: 0;\n            left: 0;\n            right: 0;\n            bottom: auto;\n            z-index: 99999;\n            width: 100%;\n            height: calc(100dvh + env(safe-area-inset-bottom, 0px));\n            min-height: calc(100svh + env(safe-area-inset-bottom, 0px));\n            overflow: hidden;\n            overscroll-behavior: none;\n            isolation: isolate;'''
+          if cfg_text.count(old)!=1: raise SystemExit('config shell target mismatch')
+          cfg_text=cfg_text.replace(old,new,1)
+
+          # INDEX: initial system color + loading curtain compensation
+          old='<meta name="theme-color" content="#F2F2F7">'
+          new='<meta name="theme-color" content="#a6455a">'
+          if idx_text.count(old)!=1: raise SystemExit('index theme target mismatch')
+          idx_text=idx_text.replace(old,new,1)
+
+          old='''    position: fixed;\n    top: 0; left: 0; width: 100%; height: 100%;\n    z-index: 99999;'''
+          new='''    position: fixed;\n    top: 0; left: 0; right: 0; bottom: auto;\n    width: 100%;\n    height: calc(100dvh + env(safe-area-inset-bottom, 0px));\n    min-height: calc(100svh + env(safe-area-inset-bottom, 0px));\n    z-index: 99999;'''
+          if idx_text.count(old)!=1: raise SystemExit('index curtain target mismatch')
+          idx_text=idx_text.replace(old,new,1)
+
+          old='html { background: var(--ios-bg); }'
+          new='html { background: var(--home-red); }'
+          if idx_text.count(old)!=1: raise SystemExit('index underpage target mismatch')
+          idx_text=idx_text.replace(old,new,1)
+
+          # Regression barriers: markup, IDs and JS must be untouched
+          if cfg_text[cfg_text.index('<main class="settings-app"'):] != cfg_app_tail:
+              raise SystemExit('SAFETY STOP: Configuracion internal app changed')
+          if idx_text[idx_text.index('<body ontouchstart="">'):] != idx_body:
+              raise SystemExit('SAFETY STOP: Index body/logic changed')
+          if set(re.findall(r'id="([^"]+)"', cfg_text)) != cfg_ids:
+              raise SystemExit('SAFETY STOP: Config IDs changed')
+          if set(re.findall(r'id="([^"]+)"', idx_text)) != idx_ids:
+              raise SystemExit('SAFETY STOP: Index IDs changed')
+          if re.findall(r'<script(?![^>]*src=)[^>]*>(.*?)</script>', cfg_text, re.S) != cfg_scripts:
+              raise SystemExit('SAFETY STOP: Config inline JS changed')
+          if re.findall(r'<script(?![^>]*src=)[^>]*>(.*?)</script>', idx_text, re.S) != idx_scripts:
+              raise SystemExit('SAFETY STOP: Index inline JS changed')
+
+          cfg.write_text(cfg_text, encoding='utf-8', newline='\n')
+          idx.write_text(idx_text, encoding='utf-8', newline='\n')
+          PY
+      - name: Validate iOS 26 workaround
+        shell: bash
+        run: |
+          grep -q 'height: calc(100dvh + env(safe-area-inset-bottom, 0px));' configuracion.html
+          grep -q 'height: calc(100dvh + env(safe-area-inset-bottom, 0px));' index.html
+          grep -q '<meta name="theme-color" content="#a6455a">' configuracion.html
+          grep -q '<meta name="theme-color" content="#a6455a">' index.html
+          grep -q 'CONFIGURACIÓN 4.1 — CABECERA ÚNICA + GLASS NEUTRO' configuracion.html
+          grep -q 'HOMEEASY INDEX 4.3 — POLISH DE MICROINTERACCIONES' index.html
+      - name: Commit and clean temporary deployment files
+        shell: bash
+        run: |
+          rm -f .github/workflows/ios26-safearea-fix.yml .github/ios26-safearea-trigger.txt
+          git config user.name 'HomeEasy Update'
+          git config user.email 'actions@users.noreply.github.com'
+          git add configuracion.html index.html .github/workflows/ios26-safearea-fix.yml .github/ios26-safearea-trigger.txt
+          git commit -m 'Fix iOS 26 safe-area gap in HomeEasy'
+          git push
