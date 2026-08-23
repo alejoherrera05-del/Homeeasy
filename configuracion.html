@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#f8f9fa">
+    <meta name="theme-color" content="#a6455a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>HomeEasy | Configuración</title>
 
@@ -60,11 +60,14 @@
            ================================================= */
         .access-screen {
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: auto;
             z-index: 99999;
             width: 100%;
-            height: auto;
-            min-height: 0;
+            height: calc(100dvh + env(safe-area-inset-bottom, 0px));
+            min-height: calc(100svh + env(safe-area-inset-bottom, 0px));
             overflow: hidden;
             overscroll-behavior: none;
             isolation: isolate;
