@@ -1,1 +1,1 @@
-publish-documentos-8c-v5
+publish-documentos-8c-v6-pr-merge
