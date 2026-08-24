@@ -41,7 +41,8 @@ jobs:
               'GET_DOCUMENTOS_SEGURA', 'LISTAR_CUENTAS_COBRO',
               'LISTAR_PAQUETES_DOCUMENTALES', 'GENERAR_PAQUETE_DOCUMENTAL',
               'Preparar paquete', 'Documentos oficiales', 'Historial',
-              'includeAccount', 'confirmSensitive', 'confirmCedula'
+              'includeAccount', 'confirmSensitive', 'confirmCedula',
+              'pdfNumber', 'numberWords', 'Titular de HomeEasy'
           ]
           for item in required:
               if item not in text:
@@ -77,8 +78,8 @@ jobs:
           grep -q 'GENERAR_PAQUETE_DOCUMENTAL' documentos.html
           grep -q 'LISTAR_PAQUETES_DOCUMENTALES' documentos.html
           grep -q 'Titular de HomeEasy' documentos.html
-          grep -q 'pdfDocNumber' documentos.html
-          grep -q 'amountToWords' documentos.html
+          grep -q 'pdfNumber' documentos.html
+          grep -q 'numberWords' documentos.html
 
       - name: Commit production file and remove temporary deployment files
         shell: bash
