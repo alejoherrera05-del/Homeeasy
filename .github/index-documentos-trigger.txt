@@ -1,1 +1,1 @@
-integrate-documentos-index-v2-pr-merge
+integrate-documentos-index-v4-remove-phrases
