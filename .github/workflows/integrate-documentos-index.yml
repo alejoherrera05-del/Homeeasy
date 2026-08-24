@@ -1,0 +1,62 @@
+name: Integrate Documentos in Index
+
+on:
+  push:
+    paths:
+      - '.github/index-documentos-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Add Documentos access to index
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          text = p.read_text(encoding='utf-8')
+          needle = '''                        <a href="calendario.html" class="nav-row">
+                            <div class="nav-icon wine"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div class="nav-copy"><strong>Agenda y calendario</strong><span>Compromisos y recordatorios</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>'''
+          replacement = '''                        <a href="documentos.html" class="nav-row">
+                            <div class="nav-icon gold"><i class="fa-solid fa-folder-open"></i></div>
+                            <div class="nav-copy"><strong>Centro documental</strong><span>Cuentas de cobro y paquetes</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>
+                        <a href="calendario.html" class="nav-row">
+                            <div class="nav-icon wine"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div class="nav-copy"><strong>Agenda y calendario</strong><span>Compromisos y recordatorios</span></div>
+                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                        </a>'''
+
+          if text.count(needle) != 1:
+              raise SystemExit(f'SAFETY STOP: expected one calendar navigation block, found {text.count(needle)}')
+          if 'href="documentos.html" class="nav-row"' in text:
+              raise SystemExit('SAFETY STOP: Documentos access already exists')
+
+          new = text.replace(needle, replacement, 1)
+          if new.count('href="documentos.html" class="nav-row"') != 1:
+              raise SystemExit('SAFETY STOP: Documentos access validation failed')
+          p.write_text(new, encoding='utf-8')
+          PY
+
+      - name: Validate and commit only production index
+        shell: bash
+        run: |
+          grep -q 'href="documentos.html" class="nav-row"' index.html
+          grep -q '<strong>Centro documental</strong><span>Cuentas de cobro y paquetes</span>' index.html
+          git config user.name 'HomeEasy Update'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Integrate Documentos into HomeEasy index'
+          git push
