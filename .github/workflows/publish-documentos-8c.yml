@@ -15,7 +15,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Validate and publish Documentos 8C
+
+      - name: Assemble, validate and publish Documentos 8C
         shell: bash
         run: |
           python3 - <<'PY'
@@ -25,11 +26,18 @@ jobs:
           target = Path('documentos.html')
           raw = target.read_bytes()
           current_blob = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
-          expected_blob = 'f88bea21ba8f1af99a723bf39cc334b3b10ef9f3'
-          if current_blob != expected_blob:
-              raise SystemExit(f'SAFETY STOP: documentos.html SHA {current_blob} != {expected_blob}')
+          expected_old_blob = 'f88bea21ba8f1af99a723bf39cc334b3b10ef9f3'
+          if current_blob != expected_old_blob:
+              raise SystemExit(f'SAFETY STOP: documentos.html SHA {current_blob} != {expected_old_blob}')
 
-          packed = base64.b64decode(Path('.github/documentos8c.html.gz.b64').read_text().strip())
+          encoded = ''.join(
+              Path(f'.github/documentos8c.fixed.part{i}').read_text().strip()
+              for i in range(1, 7)
+          )
+          if len(encoded) != 20432:
+              raise SystemExit(f'SAFETY STOP: assembled payload length {len(encoded)} != 20432')
+
+          packed = base64.b64decode(encoded, validate=True)
           new = gzip.decompress(packed)
           expected_sha256 = '89ebee149f91b96f2a1052e24eec7c95aeb701d78650929d5a67d0338dbd4883'
           if hashlib.sha256(new).hexdigest() != expected_sha256:
@@ -64,6 +72,7 @@ jobs:
               raise SystemExit('SAFETY STOP: return route missing')
 
           target.write_bytes(new)
+          print('Documentos 8C assembled and validated:', hashlib.sha256(new).hexdigest())
           PY
 
           node - <<'JS'
@@ -75,17 +84,12 @@ jobs:
           console.log('JavaScript syntax: OK');
           JS
 
-          grep -q 'GENERAR_PAQUETE_DOCUMENTAL' documentos.html
-          grep -q 'LISTAR_PAQUETES_DOCUMENTALES' documentos.html
-          grep -q 'Titular de HomeEasy' documentos.html
-          grep -q 'pdfNumber' documentos.html
-          grep -q 'numberWords' documentos.html
-
-      - name: Commit production file only
+      - name: Commit production HTML only
         shell: bash
         run: |
           git config user.name 'HomeEasy Update'
           git config user.email 'actions@users.noreply.github.com'
           git add documentos.html
+          git diff --cached --quiet && { echo 'No production change to commit'; exit 1; }
           git commit -m 'Upgrade Documentos with checklist packages'
           git push
