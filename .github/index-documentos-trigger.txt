@@ -1,1 +1,1 @@
-integrate-documentos-index-v4-remove-phrases
+integrate-documentos-index-v5-clean-phrases
