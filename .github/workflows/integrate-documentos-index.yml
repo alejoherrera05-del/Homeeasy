@@ -1,4 +1,4 @@
-name: Integrate Documentos in Index
+name: Integrate Documentos and simplify Index
 
 on:
   push:
@@ -15,48 +15,76 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Add Documentos access to index
+
+      - name: Integrate Documentos and remove daily phrases
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           p = Path('index.html')
           text = p.read_text(encoding='utf-8')
-          needle = '''                        <a href="calendario.html" class="nav-row">
+
+          # 1) Integrar Centro documental en Operación, antes de Agenda.
+          if 'href="documentos.html" class="nav-row"' not in text:
+              calendar = '''                        <a href="calendario.html" class="nav-row">
                             <div class="nav-icon wine"><i class="fa-solid fa-calendar-check"></i></div>
                             <div class="nav-copy"><strong>Agenda y calendario</strong><span>Compromisos y recordatorios</span></div>
                             <i class="fa-solid fa-chevron-right nav-chevron"></i>
                         </a>'''
-          replacement = '''                        <a href="documentos.html" class="nav-row">
+              documentos = '''                        <a href="documentos.html" class="nav-row">
                             <div class="nav-icon gold"><i class="fa-solid fa-folder-open"></i></div>
                             <div class="nav-copy"><strong>Centro documental</strong><span>Cuentas de cobro y paquetes</span></div>
                             <i class="fa-solid fa-chevron-right nav-chevron"></i>
                         </a>
-                        <a href="calendario.html" class="nav-row">
-                            <div class="nav-icon wine"><i class="fa-solid fa-calendar-check"></i></div>
-                            <div class="nav-copy"><strong>Agenda y calendario</strong><span>Compromisos y recordatorios</span></div>
-                            <i class="fa-solid fa-chevron-right nav-chevron"></i>
-                        </a>'''
+'''
+              if text.count(calendar) != 1:
+                  raise SystemExit(f'SAFETY STOP: expected one calendar navigation block, found {text.count(calendar)}')
+              text = text.replace(calendar, documentos + calendar, 1)
 
-          if text.count(needle) != 1:
-              raise SystemExit(f'SAFETY STOP: expected one calendar navigation block, found {text.count(needle)}')
-          if 'href="documentos.html" class="nav-row"' in text:
-              raise SystemExit('SAFETY STOP: Documentos access already exists')
+          # 2) Quitar las frases visibles del hero y móvil.
+          text, desktop_removed = re.subn(
+              r'\n\s*<div class="home-quote-desktop">.*?</div>',
+              '', text, count=1, flags=re.S
+          )
+          text, mobile_removed = re.subn(
+              r'\n\s*<div class="home-quote-mobile" aria-label="Idea empresarial del día">.*?</div>',
+              '', text, count=1, flags=re.S
+          )
 
-          new = text.replace(needle, replacement, 1)
-          if new.count('href="documentos.html" class="nav-row"') != 1:
-              raise SystemExit('SAFETY STOP: Documentos access validation failed')
-          p.write_text(new, encoding='utf-8')
+          # 3) Quitar el banco completo de frases y su selector diario.
+          text, bank_removed = re.subn(
+              r'\nconst HOMEEASY_DAILY_IDEAS = \[.*?\];\n\nfunction homeEasyDayOfYear\(date\) \{.*?\n\}\n',
+              '\n', text, count=1, flags=re.S
+          )
+          text, selector_removed = re.subn(
+              r'\n\s*const idx = \(homeEasyDayOfYear\(ahora\).*?document\.querySelectorAll\(\'\[data-daily-source\]\'\)\.forEach\(el => el\.textContent = \'Inspiración del día · \' \+ idea\.source \+ \' · \' \+ idea\.theme\);',
+              '', text, count=1, flags=re.S
+          )
+
+          text = text.replace('// PORTADA EDITORIAL + IDEA EMPRESARIAL DIARIA', '// PORTADA EDITORIAL')
+
+          if text.count('href="documentos.html" class="nav-row"') != 1:
+              raise SystemExit('SAFETY STOP: Documentos access must exist exactly once')
+          if 'HOMEEASY_DAILY_IDEAS' in text or 'data-daily-quote' in text or 'data-daily-source' in text:
+              raise SystemExit('SAFETY STOP: daily phrase system still present')
+          if desktop_removed != 1 or mobile_removed != 1 or bank_removed != 1 or selector_removed != 1:
+              raise SystemExit(f'SAFETY STOP: phrase cleanup mismatch desktop={desktop_removed} mobile={mobile_removed} bank={bank_removed} selector={selector_removed}')
+
+          p.write_text(text, encoding='utf-8')
           PY
 
-      - name: Validate and commit only production index
+      - name: Validate and publish index
         shell: bash
         run: |
           grep -q 'href="documentos.html" class="nav-row"' index.html
           grep -q '<strong>Centro documental</strong><span>Cuentas de cobro y paquetes</span>' index.html
+          ! grep -q 'HOMEEASY_DAILY_IDEAS' index.html
+          ! grep -q 'data-daily-quote' index.html
+          ! grep -q 'data-daily-source' index.html
           git config user.name 'HomeEasy Update'
           git config user.email 'actions@users.noreply.github.com'
           git add index.html
-          git commit -m 'Integrate Documentos into HomeEasy index'
+          git commit -m 'Integrate Documentos and remove daily phrases from index'
           git push
