@@ -1,0 +1,535 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "snapshotId": "Pentagrama-2026-03",
+  "generator": "build_pentagrama_rules_v2_2.py",
+  "authority": {
+    "manufacturer": "Persianas Pentagrama",
+    "product": "Sheer Elegance",
+    "policy": "Pentagrama NO means HomeEasy NO",
+    "conflictResolution": [
+      "newerSource",
+      "moreSpecificRule",
+      "requiresPentagramaConfirmation"
+    ]
+  },
+  "measurementConvention": {
+    "width": "visible/commercial fabric width",
+    "height": "visible/commercial fabric height",
+    "units": "m",
+    "productHardwareMayExceedFabric": true,
+    "source": {
+      "file": "581_FichaSheerElegance.pdf",
+      "page": 6,
+      "section": "Sheer Elegance Renueva"
+    }
+  },
+  "globalRules": {
+    "maxHeightToWidthRatio": {
+      "value": 3,
+      "classification": "hard-block",
+      "message": "La altura no puede superar 3 veces el ancho.",
+      "source": {
+        "file": "581_FichaSheerElegance.pdf",
+        "page": 4
+      }
+    },
+    "narrowHighRisk": {
+      "when": {
+        "widthBelowM": 0.8,
+        "heightAboveM": 1.5
+      },
+      "classification": "official-advisory",
+      "message": "Caso angosto/alto con riesgo oficial de enrollamiento en cono y desgaste de bordes.",
+      "source": {
+        "file": "581_FichaSheerElegance.pdf",
+        "page": 4
+      }
+    },
+    "manufacturingHeightToleranceM": {
+      "plusMinus": 0.01,
+      "classification": "official-tolerance",
+      "source": {
+        "file": "581_FichaSheerElegance.pdf",
+        "page": 4
+      }
+    },
+    "bandAlignmentToleranceM": {
+      "edge": 0.005,
+      "center": 0.015,
+      "classification": "official-natural-behavior",
+      "source": {
+        "file": "581_FichaSheerElegance.pdf",
+        "page": 4
+      }
+    }
+  },
+  "fabrics": [
+    {
+      "id": "serenade-screen-clark",
+      "officialName": "Serenade Screen Clark",
+      "collection": "Serenade Screen",
+      "reference": "Clark",
+      "thicknessGroup": 4,
+      "fabricRollWidthM": 3.0,
+      "transverseCut": false,
+      "visualVariants": [
+        {
+          "id": "screen-white",
+          "label": "Clark · White",
+          "colorStatus": "catalog-based visual approximation"
+        },
+        {
+          "id": "screen-white-sand",
+          "label": "Clark · White Sand",
+          "colorStatus": "catalog-based visual approximation"
+        },
+        {
+          "id": "screen-white-beige",
+          "label": "Clark · White Beige",
+          "colorStatus": "catalog-based visual approximation"
+        }
+      ],
+      "source": {
+        "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+        "sheet": "TABLAS",
+        "row": 228
+      }
+    }
+  ],
+  "systems": [
+    {
+      "id": "standard",
+      "label": "Standard",
+      "officialDescription": "Cabezal para persianas pequeñas",
+      "pilotStatus": "enabled",
+      "geometry": {
+        "architecture": "compact-headrail",
+        "sectionM": [
+          0.072,
+          0.072
+        ],
+        "sectionExact": true,
+        "minInstallDepthM": {
+          "manual": 0.095,
+          "motorized": 0.095
+        },
+        "maxHeadrailWidthM": 6,
+        "colors": [
+          "white",
+          "beige",
+          "gray",
+          "bronze",
+          "black"
+        ],
+        "source": {
+          "file": "581_FichaSheerElegance.pdf",
+          "pages": [
+            2,
+            3
+          ]
+        }
+      },
+      "minimums": {
+        "manual": {
+          "widthM": 0.3,
+          "heightM": 0.45
+        },
+        "motorized": {
+          "widthM": null,
+          "heightM": 0.45
+        }
+      },
+      "maximumProductWidthM": 2.6,
+      "reverseRoll": false,
+      "intermediateUnion": false,
+      "actuation": {
+        "manual": {
+          "available": true,
+          "configurations": [
+            {
+              "id": "standard-manual-r8-vtx10-t32",
+              "mechanism": "R8/VTX10",
+              "tubeDiameterMm": 32,
+              "intermediateUnion": false,
+              "maxWidthM": 1.6,
+              "maxHeightM": 1.8,
+              "maxAreaM2": null,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS MANUAL",
+                "row": 5,
+                "thicknessGroup": 4
+              }
+            },
+            {
+              "id": "standard-manual-r8-t38",
+              "mechanism": "R8",
+              "tubeDiameterMm": 38,
+              "intermediateUnion": false,
+              "maxWidthM": 2.6,
+              "maxHeightM": 1.2,
+              "maxAreaM2": null,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS MANUAL",
+                "row": 6,
+                "thicknessGroup": 4
+              }
+            }
+          ]
+        },
+        "motorized": {
+          "available": true,
+          "officialPower": [
+            "battery"
+          ],
+          "configurations": [
+            {
+              "id": "standard-motor-t38-r5",
+              "motorCodes": [
+                "MC26",
+                "MO032"
+              ],
+              "tubeDiameterMm": 38,
+              "intermediateUnion": false,
+              "maxAreaM2": 7.0,
+              "maxWidthM": 2.6,
+              "maxHeightM": 1.3,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS  MOTORES",
+                "row": 5,
+                "thicknessGroup": 4
+              }
+            }
+          ],
+          "source": {
+            "file": "581_FichaSheerElegance.pdf",
+            "pages": [
+              2,
+              3,
+              5
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "binovo",
+      "label": "Binovo",
+      "officialDescription": "Cabezal para persianas medianas",
+      "pilotStatus": "enabled",
+      "geometry": {
+        "architecture": "medium-headrail",
+        "sectionM": [
+          0.1,
+          0.1
+        ],
+        "sectionExact": true,
+        "minInstallDepthM": {
+          "manual": 0.12,
+          "motorized": 0.12
+        },
+        "maxHeadrailWidthM": 6,
+        "independentFabricGapM": 0.038,
+        "intermediateUnionFabricGapM": 0.015,
+        "colors": [
+          "white",
+          "beige",
+          "gray",
+          "bronze",
+          "black"
+        ],
+        "source": {
+          "file": "581_FichaSheerElegance.pdf",
+          "pages": [
+            2,
+            3
+          ]
+        }
+      },
+      "minimums": {
+        "manual": {
+          "widthM": 0.3,
+          "heightM": 0.45
+        },
+        "motorized": {
+          "widthM": null,
+          "heightM": 0.45
+        }
+      },
+      "maximumProductWidthM": 6,
+      "reverseRoll": true,
+      "intermediateUnion": true,
+      "actuation": {
+        "manual": {
+          "available": true,
+          "configurations": [
+            {
+              "id": "binovo-manual-vtx10-clic s-t32",
+              "mechanism": "VTX10 / CLIC S",
+              "tubeDiameterMm": 32,
+              "intermediateUnion": true,
+              "maxWidthM": 1.7,
+              "maxHeightM": 2.6,
+              "maxAreaM2": null,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS MANUAL",
+                "row": 13,
+                "thicknessGroup": 4
+              }
+            },
+            {
+              "id": "binovo-manual-vtx15-clic m-t38",
+              "mechanism": "VTX15 / CLIC M",
+              "tubeDiameterMm": 38,
+              "intermediateUnion": true,
+              "maxWidthM": 2.6,
+              "maxHeightM": 3.0,
+              "maxAreaM2": null,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS MANUAL",
+                "row": 14,
+                "thicknessGroup": 4
+              }
+            },
+            {
+              "id": "binovo-manual-vtx20-clic m-t50",
+              "mechanism": "VTX20 / CLIC M",
+              "tubeDiameterMm": 50,
+              "intermediateUnion": true,
+              "maxWidthM": 3.0,
+              "maxHeightM": 2.2,
+              "maxAreaM2": null,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS MANUAL",
+                "row": 15,
+                "thicknessGroup": 4
+              }
+            }
+          ]
+        },
+        "motorized": {
+          "available": true,
+          "officialPower": [
+            "battery",
+            "110V-wired",
+            "110V-RF"
+          ],
+          "configurations": [
+            {
+              "id": "binovo-motor-t38-r35",
+              "motorCodes": [
+                "MC26",
+                "MM01",
+                "MO032"
+              ],
+              "tubeDiameterMm": 38,
+              "intermediateUnion": true,
+              "maxAreaM2": 8.0,
+              "maxWidthM": 2.6,
+              "maxHeightM": 2.6,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS  MOTORES",
+                "row": 35,
+                "thicknessGroup": 4
+              }
+            },
+            {
+              "id": "binovo-motor-t50-r36",
+              "motorCodes": [
+                "MC27",
+                "MM02",
+                "MO033"
+              ],
+              "tubeDiameterMm": 50,
+              "intermediateUnion": true,
+              "maxAreaM2": 8.0,
+              "maxWidthM": 3.0,
+              "maxHeightM": 3.2,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS  MOTORES",
+                "row": 36,
+                "thicknessGroup": 4
+              }
+            },
+            {
+              "id": "binovo-motor-t50-r37",
+              "motorCodes": [
+                "MC8",
+                "MC10",
+                "MM03",
+                "MM04",
+                "MC29",
+                "MC37",
+                "MC42"
+              ],
+              "tubeDiameterMm": 50,
+              "intermediateUnion": true,
+              "maxAreaM2": 20.0,
+              "maxWidthM": 3.0,
+              "maxHeightM": 3.2,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS  MOTORES",
+                "row": 37,
+                "thicknessGroup": 4
+              }
+            },
+            {
+              "id": "binovo-motor-t50-r38",
+              "motorCodes": [
+                "MO009",
+                "MO010",
+                "MO018"
+              ],
+              "tubeDiameterMm": 50,
+              "intermediateUnion": true,
+              "maxAreaM2": 20.0,
+              "maxWidthM": 3.0,
+              "maxHeightM": 3.2,
+              "source": {
+                "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+                "sheet": "LISTA DE MEDIDAS  MOTORES",
+                "row": 38,
+                "thicknessGroup": 4
+              }
+            }
+          ],
+          "source": {
+            "file": "581_FichaSheerElegance.pdf",
+            "pages": [
+              2,
+              3,
+              5
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "versatil",
+      "label": "Versátil",
+      "officialDescription": "Sistema para grandes alturas; cenefa, tubo de enrollable y cabezal de Romana posterior",
+      "pilotStatus": "requiresPentagramaConfirmation",
+      "pilotReason": "La ficha confirma cenefa de 10 cm y espacios de instalación, pero no publica la sección completa del tubo/cabezal Romana necesaria para un 3D exacto.",
+      "geometry": {
+        "architecture": "valance-no-headrail",
+        "valanceHeightM": 0.1,
+        "minInstallDepthM": {
+          "manual": 0.13,
+          "motorized": 0.15
+        },
+        "source": {
+          "file": "581_FichaSheerElegance.pdf",
+          "pages": [
+            2,
+            3,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "id": "trishade",
+      "label": "Trishade",
+      "officialDescription": "Cabezal doble tubo Día y Noche",
+      "pilotStatus": "disabled",
+      "pilotReason": "Requiere segunda tela blackout y arquitectura de doble tubo; esa segunda tela no forma parte del piloto Sheer V2.2.",
+      "geometry": {
+        "architecture": "double-tube",
+        "sectionM": [
+          0.09,
+          0.135
+        ],
+        "source": {
+          "file": "581_FichaSheerElegance.pdf",
+          "pages": [
+            2,
+            3,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "id": "vertiroll",
+      "label": "Vertiroll",
+      "officialDescription": "Sheer con franjas verticales y dos mandos independientes",
+      "pilotStatus": "disabled",
+      "pilotReason": "La construcción vertical y sus dos mandos no son la arquitectura horizontal del piloto; además, la ficha indica que no aplica motorización.",
+      "geometry": {
+        "architecture": "vertical-bands-dual-control",
+        "sectionM": [
+          0.09,
+          0.135
+        ],
+        "source": {
+          "file": "581_FichaSheerElegance.pdf",
+          "pages": [
+            3,
+            6
+          ]
+        }
+      }
+    }
+  ],
+  "controlSideRules": {
+    "standalone": {
+      "allowed": [
+        "left",
+        "right"
+      ],
+      "restriction": null
+    },
+    "intermediateUnion": {
+      "leftShade": "left",
+      "rightShade": "right",
+      "classification": "official-restriction",
+      "source": {
+        "file": "581_FichaSheerElegance.pdf",
+        "page": 6
+      }
+    }
+  },
+  "intermediateUnion": {
+    "applicableSystems": [
+      "binovo",
+      "versatil"
+    ],
+    "pilotSupported": false,
+    "reason": "V2.2 models one standalone Sheer only.",
+    "source": {
+      "file": "581_FichaSheerElegance.pdf",
+      "page": 6
+    }
+  },
+  "sources": [
+    {
+      "file": "26_TABLACABEZALESPENTAGRAMAMAR2026.xlsx",
+      "sha256": "CF31F1BD7DEC86B2FF988E964810141800CAADF2096AF2D353B4ED841B7B3B58",
+      "bytes": 6582129
+    },
+    {
+      "file": "581_FichaSheerElegance.pdf",
+      "sha256": "CA792CEA849B9BACBC08182304A2C6900C0215A6965CF019EA8BE924761DDA24",
+      "bytes": 2755545
+    },
+    {
+      "file": "344_Enrollable_Perfiles_PDF.pdf",
+      "sha256": "E9FD81B7AE03242A8C6157684C36F1D322A5F5ABB0F1C4D5189A661F8419E9C3",
+      "bytes": 3726998
+    },
+    {
+      "file": "900_CARTACOLORESCABCENPER2.pdf",
+      "sha256": "80E0EEE921A797D71A09CC982A165BBB9323ADFD9860339BA9867A845AB658A6",
+      "bytes": 2844989
+    }
+  ]
+}
