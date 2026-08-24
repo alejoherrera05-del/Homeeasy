@@ -1,0 +1,91 @@
+name: Publish Documentos 8C
+
+on:
+  push:
+    paths:
+      - '.github/documentos8c-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate and publish Documentos 8C
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip, hashlib, re
+
+          target = Path('documentos.html')
+          raw = target.read_bytes()
+          current_blob = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+          expected_blob = 'f88bea21ba8f1af99a723bf39cc334b3b10ef9f3'
+          if current_blob != expected_blob:
+              raise SystemExit(f'SAFETY STOP: documentos.html SHA {current_blob} != {expected_blob}')
+
+          packed = base64.b64decode(Path('.github/documentos8c.html.gz.b64').read_text().strip())
+          new = gzip.decompress(packed)
+          expected_sha256 = '89ebee149f91b96f2a1052e24eec7c95aeb701d78650929d5a67d0338dbd4883'
+          if hashlib.sha256(new).hexdigest() != expected_sha256:
+              raise SystemExit('SAFETY STOP: prepared Documentos checksum mismatch')
+
+          text = new.decode('utf-8')
+          required = [
+              'PREPARAR_CUENTA_COBRO', 'GUARDAR_CUENTA_COBRO',
+              'GET_DOCUMENTOS_SEGURA', 'LISTAR_CUENTAS_COBRO',
+              'LISTAR_PAQUETES_DOCUMENTALES', 'GENERAR_PAQUETE_DOCUMENTAL',
+              'Preparar paquete', 'Documentos oficiales', 'Historial',
+              'includeAccount', 'confirmSensitive', 'confirmCedula'
+          ]
+          for item in required:
+              if item not in text:
+                  raise SystemExit(f'SAFETY STOP: missing required marker {item}')
+
+          forbidden = ['buscarCliente', 'listaClientes', 'autocomplete-results']
+          for item in forbidden:
+              if item in text:
+                  raise SystemExit(f'SAFETY STOP: intelligent search unexpectedly present: {item}')
+
+          ids = re.findall(r'id="([^"]+)"', text)
+          if len(ids) != len(set(ids)):
+              raise SystemExit('SAFETY STOP: duplicate IDs in Documentos')
+          if text.count('<style>') != 1 or text.count('</style>') != 1:
+              raise SystemExit('SAFETY STOP: style block mismatch')
+          if text.count('<script') != text.count('</script>'):
+              raise SystemExit('SAFETY STOP: script tag mismatch')
+          if 'href="index.html"' not in text:
+              raise SystemExit('SAFETY STOP: return route missing')
+
+          target.write_bytes(new)
+          PY
+
+          node - <<'JS'
+          const fs = require('fs');
+          const text = fs.readFileSync('documentos.html','utf8');
+          const scripts = [...text.matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+          if (!scripts.length) throw new Error('No inline script found');
+          for (const code of scripts) new Function(code);
+          console.log('JavaScript syntax: OK');
+          JS
+
+          grep -q 'GENERAR_PAQUETE_DOCUMENTAL' documentos.html
+          grep -q 'LISTAR_PAQUETES_DOCUMENTALES' documentos.html
+          grep -q 'Titular de HomeEasy' documentos.html
+          grep -q 'pdfDocNumber' documentos.html
+          grep -q 'amountToWords' documentos.html
+
+      - name: Commit production file and remove temporary deployment files
+        shell: bash
+        run: |
+          rm -f .github/workflows/publish-documentos-8c.yml .github/documentos8c-trigger.txt .github/documentos8c.html.gz.b64
+          git config user.name 'HomeEasy Update'
+          git config user.email 'actions@users.noreply.github.com'
+          git add documentos.html .github/workflows/publish-documentos-8c.yml .github/documentos8c-trigger.txt .github/documentos8c.html.gz.b64
+          git commit -m 'Upgrade Documentos with checklist packages'
+          git push
