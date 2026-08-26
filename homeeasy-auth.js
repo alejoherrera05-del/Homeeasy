@@ -1,20 +1,21 @@
 /**
- * HomeEasy Auth v0.1.0
- * Firebase Authentication client through the official REST API.
+ * HomeEasy Auth v0.2.0
+ * Firebase Authentication + sesión general emitida por el Cerebro HomeEasy.
  *
- * Goals for this first isolated stage:
- * - Email/password sign-in without adding a third-party JavaScript SDK.
- * - Session persistence by tab by default; optional trusted-device persistence.
- * - Automatic ID-token renewal using the Firebase refresh token.
- * - Password-reset email and current-user password change.
- * - No changes to the active HomeEasy modules until the backend authorization
- *   layer is ready.
+ * - Usa únicamente las API REST oficiales de Firebase; no añade SDK externo.
+ * - Mantiene la sesión por pestaña de forma predeterminada.
+ * - Renueva automáticamente el ID token de Firebase.
+ * - Intercambia el ID token por una sesión opaca de HomeEasy.
+ * - Vincula la sesión de HomeEasy al usuario, rol y dispositivo.
+ * - No ofrece registro público.
  */
 (function (global) {
     'use strict';
 
-    const VERSION = '0.1.0';
+    const VERSION = '0.2.0';
     const STORAGE_KEY = 'HOMEEASY_AUTH_SESSION_V1';
+    const DEVICE_ID_KEY = 'HOMEEASY_DEVICE_ID';
+    const DEVICE_NAME_KEY = 'HOMEEASY_DEVICE_NAME';
     const AUTH_EVENT = 'homeeasy:auth-change';
     const EXPIRY_SKEW_MS = 2 * 60 * 1000;
     const REQUEST_TIMEOUT_MS = 25000;
@@ -25,6 +26,7 @@
         enabled: rawConfig.enabled === true,
         apiKey: String(rawConfig.apiKey || '').trim(),
         projectId: String(rawConfig.projectId || '').trim(),
+        backendUrl: String(rawConfig.backendUrl || '').trim(),
         loginPath: String(rawConfig.loginPath || 'login.html').trim() || 'login.html',
         homePath: String(rawConfig.homePath || 'index.html').trim() || 'index.html',
         defaultPersistence: VALID_PERSISTENCE.has(rawConfig.defaultPersistence)
@@ -78,7 +80,8 @@
             config.enabled &&
             config.apiKey &&
             config.projectId &&
-            !/PENDIENTE|REEMPLAZAR|YOUR_/i.test(config.apiKey + config.projectId)
+            /^https:\/\//i.test(config.backendUrl) &&
+            !/PENDIENTE|REEMPLAZAR|YOUR_/i.test(config.apiKey + config.projectId + config.backendUrl)
         );
     }
 
@@ -86,7 +89,7 @@
         if (!isConfigured()) {
             throw new HomeEasyAuthError(
                 'AUTH_NOT_CONFIGURED',
-                'El acceso seguro todavía no está conectado al proyecto de Firebase.'
+                'El acceso seguro todavía no está conectado por completo.'
             );
         }
     }
@@ -105,6 +108,25 @@
         } catch (error) {
             return null;
         }
+    }
+
+    function normalizeProfile(value) {
+        const source = value && typeof value === 'object' ? value : {};
+        return {
+            uid: String(source.uid || '').trim(),
+            nombre: String(source.nombre || '').trim().slice(0, 160),
+            email: normalizeEmail(source.email),
+            rol: String(source.rol || '').trim().toUpperCase(),
+            estado: String(source.estado || '').trim().toUpperCase(),
+            emailVerificado: source.emailVerificado === true,
+            ultimoAcceso: source.ultimoAcceso || '',
+            ultimoDispositivo: String(source.ultimoDispositivo || '').trim().slice(0, 160)
+        };
+    }
+
+    function normalizePermissions(value) {
+        if (!Array.isArray(value)) return [];
+        return Array.from(new Set(value.map(item => String(item || '').trim()).filter(Boolean))).slice(0, 120);
     }
 
     function readStoredSession() {
@@ -127,14 +149,18 @@
     function storeSession(session) {
         const persistence = normalizePersistence(session && session.persistence);
         const normalized = {
-            version: 1,
+            version: 2,
             persistence,
             localId: String(session.localId || ''),
             email: normalizeEmail(session.email),
-            displayName: String(session.displayName || '').trim(),
+            displayName: String(session.displayName || '').trim().slice(0, 160),
             idToken: String(session.idToken || ''),
             refreshToken: String(session.refreshToken || ''),
             expiresAt: Number(session.expiresAt || 0),
+            appSessionToken: String(session.appSessionToken || ''),
+            appSessionExpiresAt: session.appSessionExpiresAt || '',
+            profile: normalizeProfile(session.profile),
+            permissions: normalizePermissions(session.permissions),
             savedAt: Date.now()
         };
 
@@ -151,6 +177,96 @@
             );
         }
         return normalized;
+    }
+
+    function updateStoredSession(changes) {
+        const current = readStoredSession();
+        if (!current) throw new HomeEasyAuthError('NO_SESSION', 'No hay una sesión activa.');
+        return storeSession({ ...current, ...(changes || {}) });
+    }
+
+    function clearAppSessionOnly() {
+        const current = readStoredSession();
+        if (!current) return null;
+        return storeSession({
+            ...current,
+            appSessionToken: '',
+            appSessionExpiresAt: '',
+            profile: {},
+            permissions: []
+        });
+    }
+
+    function createUuid() {
+        if (global.crypto && typeof global.crypto.randomUUID === 'function') {
+            return global.crypto.randomUUID();
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
+            const random = Math.random() * 16 | 0;
+            const value = character === 'x' ? random : (random & 0x3 | 0x8);
+            return value.toString(16);
+        });
+    }
+
+    function detectBrowser() {
+        const ua = global.navigator && global.navigator.userAgent ? global.navigator.userAgent : '';
+        if (/Edg\//.test(ua)) return 'Microsoft Edge';
+        if (/OPR\//.test(ua)) return 'Opera';
+        if (/CriOS\//.test(ua)) return 'Chrome';
+        if (/FxiOS\//.test(ua)) return 'Firefox';
+        if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) return 'Chrome';
+        if (/Firefox\//.test(ua)) return 'Firefox';
+        if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 'Safari';
+        return 'Navegador';
+    }
+
+    function detectPlatform() {
+        const nav = global.navigator || {};
+        const ua = nav.userAgent || '';
+        const platform = nav.userAgentData && nav.userAgentData.platform
+            ? nav.userAgentData.platform
+            : (nav.platform || '');
+        if (/iPad/i.test(ua) || (/Mac/i.test(platform) && Number(nav.maxTouchPoints || 0) > 1)) return 'iPad';
+        if (/iPhone/i.test(ua)) return 'iPhone';
+        if (/Android/i.test(ua)) return /Mobile/i.test(ua) ? 'Android' : 'Tablet Android';
+        if (/Win/i.test(platform)) return 'PC Windows';
+        if (/Mac/i.test(platform)) return 'Mac';
+        if (/Linux/i.test(platform)) return 'Linux';
+        return 'Dispositivo';
+    }
+
+    function getDeviceId() {
+        let id = safeGet(global.localStorage, DEVICE_ID_KEY);
+        if (!id) {
+            id = createUuid();
+            safeSet(global.localStorage, DEVICE_ID_KEY, id);
+        }
+        return id;
+    }
+
+    function getDeviceName() {
+        return safeGet(global.localStorage, DEVICE_NAME_KEY) || (detectPlatform() + ' · ' + detectBrowser());
+    }
+
+    function buildMeta(extra) {
+        const current = readStoredSession();
+        const profile = current ? normalizeProfile(current.profile) : {};
+        const page = global.location && global.location.pathname
+            ? (global.location.pathname.split('/').pop() || 'index.html')
+            : 'index.html';
+        return {
+            operador: profile.nombre || profile.email || (current && current.displayName) || 'Sin identificar',
+            usuarioUid: profile.uid || (current && current.localId) || '',
+            usuarioRol: profile.rol || '',
+            dispositivoId: getDeviceId(),
+            dispositivoNombre: getDeviceName(),
+            plataforma: detectPlatform(),
+            navegador: detectBrowser(),
+            pagina: page,
+            versionApp: '2.9A',
+            horaCliente: new Date().toISOString(),
+            ...(extra && typeof extra === 'object' ? extra : {})
+        };
     }
 
     function base64UrlDecode(value) {
@@ -195,7 +311,12 @@
     function emitAuthChange(type, user) {
         try {
             global.dispatchEvent(new CustomEvent(AUTH_EVENT, {
-                detail: Object.freeze({ type, user: user || null, timestamp: Date.now() })
+                detail: Object.freeze({
+                    type,
+                    user: user || null,
+                    profile: getCurrentProfile(),
+                    timestamp: Date.now()
+                })
             }));
         } catch (error) {}
     }
@@ -215,6 +336,8 @@
             EMAIL_NOT_FOUND: 'Correo o contraseña incorrectos.',
             INVALID_PASSWORD: 'Correo o contraseña incorrectos.',
             USER_DISABLED: 'Esta cuenta está desactivada. Comunícate con un administrador.',
+            FIREBASE_USER_DISABLED: 'Esta cuenta está desactivada. Comunícate con un administrador.',
+            USER_NOT_INVITED: 'Esta cuenta todavía no está autorizada en HomeEasy.',
             TOO_MANY_ATTEMPTS_TRY_LATER: 'Se hicieron demasiados intentos. Intenta nuevamente más tarde.',
             OPERATION_NOT_ALLOWED: 'El acceso por correo y contraseña todavía no está habilitado.',
             INVALID_EMAIL: 'Revisa el formato del correo electrónico.',
@@ -223,9 +346,14 @@
             INVALID_REFRESH_TOKEN: 'Tu sesión venció. Ingresa nuevamente.',
             USER_NOT_FOUND: 'Tu sesión ya no es válida. Ingresa nuevamente.',
             PROJECT_NUMBER_MISMATCH: 'La configuración de autenticación no corresponde a este proyecto.',
+            PROJECT_MISMATCH: 'La configuración de autenticación no corresponde a HomeEasy.',
             INVALID_ID_TOKEN: 'Tu sesión venció. Ingresa nuevamente.',
             API_KEY_INVALID: 'La configuración de Firebase no es válida.',
-            CONFIGURATION_NOT_FOUND: 'La configuración de Firebase no está completa.'
+            CONFIGURATION_NOT_FOUND: 'La configuración de Firebase no está completa.',
+            AUTH_NOT_CONFIGURED: 'El acceso seguro todavía no está configurado por completo.',
+            APP_SESSION_EXPIRED: 'La sesión de HomeEasy venció. Ingresa nuevamente.',
+            APP_SESSION_REVOKED: 'La sesión fue cerrada por un cambio de seguridad.',
+            DEVICE_MISMATCH: 'Esta sesión pertenece a otro dispositivo.'
         };
         return messages[normalized] || 'No fue posible completar la autenticación.';
     }
@@ -237,7 +365,7 @@
         return raw.split(' : ')[0].trim().replace(/\s+/g, '_').toUpperCase();
     }
 
-    async function request(url, options) {
+    async function requestFirebase(url, options) {
         const controller = new AbortController();
         const timer = global.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
         try {
@@ -273,9 +401,51 @@
         }
     }
 
-    function sessionFromSignIn(payload, persistence) {
+    async function requestBackend(payload, options) {
+        ensureConfigured();
+        const controller = new AbortController();
+        const timeoutMs = Number(options && options.timeoutMs) || REQUEST_TIMEOUT_MS;
+        const timer = global.setTimeout(() => controller.abort(), timeoutMs);
+        const requestId = payload && payload.requestId ? String(payload.requestId) : createUuid();
+        const body = {
+            ...(payload || {}),
+            requestId,
+            meta: buildMeta({
+                ...(payload && payload.meta && typeof payload.meta === 'object' ? payload.meta : {}),
+                requestId
+            })
+        };
+
+        try {
+            const response = await global.fetch(config.backendUrl, {
+                method: 'POST',
+                // Sin Content-Type personalizado: conserva compatibilidad CORS con Apps Script.
+                body: JSON.stringify(body),
+                cache: 'no-store',
+                redirect: 'follow',
+                signal: controller.signal
+            });
+            const raw = await response.text();
+            const data = raw ? parseJson(raw) : null;
+            if (!response.ok || !data) {
+                throw new HomeEasyAuthError('BACKEND_INVALID_RESPONSE', 'HomeEasy devolvió una respuesta que no se pudo leer.');
+            }
+            return data;
+        } catch (error) {
+            if (error instanceof HomeEasyAuthError) throw error;
+            if (error && error.name === 'AbortError') {
+                throw new HomeEasyAuthError('BACKEND_TIMEOUT', 'HomeEasy tardó demasiado en responder. Intenta nuevamente.');
+            }
+            throw new HomeEasyAuthError('BACKEND_NETWORK_ERROR', 'No fue posible conectarse con HomeEasy. Revisa internet e intenta nuevamente.', error);
+        } finally {
+            global.clearTimeout(timer);
+        }
+    }
+
+    function sessionFromSignIn(payload, persistence, preserved) {
         const expiresInSeconds = Math.max(60, Number(payload.expiresIn || 3600));
         const session = {
+            ...(preserved || {}),
             persistence: normalizePersistence(persistence),
             localId: payload.localId,
             email: payload.email,
@@ -307,7 +477,7 @@
             throw new HomeEasyAuthError('MISSING_PASSWORD', 'Escribe tu contraseña.');
         }
 
-        const payload = await request(firebaseEndpoint('signInWithPassword'), {
+        const payload = await requestFirebase(firebaseEndpoint('signInWithPassword'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -317,9 +487,14 @@
             })
         });
 
-        const session = sessionFromSignIn(payload, persistence);
+        const session = sessionFromSignIn(payload, persistence, {
+            appSessionToken: '',
+            appSessionExpiresAt: '',
+            profile: {},
+            permissions: []
+        });
         const user = sessionToUser(session);
-        emitAuthChange('signed-in', user);
+        emitAuthChange('firebase-signed-in', user);
         return user;
     }
 
@@ -335,7 +510,7 @@
         form.set('refresh_token', session.refreshToken);
 
         try {
-            const payload = await request(tokenEndpoint(), {
+            const payload = await requestFirebase(tokenEndpoint(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: form.toString()
@@ -383,7 +558,7 @@
         const idToken = await getIdToken();
         if (!idToken) return null;
 
-        const payload = await request(firebaseEndpoint('lookup'), {
+        const payload = await requestFirebase(firebaseEndpoint('lookup'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idToken })
@@ -421,12 +596,99 @@
         try {
             await getIdToken();
             const user = opts.validate ? await fetchAccount() : sessionToUser(readStoredSession());
-            if (user) emitAuthChange('restored', user);
+            if (user) emitAuthChange('firebase-restored', user);
             return user;
         } catch (error) {
             clearStoredSessions();
             emitAuthChange('session-expired', null);
             return null;
+        }
+    }
+
+    async function openAppSession(options) {
+        ensureConfigured();
+        const opts = options || {};
+        const idToken = await getIdToken();
+        if (!idToken) throw new HomeEasyAuthError('NO_SESSION', 'Ingresa nuevamente para abrir HomeEasy.');
+
+        const response = await requestBackend({
+            tipo: 'AUTH_ABRIR_SESION',
+            firebaseIdToken: idToken,
+            meta: opts.meta || {}
+        });
+        if (!response || response.status !== 'success' || !response.valido || !response.appSessionToken) {
+            const code = response && response.code ? response.code : 'APP_SESSION_REJECTED';
+            throw new HomeEasyAuthError(code, (response && response.msg) || friendlyMessage(code), response);
+        }
+
+        const stored = updateStoredSession({
+            appSessionToken: response.appSessionToken,
+            appSessionExpiresAt: response.expiresAt || '',
+            profile: response.perfil || {},
+            permissions: response.permisos || []
+        });
+        const profile = normalizeProfile(stored.profile);
+        emitAuthChange('signed-in', sessionToUser(stored));
+        return Object.freeze({
+            profile,
+            permissions: normalizePermissions(stored.permissions),
+            expiresAt: stored.appSessionExpiresAt
+        });
+    }
+
+    async function validateAppSession(options) {
+        const opts = options || {};
+        const current = readStoredSession();
+        if (!current || !current.appSessionToken) return null;
+
+        const response = await requestBackend({
+            tipo: 'AUTH_VALIDAR_SESION',
+            appSessionToken: current.appSessionToken,
+            meta: opts.meta || {}
+        });
+        if (!response || response.status !== 'success' || !response.valido) {
+            clearAppSessionOnly();
+            const code = response && response.code ? response.code : 'APP_SESSION_EXPIRED';
+            throw new HomeEasyAuthError(code, (response && response.msg) || friendlyMessage(code), response);
+        }
+
+        const stored = updateStoredSession({
+            appSessionExpiresAt: response.expiresAt || current.appSessionExpiresAt || '',
+            profile: response.perfil || current.profile || {},
+            permissions: response.permisos || current.permissions || []
+        });
+        return Object.freeze({
+            profile: normalizeProfile(stored.profile),
+            permissions: normalizePermissions(stored.permissions),
+            expiresAt: stored.appSessionExpiresAt
+        });
+    }
+
+    async function restoreHomeEasySession(options) {
+        const opts = { validateFirebase: false, reopen: true, silent: false, meta: {}, ...(options || {}) };
+        const user = await restoreSession({ validate: opts.validateFirebase });
+        if (!user) return null;
+
+        const current = readStoredSession();
+        if (current && current.appSessionToken) {
+            try {
+                return await validateAppSession({ meta: opts.meta });
+            } catch (error) {
+                if (!opts.reopen) {
+                    if (opts.silent) return null;
+                    throw error;
+                }
+            }
+        }
+
+        if (!opts.reopen) return null;
+        try {
+            return await openAppSession({ meta: opts.meta });
+        } catch (error) {
+            clearStoredSessions();
+            emitAuthChange('session-rejected', null);
+            if (opts.silent) return null;
+            throw error;
         }
     }
 
@@ -436,7 +698,42 @@
         return sessionToUser(session);
     }
 
-    async function signOut() {
+    function getCurrentProfile() {
+        const session = readStoredSession();
+        if (!session || !session.appSessionToken) return null;
+        const profile = normalizeProfile(session.profile);
+        return profile.uid ? Object.freeze(profile) : null;
+    }
+
+    function getPermissions() {
+        const session = readStoredSession();
+        return Object.freeze(normalizePermissions(session && session.permissions));
+    }
+
+    function hasPermission(permission) {
+        const required = String(permission || '').trim();
+        if (!required) return false;
+        const permissions = getPermissions();
+        return permissions.includes('*') || permissions.includes(required);
+    }
+
+    function getAppSessionToken() {
+        const session = readStoredSession();
+        return session ? String(session.appSessionToken || '') : '';
+    }
+
+    async function signOut(options) {
+        const opts = { notifyBackend: true, meta: {}, ...(options || {}) };
+        const current = readStoredSession();
+        if (opts.notifyBackend && current && current.appSessionToken && isConfigured()) {
+            try {
+                await requestBackend({
+                    tipo: 'AUTH_CERRAR_SESION',
+                    appSessionToken: current.appSessionToken,
+                    meta: opts.meta || {}
+                }, { timeoutMs: 12000 });
+            } catch (error) {}
+        }
         clearStoredSessions();
         emitAuthChange('signed-out', null);
     }
@@ -449,7 +746,7 @@
         }
 
         try {
-            await request(firebaseEndpoint('sendOobCode'), {
+            await requestFirebase(firebaseEndpoint('sendOobCode'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -477,7 +774,7 @@
         const idToken = await getIdToken({ forceRefresh: true });
         if (!idToken) throw new HomeEasyAuthError('NO_SESSION', 'Ingresa nuevamente para cambiar la contraseña.');
 
-        const payload = await request(firebaseEndpoint('update'), {
+        const payload = await requestFirebase(firebaseEndpoint('update'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idToken, password, returnSecureToken: true })
@@ -492,7 +789,12 @@
             displayName: payload.displayName || current.displayName,
             refreshToken: payload.refreshToken || current.refreshToken,
             expiresIn: payload.expiresIn || 3600
-        }, current.persistence);
+        }, current.persistence, {
+            appSessionToken: current.appSessionToken,
+            appSessionExpiresAt: current.appSessionExpiresAt,
+            profile: current.profile,
+            permissions: current.permissions
+        });
         const user = sessionToUser(session);
         emitAuthChange('password-changed', user);
         return user;
@@ -510,7 +812,9 @@
             if (resolved.origin !== global.location.origin) return defaultValue;
             const currentPath = global.location.pathname;
             if (resolved.pathname === currentPath && resolved.search === global.location.search) return defaultValue;
-            return resolved.pathname.split('/').pop() + resolved.search + resolved.hash;
+            const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+            if (!resolved.pathname.startsWith(basePath)) return defaultValue;
+            return resolved.pathname.slice(basePath.length) + resolved.search + resolved.hash;
         } catch (error) {
             return defaultValue;
         }
@@ -518,7 +822,8 @@
 
     function buildLoginUrl(returnUrl) {
         const login = new URL(config.loginPath, global.location.href);
-        const target = safeReturnUrl(returnUrl || (global.location.pathname.split('/').pop() + global.location.search + global.location.hash), config.homePath);
+        const currentTarget = global.location.pathname.split('/').pop() + global.location.search + global.location.hash;
+        const target = safeReturnUrl(returnUrl || currentTarget, config.homePath);
         login.searchParams.set('return', target);
         return login.href;
     }
@@ -528,10 +833,16 @@
     }
 
     async function requireAuth(options) {
-        const opts = { redirect: true, validate: false, returnUrl: '', ...(options || {}) };
-        const user = await restoreSession({ validate: opts.validate });
-        if (!user && opts.redirect) redirectToLogin(opts.returnUrl);
-        return user;
+        const opts = { redirect: true, validateFirebase: false, returnUrl: '', permission: '', meta: {}, ...(options || {}) };
+        const result = await restoreHomeEasySession({
+            validateFirebase: opts.validateFirebase,
+            reopen: true,
+            silent: true,
+            meta: opts.meta
+        });
+        const authorized = Boolean(result && (!opts.permission || hasPermission(opts.permission)));
+        if (!authorized && opts.redirect) redirectToLogin(opts.returnUrl);
+        return authorized ? result : null;
     }
 
     function onAuthChange(listener) {
@@ -549,13 +860,22 @@
         signIn,
         signOut,
         restoreSession,
+        restoreHomeEasySession,
         requireAuth,
         refreshSession,
         getIdToken,
         getCurrentUser,
+        getCurrentProfile,
+        getPermissions,
+        hasPermission,
+        getAppSessionToken,
         fetchAccount,
+        openAppSession,
+        validateAppSession,
+        requestBackend,
         sendPasswordReset,
         changePassword,
+        buildMeta,
         safeReturnUrl,
         buildLoginUrl,
         redirectToLogin,
