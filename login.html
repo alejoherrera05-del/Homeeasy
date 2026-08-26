@@ -1,167 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#a6455a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="robots" content="noindex, nofollow">
-    <title>HomeEasy | Sistema Hommy</title>
-
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="icon" type="image/png" href="apple-touch-icon.png">
-    <script src="homeeasy-auth-config.js"></script>
-    <script src="homeeasy-auth.js"></script>
-
-    <style>
-        :root {
-            --home-red:#a6455a;
-            --home-red-dark:#843548;
-            --home-gold:#c2a468;
-            --home-gold-soft:#dbc797;
-            --page:#f4f4f7;
-            --text:#242124;
-            --muted:#756f74;
-            --line:rgba(60,60,67,.14);
-            --danger:#c93645;
-            --success:#2f8a4c;
-            --spring:cubic-bezier(.2,.8,.2,1);
-            --bg-desktop:url('assets/auth/login-bg-desktop.svg');
-            --bg-mobile:url('assets/auth/login-bg-mobile.svg');
-        }
-        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        html,body{min-height:100%;margin:0}
-        html{background:var(--page)}
-        body{min-height:100vh;min-height:100svh;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI Variable","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background-color:var(--page);background-image:linear-gradient(rgba(248,248,250,.24),rgba(248,248,250,.24)),var(--bg-desktop);background-size:cover;background-position:center;background-attachment:fixed;overflow-x:hidden}
-        button,input{font:inherit}button{cursor:pointer}
-        .auth-shell{min-height:100vh;min-height:100svh;padding:max(26px,env(safe-area-inset-top)) 28px max(26px,env(safe-area-inset-bottom));display:grid;place-items:center}
-        .login-card{width:min(1180px,94vw);min-height:min(690px,calc(100svh - 52px));display:grid;grid-template-columns:minmax(390px,.88fr) minmax(480px,1.12fr);overflow:hidden;border:1px solid rgba(255,255,255,.92);border-radius:38px;background:rgba(255,255,255,.94);box-shadow:0 34px 90px rgba(53,38,44,.17),0 8px 28px rgba(53,38,44,.08);backdrop-filter:blur(20px) saturate(115%);-webkit-backdrop-filter:blur(20px) saturate(115%)}
-        .brand-panel{position:relative;overflow:hidden;min-height:680px;background:radial-gradient(circle at 32% 11%,rgba(255,255,255,.12),transparent 28%),linear-gradient(148deg,#b6526a 0%,var(--home-red) 42%,var(--home-red-dark) 100%);isolation:isolate}
-        .brand-panel:before{content:'';position:absolute;inset:0;z-index:-2;opacity:.14;background-image:linear-gradient(rgba(255,255,255,.11) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.11) 1px,transparent 1px);background-size:50px 50px;-webkit-mask-image:linear-gradient(to bottom,#000,transparent 88%);mask-image:linear-gradient(to bottom,#000,transparent 88%)}
-        .brand-panel:after{content:'';position:absolute;z-index:1;top:-8%;right:-74px;width:150px;height:116%;border-radius:50%;background:#fff;box-shadow:-5px 0 0 var(--home-gold),-18px 0 34px rgba(78,24,39,.08)}
-        .brand-watermark{position:absolute;z-index:0;top:50%;left:50%;width:82%;transform:translate(-58%,-51%);opacity:.07;filter:brightness(0) invert(1);pointer-events:none;user-select:none}
-        .brand-kicker{position:absolute;z-index:3;top:32px;left:34px;display:inline-flex;align-items:center;gap:10px;color:rgba(255,255,255,.72);font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-        .brand-kicker:before{content:'';width:24px;height:1px;background:var(--home-gold-soft)}
-        .hommy-hero{position:absolute;z-index:2;left:50%;bottom:-7%;width:min(520px,116%);max-width:none;transform:translateX(-54%);object-fit:contain;object-position:center bottom;filter:drop-shadow(0 30px 42px rgba(70,18,35,.34)) drop-shadow(0 8px 16px rgba(70,18,35,.2));pointer-events:none;user-select:none}
-        .hero-caption{position:absolute;z-index:4;left:35px;right:82px;bottom:28px;display:flex;align-items:center;gap:9px;color:rgba(255,255,255,.64);font-size:.69rem;line-height:1.35;font-weight:570}
-        .hero-caption span:first-child{width:7px;height:7px;border-radius:50%;background:var(--home-gold-soft);box-shadow:0 0 0 5px rgba(219,199,151,.11);flex:0 0 auto}
-        .access-zone{min-width:0;min-height:680px;padding:54px clamp(48px,6vw,84px) 42px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.98)}
-        .access-wrap{width:min(470px,100%)}
-        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-        .access-wrap.shake{animation:shake .34s ease}
-        .brand-lockup{margin-bottom:30px;text-align:center}
-        .brand-lockup img{display:block;width:74px;height:74px;object-fit:contain;margin:0 auto 8px;filter:drop-shadow(0 7px 14px rgba(120,55,71,.11))}
-        .brand-wordmark{margin:0;color:var(--home-red);font-size:clamp(2.25rem,4vw,3.15rem);line-height:.98;font-weight:500;letter-spacing:-.052em}
-        .brand-wordmark span{color:var(--home-gold)}
-        .system-label{margin-top:9px;display:flex;align-items:center;justify-content:center;gap:11px;color:#a48446;font-size:.67rem;font-weight:720;text-transform:uppercase;letter-spacing:.19em}
-        .system-label:before,.system-label:after{content:'';width:34px;height:1px;background:rgba(194,164,104,.72)}
-        .access-heading{margin-bottom:27px;text-align:center}.access-heading h1{margin:0;color:#282428;font-size:clamp(1.7rem,3vw,2.25rem);line-height:1.05;font-weight:760;letter-spacing:-.045em}.access-heading p{margin:9px auto 0;max-width:34ch;color:var(--muted);font-size:.86rem;line-height:1.5;font-weight:450}
-        .config-notice{display:none;margin:0 0 18px;padding:13px 14px;border:1px solid rgba(194,164,104,.34);border-radius:14px;background:rgba(194,164,104,.1);color:#725a2b;font-size:.73rem;line-height:1.45}.config-notice.visible{display:block}.config-notice strong{display:block;margin-bottom:2px}
-        .field{margin-bottom:16px}.field label{display:block;margin:0 2px 7px;color:#4a4448;font-size:.75rem;font-weight:670}.field-control{position:relative}.field-icon{position:absolute;z-index:2;left:16px;top:50%;width:19px;height:19px;transform:translateY(-50%);fill:none;stroke:#8d878c;stroke-width:1.7;pointer-events:none}
-        .input{width:100%;height:57px;padding:0 52px 0 48px;border:1px solid rgba(60,60,67,.15);border-radius:15px;outline:none;background:#fff;color:var(--text);font-size:16px;font-weight:520;box-shadow:0 4px 13px rgba(42,32,36,.025);transition:border-color .18s ease,box-shadow .18s ease}.input::placeholder{color:#aaa4a9;font-weight:450}.input:focus{border-color:rgba(166,69,90,.47);box-shadow:0 0 0 4px rgba(166,69,90,.085),0 7px 18px rgba(42,32,36,.045)}.input.invalid{border-color:rgba(201,54,69,.58);box-shadow:0 0 0 4px rgba(201,54,69,.08)}
-        .password-toggle{position:absolute;z-index:3;top:50%;right:7px;width:43px;height:43px;transform:translateY(-50%);display:grid;place-items:center;border:0;border-radius:11px;background:transparent;color:#8e888d}.password-toggle:active{background:#f2eff0}.password-toggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7}
-        .form-options{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:3px 1px 23px}.remember-option{display:inline-flex;align-items:center;gap:9px;color:#5f585d;font-size:.72rem;line-height:1.3;cursor:pointer}.remember-option input{width:18px;height:18px;margin:0;accent-color:var(--home-red)}.forgot-button{padding:5px 0;border:0;background:transparent;color:var(--home-red);font-size:.72rem;font-weight:680}.forgot-button:hover{text-decoration:underline;text-underline-offset:3px}
-        .submit-button{position:relative;width:100%;min-height:56px;padding:0 19px;border:1px solid rgba(123,43,61,.18);border-radius:15px;display:flex;align-items:center;justify-content:center;gap:11px;background:linear-gradient(135deg,#b64b64,var(--home-red) 54%,#94394f);color:#fff;font-weight:760;letter-spacing:-.015em;box-shadow:0 13px 28px rgba(166,69,90,.22),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .18s var(--spring),box-shadow .18s ease,filter .18s ease}.submit-button:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 17px 33px rgba(166,69,90,.27),inset 0 1px 0 rgba(255,255,255,.18)}.submit-button:not(:disabled):active{transform:scale(.986)}.submit-button:disabled{opacity:.58;cursor:wait}.submit-arrow{position:absolute;right:20px;color:#f1d78d;font-size:1.35rem;font-weight:350}.spinner{display:none;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .8s linear infinite}.submit-button.loading .spinner{display:block}@keyframes spin{to{transform:rotate(360deg)}}
-        .form-status{min-height:22px;margin-top:12px;color:var(--danger);text-align:center;font-size:.72rem;line-height:1.4;font-weight:620}.form-status.success{color:var(--success)}
-        .security-note{margin-top:21px;padding-top:18px;border-top:1px solid rgba(60,60,67,.1);display:flex;align-items:center;justify-content:center;gap:9px;color:#777075;font-size:.69rem;line-height:1.4;font-weight:560;text-align:center}.security-note svg{width:20px;height:20px;fill:none;stroke:#b28f4c;stroke-width:1.65}
-        .reset-panel{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(36,31,34,.32);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility .22s ease}.reset-panel.visible{opacity:1;visibility:visible;pointer-events:auto}.reset-card{width:min(430px,100%);padding:25px;border:1px solid rgba(255,255,255,.88);border-radius:24px;background:rgba(255,255,255,.98);box-shadow:0 30px 70px rgba(36,31,34,.18);transform:translateY(10px) scale(.985);transition:transform .22s var(--spring)}.reset-panel.visible .reset-card{transform:translateY(0) scale(1)}.reset-card h2{margin:0;font-size:1.35rem;letter-spacing:-.035em}.reset-card p{margin:8px 0 18px;color:var(--muted);font-size:.81rem;line-height:1.5}.reset-actions{display:grid;grid-template-columns:1fr 1.2fr;gap:10px;margin-top:14px}.reset-actions button{min-height:48px;border-radius:13px;font-weight:680}.reset-cancel{border:1px solid var(--line);background:#f5f3f4;color:#5f585d}.reset-send{border:0;background:var(--home-red);color:#fff}.reset-send:disabled{opacity:.55;cursor:wait}
-        :where(button,input):focus-visible{outline:3px solid rgba(166,69,90,.24);outline-offset:3px}
-        @media(max-width:930px){body{background-image:linear-gradient(rgba(249,249,250,.28),rgba(249,249,250,.28)),var(--bg-mobile);background-size:cover;background-position:center;background-attachment:scroll}.auth-shell{padding:max(18px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom))}.login-card{width:min(520px,100%);min-height:auto;display:block;border-radius:30px;background:rgba(255,255,255,.945);box-shadow:0 24px 64px rgba(53,38,44,.16),0 6px 22px rgba(53,38,44,.08)}.brand-panel{display:none}.access-zone{min-height:auto;padding:34px 24px 27px;background:rgba(255,255,255,.955)}.brand-lockup{margin-bottom:25px}.brand-lockup img{width:62px;height:62px;margin-bottom:7px}.brand-wordmark{font-size:2.28rem}.system-label{font-size:.60rem;letter-spacing:.17em}.system-label:before,.system-label:after{width:26px}.access-heading{margin-bottom:24px}.access-heading h1{font-size:1.72rem}.access-heading p{font-size:.82rem;max-width:31ch}.input{height:55px;border-radius:14px}.submit-button{min-height:54px;border-radius:14px}}
-        @media(max-width:500px){.auth-shell{align-items:start;padding-top:max(16px,env(safe-area-inset-top))}.login-card{margin-top:min(5vh,34px);border-radius:27px}.access-zone{padding:30px 18px 22px}.brand-lockup{margin-bottom:22px}.brand-lockup img{width:57px;height:57px}.brand-wordmark{font-size:2.13rem}.access-heading{margin-bottom:21px}.form-options{align-items:flex-start}.remember-option{max-width:48%}.security-note{margin-top:18px;padding-top:16px}}
-        @media(max-width:370px){.access-zone{padding-left:15px;padding-right:15px}.brand-wordmark{font-size:1.98rem}.form-options{gap:10px}.remember-option,.forgot-button{font-size:.68rem}}
-        @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#a6455a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex,nofollow">
+<title>HomeEasy | Sistema Hommy</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<script src="homeeasy-auth-config.js"></script>
+<script src="homeeasy-auth.js"></script>
+<style>
+:root{--home:#a6455a;--home-dark:#823646;--gold:#c2a468;--text:#252125;--muted:#777075;--line:rgba(60,60,67,.14);--danger:#c93645;--success:#2f8a4c;--spring:cubic-bezier(.2,.8,.2,1);--desktop:url('assets/auth/login-bg-desktop.webp');--mobile:url('assets/auth/login-bg-mobile.webp')}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%}html{background:#f5f4f5}body{min-height:100vh;min-height:100svh;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI Variable","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:#f7f6f6 var(--desktop) center/cover fixed no-repeat;overflow-x:hidden}button,input{font:inherit}button{cursor:pointer}
+.shell{min-height:100vh;min-height:100svh;display:grid;place-items:center;padding:max(25px,env(safe-area-inset-top)) 28px max(25px,env(safe-area-inset-bottom))}.card{width:min(1180px,94vw);min-height:min(690px,calc(100svh - 50px));display:grid;grid-template-columns:minmax(385px,.88fr) minmax(490px,1.12fr);overflow:hidden;border:1px solid rgba(255,255,255,.92);border-radius:38px;background:rgba(255,255,255,.97);box-shadow:0 34px 90px rgba(53,38,44,.18),0 8px 28px rgba(53,38,44,.07)}
+.visual{position:relative;min-height:680px;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 28% 12%,rgba(255,255,255,.12),transparent 28%),linear-gradient(150deg,#b54f67 0%,var(--home) 46%,var(--home-dark) 100%)}.visual:before{content:"";position:absolute;inset:0;z-index:0;opacity:.1;background-image:linear-gradient(rgba(255,255,255,.11) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.11) 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(#000,transparent 90%)}.visual:after{content:"";position:absolute;z-index:3;top:-8%;right:-88px;width:180px;height:116%;border-radius:50%;background:#fff;box-shadow:-5px 0 0 var(--gold),-18px 0 34px rgba(78,24,39,.08)}.watermark{position:absolute;z-index:1;top:50%;left:50%;width:80%;transform:translate(-57%,-52%);opacity:.055;filter:brightness(0) invert(1);pointer-events:none}.kicker{position:absolute;z-index:5;top:34px;left:35px;display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.76);font-size:.7rem;font-weight:720;letter-spacing:.08em;text-transform:uppercase}.kicker:before{content:"";width:23px;height:1px;background:#eadbb7}.hommy{position:absolute;z-index:2;left:50%;bottom:-6%;width:min(610px,134%);max-width:none;transform:translateX(-55%);object-fit:contain;object-position:center bottom;filter:drop-shadow(0 31px 42px rgba(60,14,29,.34)) drop-shadow(0 8px 16px rgba(60,14,29,.18));pointer-events:none}.caption{position:absolute;z-index:5;left:35px;right:95px;bottom:27px;display:flex;align-items:center;gap:9px;color:rgba(255,255,255,.7);font-size:.68rem;line-height:1.35;font-weight:570}.caption:before{content:"";width:7px;height:7px;border-radius:50%;background:#eadbb7;box-shadow:0 0 0 5px rgba(234,219,183,.11);flex:none}
+.access{min-width:0;min-height:680px;padding:50px clamp(48px,6vw,84px) 40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.985)}.wrap{width:min(470px,100%)}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}.wrap.shake{animation:shake .34s ease}.brand{text-align:center;margin-bottom:28px}.brand img{display:block;width:76px;height:76px;object-fit:contain;margin:0 auto 7px;filter:drop-shadow(0 7px 14px rgba(120,55,71,.1))}.word{color:var(--home);font-size:clamp(2.3rem,4vw,3.18rem);line-height:.98;font-weight:500;letter-spacing:-.052em}.word span{color:var(--gold)}.system{margin-top:9px;display:flex;align-items:center;justify-content:center;gap:11px;color:#9e8044;font-size:.66rem;font-weight:760;text-transform:uppercase;letter-spacing:.19em}.system:before,.system:after{content:"";width:34px;height:1px;background:rgba(194,164,104,.72)}.heading{text-align:center;margin-bottom:26px}.heading h1{margin:0;font-size:clamp(1.72rem,3vw,2.22rem);line-height:1.05;font-weight:760;letter-spacing:-.045em}.heading p{margin:9px auto 0;max-width:34ch;color:var(--muted);font-size:.86rem;line-height:1.5}.notice{display:none;margin:0 0 17px;padding:12px 14px;border:1px solid rgba(194,164,104,.34);border-radius:14px;background:rgba(194,164,104,.1);color:#725a2b;font-size:.73rem;line-height:1.45}.notice.visible{display:block}.notice strong{display:block;margin-bottom:2px}
+.field{margin-bottom:16px}.field label{display:block;margin:0 2px 7px;color:#4a4448;font-size:.75rem;font-weight:680}.control{position:relative}.icon{position:absolute;z-index:2;left:16px;top:50%;width:19px;height:19px;transform:translateY(-50%);fill:none;stroke:#8d878c;stroke-width:1.7;pointer-events:none}.input{width:100%;height:57px;padding:0 52px 0 48px;border:1px solid rgba(60,60,67,.15);border-radius:15px;outline:0;background:#fff;color:var(--text);font-size:16px;font-weight:520;box-shadow:0 4px 13px rgba(42,32,36,.025);transition:border-color .18s,box-shadow .18s}.input::placeholder{color:#aaa4a9;font-weight:450}.input:focus{border-color:rgba(166,69,90,.48);box-shadow:0 0 0 4px rgba(166,69,90,.085),0 7px 18px rgba(42,32,36,.045)}.input.invalid{border-color:rgba(201,54,69,.58);box-shadow:0 0 0 4px rgba(201,54,69,.08)}.eye{position:absolute;z-index:3;right:7px;top:50%;width:43px;height:43px;transform:translateY(-50%);display:grid;place-items:center;border:0;border-radius:11px;background:transparent;color:#8e888d}.eye:active{background:#f2eff0}.eye svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7}.options{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:3px 1px 22px}.remember{display:flex;align-items:center;gap:9px;color:#5f585d;font-size:.72rem;cursor:pointer}.remember input{width:18px;height:18px;margin:0;accent-color:var(--home)}.forgot{padding:5px 0;border:0;background:transparent;color:var(--home);font-size:.72rem;font-weight:690}.forgot:hover{text-decoration:underline;text-underline-offset:3px}.submit{position:relative;width:100%;height:56px;border:1px solid rgba(123,43,61,.18);border-radius:15px;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#b64b64,var(--home) 54%,#94394f);color:#fff;font-weight:760;box-shadow:0 13px 28px rgba(166,69,90,.22),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .18s var(--spring),box-shadow .18s}.submit:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 17px 33px rgba(166,69,90,.27)}.submit:not(:disabled):active{transform:scale(.986)}.submit:disabled{opacity:.58;cursor:wait}.arrow{position:absolute;right:20px;color:#f1d78d;font-size:1.35rem}.spinner{display:none;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .8s linear infinite}.submit.loading .spinner{display:block}@keyframes spin{to{transform:rotate(360deg)}}.status{min-height:22px;margin-top:12px;text-align:center;color:var(--danger);font-size:.72rem;line-height:1.4;font-weight:620}.status.success{color:var(--success)}.secure{margin-top:20px;padding-top:17px;border-top:1px solid rgba(60,60,67,.1);display:flex;align-items:center;justify-content:center;gap:9px;color:#777075;font-size:.69rem;font-weight:560;text-align:center}.secure svg{width:20px;height:20px;fill:none;stroke:#b28f4c;stroke-width:1.65}
+.modal{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(36,31,34,.32);backdrop-filter:blur(12px);opacity:0;visibility:hidden;pointer-events:none;transition:.22s}.modal.visible{opacity:1;visibility:visible;pointer-events:auto}.modal-card{width:min(430px,100%);padding:25px;border:1px solid rgba(255,255,255,.88);border-radius:24px;background:#fff;box-shadow:0 30px 70px rgba(36,31,34,.18);transform:translateY(10px) scale(.985);transition:.22s var(--spring)}.modal.visible .modal-card{transform:none}.modal h2{margin:0;font-size:1.35rem;letter-spacing:-.035em}.modal p{margin:8px 0 18px;color:var(--muted);font-size:.81rem;line-height:1.5}.modal-actions{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:14px}.modal-actions button{height:48px;border-radius:13px;font-weight:680}.cancel{border:1px solid var(--line);background:#f5f3f4;color:#5f585d}.send{border:0;background:var(--home);color:#fff}.send:disabled{opacity:.55}:where(button,input):focus-visible{outline:3px solid rgba(166,69,90,.24);outline-offset:3px}
+@media(max-width:930px){body{background-image:var(--mobile);background-attachment:scroll}.shell{padding:max(18px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));align-items:start}.card{width:min(520px,100%);min-height:0;display:block;margin-top:min(5vh,34px);border-radius:29px;background:rgba(255,255,255,.95);box-shadow:0 24px 64px rgba(53,38,44,.16),0 6px 22px rgba(53,38,44,.08);backdrop-filter:blur(16px)}.visual{display:none}.access{min-height:0;padding:33px 24px 27px;background:rgba(255,255,255,.96)}.brand{margin-bottom:24px}.brand img{width:62px;height:62px}.word{font-size:2.28rem}.system{font-size:.6rem;letter-spacing:.17em}.system:before,.system:after{width:26px}.heading{margin-bottom:23px}.heading h1{font-size:1.72rem}.heading p{font-size:.82rem;max-width:31ch}.input{height:55px}.submit{height:54px}}
+@media(max-width:500px){.access{padding:29px 18px 22px}.brand{margin-bottom:21px}.brand img{width:57px;height:57px}.word{font-size:2.12rem}.heading{margin-bottom:20px}.options{align-items:flex-start}.remember{max-width:49%}.secure{margin-top:17px;padding-top:15px}}@media(max-width:370px){.access{padding-left:15px;padding-right:15px}.word{font-size:1.96rem}.options{gap:10px}.remember,.forgot{font-size:.68rem}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body>
-    <main class="auth-shell">
-        <section class="login-card" aria-label="Acceso a HomeEasy">
-            <aside class="brand-panel" aria-hidden="true">
-                <img class="brand-watermark" src="triangulo.png" alt="">
-                <div class="brand-kicker">Sistema Hommy</div>
-                <img class="hommy-hero" src="Hommycompleto.png" alt="" onerror="this.onerror=null;this.src='hommysaludando.png'">
-                <div class="hero-caption"><span></span><span>Tu espacio HomeEasy, protegido y listo para trabajar.</span></div>
-            </aside>
-            <section class="access-zone">
-                <div class="access-wrap" id="accessWrap">
-                    <header class="brand-lockup">
-                        <img src="triangulo.png" alt="HomeEasy">
-                        <div class="brand-wordmark">Home<span>Easy</span></div>
-                        <div class="system-label">Sistema Hommy</div>
-                    </header>
-                    <div class="access-heading"><h1>Bienvenido</h1><p>Accede de forma segura a tu espacio HomeEasy.</p></div>
-                    <div class="config-notice" id="configNotice"><strong>Acceso en preparación</strong>El sistema de autenticación todavía no está habilitado para esta versión.</div>
-                    <form id="loginForm" novalidate>
-                        <div class="field"><label for="emailInput">Correo electrónico</label><div class="field-control"><svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m4 7 8 6 8-6"></path></svg><input id="emailInput" class="input" type="email" inputmode="email" autocomplete="username" maxlength="180" placeholder="tu@homeeasy.com" aria-label="Correo electrónico"></div></div>
-                        <div class="field"><label for="passwordInput">Contraseña</label><div class="field-control"><svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg><input id="passwordInput" class="input" type="password" autocomplete="current-password" maxlength="160" placeholder="••••••••••••" aria-label="Contraseña"><button type="button" class="password-toggle" id="passwordToggle" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div></div>
-                        <div class="form-options"><label class="remember-option" for="rememberInput"><input id="rememberInput" type="checkbox"><span>Recordar este dispositivo</span></label><button type="button" class="forgot-button" id="forgotButton">¿Olvidaste tu contraseña?</button></div>
-                        <button type="submit" class="submit-button" id="submitButton"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Entrar a HomeEasy</span><span class="submit-arrow" aria-hidden="true">→</span></button>
-                        <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
-                    </form>
-                    <div class="security-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.7 2.9 8.7 7 10 4.1-1.3 7-5.3 7-10V6l-7-3Z"></path><path d="M9.5 12.1 11.2 14l3.6-4"></path></svg><span>Acceso seguro para usuarios autorizados</span></div>
-                </div>
-            </section>
-        </section>
-    </main>
-    <section class="reset-panel" id="resetPanel" aria-label="Recuperar contraseña"><div class="reset-card"><h2>Recuperar contraseña</h2><p>Escribe el correo de tu cuenta. Si está registrada, recibirás las instrucciones para crear una nueva contraseña.</p><div class="field"><label for="resetEmailInput">Correo electrónico</label><div class="field-control"><svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m4 7 8 6 8-6"></path></svg><input id="resetEmailInput" class="input" type="email" inputmode="email" autocomplete="email" placeholder="tu@homeeasy.com"></div></div><div class="reset-actions"><button type="button" class="reset-cancel" id="resetCancel">Cancelar</button><button type="button" class="reset-send" id="resetSend">Enviar instrucciones</button></div></div></section>
-    <script>
-        'use strict';
-        const auth=window.HomeEasyAuth;
-        const accessWrap=document.getElementById('accessWrap');
-        const loginForm=document.getElementById('loginForm');
-        const emailInput=document.getElementById('emailInput');
-        const passwordInput=document.getElementById('passwordInput');
-        const rememberInput=document.getElementById('rememberInput');
-        const submitButton=document.getElementById('submitButton');
-        const submitLabel=document.getElementById('submitLabel');
-        const formStatus=document.getElementById('formStatus');
-        const configNotice=document.getElementById('configNotice');
-        const resetPanel=document.getElementById('resetPanel');
-        const resetEmailInput=document.getElementById('resetEmailInput');
-        const returnUrl=auth?auth.safeReturnUrl(new URLSearchParams(location.search).get('return'),'index.html'):'index.html';
-        document.addEventListener('DOMContentLoaded',initializeLogin);
-        loginForm.addEventListener('submit',handleLogin);
-        document.getElementById('passwordToggle').addEventListener('click',togglePassword);
-        document.getElementById('forgotButton').addEventListener('click',openResetPanel);
-        document.getElementById('resetCancel').addEventListener('click',closeResetPanel);
-        document.getElementById('resetSend').addEventListener('click',sendResetEmail);
-        resetPanel.addEventListener('click',e=>{if(e.target===resetPanel)closeResetPanel()});
-        document.addEventListener('keydown',e=>{if(e.key==='Escape'&&resetPanel.classList.contains('visible'))closeResetPanel()});
-        [emailInput,passwordInput].forEach(input=>input.addEventListener('input',()=>{input.classList.remove('invalid');setStatus('')}));
-        async function initializeLogin(){
-            if(!auth){configNotice.classList.add('visible');configNotice.innerHTML='<strong>Archivo central no disponible</strong>No se pudo cargar homeeasy-auth.js.';submitButton.disabled=true;return}
-            if(!auth.isConfigured()){configNotice.classList.add('visible');submitButton.disabled=true;emailInput.disabled=true;passwordInput.disabled=true;rememberInput.disabled=true;return}
-            setBusy(true,'Comprobando sesión');
-            const user=await auth.restoreSession({validate:false});
-            if(user){location.replace(returnUrl);return}
-            setBusy(false);setTimeout(()=>emailInput.focus(),120)
-        }
-        async function handleLogin(event){
-            event.preventDefault();if(!auth||!auth.isConfigured()||submitButton.disabled)return;
-            const email=emailInput.value.trim(),password=passwordInput.value;let invalid=false;
-            if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailInput.classList.add('invalid');invalid=true}
-            if(!password){passwordInput.classList.add('invalid');invalid=true}
-            if(invalid){setStatus('Revisa el correo y la contraseña.');shakeCard();return}
-            setBusy(true,'Verificando acceso');setStatus('');
-            try{await auth.signIn(email,password,{remember:rememberInput.checked});setStatus('Acceso autorizado. Abriendo HomeEasy…',true);passwordInput.value='';location.replace(returnUrl)}
-            catch(error){setStatus(error&&error.message?error.message:'No fue posible iniciar sesión.');passwordInput.value='';passwordInput.classList.add('invalid');shakeCard();passwordInput.focus()}
-            finally{setBusy(false)}
-        }
-        function togglePassword(){const button=document.getElementById('passwordToggle'),reveal=passwordInput.type==='password';passwordInput.type=reveal?'text':'password';button.setAttribute('aria-pressed',String(reveal));button.setAttribute('aria-label',reveal?'Ocultar contraseña':'Mostrar contraseña');passwordInput.focus()}
-        function openResetPanel(){resetEmailInput.value=emailInput.value.trim();resetPanel.classList.add('visible');setTimeout(()=>resetEmailInput.focus(),80)}
-        function closeResetPanel(){resetPanel.classList.remove('visible');resetEmailInput.classList.remove('invalid')}
-        async function sendResetEmail(){
-            if(!auth||!auth.isConfigured())return;const email=resetEmailInput.value.trim();
-            if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){resetEmailInput.classList.add('invalid');setStatus('Escribe un correo válido.');return}
-            const button=document.getElementById('resetSend');button.disabled=true;button.textContent='Enviando…';setStatus('');
-            try{await auth.sendPasswordReset(email);setStatus('Si la cuenta existe, recibirás un correo con las instrucciones.',true);closeResetPanel()}
-            catch(error){setStatus(error&&error.message?error.message:'No fue posible enviar las instrucciones.')}
-            finally{button.disabled=false;button.textContent='Enviar instrucciones'}
-        }
-        function setBusy(busy,label){submitButton.classList.toggle('loading',Boolean(busy));submitButton.disabled=Boolean(busy)||!auth||!auth.isConfigured();submitLabel.textContent=busy?(label||'Verificando'):'Entrar a HomeEasy';emailInput.readOnly=Boolean(busy);passwordInput.readOnly=Boolean(busy);rememberInput.disabled=Boolean(busy)}
-        function setStatus(message,success){formStatus.textContent=message||'';formStatus.classList.toggle('success',Boolean(success))}
-        function shakeCard(){accessWrap.classList.remove('shake');void accessWrap.offsetWidth;accessWrap.classList.add('shake');if(navigator.vibrate)navigator.vibrate([70,35,70])}
-    </script>
+<main class="shell"><section class="card" aria-label="Acceso a HomeEasy">
+<aside class="visual" aria-hidden="true"><img class="watermark" src="triangulo.png" alt=""><div class="kicker">Sistema Hommy</div><img class="hommy" src="assets/auth/hommy-crossed.webp" alt=""><div class="caption">Tu espacio HomeEasy, protegido y listo para trabajar.</div></aside>
+<section class="access"><div class="wrap" id="accessWrap">
+<header class="brand"><img src="triangulo.png" alt="HomeEasy"><div class="word">Home<span>Easy</span></div><div class="system">Sistema Hommy</div></header>
+<div class="heading"><h1>Bienvenido</h1><p>Accede de forma segura a tu espacio HomeEasy.</p></div>
+<div class="notice" id="configNotice"><strong>Acceso en preparación</strong>El sistema de autenticación todavía no está habilitado para esta versión.</div>
+<form id="loginForm" novalidate>
+<div class="field"><label for="emailInput">Correo electrónico</label><div class="control"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><input id="emailInput" class="input" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="190" placeholder="nombre@correo.com"></div></div>
+<div class="field"><label for="passwordInput">Contraseña</label><div class="control"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input id="passwordInput" class="input" type="password" autocomplete="current-password" maxlength="160" placeholder="••••••••••••"><button class="eye" id="passwordToggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.7"/></svg></button></div></div>
+<div class="options"><label class="remember" for="rememberInput"><input id="rememberInput" type="checkbox"><span>Recordar este dispositivo</span></label><button class="forgot" id="forgotButton" type="button">¿Olvidaste tu contraseña?</button></div>
+<button class="submit" id="submitButton" type="submit"><span class="spinner"></span><span id="submitLabel">Entrar</span><span class="arrow">→</span></button><div class="status" id="formStatus" role="status" aria-live="polite"></div>
+</form>
+<div class="secure"><svg viewBox="0 0 24 24"><path d="M12 3 5.5 6v5.2c0 4.4 2.7 8.3 6.5 9.8 3.8-1.5 6.5-5.4 6.5-9.8V6L12 3Z"/><rect x="9" y="10.5" width="6" height="5" rx="1"/><path d="M10.5 10.5V9a1.5 1.5 0 0 1 3 0v1.5"/></svg><span>Acceso seguro para usuarios autorizados</span></div>
+</div></section></section></main>
+<div class="modal" id="resetPanel" aria-hidden="true"><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="resetTitle" onclick="event.stopPropagation()"><h2 id="resetTitle">Recuperar contraseña</h2><p>Escribe el correo de tu cuenta. Si está registrada, recibirás las instrucciones para crear una nueva contraseña.</p><div class="field"><label for="resetEmailInput">Correo electrónico</label><div class="control"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><input id="resetEmailInput" class="input" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="190" placeholder="nombre@correo.com"></div></div><div class="modal-actions"><button class="cancel" id="resetCancel" type="button">Cancelar</button><button class="send" id="resetSend" type="button">Enviar instrucciones</button></div></div></div>
+<script>
+'use strict';
+const auth=window.HomeEasyAuth,accessWrap=document.getElementById('accessWrap'),loginForm=document.getElementById('loginForm'),emailInput=document.getElementById('emailInput'),passwordInput=document.getElementById('passwordInput'),rememberInput=document.getElementById('rememberInput'),submitButton=document.getElementById('submitButton'),submitLabel=document.getElementById('submitLabel'),formStatus=document.getElementById('formStatus'),configNotice=document.getElementById('configNotice'),resetPanel=document.getElementById('resetPanel'),resetEmailInput=document.getElementById('resetEmailInput'),returnUrl=auth?auth.safeReturnUrl(new URLSearchParams(location.search).get('return'),'index.html'):'index.html';
+document.addEventListener('DOMContentLoaded',initializeLogin);loginForm.addEventListener('submit',handleLogin);document.getElementById('passwordToggle').addEventListener('click',togglePassword);document.getElementById('forgotButton').addEventListener('click',openReset);document.getElementById('resetCancel').addEventListener('click',closeReset);document.getElementById('resetSend').addEventListener('click',sendReset);resetPanel.addEventListener('click',e=>{if(e.target===resetPanel)closeReset()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&resetPanel.classList.contains('visible'))closeReset()});[emailInput,passwordInput,resetEmailInput].forEach(el=>el.addEventListener('input',()=>{el.classList.remove('invalid');setStatus('')}));
+async function initializeLogin(){if(!auth){configNotice.classList.add('visible');configNotice.innerHTML='<strong>Archivo central no disponible</strong>No se pudo cargar homeeasy-auth.js.';submitButton.disabled=true;return}if(!auth.isConfigured()){configNotice.classList.add('visible');submitButton.disabled=true;emailInput.disabled=true;passwordInput.disabled=true;rememberInput.disabled=true;return}setBusy(true,'Comprobando sesión');try{const user=await auth.restoreSession({validate:false});if(user){location.replace(returnUrl);return}}catch(e){}setBusy(false);setTimeout(()=>emailInput.focus(),120)}
+async function handleLogin(e){e.preventDefault();if(!auth||!auth.isConfigured()||submitButton.disabled)return;const email=emailInput.value.trim(),password=passwordInput.value;let bad=false;if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailInput.classList.add('invalid');bad=true}if(!password){passwordInput.classList.add('invalid');bad=true}if(bad){setStatus('Revisa el correo y la contraseña.');shake();return}setBusy(true,'Verificando acceso');setStatus('');try{await auth.signIn(email,password,{remember:rememberInput.checked});setStatus('Acceso autorizado. Abriendo HomeEasy…',true);passwordInput.value='';location.replace(returnUrl)}catch(err){setStatus(err&&err.message?err.message:'No fue posible iniciar sesión.');passwordInput.value='';passwordInput.classList.add('invalid');shake();passwordInput.focus()}finally{setBusy(false)}}
+function togglePassword(){const b=document.getElementById('passwordToggle'),show=passwordInput.type==='password';passwordInput.type=show?'text':'password';b.setAttribute('aria-pressed',String(show));b.setAttribute('aria-label',show?'Ocultar contraseña':'Mostrar contraseña');passwordInput.focus()}
+function openReset(){if(!auth||!auth.isConfigured())return;resetEmailInput.value=emailInput.value.trim();resetPanel.classList.add('visible');resetPanel.setAttribute('aria-hidden','false');setTimeout(()=>resetEmailInput.focus(),80)}function closeReset(){resetPanel.classList.remove('visible');resetPanel.setAttribute('aria-hidden','true');resetEmailInput.classList.remove('invalid')}
+async function sendReset(){if(!auth||!auth.isConfigured())return;const email=resetEmailInput.value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){resetEmailInput.classList.add('invalid');setStatus('Escribe un correo válido.');return}const b=document.getElementById('resetSend');b.disabled=true;b.textContent='Enviando…';setStatus('');try{await auth.sendPasswordReset(email);setStatus('Si la cuenta existe, recibirás un correo con las instrucciones.',true);closeReset()}catch(err){setStatus(err&&err.message?err.message:'No fue posible enviar las instrucciones.')}finally{b.disabled=false;b.textContent='Enviar instrucciones'}}
+function setBusy(on,label){submitButton.classList.toggle('loading',!!on);submitButton.disabled=!!on||!auth||!auth.isConfigured();submitLabel.textContent=on?(label||'Verificando'):'Entrar';emailInput.readOnly=!!on;passwordInput.readOnly=!!on;rememberInput.disabled=!!on}function setStatus(msg,ok){formStatus.textContent=msg||'';formStatus.classList.toggle('success',!!ok)}function shake(){accessWrap.classList.remove('shake');void accessWrap.offsetWidth;accessWrap.classList.add('shake');if(navigator.vibrate)navigator.vibrate([70,35,70])}
+</script>
 </body>
 </html>
