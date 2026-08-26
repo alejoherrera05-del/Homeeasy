@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#a6455a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="robots" content="noindex, nofollow">
+    <title>HomeEasy | Iniciar sesión</title>
+
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="apple-touch-icon.png">
+    <script src="homeeasy-auth-config.js"></script>
+    <script src="homeeasy-auth.js"></script>
+
+    <style>
+        :root {
+            --wine: #a6455a;
+            --wine-dark: #78303f;
+            --wine-soft: #c9788b;
+            --gold: #c2a468;
+            --gold-dark: #9f824a;
+            --page: #f2f2f7;
+            --surface: rgba(255, 255, 255, .86);
+            --surface-solid: #ffffff;
+            --text: #211d1f;
+            --secondary: #716a6e;
+            --tertiary: #969094;
+            --line: rgba(60, 60, 67, .13);
+            --danger: #c93636;
+            --success: #2f8a4c;
+            --shadow: 0 30px 80px rgba(60, 29, 39, .16);
+            --spring: cubic-bezier(.2, .8, .2, 1);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { min-height: 100%; margin: 0; }
+        html { background: var(--wine); }
+        body {
+            color: var(--text);
+            background: var(--page);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        a { color: inherit; }
+
+        .page-shell {
+            min-height: 100vh;
+            min-height: 100svh;
+            display: grid;
+            grid-template-columns: minmax(0, 1.04fr) minmax(440px, .96fr);
+            background:
+                radial-gradient(circle at 14% 12%, rgba(235, 208, 153, .28), transparent 28%),
+                radial-gradient(circle at 90% 92%, rgba(166, 69, 90, .13), transparent 33%),
+                var(--page);
+        }
+
+        .brand-scene {
+            position: relative;
+            min-height: 100vh;
+            min-height: 100svh;
+            overflow: hidden;
+            isolation: isolate;
+            padding: max(34px, env(safe-area-inset-top)) 44px max(34px, env(safe-area-inset-bottom));
+            background:
+                radial-gradient(circle at 28% 16%, rgba(238, 209, 153, .30), transparent 30%),
+                radial-gradient(circle at 82% 30%, rgba(255, 215, 226, .16), transparent 33%),
+                linear-gradient(151deg, #75303e 0%, var(--wine) 52%, #bd6d7f 100%);
+            color: white;
+        }
+        .brand-scene::before {
+            content: '';
+            position: absolute;
+            inset: -15%;
+            z-index: -2;
+            opacity: .42;
+            background-image:
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 48px 48px;
+            transform: rotate(-5deg);
+            -webkit-mask-image: linear-gradient(to bottom, #000, transparent 82%);
+            mask-image: linear-gradient(to bottom, #000, transparent 82%);
+        }
+        .brand-scene::after {
+            content: '';
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            bottom: -18%;
+            height: 49%;
+            z-index: -1;
+            border-radius: 50%;
+            background: rgba(63, 16, 30, .30);
+            filter: blur(60px);
+        }
+
+        .brand-header {
+            position: relative;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-mark {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 15px rgba(55, 13, 25, .15));
+        }
+        .brand-name {
+            font-size: 1.04rem;
+            font-weight: 720;
+            letter-spacing: -.025em;
+        }
+
+        .scene-copy {
+            position: relative;
+            z-index: 3;
+            width: min(520px, 82%);
+            margin-top: clamp(50px, 9vh, 98px);
+        }
+        .scene-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 16px;
+            color: rgba(255,255,255,.72);
+            font-size: .72rem;
+            font-weight: 760;
+            text-transform: uppercase;
+            letter-spacing: .13em;
+        }
+        .scene-kicker::before {
+            content: '';
+            width: 28px;
+            height: 1px;
+            background: var(--gold);
+        }
+        .scene-copy h1 {
+            max-width: 9ch;
+            margin: 0;
+            font-size: clamp(3rem, 6vw, 5.4rem);
+            line-height: .92;
+            letter-spacing: -.068em;
+            font-weight: 710;
+        }
+        .scene-copy p {
+            max-width: 37ch;
+            margin: 22px 0 0;
+            color: rgba(255,255,255,.74);
+            font-size: clamp(.93rem, 1.2vw, 1.06rem);
+            line-height: 1.56;
+            font-weight: 450;
+        }
+
+        .hommy-login {
+            position: absolute;
+            z-index: 2;
+            right: clamp(-120px, -4vw, -34px);
+            bottom: -4vh;
+            width: min(54vw, 630px);
+            max-height: 73vh;
+            object-fit: contain;
+            object-position: right bottom;
+            pointer-events: none;
+            user-select: none;
+            filter:
+                drop-shadow(0 36px 45px rgba(45, 10, 22, .35))
+                drop-shadow(0 7px 16px rgba(69, 20, 35, .17));
+        }
+
+        .scene-footnote {
+            position: absolute;
+            z-index: 4;
+            left: 44px;
+            bottom: max(34px, env(safe-area-inset-bottom));
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: rgba(255,255,255,.58);
+            font-size: .69rem;
+            font-weight: 560;
+        }
+        .scene-footnote svg { width: 15px; height: 15px; fill: var(--gold); }
+
+        .access-zone {
+            min-height: 100vh;
+            min-height: 100svh;
+            padding: max(30px, env(safe-area-inset-top)) 34px max(30px, env(safe-area-inset-bottom));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .access-wrap { width: min(430px, 100%); }
+
+        .mobile-brand {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+        .mobile-brand img { width: 31px; height: 31px; object-fit: contain; }
+        .mobile-brand strong { color: var(--wine); font-size: 1rem; letter-spacing: -.025em; }
+
+        .access-heading { margin-bottom: 27px; }
+        .access-eyebrow {
+            margin: 0 0 9px;
+            color: var(--wine);
+            font-size: .71rem;
+            line-height: 1;
+            font-weight: 780;
+            letter-spacing: .11em;
+            text-transform: uppercase;
+        }
+        .access-heading h2 {
+            margin: 0;
+            color: #241f21;
+            font-size: clamp(2.05rem, 4vw, 2.75rem);
+            line-height: 1;
+            font-weight: 720;
+            letter-spacing: -.058em;
+        }
+        .access-heading p {
+            margin: 12px 0 0;
+            color: var(--secondary);
+            font-size: .91rem;
+            line-height: 1.48;
+        }
+
+        .config-notice {
+            display: none;
+            margin: 0 0 20px;
+            padding: 13px 14px;
+            border: 1px solid rgba(194,164,104,.33);
+            border-radius: 15px;
+            background: rgba(194,164,104,.10);
+            color: #755c29;
+            font-size: .75rem;
+            line-height: 1.48;
+        }
+        .config-notice.visible { display: block; }
+        .config-notice strong { display: block; margin-bottom: 2px; font-size: .78rem; }
+
+        .field { margin-bottom: 17px; }
+        .field-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            align-items: baseline;
+            margin: 0 2px 8px;
+        }
+        .field label {
+            color: #3e383b;
+            font-size: .76rem;
+            font-weight: 680;
+        }
+        .field-control { position: relative; }
+        .field-control svg {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            width: 19px;
+            height: 19px;
+            transform: translateY(-50%);
+            fill: #999296;
+            pointer-events: none;
+        }
+        .input {
+            width: 100%;
+            height: 58px;
+            padding: 0 50px 0 48px;
+            border: 1px solid rgba(60,60,67,.14);
+            border-radius: 17px;
+            outline: none;
+            background: rgba(255,255,255,.90);
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 520;
+            box-shadow: 0 4px 14px rgba(42,32,36,.035);
+            transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        .input::placeholder { color: #aaa4a7; font-weight: 450; }
+        .input:focus {
+            border-color: rgba(166,69,90,.48);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(166,69,90,.09), 0 7px 18px rgba(42,32,36,.05);
+        }
+        .input.invalid {
+            border-color: rgba(201,54,54,.52);
+            box-shadow: 0 0 0 4px rgba(201,54,54,.08);
+        }
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 7px;
+            width: 44px;
+            height: 44px;
+            transform: translateY(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 12px;
+            background: transparent;
+            color: #8f888c;
+        }
+        .password-toggle:active { background: #f0ecee; }
+        .password-toggle svg { position: static; width: 20px; height: 20px; transform: none; fill: currentColor; }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin: 1px 2px 21px;
+        }
+        .remember-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            color: #5f585c;
+            font-size: .73rem;
+            line-height: 1.3;
+            cursor: pointer;
+        }
+        .remember-option input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: var(--wine);
+            flex: 0 0 auto;
+        }
+        .forgot-button {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--wine);
+            font-size: .73rem;
+            font-weight: 690;
+            white-space: nowrap;
+        }
+
+        .submit-button {
+            width: 100%;
+            min-height: 56px;
+            border: 0;
+            border-radius: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--wine);
+            color: #fff;
+            font-weight: 720;
+            letter-spacing: -.012em;
+            box-shadow: 0 15px 30px rgba(166,69,90,.22);
+            transition: transform .16s var(--spring), box-shadow .18s ease, opacity .18s ease, background .18s ease;
+        }
+        .submit-button:not(:disabled):hover {
+            background: #953d51;
+            transform: translateY(-2px);
+            box-shadow: 0 18px 34px rgba(166,69,90,.27);
+        }
+        .submit-button:not(:disabled):active { transform: scale(.985); }
+        .submit-button:disabled { opacity: .58; cursor: not-allowed; }
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.35);
+            border-top-color: #fff;
+            animation: spin .8s linear infinite;
+        }
+        .submit-button.loading .spinner { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .form-status {
+            min-height: 21px;
+            margin-top: 13px;
+            color: var(--danger);
+            text-align: center;
+            font-size: .73rem;
+            line-height: 1.4;
+            font-weight: 620;
+        }
+        .form-status.success { color: var(--success); }
+
+        .access-separator {
+            height: 1px;
+            margin: 26px 0 18px;
+            background: var(--line);
+        }
+        .access-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--tertiary);
+            font-size: .69rem;
+            line-height: 1.46;
+        }
+        .access-note svg { width: 17px; height: 17px; flex: 0 0 auto; fill: var(--gold-dark); }
+
+        .reset-panel {
+            display: none;
+            margin-top: 18px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: rgba(255,255,255,.65);
+        }
+        .reset-panel.visible { display: block; animation: rise .22s var(--spring); }
+        @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+        .reset-panel h3 { margin: 0; font-size: .95rem; letter-spacing: -.025em; }
+        .reset-panel p { margin: 6px 0 14px; color: var(--secondary); font-size: .73rem; line-height: 1.45; }
+        .reset-actions { display: flex; gap: 9px; }
+        .reset-actions button {
+            min-height: 43px;
+            padding: 0 15px;
+            border-radius: 13px;
+            font-size: .73rem;
+            font-weight: 690;
+        }
+        .reset-send { flex: 1; border: 0; background: var(--wine); color: white; }
+        .reset-cancel { border: 1px solid var(--line); background: white; color: #5e575b; }
+
+        .shake { animation: shake .34s ease; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        :where(button, input):focus-visible {
+            outline: 3px solid rgba(0,122,255,.32);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 940px) {
+            .page-shell { grid-template-columns: minmax(0, 1fr) minmax(400px, .9fr); }
+            .brand-scene { padding-left: 32px; padding-right: 32px; }
+            .scene-copy { width: 92%; }
+            .hommy-login { width: min(62vw, 580px); right: -150px; }
+            .scene-footnote { left: 32px; }
+        }
+
+        @media (max-width: 760px) {
+            html { background: var(--page); }
+            .page-shell { display: block; }
+            .brand-scene { display: none; }
+            .access-zone {
+                min-height: 100vh;
+                min-height: 100svh;
+                align-items: flex-start;
+                padding: max(29px, env(safe-area-inset-top)) 20px max(26px, env(safe-area-inset-bottom));
+            }
+            .access-wrap { width: min(430px, 100%); margin: auto; }
+            .mobile-brand { display: flex; }
+            .access-heading { margin-bottom: 25px; }
+            .access-heading h2 { font-size: 2.32rem; }
+            .input { height: 57px; }
+        }
+
+        @media (max-width: 390px) {
+            .access-zone { padding-left: 16px; padding-right: 16px; }
+            .mobile-brand { margin-bottom: 27px; }
+            .access-heading h2 { font-size: 2.12rem; }
+            .form-options { gap: 12px; }
+            .remember-option { max-width: 178px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <section class="brand-scene" aria-label="HomeEasy">
+            <div class="brand-header">
+                <img src="triangulogold.png" class="brand-mark" alt="" onerror="this.src='triangulo.png'">
+                <span class="brand-name">HomeEasy</span>
+            </div>
+
+            <div class="scene-copy">
+                <div class="scene-kicker">Sistema Hommy</div>
+                <h1>Todo en su lugar.</h1>
+                <p>Un acceso personal para que cada acción, documento y movimiento quede correctamente identificado.</p>
+            </div>
+
+            <img
+                src="hommyperfil.png"
+                class="hommy-login"
+                alt="Hommy, asistente de HomeEasy"
+                onerror="this.onerror=null;this.src='hommysaludando.png'">
+
+            <div class="scene-footnote">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7v3.17A3 3 0 0 0 3 15v4a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-4a3 3 0 0 0-2-2.83V9a7 7 0 0 0-7-7Zm-5 7a5 5 0 0 1 10 0v3H7V9Zm12 10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v4Z"/></svg>
+                Sesión cifrada mediante Firebase Authentication
+            </div>
+        </section>
+
+        <section class="access-zone" aria-label="Iniciar sesión">
+            <div class="access-wrap" id="accessWrap">
+                <div class="mobile-brand">
+                    <img src="triangulogold.png" alt="" onerror="this.src='triangulo.png'">
+                    <strong>HomeEasy</strong>
+                </div>
+
+                <header class="access-heading">
+                    <div class="access-eyebrow">Acceso personal</div>
+                    <h2>Bienvenido</h2>
+                    <p>Ingresa con la cuenta que te asignó el administrador.</p>
+                </header>
+
+                <div class="config-notice" id="configNotice" role="status">
+                    <strong>Conexión pendiente</strong>
+                    La pantalla ya está lista, pero todavía falta enlazar el proyecto gratuito de Firebase antes de probar el acceso.
+                </div>
+
+                <form id="loginForm" novalidate>
+                    <div class="field">
+                        <div class="field-head"><label for="emailInput">Correo de acceso</label></div>
+                        <div class="field-control">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3Zm0 2-8 5-8-5h16Zm1 11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7.87l8.47 5.3a1 1 0 0 0 1.06 0L21 7.87V17Z"/></svg>
+                            <input id="emailInput" class="input" type="email" inputmode="email" autocomplete="username" maxlength="180" placeholder="nombre@correo.com" required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-head"><label for="passwordInput">Contraseña</label></div>
+                        <div class="field-control">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 9h-1V7A4 4 0 0 0 8 7v2H7a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-7a3 3 0 0 0-3-3Zm-7-2a2 2 0 0 1 4 0v2h-4V7Zm8 12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7Z"/></svg>
+                            <input id="passwordInput" class="input" type="password" autocomplete="current-password" maxlength="4096" placeholder="Tu contraseña" required>
+                            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Mostrar contraseña" aria-pressed="false">
+                                <svg id="passwordEye" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C6.5 5 2.1 8.4.5 12c1.6 3.6 6 7 11.5 7s9.9-3.4 11.5-7C21.9 8.4 17.5 5 12 5Zm0 12c-4.1 0-7.7-2.3-9.3-5 1.6-2.7 5.2-5 9.3-5s7.7 2.3 9.3 5c-1.6 2.7-5.2 5-9.3 5Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-option" for="rememberInput">
+                            <input id="rememberInput" type="checkbox">
+                            <span>Mantener sesión en este dispositivo</span>
+                        </label>
+                        <button type="button" class="forgot-button" id="forgotButton">¿Olvidaste tu contraseña?</button>
+                    </div>
+
+                    <button type="submit" class="submit-button" id="submitButton">
+                        <span class="spinner" aria-hidden="true"></span>
+                        <span id="submitLabel">Entrar a HomeEasy</span>
+                    </button>
+                    <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+                </form>
+
+                <section class="reset-panel" id="resetPanel" aria-label="Recuperar contraseña">
+                    <h3>Recuperar contraseña</h3>
+                    <p>Enviaremos las instrucciones al correo de la cuenta, si está registrado.</p>
+                    <div class="field" style="margin-bottom: 12px;">
+                        <div class="field-control">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3Zm0 2-8 5-8-5h16Zm1 11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7.87l8.47 5.3a1 1 0 0 0 1.06 0L21 7.87V17Z"/></svg>
+                            <input id="resetEmailInput" class="input" type="email" inputmode="email" autocomplete="email" maxlength="180" placeholder="nombre@correo.com">
+                        </div>
+                    </div>
+                    <div class="reset-actions">
+                        <button type="button" class="reset-cancel" id="resetCancel">Cancelar</button>
+                        <button type="button" class="reset-send" id="resetSend">Enviar instrucciones</button>
+                    </div>
+                </section>
+
+                <div class="access-separator"></div>
+                <div class="access-note">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4Zm0 2.18L19 6.3V11c0 4.37-2.91 8.54-7 9.92C7.91 19.54 5 15.37 5 11V6.3l7-3.12ZM11 7v6.59l-2.3-2.3-1.4 1.42L12 17.41l4.7-4.7-1.4-1.42-2.3 2.3V7h-2Z"/></svg>
+                    <span>No existe registro público. Las cuentas se crearán únicamente desde el perfil de un administrador.</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        'use strict';
+
+        const auth = window.HomeEasyAuth;
+        const accessWrap = document.getElementById('accessWrap');
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const rememberInput = document.getElementById('rememberInput');
+        const submitButton = document.getElementById('submitButton');
+        const submitLabel = document.getElementById('submitLabel');
+        const formStatus = document.getElementById('formStatus');
+        const configNotice = document.getElementById('configNotice');
+        const resetPanel = document.getElementById('resetPanel');
+        const resetEmailInput = document.getElementById('resetEmailInput');
+        const returnUrl = auth
+            ? auth.safeReturnUrl(new URLSearchParams(location.search).get('return'), 'index.html')
+            : 'index.html';
+
+        document.addEventListener('DOMContentLoaded', initializeLogin);
+        loginForm.addEventListener('submit', handleLogin);
+        document.getElementById('passwordToggle').addEventListener('click', togglePassword);
+        document.getElementById('forgotButton').addEventListener('click', openResetPanel);
+        document.getElementById('resetCancel').addEventListener('click', closeResetPanel);
+        document.getElementById('resetSend').addEventListener('click', sendResetEmail);
+        [emailInput, passwordInput].forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('invalid');
+                setStatus('');
+            });
+        });
+
+        async function initializeLogin() {
+            if (!auth) {
+                configNotice.classList.add('visible');
+                configNotice.innerHTML = '<strong>Archivo central no disponible</strong>No se pudo cargar homeeasy-auth.js.';
+                submitButton.disabled = true;
+                return;
+            }
+
+            if (!auth.isConfigured()) {
+                configNotice.classList.add('visible');
+                submitButton.disabled = true;
+                emailInput.disabled = true;
+                passwordInput.disabled = true;
+                rememberInput.disabled = true;
+                return;
+            }
+
+            setBusy(true, 'Comprobando sesión');
+            const user = await auth.restoreSession({ validate: false });
+            if (user) {
+                location.replace(returnUrl);
+                return;
+            }
+            setBusy(false);
+            setTimeout(() => emailInput.focus(), 120);
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            if (!auth || !auth.isConfigured() || submitButton.disabled) return;
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            let invalid = false;
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailInput.classList.add('invalid');
+                invalid = true;
+            }
+            if (!password) {
+                passwordInput.classList.add('invalid');
+                invalid = true;
+            }
+            if (invalid) {
+                setStatus('Revisa el correo y la contraseña.');
+                shakeCard();
+                return;
+            }
+
+            setBusy(true, 'Verificando acceso');
+            setStatus('');
+            try {
+                await auth.signIn(email, password, { remember: rememberInput.checked });
+                setStatus('Acceso autorizado. Abriendo HomeEasy…', true);
+                passwordInput.value = '';
+                location.replace(returnUrl);
+            } catch (error) {
+                setStatus(error && error.message ? error.message : 'No fue posible iniciar sesión.');
+                passwordInput.value = '';
+                passwordInput.classList.add('invalid');
+                shakeCard();
+                passwordInput.focus();
+            } finally {
+                setBusy(false);
+            }
+        }
+
+        function togglePassword() {
+            const button = document.getElementById('passwordToggle');
+            const reveal = passwordInput.type === 'password';
+            passwordInput.type = reveal ? 'text' : 'password';
+            button.setAttribute('aria-pressed', String(reveal));
+            button.setAttribute('aria-label', reveal ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            passwordInput.focus();
+        }
+
+        function openResetPanel() {
+            resetEmailInput.value = emailInput.value.trim();
+            resetPanel.classList.add('visible');
+            setTimeout(() => resetEmailInput.focus(), 80);
+        }
+
+        function closeResetPanel() {
+            resetPanel.classList.remove('visible');
+            resetEmailInput.classList.remove('invalid');
+        }
+
+        async function sendResetEmail() {
+            if (!auth || !auth.isConfigured()) return;
+            const email = resetEmailInput.value.trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                resetEmailInput.classList.add('invalid');
+                setStatus('Escribe un correo válido.');
+                return;
+            }
+
+            const button = document.getElementById('resetSend');
+            button.disabled = true;
+            button.textContent = 'Enviando…';
+            setStatus('');
+            try {
+                await auth.sendPasswordReset(email);
+                setStatus('Si la cuenta existe, recibirás un correo con las instrucciones.', true);
+                closeResetPanel();
+            } catch (error) {
+                setStatus(error && error.message ? error.message : 'No fue posible enviar las instrucciones.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Enviar instrucciones';
+            }
+        }
+
+        function setBusy(busy, label) {
+            submitButton.classList.toggle('loading', Boolean(busy));
+            submitButton.disabled = Boolean(busy) || !auth || !auth.isConfigured();
+            submitLabel.textContent = busy ? (label || 'Verificando') : 'Entrar a HomeEasy';
+            emailInput.readOnly = Boolean(busy);
+            passwordInput.readOnly = Boolean(busy);
+            rememberInput.disabled = Boolean(busy);
+        }
+
+        function setStatus(message, success) {
+            formStatus.textContent = message || '';
+            formStatus.classList.toggle('success', Boolean(success));
+        }
+
+        function shakeCard() {
+            accessWrap.classList.remove('shake');
+            void accessWrap.offsetWidth;
+            accessWrap.classList.add('shake');
+            if (navigator.vibrate) navigator.vibrate([70, 35, 70]);
+        }
+    </script>
+</body>
+</html>
