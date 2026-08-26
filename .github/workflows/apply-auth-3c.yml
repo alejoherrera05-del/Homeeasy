@@ -1,0 +1,87 @@
+name: Apply HomeEasy Auth 3C guards
+
+on:
+  push:
+    branches:
+      - feature/auth-rbac
+    paths:
+      - .github/workflows/apply-auth-3c.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  wire-guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/auth-rbac
+          fetch-depth: 0
+
+      - name: Insert page guard in internal modules
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          files = [
+              'clientes.html', 'ventas.html', 'cotizacion.html', 'seguimiento.html',
+              'pedido.html', 'abono.html', 'caja.html', 'documentos.html',
+              'calendario.html', 'reportes.html', 'configuracion.html'
+          ]
+          guard = '<script src="homeeasy-page-guard.js?v=3C"></script>'
+          changed = []
+          skipped = []
+
+          for name in files:
+              path = Path(name)
+              if not path.exists():
+                  skipped.append(f'{name}: missing')
+                  continue
+              text = path.read_text(encoding='utf-8')
+              if 'homeeasy-page-guard.js' in text:
+                  skipped.append(f'{name}: already wired')
+                  continue
+
+              core = list(re.finditer(r'<script[^>]+src=["\'][^"\']*homeeasy-core\.js[^"\']*["\'][^>]*>\s*</script>', text, re.I))
+              if core:
+                  pos = core[-1].end()
+                  text = text[:pos] + '\n    ' + guard + text[pos:]
+              elif '</head>' in text.lower():
+                  pos = text.lower().rfind('</head>')
+                  text = text[:pos] + '    ' + guard + '\n' + text[pos:]
+              else:
+                  skipped.append(f'{name}: no head')
+                  continue
+
+              path.write_text(text, encoding='utf-8')
+              changed.append(name)
+
+          print('Changed:', ', '.join(changed))
+          print('Skipped:', ', '.join(skipped))
+          if len(changed) < 10:
+              raise SystemExit(f'Expected at least 10 guarded modules; changed {len(changed)}')
+
+      - name: Validate no AR file was touched
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --name-only | grep -E '^ar-|^ar-sheer-' ; then
+            echo 'AR file changed unexpectedly.' >&2
+            exit 1
+          fi
+          grep -l 'homeeasy-page-guard.js' clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html
+
+      - name: Commit guarded modules and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/apply-auth-3c.yml
+          git config user.name 'HomeEasy Auth Bot'
+          git config user.email 'actions@github.com'
+          git add clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html .github/workflows/apply-auth-3c.yml
+          git commit -m 'Wire RBAC page guard into HomeEasy internal modules'
+          git push origin HEAD:feature/auth-rbac
