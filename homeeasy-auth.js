@@ -495,6 +495,16 @@
         });
         const user = sessionToUser(session);
         emitAuthChange('firebase-signed-in', user);
+
+        if (!options || options.openAppSession !== false) {
+            try {
+                await openAppSession({ meta: options && options.meta ? options.meta : {} });
+            } catch (error) {
+                clearStoredSessions();
+                emitAuthChange('session-rejected', null);
+                throw error;
+            }
+        }
         return user;
     }
 
@@ -587,7 +597,7 @@
         });
     }
 
-    async function restoreSession(options) {
+    async function restoreFirebaseSession(options) {
         ensureConfigured();
         const opts = { validate: false, ...(options || {}) };
         const stored = readStoredSession();
@@ -602,6 +612,27 @@
             clearStoredSessions();
             emitAuthChange('session-expired', null);
             return null;
+        }
+    }
+
+    async function restoreSession(options) {
+        const opts = { validate: false, homeEasy: true, silent: true, meta: {}, ...(options || {}) };
+        const user = await restoreFirebaseSession({ validate: opts.validate });
+        if (!user || opts.homeEasy === false) return user;
+
+        try {
+            const current = readStoredSession();
+            if (current && current.appSessionToken) {
+                await validateAppSession({ meta: opts.meta });
+            } else {
+                await openAppSession({ meta: opts.meta });
+            }
+            return user;
+        } catch (error) {
+            clearStoredSessions();
+            emitAuthChange('session-rejected', null);
+            if (opts.silent) return null;
+            throw error;
         }
     }
 
@@ -666,7 +697,7 @@
 
     async function restoreHomeEasySession(options) {
         const opts = { validateFirebase: false, reopen: true, silent: false, meta: {}, ...(options || {}) };
-        const user = await restoreSession({ validate: opts.validateFirebase });
+        const user = await restoreFirebaseSession({ validate: opts.validateFirebase });
         if (!user) return null;
 
         const current = readStoredSession();
