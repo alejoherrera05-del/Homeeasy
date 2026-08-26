@@ -1,13 +1,13 @@
 /**
- * HomeEasy Core v2.2
- * Comunicación central, identificación del dispositivo y trazabilidad.
- * No cambia la lógica de negocio de los formularios existentes.
+ * HomeEasy Core v2.3
+ * Comunicación central, identificación del dispositivo, trazabilidad y guard de acceso del Index.
+ * La protección general se aplica únicamente a index.html en esta fase.
  */
 (function (global) {
     'use strict';
 
     const API_URL = 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
-    const APP_VERSION = '2.2';
+    const APP_VERSION = '2.3';
     const CONFIG_CACHE_KEY = 'HOMEEASY_CONFIG_BROWSER_V1';
     const CONFIG_CACHE_FRESH_MS = 5 * 60 * 1000;
     const CONFIG_CACHE_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -15,9 +15,54 @@
     const OPERATOR_KEY = 'HOMEEASY_OPERADOR_LOCAL';
     const DEVICE_ID_KEY = 'HOMEEASY_DEVICE_ID';
     const DEVICE_NAME_KEY = 'HOMEEASY_DEVICE_NAME';
-    const FETCH_PATCH_FLAG = '__HOMEEASY_FETCH_PATCHED_V22__';
+    const FETCH_PATCH_FLAG = '__HOMEEASY_FETCH_PATCHED_V23__';
+    const AUTH_PENDING_CLASS = 'homeeasy-auth-pending';
+    const AUTH_LOADING_STYLE_ID = 'homeeasy-auth-loading-style';
+    const AUTH_LOGOUT_STYLE_ID = 'homeeasy-auth-logout-style';
 
     const nativeFetch = global.fetch.bind(global);
+    const initialPage = ((global.location && global.location.pathname ? global.location.pathname.split('/').pop() : '') || 'index.html').toLowerCase();
+    const INDEX_AUTH_PROTECTED = initialPage === 'index.html';
+    let indexAuthStatus = INDEX_AUTH_PROTECTED ? 'checking' : 'disabled';
+    let resolveIndexAuthReady = null;
+    const indexAuthReadyPromise = INDEX_AUTH_PROTECTED
+        ? new Promise(resolve => { resolveIndexAuthReady = resolve; })
+        : Promise.resolve(true);
+
+    if (INDEX_AUTH_PROTECTED && global.document && global.document.documentElement) {
+        global.document.documentElement.classList.add(AUTH_PENDING_CLASS);
+        const loadingStyle = global.document.createElement('style');
+        loadingStyle.id = AUTH_LOADING_STYLE_ID;
+        loadingStyle.textContent = `
+            html.${AUTH_PENDING_CLASS} body { visibility: hidden !important; }
+            html.${AUTH_PENDING_CLASS} {
+                min-height: 100%;
+                background: #a6455a !important;
+            }
+            html.${AUTH_PENDING_CLASS}::before {
+                content: '';
+                position: fixed;
+                z-index: 2147483646;
+                inset: 0;
+                background:
+                    radial-gradient(circle at 50% 42%, rgba(194,164,104,.18), transparent 28%),
+                    #a6455a;
+            }
+            html.${AUTH_PENDING_CLASS}::after {
+                content: 'HomeEasy · validando acceso seguro…';
+                position: fixed;
+                z-index: 2147483647;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                color: rgba(255,255,255,.88);
+                font: 650 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                letter-spacing: .02em;
+                white-space: nowrap;
+            }
+        `;
+        (global.document.head || global.document.documentElement).appendChild(loadingStyle);
+    }
 
     function buildQuery(params) {
         const search = new URLSearchParams();
@@ -152,6 +197,20 @@
         };
     }
 
+    function parseRequestBody(body) {
+        if (typeof body !== 'string') return null;
+        try {
+            const parsed = JSON.parse(body);
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function isAuthenticationRequest(payload) {
+        return Boolean(payload && /^AUTH_/i.test(String(payload.tipo || '')));
+    }
+
     function installFetchInstrumentation() {
         if (global[FETCH_PATCH_FLAG]) return;
         global[FETCH_PATCH_FLAG] = true;
@@ -160,19 +219,31 @@
             const url = typeof resource === 'string' ? resource : (resource && resource.url ? resource.url : '');
             const options = { ...(init || {}) };
             const method = String(options.method || (resource && resource.method) || 'GET').toUpperCase();
+            const targetsHomeEasy = url.startsWith(API_URL);
+            let parsedBody = null;
 
-            if (url.startsWith(API_URL) && method === 'POST' && typeof options.body === 'string') {
-                try {
-                    const parsed = JSON.parse(options.body);
-                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                        options.body = JSON.stringify(enrichPayload(parsed));
-                    }
-                } catch (error) {
-                    // Se conserva el cuerpo original cuando no es JSON.
+            if (targetsHomeEasy && method === 'POST' && typeof options.body === 'string') {
+                parsedBody = parseRequestBody(options.body);
+                if (parsedBody) {
+                    options.body = JSON.stringify(enrichPayload(parsedBody));
                 }
             }
 
-            return nativeFetch(resource, options);
+            const execute = () => nativeFetch(resource, options);
+
+            // En Fase 3A, ninguna consulta comercial del Index sale al servidor
+            // hasta que Firebase + la sesión HomeEasy hayan sido validadas.
+            // Las rutas AUTH_* quedan exentas para evitar un bloqueo circular.
+            if (
+                INDEX_AUTH_PROTECTED &&
+                targetsHomeEasy &&
+                !isAuthenticationRequest(parsedBody) &&
+                indexAuthStatus !== 'authorized'
+            ) {
+                return indexAuthReadyPromise.then(execute);
+            }
+
+            return execute();
         };
     }
 
@@ -321,6 +392,195 @@
         });
     }
 
+    function clearSensitiveBrowserCaches() {
+        [
+            'CACHE_CLIENTES',
+            'CACHE_ORDENES',
+            'CACHE_EVENTOS',
+            CONFIG_CACHE_KEY
+        ].forEach(key => {
+            try { localStorage.removeItem(key); } catch (error) {}
+        });
+        [
+            'APP_INIT_DONE',
+            'HOMEEASY_AGENDA_FOCUS'
+        ].forEach(key => {
+            try { sessionStorage.removeItem(key); } catch (error) {}
+        });
+    }
+
+    function loadScriptOnce(src, id, readyTest) {
+        if (typeof readyTest === 'function' && readyTest()) return Promise.resolve();
+        const existing = global.document && global.document.getElementById(id);
+        if (existing) {
+            if (existing.dataset.loaded === 'true') return Promise.resolve();
+            return new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            const script = global.document.createElement('script');
+            script.id = id;
+            script.src = src;
+            script.async = true;
+            script.addEventListener('load', () => {
+                script.dataset.loaded = 'true';
+                resolve();
+            }, { once: true });
+            script.addEventListener('error', reject, { once: true });
+            (global.document.head || global.document.documentElement).appendChild(script);
+        });
+    }
+
+    function revealAuthenticatedIndex() {
+        indexAuthStatus = 'authorized';
+        if (resolveIndexAuthReady) resolveIndexAuthReady(true);
+        if (global.document && global.document.documentElement) {
+            global.document.documentElement.classList.remove(AUTH_PENDING_CLASS);
+        }
+        try {
+            global.dispatchEvent(new CustomEvent('homeeasy:index-auth-ready', {
+                detail: {
+                    profile: global.HomeEasyAuth && global.HomeEasyAuth.getCurrentProfile
+                        ? global.HomeEasyAuth.getCurrentProfile()
+                        : null,
+                    timestamp: Date.now()
+                }
+            }));
+        } catch (error) {}
+    }
+
+    function redirectIndexToLogin() {
+        indexAuthStatus = 'redirecting';
+        clearSensitiveBrowserCaches();
+        setOperator('Sin identificar');
+        if (global.HomeEasyAuth && typeof global.HomeEasyAuth.redirectToLogin === 'function') {
+            global.HomeEasyAuth.redirectToLogin('index.html');
+            return;
+        }
+        const fallback = new URL('login.html', global.location.href);
+        fallback.searchParams.set('return', 'index.html');
+        global.location.replace(fallback.href);
+    }
+
+    function installLogoutControl() {
+        if (!INDEX_AUTH_PROTECTED || !global.document) return;
+
+        const install = () => {
+            if (global.document.getElementById('homeeasyLogoutButton')) return;
+            const topActions = global.document.querySelector('.top-actions');
+            if (!topActions) return;
+
+            if (!global.document.getElementById(AUTH_LOGOUT_STYLE_ID)) {
+                const style = global.document.createElement('style');
+                style.id = AUTH_LOGOUT_STYLE_ID;
+                style.textContent = `
+                    .top-actions.homeeasy-auth-actions {
+                        display: flex !important;
+                        align-items: center !important;
+                        gap: 8px !important;
+                    }
+                    .top-actions.homeeasy-auth-actions .auth-logout-button {
+                        appearance: none;
+                        -webkit-appearance: none;
+                        flex: 0 0 auto;
+                    }
+                    .top-actions.homeeasy-auth-actions .auth-logout-button i {
+                        color: #a6455a;
+                        font-size: 17px;
+                    }
+                    @media (any-hover:hover) and (any-pointer:fine) {
+                        .auth-logout-button:hover {
+                            transform: translateY(-3px) scale(1.025);
+                            border-color: rgba(166,69,90,.16);
+                            box-shadow: 0 13px 30px rgba(42,32,36,.14);
+                        }
+                    }
+                `;
+                global.document.head.appendChild(style);
+            }
+
+            topActions.classList.add('homeeasy-auth-actions');
+            const button = global.document.createElement('button');
+            button.type = 'button';
+            button.id = 'homeeasyLogoutButton';
+            button.className = 'bell-container auth-logout-button';
+            button.setAttribute('aria-label', 'Cerrar sesión');
+            button.setAttribute('title', 'Cerrar sesión');
+            button.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>';
+            topActions.insertBefore(button, topActions.firstChild);
+
+            button.addEventListener('click', async () => {
+                if (button.disabled) return;
+                button.disabled = true;
+                const icon = button.querySelector('i');
+                if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin';
+                try {
+                    if (global.HomeEasyAuth && typeof global.HomeEasyAuth.signOut === 'function') {
+                        await global.HomeEasyAuth.signOut({ meta: buildMeta() });
+                    }
+                } finally {
+                    clearSensitiveBrowserCaches();
+                    setOperator('Sin identificar');
+                    global.location.replace('login.html');
+                }
+            });
+        };
+
+        if (global.document.readyState === 'loading') {
+            global.document.addEventListener('DOMContentLoaded', install, { once: true });
+        } else {
+            install();
+        }
+    }
+
+    async function installIndexAuthGuard() {
+        if (!INDEX_AUTH_PROTECTED || !global.document) return;
+
+        try {
+            await loadScriptOnce(
+                'homeeasy-auth-config.js?v=3A',
+                'homeeasyAuthConfigScript',
+                () => Boolean(global.HOMEEASY_AUTH_CONFIG)
+            );
+            await loadScriptOnce(
+                'homeeasy-auth.js?v=3A',
+                'homeeasyAuthScript',
+                () => Boolean(global.HomeEasyAuth)
+            );
+
+            if (!global.HomeEasyAuth || !global.HomeEasyAuth.isConfigured()) {
+                redirectIndexToLogin();
+                return;
+            }
+
+            const authorized = await global.HomeEasyAuth.requireAuth({
+                redirect: false,
+                validateFirebase: false,
+                returnUrl: 'index.html',
+                meta: buildMeta()
+            });
+
+            if (!authorized) {
+                redirectIndexToLogin();
+                return;
+            }
+
+            const profile = global.HomeEasyAuth.getCurrentProfile();
+            if (profile) {
+                setOperator(profile.nombre || profile.email || 'Sin identificar');
+            }
+
+            revealAuthenticatedIndex();
+            installLogoutControl();
+        } catch (error) {
+            console.error('HomeEasy Auth Guard:', error);
+            redirectIndexToLogin();
+        }
+    }
+
     installFetchInstrumentation();
 
     global.HomeEasyCore = Object.freeze({
@@ -330,6 +590,7 @@
         post,
         getConfiguration,
         clearConfigCache,
+        clearSensitiveBrowserCaches,
         flattenObject,
         getByPath,
         normalizeComparable,
@@ -342,6 +603,9 @@
         getDeviceName,
         setDeviceName,
         buildMeta,
-        createRequestId: createUuid
+        createRequestId: createUuid,
+        indexAuthProtected: INDEX_AUTH_PROTECTED
     });
+
+    installIndexAuthGuard();
 })(window);
