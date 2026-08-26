@@ -1,0 +1,177 @@
+name: Audit HomeEasy stable candidate
+
+on:
+  push:
+    branches: [audit/auth-stable-candidate]
+    paths: [.github/workflows/audit-stable-candidate.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit/auth-stable-candidate
+          fetch-depth: 0
+
+      - name: Run complete static audit
+        shell: python
+        run: |
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import json, re, subprocess
+
+          ROOT = Path('.')
+          html_files = sorted(p for p in ROOT.glob('*.html') if p.is_file())
+          internal_modules = {
+              'index.html','clientes.html','ventas.html','cotizacion.html','seguimiento.html',
+              'pedido.html','abono.html','caja.html','documentos.html','calendario.html',
+              'reportes.html','configuracion.html','Hommychat.html','asistente.html'
+          }
+          ar_prefixes = ('ar-homeeasy-', 'ar-sheer-')
+
+          class Parser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.ids=[]; self.links=[]; self.scripts=[]; self.styles=[]; self.images=[]
+              def handle_starttag(self, tag, attrs):
+                  a=dict(attrs)
+                  if 'id' in a: self.ids.append(a['id'])
+                  if tag=='a' and a.get('href'): self.links.append(a['href'])
+                  if tag=='script' and a.get('src'): self.scripts.append(a['src'])
+                  if tag=='link' and a.get('href'): self.styles.append(a['href'])
+                  if tag=='img' and a.get('src'): self.images.append(a['src'])
+
+          def is_local(ref):
+              if not ref: return False
+              r=ref.strip()
+              return not re.match(r'^(?:https?:|data:|mailto:|tel:|javascript:|#)', r, re.I)
+          def local_path(ref):
+              return ref.split('?',1)[0].split('#',1)[0].lstrip('./')
+
+          report={
+              'html_count':len(html_files), 'pages':{}, 'missing_local_refs':[], 'duplicate_ids':{},
+              'script_versions':{}, 'legacy_identity':[], 'config_pin':[], 'font_weights':{},
+              'font_families':{}, 'document_mentions':{}, 'direct_backend_refs':[], 'guard_gaps':[],
+              'ar_diff':[], 'js_checks':{}, 'findings':[]
+          }
+
+          docs=['cotización','cotizacion','pedido','orden de pedido','recibo','cuenta de cobro','cuenta_cobro','cuentacobro','abono','remisión','remision']
+          for p in html_files:
+              text=p.read_text(encoding='utf-8', errors='replace')
+              parser=Parser(); parser.feed(text)
+              dups=sorted({x for x in parser.ids if parser.ids.count(x)>1})
+              if dups: report['duplicate_ids'][p.name]=dups
+
+              refs=[]
+              for kind, arr in [('link',parser.links),('script',parser.scripts),('style',parser.styles),('img',parser.images)]:
+                  for ref in arr:
+                      if is_local(ref):
+                          lp=local_path(ref)
+                          if lp and not Path(lp).exists():
+                              report['missing_local_refs'].append({'page':p.name,'kind':kind,'ref':ref})
+                          refs.append((kind,ref))
+
+              core_refs=[x for x in parser.scripts if 'homeeasy-core.js' in x]
+              guard_refs=[x for x in parser.scripts if 'homeeasy-page-guard.js' in x]
+              auth_refs=[x for x in parser.scripts if 'homeeasy-auth.js' in x]
+              report['script_versions'][p.name]={'core':core_refs,'guard':guard_refs,'auth':auth_refs}
+
+              if p.name in internal_modules and p.name!='index.html' and not guard_refs:
+                  report['guard_gaps'].append(p.name)
+
+              legacy=[]
+              for needle in ['operatorSelect','operatorSelectSecurity','Editando como','Usuario habitual','Alejandro</option>','Daniela</option>']:
+                  if needle.lower() in text.lower(): legacy.append(needle)
+              if legacy: report['legacy_identity'].append({'page':p.name,'matches':legacy})
+
+              pin=[]
+              for needle in ['VALIDAR_PIN_CONFIGURACION','PIN de configuración','pinInput','sessionPin']:
+                  if needle.lower() in text.lower(): pin.append(needle)
+              if pin: report['config_pin'].append({'page':p.name,'matches':pin})
+
+              weights={w:len(re.findall(r'font-weight\s*:\s*'+w+r'\b',text,re.I)) for w in ['400','500','550','600','650','700','750','800','900']}
+              report['font_weights'][p.name]={k:v for k,v in weights.items() if v}
+              fams=sorted(set(re.findall(r'font-family\s*:\s*([^;}{]+)',text,re.I)))
+              report['font_families'][p.name]=fams[:20]
+
+              mentions={d:len(re.findall(re.escape(d),text,re.I)) for d in docs}
+              report['document_mentions'][p.name]={k:v for k,v in mentions.items() if v}
+
+              if 'script.google.com/macros/s/' in text:
+                  report['direct_backend_refs'].append(p.name)
+
+              report['pages'][p.name]={
+                  'size':p.stat().st_size,'ids':len(parser.ids),'links':len(parser.links),
+                  'scripts':parser.scripts,'images':parser.images
+              }
+
+          # JS syntax checks for common code
+          for js in ['homeeasy-auth.js','homeeasy-core.js','homeeasy-page-guard.js','homeeasy-account.js','homeeasy-settings-auth-ui.js']:
+              path=Path(js)
+              if not path.exists():
+                  report['js_checks'][js]='MISSING'; continue
+              cp=subprocess.run(['node','--check',js],text=True,capture_output=True)
+              report['js_checks'][js]='OK' if cp.returncode==0 else (cp.stderr or cp.stdout).strip()
+
+          # AR must be byte-identical to main
+          cp=subprocess.run(['git','diff','--name-only','main...HEAD','--','ar-homeeasy-v3.html','ar-homeeasy-v4-quicklook.html','ar-sheer-v221'],text=True,capture_output=True)
+          report['ar_diff']=[x for x in cp.stdout.splitlines() if x.strip()]
+
+          # high-level findings
+          sv=report['script_versions']
+          core_versions={tuple(v['core']) for k,v in sv.items() if v['core']}
+          guard_versions={tuple(v['guard']) for k,v in sv.items() if v['guard']}
+          if len(core_versions)>1: report['findings'].append({'severity':'HIGH','code':'MIXED_CORE_VERSIONS','detail':sorted(map(list,core_versions))})
+          if len(guard_versions)>1: report['findings'].append({'severity':'HIGH','code':'MIXED_GUARD_VERSIONS','detail':sorted(map(list,guard_versions))})
+          if report['missing_local_refs']: report['findings'].append({'severity':'HIGH','code':'MISSING_LOCAL_REFS','count':len(report['missing_local_refs'])})
+          if report['duplicate_ids']: report['findings'].append({'severity':'HIGH','code':'DUPLICATE_IDS','pages':list(report['duplicate_ids'])})
+          if report['guard_gaps']: report['findings'].append({'severity':'HIGH','code':'GUARD_GAPS','pages':report['guard_gaps']})
+          if report['legacy_identity']: report['findings'].append({'severity':'MEDIUM','code':'LEGACY_OPERATOR_IDENTITY','pages':[x['page'] for x in report['legacy_identity']]})
+          if any(x['page']=='configuracion.html' for x in report['config_pin']): report['findings'].append({'severity':'MEDIUM','code':'CONFIG_SHARED_PIN_REMAINS'})
+          cfgdocs=report['document_mentions'].get('configuracion.html',{})
+          if not any(k in cfgdocs for k in ['cuenta de cobro','cuenta_cobro','cuentacobro']): report['findings'].append({'severity':'MEDIUM','code':'ACCOUNT_CHARGE_PREVIEW_MISSING'})
+          if report['ar_diff']: report['findings'].append({'severity':'CRITICAL','code':'AR_CHANGED','files':report['ar_diff']})
+          badjs=[k for k,v in report['js_checks'].items() if v!='OK']
+          if badjs: report['findings'].append({'severity':'CRITICAL','code':'JS_SYNTAX','files':badjs})
+
+          # login assets facts
+          assets=[]
+          for ap in [Path('assets/auth/hommy-crossed.webp'),Path('assets/auth/login-bg-desktop.webp'),Path('assets/auth/login-bg-mobile.webp'),Path('triangulo.png')]:
+              if ap.exists():
+                  fileinfo=subprocess.run(['file','-b',str(ap)],text=True,capture_output=True).stdout.strip()
+                  assets.append({'path':str(ap),'bytes':ap.stat().st_size,'file':fileinfo})
+          report['login_assets']=assets
+
+          Path('audit-report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding='utf-8')
+          lines=['# HomeEasy stable candidate audit','',f"HTML files: {len(html_files)}",'']
+          lines += ['## Findings']
+          if not report['findings']: lines.append('- No high-level findings.')
+          for f in report['findings']: lines.append(f"- **{f['severity']}** `{f['code']}` — {json.dumps({k:v for k,v in f.items() if k not in ('severity','code')},ensure_ascii=False)}")
+          lines += ['','## Missing local references']
+          lines += [f"- {x['page']} → {x['kind']}: `{x['ref']}`" for x in report['missing_local_refs']] or ['- None']
+          lines += ['','## Legacy identity']
+          lines += [f"- {x['page']}: {', '.join(x['matches'])}" for x in report['legacy_identity']] or ['- None']
+          lines += ['','## Script versions']
+          for page,v in sv.items():
+              if v['core'] or v['guard'] or v['auth']: lines.append(f"- {page}: core={v['core']} guard={v['guard']} auth={v['auth']}")
+          lines += ['','## Login assets']
+          lines += [f"- {x['path']}: {x['bytes']} bytes — {x['file']}" for x in assets]
+          lines += ['','## AR diff vs main', '- None' if not report['ar_diff'] else '- '+', '.join(report['ar_diff'])]
+          Path('audit-report.md').write_text('\n'.join(lines),encoding='utf-8')
+
+          print('\n'.join(lines[:120]))
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: HomeEasy_Stable_Audit
+          path: |
+            audit-report.md
+            audit-report.json
+          retention-days: 3
