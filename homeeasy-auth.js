@@ -1,5 +1,5 @@
 /**
- * HomeEasy Auth v0.2.0
+ * HomeEasy Auth v0.3.0
  * Firebase Authentication + sesión general emitida por el Cerebro HomeEasy.
  *
  * - Usa únicamente las API REST oficiales de Firebase; no añade SDK externo.
@@ -12,13 +12,15 @@
 (function (global) {
     'use strict';
 
-    const VERSION = '0.2.0';
+    const VERSION = '0.3.0';
     const STORAGE_KEY = 'HOMEEASY_AUTH_SESSION_V1';
     const DEVICE_ID_KEY = 'HOMEEASY_DEVICE_ID';
     const DEVICE_NAME_KEY = 'HOMEEASY_DEVICE_NAME';
     const AUTH_EVENT = 'homeeasy:auth-change';
     const EXPIRY_SKEW_MS = 2 * 60 * 1000;
     const REQUEST_TIMEOUT_MS = 25000;
+    const APP_SESSION_REVALIDATE_MS = 5 * 60 * 1000;
+    const APP_SESSION_EXPIRY_SKEW_MS = 30 * 1000;
     const VALID_PERSISTENCE = new Set(['session', 'local']);
 
     const rawConfig = global.HOMEEASY_AUTH_CONFIG || {};
@@ -159,6 +161,7 @@
             expiresAt: Number(session.expiresAt || 0),
             appSessionToken: String(session.appSessionToken || ''),
             appSessionExpiresAt: session.appSessionExpiresAt || '',
+            appSessionValidatedAt: Number(session.appSessionValidatedAt || 0),
             profile: normalizeProfile(session.profile),
             permissions: normalizePermissions(session.permissions),
             savedAt: Date.now()
@@ -192,6 +195,7 @@
             ...current,
             appSessionToken: '',
             appSessionExpiresAt: '',
+            appSessionValidatedAt: 0,
             profile: {},
             permissions: []
         });
@@ -616,17 +620,15 @@
     }
 
     async function restoreSession(options) {
-        const opts = { validate: false, homeEasy: true, silent: true, meta: {}, ...(options || {}) };
+        const opts = { validate: false, homeEasy: true, silent: true, meta: {}, preferCache: true, ...(options || {}) };
         const user = await restoreFirebaseSession({ validate: opts.validate });
         if (!user || opts.homeEasy === false) return user;
 
         try {
+            if (opts.preferCache !== false && getCachedHomeEasySession()) return user;
             const current = readStoredSession();
-            if (current && current.appSessionToken) {
-                await validateAppSession({ meta: opts.meta });
-            } else {
-                await openAppSession({ meta: opts.meta });
-            }
+            if (current && current.appSessionToken) await validateAppSession({ meta: opts.meta });
+            else await openAppSession({ meta: opts.meta });
             return user;
         } catch (error) {
             clearStoredSessions();
@@ -655,6 +657,7 @@
         const stored = updateStoredSession({
             appSessionToken: response.appSessionToken,
             appSessionExpiresAt: response.expiresAt || '',
+            appSessionValidatedAt: Date.now(),
             profile: response.perfil || {},
             permissions: response.permisos || []
         });
@@ -685,6 +688,7 @@
 
         const stored = updateStoredSession({
             appSessionExpiresAt: response.expiresAt || current.appSessionExpiresAt || '',
+            appSessionValidatedAt: Date.now(),
             profile: response.perfil || current.profile || {},
             permissions: response.permisos || current.permissions || []
         });
@@ -696,15 +700,19 @@
     }
 
     async function restoreHomeEasySession(options) {
-        const opts = { validateFirebase: false, reopen: true, silent: false, meta: {}, ...(options || {}) };
+        const opts = { validateFirebase: false, reopen: true, silent: false, meta: {}, preferCache: true, ...(options || {}) };
         const user = await restoreFirebaseSession({ validate: opts.validateFirebase });
         if (!user) return null;
 
+        if (opts.preferCache !== false) {
+            const cached = getCachedHomeEasySession();
+            if (cached) return cached;
+        }
+
         const current = readStoredSession();
         if (current && current.appSessionToken) {
-            try {
-                return await validateAppSession({ meta: opts.meta });
-            } catch (error) {
+            try { return await validateAppSession({ meta: opts.meta }); }
+            catch (error) {
                 if (!opts.reopen) {
                     if (opts.silent) return null;
                     throw error;
@@ -713,9 +721,8 @@
         }
 
         if (!opts.reopen) return null;
-        try {
-            return await openAppSession({ meta: opts.meta });
-        } catch (error) {
+        try { return await openAppSession({ meta: opts.meta }); }
+        catch (error) {
             clearStoredSessions();
             emitAuthChange('session-rejected', null);
             if (opts.silent) return null;
@@ -751,6 +758,39 @@
     function getAppSessionToken() {
         const session = readStoredSession();
         return session ? String(session.appSessionToken || '') : '';
+    }
+
+    function parseExpiryMs(value) {
+        if (!value) return 0;
+        if (typeof value === 'number') return value > 100000000000 ? value : value * 1000;
+        const numeric = Number(value);
+        if (Number.isFinite(numeric) && numeric > 0) return numeric > 100000000000 ? numeric : numeric * 1000;
+        const parsed = Date.parse(String(value));
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function getCachedHomeEasySession() {
+        const current = readStoredSession();
+        if (!current || !current.appSessionToken || !validateProjectAudience(current.idToken)) return null;
+        if (!current.expiresAt || current.expiresAt <= Date.now() + APP_SESSION_EXPIRY_SKEW_MS) return null;
+        const appExpiry = parseExpiryMs(current.appSessionExpiresAt);
+        if (appExpiry && appExpiry <= Date.now() + APP_SESSION_EXPIRY_SKEW_MS) return null;
+        const profile = normalizeProfile(current.profile);
+        if (!profile.uid || profile.estado === 'INACTIVO') return null;
+        return Object.freeze({
+            profile,
+            permissions: normalizePermissions(current.permissions),
+            expiresAt: current.appSessionExpiresAt,
+            validatedAt: Number(current.appSessionValidatedAt || 0),
+            cached: true
+        });
+    }
+
+    function shouldRevalidateAppSession(maxAgeMs) {
+        const cached = getCachedHomeEasySession();
+        if (!cached) return true;
+        const maxAge = Math.max(30000, Number(maxAgeMs || APP_SESSION_REVALIDATE_MS));
+        return !cached.validatedAt || Date.now() - cached.validatedAt >= maxAge;
     }
 
     async function signOut(options) {
@@ -823,6 +863,7 @@
         }, current.persistence, {
             appSessionToken: current.appSessionToken,
             appSessionExpiresAt: current.appSessionExpiresAt,
+            appSessionValidatedAt: current.appSessionValidatedAt || Date.now(),
             profile: current.profile,
             permissions: current.permissions
         });
@@ -900,6 +941,8 @@
         getPermissions,
         hasPermission,
         getAppSessionToken,
+        getCachedHomeEasySession,
+        shouldRevalidateAppSession,
         fetchAccount,
         openAppSession,
         validateAppSession,

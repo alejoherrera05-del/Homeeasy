@@ -1,5 +1,5 @@
 /**
- * HomeEasy Core v2.3
+ * HomeEasy Core v2.4
  * Comunicación central, identificación del dispositivo, trazabilidad y guard de acceso del Index.
  * La protección general se aplica únicamente a index.html en esta fase.
  */
@@ -7,7 +7,7 @@
     'use strict';
 
     const API_URL = 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
-    const APP_VERSION = '2.3';
+    const APP_VERSION = '2.4';
     const CONFIG_CACHE_KEY = 'HOMEEASY_CONFIG_BROWSER_V1';
     const CONFIG_CACHE_FRESH_MS = 5 * 60 * 1000;
     const CONFIG_CACHE_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -15,7 +15,7 @@
     const OPERATOR_KEY = 'HOMEEASY_OPERADOR_LOCAL';
     const DEVICE_ID_KEY = 'HOMEEASY_DEVICE_ID';
     const DEVICE_NAME_KEY = 'HOMEEASY_DEVICE_NAME';
-    const FETCH_PATCH_FLAG = '__HOMEEASY_FETCH_PATCHED_V23__';
+    const FETCH_PATCH_FLAG = '__HOMEEASY_FETCH_PATCHED_V24__';
     const AUTH_PENDING_CLASS = 'homeeasy-auth-pending';
     const AUTH_LOADING_STYLE_ID = 'homeeasy-auth-loading-style';
     const AUTH_LOGOUT_STYLE_ID = 'homeeasy-auth-logout-style';
@@ -29,39 +29,19 @@
         ? new Promise(resolve => { resolveIndexAuthReady = resolve; })
         : Promise.resolve(true);
 
-    if (INDEX_AUTH_PROTECTED && global.document && global.document.documentElement) {
+    let indexPendingTimer = null;
+    function showIndexPending() {
+        if (indexAuthStatus !== 'checking' || !global.document || !global.document.documentElement) return;
         global.document.documentElement.classList.add(AUTH_PENDING_CLASS);
+        if (global.document.getElementById(AUTH_LOADING_STYLE_ID)) return;
         const loadingStyle = global.document.createElement('style');
         loadingStyle.id = AUTH_LOADING_STYLE_ID;
-        loadingStyle.textContent = `
-            html.${AUTH_PENDING_CLASS} body { visibility: hidden !important; }
-            html.${AUTH_PENDING_CLASS} {
-                min-height: 100%;
-                background: #a6455a !important;
-            }
-            html.${AUTH_PENDING_CLASS}::before {
-                content: '';
-                position: fixed;
-                z-index: 2147483646;
-                inset: 0;
-                background:
-                    radial-gradient(circle at 50% 42%, rgba(194,164,104,.18), transparent 28%),
-                    #a6455a;
-            }
-            html.${AUTH_PENDING_CLASS}::after {
-                content: 'HomeEasy · validando acceso seguro…';
-                position: fixed;
-                z-index: 2147483647;
-                left: 50%;
-                top: 50%;
-                transform: translate(-50%, -50%);
-                color: rgba(255,255,255,.88);
-                font: 650 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-                letter-spacing: .02em;
-                white-space: nowrap;
-            }
-        `;
+        loadingStyle.textContent = `html.${AUTH_PENDING_CLASS} body{visibility:hidden!important}html.${AUTH_PENDING_CLASS}{min-height:100%;background:#a6455a!important}html.${AUTH_PENDING_CLASS}::before{content:'';position:fixed;z-index:2147483646;inset:0;background:#a6455a}html.${AUTH_PENDING_CLASS}::after{content:'Abriendo HomeEasy…';position:fixed;z-index:2147483647;left:50%;top:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.88);font:650 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}`;
         (global.document.head || global.document.documentElement).appendChild(loadingStyle);
+    }
+    function scheduleIndexPending() {
+        clearTimeout(indexPendingTimer);
+        indexPendingTimer = global.setTimeout(showIndexPending, 220);
     }
 
     function buildQuery(params) {
@@ -436,6 +416,7 @@
 
     function revealAuthenticatedIndex() {
         indexAuthStatus = 'authorized';
+        clearTimeout(indexPendingTimer);
         if (resolveIndexAuthReady) resolveIndexAuthReady(true);
         if (global.document && global.document.documentElement) {
             global.document.documentElement.classList.remove(AUTH_PENDING_CLASS);
@@ -539,14 +520,15 @@
     async function installIndexAuthGuard() {
         if (!INDEX_AUTH_PROTECTED || !global.document) return;
 
+        scheduleIndexPending();
         try {
             await loadScriptOnce(
-                'homeeasy-auth-config.js?v=3A',
+                'homeeasy-auth-config.js?v=3D',
                 'homeeasyAuthConfigScript',
                 () => Boolean(global.HOMEEASY_AUTH_CONFIG)
             );
             await loadScriptOnce(
-                'homeeasy-auth.js?v=3A',
+                'homeeasy-auth.js?v=3D',
                 'homeeasyAuthScript',
                 () => Boolean(global.HomeEasyAuth)
             );
@@ -556,25 +538,31 @@
                 return;
             }
 
-            const authorized = await global.HomeEasyAuth.requireAuth({
-                redirect: false,
-                validateFirebase: false,
-                returnUrl: 'index.html',
-                meta: buildMeta()
-            });
-
+            let authorized = global.HomeEasyAuth.getCachedHomeEasySession
+                ? global.HomeEasyAuth.getCachedHomeEasySession()
+                : null;
+            if (!authorized) {
+                authorized = await global.HomeEasyAuth.restoreHomeEasySession({
+                    validateFirebase: false,
+                    reopen: true,
+                    silent: true,
+                    preferCache: true,
+                    meta: buildMeta()
+                });
+            }
             if (!authorized) {
                 redirectIndexToLogin();
                 return;
             }
 
             const profile = global.HomeEasyAuth.getCurrentProfile();
-            if (profile) {
-                setOperator(profile.nombre || profile.email || 'Sin identificar');
-            }
-
+            if (profile) setOperator(profile.nombre || profile.email || 'Sin identificar');
+            await loadScriptOnce('homeeasy-account.js?v=3D', 'homeeasyAccountScript', () => Boolean(global.document && global.document.getElementById('homeeasyAccountControl')));
             revealAuthenticatedIndex();
-            installLogoutControl();
+
+            if (global.HomeEasyAuth.shouldRevalidateAppSession && global.HomeEasyAuth.shouldRevalidateAppSession(5 * 60 * 1000)) {
+                global.HomeEasyAuth.validateAppSession({ meta: buildMeta() }).catch(() => redirectIndexToLogin());
+            }
         } catch (error) {
             console.error('HomeEasy Auth Guard:', error);
             redirectIndexToLogin();
