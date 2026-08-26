@@ -1,8 +1,7 @@
 /**
- * HomeEasy Page Guard v3C-prep
- * Guard reutilizable para módulos internos.
- * Requiere homeeasy-core.js y usa la sesión general de Firebase/HomeEasy 9A.
- * AR queda deliberadamente fuera de este mapa.
+ * HomeEasy Page Guard v3D
+ * Navegación cache-first: usa la sesión ya validada para abrir módulos al instante
+ * y revalida silenciosamente en segundo plano. AR permanece fuera de este mapa.
  */
 (function (global) {
     'use strict';
@@ -32,39 +31,34 @@
 
     const nativeFetch = global.fetch.bind(global);
     const PENDING_CLASS = 'homeeasy-module-auth-pending';
+    const REVALIDATE_AFTER_MS = 5 * 60 * 1000;
     let pageAuthStatus = 'checking';
     let resolvePageReady;
+    let pendingTimer = null;
     const pageReady = new Promise(resolve => { resolvePageReady = resolve; });
 
-    function installPendingCover() {
-        if (!global.document || !global.document.documentElement) return;
+    function showPendingCover() {
+        if (pageAuthStatus !== 'checking' || !global.document || !global.document.documentElement) return;
         global.document.documentElement.classList.add(PENDING_CLASS);
+        if (global.document.getElementById('homeeasy-module-auth-style')) return;
         const style = global.document.createElement('style');
         style.id = 'homeeasy-module-auth-style';
         style.textContent = `
             html.${PENDING_CLASS} body { visibility: hidden !important; }
             html.${PENDING_CLASS} { min-height: 100%; background: #f2f2f7 !important; }
-            html.${PENDING_CLASS}::before {
-                content: '';
-                position: fixed;
-                z-index: 2147483646;
-                inset: 0;
-                background: radial-gradient(circle at 50% 44%, rgba(166,69,90,.08), transparent 28%), #f2f2f7;
-            }
-            html.${PENDING_CLASS}::after {
-                content: 'HomeEasy · verificando permisos…';
-                position: fixed;
-                z-index: 2147483647;
-                left: 50%; top: 50%; transform: translate(-50%,-50%);
-                color: #6e686c;
-                font: 650 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-                white-space: nowrap;
-            }
+            html.${PENDING_CLASS}::before { content:''; position:fixed; z-index:2147483646; inset:0; background:#f2f2f7; }
+            html.${PENDING_CLASS}::after { content:'Abriendo HomeEasy…'; position:fixed; z-index:2147483647; left:50%; top:50%; transform:translate(-50%,-50%); color:#777075; font:650 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; white-space:nowrap; }
         `;
         (global.document.head || global.document.documentElement).appendChild(style);
     }
 
+    function schedulePendingCover() {
+        clearTimeout(pendingTimer);
+        pendingTimer = global.setTimeout(showPendingCover, 220);
+    }
+
     function reveal() {
+        clearTimeout(pendingTimer);
         if (global.document && global.document.documentElement) {
             global.document.documentElement.classList.remove(PENDING_CLASS);
         }
@@ -74,6 +68,7 @@
         if (typeof ready === 'function' && ready()) return Promise.resolve();
         const existing = global.document.getElementById(id);
         if (existing) {
+            if (existing.dataset.loaded === 'true' || (typeof ready === 'function' && ready())) return Promise.resolve();
             return new Promise((resolve, reject) => {
                 existing.addEventListener('load', resolve, { once: true });
                 existing.addEventListener('error', reject, { once: true });
@@ -84,7 +79,7 @@
             script.id = id;
             script.src = src;
             script.async = false;
-            script.addEventListener('load', resolve, { once: true });
+            script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
             script.addEventListener('error', reject, { once: true });
             (global.document.head || global.document.documentElement).appendChild(script);
         });
@@ -104,7 +99,7 @@
             target.searchParams.set('navegador', device.browser || '');
         }
         target.searchParams.set('pagina', currentPage);
-        target.searchParams.set('versionApp', '3C');
+        target.searchParams.set('versionApp', '3D');
         return target.href;
     }
 
@@ -113,9 +108,7 @@
         try {
             const data = JSON.parse(body);
             return data && typeof data === 'object' && !Array.isArray(data) ? data : null;
-        } catch (error) {
-            return null;
-        }
+        } catch (error) { return null; }
     }
 
     function isAuthPayload(data) {
@@ -125,12 +118,8 @@
     function enrichPost(options) {
         const data = parseJsonBody(options.body);
         if (!data || isAuthPayload(data)) return { options, isAuth: isAuthPayload(data) };
-        const token = global.HomeEasyAuth && global.HomeEasyAuth.getAppSessionToken
-            ? global.HomeEasyAuth.getAppSessionToken()
-            : '';
-        const meta = global.HomeEasyCore && global.HomeEasyCore.buildMeta
-            ? global.HomeEasyCore.buildMeta()
-            : { pagina: currentPage, versionApp: '3C' };
+        const token = global.HomeEasyAuth && global.HomeEasyAuth.getAppSessionToken ? global.HomeEasyAuth.getAppSessionToken() : '';
+        const meta = global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : { pagina: currentPage, versionApp: '3D' };
         options.body = JSON.stringify({
             ...data,
             appSessionToken: token,
@@ -143,11 +132,8 @@
         try {
             response.clone().json().then(data => {
                 if (!data || typeof data !== 'object') return;
-                if (data.requiresLogin === true) {
-                    global.HomeEasyAuth.redirectToLogin(currentPage + global.location.search + global.location.hash);
-                } else if (data.forbidden === true || data.code === 'PERMISSION_DENIED') {
-                    showDenied(data.msg || 'Tu rol no tiene permiso para realizar esta acción.');
-                }
+                if (data.requiresLogin === true) redirectToLogin();
+                else if (data.forbidden === true || data.code === 'PERMISSION_DENIED') showDenied(data.msg || 'Tu rol no tiene permiso para realizar esta acción.');
             }).catch(() => {});
         } catch (error) {}
         return response;
@@ -163,13 +149,8 @@
 
             let isAuth = false;
             let finalUrl = rawUrl;
-            if (method === 'POST') {
-                const enriched = enrichPost(options);
-                isAuth = enriched.isAuth;
-            }
-            if (method === 'GET') {
-                finalUrl = buildMetaQuery(rawUrl);
-            }
+            if (method === 'POST') isAuth = enrichPost(options).isAuth;
+            if (method === 'GET') finalUrl = buildMetaQuery(rawUrl);
 
             const execute = () => nativeFetch(finalUrl || resource, options).then(handleSecurityResponse);
             if (isAuth) return execute();
@@ -181,13 +162,12 @@
     }
 
     function redirectToLogin() {
+        if (pageAuthStatus === 'redirecting') return;
         pageAuthStatus = 'redirecting';
-        if (global.HomeEasyCore && global.HomeEasyCore.clearSensitiveBrowserCaches) {
-            global.HomeEasyCore.clearSensitiveBrowserCaches();
-        }
-        if (global.HomeEasyAuth && global.HomeEasyAuth.redirectToLogin) {
-            global.HomeEasyAuth.redirectToLogin(currentPage + global.location.search + global.location.hash);
-        } else {
+        reveal();
+        if (global.HomeEasyCore && global.HomeEasyCore.clearSensitiveBrowserCaches) global.HomeEasyCore.clearSensitiveBrowserCaches();
+        if (global.HomeEasyAuth && global.HomeEasyAuth.redirectToLogin) global.HomeEasyAuth.redirectToLogin(currentPage + global.location.search + global.location.hash);
+        else {
             const url = new URL('login.html', global.location.href);
             url.searchParams.set('return', currentPage + global.location.search + global.location.hash);
             global.location.replace(url.href);
@@ -199,63 +179,67 @@
         pageAuthStatus = 'denied';
         resolvePageReady(false);
         reveal();
-        const profile = global.HomeEasyAuth && global.HomeEasyAuth.getCurrentProfile
-            ? global.HomeEasyAuth.getCurrentProfile()
-            : null;
-        global.document.body.innerHTML = `
-            <main style="min-height:100svh;display:grid;place-items:center;padding:24px;background:#f2f2f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#252125">
-                <section style="width:min(460px,100%);padding:30px;border-radius:26px;background:#fff;box-shadow:0 22px 65px rgba(45,35,40,.12);text-align:center">
-                    <div style="width:58px;height:58px;margin:0 auto 17px;border-radius:18px;display:grid;place-items:center;background:rgba(166,69,90,.10);color:#a6455a;font-size:24px">🔒</div>
-                    <h1 style="margin:0;font-size:1.55rem;letter-spacing:-.04em">Acceso restringido</h1>
-                    <p style="margin:10px auto 20px;max-width:34ch;color:#777075;font-size:.86rem;line-height:1.55">${String(message || 'Tu rol no tiene permiso para abrir este módulo.').replace(/[<>]/g,'')}</p>
-                    <div style="margin-bottom:20px;padding:12px 14px;border-radius:15px;background:#f8f6f7;color:#6e676b;font-size:.73rem">${profile ? String(profile.nombre || profile.email || '').replace(/[<>]/g,'') + ' · ' + String(profile.rol || '').replace(/[<>]/g,'') : ''}</div>
-                    <button id="heBackHome" style="width:100%;height:50px;border:0;border-radius:14px;background:#a6455a;color:#fff;font-weight:720">Volver a HomeEasy</button>
-                </section>
-            </main>`;
+        const profile = global.HomeEasyAuth && global.HomeEasyAuth.getCurrentProfile ? global.HomeEasyAuth.getCurrentProfile() : null;
+        global.document.body.innerHTML = `<main style="min-height:100svh;display:grid;place-items:center;padding:24px;background:#f2f2f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#252125"><section style="width:min(460px,100%);padding:30px;border-radius:26px;background:#fff;box-shadow:0 22px 65px rgba(45,35,40,.12);text-align:center"><div style="width:58px;height:58px;margin:0 auto 17px;border-radius:18px;display:grid;place-items:center;background:rgba(166,69,90,.10);color:#a6455a;font-size:24px">🔒</div><h1 style="margin:0;font-size:1.55rem;letter-spacing:-.04em">Acceso restringido</h1><p style="margin:10px auto 20px;max-width:34ch;color:#777075;font-size:.86rem;line-height:1.55">${String(message || 'Tu rol no tiene permiso para abrir este módulo.').replace(/[<>]/g,'')}</p><div style="margin-bottom:20px;padding:12px 14px;border-radius:15px;background:#f8f6f7;color:#6e676b;font-size:.73rem">${profile ? String(profile.nombre || profile.email || '').replace(/[<>]/g,'') + ' · ' + String(profile.rol || '').replace(/[<>]/g,'') : ''}</div><button id="heBackHome" style="width:100%;height:50px;border:0;border-radius:14px;background:#a6455a;color:#fff;font-weight:720">Volver a HomeEasy</button></section></main>`;
         global.document.getElementById('heBackHome').addEventListener('click', () => global.location.replace('index.html'));
     }
 
+    function authorizeLocally(session) {
+        if (!session || !global.HomeEasyAuth) return false;
+        if (!global.HomeEasyAuth.hasPermission(requiredPermission)) {
+            showDenied('Tu rol no tiene permiso para abrir este módulo.');
+            return false;
+        }
+        const profile = global.HomeEasyAuth.getCurrentProfile();
+        if (profile && global.HomeEasyCore && global.HomeEasyCore.setOperator) global.HomeEasyCore.setOperator(profile.nombre || profile.email || 'Sin identificar');
+        pageAuthStatus = 'authorized';
+        resolvePageReady(true);
+        reveal();
+        try { global.dispatchEvent(new CustomEvent('homeeasy:page-auth-ready', { detail: { page: currentPage, permission: requiredPermission, profile, timestamp: Date.now() } })); } catch (error) {}
+        if (currentPage === 'configuracion.html') loadScriptOnce('homeeasy-settings-auth-ui.js?v=3D', 'homeeasySettingsAuthUiScript', () => false).catch(() => {});
+        return true;
+    }
+
+    function revalidateInBackground() {
+        const auth = global.HomeEasyAuth;
+        if (!auth || !auth.validateAppSession) return;
+        if (auth.shouldRevalidateAppSession && !auth.shouldRevalidateAppSession(REVALIDATE_AFTER_MS)) return;
+        auth.validateAppSession({ meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {} })
+            .then(() => {
+                if (!auth.hasPermission(requiredPermission)) showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
+            })
+            .catch(() => redirectToLogin());
+    }
+
     async function authorizePage() {
+        schedulePendingCover();
         try {
-            await loadScriptOnce('homeeasy-auth-config.js?v=3C', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
-            await loadScriptOnce('homeeasy-auth.js?v=3C', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
-            if (!global.HomeEasyAuth || !global.HomeEasyAuth.isConfigured()) {
-                redirectToLogin();
+            await loadScriptOnce('homeeasy-auth-config.js?v=3D', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
+            await loadScriptOnce('homeeasy-auth.js?v=3D', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
+            if (!global.HomeEasyAuth || !global.HomeEasyAuth.isConfigured()) { redirectToLogin(); return; }
+
+            const cached = global.HomeEasyAuth.getCachedHomeEasySession ? global.HomeEasyAuth.getCachedHomeEasySession() : null;
+            if (cached && authorizeLocally(cached)) {
+                revalidateInBackground();
                 return;
             }
+
             const session = await global.HomeEasyAuth.restoreHomeEasySession({
                 validateFirebase: false,
                 reopen: true,
                 silent: true,
+                preferCache: true,
+                backgroundValidate: false,
                 meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {}
             });
-            if (!session) {
-                redirectToLogin();
-                return;
-            }
-            if (!global.HomeEasyAuth.hasPermission(requiredPermission)) {
-                showDenied('Tu rol no tiene permiso para abrir este módulo.');
-                return;
-            }
-            const profile = global.HomeEasyAuth.getCurrentProfile();
-            if (profile && global.HomeEasyCore && global.HomeEasyCore.setOperator) {
-                global.HomeEasyCore.setOperator(profile.nombre || profile.email || 'Sin identificar');
-            }
-            pageAuthStatus = 'authorized';
-            resolvePageReady(true);
-            reveal();
-            try {
-                global.dispatchEvent(new CustomEvent('homeeasy:page-auth-ready', {
-                    detail: { page: currentPage, permission: requiredPermission, profile, timestamp: Date.now() }
-                }));
-            } catch (error) {}
+            if (!session) { redirectToLogin(); return; }
+            if (authorizeLocally(session)) revalidateInBackground();
         } catch (error) {
             console.error('HomeEasy Page Guard:', error);
             redirectToLogin();
         }
     }
 
-    installPendingCover();
     installFetchBridge();
     authorizePage();
 
