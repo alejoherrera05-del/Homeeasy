@@ -1,0 +1,67 @@
+name: Package HomeEasy Auth 3C controlled test
+
+on:
+  push:
+    branches:
+      - feature/auth-rbac
+    paths:
+      - .github/workflows/package-auth-3c-test.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/auth-rbac
+          fetch-depth: 0
+
+      - name: Validate authentication frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check homeeasy-core.js
+          node --check homeeasy-auth.js
+          node --check homeeasy-auth-config.js
+          node --check homeeasy-page-guard.js
+          for f in clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html; do
+            grep -q 'homeeasy-page-guard.js?v=3C' "$f"
+          done
+          test "$(git diff --name-only main...HEAD | grep -Ec '^ar-|^ar-sheer-' || true)" -eq 0
+
+      - name: Build controlled test package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/HomeEasy_Auth_3C_Test
+          rsync -a ./ /tmp/HomeEasy_Auth_3C_Test/ \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='ar-sheer-v221' \
+            --exclude='*.glb' \
+            --exclude='*.usdz'
+          cd /tmp
+          zip -qr HomeEasy_Auth_3C_Test.zip HomeEasy_Auth_3C_Test
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HomeEasy_Auth_3C_Test
+          path: /tmp/HomeEasy_Auth_3C_Test.zip
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Self-delete packaging workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/package-auth-3c-test.yml
+          git config user.name 'HomeEasy Auth Bot'
+          git config user.email 'actions@github.com'
+          git add .github/workflows/package-auth-3c-test.yml
+          git commit -m 'Remove one-shot HomeEasy Auth 3C packaging workflow'
+          git push origin HEAD:feature/auth-rbac
