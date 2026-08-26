@@ -1,0 +1,62 @@
+name: Package optimized HomeEasy auth UX test
+
+on:
+  push:
+    branches:
+      - feature/auth-rbac
+    paths:
+      - .github/workflows/package-auth-3d-test.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  PACKAGE_NAME: HomeEasy_Auth_3D_DailyUX
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/auth-rbac
+          fetch-depth: 0
+
+      - name: Validate optimized auth files
+        run: |
+          set -euo pipefail
+          node --check homeeasy-auth.js
+          node --check homeeasy-core.js
+          node --check homeeasy-page-guard.js
+          node --check homeeasy-account.js
+          node --check homeeasy-settings-auth-ui.js
+          grep -q 'getCachedHomeEasySession' homeeasy-auth.js
+          grep -q 'Bienvenido,' login.html
+          grep -q 'homeeasy-account.js' homeeasy-core.js
+          test -f assets/auth/hommy-crossed.webp
+
+      - name: Build test ZIP
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/homeeasy-test
+          rsync -a --exclude='.git' --exclude='.github' ./ /tmp/homeeasy-test/
+          cd /tmp/homeeasy-test
+          zip -qr "$GITHUB_WORKSPACE/${PACKAGE_NAME}.zip" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HomeEasy_Auth_3D_DailyUX
+          path: HomeEasy_Auth_3D_DailyUX.zip
+          retention-days: 3
+
+      - name: Remove one-shot workflow
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/package-auth-3d-test.yml
+          git config user.name 'HomeEasy Auth Bot'
+          git config user.email 'actions@github.com'
+          git add .github/workflows/package-auth-3d-test.yml
+          git commit -m 'Remove one-shot optimized auth packaging workflow'
+          git push origin HEAD:feature/auth-rbac
