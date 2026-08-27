@@ -9,8 +9,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="homeeasy-core.js?v=3.1"></script>
-    <script src="homeeasy-page-guard.js?v=3.1"></script>
+    <script src="homeeasy-page-guard.js?v=3.2"></script>
     <script src="homeeasy-docs.js?v=4.1"></script>
+    <script src="homeeasy-account-template.js?v=3.2"></script>
 
     <style>
         :root {
@@ -819,6 +820,12 @@
         .preview-sample-box strong { display: block; color: var(--home-red); font-size: .7rem; }
         .preview-sample-box span { display: block; margin-top: 7px; color: #aaa; font-size: .62rem; }
         .preview-footer { padding: 14px 18px; text-align: center; background: #fafafa; border-top: 1px solid #eee; color: #777; font-size: .58rem; line-height: 1.6; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
+        .account-real-preview { width: 100%; max-width: 920px; margin: 0 auto; }
+        .account-real-preview.hidden { display: none !important; }
+        .account-preview-stage { display:flex; justify-content:center; overflow:auto; border-radius:19px; background:#e8e7ea; padding:19px; }
+        .account-preview-scale { width:816px; flex:0 0 816px; transform-origin:top center; }
+        @media (max-width:720px) { .account-preview-stage{justify-content:flex-start;padding:10px}.account-preview-scale{transform-origin:top left} }
+
 
         /* Seguridad */
         .security-row {
@@ -1894,7 +1901,7 @@
                             <button type="button" class="preview-button" data-preview="cuenta">Cuenta de cobro</button>
                         </div>
 
-                        <div class="document-preview">
+                        <div class="document-preview" id="genericDocumentPreview">
                             <div class="preview-top">
                                 <img src="logohomeeasy.png" class="preview-logo" alt="HomeEasy" onerror="this.src='triangulogold.png'">
                                 <div class="preview-company" id="previewCompany"></div>
@@ -1910,6 +1917,10 @@
                                 </div>
                             </div>
                             <div class="preview-footer" id="previewFooter"></div>
+                        </div>
+
+                        <div class="account-real-preview hidden" id="accountDocumentPreview">
+                            <div class="account-preview-stage" id="accountPreviewStage"><div class="account-preview-scale" id="accountPreviewScale"><div id="accountPreviewMount"></div></div></div>
                         </div>
                     </div>
                 </div>
@@ -2245,6 +2256,7 @@
         const state = {
             adminCredential: 'AUTH_SESSION',
             original: {},
+            privateDocConfig: {},
             dirty: false,
             previewType: 'cotizacion',
             version: null,
@@ -2333,6 +2345,14 @@
             document.getElementById('auditDetailClose').addEventListener('click', closeAuditDetail);
             document.getElementById('auditDetailOverlay').addEventListener('click', closeAuditDetail);
             document.getElementById('samePhoneWhatsapp').addEventListener('change', onSamePhoneToggle);
+            window.addEventListener('homeeasy:private-doc-config', event => {
+                state.privateDocConfig = event && event.detail && event.detail.configuracion ? event.detail.configuracion : {};
+                updatePreview();
+            });
+            window.addEventListener('resize', scaleAccountPreview);
+            if (window.HomeEasyAccountTemplate && document.getElementById('accountPreviewMount')) {
+                HomeEasyAccountTemplate.mount(document.getElementById('accountPreviewMount'), { prefix: 'cfgAccount' });
+            }
 
             document.querySelectorAll('[data-section]').forEach(button => {
                 button.addEventListener('click', () => showSection(button.dataset.section));
@@ -2740,15 +2760,71 @@ async function initializeSettings() {
                 if (measurement) lines.push(HomeEasyCore.escapeHtml(measurement));
                 if (payment) lines.push('<b>Forma de pago:</b> ' + HomeEasyCore.escapeHtml(payment));
             } else if (state.previewType === 'cuenta') {
-                lines.push('<b>Concepto:</b> Productos o servicios facturados al cliente.');
-                lines.push('<b>Pago:</b> Datos bancarios y saldo por pagar según la cuenta emitida.');
+                return [];
             } else {
                 lines.push('Valor recibido, medio de pago y saldo pendiente de la orden.');
             }
             return lines;
         }
 
+        function privateDocValue(key, fallback) {
+            const source = state.privateDocConfig || window.HomeEasyPrivateDocConfig || {};
+            return Object.prototype.hasOwnProperty.call(source, key) ? source[key] : (fallback === undefined ? '' : fallback);
+        }
+
+        function scaleAccountPreview() {
+            if (!window.HomeEasyAccountTemplate) return;
+            const stage = document.getElementById('accountPreviewStage');
+            const scale = document.getElementById('accountPreviewScale');
+            if (stage && scale) HomeEasyAccountTemplate.fit(stage, scale);
+        }
+
+        function updateAccountPreview() {
+            if (!window.HomeEasyAccountTemplate) return;
+            const prefix = String(privateDocValue('documentos.cuenta_cobro.prefijo', 'CC') || 'CC').toUpperCase();
+            const city = privateDocValue('documentos.cuenta_cobro.ciudad', getValue('empresa.ciudad') || 'Popayán') || 'Popayán';
+            const repName = privateDocValue('documentos.propietaria.nombre', 'Daniela Torres García') || 'Daniela Torres García';
+            const repDoc = privateDocValue('documentos.propietaria.documento', '1061760852') || '1061760852';
+            const role = privateDocValue('documentos.firma.cargo_documento', privateDocValue('documentos.propietaria.calidad', 'Titular de HomeEasy · Persona natural comerciante'));
+            HomeEasyAccountTemplate.update('cfgAccount', {
+                empresa: {
+                    nombreComercial: getValue('empresa.nombre_comercial') || 'HOMEEASY POPAYÁN',
+                    nit: formatNit(getValue('empresa.nit')) || '',
+                    direccion: getValue('empresa.direccion') || '',
+                    ciudad: getValue('empresa.ciudad') || '',
+                    telefono: getValue('empresa.telefono') || '',
+                    instagram: getValue('empresa.instagram') || ''
+                },
+                numero: prefix + '-' + new Date().getFullYear() + '-001',
+                fecha: city + ', fecha de emisión',
+                cliente: 'CLIENTE / RAZÓN SOCIAL',
+                identificacion: 'Identificación: CC / NIT',
+                concepto: 'Concepto de la cuenta de cobro.',
+                valorTexto: '$ 0', valorLetras: 'CERO PESOS M/CTE',
+                banco: {
+                    nombre: privateDocValue('documentos.banco.nombre', 'Davivienda'),
+                    tipoCuenta: privateDocValue('documentos.banco.tipo_cuenta', 'Ahorros'),
+                    numeroCuenta: privateDocValue('documentos.banco.numero_cuenta', '488412522523'),
+                    titular: privateDocValue('documentos.banco.titular', repName),
+                    ccTitular: privateDocValue('documentos.banco.cc_titular', repDoc)
+                },
+                representante: { nombre: repName, documento: repDoc, calidad: role },
+                firma: { texto: privateDocValue('documentos.firma.texto', repName), cargoDocumento: role },
+                textoCierre: privateDocValue('documentos.cuenta_cobro.texto_cierre', 'Agradecemos realizar el pago a la cuenta bancaria indicada. Quedamos atentos a la confirmación del pago.'),
+                footerPrincipal: (getValue('documentos.pie_principal') || 'HomeEasy - Viste tu hogar con estilo').toUpperCase(),
+                footerSistema: getValue('documentos.pie_sistema') || 'Persianas & Papel Tapiz · Sistema Hommy'
+            });
+            setTimeout(scaleAccountPreview, 0);
+        }
+
         function updatePreview() {
+            const generic = document.getElementById('genericDocumentPreview');
+            const account = document.getElementById('accountDocumentPreview');
+            const isAccount = state.previewType === 'cuenta';
+            if (generic) generic.classList.toggle('hidden', isAccount);
+            if (account) account.classList.toggle('hidden', !isAccount);
+            if (isAccount) { updateAccountPreview(); return; }
+
             const company = document.getElementById('previewCompany');
             if (!company) return;
 
