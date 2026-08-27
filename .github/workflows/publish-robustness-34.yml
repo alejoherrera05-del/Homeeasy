@@ -20,11 +20,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify publication base
+      - name: Verify publication base remains untouched
         shell: bash
         run: |
-          test "$(git rev-parse HEAD^)" = "a163963e4cc0314db7eccbbb623b704d3a675473"
-          test "$(git rev-parse HEAD^:HomeEasy_AR_Placement_V2)" = "4f779495735229188b618a9e3e81e5bf2fc8057c"
+          test "$(git rev-parse HEAD:homeeasy-core.js)" = "f01216afae5f8d0019c8dae4323c53936aad6f9c"
+          test "$(git rev-parse HEAD:HomeEasy_AR_Placement_V2)" = "4f779495735229188b618a9e3e81e5bf2fc8057c"
+          test "$(git rev-parse HEAD:ar-homeeasy-v3.html)" = "f169ab2463e3bd7992c9ce4276c8a82445ddf74f"
       - name: Apply audited production files only
         shell: bash
         run: |
@@ -95,12 +96,14 @@ jobs:
         shell: bash
         run: |
           git show origin/audit/full-fire-2026-08-27:.github/scripts/full_fire_audit.py > /tmp/full_fire_audit.py
-          git show origin/audit/full-fire-2026-08-27:.github/scripts/full_fire_browser.mjs > /tmp/full_fire_browser.mjs
+          git show origin/audit/full-fire-2026-08-27:.github/scripts/full_fire_browser.mjs > .homeeasy-full-fire-browser.mjs
           python3 /tmp/full_fire_audit.py
           npm init -y >/dev/null 2>&1
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install chromium >/dev/null 2>&1
-          node /tmp/full_fire_browser.mjs
+          node .homeeasy-full-fire-browser.mjs
+          rm -f .homeeasy-full-fire-browser.mjs package.json package-lock.json
+          rm -rf node_modules
       - name: Verify isolated AR Placement pilot remains intact
         shell: bash
         run: |
