@@ -1,0 +1,37 @@
+name: Finalize HomeEasy robustness 3.4
+
+on:
+  push:
+    branches: [audit/full-fire-2026-08-27]
+    paths:
+      - '.github/workflows/finalize-robustness-34.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply final cleanup
+        run: python3 .github/scripts/finalize_robustness_34.py
+      - name: Validate
+        run: |
+          node --check homeeasy-page-guard.js
+          grep -q 'id="homeeasyAccessDenied"' homeeasy-page-guard.js
+          grep -q 'getCachedHomeEasySession' login.html
+          test "$(grep -c 'function deshacerBorrado' calendario.html)" = "1"
+          if git diff --name-only | grep -E '^(production/|products/|ar-sheer-v221/|.*\.glb$)' ; then
+            echo 'AR/product files changed unexpectedly' >&2
+            exit 1
+          fi
+      - name: Commit final cleanup
+        run: |
+          git config user.name 'HomeEasy QA'
+          git config user.email 'homeeasy-qa@users.noreply.github.com'
+          git add login.html calendario.html homeeasy-page-guard.js
+          git commit -m 'Prevent auth redirect loops and clean calendar duplicate'
+          git push origin HEAD:audit/full-fire-2026-08-27
