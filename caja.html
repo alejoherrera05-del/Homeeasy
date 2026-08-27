@@ -53,7 +53,7 @@
         
         .pin-container { width: 100%; max-width: 320px; text-align: center; }
         .pin-logo { width: 70px; height: auto; margin-bottom: 25px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); }
-        .pin-header h2 { font-weight: 800; font-size: 1.6rem; color: var(--text-dark); margin: 0; letter-spacing: -0.5px; }
+        .pin-header h2 { font-weight: 700; font-size: 1.6rem; color: var(--text-dark); margin: 0; letter-spacing: -0.5px; }
         .pin-header p { font-size: 0.95rem; color: #8e8e93; font-weight: 500; margin-top: 5px; margin-bottom: 35px; }
         
         .pin-dots { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; min-height: 14px; }
@@ -149,18 +149,18 @@
         
         .card-contactless { font-size: 1.4rem; transform: rotate(90deg); color: #c2a468; opacity: 0.9;}
         
-        .card-logo { display: flex; align-items: center; font-size: 1rem; font-weight: 800; letter-spacing: 1px; color: var(--home-wine); opacity: 0.9; }
+        .card-logo { display: flex; align-items: center; font-size: 1rem; font-weight: 700; letter-spacing: 1px; color: var(--home-wine); opacity: 0.9; }
         .card-logo img { height: 18px; margin-right: 6px; }
 
         .card-middle { display: flex; flex-direction: column; z-index: 1; margin-top: 10px;}
         .card-label { font-size: 0.7rem; color: #a48644; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;}
-        .card-balance { font-size: 2.3rem; font-weight: 800; color: var(--text-dark); letter-spacing: -1px; line-height: 1;}
+        .card-balance { font-size: 2.3rem; font-weight: 700; color: var(--text-dark); letter-spacing: -1px; line-height: 1;}
 
         .card-bottom { display: flex; justify-content: space-between; align-items: flex-end; z-index: 1; }
         .card-holder { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--home-wine);}
         .card-expiry { display: flex; flex-direction: column; text-align: right;}
         .card-expiry-label { font-size: 0.5rem; font-weight: 700; color: #a48644; letter-spacing: 1px;}
-        .card-expiry-val { font-size: 0.75rem; font-weight: 800; color: var(--home-wine); letter-spacing: 0.5px; margin-top: 2px;}
+        .card-expiry-val { font-size: 0.75rem; font-weight: 700; color: var(--home-wine); letter-spacing: 0.5px; margin-top: 2px;}
 
         /* --- BOTONES DE ACCIÓN --- */
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
@@ -237,7 +237,9 @@
         }
         .btn-lock-caja:active { transform: scale(.9); }
     </style>
-    <script src="homeeasy-core.js?v=2.2"></script>
+    <script src="homeeasy-core.js?v=3.1"></script>
+    <script src="homeeasy-page-guard.js?v=3.1"></script>
+<style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
 </head>
 <body>
 
