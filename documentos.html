@@ -11,6 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="homeeasy-core.js?v=3.1"></script>
     <script src="homeeasy-page-guard.js?v=3.1"></script>
+<script src="homeeasy-account-template.js?v=3.2"></script>
 <style>
 :root{
   --wine:#a6455a;
@@ -111,20 +112,7 @@ a{color:inherit}.hidden{display:none!important}
       <section class="panel preview">
         <div class="preview-head"><strong>Vista previa</strong><span id="previewNumber">CC-2026-001 · borrador</span></div>
         <div class="paper-stage" id="paperStage"><div class="paper-scale" id="paperScale">
-          <article class="paper" id="pdfSheet">
-            <div class="paper-shape"></div>
-            <div class="paper-head"><img src="logohomeeasy.png" alt="HomeEasy"><div class="company"><strong>HOMEEASY POPAYÁN</strong><div>NIT: 1.061.760.852-1</div><div>Trav. 9 # 6N-26 · Popayán</div><div>3334319374 · @homeeasypopayan</div></div></div>
-            <div class="doc-title">CUENTA DE COBRO</div><div class="divider"></div>
-            <div class="doc-meta"><div class="doc-number"><span>Cuenta de cobro N.°</span><strong id="pdfNumber">CC-2026-001</strong></div><div id="pdfDate"></div></div>
-            <div class="paper-body">
-              <div class="section"><div class="kicker"><i class="fa-solid fa-user"></i> Cobrar a</div><div class="client" id="pdfClient">CLIENTE</div><div class="client-meta" id="pdfClientMeta">Identificación</div></div>
-              <div class="section"><div class="kicker"><i class="fa-solid fa-file-lines"></i> Concepto</div><div class="concept" id="pdfConcept">Concepto de la cuenta de cobro.</div></div>
-              <div class="amount-box"><div class="amount-left"><div class="amount-icon">$</div><div><div class="amount-label">Valor a pagar</div><div class="amount-words" id="pdfWords">CERO PESOS M/CTE</div></div></div><div class="amount-value" id="pdfAmount">$ 0</div></div>
-              <div class="closing" id="pdfClosing">Agradecemos realizar el pago a la cuenta bancaria indicada. Quedamos atentos a la confirmación del pago.</div>
-              <div class="bottom"><div class="pay"><div class="pay-title">Información para pago</div><div class="pay-line"><b>Banco:</b> <span id="pdfBank">Davivienda</span><br><b>Tipo de cuenta:</b> <span id="pdfAccountType">Ahorros</span><br><b>Número de cuenta:</b> <span id="pdfAccount">488412522523</span><br><b>Titular:</b> <span id="pdfHolder">Daniela Torres García</span><br><b>CC:</b> <span id="pdfHolderDoc">1061760852</span></div></div><div class="signature"><div>Atentamente,</div><div class="signature-script" id="pdfSignature">Daniela Torres García</div><div class="signature-line"></div><div class="signature-name" id="pdfSigner">Daniela Torres García</div><div class="signature-role" id="pdfRole">Titular de HomeEasy · Persona natural comerciante</div></div></div>
-            </div>
-            <footer class="paper-footer"><strong>HOMEEASY · VISTE TU HOGAR CON ESTILO</strong><span>Persianas &amp; Papel Tapiz · Sistema Hommy</span></footer>
-          </article>
+          <div id="accountTemplateMount"></div>
         </div></div>
       </section>
     </div>
@@ -170,6 +158,8 @@ a{color:inherit}.hidden{display:none!important}
 <script>
 (()=>{
 'use strict';
+if(!window.HomeEasyAccountTemplate)throw new Error('No se cargó la plantilla única de Cuenta de cobro.');
+HomeEasyAccountTemplate.mount(document.getElementById('accountTemplateMount'),{prefix:''});
 const TIMEOUT=90000;
 const state={center:null,mode:'OP',loadedOp:null,prepared:null,accounts:[],packages:[],lastAccountBlob:null,lastAccountName:'',lastAccountId:'',packageBlob:null,packageName:'',packageRequestId:'',selectedDocs:new Set()};
 const $=id=>document.getElementById(id);
@@ -203,22 +193,25 @@ function numberWords(value){
   const currency=n===1?' PESO M/CTE':(millions&&rest===0?' DE PESOS M/CTE':' PESOS M/CTE');
   return apocope(parts.join(' '))+currency;
 }
-function scalePreview(){const stage=$('paperStage'),scale=Math.min(1,Math.max(270,stage.clientWidth-20)/816);$('paperScale').style.transform=`scale(${scale})`;$('paperScale').style.height=(1056*scale)+'px'}
+function scalePreview(){return HomeEasyAccountTemplate.fit($('paperStage'),$('paperScale'))}
 function currentNumber(){return state.prepared?.numeroCuenta||state.center?.cuentaCobro?.proximoNumero||('CC-'+new Date().getFullYear()+'-001')}
 function refreshPreview(){
   const cfg=state.prepared||state.center||{},bank=cfg.banco||state.center?.banco||{},rep=cfg.representante||state.center?.representante||{},signature=cfg.firma||state.center?.firma||{};
   const amount=parseCop($('amountInput').value),number=currentNumber();
-  $('pdfNumber').textContent=number;$('previewNumber').textContent=number+(state.lastAccountBlob?'':' · borrador');
-  $('pdfDate').textContent=(cfg.ciudad||state.center?.cuentaCobro?.ciudad||'Popayán')+', '+formatDate();
-  $('pdfClient').textContent=($('clientInput').value.trim()||'CLIENTE').toUpperCase();
-  $('pdfClientMeta').textContent='Identificación: '+($('docInput').value.trim()||'—')+(state.loadedOp?.numeroOp?' · Orden de Pedido N° '+state.loadedOp.numeroOp:'');
-  $('pdfConcept').textContent=$('conceptInput').value.trim()||'Concepto de la cuenta de cobro.';
-  $('pdfAmount').textContent=money(amount);$('pdfWords').textContent=numberWords(amount);
-  $('pdfBank').textContent=bank.nombre||'Davivienda';$('pdfAccountType').textContent=bank.tipoCuenta||'Ahorros';$('pdfAccount').textContent=bank.numeroCuenta||'488412522523';
-  $('pdfHolder').textContent=bank.titular||rep.nombre||'Daniela Torres García';$('pdfHolderDoc').textContent=bank.ccTitular||rep.documento||'1061760852';
-  $('pdfSignature').textContent=signature.texto||rep.nombre||'Daniela Torres García';$('pdfSigner').textContent=rep.nombre||'Daniela Torres García';
-  $('pdfRole').textContent=rep.cargoDocumento||'Titular de HomeEasy · Persona natural comerciante';
-  $('pdfClosing').textContent=cfg.textoCierre||cfg.cuentaCobro?.textoCierre||state.center?.cuentaCobro?.textoCierre||'Agradecemos realizar el pago a la cuenta bancaria indicada. Quedamos atentos a la confirmación del pago.';
+  $('previewNumber').textContent=number+(state.lastAccountBlob?'':' · borrador');
+  HomeEasyAccountTemplate.update('',{
+    empresa:cfg.empresa||state.center?.empresa||{},
+    numero:number,
+    fecha:(cfg.ciudad||state.center?.cuentaCobro?.ciudad||'Popayán')+', '+formatDate(),
+    cliente:$('clientInput').value.trim()||'CLIENTE',
+    identificacion:'Identificación: '+($('docInput').value.trim()||'—')+(state.loadedOp?.numeroOp?' · Orden de Pedido N° '+state.loadedOp.numeroOp:''),
+    concepto:$('conceptInput').value.trim()||'Concepto de la cuenta de cobro.',
+    valorTexto:money(amount), valorLetras:numberWords(amount),
+    banco:bank, representante:rep, firma:signature,
+    textoCierre:cfg.textoCierre||cfg.cuentaCobro?.textoCierre||state.center?.cuentaCobro?.textoCierre||'Agradecemos realizar el pago a la cuenta bancaria indicada. Quedamos atentos a la confirmación del pago.',
+    footerPrincipal:(state.center?.plantilla?.piePrincipal||'HomeEasy - Viste tu hogar con estilo').toUpperCase(),
+    footerSistema:state.center?.plantilla?.pieSistema||'Persianas & Papel Tapiz · Sistema Hommy'
+  });
   scalePreview();
 }
 function setTab(name){document.querySelectorAll('.tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===name));document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.toggle('hidden',panel.id!=='tab-'+name));if(name==='billing')setTimeout(scalePreview,30)}
