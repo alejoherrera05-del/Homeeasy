@@ -55,8 +55,7 @@
         if (!session || !session.appSessionToken) return false;
         const expiresAt = Date.parse(session.appSessionExpiresAt || '');
         if (!Number.isFinite(expiresAt) || expiresAt <= Date.now() + 30000) return false;
-        const validatedAt = Number(session.appSessionValidatedAt || 0);
-        return validatedAt > 0 && Date.now() - validatedAt <= 5 * 60 * 1000;
+        return true;
     }
 
     function cameFromInternalModule() {
