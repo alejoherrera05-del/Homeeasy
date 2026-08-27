@@ -27,14 +27,19 @@ jobs:
           set -euo pipefail
           git fetch origin main
 
-      - name: Decode and apply audited stable patch
+      - name: Recover exact audited patch from repository history
         shell: bash
         run: |
           set -euo pipefail
-          test -f .release6/stable-final.patch.gz.b64
-          tr -d '\r\n\t ' < .release6/stable-final.patch.gz.b64 | base64 -d > /tmp/stable-final.patch.gz
+          git show 98c6caf6c335e194a5533b0488325b91c83cae46:.release/stable-final.patch.gz > /tmp/stable-final.patch.gz
+          echo 'e82c48e821ca70882496acca15c7aebad12273acaf6a8486a68f86abf4e58296  /tmp/stable-final.patch.gz' | sha256sum -c -
           gzip -dc /tmp/stable-final.patch.gz > /tmp/stable-final.patch
-          echo '0de6df8bc9b398c05305716f974679c865cb2c2f0af9b5608fea8c93a019dd66  /tmp/stable-final.patch' | sha256sum -c -
+          echo '655e763fd25155855f9ea6fed8b9b05b49feee467d930d7e9194afef47e78d53  /tmp/stable-final.patch' | sha256sum -c -
+
+      - name: Normalize and apply stable patch
+        shell: bash
+        run: |
+          set -euo pipefail
           python - <<'PY'
           from pathlib import Path
           targets = [
@@ -45,9 +50,8 @@ jobs:
             'Hommychat.html','asistente.html'
           ]
           for name in targets:
-              p = Path(name)
-              if p.exists():
-                  p.write_bytes(p.read_bytes().replace(b'\r\n', b'\n').replace(b'\r', b'\n'))
+              p=Path(name)
+              if p.exists(): p.write_bytes(p.read_bytes().replace(b'\r\n',b'\n').replace(b'\r',b'\n'))
           PY
           patch --batch --forward -p1 < /tmp/stable-final.patch
 
@@ -67,11 +71,7 @@ jobs:
           mkdir -p /tmp/homeeasy-hq-artifact /tmp/homeeasy-hq
           unzip -q /tmp/homeeasy-hq-artifact.zip -d /tmp/homeeasy-hq-artifact
           inner_zip=$(find /tmp/homeeasy-hq-artifact -maxdepth 2 -type f -name '*.zip' | head -n 1 || true)
-          if [ -n "$inner_zip" ]; then
-            unzip -q "$inner_zip" -d /tmp/homeeasy-hq
-          else
-            cp -R /tmp/homeeasy-hq-artifact/. /tmp/homeeasy-hq/
-          fi
+          if [ -n "$inner_zip" ]; then unzip -q "$inner_zip" -d /tmp/homeeasy-hq; else cp -R /tmp/homeeasy-hq-artifact/. /tmp/homeeasy-hq/; fi
           test -f /tmp/homeeasy-hq/assets/auth/hommy-crossed.webp
           test -f /tmp/homeeasy-hq/assets/auth/login-bg-desktop.webp
           test -f /tmp/homeeasy-hq/assets/auth/login-bg-mobile.webp
@@ -83,59 +83,37 @@ jobs:
           test $(stat -c%s assets/auth/login-bg-desktop.webp) -gt 70000
           test $(stat -c%s assets/auth/login-bg-mobile.webp) -gt 60000
 
-      - name: Use crisp separated HQ composition
+      - name: Final crisp login composition
         shell: python
         run: |
           from pathlib import Path
-          p = Path('login.html')
-          s = p.read_text(encoding='utf-8')
-          s = s.replace("assets/auth/login-bg-desktop.jpg", "assets/auth/login-bg-desktop.webp")
-          s = s.replace("assets/auth/login-bg-mobile.jpg", "assets/auth/login-bg-mobile.webp")
-          override = '''
-          /* HomeEasy stable 3.1 — HQ login composition */
-          .visual{background:radial-gradient(circle at 28% 12%,rgba(255,255,255,.12),transparent 28%),linear-gradient(150deg,#b54f67 0%,var(--home) 46%,var(--home-dark) 100%)!important}
-          .visual .watermark{display:block!important;position:absolute!important;z-index:1!important;top:49%!important;left:48%!important;width:78%!important;height:auto!important;transform:translate(-56%,-52%)!important;opacity:.15!important;filter:brightness(.48) saturate(.78)!important;pointer-events:none!important}
-          .visual .hommy{display:block!important;position:absolute!important;z-index:2!important;left:49%!important;bottom:-4%!important;width:auto!important;height:min(88%,850px)!important;max-width:94%!important;transform:translateX(-54%)!important;object-fit:contain!important;object-position:center bottom!important;image-rendering:auto!important;filter:none!important;pointer-events:none!important}
-          .visual .kicker,.visual .caption{display:none!important}
-          '''
-          s = s.replace('</style>', override + '</style>', 1)
-          p.write_text(s, encoding='utf-8')
-
-          a = Path('activar-cuenta.html')
-          x = a.read_text(encoding='utf-8')
-          x = x.replace("assets/auth/login-bg-desktop.jpg", "assets/auth/login-bg-desktop.webp")
-          x = x.replace("assets/auth/login-bg-mobile.jpg", "assets/auth/login-bg-mobile.webp")
-          a.write_text(x, encoding='utf-8')
+          p=Path('login.html')
+          s=p.read_text(encoding='utf-8')
+          override='''\n/* HomeEasy stable 3.1 — composición HQ sin reescalado borroso */\n.visual .watermark{display:block!important;position:absolute!important;z-index:1!important;top:50%!important;left:50%!important;width:80%!important;height:auto!important;transform:translate(-57%,-52%)!important;opacity:.16!important;filter:brightness(.48) saturate(.75)!important;pointer-events:none!important}\n.visual .hommy{display:block!important;position:absolute!important;z-index:2!important;left:50%!important;bottom:-4%!important;width:auto!important;height:min(88%,850px)!important;max-width:94%!important;transform:translateX(-54%)!important;object-fit:contain!important;object-position:center bottom!important;image-rendering:auto!important;filter:none!important;pointer-events:none!important}\n'''
+          s=s.replace('</style>',override+'</style>',1)
+          p.write_text(s,encoding='utf-8')
 
       - name: Full stable QA
         shell: bash
         run: |
           set -euo pipefail
-          for f in homeeasy-auth-config.js homeeasy-auth.js homeeasy-page-guard.js homeeasy-account.js homeeasy-settings-auth-ui.js homeeasy-core.js; do
-            node --check "$f"
-          done
+          for f in homeeasy-auth-config.js homeeasy-auth.js homeeasy-page-guard.js homeeasy-account.js homeeasy-settings-auth-ui.js homeeasy-core.js; do node --check "$f"; done
           python - <<'PY'
           from pathlib import Path
           import re, subprocess, tempfile, sys
-          htmls = sorted(Path('.').glob('*.html'))
-          failures = []
+          htmls=sorted(Path('.').glob('*.html')); failures=[]
           for p in htmls:
-              text = p.read_text(encoding='utf-8', errors='replace')
-              scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', text, re.I | re.S)
-              for i, script in enumerate(scripts):
+              text=p.read_text(encoding='utf-8',errors='replace')
+              for i,script in enumerate(re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',text,re.I|re.S)):
                   if not script.strip(): continue
-                  with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as f:
-                      f.write(script); tmp = f.name
-                  r = subprocess.run(['node','--check',tmp], capture_output=True, text=True)
-                  Path(tmp).unlink(missing_ok=True)
+                  with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False,encoding='utf-8') as f:
+                      f.write(script); tmp=f.name
+                  r=subprocess.run(['node','--check',tmp],capture_output=True,text=True); Path(tmp).unlink(missing_ok=True)
                   if r.returncode: failures.append(f'{p}:{i}: {r.stderr.strip()}')
-          if failures:
-              print('\n'.join(failures)); sys.exit(1)
+          if failures: print('\n'.join(failures)); sys.exit(1)
           print(f'Inline JS OK: {len(htmls)} HTML files')
           PY
-          test -f login.html
-          test -f perfil.html
-          test -f activar-cuenta.html
+          test -f login.html && test -f perfil.html && test -f activar-cuenta.html
           grep -q 'Bienvenido' login.html
           grep -q 'assets/auth/login-bg-desktop.webp' login.html
           grep -q 'assets/auth/login-bg-mobile.webp' login.html
@@ -148,29 +126,27 @@ jobs:
           grep -q 'AUTH_ACTIVAR_INVITACION' activar-cuenta.html
           ! grep -q '<option value="Alejandro">Alejandro</option>' configuracion.html
           ! grep -q 'VALIDAR_PIN_CONFIGURACION' configuracion.html
-          for f in clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html Hommychat.html asistente.html; do
-            grep -q 'homeeasy-page-guard.js?v=3.1' "$f"
-          done
+          for f in clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html Hommychat.html asistente.html; do grep -q 'homeeasy-page-guard.js?v=3.1' "$f"; done
           ! grep -R --include='*.html' -n 'HOMMY.png' .
 
-      - name: Verify AR is byte-identical to production
+      - name: Verify AR byte-identical to production
         shell: bash
         run: |
           set -euo pipefail
           if ! git diff --quiet origin/main -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221; then
-            echo 'ERROR: candidate changes AR compared with production.' >&2
+            echo 'ERROR: AR differs from production.' >&2
             git diff --name-only origin/main -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221 >&2
             exit 1
           fi
 
-      - name: Create clean release tree
+      - name: Create clean stable release tree
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf .release .release2 .release3 .release4 .release5 .release6 \
-                 .github/workflows/apply-stable-3-1.yml \
-                 .github/workflows/publish-stable-3-1-final.yml \
-                 RELEASE_STABLE_3_1_UPLOAD_MARKER.tmp
+          rm -rf .release .release2 .release3 .release4 .release5 .release6 .release7 \
+            .github/workflows/apply-stable-3-1.yml \
+            .github/workflows/publish-stable-3-1-final.yml \
+            RELEASE_STABLE_3_1_UPLOAD_MARKER.tmp
           git config user.name 'HomeEasy Release Bot'
           git config user.email 'actions@github.com'
           git add -A
@@ -184,22 +160,16 @@ jobs:
           release_sha=$(git rev-parse HEAD)
           git fetch origin main
           main_sha=$(git rev-parse origin/main)
-          if ! git merge-base --is-ancestor "$main_sha" "$release_sha"; then
-            echo 'ERROR: main advanced independently; refusing to overwrite production.' >&2
-            exit 1
-          fi
-          if ! git diff --quiet "$main_sha" "$release_sha" -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221; then
-            echo 'ERROR: AR differs between final release and main.' >&2
-            exit 1
-          fi
+          if ! git merge-base --is-ancestor "$main_sha" "$release_sha"; then echo 'ERROR: main advanced independently.' >&2; exit 1; fi
+          if ! git diff --quiet "$main_sha" "$release_sha" -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221; then echo 'ERROR: AR differs.' >&2; exit 1; fi
           rm -rf /tmp/homeeasy-prod
           git worktree add --detach /tmp/homeeasy-prod "$main_sha"
           cd /tmp/homeeasy-prod
           git read-tree --reset -u "$release_sha"
-          test ! -d .release6
+          test ! -d .release && test ! -d .release6
           test ! -e .github/workflows/publish-stable-3-1-final.yml
           git config user.name 'HomeEasy Release Bot'
           git config user.email 'actions@github.com'
           git commit -m 'Publish HomeEasy stable 3.1 authentication and profiles'
           git push origin HEAD:main
-          echo "Published main from ${main_sha} to $(git rev-parse HEAD)"
+          echo "Published main: $(git rev-parse HEAD)"
