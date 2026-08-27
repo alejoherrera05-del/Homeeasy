@@ -17,21 +17,23 @@ errors=[]; warnings=[]; info=[]
 
 class Parser(HTMLParser):
     def __init__(self):
-        super().__init__(convert_charrefs=True); self.ids=[]; self.refs=[]; self.inline=[]; self._script=None; self._attrs={}; self._buf=[]
+        super().__init__(convert_charrefs=False); self.ids=[]; self.refs=[]
     def handle_starttag(self, tag, attrs):
-        d=dict(attrs); 
+        d=dict(attrs)
         if 'id' in d: self.ids.append(d['id'])
         for a in ('src','href','poster'):
             if a in d: self.refs.append((tag,a,d[a]))
-        if tag=='script' and 'src' not in d:
-            self._script=True; self._attrs=d; self._buf=[]
-    def handle_endtag(self, tag):
-        if tag=='script' and self._script:
-            typ=(self._attrs.get('type') or '').lower()
-            if not typ or 'javascript' in typ or typ=='module': self.inline.append(''.join(self._buf))
-            self._script=None; self._buf=[]; self._attrs={}
-    def handle_data(self, data):
-        if self._script: self._buf.append(data)
+
+def raw_inline_scripts(text):
+    out=[]
+    for m in re.finditer(r'<script\b([^>]*)>([\s\S]*?)</script\s*>', text, re.I):
+        attrs=m.group(1) or ''
+        if re.search(r'\bsrc\s*=',attrs,re.I): continue
+        typem=re.search(r'\btype\s*=\s*["\']([^"\']+)["\']',attrs,re.I)
+        typ=(typem.group(1).lower() if typem else '')
+        if typ and typ not in ('module','text/javascript','application/javascript'): continue
+        out.append(m.group(2))
+    return out
 
 def local_target(base, value):
     v=(value or '').strip()
@@ -47,11 +49,13 @@ def node_check(code, label):
         f.write(code); name=f.name
     r=subprocess.run(['node','--check',name],text=True,capture_output=True)
     Path(name).unlink(missing_ok=True)
-    if r.returncode: errors.append(f'JS syntax {label}: {r.stderr.strip().splitlines()[-1] if r.stderr.strip() else "error"}')
+    if r.returncode:
+        detail=' | '.join((r.stderr or r.stdout or 'syntax error').strip().splitlines()[:5])
+        errors.append(f'JS syntax {label}: {detail}')
 
 htmls=sorted(ROOT.glob('*.html'))
 jsfiles=sorted([p for p in ROOT.rglob('*.js') if '.git' not in p.parts and 'node_modules' not in p.parts])
-all_files={p.resolve() for p in ROOT.rglob('*') if p.is_file()}
+all_files={p.resolve() for p in ROOT.rglob('*') if p.is_file() and '.git' not in p.parts}
 
 for p in htmls:
     text=p.read_text(encoding='utf-8',errors='replace'); parser=Parser(); parser.feed(text)
@@ -60,30 +64,42 @@ for p in htmls:
     for tag,a,v in parser.refs:
         t=local_target(p,v)
         if t and t not in all_files: errors.append(f'{p.name}: broken local {a}={v}')
-    for i,code in enumerate(parser.inline,1): node_check(code,f'{p.name} inline#{i}')
+    for i,code in enumerate(raw_inline_scripts(text),1): node_check(code,f'{p.name} inline#{i}')
     if p.name in PROTECTED:
-        if 'homeeasy-core.js?v=3.3' not in text: errors.append(f'{p.name}: not loading Core 3.3')
-        if 'homeeasy-page-guard.js?v=3.2' not in text: warnings.append(f'{p.name}: guard cache key is not 3.2')
-    if 'href="index.html"' in text and p.name!='index.html' and 'homeeasy-core.js?v=3.3' not in text:
-        errors.append(f'{p.name}: links Home but cannot use Core 3.3 navigation')
+        if 'homeeasy-core.js?v=3.4' not in text: errors.append(f'{p.name}: not loading Core 3.4')
+        if 'homeeasy-page-guard.js?v=3.4' not in text: errors.append(f'{p.name}: not loading Guard 3.4')
+    if 'href="index.html"' in text and p.name!='index.html' and 'homeeasy-core.js?v=3.4' not in text:
+        errors.append(f'{p.name}: links Home but cannot use Core 3.4 navigation')
 
 for p in jsfiles:
     r=subprocess.run(['node','--check',str(p)],text=True,capture_output=True)
-    if r.returncode: errors.append(f'JS syntax {p}: {r.stderr.strip().splitlines()[-1] if r.stderr.strip() else "error"}')
+    if r.returncode:
+        detail=' | '.join((r.stderr or r.stdout or 'syntax error').strip().splitlines()[:5])
+        errors.append(f'JS syntax {p}: {detail}')
     text=p.read_text(encoding='utf-8',errors='replace')
-    for spec in re.findall(r'(?:from\s+|import\s*\()?["\'](\.{1,2}/[^"\']+)["\']',text):
-        t=local_target(p,spec)
-        if t and t not in all_files: errors.append(f'{p}: broken import {spec}')
+    # Check only literal module imports that name an actual file extension.
+    patterns=[
+        r'\bfrom\s*["\'](\.{1,2}/[^"\']+\.(?:js|mjs|json)(?:\?[^"\']*)?)["\']',
+        r'\bimport\s*\(\s*["\'](\.{1,2}/[^"\']+\.(?:js|mjs|json)(?:\?[^"\']*)?)["\']\s*\)'
+    ]
+    for pattern in patterns:
+        for spec in re.findall(pattern,text):
+            t=local_target(p,spec)
+            if t and t not in all_files: errors.append(f'{p}: broken import {spec}')
 
 core=(ROOT/'homeeasy-core.js').read_text(encoding='utf-8')
 guard=(ROOT/'homeeasy-page-guard.js').read_text(encoding='utf-8')
 auth=(ROOT/'homeeasy-auth.js').read_text(encoding='utf-8')
-if 'HomeEasy Core v3.3' not in core: errors.append('Core internal version is not 3.3')
-if 'HomeEasy Page Guard v3.2' not in guard: errors.append('Page Guard internal version is not 3.2')
-if "versionApp: '3.1'" in guard: warnings.append('Page Guard still reports versionApp 3.1')
-if "versionApp: '3.1'" in auth: warnings.append('Auth still reports versionApp 3.1')
-if '.catch(() => redirectIndexToLogin())' in core: warnings.append('Index background auth revalidation logs out on any error, including network errors')
-if '.catch(() => redirectToLogin())' in guard: warnings.append('Module background auth revalidation redirects on any error, including network errors')
+if 'HomeEasy Core v3.4' not in core: errors.append('Core internal version is not 3.4')
+if 'HomeEasy Page Guard v3.4' not in guard: errors.append('Page Guard internal version is not 3.4')
+if 'HomeEasy Auth v0.4.1' not in auth: errors.append('Auth internal version is not 0.4.1')
+if "versionApp: '3.4'" not in guard: errors.append('Page Guard does not report versionApp 3.4')
+if "versionApp: '3.4'" not in auth: errors.append('Auth does not report versionApp 3.4')
+if '.catch(() => redirectIndexToLogin())' in core: errors.append('Index still redirects on every background validation error')
+if '.catch(() => redirectToLogin())' in guard: errors.append('Module still redirects on every background validation error')
+if 'isTransientError' not in auth: errors.append('Auth transient-error classifier missing')
+if 'showIndexConnectionIssue' not in core: errors.append('Index connection recovery UI missing')
+if 'showConnectionIssue' not in guard: errors.append('Module connection recovery UI missing')
 
 ar=ROOT/'ar-homeeasy-v3.html'
 if ar.exists():
@@ -98,10 +114,10 @@ for p in sorted(all_files):
     try: size=p.stat().st_size
     except: continue
     if size>2_000_000: large.append((str(p.relative_to(ROOT)),size))
-info.append(f'HTML files: {len(htmls)}; JS files: {len(jsfiles)}; files >2MB: {len(large)}')
-if large: info.append('Large assets: '+', '.join(f'{n}={s/1024/1024:.1f}MB' for n,s in large[:12]))
+info.append(f'HTML files: {len(htmls)}; JS files: {len(jsfiles)}; assets >2MB: {len(large)}')
+if large: warnings.append('Heavy assets (performance watch): '+', '.join(f'{n}={s/1024/1024:.1f}MB' for n,s in large[:12]))
 
-print('=== HOMEEASY STATIC FIRE AUDIT ===')
+print('=== HOMEEASY STATIC FIRE AUDIT 3.4 ===')
 for x in info: print('INFO:',x)
 for x in warnings: print('WARN:',x)
 for x in errors: print('ERROR:',x)
