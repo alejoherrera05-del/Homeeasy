@@ -1018,17 +1018,6 @@
         }, 300);
     }
 
-       async function deshacerBorrado() {
-        if (!ultimoEventoBorrado) return;
-        const btnUndo = document.getElementById("undoContainer");
-        btnUndo.style.display = "none"; clearTimeout(undoTimeout);
-
-        eventosGlobales.push(ultimoEventoBorrado);
-        localStorage.setItem("CACHE_EVENTOS", JSON.stringify(eventosGlobales));
-
-        try { await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "restaurar_evento", ...ultimoEventoBorrado }) }); } catch(e) {}
-        ultimoEventoBorrado = null; procesarEventosLocales(); 
-    }
     async function deshacerBorrado() {
         if (!ultimoEventoBorrado) return;
         const btnUndo = document.getElementById("undoContainer");
