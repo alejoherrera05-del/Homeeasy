@@ -237,7 +237,7 @@
         }
         .btn-lock-caja:active { transform: scale(.9); }
     </style>
-    <script src="homeeasy-core.js?v=3.1"></script>
+    <script src="homeeasy-core.js?v=3.3"></script>
     <script src="homeeasy-page-guard.js?v=3.1"></script>
 <style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
 </head>
@@ -266,7 +266,7 @@
                 <button class="num-key" onclick="pressKey('7')">7</button>
                 <button class="num-key" onclick="pressKey('8')">8</button>
                 <button class="num-key" onclick="pressKey('9')">9</button>
-                <button class="num-key fn-key" onclick="window.location.href='index.html'" aria-label="Volver"><i class="fas fa-arrow-left"></i></button>
+                <button class="num-key fn-key" onclick="window.HomeEasyCore&&HomeEasyCore.goHome?HomeEasyCore.goHome():(window.location.href='index.html')" aria-label="Volver"><i class="fas fa-arrow-left"></i></button>
                 <button class="num-key" onclick="pressKey('0')">0</button>
                 <button class="num-key fn-key" onclick="deleteKey()" aria-label="Borrar"><i class="fas fa-backspace"></i></button>
             </div>
