@@ -1,0 +1,78 @@
+name: Publish HomeEasy stable 3.1 verified
+on:
+  push:
+    branches: [release/stable-3-1]
+    paths: ['.github/workflows/publish-stable-3-1-fast.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: release/stable-3-1, fetch-depth: 0}
+      - name: Build exact audited patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          C=98c6caf6c335e194a5533b0488325b91c83cae46
+          { git show $C:.release2/p00; git show $C:.release2/prefix-rest; git show $C:.release/stable-final.patch.b64.part-01; git show $C:.release/stable-final.patch.b64.part-02; git show $C:.release2/final-rest; } | tr -d '\r\n\t ' | base64 -d > /tmp/stable.gz
+          echo 'e82c48e821ca70882496acca15c7aebad12273acaf6a8486a68f86abf4e58296  /tmp/stable.gz' | sha256sum -c -
+          gzip -dc /tmp/stable.gz > /tmp/stable.patch
+          echo '655e763fd25155855f9ea6fed8b9b05b49feee467d930d7e9194afef47e78d53  /tmp/stable.patch' | sha256sum -c -
+      - name: Apply stable frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          for n in ['login.html','homeeasy-auth-config.js','homeeasy-auth.js','homeeasy-page-guard.js','homeeasy-account.js','homeeasy-settings-auth-ui.js','homeeasy-core.js','index.html','clientes.html','ventas.html','cotizacion.html','seguimiento.html','pedido.html','abono.html','caja.html','documentos.html','calendario.html','reportes.html','configuracion.html','Hommychat.html','asistente.html']:
+              p=Path(n)
+              if p.exists(): p.write_bytes(p.read_bytes().replace(b'\r\n',b'\n').replace(b'\r',b'\n'))
+          PY
+          patch --batch --forward -p1 < /tmp/stable.patch
+      - name: Restore HQ login assets
+        shell: bash
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          set -euo pipefail
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9622545434/zip" -o /tmp/a.zip
+          rm -rf /tmp/a /tmp/hq; mkdir /tmp/a /tmp/hq; unzip -q /tmp/a.zip -d /tmp/a
+          z=$(find /tmp/a -maxdepth 2 -type f -name '*.zip' | head -1 || true); if [ -n "$z" ]; then unzip -q "$z" -d /tmp/hq; else cp -R /tmp/a/. /tmp/hq/; fi
+          mkdir -p assets/auth
+          cp /tmp/hq/assets/auth/hommy-crossed.webp assets/auth/
+          cp /tmp/hq/assets/auth/login-bg-desktop.webp assets/auth/
+          cp /tmp/hq/assets/auth/login-bg-mobile.webp assets/auth/
+          test $(stat -c%s assets/auth/hommy-crossed.webp) -gt 250000
+      - name: Polish login HQ
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('login.html'); s=p.read_text()
+          css='''\n.visual .watermark{display:block!important;opacity:.16!important;filter:brightness(.48) saturate(.75)!important}.visual .hommy{display:block!important;width:auto!important;height:min(88%,850px)!important;max-width:94%!important;bottom:-4%!important;left:50%!important;transform:translateX(-54%)!important;filter:none!important;image-rendering:auto!important}\n'''
+          p.write_text(s.replace('</style>',css+'</style>',1))
+      - name: QA and AR isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          for f in homeeasy-auth.js homeeasy-page-guard.js homeeasy-account.js homeeasy-settings-auth-ui.js homeeasy-core.js; do node --check "$f"; done
+          test -f perfil.html && test -f activar-cuenta.html
+          grep -q 'Cuenta de cobro' configuracion.html
+          grep -q 'AUTH_INVITAR_USUARIO' homeeasy-settings-auth-ui.js
+          grep -q 'AUTH_ACTIVAR_INVITACION' activar-cuenta.html
+          ! grep -q 'VALIDAR_PIN_CONFIGURACION' configuracion.html
+          for f in clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html Hommychat.html asistente.html; do grep -q 'homeeasy-page-guard.js?v=3.1' "$f"; done
+          git diff --quiet origin/main -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221
+      - name: Clean release and publish main
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .release .release2 .release3 .release4 .release5 .release6 .release7
+          rm -f .github/workflows/apply-stable-3-1.yml .github/workflows/publish-stable-3-1-final.yml .github/workflows/publish-stable-3-1-fast.yml RELEASE_STABLE_3_1_UPLOAD_MARKER.tmp
+          git config user.name 'HomeEasy Release Bot'; git config user.email 'actions@github.com'; git add -A; git commit -m 'Prepare HomeEasy stable 3.1 frontend'; git push origin HEAD:release/stable-3-1
+          R=$(git rev-parse HEAD); git fetch origin main; M=$(git rev-parse origin/main); git merge-base --is-ancestor "$M" "$R"; git diff --quiet "$M" "$R" -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221
+          git worktree add --detach /tmp/prod "$M"; cd /tmp/prod; git read-tree --reset -u "$R"; git config user.name 'HomeEasy Release Bot'; git config user.email 'actions@github.com'; git commit -m 'Publish HomeEasy stable 3.1 authentication and profiles'; git push origin HEAD:main
+          echo "MAIN=$(git rev-parse HEAD)"
