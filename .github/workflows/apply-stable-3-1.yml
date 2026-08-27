@@ -25,11 +25,12 @@ jobs:
           set -euo pipefail
           { sha256sum ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html; find ar-sheer-v221 -type f -print0 | sort -z | xargs -0 sha256sum; } > /tmp/ar-before.sha256
 
-      - name: Validate stable binary patch
+      - name: Reconstruct and validate exact stable patch
         shell: bash
         run: |
           set -euo pipefail
-          cp .release/stable-final.patch.gz /tmp/stable-final.patch.gz
+          # Exact byte sequence: 0-8k + 8k-20k + 20k-40k + 40k-60k + 60k-end.
+          cat .release2/p00 .release2/prefix-rest .release/stable-final.patch.b64.part-01 .release/stable-final.patch.b64.part-02 .release2/final-rest | tr -d '\r\n\t ' | base64 -d > /tmp/stable-final.patch.gz
           echo 'e82c48e821ca70882496acca15c7aebad12273acaf6a8486a68f86abf4e58296  /tmp/stable-final.patch.gz' | sha256sum -c -
           gzip -dc /tmp/stable-final.patch.gz > /tmp/stable-final.patch
 
@@ -59,7 +60,7 @@ jobs:
           from pathlib import Path
           p=Path('login.html')
           s=p.read_text(encoding='utf-8')
-          # The previous drop-shadow softened Hommy noticeably on Windows.
+          # El drop-shadow suavizaba demasiado a Hommy en Windows.
           s=s.replace('filter:drop-shadow(0 25px 30px rgba(60,14,29,.27));pointer-events:none}', 'filter:none;pointer-events:none}')
           p.write_text(s,encoding='utf-8')
           PY
@@ -130,7 +131,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf .release .github/workflows/apply-stable-3-1.yml
+          rm -rf .release .release2 .github/workflows/apply-stable-3-1.yml
           git config user.name 'HomeEasy Release Bot'
           git config user.email 'actions@github.com'
           git add -A
