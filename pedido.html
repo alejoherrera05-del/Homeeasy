@@ -3,930 +3,629 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HomeEasy | Orden de Pedido</title>
-    
+    <title>HomeEasy | Inteligencia Financiera</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        /* --- VARIABLES PREMIUM --- */
-        :root { 
-            --homeeasy-wine: #a6455a;  
-            --homeeasy-gold: #c2a468;  
-            --app-bg: #f8f9fa;
+        :root {
+            --home-wine: #a6455a;
+            --home-gold: #c2a468;
+            --ios-bg: #f2f2f7;
+            --text-dark: #1c1c1e;
+        }
+
+        body {
+            /* Fuente San Francisco */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--ios-bg); 
+            margin: 0; padding: 0;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 🚨 OPTIMIZACIÓN RESPONSIVE PC / MÓVIL */
+        .app-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: var(--ios-bg);
+            min-height: 100vh;
+            padding-bottom: 40px;
         }
         
-        body { 
-            background-color: var(--app-bg); 
-            font-family: 'Montserrat', sans-serif; 
-            color: #333; 
-            margin: 0; 
-            padding: 20px 10px;
+        .content-container { padding: 0 20px; margin-top: -25px; position: relative; z-index: 10;}
+
+        @media (min-width: 992px) {
+            .app-wrapper { max-width: 1200px; padding: 20px; border-radius: 20px; margin-top: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+            .report-header { border-radius: 24px !important; }
+            .content-container { margin-top: 20px; }
+            
+            /* Grids para PC */
+            .grid-desktop-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+            .grid-desktop-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+            .meta-card { margin: 0 !important; height: 100%; }
+        }
+
+        /* --- CABECERA --- */
+        .report-header {
+            background: linear-gradient(135deg, var(--home-wine) 0%, #823646 100%);
+            padding: calc(20px + env(safe-area-inset-top)) 25px 45px;
+            border-radius: 0 0 32px 32px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(166, 69, 90, 0.2);
+            position: relative;
+            display: flex; flex-direction: column;
         }
         
-        .text-uppercase-input { text-transform: uppercase; }
-        
-        /* Botón Volver */
-        .btn-back { 
-            position: fixed; 
-            top: calc(15px + env(safe-area-inset-top)); 
-            left: 15px; 
-            z-index: 1000; 
-            background: rgba(255, 255, 255, 0.9); 
-            backdrop-filter: blur(5px);
-            border-radius: 50%; 
-            width: 45px; 
-            height: 45px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            color: var(--homeeasy-wine); 
-            text-decoration: none; 
-            font-size: 1.2rem; 
-            transition: transform 0.2s;
+        .no-export { display: flex; }
+
+        .header-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white; width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+            backdrop-filter: blur(5px); flex-shrink: 0; transition: transform 0.2s;
         }
         .btn-back:active { transform: scale(0.9); }
         
-        /* Contenedor Principal PDF */
-        #area-pdf { 
-            background-color: white; 
-            width: 100%; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            min-height: 1035px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05); 
-            border-radius: 12px; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            position: relative;
-        }
-        
-        /* Cabecera Documento */
-        .header-brand { 
-            background-color: var(--homeeasy-wine); 
-            padding: 25px 35px 40px 35px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
+        .hommy-header-img { width: 85px; height: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25)); margin-right: 5px; }
+
+        .header-titles { flex: 1; }
+        .header-titles h1 { font-weight: 700; font-size: 1.4rem; margin:0; letter-spacing: -0.3px; }
+        .header-titles p { margin:0; opacity:0.85; font-size:0.8rem; font-weight: 400; }
+
+        /* Selector de Periodo */
+        .period-controls { display: flex; gap: 10px; align-items: center; }
+        .period-selector { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 6px 12px; backdrop-filter: blur(5px); flex: 1;}
+        .period-selector select { background: transparent; border: none; color: white; font-weight: 600; font-size: 0.85rem; outline: none; width: 100%; cursor: pointer;}
+        .period-selector select option { color: #333; }
+        .date-display { font-size: 0.75rem; opacity: 0.8; font-weight: 500; margin-top: 5px; }
+
+        /* --- TARJETA DE META --- */
+        .meta-card {
+            background: white; border-radius: 24px;
+            padding: 22px; margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
             position: relative; 
         }
-        .logo-only { max-width: 130px; height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
-        .empresa-info-header { font-size: 0.75rem; color: #ffffff; text-align: right; line-height: 1.5; font-weight: 500;}
-        .empresa-info-header b { color: var(--homeeasy-gold); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.5px;}
-        .empresa-info-header i { color: var(--homeeasy-gold); width: 18px; text-align: center; margin-right: 4px; }
+        .meta-label { font-size: 0.75rem; font-weight: 600; color: #8e8e93; letter-spacing: 0.2px; text-transform: uppercase; }
+        .meta-current { font-size: 1.6rem; font-weight: 700; color: var(--home-wine); letter-spacing: -0.5px; margin: 4px 0; display: flex; align-items: center; gap: 10px; }
+        .btn-edit-meta { font-size: 1rem; color: #d1d1d6; cursor: pointer; transition: color 0.2s; }
+        .btn-edit-meta:hover, .btn-edit-meta:active { color: var(--home-gold); }
 
-        /* Etiqueta N° Orden */
-        .order-meta { 
-            position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); 
-            background: white; padding: 10px 25px; border-radius: 30px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; 
-            display: flex; gap: 20px; z-index: 10; white-space: nowrap; 
-        }
-        .meta-item { font-size: 0.7rem; font-weight: 800; color: var(--homeeasy-wine); text-transform: uppercase; letter-spacing: 0.5px;}
+        .meta-progress-container { width: 100%; height: 10px; background: #f2f2f7; border-radius: 10px; overflow: hidden; margin: 15px 0 12px; }
+        .meta-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--home-gold) 0%, #e3c07d 100%); border-radius: 10px; transition: width 1s ease-out; }
+        .meta-footer { font-size: 0.8rem; color: #8e8e93; font-weight: 500; display: flex; justify-content: space-between; }
 
-        /* Título del Documento */
-        .document-type { 
-            background-color: #ffffff; color: var(--homeeasy-wine); text-align: center; 
-            padding: 40px 12px 20px 12px; font-weight: 300; text-transform: uppercase; 
-            letter-spacing: 8px; border-bottom: 1px solid rgba(166, 69, 90, 0.1); font-size: 1.6rem;
+        /* --- TARJETA VENTA ESTRELLA 👑 --- */
+        .estrella-card {
+            background: linear-gradient(135deg, #fdfbf5 0%, #ffffff 100%);
+            border: 1px solid rgba(194, 164, 104, 0.3);
+            border-radius: 24px; padding: 22px; margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(194, 164, 104, 0.1);
         }
+        .estrella-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
+        .estrella-title { font-size: 0.8rem; font-weight: 700; color: #a48644; text-transform: uppercase; letter-spacing: 0.5px; }
+        .crown-icon { font-size: 1.5rem; color: #f1c40f; filter: drop-shadow(0 2px 4px rgba(241, 196, 15, 0.4)); animation: bounceCrown 2s infinite; }
+        .estrella-val { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px; }
+        .estrella-sub { font-size: 0.85rem; color: #666; font-weight: 500; margin-top: 4px; }
         
-        .card-body { padding: 30px 35px; flex-grow: 1; display: flex; flex-direction: column;}
+        @keyframes bounceCrown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
-        .section-title { 
-            font-weight: 800; text-transform: uppercase; font-size: 0.8rem; 
-            color: var(--homeeasy-wine); border-bottom: 2px solid #f0f0f0; 
-            padding-bottom: 5px; margin-bottom: 15px; display: block; letter-spacing: 1px;
-        }
+        /* --- KPIs RÁPIDOS --- */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: white; border-radius: 20px; padding: 18px 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: flex-start; }
+        .stat-icon-wrapper { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 1rem; }
         
-        .form-label-small { font-size: 0.65rem; font-weight: 700; color: #aaa; text-transform: uppercase; margin-bottom: 2px; }
-        .form-control-compact { 
-            border: none; border-bottom: 1px solid #e0e0e0; border-radius: 0; 
-            padding: 5px 0; font-size: 0.9rem; font-weight: 600; background: transparent; 
-            width: 100%; transition: all 0.3s; color: #333;
-        }
-        .form-control-compact:focus { outline: none; border-bottom-color: var(--homeeasy-gold); box-shadow: none; }
-        .form-control-compact::placeholder { color: #ccc; font-weight: 400; }
+        .icon-green { background: rgba(52, 199, 89, 0.12); color: #34c759; }
+        .icon-red { background: rgba(255, 59, 48, 0.12); color: #ff3b30; }
+        .icon-blue { background: rgba(0, 122, 255, 0.12); color: #007aff; }
 
-        /* Tabla */
-        .table { margin-bottom: 5px; }
-        .table th { 
-            font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #555; 
-            border-bottom: 2px solid var(--homeeasy-wine) !important; padding: 10px 5px; 
-        }
-        .table td { padding: 8px 5px; border-bottom: 1px solid #f5f5f5; vertical-align: middle;}
+        .stat-box .val { font-size: 1.2rem; font-weight: 700; display: block; letter-spacing: -0.3px; color: var(--text-dark); margin-bottom: 2px;}
+        .stat-box .lbl { font-size: 0.7rem; color: #8e8e93; font-weight: 600; text-transform: uppercase; }
+        .stat-box .sub { font-size: 0.65rem; font-weight: 600; margin-top: 5px; }
         
-        /* Caja Finanzas */
-        .finance-box { 
-            background-color: #fafafa; border-radius: 12px; padding: 20px; 
-            border-left: 6px solid var(--homeeasy-gold); height: 100%;
-        }
-        
-        /* Botón Guardar */
-        .btn-homeeasy { 
-            background-color: var(--homeeasy-wine); color: white; border: none; 
-            font-weight: 800; padding: 18px; width: 100%; text-transform: uppercase; 
-            border-radius: 12px; margin-top: 30px; font-size: 1rem; letter-spacing: 1px;
-            box-shadow: 0 8px 20px rgba(166, 69, 90, 0.3); transition: transform 0.2s;
-        }
-        .btn-homeeasy:active { transform: scale(0.98); }
-        
-        /* Footer */
-        .pdf-footer { 
-            background-color: #fafafa; padding: 20px; text-align: center; 
-            border-top: 1px solid #eee; margin-top: auto; 
-        }
-        .footer-logo { max-width: 80px; opacity: 0.4; margin-bottom: 10px; filter: grayscale(100%); }
-        .footer-creds { font-size: 0.65rem; color: #777; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        /* Colores dinámicos para crecimiento */
+        .text-up { color: #34c759; }
+        .text-down { color: #ff3b30; }
+        .text-neutral { color: #8e8e93; }
 
-        /* 📱 RESPONSIVE MÓVIL */
-        @media (max-width: 768px) {
-            body { padding: 0; background-color: white; }
-            #area-pdf { box-shadow: none; border-radius: 0; min-height: 100vh; margin: 0; }
-            .header-brand { padding: calc(25px + env(safe-area-inset-top)) 20px 35px 20px; }
-            .logo-only { max-width: 100px; }
-            .empresa-info-header { font-size: 0.65rem; }
-            .empresa-info-header b { font-size: 0.75rem; }
-            .order-meta { width: 85%; padding: 8px 15px; bottom: -20px; font-size: 0.65rem; justify-content: center; }
-            .document-type { padding: 45px 15px 15px 15px; font-size: 1.3rem; letter-spacing: 4px; }
-            .card-body { padding: 25px 15px; }
-            .finance-box { padding: 15px; }
-            .table th { font-size: 0.65rem; }
-            .table td { font-size: 0.8rem; }
-        }
+        /* --- GRÁFICOS --- */
+        .chart-card { background: white; border-radius: 24px; padding: 22px 20px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .chart-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 20px; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+        .chart-container { position: relative; height: 230px; width: 100%; display: flex; justify-content: center;}
 
-        /* 🚨 🖨️ PDF EXPORT MODE EXTREMO (Para asegurar 1 sola hoja) */
-        #area-pdf.pdf-export-mode { min-height: 1035px !important; }
-        .pdf-export-mode .header-brand { padding: 15px 30px 15px 30px !important; flex-direction: row !important; text-align: right !important; }
-        .pdf-export-mode .empresa-info-header { font-size: 0.75rem !important; }
-        .pdf-export-mode .logo-only { max-width: 110px !important; }
-        .pdf-export-mode .order-meta { width: auto !important; padding: 6px 20px !important; bottom: -12px !important; font-size: 0.65rem !important; }
-        .pdf-export-mode .document-type { padding: 25px 12px 5px 12px !important; font-size: 1.3rem !important; letter-spacing: 6px !important; }
-        .pdf-export-mode .card-body { padding: 10px 30px 0px 30px !important; }
-        
-        /* Comprimiendo la caja financiera */
-        .pdf-export-mode .finance-box { padding: 5px 15px !important; border-left: 4px solid var(--homeeasy-gold); }
-        .pdf-export-mode .finance-box .mb-2 { margin-bottom: 2px !important; }
-        .pdf-export-mode .finance-box .mt-3 { margin-top: 4px !important; }
-        .pdf-export-mode .finance-box .pt-3 { padding-top: 4px !important; }
+        /* --- BOTÓN EXPORTAR --- */
+        .footer-action { padding: 10px 0 30px; }
+        .btn-export { width: 100%; background: var(--text-dark); color: white; border: none; border-radius: 16px; padding: 15px; font-size: 0.95rem; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: transform 0.2s;}
+        .btn-export:active { transform: scale(0.96); }
 
-        .pdf-export-mode .section-title { margin-bottom: 4px !important; padding-bottom: 2px !important; }
-        .pdf-export-mode .row.g-4 { row-gap: 0.2rem !important; }
-        .pdf-export-mode .mb-5 { margin-bottom: 0.5rem !important; }
-        .pdf-export-mode .mb-4 { margin-bottom: 0.2rem !important; }
-        .pdf-export-mode .table th, .pdf-export-mode .table td { padding: 4px 5px !important; font-size: 0.75rem !important;}
-        .pdf-export-mode .pdf-footer { padding: 5px !important; margin-top: 5px !important; border-top: none !important; }
+        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .swal2-premium { border-radius: 24px !important; font-family: inherit !important; }
 
-        /* PANTALLAS DE CARGA Y ÉXITO */
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; }
-        .glass-loader { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 25px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; }
-        .hommy-loader { width: 140px; height: auto; margin-bottom: 15px; }
-        .step-item { font-size: 0.85rem; color: #777; font-weight: 600; opacity: 0.4; transition: all 0.3s; margin-bottom: 10px; display: flex; align-items: center; justify-content: start; gap: 10px; text-align: left; }
-        .step-active { opacity: 1; color: var(--homeeasy-wine); font-weight: 800; }
-        .step-check { opacity: 1; color: #2ecc71; font-weight: 700; }
-
-        .success-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; justify-content: center; align-items: center; }
-        .success-box { background: white; border-radius: 28px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 340px; border: 1px solid rgba(194, 164, 104, 0.3); animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); }
-        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .success-icon { width: 80px; height: 80px; background: rgba(46, 204, 113, 0.15); color: #27ae60; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; margin: 0 auto 20px; }
-        .success-box h3 { color: var(--homeeasy-wine); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px; letter-spacing: -0.5px;}
-        .success-box p { color: #666; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; font-weight: 500;}
-        .btn-success-home { background: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25);}
-        .btn-success-home:active { transform: scale(0.95); }
-
-        .row-desc, #notas { height: auto !important; min-height: 35px; }
+        /* 🚨 MODO PDF (Ajuste para impresión perfecta) */
+        .pdf-mode { padding: 20px !important; background: white !important; }
+        .pdf-mode .report-header { border-radius: 20px; padding: 20px; margin-bottom: 20px;}
+        .pdf-mode .app-wrapper { max-width: none !important; box-shadow: none !important; }
+        .pdf-mode .meta-card, .pdf-mode .estrella-card, .pdf-mode .stat-box, .pdf-mode .chart-card { box-shadow: none !important; border: 1px solid #eee; }
     </style>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="homeeasy-docs.js?v=4.1"></script>
     <script src="homeeasy-core.js?v=3.1"></script>
     <script src="homeeasy-page-guard.js?v=3.1"></script>
+<style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
 </head>
-<body ontouchstart="">
+<body>
 
-<div id="loading" class="loading-overlay">
-    <div class="glass-loader">
-        <img src="Hommycompleto.png" class="hommy-loader" alt="Hommy" onerror="this.src='hommy.png'">
-        <h6 style="color:var(--homeeasy-wine); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;" id="lbl-proceso">ESPERA UN MOMENTO...</h6>
-        <p class="small text-muted mb-4">Hommy está organizando el taller</p>
-        
-        <div id="status-list" style="text-align: left; margin-left: 10px;">
-            <div id="step-1" class="step-item"><i class="far fa-circle"></i> Hommy está afilando el lápiz y buscando la regla...</div>
-            <div id="step-2" class="step-item"><i class="far fa-circle"></i> Borrando la evidencia vieja (si hay) y tirando magia al PDF...</div>
-            <div id="step-3" class="step-item"><i class="far fa-circle"></i> Empacando la orden para producción...</div>
-            <div id="step-4" class="step-item"><i class="far fa-circle"></i> ¡Uff, qué calor! Orden sellada, Jefe.</div>
+    <div class="app-wrapper" id="informe-exportar">
+        <div id="loader-finance" class="loader-overlay">
+            <div class="spinner-border mb-3" style="color: var(--home-wine) !important;"></div>
+            <h6 style="color: var(--home-wine); font-weight: 600; letter-spacing: -0.3px;">Analizando Finanzas...</h6>
         </div>
-    </div>
-</div>
-
-<div id="success-modal" class="success-overlay">
-    <div class="success-box">
-        <div class="success-icon"><i class="fas fa-check"></i></div>
-        <h3>¡Orden Confirmada!</h3>
-        <p id="exito-msg">La orden fue creada, sincronizada y está lista para enviarse al cliente.</p>
-        <button id="btn-success-home" class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
-    </div>
-</div>
-
-<a id="btn-back" href="index.html" class="btn-back no-print"><i class="fas fa-arrow-left"></i></a>
-
-<div id="area-pdf">
-    <div class="header-brand">
-        <img src="logohomeeasy.png" class="logo-only" alt="HomeEasy" onerror="this.src='triangulogold.png'; this.style.width='60px'">
-        <div class="empresa-info-header" id="empresa-info-header" aria-live="polite" aria-busy="true"></div>
-        <div class="order-meta">
-            <div class="meta-item">ORDEN N°: <span id="n_orden_display" style="color: #333;">...</span></div>
-            <div class="meta-item">Fecha: <span id="fecha_display" style="color: #333;"></span></div>
-        </div>
-    </div>
-    
-    <div class="document-type" id="document-type">ORDEN DE PEDIDO</div>
-    
-    <div class="card-body">
-        
-        <span class="section-title">Información del Cliente</span>
-        <div class="row g-3 mb-4">
-            <div class="col-md-4 col-12">
-                <label class="form-label-small">Cédula / NIT</label>
-                <input type="text" id="cedula" class="form-control-compact" placeholder="Buscar por cédula o nombre..." autocomplete="off">
-                <div id="sugerencias_cliente" style="background:white; border-radius:10px; max-height:200px; overflow:auto; box-shadow:0 10px 20px rgba(0,0,0,0.15); margin-top:5px; display:none; position: absolute; z-index: 100; width: 90%;"></div>
-            </div>
-            <div class="col-md-8 col-12">
-                <label class="form-label-small">Nombre Completo</label>
-                <input type="text" id="nombre" class="form-control-compact text-uppercase-input" oninput="capFirst(this)">
-            </div>
-            <div class="col-md-4 col-12">
-                <label class="form-label-small">Teléfono</label>
-                <input type="tel" id="telefono" inputmode="numeric" class="form-control-compact">
-            </div>
-            <div class="col-md-8 col-12">
-                <label class="form-label-small">Correo Electrónico</label>
-                <input type="email" id="email" class="form-control-compact" style="text-transform: lowercase;">
-            </div>
-            <div class="col-12">
-                <label class="form-label-small">Dirección de Instalación</label>
-                <input type="text" id="direccion" class="form-control-compact text-uppercase-input" oninput="capFirst(this)">
-            </div>
-        </div>
-
-        <span class="section-title mt-2">Detalle de Fabricación</span>
-        <div class="table-responsive" style="overflow-x: visible;">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Descripción del Artículo</th>
-                        <th width="70" class="text-center">Cant.</th>
-                        <th width="130" class="text-center">V. Unitario</th>
-                        <th width="130" class="text-end">V. Total</th>
-                        <th width="30" class="no-print"></th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-body">
-                    <tr>
-                        <td><input type="text" class="form-control-compact row-desc" placeholder="Ej: Sheer Elegance Blanca" oninput="capFirst(this)"></td>
-                        <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
-                        <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
-                        <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
-                        <td class="no-print text-end"><button class="btn btn-sm" style="color:#e74c3c; padding:0;" onclick="eliminarFila(this)"><i class="fas fa-times"></i></button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <button class="btn btn-sm no-print mb-4" style="background: rgba(194, 164, 104, 0.15); color: var(--homeeasy-gold); font-weight: 700; border-radius: 8px;" onclick="agregarFila()">+ Añadir Línea</button>
-
-        <div class="mb-4">
-            <label class="form-label-small">Observaciones de Fabricación</label>
-            <textarea id="notas" class="form-control-compact" style="height: 40px; resize: none;" placeholder="Ej: Medidas exactas, lado del mando, accesorios..." oninput="capFirst(this)"></textarea>
-        </div>
-
-        <div class="row g-4 mt-auto">
-            <div class="col-md-6 col-12 d-flex flex-column justify-content-end">
-                <span class="section-title mb-2">Condiciones de Venta</span>
-                <div id="pedido-condiciones" style="font-size: 0.75rem; color: #666; line-height: 1.6;">
-                    • <b>Garantía:</b> 3 años (aplica términos y condiciones).<br>
-                    • <b>Tiempo de entrega:</b> 10 días hábiles.<br>
-                    • <b>Saldo:</b> Se cancela contra entrega e instalación.<br>
-                    • <b>Instalación:</b> Incluida en el valor total pactado.
+            
+        <header class="report-header">
+            <div class="header-top">
+                <a href="index.html" class="btn-back no-export" id="btn-volver"><i class="fas fa-chevron-left"></i></a>
+                <img src="Hommydinero.png" class="hommy-header-img" alt="Hommy" onerror="this.src='hommy.png'">
+                <div class="header-titles">
+                    <h1>Reporte de ventas</h1>
+                    <p>Resumen comercial de Hommy</p>
                 </div>
             </div>
             
-            <div class="col-md-6 col-12">
-                <div class="finance-box">
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span style="font-size: 0.8rem; font-weight: 800; color: #888;">SUBTOTAL:</span>
-                        <span id="subtotal_val" style="font-weight: 700; color: #555;">$ 0</span>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-2" id="desc_row">
-                        <span style="font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-gold);">DESCUENTO:</span>
-                        <input type="text" id="descuento_input" class="form-control-compact text-end p-0" style="width: 100px; font-weight: 800; color: #e74c3c; border-bottom: 1px dashed #e74c3c;" placeholder="-$ 0" inputmode="numeric" oninput="formatear(this); calcular()">
-                    </div>
+            <div class="period-controls no-export" id="selector-container">
+                <div class="period-selector">
+                    <select id="select-periodo" onchange="cambiarPeriodo()">
+                        <option value="este_mes" selected>Este Mes</option>
+                        <option value="mes_pasado">Mes Pasado</option>
+                        <option value="esta_semana">Esta Semana</option>
+                        <option value="semana_pasada">Semana Pasada</option>
+                        <option value="este_anio">Todo el Año</option>
+                        <option value="personalizado">Personalizado...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="date-display" id="fechas-display">Calculando fechas...</div>
+        </header>
 
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span style="font-size: 0.8rem; font-weight: 800; color: #333;">TOTAL PEDIDO:</span>
-                        <span id="total_pedido_val" style="font-weight: 800; color: #333;">$ 0</span>
+        <div class="content-container">
+            
+            <div class="grid-desktop-2">
+                <div class="meta-card">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="meta-label" id="lbl-mes-meta">Meta de Ventas</span>
+                        <span class="badge" id="pct-badge" style="background: rgba(194, 164, 104, 0.15); color: #a48644; border-radius: 8px; font-weight: 700; font-size: 0.75rem;">0%</span>
                     </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-2 mt-3">
-                        <span style="font-size: 0.8rem; font-weight: 800; color: var(--homeeasy-gold);">ABONO INICIAL:</span>
-                        <input type="text" id="abono" class="form-control-compact text-end p-0" style="width: 120px; font-weight: 800; color: var(--homeeasy-wine); border-bottom: 2px solid var(--homeeasy-wine);" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()">
+                    <div class="meta-current">
+                        <span id="label-meta-valor">$0</span>
+                        <i class="fas fa-pen-to-square btn-edit-meta no-export" id="btn-editar-meta" onclick="ajustarMeta()"></i>
                     </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 2px solid #eaeaea;">
-                        <span style="font-size: 1.1rem; font-weight: 800; color: var(--homeeasy-wine);">SALDO:</span>
-                        <span id="saldo_pendiente_val" style="font-size: 1.4rem; font-weight: 800; color: var(--homeeasy-wine);">$ 0</span>
+                    <div class="meta-progress-container">
+                        <div class="meta-progress-bar" id="meta-bar"></div>
+                    </div>
+                    <div class="meta-footer">
+                        <span id="txt-logrado" style="color: var(--home-wine); font-weight: 600;">Logrado: $0</span>
+                        <span id="txt-restante">Faltan: $0</span>
+                    </div>
+                </div>
+
+                <div class="estrella-card">
+                    <div class="estrella-header">
+                        <span class="estrella-title">OP Ganadora del Periodo</span>
+                        <i class="fas fa-crown crown-icon"></i>
+                    </div>
+                    <div class="estrella-val" id="estrella-monto">$0</div>
+                    <div class="estrella-sub" id="estrella-detalle">Sin ventas registradas en este periodo</div>
+                </div>
+            </div>
+
+            <div class="stats-grid grid-desktop-4" style="margin-top: 20px;">
+                <div class="stat-box">
+                    <div class="stat-icon-wrapper icon-blue"><i class="fas fa-chart-line"></i></div>
+                    <span class="val" id="kpi-crecimiento">0%</span>
+                    <span class="lbl">Crecimiento</span>
+                    <span class="sub" id="sub-crecimiento">vs periodo anterior</span>
+                </div>
+                
+                <div class="stat-box">
+                    <div class="stat-icon-wrapper icon-green" style="background: rgba(166,69,90,0.1); color: var(--home-wine);"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <span class="val" id="kpi-vendido">$0</span>
+                    <span class="lbl">Total Vendido</span>
+                    <span class="sub text-neutral">En OPs generadas</span>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-icon-wrapper icon-green"><i class="fas fa-sack-dollar"></i></div>
+                    <span class="val" id="kpi-recaudado">$0</span>
+                    <span class="lbl">Caja (Recaudado)</span>
+                    <span class="sub text-neutral">Abonos efectivos</span>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-icon-wrapper icon-red"><i class="fas fa-hand-holding-dollar"></i></div>
+                    <span class="val" id="kpi-calle">$0</span>
+                    <span class="lbl">Por Cobrar</span>
+                    <span class="sub text-neutral">Saldo pendiente global</span>
+                </div>
+            </div>
+
+            <div class="grid-desktop-2">
+                <div class="chart-card">
+                    <div class="chart-title"><i class="fas fa-chart-column" style="color: var(--home-wine);"></i> Tendencia del Año</div>
+                    <div class="chart-container">
+                        <canvas id="chartBarras"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title"><i class="fas fa-chart-pie" style="color: var(--home-gold);"></i> Medios de Pago (Periodo)</div>
+                    <div class="chart-container" style="height: 200px;">
+                        <canvas id="chartDona"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <button class="btn btn-homeeasy no-print" id="btnProcesar" onclick="finalizar()"><i class="fas fa-cloud-upload-alt me-2"></i> Generar Orden de Pedido</button>
-    </div>
+            <div class="footer-action no-export" id="btn-exportar-container">
+                <button class="btn-export" onclick="exportarAPDF()">
+                    <i class="fas fa-file-pdf" style="color: #ff3b30;"></i> Exportar Informe
+                </button>
+            </div>
 
-    <div class="pdf-footer">
-        <img src="Hommypiedepagina.png" alt="Hommy" style="height: 35px; opacity: 0.5; margin-bottom: 8px;">
-        <div class="footer-creds" id="footer-creds">HomeEasy - Viste tu hogar con estilo</div>
-        <div id="footer-system-line" style="font-size: 0.6rem; color: #aaa; margin-top: 5px;">Documento oficial generado por Sistema Hommy V2.0</div>
-    </div>
-</div>
+        </div> </div> <script>
+        const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+        let metaVentas = 0;
+        let dataFinanzas = null;
+        let chartBarrasInstancia = null;
+        let chartDonaInstancia = null;
 
-<script>
-    const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-    
-    let numeroCot = null;
-    let isEditMode = false;
-    let editNum = null;
-    let returnCedula = null; 
+        // Variables de Rango Personalizado
+        let customStart = null;
+        let customEnd = null;
 
-    // ==========================================
-    // 1. CARGA INICIAL Y MODO EDICIÓN
-    // ==========================================
-    window.onload = () => {
-        window.__homeeasyDocsReady = (window.HomeEasyDocs ? window.HomeEasyDocs.init({ url: URL_G, documentType: 'pedido' }) : Promise.resolve());
-        const params = new URLSearchParams(window.location.search);
-        editNum = params.get("edit");
-        numeroCot = params.get("cotizacion");
-        returnCedula = params.get("return_cedula"); 
+        const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-        if (returnCedula) {
-            document.getElementById("btn-back").href = `clientes.html?search=${returnCedula}`;
+        window.onload = async () => {
+            await cargarMeta();
+            await cargarFinanzas();
+            document.getElementById('loader-finance').style.display = 'none';
+        };
+
+        async function cargarMeta() {
+            try {
+                const res = await fetch(`${URL_G}?tipo=GET_META`);
+                const data = await res.json();
+                metaVentas = parseFloat(data.meta) || 10000000;
+                document.getElementById('label-meta-valor').innerText = "$" + metaVentas.toLocaleString('es-CO');
+            } catch (e) {
+                metaVentas = 10000000;
+                document.getElementById('label-meta-valor').innerText = "$10.000.000";
+            }
         }
 
-        if (editNum) {
-            isEditMode = true;
-            document.getElementById("n_orden_display").innerText = editNum;
-            document.getElementById("btnProcesar").innerHTML = '<i class="fas fa-save me-2"></i> Guardar Cambios';
-            
-            fetch(`${URL_G}?tipo=EDITAR_OP&numero=${editNum}`)
-            .then(r => r.json())
-            .then(d => {
-                if(d.status === "found") {
-                    document.getElementById('fecha_display').innerText = new Date(d.fecha).toLocaleDateString('es-CO');
-                    document.getElementById('cedula').value = d.cedula;
-                    document.getElementById('nombre').value = d.nombre;
-                    document.getElementById('notas').value = d.observaciones || ""; 
-                    document.getElementById('abono').value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(d.abono || 0);
-                    
-                    buscarCliente(); 
-                    
-                    let items = [];
-                    
-                    try { 
-                        if(d.itemsJSON && d.itemsJSON !== "[]" && d.itemsJSON !== "") {
-                            let parsed = JSON.parse(d.itemsJSON);
-                            if(typeof parsed === 'string') parsed = JSON.parse(parsed); 
-                            if(Array.isArray(parsed)) items = parsed;
-                        }
-                    } catch(e) {}
-
-                    if(items.length === 0 && d.descripcion && d.descripcion.includes(" x ")) {
-                        let partes = d.descripcion.split('/');
-                        partes.forEach(p => {
-                            let txt = p.trim();
-                            if(txt) {
-                                let div = txt.split(' x ');
-                                if(div.length === 2) {
-                                    items.push({ cantidad: parseFloat(div[0]) || 1, descripcion: div[1].trim(), precio: 0 });
-                                } else {
-                                    items.push({ cantidad: 1, descripcion: txt, precio: 0 });
-                                }
-                            }
-                        });
-                    }
-
-                    let subtotalCarga = 0;
-
-                    if(items.length > 0) {
-                        const tbody = document.getElementById("tabla-body");
-                        tbody.innerHTML = ""; 
-                        
-                        items.forEach(item => {
-                            const tr = document.createElement("tr");
-                            tr.innerHTML = `
-                                <td><input type="text" class="form-control-compact row-desc" oninput="capFirst(this)"></td>
-                                <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
-                                <td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" oninput="formatear(this); calcular()"></td>
-                                <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
-                                <td class="no-print text-end"><button class="btn btn-sm" style="color:#e74c3c; padding:0;" onclick="eliminarFila(this)"><i class="fas fa-times"></i></button></td>
-                            `;
-                            tbody.appendChild(tr);
-                            
-                            tr.querySelector(".row-desc").value = item.descripcion || "";
-                            tr.querySelector(".cant").value = item.cantidad || 1;
-                            
-                            let pr = parseFloat(item.precio) || 0;
-                            if (pr > 0) {
-                                tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(pr);
-                            }
-                            
-                            subtotalCarga += (item.cantidad || 1) * pr;
-                        });
-                        
-                        let totalGuardado = parseFloat(d.total) || 0;
-                        if (totalGuardado > 0 && subtotalCarga > totalGuardado) {
-                            let descuentoDetectado = subtotalCarga - totalGuardado;
-                            document.getElementById('descuento_input').value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(descuentoDetectado);
-                        }
-
-                        calcular();
-                    }
-                }
-            });
-
-        } else {
-            document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
-            fetch(`${URL_G}?nextPedido=1`)
-                .then(r => r.json())
-                .then(d => { if(d.status === "ok") document.getElementById("n_orden_display").innerText = d.nextPedido || "001"; })
-                .catch(e => { document.getElementById("n_orden_display").innerText = "001"; });
+        async function cargarFinanzas() {
+            try {
+                const res = await fetch(`${URL_G}?tipo=GET_REPORTES`);
+                dataFinanzas = await res.json();
+                procesarDatos();
+            } catch (e) {
+                Swal.fire('Error', 'No se pudieron cargar los datos.', 'error');
+            }
         }
 
-        fetch(`${URL_G}?init=LOAD`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === "ok" && data.clientes) {
-                    const clientesObj = {};
-                    for (let i = 1; i < data.clientes.length; i++) {
-                        const c = data.clientes[i];
-                        if(c && c[0]) { 
-                            clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] }; 
-                        }
-                    }
-                    localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
-                    if(!isEditMode && !numeroCot) buscarCliente(); 
-                }
-            }).catch(err => console.error("Error parchando caché:", err));
-
-        if (numeroCot && !isEditMode) {
-            fetch(`${URL_G}?convertirCot=${numeroCot}`)
-                .then(r => r.json())
-                .then(d => {
-                    if (d.status === "found") {
-                        document.getElementById("cedula").value = d.cedula;
-                        document.getElementById("nombre").value = d.nombre.toUpperCase();
-                        document.getElementById("notas").value = d.observaciones || ""; 
-                        
-                        buscarCliente(); 
-
-                        let items = [];
-                        
-                        try { 
-                            if(d.itemsJSON && d.itemsJSON !== "[]" && d.itemsJSON !== "") {
-                                let parsed = JSON.parse(d.itemsJSON);
-                                if(typeof parsed === 'string') parsed = JSON.parse(parsed); 
-                                if(Array.isArray(parsed)) items = parsed;
-                            }
-                        } catch(e) {}
-
-                        if(items.length === 0 && d.descripcion && d.descripcion.includes(" x ")) {
-                            let partes = d.descripcion.split('/');
-                            partes.forEach(p => {
-                                let txt = p.trim();
-                                if(txt) {
-                                    let div = txt.split(' x ');
-                                    if(div.length === 2) {
-                                        items.push({ cantidad: parseFloat(div[0]) || 1, descripcion: div[1].trim(), precio: 0 });
-                                    } else {
-                                        items.push({ cantidad: 1, descripcion: txt, precio: 0 });
-                                    }
-                                }
-                            });
-                        }
-
-                        let subtotalCarga = 0;
-
-                        if (items.length > 0) {
-                            const tbody = document.getElementById("tabla-body");
-                            tbody.innerHTML = "";
-                            items.forEach(item => {
-                                const tr = document.createElement("tr");
-                                tr.innerHTML = `
-                                    <td><input type="text" class="form-control-compact row-desc" oninput="capFirst(this)"></td>
-                                    <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
-                                    <td><input type="text" class="form-control-compact text-center precio" inputmode="numeric" oninput="formatear(this); calcular()"></td>
-                                    <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
-                                    <td class="no-print text-end"><button class="btn btn-sm" style="color:#e74c3c; padding:0;" onclick="eliminarFila(this)"><i class="fas fa-times"></i></button></td>
-                                `;
-                                tbody.appendChild(tr);
-                                tr.querySelector(".row-desc").value = item.descripcion || "";
-                                tr.querySelector(".cant").value = item.cantidad || 1;
-                                
-                                let pr = parseFloat(item.precio) || 0;
-                                if (pr > 0) { 
-                                    tr.querySelector(".precio").value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(pr); 
-                                }
-                                
-                                subtotalCarga += (item.cantidad || 1) * pr;
-                            });
-
-                            let totalGuardado = parseFloat(d.total) || 0;
-                            if (totalGuardado > 0 && subtotalCarga > totalGuardado) {
-                                let descuentoDetectado = subtotalCarga - totalGuardado;
-                                document.getElementById('descuento_input').value = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(descuentoDetectado);
-                            }
-
-                            calcular();
-                        }
+        // ==========================================
+        // 📅 MOTOR LÓGICO DE FECHAS Y COMPARATIVAS
+        // ==========================================
+        async function cambiarPeriodo() {
+            const selector = document.getElementById('select-periodo');
+            if(selector.value === 'personalizado') {
+                const { value: formValues } = await Swal.fire({
+                    title: 'Rango Personalizado',
+                    html:
+                        '<input id="swal-input1" type="date" class="swal2-input">' +
+                        '<input id="swal-input2" type="date" class="swal2-input">',
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonColor: 'var(--home-wine)',
+                    customClass: { popup: 'swal2-premium' },
+                    preConfirm: () => {
+                        return [ document.getElementById('swal-input1').value, document.getElementById('swal-input2').value ];
                     }
                 });
-        }
-    };
 
-    function capFirst(input) { 
-        let val = input.value; 
-        if (val.length > 0) { 
-            input.value = val.charAt(0).toUpperCase() + val.slice(1); 
-        } 
-    }
-
-    function formatear(i) { 
-        let v = i.value.replace(/\D/g, ""); 
-        i.value = v ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v) : ""; 
-    }
-
-    function calcular() {
-        let subtotal = 0;
-        document.querySelectorAll('#tabla-body tr').forEach(tr => {
-            let c = parseFloat(tr.querySelector('.cant').value) || 0; 
-            let p = parseFloat(tr.querySelector('.precio').value.replace(/\D/g, "")) || 0; 
-            let sub = c * p;
-            tr.querySelector('.item-total').innerText = `$ ${sub.toLocaleString('es-CO')}`; 
-            subtotal += sub;
-        });
-        
-        document.getElementById('subtotal_val').innerText = `$ ${subtotal.toLocaleString('es-CO')}`;
-        
-        let descInput = document.getElementById('descuento_input').value; 
-        let descuento = parseFloat(descInput.replace(/\D/g, "")) || 0;
-        
-        let totalFinal = subtotal - descuento; 
-        if(totalFinal < 0) totalFinal = 0;
-        
-        document.getElementById('total_pedido_val').innerText = `$ ${totalFinal.toLocaleString('es-CO')}`;
-        
-        let abono = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
-        let saldo = totalFinal - abono; 
-        if(saldo < 0) saldo = 0;
-        
-        document.getElementById('saldo_pendiente_val').innerText = `$ ${saldo.toLocaleString('es-CO')}`;
-    }
-
-    function agregarFila() {
-        let tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><input type="text" class="form-control-compact row-desc" placeholder="Descripción..." oninput="capFirst(this)"></td>
-            <td><input type="number" class="form-control-compact text-center cant" value="1" inputmode="numeric" oninput="calcular()"></td>
-            <td><input type="text" class="form-control-compact text-center precio" placeholder="$ 0" inputmode="numeric" oninput="formatear(this); calcular()"></td>
-            <td class="item-total fw-bold text-end" style="color: var(--homeeasy-wine);">$ 0</td>
-            <td class="no-print text-end"><button class="btn btn-sm" style="color:#e74c3c; padding:0;" onclick="eliminarFila(this)"><i class="fas fa-times"></i></button></td>
-        `;
-        document.getElementById('tabla-body').appendChild(tr);
-    }
-    
-    function eliminarFila(btn) { 
-        btn.closest('tr').remove(); 
-        calcular(); 
-    }
-
-    const loadingTexts = [ 
-        "Hommy está afilando el lápiz y buscando la regla...", 
-        "Borrando la evidencia vieja (si hay) y tirando magia al PDF...", 
-        "Empacando la orden para producción...", 
-        "¡Uff, qué calor! Orden sellada, Jefe." 
-    ];
-
-    function setStep(num, status) {
-        const step = document.getElementById('step-' + num);
-        if (status === 'active') { 
-            step.classList.add('step-active'); 
-            step.classList.remove('step-check'); 
-            step.innerHTML = `<i class="fas fa-circle-notch fa-spin text-warning"></i> ` + loadingTexts[num-1]; 
-        } else if (status === 'check') { 
-            step.classList.remove('step-active'); 
-            step.classList.add('step-check'); 
-            step.innerHTML = `<i class="fas fa-check-circle"></i> ` + loadingTexts[num-1]; 
-        } else { 
-            step.className = 'step-item'; 
-            step.innerHTML = `<i class="far fa-circle"></i> ` + loadingTexts[num-1]; 
-        }
-    }
-
-    async function finalizar() {
-        if (window.__homeeasyDocsReady) { try { await window.__homeeasyDocsReady; } catch (e) { console.warn("No fue posible cargar la configuración dinámica.", e); } }
-        const cedula = document.getElementById('cedula').value.trim();
-        let nombre = document.getElementById('nombre').value.toUpperCase();
-        let email = document.getElementById('email').value.toLowerCase();
-        let numeroOP = document.getElementById("n_orden_display").innerText.trim() || "001";
-
-        if (!cedula || !nombre) return alert("Por favor, ingresa al menos Cédula y Nombre.");
-
-        const loading = document.getElementById('loading');
-        if(isEditMode) document.getElementById('lbl-proceso').innerText = "ACTUALIZANDO...";
-        loading.style.display = 'flex';
-        
-        for(let i=1; i<=4; i++) { setStep(i, 'reset'); }
-
-        try {
-            setStep(1, 'active');
-            
-            const origBodyPadding = document.body.style.padding; 
-            document.body.style.padding = '0';
-            
-            const areaPdf = document.getElementById('area-pdf'); 
-            areaPdf.classList.add('pdf-export-mode');
-            
-            const origBorderRadius = areaPdf.style.borderRadius; 
-            const origBoxShadow = areaPdf.style.boxShadow;
-            areaPdf.style.borderRadius = '0px'; 
-            areaPdf.style.boxShadow = 'none'; 
-            areaPdf.style.width = '800px'; 
-            areaPdf.style.maxWidth = '800px'; 
-            areaPdf.style.margin = '0'; 
-
-            await new Promise(r => setTimeout(r, 50));
-
-            const canvas = await html2canvas(areaPdf, { 
-                scale: 3, 
-                useCORS: true, 
-                width: 800, 
-                windowWidth: 800, 
-                x: areaPdf.offsetLeft, 
-                y: areaPdf.offsetTop,
-                onclone: function(clonedDoc) {
-                    clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
-                    
-                    clonedDoc.querySelectorAll('#tabla-body tr').forEach(f => { 
-                        const desc = f.querySelector('.row-desc'); 
-                        if(!desc || !desc.value.trim()) f.remove(); 
-                    });
-                    
-                    const descInput = clonedDoc.getElementById('descuento_input'); 
-                    const descRow = clonedDoc.getElementById('desc_row');
-                    if (descInput && descRow) { 
-                        const descVal = parseFloat(descInput.value.replace(/\D/g, "")); 
-                        if (isNaN(descVal) || descVal === 0) { 
-                            descRow.parentNode.removeChild(descRow); 
-                        } else { 
-                            descInput.style.border = 'none'; 
-                        } 
-                    }
-
-                    const abonoInputClone = clonedDoc.getElementById('abono'); 
-                    if (abonoInputClone) { 
-                        abonoInputClone.style.borderBottom = 'none'; 
-                        abonoInputClone.style.background = 'transparent'; 
-                    }
-                    
-                    clonedDoc.querySelectorAll('.form-control-compact').forEach(input => { 
-                        input.style.borderBottom = 'none'; 
-                        input.style.background = 'transparent'; 
-                        input.style.color = '#222'; 
-                    });
-                    
-                    clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(input => {
-                        const span = clonedDoc.createElement('span'); 
-                        span.innerText = input.value; 
-                        span.className = input.className; 
-                        span.style.display = 'inline-block'; 
-                        span.style.border = 'none'; 
-                        span.style.background = 'transparent';
-                        if(input.classList.contains('text-end')) span.style.textAlign = 'right'; 
-                        if(input.classList.contains('text-center')) span.style.textAlign = 'center';
-                        input.parentNode.replaceChild(span, input);
-                    });
-                    
-                    clonedDoc.querySelectorAll('textarea').forEach(ta => {
-                        const div = clonedDoc.createElement('div'); 
-                        div.innerText = ta.value; 
-                        div.className = ta.className; 
-                        div.style.border = 'none'; 
-                        div.style.background = 'transparent'; 
-                        div.style.whiteSpace = 'pre-wrap';
-                        ta.parentNode.replaceChild(div, ta);
-                    });
+                if (formValues && formValues[0] && formValues[1]) {
+                    customStart = new Date(formValues[0] + "T00:00:00");
+                    customEnd = new Date(formValues[1] + "T23:59:59");
+                    procesarDatos();
+                } else {
+                    selector.value = "este_mes"; // Restaurar si cancela
+                    procesarDatos();
                 }
-            });
-
-            setStep(1, 'check'); 
-            setStep(2, 'active');
-
-            areaPdf.classList.remove('pdf-export-mode'); 
-            document.body.style.padding = origBodyPadding; 
-            areaPdf.style.borderRadius = origBorderRadius; 
-            areaPdf.style.boxShadow = origBoxShadow; 
-            areaPdf.style.width = '100%'; 
-            areaPdf.style.margin = '0 auto';
-
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF("p", "mm", "letter"); 
-            const pdfWidth = pdf.internal.pageSize.getWidth(); 
-            const pdfHeight = pdf.internal.pageSize.getHeight(); 
-            const canvasRatio = canvas.width / canvas.height;
-            const finalWidth = pdfWidth; 
-            let finalHeight = finalWidth / canvasRatio; 
-            
-            const imgData = canvas.toDataURL("image/jpeg", 1.0); 
-            let heightLeft = finalHeight; 
-            let position = 0;
-
-            pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); 
-            heightLeft -= pdfHeight;
-            
-            // 🚨 FIX: Tolerancia de 25 píxeles para evitar páginas en blanco indeseadas
-            while (heightLeft > 25) { 
-                position -= pdfHeight; 
-                pdf.addPage(); 
-                pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); 
-                heightLeft -= pdfHeight; 
+            } else {
+                procesarDatos();
             }
-            const pdfBase64 = pdf.output('datauristring').split(',')[1];
+        }
 
-            let descripcionTexto = ""; 
-            let itemsJSON = [];        
+        function obtenerRangosDeFechas(periodo) {
+            const hoy = new Date();
+            let inicio, fin, prevInicio, prevFin;
+            let texto = "";
+
+            if(periodo === 'este_mes') {
+                inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
+                prevInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+                prevFin = new Date(hoy.getFullYear(), hoy.getMonth(), 0, 23, 59, 59);
+                texto = nombresMeses[hoy.getMonth()];
+            } 
+            else if(periodo === 'mes_pasado') {
+                inicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+                fin = new Date(hoy.getFullYear(), hoy.getMonth(), 0, 23, 59, 59);
+                prevInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
+                prevFin = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 0, 23, 59, 59);
+                texto = nombresMeses[inicio.getMonth()];
+            }
+            else if(periodo === 'esta_semana') {
+                const dia = hoy.getDay() || 7; 
+                inicio = new Date(hoy); inicio.setDate(hoy.getDate() - dia + 1); inicio.setHours(0,0,0,0);
+                fin = new Date(inicio); fin.setDate(inicio.getDate() + 6); fin.setHours(23,59,59);
+                prevInicio = new Date(inicio); prevInicio.setDate(inicio.getDate() - 7);
+                prevFin = new Date(fin); prevFin.setDate(fin.getDate() - 7);
+                texto = "Esta Semana";
+            }
+            else if(periodo === 'semana_pasada') {
+                const dia = hoy.getDay() || 7; 
+                let lunesActual = new Date(hoy); lunesActual.setDate(hoy.getDate() - dia + 1); lunesActual.setHours(0,0,0,0);
+                inicio = new Date(lunesActual); inicio.setDate(lunesActual.getDate() - 7);
+                fin = new Date(inicio); fin.setDate(inicio.getDate() + 6); fin.setHours(23,59,59);
+                prevInicio = new Date(inicio); prevInicio.setDate(inicio.getDate() - 7);
+                prevFin = new Date(fin); prevFin.setDate(fin.getDate() - 7);
+                texto = "Semana Pasada";
+            }
+            else if(periodo === 'este_anio') {
+                inicio = new Date(hoy.getFullYear(), 0, 1);
+                fin = new Date(hoy.getFullYear(), 11, 31, 23, 59, 59);
+                prevInicio = new Date(hoy.getFullYear() - 1, 0, 1);
+                prevFin = new Date(hoy.getFullYear() - 1, 11, 31, 23, 59, 59);
+                texto = "Año " + hoy.getFullYear();
+            }
+            else if(periodo === 'personalizado') {
+                inicio = customStart; fin = customEnd;
+                // Para personalizado, asumimos el mismo número de días hacia atrás
+                const diffTime = Math.abs(fin - inicio);
+                prevFin = new Date(inicio.getTime() - 1);
+                prevInicio = new Date(prevFin.getTime() - diffTime);
+                texto = `${inicio.toLocaleDateString()} al ${fin.toLocaleDateString()}`;
+            }
+
+            return { inicio, fin, prevInicio, prevFin, texto };
+        }
+
+        function procesarDatos() {
+            if(!dataFinanzas) return;
+
+            const periodoSel = document.getElementById('select-periodo').value;
+            const rangos = obtenerRangosDeFechas(periodoSel);
             
-            document.querySelectorAll('#tabla-body tr').forEach(tr => {
-                let descEl = tr.querySelector('.row-desc');
-                let cantEl = tr.querySelector('.cant');
-                let precioEl = tr.querySelector('.precio');
-                
-                if (descEl && cantEl && precioEl) {
-                    let descripcion = descEl.value.trim(); 
-                    let cantidad = parseFloat(cantEl.value) || 0; 
-                    let precio = parseFloat(precioEl.value.replace(/\D/g, "")) || 0;
+            document.getElementById('lbl-mes-meta').innerText = `Meta de Ventas (${rangos.texto})`;
+            document.getElementById('fechas-display').innerText = `Mostrando: ${rangos.inicio.toLocaleDateString()} - ${rangos.fin.toLocaleDateString()}`;
+
+            let totalVendidoActual = 0;
+            let totalVendidoAnterior = 0;
+            let totalRecaudadoActual = 0; 
+            let totalVendidoHistorico = 0; 
+            let totalRecaudadoHistorico = 0; 
+            
+            // OP Ganadora
+            let maxVentaOP = null;
+            
+            const pagos = {};
+            const ventasPorMes = [0,0,0,0,0,0,0,0,0,0,0,0];
+            const anioActual = new Date().getFullYear();
+
+           // 1. Procesar Órdenes
+            dataFinanzas.ordenes.forEach(op => {
+                if(op.estado !== "ANULADA") {
+                    const f = new Date(op.fecha);
+                    const total = parseFloat(op.total) || 0;
+                    const abonoIni = parseFloat(op.abonoInicial) || 0; // 👈 Rescatamos el abono inicial
                     
-                    if (descripcion) {
-                        descripcionTexto += `${cantidad} x ${descripcion} / `;
-                        itemsJSON.push({ 
-                            descripcion: descripcion, 
-                            cantidad: cantidad, 
-                            precio: precio, 
-                            subtotal: cantidad * precio 
-                        });
+                    totalVendidoHistorico += total;
+                    totalRecaudadoHistorico += abonoIni; // 👈 Lo sumamos al histórico para que arregle el "Por Cobrar"
+
+                    if(f.getFullYear() === anioActual) ventasPorMes[f.getMonth()] += total;
+
+                    // Periodo Actual
+                    if(f >= rangos.inicio && f <= rangos.fin) {
+                        totalVendidoActual += total;
+                        totalRecaudadoActual += abonoIni; // 👈 Sumamos la plata que entró al crear la OP
+                        
+                        // Registramos este abono inicial en la dona gráfica de medios de pago
+                        if(abonoIni > 0) {
+                            pagos["PAGO INICIAL (OP)"] = (pagos["PAGO INICIAL (OP)"] || 0) + abonoIni;
+                        }
+
+                        // Lógica OP Ganadora
+                        if(!maxVentaOP || total > parseFloat(maxVentaOP.total)) {
+                            maxVentaOP = op;
+                        }
+                    }
+                    
+                    // Periodo Anterior (Para comparar el crecimiento)
+                    if(f >= rangos.prevInicio && f <= rangos.prevFin) {
+                        totalVendidoAnterior += total;
                     }
                 }
             });
 
-            const totalFinal = parseFloat(document.getElementById('total_pedido_val').innerText.replace(/\D/g, "")) || 0;
-            const abonoInicial = parseFloat(document.getElementById('abono').value.replace(/\D/g, "")) || 0;
-            const notas = document.getElementById('notas').value; 
-            const nombreArchivo = `Orden_N_${numeroOP}_${cedula}.pdf`;
+            // 2. Procesar Abonos
+            dataFinanzas.abonos.forEach(ab => {
+                const f = new Date(ab.fecha);
+                const valor = parseFloat(ab.valor) || 0;
+                
+                totalRecaudadoHistorico += valor;
 
-            setStep(2, 'check'); 
-            setStep(3, 'active');
-
-            const payloadType = isEditMode ? "edit_pedido" : "pedido";
-
-            const response = await fetch(URL_G, { 
-                method: 'POST', 
-                body: JSON.stringify({
-                    tipo: payloadType,
-                    numero: isEditMode ? editNum : undefined,
-                    numeroCotizacion: numeroCot || null,
-                    cedula: cedula,
-                    nombre: nombre,
-                    telefono: document.getElementById('telefono').value,
-                    email: email,
-                    direccion: document.getElementById('direccion').value,
-                    descripcion: descripcionTexto, 
-                    observaciones: notas,          
-                    valorTotal: totalFinal,
-                    abonoInicial: abonoInicial,
-                    itemsJSON: JSON.stringify(itemsJSON), 
-                    pdfBase64: pdfBase64,
-                    nombreArchivo: nombreArchivo
-                }) 
+                if(f >= rangos.inicio && f <= rangos.fin) {
+                    totalRecaudadoActual += valor;
+                    const medio = ab.medio ? ab.medio.toUpperCase().trim() : "OTRO";
+                    pagos[medio] = (pagos[medio] || 0) + valor;
+                }
             });
 
-            const result = await response.json();
+            // 3. Pintar Meta y Crecimiento
+            const porcentaje = Math.min((totalVendidoActual / metaVentas) * 100, 100).toFixed(1);
+            setTimeout(() => { document.getElementById('meta-bar').style.width = porcentaje + "%"; }, 100);
+            document.getElementById('pct-badge').innerText = porcentaje + "%";
+            document.getElementById('txt-logrado').innerText = "Logrado: $" + totalVendidoActual.toLocaleString('es-CO');
+            document.getElementById('txt-restante').innerText = "Faltan: $" + Math.max(metaVentas - totalVendidoActual, 0).toLocaleString('es-CO');
+
+            // Crecimiento Lógica
+            let textCrecimiento = "0%";
+            let claseCrecimiento = "text-neutral";
+            let iconoCrecimiento = '<i class="fas fa-minus"></i>';
             
-            if (result.status === "success") {
-                setStep(3, 'check'); 
-                setStep(4, 'active');
-                
-                setTimeout(() => {
-    setStep(4, 'check');
-    pdf.save(nombreArchivo);
-    document.getElementById('loading').style.display = 'none';
-                    
-                    if(isEditMode) {
-                        document.getElementById('exito-msg').innerText = "La orden fue actualizada en el sistema y el PDF ha sido reemplazado.";
-                    }
-                    
-                    const btnSuccess = document.getElementById('btn-success-home');
-                    if (returnCedula) {
-                        btnSuccess.setAttribute('onclick', `window.location.replace('clientes.html?search=${returnCedula}')`);
-                        btnSuccess.innerHTML = '<i class="fas fa-user me-2"></i> Volver al Cliente';
-                    } else {
-                        btnSuccess.setAttribute('onclick', `window.location.replace('index.html')`);
-                        btnSuccess.innerHTML = '<i class="fas fa-home me-2"></i> Volver al Menú';
-                    }
-
-                    document.getElementById('success-modal').style.display = 'flex';
-                }, 800);
-            } else { 
-                throw new Error(result.msg || "El servidor no respondió con éxito."); 
+            if(totalVendidoAnterior === 0 && totalVendidoActual > 0) {
+                textCrecimiento = "100%"; claseCrecimiento = "text-up"; iconoCrecimiento = '<i class="fas fa-arrow-up"></i>';
+            } else if (totalVendidoAnterior > 0) {
+                const crec = ((totalVendidoActual - totalVendidoAnterior) / totalVendidoAnterior) * 100;
+                textCrecimiento = Math.abs(crec).toFixed(1) + "%";
+                if(crec > 0) { claseCrecimiento = "text-up"; iconoCrecimiento = '<i class="fas fa-arrow-up"></i>'; }
+                if(crec < 0) { claseCrecimiento = "text-down"; iconoCrecimiento = '<i class="fas fa-arrow-down"></i>'; }
             }
-        } catch (e) { 
-            alert("Error: No se pudo procesar. Intenta nuevamente."); 
-            console.error(e); 
-            loading.style.display = 'none'; 
-        }
-    }
 
-    // ===============================
-    // 4. 🔎 SUGERENCIAS Y AUTOCOMPLETADO
-    // ===============================
-    document.getElementById("cedula").addEventListener("input", function() {
-        buscarCliente(); 
-        
-        const valor = this.value.trim().toLowerCase(); 
-        const cont = document.getElementById("sugerencias_cliente");
-        
-        cont.innerHTML = ""; 
-        cont.style.display = "none";
-        
-        if (valor.length < 2) return;
-        
-        const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
-        
-        Object.values(cache).forEach(cliente => {
-            if (String(cliente.cedula).includes(valor) || cliente.nombre.toLowerCase().includes(valor)) {
-                const div = document.createElement("div"); 
-                div.style.padding = "12px 15px"; 
-                div.style.cursor = "pointer"; 
-                div.style.borderBottom = "1px solid #eee"; 
-                div.style.fontSize = "0.85rem";
-                div.onmouseover = () => div.style.background = "#f9f9f9"; 
-                div.onmouseout = () => div.style.background = "white";
-                div.innerHTML = `<strong style="color:var(--homeeasy-wine)">${cliente.cedula}</strong> - ${cliente.nombre}`;
-                
-                div.onclick = function() { 
-                    document.getElementById("cedula").value = cliente.cedula; 
-                    buscarCliente(); 
-                    cont.innerHTML = ""; 
-                    cont.style.display = "none"; 
-                };
-                
-                cont.appendChild(div); 
-                cont.style.display = "block";
+            const cajaCrecimiento = document.getElementById('kpi-crecimiento');
+            cajaCrecimiento.innerHTML = `${iconoCrecimiento} ${textCrecimiento}`;
+            cajaCrecimiento.className = `val ${claseCrecimiento}`;
+
+            // OP Estrella
+            if(maxVentaOP) {
+                document.getElementById('estrella-monto').innerText = "$" + parseFloat(maxVentaOP.total).toLocaleString('es-CO');
+                document.getElementById('estrella-detalle').innerText = `OP #${maxVentaOP.numero} - Fecha: ${new Date(maxVentaOP.fecha).toLocaleDateString()}`;
+            } else {
+                document.getElementById('estrella-monto').innerText = "$0";
+                document.getElementById('estrella-detalle').innerText = "Sin ventas en este periodo";
             }
-        });
-    });
 
-    document.addEventListener("click", function(e) { 
-        const input = document.getElementById("cedula"); 
-        const div = document.getElementById("sugerencias_cliente"); 
-        if(e.target !== input && e.target !== div) { 
-            div.style.display = "none"; 
-        } 
-    });
+            // 4. Pintar Resto KPIs
+            document.getElementById('kpi-vendido').innerText = "$" + totalVendidoActual.toLocaleString('es-CO');
+            document.getElementById('kpi-recaudado').innerText = "$" + totalRecaudadoActual.toLocaleString('es-CO');
+            // La calle siempre es un global histórico (lo que te deben en total)
+            document.getElementById('kpi-calle').innerText = "$" + Math.max(0, totalVendidoHistorico - totalRecaudadoHistorico).toLocaleString('es-CO');
 
-    function buscarCliente() {
-        const ced = document.getElementById('cedula').value.trim(); 
-        const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
-        
-        if (!ced) { 
-            document.getElementById('nombre').value = ""; 
-            document.getElementById('telefono').value = ""; 
-            document.getElementById('email').value = ""; 
-            document.getElementById('direccion').value = ""; 
-            return; 
+            renderCharts(pagos, nombresMeses, ventasPorMes);
         }
-        
-        if (cache[ced]) {
-            const cliente = cache[ced];
-            document.getElementById('nombre').value = (cliente.nombre || "").toUpperCase(); 
-            document.getElementById('telefono').value = cliente.telefono || "";
-            document.getElementById('email').value = (cliente.email || "").toLowerCase(); 
-            document.getElementById('direccion').value = (cliente.direccion || "").toUpperCase();
+
+        function renderCharts(pagosData, labelsBarras, dataBarras) {
+            Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
+            Chart.defaults.color = '#8e8e93';
+
+            if(chartDonaInstancia) chartDonaInstancia.destroy();
+            if(chartBarrasInstancia) chartBarrasInstancia.destroy();
+
+            // Dona (Medios de Pago)
+            const ctxDona = document.getElementById('chartDona').getContext('2d');
+            chartDonaInstancia = new Chart(ctxDona, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(pagosData).length > 0 ? Object.keys(pagosData) : ['Sin pagos'],
+                    datasets: [{
+                        data: Object.keys(pagosData).length > 0 ? Object.values(pagosData) : [1],
+                        backgroundColor: ['#a6455a', '#c2a468', '#34c759', '#5856d6', '#ff9500', '#e5e5ea'],
+                        borderWidth: 2, borderColor: '#ffffff', hoverOffset: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { weight: '600', size: 11 } } } } 
+                }
+            });
+
+            // Barras (Ventas del Año)
+            const ctxBarras = document.getElementById('chartBarras').getContext('2d');
+            chartBarrasInstancia = new Chart(ctxBarras, {
+                type: 'bar',
+                data: {
+                    labels: labelsBarras,
+                    datasets: [{
+                        label: 'Ventas', data: dataBarras, 
+                        backgroundColor: '#a6455a', borderRadius: 4, barPercentage: 0.6
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#f2f2f7', drawBorder: false }, ticks: { font:{weight:'500'}, callback: function(value) { return '$' + (value/1000000).toFixed(1) + 'M'; } } }, 
+                        x: { grid: { display: false, drawBorder: false }, ticks: { font:{weight:'600'}, maxRotation: 45, minRotation: 45 } } 
+                    } 
+                }
+            });
         }
-    }
-</script>
+
+        async function ajustarMeta() {
+            const { value: nuevaMeta } = await Swal.fire({
+                title: 'Ajustar Meta',
+                input: 'number',
+                inputLabel: 'Meta de ventas sin puntos ni comas:',
+                inputValue: metaVentas,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar Meta',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: 'var(--home-wine)',
+                customClass: { popup: 'swal2-premium' }
+            });
+
+            if (nuevaMeta && parseFloat(nuevaMeta) > 0) {
+                Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-premium' } });
+                try {
+                    await fetch(URL_G, { method: 'POST', body: JSON.stringify({ tipo: "SET_META", valor: nuevaMeta }) });
+                    location.reload();
+                } catch(e) {
+                    Swal.fire('Error', 'No se pudo guardar la meta.', 'error');
+                }
+            }
+        }
+
+       // 🚨 FUNCIÓN EXPORTAR A PDF (CORREGIDA Y BLINDADA)
+        function exportarAPDF() {
+            const element = document.getElementById('informe-exportar');
+            
+            // 1. Preparar la vista para la "foto"
+            document.querySelectorAll('.no-export').forEach(el => el.style.display = 'none');
+            element.classList.add('pdf-mode');
+
+            // 2. Configuración súper estable para PC y Móvil
+            const opt = {
+                margin:       10, 
+                filename:     `Dashboard_Hommy_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // 3. Darle medio segundo a los gráficos para que se ajusten al nuevo tamaño antes de tomar la foto
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save()
+                .then(() => {
+                    // Restaurar la vista a la normalidad
+                    document.querySelectorAll('.no-export').forEach(el => el.style.display = '');
+                    element.classList.remove('pdf-mode');
+                })
+                .catch(err => {
+                    console.error("Error PDF:", err);
+                    // Restaurar la vista
+                    document.querySelectorAll('.no-export').forEach(el => el.style.display = '');
+                    element.classList.remove('pdf-mode');
+                    // Si el navegador bloquea la librería, abrimos el motor de impresión nativo del celular/PC
+                    window.print();
+                });
+            }, 500);
+        }
+    </script>
 </body>
+
 </html>
+
 
