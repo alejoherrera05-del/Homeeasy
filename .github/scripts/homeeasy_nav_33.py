@@ -171,17 +171,21 @@ core = once(
 )
 core_path.write_text(core, encoding="utf-8")
 
+# Preserve every existing byte/line ending in legacy HTML files. Only the exact
+# cache-busting token and Caja PIN back action are replaced.
 changed_html = []
+core_old = b"homeeasy-core.js?v=3.1"
+core_new = b"homeeasy-core.js?v=3.3"
+caja_old = b"onclick=\"window.location.href='index.html'\""
+caja_new = b"onclick=\"window.HomeEasyCore&&HomeEasyCore.goHome?HomeEasyCore.goHome():(window.location.href='index.html')\""
+
 for path in Path(".").glob("*.html"):
-    text = path.read_text(encoding="utf-8")
-    updated = text.replace("homeeasy-core.js?v=3.1", "homeeasy-core.js?v=3.3")
+    data = path.read_bytes()
+    updated = data.replace(core_old, core_new)
     if path.name == "caja.html":
-        updated = updated.replace(
-            "onclick=\"window.location.href='index.html'\"",
-            "onclick=\"window.HomeEasyCore&&HomeEasyCore.goHome?HomeEasyCore.goHome():(window.location.href='index.html')\"",
-        )
-    if updated != text:
-        path.write_text(updated, encoding="utf-8")
+        updated = updated.replace(caja_old, caja_new)
+    if updated != data:
+        path.write_bytes(updated)
         changed_html.append(path.name)
 
 print("HTML cache-busted:", ", ".join(changed_html))
