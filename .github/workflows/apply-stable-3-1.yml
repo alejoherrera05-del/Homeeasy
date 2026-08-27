@@ -25,15 +25,15 @@ jobs:
           set -euo pipefail
           { sha256sum ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html; find ar-sheer-v221 -type f -print0 | sort -z | xargs -0 sha256sum; } > /tmp/ar-before.sha256
 
-      - name: Reconstruct and validate stable patch
+      - name: Validate stable binary patch
         shell: bash
         run: |
           set -euo pipefail
-          cat .release/stable-final.patch.b64.part-* | base64 -d > /tmp/stable-final.patch.gz
+          cp .release/stable-final.patch.gz /tmp/stable-final.patch.gz
           echo 'e82c48e821ca70882496acca15c7aebad12273acaf6a8486a68f86abf4e58296  /tmp/stable-final.patch.gz' | sha256sum -c -
           gzip -dc /tmp/stable-final.patch.gz > /tmp/stable-final.patch
 
-      - name: Normalize patch targets and apply
+      - name: Normalize patch targets
         shell: python
         run: |
           from pathlib import Path
@@ -49,16 +49,17 @@ jobs:
               if p.exists():
                   raw=p.read_bytes().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
                   p.write_bytes(raw)
+
       - name: Apply final audited patch
         shell: bash
         run: |
           set -euo pipefail
           patch --batch --forward -p1 < /tmp/stable-final.patch
-          # Remove the heavy CSS blur that made the approved Hommy asset look soft on Windows.
           python - <<'PY'
           from pathlib import Path
           p=Path('login.html')
           s=p.read_text(encoding='utf-8')
+          # The previous drop-shadow softened Hommy noticeably on Windows.
           s=s.replace('filter:drop-shadow(0 25px 30px rgba(60,14,29,.27));pointer-events:none}', 'filter:none;pointer-events:none}')
           p.write_text(s,encoding='utf-8')
           PY
@@ -109,9 +110,7 @@ jobs:
           for f in clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html Hommychat.html asistente.html; do
             grep -q 'homeeasy-page-guard.js?v=3.1' "$f"
           done
-          # Case-sensitive asset bug must be gone.
           ! grep -R --include='*.html' -n 'HOMMY.png' .
-          # Auth image resources must exist and be non-trivial.
           test $(stat -c%s assets/auth/hommy-crossed.webp) -gt 250000
           test $(stat -c%s assets/auth/login-bg-desktop.webp) -gt 70000
           test $(stat -c%s assets/auth/login-bg-mobile.webp) -gt 60000
