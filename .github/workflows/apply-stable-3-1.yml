@@ -1,0 +1,139 @@
+name: Apply HomeEasy stable 3.1
+
+on:
+  push:
+    branches: [release/stable-3-1]
+    paths: [.github/workflows/apply-stable-3-1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  stable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/stable-3-1
+          fetch-depth: 0
+
+      - name: Snapshot AR hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          { sha256sum ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html; find ar-sheer-v221 -type f -print0 | sort -z | xargs -0 sha256sum; } > /tmp/ar-before.sha256
+
+      - name: Reconstruct and validate stable patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .release/stable-final.patch.b64.part-* | base64 -d > /tmp/stable-final.patch.gz
+          echo 'e82c48e821ca70882496acca15c7aebad12273acaf6a8486a68f86abf4e58296  /tmp/stable-final.patch.gz' | sha256sum -c -
+          gzip -dc /tmp/stable-final.patch.gz > /tmp/stable-final.patch
+
+      - name: Normalize patch targets and apply
+        shell: python
+        run: |
+          from pathlib import Path
+          targets = [
+            'login.html','homeeasy-auth-config.js','homeeasy-auth.js','homeeasy-page-guard.js',
+            'homeeasy-account.js','homeeasy-settings-auth-ui.js','homeeasy-core.js','index.html',
+            'clientes.html','ventas.html','cotizacion.html','seguimiento.html','pedido.html','abono.html',
+            'caja.html','documentos.html','calendario.html','reportes.html','configuracion.html',
+            'Hommychat.html','asistente.html'
+          ]
+          for name in targets:
+              p=Path(name)
+              if p.exists():
+                  raw=p.read_bytes().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+                  p.write_bytes(raw)
+      - name: Apply final audited patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          patch --batch --forward -p1 < /tmp/stable-final.patch
+          # Remove the heavy CSS blur that made the approved Hommy asset look soft on Windows.
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('login.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('filter:drop-shadow(0 25px 30px rgba(60,14,29,.27));pointer-events:none}', 'filter:none;pointer-events:none}')
+          p.write_text(s,encoding='utf-8')
+          PY
+
+      - name: Validate stable frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in homeeasy-auth-config.js homeeasy-auth.js homeeasy-page-guard.js homeeasy-account.js homeeasy-settings-auth-ui.js homeeasy-core.js; do
+            node --check "$f"
+          done
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile, sys
+          htmls = sorted(Path('.').glob('*.html'))
+          failures=[]
+          for p in htmls:
+              text=p.read_text(encoding='utf-8',errors='replace')
+              scripts=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',text,re.I|re.S)
+              for i,script in enumerate(scripts):
+                  if not script.strip(): continue
+                  with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False,encoding='utf-8') as f:
+                      f.write(script); tmp=f.name
+                  r=subprocess.run(['node','--check',tmp],capture_output=True,text=True)
+                  Path(tmp).unlink(missing_ok=True)
+                  if r.returncode: failures.append(f'{p}:{i}: {r.stderr.strip()}')
+          if failures:
+              print('\n'.join(failures)); sys.exit(1)
+          print(f'Inline JS OK: {len(htmls)} HTML files')
+          PY
+          test -f login.html
+          test -f perfil.html
+          test -f activar-cuenta.html
+          grep -q 'Bienvenido' login.html
+          grep -q 'assets/auth/login-bg-desktop.webp' login.html
+          grep -q 'assets/auth/login-bg-mobile.webp' login.html
+          grep -q 'assets/auth/hommy-crossed.webp' login.html
+          grep -q 'class="watermark" src="triangulo.png"' login.html
+          grep -q 'Cuenta de cobro' configuracion.html
+          grep -q 'Usuarios y roles' homeeasy-settings-auth-ui.js
+          grep -q 'ultimaConexion' homeeasy-settings-auth-ui.js
+          grep -q 'AUTH_INVITAR_USUARIO' homeeasy-settings-auth-ui.js
+          grep -q 'AUTH_ACTIVAR_INVITACION' activar-cuenta.html
+          ! grep -q '<option value="Alejandro">Alejandro</option>' configuracion.html
+          ! grep -q 'VALIDAR_PIN_CONFIGURACION' configuracion.html
+          grep -q 'homeeasy-page-guard.js?v=3.1' Hommychat.html
+          grep -q 'homeeasy-page-guard.js?v=3.1' asistente.html
+          for f in clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html Hommychat.html asistente.html; do
+            grep -q 'homeeasy-page-guard.js?v=3.1' "$f"
+          done
+          # Case-sensitive asset bug must be gone.
+          ! grep -R --include='*.html' -n 'HOMMY.png' .
+          # Auth image resources must exist and be non-trivial.
+          test $(stat -c%s assets/auth/hommy-crossed.webp) -gt 250000
+          test $(stat -c%s assets/auth/login-bg-desktop.webp) -gt 70000
+          test $(stat -c%s assets/auth/login-bg-mobile.webp) -gt 60000
+
+      - name: Verify AR isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          { sha256sum ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html; find ar-sheer-v221 -type f -print0 | sort -z | xargs -0 sha256sum; } > /tmp/ar-after.sha256
+          diff -u /tmp/ar-before.sha256 /tmp/ar-after.sha256
+          if git diff --name-only | grep -E '^(ar-homeeasy-|ar-sheer-v221/)'; then
+            echo 'ERROR: AR was modified' >&2
+            exit 1
+          fi
+
+      - name: Commit clean stable candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .release .github/workflows/apply-stable-3-1.yml
+          git config user.name 'HomeEasy Release Bot'
+          git config user.email 'actions@github.com'
+          git add -A
+          git commit -m 'Prepare HomeEasy stable 3.1 frontend'
+          git push origin HEAD:release/stable-3-1
