@@ -1,0 +1,25 @@
+name: Apply final HomeEasy 3.4 auth polish
+on:
+  push:
+    branches: [audit/full-fire-2026-08-27]
+    paths:
+      - '.github/workflows/final-polish-34.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 .github/scripts/final_polish_34.py
+      - run: |
+          grep -q "restoreSession({validate:false,homeEasy:false})" login.html
+          node --check .github/scripts/full_fire_browser.mjs
+      - run: |
+          git config user.name 'HomeEasy QA'
+          git config user.email 'homeeasy-qa@users.noreply.github.com'
+          git add login.html .github/scripts/full_fire_browser.mjs
+          git commit -m 'Separate remembered Firebase identity from HomeEasy authorization'
+          git push origin HEAD:audit/full-fire-2026-08-27
