@@ -1,0 +1,26 @@
+name: Fix final fire test expectations
+
+on:
+  push:
+    branches: [audit/full-fire-2026-08-27]
+    paths:
+      - '.github/workflows/fix-final-fire-expectations.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 .github/scripts/fix_final_fire_expectations.py
+      - run: node --check .github/scripts/full_fire_browser.mjs
+      - run: |
+          git config user.name 'HomeEasy QA'
+          git config user.email 'homeeasy-qa@users.noreply.github.com'
+          git add .github/scripts/full_fire_browser.mjs
+          git commit -m 'Correct final auth security QA assertions'
+          git push origin HEAD:audit/full-fire-2026-08-27
