@@ -69,40 +69,48 @@ function cylinder(radius,height,segments=18,axis='y'){
 }
 function torus(major=.011,minor=.0025,majorSegments=20,minorSegments=8){const positions=[],normals=[],indices=[];for(let i=0;i<=majorSegments;i++){const u=i*2*Math.PI/majorSegments,cu=Math.cos(u),su=Math.sin(u);for(let j=0;j<=minorSegments;j++){const v=j*2*Math.PI/minorSegments,cv=Math.cos(v),sv=Math.sin(v),r=major+minor*cv;positions.push(r*cu,minor*sv,r*su);normals.push(cv*cu,sv,cv*su);}}const row=minorSegments+1;for(let i=0;i<majorSegments;i++)for(let j=0;j<minorSegments;j++){const a=i*row+j,b=a+row,c=a+1,d=b+1;indices.push(a,b,c,c,b,d);}return {positions:new Float32Array(positions),normals:new Float32Array(normals),indices:new Uint32Array(indices)};}
 
-function sampledSegmentLength(dx,depth,loop,samples){
-  let length=0,previous=[0,0];
-  for(let i=1;i<=samples;i++){
-    const u=i/samples,x=dx*u+loop*Math.sin(2*Math.PI*u),z=depth*Math.sin(Math.PI*u);
-    length+=Math.hypot(x-previous[0],z-previous[1]);previous=[x,z];
+function roundedULobePoint(u,dx,depth,lateralHandleFactor){
+  if(u<=0)return {x:0,z:0};if(u>=1)return {x:dx,z:0};
+  const v=1-u,controlDepth=4*depth/3,leftX=-lateralHandleFactor*dx,rightX=(1+lateralHandleFactor)*dx;
+  return {x:3*v*v*u*leftX+3*v*u*u*rightX+u*u*u*dx,z:3*v*v*u*controlDepth+3*v*u*u*controlDepth};
+}
+
+function sampledLobeLength(dx,depth,lateralHandleFactor,samplesPerSegment){
+  let length=0,previousX=0,previousZ=0;
+  for(let i=1;i<=samplesPerSegment;i++){
+    const point=roundedULobePoint(i/samplesPerSegment,dx,depth,lateralHandleFactor);
+    length+=Math.hypot(point.x-previousX,point.z-previousZ);previousX=point.x;previousZ=point.z;
   }
   return length;
 }
 
-function solveLoopAmplitude(dx,depth,target,samples){
-  let low=0,high=.08;
-  if(sampledSegmentLength(dx,depth,low,samples)>target)throw new Error('Las restricciones de profundidad exceden la longitud textil objetivo.');
-  while(sampledSegmentLength(dx,depth,high,samples)<target&&high<.4)high*=1.5;
-  for(let i=0;i<72;i++){const mid=(low+high)/2;if(sampledSegmentLength(dx,depth,mid,samples)<target)low=mid;else high=mid;}
+function solveRoundedULateralHandle(dx,depth,target,samplesPerSegment){
+  const minimumLength=sampledLobeLength(dx,depth,0,samplesPerSegment);if(target<minimumLength-1e-8)throw new Error(`El recorrido objetivo ${target.toFixed(6)} m es menor que la U redondeada mínima ${minimumLength.toFixed(6)} m.`);
+  let low=0,high=.5;while(sampledLobeLength(dx,depth,high,samplesPerSegment)<target&&high<8)high*=2;
+  for(let i=0;i<72;i++){const mid=(low+high)/2;if(sampledLobeLength(dx,depth,mid,samplesPerSegment)<target)low=mid;else high=mid;}
   return (low+high)/2;
 }
 
 export function calibrateFullnessProfile(width,rule,projection=1){
-  const targetFabricLengthM=width*Number(rule.fabricPerRailM),segmentCount=Math.max(2,Math.round(targetFabricLengthM/Number(rule.snapSpacingM))),carrierCount=segmentCount+1,visibleWidth=width*projection,projectedCarrierSpacingM=visibleWidth/segmentCount,segmentFabricLengthM=targetFabricLengthM/segmentCount,samplesPerSegment=20,depth=Math.max(Number(rule.frontDepthM),Number(rule.backDepthM)),loopAmplitudeM=solveLoopAmplitude(projectedCarrierSpacingM,depth,segmentFabricLengthM,samplesPerSegment),columns=segmentCount*samplesPerSegment;
-  return {method:'AL 2.8 material-coordinate spline constrained by carriers and tape snaps',profile:'alternating rounded front/back lobes between consecutive attachment points',targetFabricLengthM,physicalFabricPathLengthM:targetFabricLengthM,curveLengthM:targetFabricLengthM,measuredFullness:targetFabricLengthM/width,targetFullness:Number(rule.fabricPerRailM),segmentCount,carrierCount,columns,samplesPerSegment,carrierSpacingM:Number(rule.carrierSpacingM),projectedCarrierSpacingM,snapSpacingM:Number(rule.snapSpacingM),segmentFabricLengthM,segmentVsOfficialSnapErrorRatio:Math.abs(segmentFabricLengthM-Number(rule.snapSpacingM))/Number(rule.snapSpacingM),loopAmplitudeM,frontDepthM:Number(rule.frontDepthM),backDepthM:Number(rule.backDepthM),envelopeM:[-Number(rule.backDepthM),Number(rule.frontDepthM)],extremaPerCycle:2,continuity:'C2 sampled parametric spline',secondaryLobes:false,materialCoordinatePreserved:true,carrierCountInvariantByState:true};
+  const targetFabricLengthM=width*Number(rule.fabricPerRailM),segmentCount=Math.max(2,Math.round(targetFabricLengthM/Number(rule.snapSpacingM))),carrierCount=segmentCount+1,visibleWidth=width*projection,projectedCarrierSpacingM=visibleWidth/segmentCount,segmentFabricLengthM=targetFabricLengthM/segmentCount,samplesPerSegment=40,frontDepthM=Number(rule.frontDepthM),backDepthM=Number(rule.backDepthM),frontLateralHandleFactor=solveRoundedULateralHandle(projectedCarrierSpacingM,frontDepthM,segmentFabricLengthM,samplesPerSegment),backLateralHandleFactor=solveRoundedULateralHandle(projectedCarrierSpacingM,backDepthM,segmentFabricLengthM,samplesPerSegment),columns=segmentCount*samplesPerSegment,visibleIntervalsPerCycle=2,visibleCycleCount=segmentCount/visibleIntervalsPerCycle;
+  const frontRelief=roundedULobePoint(.12,projectedCarrierSpacingM,frontDepthM,frontLateralHandleFactor).x,backRelief=roundedULobePoint(.12,projectedCarrierSpacingM,backDepthM,backLateralHandleFactor).x,lateralReliefM=Math.max(0,-frontRelief,-backRelief);
+  return {method:'AL 2.8 rounded cubic U through consecutive carrier attachments; lateral handles solved from material length',profile:'one continuous textile sheet; one alternating rounded lobe per carrier interval',sourceTopology:'Pentagrama 813 pages 8-12',targetFabricLengthM,physicalFabricPathLengthM:targetFabricLengthM,curveLengthM:targetFabricLengthM,measuredFullness:targetFabricLengthM/width,targetFullness:Number(rule.fabricPerRailM),segmentCount,carrierCount,columns,samplesPerSegment,visibleIntervalsPerCycle,visibleCycleCount,visibleCyclesPerRailM:visibleCycleCount/width,carrierSpacingM:Number(rule.carrierSpacingM),projectedCarrierSpacingM,snapSpacingM:Number(rule.snapSpacingM),segmentFabricLengthM,segmentVsOfficialSnapErrorRatio:Math.abs(segmentFabricLengthM-Number(rule.snapSpacingM))/Number(rule.snapSpacingM),frontLateralHandleFactor,backLateralHandleFactor,lateralReliefM,frontDepthM,backDepthM,envelopeM:[-backDepthM,frontDepthM],extremaPerCycle:2,continuity:'C1 cubic tangent continuity at carrier attachments; sampled normals continuous',secondaryLobes:false,horizontalBacktracking:'bounded lateral relief at U shoulders only',selfIntersectionExpected:false,materialCoordinatePreserved:true,carrierCountInvariantByState:true,carrierRibVisibility:'attachment points only; no mesh split or hard normal seam per carrier'};
 }
 
-function materialPoint(calibration,column,phaseSegments=0){
-  const samples=calibration.samplesPerSegment,materialSegment=column/samples,shifted=materialSegment+phaseSegments,segment=Math.floor(shifted),u=shifted-segment,sign=Math.abs(segment%2)===0?1:-1,dx=calibration.projectedCarrierSpacingM;
-  return {x:materialSegment*dx+calibration.loopAmplitudeM*Math.sin(2*Math.PI*u),z:sign*Math.max(calibration.frontDepthM,calibration.backDepthM)*Math.sin(Math.PI*u),segment,u};
+function materialPoint(calibration,column){
+  const samples=calibration.samplesPerSegment,materialSegment=column/samples,dx=calibration.projectedCarrierSpacingM;
+  if(column>=calibration.columns)return {x:calibration.segmentCount*dx,z:0,segment:calibration.segmentCount,interval:calibration.segmentCount-1,u:1};
+  const interval=Math.floor(materialSegment),u=materialSegment-interval,front=interval%2===0,depth=front?calibration.frontDepthM:calibration.backDepthM,handle=front?calibration.frontLateralHandleFactor:calibration.backLateralHandleFactor,point=roundedULobePoint(u,dx,depth,handle);
+  return {x:interval*dx+point.x,z:(front?1:-1)*point.z,segment:materialSegment,interval,u};
 }
 
 function physicalWaveSurface(x0,railWidth,visibleWidth,y0,height,rule,z0,uvScale,totalFabricHeight=height){
   const projection=visibleWidth/railWidth,calibration=calibrateFullnessProfile(railWidth,rule,projection),sx=calibration.columns,sy=Math.max(6,Math.ceil(height/.06)),positions=new Float32Array((sx+1)*(sy+1)*3),normals=new Float32Array(positions.length),tangents=new Float32Array((sx+1)*(sy+1)*4),uvs=new Float32Array((sx+1)*(sy+1)*2),indices=new Uint32Array(sx*sy*6),materialArc=new Float32Array(sx+1);
   let previous=materialPoint(calibration,0);for(let ix=1;ix<=sx;ix++){const current=materialPoint(calibration,ix);materialArc[ix]=materialArc[ix-1]+Math.hypot(current.x-previous.x,current.z-previous.z);previous=current;}
-  let p=0,u=0;for(let iy=0;iy<=sy;iy++){const v=iy/sy,baseY=y0+height*v,globalV=Math.max(0,Math.min(1,baseY/Math.max(.001,totalFabricHeight))),phaseSegments=.34*Math.sin(Math.PI*globalV)+.10*Math.sin(2*Math.PI*globalV),sway=.046*Math.sin(Math.PI*globalV)*Math.sin(2*Math.PI*globalV);for(let ix=0;ix<=sx;ix++){const point=materialPoint(calibration,ix,phaseSegments),depthRatio=Math.min(1,Math.abs(point.z)/Math.max(.001,Math.max(calibration.frontDepthM,calibration.backDepthM))),bottomWeight=(1-globalV)**3,sag=.024*bottomWeight*(.20+.80*depthRatio**1.3);positions.set([x0+point.x+sway,baseY-sag,z0+point.z],p);uvs.set([materialArc[ix]/uvScale,baseY/uvScale],u);p+=3;u+=2;}}
+  let p=0,u=0;for(let iy=0;iy<=sy;iy++){const baseY=y0+height*iy/sy;for(let ix=0;ix<=sx;ix++){const point=materialPoint(calibration,ix);positions.set([x0+point.x,baseY,z0+point.z],p);uvs.set([materialArc[ix]/uvScale,baseY/uvScale],u);p+=3;u+=2;}}
   for(let iy=0;iy<=sy;iy++)for(let ix=0;ix<=sx;ix++){const vertex=iy*(sx+1)+ix,at=vertex*3,left=(iy*(sx+1)+Math.max(0,ix-1))*3,right=(iy*(sx+1)+Math.min(sx,ix+1))*3,below=(Math.max(0,iy-1)*(sx+1)+ix)*3,above=(Math.min(sy,iy+1)*(sx+1)+ix)*3,ux=positions[right]-positions[left],uy=positions[right+1]-positions[left+1],uz=positions[right+2]-positions[left+2],vx=positions[above]-positions[below],vy=positions[above+1]-positions[below+1],vz=positions[above+2]-positions[below+2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,nlen=Math.max(1e-8,Math.hypot(nx,ny,nz)),tlen=Math.max(1e-8,Math.hypot(ux,uy,uz)),tangentAt=vertex*4;normals.set([nx/nlen,ny/nlen,nz/nlen],at);tangents.set([ux/tlen,uy/tlen,uz/tlen,1],tangentAt);}
   let q=0;for(let iy=0;iy<sy;iy++)for(let ix=0;ix<sx;ix++){const a=iy*(sx+1)+ix,b=a+1,c=a+sx+1,d=c+1;indices.set([a,c,b,b,c,d],q);q+=6;}
-  calibration.physicalFabricPathLengthM=materialArc[sx];calibration.curveLengthM=materialArc[sx];calibration.measuredFullness=materialArc[sx]/railWidth;calibration.discreteLengthErrorRatio=Math.abs(materialArc[sx]-calibration.targetFabricLengthM)/calibration.targetFabricLengthM;calibration.verticalFallRule='AL 2.8 conserva la misma coordenada material desde reata hasta bajo';
+  calibration.physicalFabricPathLengthM=materialArc[sx];calibration.curveLengthM=materialArc[sx];calibration.measuredFullness=materialArc[sx]/railWidth;calibration.discreteLengthErrorRatio=Math.abs(materialArc[sx]-calibration.targetFabricLengthM)/calibration.targetFabricLengthM;calibration.verticalFallRule='La prueba cerrada conserva la misma coordenada material desde la reata hasta el bajo; sin fase ni armónicos visuales arbitrarios';
   return {positions,normals,tangents,uvs,indices,calibration};
 }
 
