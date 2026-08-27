@@ -1,0 +1,54 @@
+{
+  "delivery": "HomeEasy_AR_Marker_POC",
+  "version": "1.0.0-poc",
+  "scope": "marker-based placement lab only",
+  "entryPoint": "ar-marker-poc.html",
+  "ar": {
+    "engine": "AR.js",
+    "engineVersion": "3.4.8",
+    "threeVersion": "0.164.0",
+    "mode": "pattern marker",
+    "markerSizeM": 0.18,
+    "physicalIPhoneTest": "PENDING"
+  },
+  "product": {
+    "family": "Onda Serena",
+    "fabric": "Velo / Coral / White",
+    "widthM": 1.0,
+    "heightM": 2.2,
+    "state": "Cerrada",
+    "source": "../products/onda/studio-product.js",
+    "copiedGoldenAssets": false
+  },
+  "files": {
+    "marker": [
+      "marker/HomeEasy_AR_Card_A4.pdf",
+      "marker/homeeasy-ar-card.png",
+      "marker/homeeasy-ar-card.patt"
+    ],
+    "production": [
+      "production/marker-placement-poc.js"
+    ],
+    "vendor": [
+      "vendor/ar-threex-3.4.8.mjs",
+      "vendor/three-0.164.0.module.min.js",
+      "vendor/GLTFLoader-0.164.0.js",
+      "vendor/BufferGeometryUtils-0.164.0.js",
+      "vendor/camera_para.dat",
+      "vendor/ARJS_LICENSE.txt",
+      "vendor/THREE_LICENSE.txt"
+    ],
+    "docs": [
+      "docs/IMPLEMENTATION_NOTES.md",
+      "docs/LOCAL_BROWSER_QA.md",
+      "docs/MARKER_PLACEMENT_QA.md"
+    ],
+    "tests": [
+      "tests/marker-assets.test.py",
+      "tests/marker-placement-logic.test.mjs",
+      "tests/static-contract.test.mjs",
+      "tests/run-tests.mjs",
+      "tests/generate-marker-assets.py"
+    ]
+  }
+}
