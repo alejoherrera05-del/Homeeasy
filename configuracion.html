@@ -6,11 +6,10 @@
     <meta name="theme-color" content="#aa485f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>HomeEasy | Configuración</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="homeeasy-core.js?v=2.2"></script>
+    <script src="homeeasy-core.js?v=3.1"></script>
+    <script src="homeeasy-page-guard.js?v=3.1"></script>
     <script src="homeeasy-docs.js?v=4.1"></script>
 
     <style>
@@ -237,7 +236,7 @@
             margin-bottom: 10px;
             color: #8a3449;
             font-size: .66rem;
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.2px;
         }
@@ -249,7 +248,7 @@
             margin: 0;
             color: #442028;
             font-size: 1.72rem;
-            font-weight: 800;
+            font-weight: 700;
             line-height: 1.06;
             letter-spacing: -.72px;
         }
@@ -283,7 +282,7 @@
             text-align: center;
             letter-spacing: 8px;
             font-size: 1.18rem;
-            font-weight: 800;
+            font-weight: 700;
             outline: none;
             box-shadow:
                 0 8px 20px rgba(62,17,29,.10),
@@ -327,7 +326,7 @@
             border-radius: 16px;
             background: linear-gradient(135deg, #b74762, #8b3148);
             color: white;
-            font-weight: 800;
+            font-weight: 700;
             box-shadow:
                 0 15px 32px rgba(91,22,41,.28),
                 inset 0 1px 0 rgba(255,255,255,.20);
@@ -535,7 +534,7 @@
         .header-round:active { transform: scale(.92); background: rgba(166,69,90,.16); }
         .header-brand { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 9px; }
         .header-brand img { width: 27px; height: auto; flex: 0 0 auto; }
-        .header-brand h1 { margin: 0; color: var(--home-red); font-size: 1.08rem; font-weight: 800; letter-spacing: -.35px; }
+        .header-brand h1 { margin: 0; color: var(--home-red); font-size: 1.08rem; font-weight: 700; letter-spacing: -.35px; }
         .header-brand span { display: block; margin-top: 2px; color: var(--muted); font-size: .62rem; font-weight: 600; }
         .dirty-dot {
             position: absolute;
@@ -636,7 +635,7 @@
         .panel.active { display: block; animation: panelIn .22s ease; }
         @keyframes panelIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .page-heading { margin-bottom: 16px; }
-        .page-heading h2 { margin: 0; color: var(--text); font-size: 1.45rem; font-weight: 800; letter-spacing: -.55px; }
+        .page-heading h2 { margin: 0; color: var(--text); font-size: 1.45rem; font-weight: 700; letter-spacing: -.55px; }
         .page-heading p { margin: 6px 0 0; color: var(--muted); font-size: .8rem; line-height: 1.5; font-weight: 500; }
 
         .card {
@@ -648,7 +647,7 @@
             margin-bottom: 18px;
         }
         .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
-        .card-header h3 { margin: 0; color: var(--home-red); font-size: .95rem; font-weight: 800; }
+        .card-header h3 { margin: 0; color: var(--home-red); font-size: .95rem; font-weight: 700; }
         .card-header p { margin: 5px 0 0; color: var(--muted); font-size: .71rem; line-height: 1.45; }
         .card-icon {
             width: 42px;
@@ -672,7 +671,7 @@
             margin: 0 0 7px;
             color: #777177;
             font-size: .65rem;
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .65px;
         }
@@ -783,7 +782,7 @@
         }
         .preview-logo { width: 130px; max-width: 100%; height: auto; }
         .preview-company { text-align: right; font-size: .7rem; line-height: 1.52; font-weight: 500; }
-        .preview-company strong, .preview-company b { color: var(--home-yellow); font-size: .82rem; font-weight: 800; letter-spacing: .35px; }
+        .preview-company strong, .preview-company b { color: var(--home-yellow); font-size: .82rem; font-weight: 700; letter-spacing: .35px; }
         .preview-company .legal-name { color: rgba(255,255,255,.75); font-size: .61rem; }
         .preview-company i { color: var(--home-yellow); width: 16px; text-align: center; margin-right: 3px; }
         .preview-meta {
@@ -798,7 +797,7 @@
             border: 1px solid #efefef;
             box-shadow: 0 8px 20px rgba(0,0,0,.08);
             font-size: .64rem;
-            font-weight: 800;
+            font-weight: 700;
             white-space: nowrap;
         }
         .preview-title {
@@ -812,7 +811,7 @@
             border-bottom: 1px solid rgba(166,69,90,.1);
         }
         .preview-content { min-height: 250px; padding: 26px 30px; }
-        .preview-section-label { margin-bottom: 12px; color: var(--home-red); font-size: .69rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f1f1; padding-bottom: 5px; }
+        .preview-section-label { margin-bottom: 12px; color: var(--home-red); font-size: .69rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f1f1; padding-bottom: 5px; }
         .preview-lines { color: #666; font-size: .72rem; line-height: 1.75; }
         .preview-empty { color: #aaa; font-style: italic; }
         .preview-sample-grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 14px; margin-top: 23px; }
@@ -843,7 +842,7 @@
             background: white;
             color: var(--home-red);
             font-size: .7rem;
-            font-weight: 800;
+            font-weight: 700;
         }
         .secondary-button:active { transform: scale(.97); }
         .info-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -858,7 +857,7 @@
         .inventory-banner span { display:block; margin-top:4px; font-size:.63rem; line-height:1.5; color:#5f7766; }
         .inventory-stats, .inventory-hash-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
         .inventory-stat { border:1px solid var(--line); border-radius:15px; padding:12px 13px; background:#fbfbfb; min-width:0; }
-        .inventory-stat span { display:block; color:var(--muted); font-size:.55rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; }
+        .inventory-stat span { display:block; color:var(--muted); font-size:.55rem; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
         .inventory-stat strong { display:block; margin-top:5px; color:var(--text); font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .inventory-stat.storage strong, .inventory-stat.hash strong { color:var(--home-red); }
         .inventory-stat.available strong, .inventory-stat.complete strong { color:#269b47; }
@@ -875,7 +874,7 @@
         .cleanup-plan-copy { min-width:0; }
         .cleanup-plan-copy strong { display:block; color:var(--text); font-size:.8rem; }
         .cleanup-plan-copy span { display:block; margin-top:4px; color:var(--muted); font-size:.62rem; line-height:1.45; }
-        .cleanup-plan-button { flex:0 0 auto; min-height:38px; border:1px solid rgba(166,69,90,.18); border-radius:12px; background:#fff; color:var(--home-red); padding:0 12px; font-size:.65rem; font-weight:800; white-space:nowrap; }
+        .cleanup-plan-button { flex:0 0 auto; min-height:38px; border:1px solid rgba(166,69,90,.18); border-radius:12px; background:#fff; color:var(--home-red); padding:0 12px; font-size:.65rem; font-weight:700; white-space:nowrap; }
         .cleanup-plan-button:disabled { opacity:.55; cursor:default; }
         .cleanup-mode { display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; padding:11px 12px; border-radius:14px; background:rgba(0,122,255,.06); border:1px solid rgba(0,122,255,.12); color:#315f91; }
         .cleanup-mode i { margin-top:2px; color:#007aff; }
@@ -883,7 +882,7 @@
         .cleanup-mode span { display:block; margin-top:3px; font-size:.58rem; line-height:1.4; color:#5e7791; }
         .cleanup-plan-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-bottom:12px; }
         .cleanup-plan-stat { min-width:0; padding:11px 12px; border:1px solid var(--line); border-radius:14px; background:#fff; }
-        .cleanup-plan-stat span { display:block; color:var(--muted); font-size:.52rem; font-weight:800; text-transform:uppercase; letter-spacing:.35px; }
+        .cleanup-plan-stat span { display:block; color:var(--muted); font-size:.52rem; font-weight:700; text-transform:uppercase; letter-spacing:.35px; }
         .cleanup-plan-stat strong { display:block; margin-top:5px; color:var(--text); font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .cleanup-plan-stat.candidate strong { color:#c92b25; }
         .cleanup-plan-stat.grace strong { color:#c98220; }
@@ -901,12 +900,12 @@
         .cleanup-plan-file { min-width:0; }
         .cleanup-plan-file strong { display:block; color:#686267; font-size:.62rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .cleanup-reasons { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
-        .cleanup-reason { display:inline-flex; align-items:center; padding:4px 7px; border-radius:999px; background:rgba(194,164,104,.11); color:#8a6d2e; font-size:.48rem; font-weight:800; }
-        .cleanup-grace { display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:6px 8px; border-radius:999px; font-size:.53rem; font-weight:800; text-transform:uppercase; letter-spacing:.2px; }
+        .cleanup-reason { display:inline-flex; align-items:center; padding:4px 7px; border-radius:999px; background:rgba(194,164,104,.11); color:#8a6d2e; font-size:.48rem; font-weight:700; }
+        .cleanup-grace { display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:6px 8px; border-radius:999px; font-size:.53rem; font-weight:700; text-transform:uppercase; letter-spacing:.2px; }
         .cleanup-grace.wait { color:#ad6d14; background:rgba(255,149,0,.11); }
         .cleanup-grace.ready { color:#8c36ad; background:rgba(175,82,222,.10); }
         .cleanup-plan-actions { display:flex; flex-direction:column; gap:6px; }
-        .cleanup-plan-actions a, .cleanup-plan-actions button { min-height:33px; border:1px solid rgba(166,69,90,.18); border-radius:10px; background:#fff; color:var(--home-red); padding:0 8px; font-size:.57rem; font-weight:800; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; }
+        .cleanup-plan-actions a, .cleanup-plan-actions button { min-height:33px; border:1px solid rgba(166,69,90,.18); border-radius:10px; background:#fff; color:var(--home-red); padding:0 8px; font-size:.57rem; font-weight:700; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; }
         .cleanup-plan-actions button { border-color:rgba(52,199,89,.22); color:#238940; }
 
         .hash-progress-card { margin-bottom:14px; padding:13px 14px; border:1px solid var(--line); border-radius:15px; background:#fbfbfb; }
@@ -919,7 +918,7 @@
         .inventory-toolbar-copy strong { display:block; color:var(--text); font-size:.8rem; }
         .inventory-toolbar-copy span { display:block; margin-top:3px; color:var(--muted); font-size:.62rem; line-height:1.4; }
         .inventory-toolbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
-        .hash-button { border:none; border-radius:12px; background:var(--home-red); color:white; padding:10px 13px; font-size:.68rem; font-weight:800; white-space:nowrap; box-shadow:0 6px 15px rgba(166,69,90,.18); }
+        .hash-button { border:none; border-radius:12px; background:var(--home-red); color:white; padding:10px 13px; font-size:.68rem; font-weight:700; white-space:nowrap; box-shadow:0 6px 15px rgba(166,69,90,.18); }
         .hash-button:disabled { opacity:.48; cursor:default; box-shadow:none; }
         .inventory-filters { display:grid; grid-template-columns:.9fr .9fr .9fr minmax(210px,1.5fr); gap:10px; margin-bottom:14px; }
         .inventory-filter { width:100%; min-height:42px; border:1px solid var(--line); border-radius:12px; background:#fbfbfb; color:var(--text); padding:0 12px; font-size:.7rem; font-weight:650; outline:none; }
@@ -929,7 +928,7 @@
         .inventory-search-wrap .inventory-filter { padding-left:34px; }
         .inventory-list { border:1px solid var(--line); border-radius:17px; overflow:hidden; background:#fff; }
         .inventory-head, .inventory-row { display:grid; grid-template-columns:100px minmax(150px,1.2fr) minmax(190px,1.35fr) 132px 128px; gap:12px; align-items:center; }
-        .inventory-head { padding:10px 14px; background:#f8f6f7; color:#8c8589; font-size:.54rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; }
+        .inventory-head { padding:10px 14px; background:#f8f6f7; color:#8c8589; font-size:.54rem; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
         .inventory-row { padding:14px; border-top:1px solid var(--line); }
         .inventory-row:first-of-type { border-top:none; }
         .inventory-doc { display:flex; align-items:center; gap:9px; min-width:0; }
@@ -946,32 +945,32 @@
         .inventory-file strong { display:block; color:#666166; font-size:.64rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .inventory-file span { display:block; margin-top:3px; color:var(--muted); font-size:.56rem; line-height:1.4; }
         .inventory-badges { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-top:6px; }
-        .inventory-mini-badge { display:inline-flex; align-items:center; gap:4px; max-width:100%; padding:4px 7px; border-radius:999px; font-size:.49rem; font-weight:800; text-transform:uppercase; letter-spacing:.2px; }
+        .inventory-mini-badge { display:inline-flex; align-items:center; gap:4px; max-width:100%; padding:4px 7px; border-radius:999px; font-size:.49rem; font-weight:700; text-transform:uppercase; letter-spacing:.2px; }
         .inventory-mini-badge.hash { color:#007aff; background:rgba(0,122,255,.09); }
         .inventory-mini-badge.pending { color:#ad6d14; background:rgba(255,149,0,.10); }
         .inventory-mini-badge.duplicate { color:#8c36ad; background:rgba(175,82,222,.10); }
         .inventory-mini-badge.protected { color:#238940; background:rgba(52,199,89,.10); }
         .inventory-mini-badge.candidate { color:#c92b25; background:rgba(255,59,48,.09); }
         .inventory-status-wrap { display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
-        .inventory-status { display:inline-flex; align-items:center; justify-content:center; gap:5px; max-width:100%; padding:5px 8px; border-radius:999px; font-size:.53rem; font-weight:800; text-transform:uppercase; letter-spacing:.25px; }
+        .inventory-status { display:inline-flex; align-items:center; justify-content:center; gap:5px; max-width:100%; padding:5px 8px; border-radius:999px; font-size:.53rem; font-weight:700; text-transform:uppercase; letter-spacing:.25px; }
         .inventory-status.ok { color:#238940; background:rgba(52,199,89,.11); }
         .inventory-status.warn { color:#ad6d14; background:rgba(255,149,0,.11); }
         .inventory-status.bad { color:#c92b25; background:rgba(255,59,48,.10); }
         .inventory-actions { display:flex; flex-direction:column; align-items:stretch; gap:6px; }
-        .inventory-open, .inventory-protect { min-height:34px; padding:0 9px; border:1px solid rgba(166,69,90,.18); border-radius:10px; background:#fff; color:var(--home-red); font-size:.59rem; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+        .inventory-open, .inventory-protect { min-height:34px; padding:0 9px; border:1px solid rgba(166,69,90,.18); border-radius:10px; background:#fff; color:var(--home-red); font-size:.59rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
         .inventory-protect { border-color:rgba(194,164,104,.32); color:#9b7c35; }
         .inventory-protect.active { border-color:rgba(52,199,89,.24); color:#238940; background:rgba(52,199,89,.04); }
         .inventory-open.disabled { pointer-events:none; opacity:.42; color:#8e8e93; border-color:var(--line); }
         .inventory-pagination { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:13px; }
         .inventory-page-info { color:var(--muted); font-size:.62rem; font-weight:650; text-align:center; }
-        .inventory-page-button { min-width:94px; min-height:38px; border:1px solid var(--line); border-radius:11px; background:#fff; color:var(--home-red); font-size:.65rem; font-weight:800; }
+        .inventory-page-button { min-width:94px; min-height:38px; border:1px solid var(--line); border-radius:11px; background:#fff; color:var(--home-red); font-size:.65rem; font-weight:700; }
         .inventory-page-button:disabled { opacity:.35; cursor:default; }
 
         /* Actividad de la aplicación */
         .activity-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
         .activity-toolbar-copy strong { display: block; color: var(--text); font-size: .8rem; }
         .activity-toolbar-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: .64rem; line-height: 1.4; }
-        .refresh-button { border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--home-red); padding: 9px 12px; font-size: .68rem; font-weight: 800; white-space: nowrap; }
+        .refresh-button { border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--home-red); padding: 9px 12px; font-size: .68rem; font-weight: 700; white-space: nowrap; }
         .activity-filters { display: grid; grid-template-columns: 1fr 1fr .8fr minmax(190px,1.4fr); gap: 10px; margin-bottom: 14px; }
         .activity-filter { width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 12px; background: #fbfbfb; color: var(--text); padding: 0 12px; font-size: .7rem; font-weight: 650; outline: none; }
         .activity-filter:focus { border-color: var(--home-yellow); background: white; box-shadow: 0 0 0 3px rgba(194,164,104,.11); }
@@ -994,7 +993,7 @@
         .activity-copy .activity-context { display: block; margin-top: 5px; color: var(--muted); font-size: .62rem; line-height: 1.45; }
         .activity-copy .activity-context i { width: 14px; color: var(--home-yellow); text-align: center; margin-right: 3px; }
         .activity-side { min-width: 112px; text-align: right; }
-        .activity-action { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 8px; background: #f4f2f3; color: #6f696d; font-size: .56rem; font-weight: 800; text-transform: uppercase; letter-spacing: .35px; }
+        .activity-action { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 8px; background: #f4f2f3; color: #6f696d; font-size: .56rem; font-weight: 700; text-transform: uppercase; letter-spacing: .35px; }
         .activity-date { display: block; margin-top: 6px; color: #aaa4a8; font-size: .57rem; line-height: 1.3; }
         .activity-note { margin-bottom: 14px; padding: 11px 13px; border-radius: 13px; background: rgba(194,164,104,.09); color: #756641; font-size: .66rem; line-height: 1.5; }
         .empty-state { padding: 38px 20px; text-align: center; color: var(--muted); }
@@ -1005,7 +1004,7 @@
 
         .activity-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
         .activity-stat { border: 1px solid var(--line); border-radius: 15px; padding: 12px 13px; background: #fbfbfb; }
-        .activity-stat span { display: block; color: var(--muted); font-size: .56rem; font-weight: 800; text-transform: uppercase; letter-spacing: .45px; }
+        .activity-stat span { display: block; color: var(--muted); font-size: .56rem; font-weight: 700; text-transform: uppercase; letter-spacing: .45px; }
         .activity-stat strong { display: block; margin-top: 5px; color: var(--text); font-size: 1rem; }
         .activity-stat.success strong { color: #269b47; }
         .activity-stat.failed strong { color: var(--danger); }
@@ -1013,7 +1012,7 @@
         .activity-item.is-clickable { cursor: pointer; transition: background .16s ease, transform .16s ease; }
         .activity-item.is-clickable:hover { background: #fcfbfc; }
         .activity-item.is-clickable:active { transform: scale(.995); background: #faf8f9; }
-        .activity-status { display: inline-flex; align-items: center; gap: 4px; margin-top: 5px; padding: 3px 7px; border-radius: 999px; font-size: .52rem; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; }
+        .activity-status { display: inline-flex; align-items: center; gap: 4px; margin-top: 5px; padding: 3px 7px; border-radius: 999px; font-size: .52rem; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
         .activity-status.success { color: #238940; background: rgba(52,199,89,.11); }
         .activity-status.failed { color: #c92b25; background: rgba(255,59,48,.10); }
         .activity-detail-hint { display: inline-flex; align-items: center; gap: 4px; margin-top: 5px; color: #9c969a; font-size: .55rem; font-weight: 700; }
@@ -1034,19 +1033,19 @@
         .audit-detail-close { width: 38px; height: 38px; border: none; border-radius: 50%; background: #f4f2f3; color: #777177; flex: 0 0 auto; }
         .audit-detail-body { padding: 18px 21px 24px; overflow-y: auto; }
         .audit-detail-badges { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 15px; }
-        .audit-detail-badge { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 999px; background: #f5f3f4; color: #6f696d; font-size: .58rem; font-weight: 800; text-transform: uppercase; letter-spacing: .35px; }
+        .audit-detail-badge { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 999px; background: #f5f3f4; color: #6f696d; font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .35px; }
         .audit-detail-badge.success { background: rgba(52,199,89,.11); color: #238940; }
         .audit-detail-badge.failed { background: rgba(255,59,48,.10); color: #c92b25; }
         .audit-detail-badge.reversible { background: rgba(0,122,255,.10); color: #007aff; }
         .audit-detail-meta { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; margin-bottom: 16px; }
         .audit-meta-box { padding: 11px; border: 1px solid var(--line); border-radius: 13px; background: #fbfbfb; min-width: 0; }
-        .audit-meta-box span { display: block; color: var(--muted); font-size: .53rem; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; }
+        .audit-meta-box span { display: block; color: var(--muted); font-size: .53rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
         .audit-meta-box strong { display: block; margin-top: 5px; color: var(--text); font-size: .66rem; line-height: 1.4; overflow-wrap: anywhere; }
-        .audit-section-title { margin: 18px 0 9px; color: var(--home-red); font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .65px; }
+        .audit-section-title { margin: 18px 0 9px; color: var(--home-red); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .65px; }
         .audit-changes { border: 1px solid var(--line); border-radius: 15px; overflow: hidden; }
         .audit-change { padding: 12px 13px; border-bottom: 1px solid var(--line); }
         .audit-change:last-child { border-bottom: none; }
-        .audit-change-field { display: block; margin-bottom: 8px; color: var(--text); font-size: .67rem; font-weight: 800; }
+        .audit-change-field { display: block; margin-bottom: 8px; color: var(--text); font-size: .67rem; font-weight: 700; }
         .audit-change-values { display: grid; grid-template-columns: 1fr 24px 1fr; gap: 7px; align-items: center; }
         .audit-change-value { min-width: 0; padding: 9px 10px; border-radius: 10px; background: #f8f7f8; color: #686267; font-size: .61rem; line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap; }
         .audit-change-value.after { background: rgba(52,199,89,.07); color: #32663e; }
@@ -1056,7 +1055,7 @@
         .audit-dependencies { display: flex; flex-wrap: wrap; gap: 6px; }
         .audit-dependency { padding: 6px 9px; border-radius: 9px; background: #f4f2f3; color: #6f696d; font-size: .57rem; font-weight: 700; }
         .audit-raw details { border: 1px solid var(--line); border-radius: 13px; padding: 10px 12px; background: #fbfbfb; }
-        .audit-raw summary { cursor: pointer; color: #777177; font-size: .62rem; font-weight: 800; }
+        .audit-raw summary { cursor: pointer; color: #777177; font-size: .62rem; font-weight: 700; }
         .audit-raw pre { margin: 10px 0 0; max-height: 240px; overflow: auto; color: #5f5a5d; font-size: .58rem; white-space: pre-wrap; overflow-wrap: anywhere; }
         .audit-loading { padding: 48px 20px; text-align: center; color: var(--muted); }
         .audit-loading i { color: var(--home-red); font-size: 1.5rem; }
@@ -1070,7 +1069,7 @@
         .restore-banner span { display:block; margin-top:4px; color:#73696d; font-size:.63rem; line-height:1.55; }
         .restore-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
         .restore-stat { padding:12px 13px; border:1px solid var(--line); border-radius:15px; background:#fbfbfb; }
-        .restore-stat span { display:block; color:var(--muted); font-size:.54rem; font-weight:800; text-transform:uppercase; letter-spacing:.42px; }
+        .restore-stat span { display:block; color:var(--muted); font-size:.54rem; font-weight:700; text-transform:uppercase; letter-spacing:.42px; }
         .restore-stat strong { display:block; margin-top:5px; color:var(--text); font-size:1rem; }
         .restore-stat.ready strong { color:#007aff; }
         .restore-stat.done strong { color:#269b47; }
@@ -1092,13 +1091,13 @@
         .restore-copy { min-width:0; }
         .restore-copy strong { display:block; color:var(--text); font-size:.77rem; line-height:1.35; }
         .restore-copy .restore-meta { display:block; margin-top:4px; color:var(--muted); font-size:.59rem; line-height:1.45; }
-        .restore-treatment { display:inline-flex; align-items:center; gap:5px; margin-top:6px; padding:4px 7px; border-radius:999px; background:#f4f2f3; color:#6d666a; font-size:.51rem; font-weight:800; text-transform:uppercase; letter-spacing:.25px; }
+        .restore-treatment { display:inline-flex; align-items:center; gap:5px; margin-top:6px; padding:4px 7px; border-radius:999px; background:#f4f2f3; color:#6d666a; font-size:.51rem; font-weight:700; text-transform:uppercase; letter-spacing:.25px; }
         .restore-side { min-width:145px; display:flex; flex-direction:column; align-items:flex-end; gap:7px; }
-        .restore-status { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:999px; font-size:.52rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; }
+        .restore-status { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:999px; font-size:.52rem; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
         .restore-status.pending { color:#006fcf; background:rgba(0,122,255,.10); }
         .restore-status.done { color:#238940; background:rgba(52,199,89,.11); }
         .restore-status.blocked { color:#c92b25; background:rgba(255,59,48,.09); }
-        .restore-review { min-height:35px; border:1px solid rgba(166,69,90,.20); border-radius:11px; padding:0 11px; background:white; color:var(--home-red); font-size:.61rem; font-weight:800; }
+        .restore-review { min-height:35px; border:1px solid rgba(166,69,90,.20); border-radius:11px; padding:0 11px; background:white; color:var(--home-red); font-size:.61rem; font-weight:700; }
         .restore-review:disabled { opacity:.42; cursor:default; color:#8e8e93; border-color:var(--line); }
         .restore-protection { margin-top:14px; padding:11px 13px; border-radius:13px; background:rgba(52,199,89,.07); color:#406f4a; font-size:.63rem; line-height:1.5; }
         .restore-protection i { margin-right:5px; color:#269b47; }
@@ -1152,7 +1151,7 @@
         .save-bar.visible { transform: translateY(0); }
         .save-inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
         .save-message { margin-right: auto; color: var(--muted); font-size: .68rem; font-weight: 650; }
-        .discard-button, .save-button { min-height: 45px; border-radius: 13px; padding: 0 17px; font-size: .74rem; font-weight: 800; }
+        .discard-button, .save-button { min-height: 45px; border-radius: 13px; padding: 0 17px; font-size: .74rem; font-weight: 700; }
         .discard-button { border: 1px solid var(--line); background: white; color: #777177; }
         .save-button { border: none; background: var(--home-red); color: white; box-shadow: 0 7px 18px rgba(166,69,90,.22); }
         .save-button:disabled { opacity: .65; cursor: wait; }
@@ -1350,7 +1349,7 @@
             color: #31262a;
             letter-spacing: 7px;
             font-size: 1.15rem;
-            font-weight: 800;
+            font-weight: 700;
             text-align: center;
             box-shadow: inset 0 1px 0 rgba(255,255,255,.72), 0 8px 18px rgba(62,17,29,.08);
             backdrop-filter: blur(10px);
@@ -1519,7 +1518,7 @@
             color: #2d2025;
             font-size: 1.92rem;
             line-height: 1;
-            font-weight: 750;
+            font-weight: 650;
             letter-spacing: -.82px;
         }
         .access-heading-copy span {
@@ -1588,35 +1587,10 @@
         }
 
     </style>
+<style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
 </head>
 <body>
-
-    <section class="access-screen" id="accessScreen" aria-label="Acceso a configuración">
-        <a href="index.html" class="access-back" aria-label="Volver al inicio"><i class="fa-solid fa-chevron-left"></i></a>
-        <div class="access-stage">
-            <img src="hommyconfiguracion.png" class="access-hommy" alt="Hommy, asistente de HomeEasy" onerror="this.style.display='none'">
-            <div class="access-card" id="accessCard">
-                <div class="access-heading">
-                    <div class="access-icon-badge" aria-hidden="true"><i class="fa-solid fa-gear"></i></div>
-                    <div class="access-heading-copy">
-                        <h1>Configuración</h1>
-                        <span>Acceso protegido</span>
-                    </div>
-                </div>
-                <p>Ingresa tu PIN para administrar empresa, documentos y preferencias.</p>
-                <div class="pin-field">
-                    <i class="fa-solid fa-lock"></i>
-                    <input id="pinInput" class="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="PIN de seguridad">
-                    <button type="button" class="pin-eye" id="pinEyeButton" aria-label="Mostrar PIN"><i class="fa-regular fa-eye" id="pinEyeIcon"></i></button>
-                </div>
-                <button type="button" class="access-submit" id="accessSubmit">Entrar</button>
-                <div class="access-status" id="accessStatus" role="status"></div>
-                <div class="access-caption">Sistema Hommy</div>
-            </div>
-        </div>
-    </section>
-
-    <main class="settings-app" id="settingsApp">
+    <main class="settings-app ready" id="settingsApp">
         <header class="app-header">
             <div class="header-inner">
                 <a href="index.html" class="header-round" aria-label="Volver al inicio"><i class="fa-solid fa-chevron-left"></i></a>
@@ -1628,7 +1602,7 @@
                     </div>
                 </div>
                 <div class="lock-wrap">
-                    <button type="button" class="header-round" id="lockButton" aria-label="Bloquear configuración"><i class="fa-solid fa-lock"></i></button>
+                    <span class="header-round" aria-label="Sesión segura" title="Sesión segura"><i class="fa-solid fa-shield-halved"></i></span>
                     <span class="dirty-dot" id="dirtyDot"></span>
                 </div>
             </div>
@@ -1660,13 +1634,6 @@
                     <button class="nav-button" data-section="restauraciones"><i class="fa-solid fa-rotate-left"></i> Restauraciones</button>
                     <button class="nav-button" data-section="inventario"><i class="fa-solid fa-box-archive"></i> Inventario</button>
                 </nav>
-                <div class="operator-box">
-                    <label for="operatorSelect">Editando como</label>
-                    <select id="operatorSelect" class="operator-select">
-                        <option value="Alejandro">Alejandro</option>
-                        <option value="Daniela">Daniela</option>
-                    </select>
-                </div>
             </aside>
 
             <section class="content">
@@ -1924,6 +1891,7 @@
                             <button type="button" class="preview-button active" data-preview="cotizacion">Cotización</button>
                             <button type="button" class="preview-button" data-preview="pedido">Orden de pedido</button>
                             <button type="button" class="preview-button" data-preview="recibo">Recibo</button>
+                            <button type="button" class="preview-button" data-preview="cuenta">Cuenta de cobro</button>
                         </div>
 
                         <div class="document-preview">
@@ -1949,30 +1917,16 @@
                 <div class="panel" id="panel-seguridad" data-panel="seguridad">
                     <div class="page-heading">
                         <h2>Seguridad</h2>
-                        <p>Controla el acceso a los ajustes y al flujo de Caja.</p>
+                        <p>Tu sesión personal protege los ajustes. Caja conserva su PIN como segunda confirmación.</p>
                     </div>
 
                     <div class="card">
-                        <div class="security-row">
-                            <div class="security-info">
-                                <div class="security-icon"><i class="fa-solid fa-key"></i></div>
-                                <div class="security-copy"><strong>PIN de configuración</strong><span>Protege los datos de la empresa y los textos de los documentos.</span></div>
-                            </div>
-                            <button type="button" class="secondary-button" id="changePinButton">Cambiar PIN</button>
-                        </div>
                         <div class="security-row">
                             <div class="security-info">
                                 <div class="security-icon"><i class="fa-solid fa-cash-register"></i></div>
                                 <div class="security-copy"><strong>PIN de Caja</strong><span>Se valida desde HomeEasy. Al cambiarlo, se cerrarán las sesiones abiertas de Caja.</span></div>
                             </div>
                             <button type="button" class="secondary-button" id="changeCashPinButton">Cambiar PIN</button>
-                        </div>
-                        <div class="security-row">
-                            <div class="security-info">
-                                <div class="security-icon"><i class="fa-solid fa-lock"></i></div>
-                                <div class="security-copy"><strong>Bloquear ahora</strong><span>Vuelve a solicitar el PIN sin salir de la aplicación.</span></div>
-                            </div>
-                            <button type="button" class="secondary-button" id="lockNowButton">Bloquear</button>
                         </div>
                     </div>
 
@@ -1985,13 +1939,7 @@
                             <div class="card-icon"><i class="fa-solid fa-laptop-mobile"></i></div>
                         </div>
                         <div class="form-grid">
-                            <div class="field">
-                                <label for="operatorSelectSecurity">Usuario habitual</label>
-                                <select id="operatorSelectSecurity" class="control">
-                                    <option value="Alejandro">Alejandro</option>
-                                    <option value="Daniela">Daniela</option>
-                                </select>
-                            </div>
+                            <div class="field"><label>Usuario de la sesión</label><div id="authenticatedUserDevice" class="control" style="display:flex;align-items:center;background:#f7f5f6;color:#6d676b">Sesión autenticada</div></div>
                             <div class="field">
                                 <label for="deviceNameInput">Nombre del dispositivo</label>
                                 <input id="deviceNameInput" class="control" type="text" maxlength="80" placeholder="Ej: Portátil de Alejo">
@@ -2295,7 +2243,7 @@
         ];
 
         const state = {
-            sessionPin: '',
+            adminCredential: 'AUTH_SESSION',
             original: {},
             dirty: false,
             previewType: 'cotizacion',
@@ -2329,37 +2277,34 @@
             cleanupPlan: null
         };
 
-        const MIN_PIN_LENGTH = 4;
-        const MAX_PIN_LENGTH = 8;
-        const IDLE_LOCK_MS = 20 * 60 * 1000;
-
         document.addEventListener('DOMContentLoaded', () => {
             if (!window.HomeEasyCore) {
                 showFatalError('No se pudo cargar el archivo central de HomeEasy.');
                 return;
             }
-
-            const allowedOperators = ['Alejandro', 'Daniela'];
-            const savedOperator = HomeEasyCore.getOperator();
-            const operator = allowedOperators.includes(savedOperator) ? savedOperator : 'Alejandro';
-            syncOperatorControls(operator);
             populateDeviceControls();
-
             bindEvents();
-            startIdleLock();
-            setTimeout(() => document.getElementById('pinInput').focus(), 180);
+            const open = event => openSettingsForAuthenticatedUser(event && event.detail ? event.detail.profile : null);
+            if (window.HomeEasyPageGuard && HomeEasyPageGuard.getStatus && HomeEasyPageGuard.getStatus() === 'authorized') {
+                setTimeout(() => openSettingsForAuthenticatedUser(window.HomeEasyAuth && HomeEasyAuth.getCurrentProfile ? HomeEasyAuth.getCurrentProfile() : null), 0);
+            } else {
+                window.addEventListener('homeeasy:page-auth-ready', open, { once: true });
+            }
         });
 
+        let settingsInitialized = false;
+        function openSettingsForAuthenticatedUser(profile) {
+            if (settingsInitialized) return;
+            const current = profile || (window.HomeEasyAuth && HomeEasyAuth.getCurrentProfile ? HomeEasyAuth.getCurrentProfile() : null);
+            if (!current) return;
+            settingsInitialized = true;
+            HomeEasyCore.setOperator(current.nombre || current.email || 'Sin identificar');
+            const sessionLabel = document.getElementById('authenticatedUserDevice');
+            if (sessionLabel) sessionLabel.textContent = (current.nombre || current.email || 'Usuario HomeEasy') + ' · ' + (current.rol || '');
+            initializeSettings();
+        }
+
         function bindEvents() {
-            document.getElementById('pinInput').addEventListener('input', onPinInput);
-            document.getElementById('pinInput').addEventListener('keydown', event => {
-                if (event.key === 'Enter') authenticate();
-            });
-            document.getElementById('pinEyeButton').addEventListener('click', togglePinVisibility);
-            document.getElementById('accessSubmit').addEventListener('click', authenticate);
-            document.getElementById('lockButton').addEventListener('click', lockSettings);
-            document.getElementById('lockNowButton').addEventListener('click', lockSettings);
-            document.getElementById('changePinButton').addEventListener('click', changePin);
             document.getElementById('changeCashPinButton').addEventListener('click', changeCashPin);
             document.getElementById('saveButton').addEventListener('click', saveChanges);
             document.getElementById('discardButton').addEventListener('click', discardChanges);
@@ -2368,8 +2313,6 @@
             document.getElementById('restoreTypeFilter').addEventListener('change', applyRestorationFilters);
             document.getElementById('restoreStatusFilter').addEventListener('change', applyRestorationFilters);
             document.getElementById('restoreSearch').addEventListener('input', applyRestorationFilters);
-            document.getElementById('operatorSelect').addEventListener('change', event => syncOperatorControls(event.target.value));
-            document.getElementById('operatorSelectSecurity').addEventListener('change', event => syncOperatorControls(event.target.value));
             document.getElementById('saveDeviceButton').addEventListener('click', saveDeviceIdentity);
             document.getElementById('activityModuleFilter').addEventListener('change', applyActivityFilters);
             document.getElementById('activityOperatorFilter').addEventListener('change', applyActivityFilters);
@@ -2408,10 +2351,6 @@
                 element.addEventListener('change', onConfigChange);
             });
 
-            ['click', 'keydown', 'touchstart'].forEach(eventName => {
-                document.addEventListener(eventName, registerActivity, { passive: true });
-            });
-
             document.addEventListener('keydown', event => { if (event.key === 'Escape') closeAuditDetail(); });
 
             window.addEventListener('beforeunload', event => {
@@ -2421,91 +2360,12 @@
             });
         }
 
-        function startIdleLock() {
-            state.idleTimer = window.setInterval(() => {
-                if (!state.sessionPin || state.dirty) return;
-                if (Date.now() - state.lastActivity >= IDLE_LOCK_MS) {
-                    lockImmediately('La configuración se bloqueó por inactividad.');
-                }
-            }, 30000);
-        }
-
-        function registerActivity() {
-            state.lastActivity = Date.now();
-        }
-
-        function onPinInput(event) {
-            const input = event.currentTarget;
-            input.value = input.value.replace(/\D/g, '').slice(0, MAX_PIN_LENGTH);
-            input.classList.remove('error');
-            document.getElementById('accessStatus').textContent = '';
-        }
-
-        function togglePinVisibility() {
-            const input = document.getElementById('pinInput');
-            const icon = document.getElementById('pinEyeIcon');
-            const reveal = input.type === 'password';
-            input.type = reveal ? 'text' : 'password';
-            icon.className = reveal ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
-            input.focus();
-        }
-
-        async function authenticate() {
-            if (state.busy) return;
-            const input = document.getElementById('pinInput');
-            const pin = input.value.replace(/\D/g, '').slice(0, MAX_PIN_LENGTH);
-
-            if (pin.length < MIN_PIN_LENGTH) {
-                setAccessError('Escribe un PIN de al menos 4 números.');
-                return;
-            }
-
-            state.busy = true;
-            const button = document.getElementById('accessSubmit');
-            button.disabled = true;
-            button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando';
-            document.getElementById('accessStatus').textContent = '';
-
-            try {
-                const response = await HomeEasyCore.post({ tipo: 'VALIDAR_PIN_CONFIGURACION', pin });
-                if (!response || response.status !== 'success' || !response.valido) {
-                    throw new Error('PIN incorrecto.');
-                }
-
-                state.sessionPin = pin;
-                state.lastActivity = Date.now();
-                document.getElementById('accessScreen').classList.add('hidden');
-                document.getElementById('settingsApp').classList.add('ready');
-                input.blur();
-                await initializeSettings();
-            } catch (error) {
-                setAccessError(error.message || 'No fue posible validar el PIN.');
-                const card = document.getElementById('accessCard');
-                card.classList.remove('shake');
-                void card.offsetWidth;
-                card.classList.add('shake');
-                if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
-                input.value = '';
-                input.focus();
-            } finally {
-                state.busy = false;
-                button.disabled = false;
-                button.textContent = 'Entrar';
-            }
-        }
-
-        function setAccessError(message) {
-            const input = document.getElementById('pinInput');
-            input.classList.add('error');
-            document.getElementById('accessStatus').textContent = message;
-        }
-
-        async function initializeSettings() {
+async function initializeSettings() {
             setSync(true, 'Cargando configuración', 'Sincronizando la información de HomeEasy.');
             try {
-                const response = await HomeEasyCore.getConfiguration({ force: true, allowFallback: true });
+                const response = await HomeEasyCore.getConfiguration({ force: false, allowFallback: true });
                 applyConfiguration(response);
-                await loadActivity();
+                setTimeout(() => loadActivity(), 40);
 
                 if (response.source === 'fallback') {
                     Swal.fire({
@@ -2525,7 +2385,7 @@
                     text: error.message,
                     confirmButtonColor: '#a6455a'
                 });
-                lockImmediately();
+                window.location.replace('index.html');
             } finally {
                 setSync(false);
             }
@@ -2749,7 +2609,7 @@
             try {
                 const response = await HomeEasyCore.post({
                     tipo: 'GUARDAR_CONFIGURACION',
-                    pin: state.sessionPin,
+                    pin: state.adminCredential,
                     cambios: changes,
                     actualizadoPor: HomeEasyCore.getOperator()
                 });
@@ -2879,6 +2739,9 @@
                 if (validity > 0) lines.push('<b>Validez de la oferta:</b> ' + HomeEasyCore.escapeHtml(validity) + ' días calendario.');
                 if (measurement) lines.push(HomeEasyCore.escapeHtml(measurement));
                 if (payment) lines.push('<b>Forma de pago:</b> ' + HomeEasyCore.escapeHtml(payment));
+            } else if (state.previewType === 'cuenta') {
+                lines.push('<b>Concepto:</b> Productos o servicios facturados al cliente.');
+                lines.push('<b>Pago:</b> Datos bancarios y saldo por pagar según la cuenta emitida.');
             } else {
                 lines.push('Valor recibido, medio de pago y saldo pendiente de la orden.');
             }
@@ -2893,17 +2756,20 @@
             const titleMap = {
                 cotizacion: getValue('documentos.cotizacion.titulo', 'COTIZACIÓN'),
                 pedido: getValue('documentos.pedido.titulo', 'ORDEN DE PEDIDO'),
-                recibo: getValue('documentos.recibo.titulo', 'RECIBO DE ABONO')
+                recibo: getValue('documentos.recibo.titulo', 'RECIBO DE ABONO'),
+                cuenta: 'CUENTA DE COBRO'
             };
             const metaMap = {
                 cotizacion: 'COTIZACIÓN N° 000 · FECHA',
                 pedido: 'ORDEN N° 000 · FECHA',
-                recibo: 'RECIBO N° 000 · FECHA'
+                recibo: 'RECIBO N° 000 · FECHA',
+                cuenta: 'CUENTA DE COBRO N° 000 · FECHA'
             };
             const sectionMap = {
                 cotizacion: 'Condiciones comerciales',
                 pedido: 'Condiciones de venta',
-                recibo: 'Detalle del pago'
+                recibo: 'Detalle del pago',
+                cuenta: 'Detalle de cobro'
             };
 
             document.getElementById('previewTitle').textContent = titleMap[state.previewType] || 'DOCUMENTO';
@@ -2918,15 +2784,6 @@
             document.getElementById('previewFooter').innerHTML = footerLines.length
                 ? footerLines.map(HomeEasyCore.escapeHtml).join('<br>')
                 : '&nbsp;';
-        }
-
-        function syncOperatorControls(value) {
-            const operator = ['Alejandro', 'Daniela'].includes(value) ? value : 'Alejandro';
-            const desktop = document.getElementById('operatorSelect');
-            const security = document.getElementById('operatorSelectSecurity');
-            if (desktop) desktop.value = operator;
-            if (security) security.value = operator;
-            HomeEasyCore.setOperator(operator);
         }
 
         function populateDeviceControls() {
@@ -2955,7 +2812,7 @@
 
         async function loadInventory(force) {
             const container = document.getElementById('inventoryList');
-            if (!container || !state.sessionPin) return;
+            if (!container || !state.adminCredential) return;
             if (state.inventoryLoaded && !force) {
                 renderInventory();
                 return;
@@ -2965,7 +2822,7 @@
             try {
                 const data = await HomeEasyCore.post({
                     tipo: 'GET_INVENTARIO_DOCUMENTAL',
-                    pin: state.sessionPin,
+                    pin: state.adminCredential,
                     pagina: state.inventoryPage,
                     tamanoPagina: state.inventoryPageSize,
                     tipoDocumento: document.getElementById('inventoryTypeFilter').value,
@@ -2994,7 +2851,7 @@
         }
 
         async function refreshInventory() {
-            if (state.busy || !state.sessionPin) return;
+            if (state.busy || !state.adminCredential) return;
             const confirmation = await Swal.fire({
                 icon: 'info',
                 title: 'Actualizar inventario',
@@ -3011,7 +2868,7 @@
             let success = false;
             let message = '';
             try {
-                const response = await HomeEasyCore.post({ tipo: 'REFRESCAR_INVENTARIO_DOCUMENTAL', pin: state.sessionPin }, { timeoutMs: 120000 });
+                const response = await HomeEasyCore.post({ tipo: 'REFRESCAR_INVENTARIO_DOCUMENTAL', pin: state.adminCredential }, { timeoutMs: 120000 });
                 if (!response || response.status !== 'ok') throw new Error(response && response.msg ? response.msg : 'No se pudo actualizar el inventario.');
                 state.inventoryLoaded = false;
                 state.cleanupPlanLoaded = false;
@@ -3034,7 +2891,7 @@
         }
 
         async function calculateInventoryHashes() {
-            if (state.busy || state.inventoryHashBusy || !state.sessionPin) return;
+            if (state.busy || state.inventoryHashBusy || !state.adminCredential) return;
             if (!state.inventoryLoaded) await loadInventory(true);
 
             const initialStats = state.inventoryStats || {};
@@ -3071,7 +2928,7 @@
                     safetyCounter++;
                     const response = await HomeEasyCore.post({
                         tipo: 'PROCESAR_HASHES_DOCUMENTALES',
-                        pin: state.sessionPin,
+                        pin: state.adminCredential,
                         limite: 8,
                         reintentarErrores: retryErrors
                     }, { timeoutMs: 150000 });
@@ -3265,7 +3122,7 @@
         }
 
         async function toggleVersionProtection(idVersion, protect) {
-            if (!idVersion || state.busy || !state.sessionPin) return;
+            if (!idVersion || state.busy || !state.adminCredential) return;
             const confirmation = await Swal.fire({
                 icon: protect ? 'question' : 'warning',
                 title: protect ? 'Conservar esta versión' : 'Quitar protección',
@@ -3286,7 +3143,7 @@
             try {
                 const response = await HomeEasyCore.post({
                     tipo: 'CAMBIAR_PROTECCION_VERSION_DOCUMENTAL',
-                    pin: state.sessionPin,
+                    pin: state.adminCredential,
                     idVersion,
                     proteger: Boolean(protect)
                 }, { timeoutMs: 30000 });
@@ -3323,7 +3180,7 @@
 
         async function loadCleanupPlan(force) {
             const container = document.getElementById('cleanupPlanList');
-            if (!container || !state.sessionPin) return;
+            if (!container || !state.adminCredential) return;
             if (state.cleanupPlanLoaded && !force) {
                 renderCleanupPlan();
                 return;
@@ -3332,7 +3189,7 @@
             try {
                 const response = await HomeEasyCore.post({
                     tipo: 'GET_PLAN_DEPURACION_DOCUMENTAL',
-                    pin: state.sessionPin
+                    pin: state.adminCredential
                 }, { timeoutMs: 30000 });
                 if (!response || response.status !== 'ok') throw new Error(response && response.msg ? response.msg : 'No se pudo cargar el plan.');
                 state.cleanupPlan = response;
@@ -3390,7 +3247,7 @@
         }
 
         async function reevaluateCleanupPlan() {
-            if (state.busy || state.cleanupPlanBusy || !state.sessionPin) return;
+            if (state.busy || state.cleanupPlanBusy || !state.adminCredential) return;
             const confirmation = await Swal.fire({
                 icon: 'info',
                 title: 'Reevaluar plan de espacio',
@@ -3411,7 +3268,7 @@
             try {
                 const response = await HomeEasyCore.post({
                     tipo: 'REEVALUAR_CANDIDATAS_DOCUMENTALES',
-                    pin: state.sessionPin
+                    pin: state.adminCredential
                 }, { timeoutMs: 60000 });
                 if (!response || response.status !== 'ok') throw new Error(response && response.msg ? response.msg : 'No se pudo reevaluar el plan.');
                 state.cleanupPlan = response;
@@ -3450,13 +3307,13 @@
         }
 
         async function loadRestorations(force) {
-            if (!state.sessionPin) return;
+            if (!state.adminCredential) return;
             const container = document.getElementById('restoreList');
             if (force || !state.restorationLoaded) {
                 container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i><strong>Cargando anulaciones</strong><span>Revisando el historial de operaciones controladas.</span></div>';
             }
             try {
-                const data = await HomeEasyCore.post({ tipo: 'GET_ANULACIONES_ADMIN', pin: state.sessionPin }, { timeoutMs: 30000 });
+                const data = await HomeEasyCore.post({ tipo: 'GET_ANULACIONES_ADMIN', pin: state.adminCredential }, { timeoutMs: 30000 });
                 if (!data || data.status !== 'ok') throw new Error(data && data.msg ? data.msg : 'No se pudo cargar el historial de anulaciones.');
                 state.restorationItems = Array.isArray(data.items) ? data.items : [];
                 state.restorationStats = data.estadisticas || { total: 0, restaurables: 0, restauradas: 0, bloqueadasBase: 0 };
@@ -3540,11 +3397,11 @@
         }
 
         async function reviewRestoration(id) {
-            if (!id || !state.sessionPin || state.busy) return;
+            if (!id || !state.adminCredential || state.busy) return;
             state.busy = true;
             Swal.fire({ title: 'Revisando restauración', text: 'HomeEasy está comprobando saldos, pagos, Caja y documentos.', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-premium' } });
             try {
-                const result = await HomeEasyCore.post({ tipo: 'ANALIZAR_RESTAURACION_ANULACION', pin: state.sessionPin, idAnulacion: id }, { timeoutMs: 35000 });
+                const result = await HomeEasyCore.post({ tipo: 'ANALIZAR_RESTAURACION_ANULACION', pin: state.adminCredential, idAnulacion: id }, { timeoutMs: 35000 });
                 if (!result || result.status !== 'ok') throw new Error(result && result.msg ? result.msg : 'No se pudo analizar la restauración.');
                 const allowed = Boolean(result.ejecucion && result.ejecucion.permitida);
                 const decision = await Swal.fire({
@@ -3574,13 +3431,13 @@
             const exact = exec.confirmacionDocumento || ('RESTAURAR ' + a.tipo + '-' + a.numero);
             const special = exec.confirmacionEspecial || '';
             const needsMedium = Boolean(exec.requiereMedioRecuperacion);
-            const specialHtml = special ? '<label style="display:block;margin:12px 0 5px;text-align:left;font-size:.65rem;font-weight:800;color:#8e878b;text-transform:uppercase;">Confirmación financiera</label><input id="restore-special" class="swal2-input" style="margin:0;width:100%;box-sizing:border-box;text-align:center;text-transform:uppercase;" placeholder="' + HomeEasyCore.escapeHtml(special) + '"><div style="margin-top:5px;color:#9a7378;font-size:.61rem;text-align:left;">Escribe exactamente: <b>' + HomeEasyCore.escapeHtml(special) + '</b></div>' : '';
-            const mediumHtml = needsMedium ? '<label style="display:block;margin:12px 0 5px;text-align:left;font-size:.65rem;font-weight:800;color:#8e878b;text-transform:uppercase;">Cómo se recuperó el dinero</label><select id="restore-medium" class="swal2-select" style="margin:0;width:100%;box-sizing:border-box;"><option value="">Seleccionar…</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="OTRO">Otro</option></select>' : '';
+            const specialHtml = special ? '<label style="display:block;margin:12px 0 5px;text-align:left;font-size:.65rem;font-weight:700;color:#8e878b;text-transform:uppercase;">Confirmación financiera</label><input id="restore-special" class="swal2-input" style="margin:0;width:100%;box-sizing:border-box;text-align:center;text-transform:uppercase;" placeholder="' + HomeEasyCore.escapeHtml(special) + '"><div style="margin-top:5px;color:#9a7378;font-size:.61rem;text-align:left;">Escribe exactamente: <b>' + HomeEasyCore.escapeHtml(special) + '</b></div>' : '';
+            const mediumHtml = needsMedium ? '<label style="display:block;margin:12px 0 5px;text-align:left;font-size:.65rem;font-weight:700;color:#8e878b;text-transform:uppercase;">Cómo se recuperó el dinero</label><select id="restore-medium" class="swal2-select" style="margin:0;width:100%;box-sizing:border-box;"><option value="">Seleccionar…</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="OTRO">Otro</option></select>' : '';
             const form = await Swal.fire({
                 title: 'Confirmación final',
                 html: '<div style="text-align:left;font-size:.72rem;color:#676064;line-height:1.5;">Esta acción restaurará <b>' + HomeEasyCore.escapeHtml(a.tipo + '-' + a.numero) + '</b>. La anulación original seguirá en el historial.</div>' +
-                    '<label style="display:block;margin:12px 0 5px;text-align:left;font-size:.65rem;font-weight:800;color:#8e878b;text-transform:uppercase;">Motivo de restauración</label><textarea id="restore-reason" class="swal2-textarea" maxlength="300" rows="3" style="margin:0;width:100%;box-sizing:border-box;resize:none;" placeholder="Explica por qué se debe restaurar…"></textarea>' +
-                    '<label style="display:block;margin:12px 0 5px;text-align:left;font-size:.65rem;font-weight:800;color:#8e878b;text-transform:uppercase;">Confirmación del documento</label><input id="restore-confirm" class="swal2-input" style="margin:0;width:100%;box-sizing:border-box;text-align:center;text-transform:uppercase;" placeholder="' + HomeEasyCore.escapeHtml(exact) + '"><div style="margin-top:5px;color:#9a7378;font-size:.61rem;text-align:left;">Escribe exactamente: <b>' + HomeEasyCore.escapeHtml(exact) + '</b></div>' + specialHtml + mediumHtml,
+                    '<label style="display:block;margin:12px 0 5px;text-align:left;font-size:.65rem;font-weight:700;color:#8e878b;text-transform:uppercase;">Motivo de restauración</label><textarea id="restore-reason" class="swal2-textarea" maxlength="300" rows="3" style="margin:0;width:100%;box-sizing:border-box;resize:none;" placeholder="Explica por qué se debe restaurar…"></textarea>' +
+                    '<label style="display:block;margin:12px 0 5px;text-align:left;font-size:.65rem;font-weight:700;color:#8e878b;text-transform:uppercase;">Confirmación del documento</label><input id="restore-confirm" class="swal2-input" style="margin:0;width:100%;box-sizing:border-box;text-align:center;text-transform:uppercase;" placeholder="' + HomeEasyCore.escapeHtml(exact) + '"><div style="margin-top:5px;color:#9a7378;font-size:.61rem;text-align:left;">Escribe exactamente: <b>' + HomeEasyCore.escapeHtml(exact) + '</b></div>' + specialHtml + mediumHtml,
                 icon: 'warning',
                 width: 620,
                 showCancelButton: true,
@@ -3609,7 +3466,7 @@
             try {
                 const response = await HomeEasyCore.post({
                     tipo: 'EJECUTAR_RESTAURACION_ANULACION',
-                    pin: state.sessionPin,
+                    pin: state.adminCredential,
                     idAnulacion: a.id,
                     token: exec.token,
                     motivo: form.value.reason,
@@ -3621,7 +3478,7 @@
                 await Swal.fire({
                     icon: 'success',
                     title: 'Restauración completada',
-                    html: '<div style="font-size:.8rem;color:#625b5f;line-height:1.6;"><b>' + HomeEasyCore.escapeHtml(response.tipo + '-' + response.numero) + '</b> volvió al estado <b>' + HomeEasyCore.escapeHtml(response.estadoRestaurado || 'anterior') + '</b>.<br><span style="color:#a6455a;font-weight:750;">Registro ' + HomeEasyCore.escapeHtml(response.restauracionId || '') + '</span><br><span style="font-size:.67rem;color:#8e8e93;">No se eliminaron PDF ni recibos.</span></div>',
+                    html: '<div style="font-size:.8rem;color:#625b5f;line-height:1.6;"><b>' + HomeEasyCore.escapeHtml(response.tipo + '-' + response.numero) + '</b> volvió al estado <b>' + HomeEasyCore.escapeHtml(response.estadoRestaurado || 'anterior') + '</b>.<br><span style="color:#a6455a;font-weight:650;">Registro ' + HomeEasyCore.escapeHtml(response.restauracionId || '') + '</span><br><span style="font-size:.67rem;color:#8e8e93;">No se eliminaron PDF ni recibos.</span></div>',
                     confirmButtonText: 'Entendido',
                     confirmButtonColor: '#a6455a',
                     customClass: { popup: 'swal2-premium' }
@@ -3637,7 +3494,7 @@
 
         async function loadActivity(force) {
             const container = document.getElementById('activityList');
-            if (!container || !state.sessionPin) return;
+            if (!container || !state.adminCredential) return;
             if (state.activityLoaded && !force) {
                 applyActivityFilters();
                 return;
@@ -3647,7 +3504,7 @@
             try {
                 const data = await HomeEasyCore.post({
                     tipo: 'GET_AUDITORIA',
-                    pin: state.sessionPin,
+                    pin: state.adminCredential,
                     limite: 200
                 }, { timeoutMs: 30000 });
                 if (!data || data.status !== 'ok') throw new Error(data && data.msg ? data.msg : 'No se pudo cargar la actividad.');
@@ -3672,15 +3529,15 @@
 
         function populateActivityFilters(items) {
             const moduleSelect = document.getElementById('activityModuleFilter');
-            const operatorSelect = document.getElementById('activityOperatorFilter');
+            const activityUserSelect = document.getElementById('activityOperatorFilter');
             const selectedModule = moduleSelect.value;
-            const selectedOperator = operatorSelect.value;
+            const selectedOperator = activityUserSelect.value;
             const modules = [...new Set(items.map(item => item.modulo).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'es'));
             const operators = [...new Set(items.map(item => item.operador).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'es'));
             moduleSelect.innerHTML = '<option value="">Todos los módulos</option>' + modules.map(value => '<option value="' + HomeEasyCore.escapeHtml(value) + '">' + HomeEasyCore.escapeHtml(value) + '</option>').join('');
-            operatorSelect.innerHTML = '<option value="">Todos los usuarios</option>' + operators.map(value => '<option value="' + HomeEasyCore.escapeHtml(value) + '">' + HomeEasyCore.escapeHtml(value) + '</option>').join('');
+            activityUserSelect.innerHTML = '<option value="">Todos los usuarios</option>' + operators.map(value => '<option value="' + HomeEasyCore.escapeHtml(value) + '">' + HomeEasyCore.escapeHtml(value) + '</option>').join('');
             if (modules.includes(selectedModule)) moduleSelect.value = selectedModule;
-            if (operators.includes(selectedOperator)) operatorSelect.value = selectedOperator;
+            if (operators.includes(selectedOperator)) activityUserSelect.value = selectedOperator;
         }
 
         function applyActivityFilters() {
@@ -3756,7 +3613,7 @@
         }
 
         async function openAuditDetail(id) {
-            if (!id || !state.sessionPin) return;
+            if (!id || !state.adminCredential) return;
             const overlay = document.getElementById('auditDetailOverlay');
             const body = document.getElementById('auditDetailBody');
             document.getElementById('auditDetailHeading').textContent = 'Detalle de actividad';
@@ -3767,7 +3624,7 @@
             document.body.style.overflow = 'hidden';
 
             try {
-                const data = await HomeEasyCore.post({ tipo: 'GET_AUDITORIA_DETALLE', pin: state.sessionPin, id }, { timeoutMs: 30000 });
+                const data = await HomeEasyCore.post({ tipo: 'GET_AUDITORIA_DETALLE', pin: state.adminCredential, id }, { timeoutMs: 30000 });
                 if (!data || data.status !== 'ok' || !data.detalle) throw new Error(data && data.msg ? data.msg : 'No se pudo cargar el detalle.');
                 renderAuditDetail(data.detalle);
             } catch (error) {
@@ -3904,7 +3761,7 @@
             try {
                 const response = await HomeEasyCore.post({
                     tipo: 'CAMBIAR_PIN_CAJA',
-                    pinConfiguracion: state.sessionPin,
+                    pinConfiguracion: state.adminCredential,
                     nuevoPin: result.value
                 });
                 if (!response || response.status !== 'success') throw new Error(response && response.msg ? response.msg : 'No se pudo cambiar el PIN de Caja.');
@@ -3922,97 +3779,15 @@
             }
         }
 
-        async function changePin() {
-            const result = await Swal.fire({
-                title: 'Cambiar PIN',
-                html:
-                    '<input id="new-pin" class="swal2-input" type="password" inputmode="numeric" maxlength="8" placeholder="Nuevo PIN (4 a 8 números)">' +
-                    '<input id="confirm-pin" class="swal2-input" type="password" inputmode="numeric" maxlength="8" placeholder="Confirmar nuevo PIN">',
-                showCancelButton: true,
-                confirmButtonText: 'Guardar PIN',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#a6455a',
-                focusConfirm: false,
-                preConfirm: () => {
-                    const next = document.getElementById('new-pin').value.replace(/\D/g, '');
-                    const confirmation = document.getElementById('confirm-pin').value.replace(/\D/g, '');
-                    if (!/^\d{4,8}$/.test(next)) return Swal.showValidationMessage('El PIN debe tener entre 4 y 8 números.');
-                    if (next !== confirmation) return Swal.showValidationMessage('La confirmación no coincide.');
-                    if (next === state.sessionPin) return Swal.showValidationMessage('El nuevo PIN debe ser diferente.');
-                    return next;
-                }
-            });
-
-            if (!result.isConfirmed) return;
-            setSync(true, 'Actualizando PIN', 'Guardando el nuevo código de acceso.');
-            try {
-                const response = await HomeEasyCore.post({
-                    tipo: 'CAMBIAR_PIN_CONFIGURACION',
-                    pinActual: state.sessionPin,
-                    nuevoPin: result.value
-                });
-                if (!response || response.status !== 'success') throw new Error(response && response.msg ? response.msg : 'No se pudo cambiar el PIN.');
-                state.sessionPin = result.value;
-                state.activityLoaded = false;
-                Swal.fire({ icon: 'success', title: 'PIN actualizado', text: 'El nuevo PIN ya está activo.', confirmButtonColor: '#a6455a' });
-            } catch (error) {
-                Swal.fire({ icon: 'error', title: 'No se pudo cambiar', text: error.message, confirmButtonColor: '#a6455a' });
-            } finally {
-                setSync(false);
-            }
-        }
-
-        async function lockSettings() {
-            if (!state.dirty) {
-                lockImmediately();
-                return;
-            }
-
-            const result = await Swal.fire({
-                icon: 'warning',
-                title: 'Hay cambios sin guardar',
-                text: 'Puedes seguir editando o descartar los cambios y bloquear la configuración.',
-                showCancelButton: true,
-                confirmButtonText: 'Descartar y bloquear',
-                cancelButtonText: 'Seguir aquí',
-                confirmButtonColor: '#a6455a'
-            });
-            if (result.isConfirmed) {
-                discardChanges();
-                lockImmediately();
-            }
-        }
-
-        function lockImmediately(message) {
-            state.sessionPin = '';
-            state.lastActivity = Date.now();
-            state.activityLoaded = false;
-            state.activityItems = [];
-            state.inventoryLoaded = false;
-            state.inventoryItems = [];
-            state.inventoryPage = 1;
-            state.cleanupPlanLoaded = false;
-            state.cleanupPlanBusy = false;
-            state.cleanupPlan = null;
-            document.getElementById('settingsApp').classList.remove('ready');
-            document.getElementById('accessScreen').classList.remove('hidden');
-            document.getElementById('pinInput').value = '';
-            document.getElementById('pinInput').type = 'password';
-            document.getElementById('pinEyeIcon').className = 'fa-regular fa-eye';
-            document.getElementById('accessStatus').textContent = message || '';
-            document.getElementById('pinInput').classList.remove('error');
-            setTimeout(() => document.getElementById('pinInput').focus(), 120);
-        }
-
-        function setSync(visible, title, text) {
+function setSync(visible, title, text) {
             document.getElementById('syncOverlay').classList.toggle('visible', Boolean(visible));
             if (title) document.getElementById('syncTitle').textContent = title;
             if (text) document.getElementById('syncText').textContent = text;
         }
 
         function showFatalError(message) {
-            document.getElementById('accessStatus').textContent = message;
-            document.getElementById('accessSubmit').disabled = true;
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'No se pudo abrir Configuración', text: message, confirmButtonColor: '#a6455a' });
+            else document.body.innerHTML = '<main style="padding:32px;font-family:system-ui"><h1>HomeEasy</h1><p>' + HomeEasyCore.escapeHtml(message || 'Error de configuración') + '</p></main>';
         }
     </script>
 </body>
