@@ -1,0 +1,79 @@
+name: HomeEasy full fire audit
+
+on:
+  push:
+    branches: [audit/full-fire-test-2026-08-27]
+    paths:
+      - '.github/workflows/full-fire-audit.yml'
+      - '.github/scripts/full_fire_audit.py'
+      - '.github/scripts/fire_browser_smoke.js'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Static repository audit
+        id: static
+        continue-on-error: true
+        run: python3 .github/scripts/full_fire_audit.py
+
+      - name: Verify live GitHub Pages endpoints
+        id: live
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          BASE='https://alejoherrera05-del.github.io/Homeeasy'
+          files=(login.html index.html caja.html clientes.html ventas.html documentos.html calendario.html configuracion.html ar-homeeasy-v3.html homeeasy-core.js homeeasy-page-guard.js production/studio-core.js production/ar-app-v2.js production/ar-ui-v2.css)
+          : > FIRE_AUDIT_LIVE.txt
+          failed=0
+          for f in "${files[@]}"; do
+            code=$(curl -L -sS -o /dev/null -w '%{http_code}' "$BASE/$f" || true)
+            echo "$code $f" | tee -a FIRE_AUDIT_LIVE.txt
+            if [ "$code" != "200" ]; then failed=1; fi
+          done
+          exit $failed
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Browser smoke and navigation fire tests
+        id: browser
+        continue-on-error: true
+        env:
+          HOMEEASY_BASE: https://alejoherrera05-del.github.io/Homeeasy/
+        run: node .github/scripts/fire_browser_smoke.js
+
+      - name: Summarize audit
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          out={'static':None,'browser':None,'live':pathlib.Path('FIRE_AUDIT_LIVE.txt').read_text() if pathlib.Path('FIRE_AUDIT_LIVE.txt').exists() else ''}
+          for key,path in [('static','FIRE_AUDIT_STATIC.json'),('browser','FIRE_AUDIT_BROWSER.json')]:
+              p=pathlib.Path(path)
+              if p.exists(): out[key]=json.loads(p.read_text())
+          pathlib.Path('FIRE_AUDIT_SUMMARY.json').write_text(json.dumps(out,indent=2,ensure_ascii=False))
+          print(json.dumps(out,indent=2,ensure_ascii=False))
+          bad=(out['static'] and out['static'].get('status')!='ok') or (out['browser'] and out['browser'].get('status')!='ok')
+          if bad: raise SystemExit(1)
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: HomeEasy-Fire-Audit-2026-08-27
+          path: |
+            FIRE_AUDIT_STATIC.json
+            FIRE_AUDIT_BROWSER.json
+            FIRE_AUDIT_LIVE.txt
+            FIRE_AUDIT_SUMMARY.json
