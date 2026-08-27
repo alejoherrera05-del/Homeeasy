@@ -1,0 +1,29 @@
+name: HomeEasy full fire audit
+
+on:
+  push:
+    branches: [audit/full-fire-2026-08-27]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static audit
+        run: python3 .github/scripts/full_fire_audit.py
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+      - name: Browser fire tests
+        run: node .github/scripts/full_fire_browser.mjs
+      - name: Live GitHub Pages smoke
+        run: python3 .github/scripts/live_smoke.py
