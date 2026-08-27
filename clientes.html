@@ -77,7 +77,7 @@
         .mini-brand { color: white; font-weight: 700; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
         
         .client-card { background: white; border-radius: 28px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-left: 8px solid var(--homeeasy-gold); }
-        .client-name { font-weight: 800; color: var(--brand-wine); font-size: 1.3rem; letter-spacing: -0.5px; margin-bottom: 18px; text-transform: uppercase; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+        .client-name { font-weight: 700; color: var(--brand-wine); font-size: 1.3rem; letter-spacing: -0.5px; margin-bottom: 18px; text-transform: uppercase; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
         .btn-edit-client { background: rgba(166, 69, 90, 0.1); color: var(--brand-wine); border: none; border-radius: 12px; font-weight: 600; font-size: 0.8rem; padding: 6px 14px; transition: all 0.2s; }
         .btn-edit-client:active { transform: scale(0.95); background: rgba(166, 69, 90, 0.2); }
 
@@ -167,7 +167,9 @@
         #pdf-iframe { flex: 1; width: 100%; border: none; background: #ececec; }
 
     </style>
-    <script src="homeeasy-core.js?v=2.2"></script>
+    <script src="homeeasy-core.js?v=3.1"></script>
+    <script src="homeeasy-page-guard.js?v=3.1"></script>
+<style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
 </head>
 <body>
 
@@ -515,10 +517,10 @@
                         const esInicial = pago.recibo === "INICIAL";
                         const estadoPago = String(pago.estado || 'ACTIVO').toUpperCase();
                         const estadoBadge = estadoPago !== 'ACTIVO' && estadoPago !== 'SIN_PAGO'
-                            ? `<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:7px;background:#fff1f0;color:#a6455a;font-size:.55rem;font-weight:800;">${estadoPago.replace(/_/g, ' ')}</span>`
+                            ? `<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:7px;background:#fff1f0;color:#a6455a;font-size:.55rem;font-weight:700;">${estadoPago.replace(/_/g, ' ')}</span>`
                             : '';
                         const tipoBadge = String(pago.tipoRegistro || '').toUpperCase() === 'TRASLADO_CREDITO'
-                            ? '<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:7px;background:#eef6ff;color:#2371b7;font-size:.55rem;font-weight:800;">TRASLADO</span>'
+                            ? '<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:7px;background:#eef6ff;color:#2371b7;font-size:.55rem;font-weight:700;">TRASLADO</span>'
                             : '';
                         
                         abonosHtml += `
@@ -621,7 +623,7 @@
                         <div style="margin:14px 0 12px; padding:11px 13px; border-radius:12px; background:#f8f3f4; color:#8a3b4c; font-size:.78rem; font-weight:700;">
                             <i class="fas fa-shield-halved me-2"></i>Esta revisión no anula ni modifica ningún dato.
                         </div>
-                        <label for="anulacion-pin" style="display:block; margin-bottom:6px; font-size:.7rem; font-weight:800; color:#8e8e93; text-transform:uppercase;">PIN de Configuración</label>
+                        <label for="anulacion-pin" style="display:block; margin-bottom:6px; font-size:.7rem; font-weight:700; color:#8e8e93; text-transform:uppercase;">PIN de Configuración</label>
                         <input id="anulacion-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off"
                                style="width:100%; height:48px; border:1px solid #e5e5ea; border-radius:13px; padding:0 15px; font-size:1.05rem; text-align:center; letter-spacing:5px; outline:none;">
                     </div>`,
@@ -745,7 +747,7 @@
             let financiero = '';
             if (doc.tipo === 'OP') {
                 financiero = `
-                    <div style="margin-top:14px;font-size:.72rem;font-weight:800;color:#a6455a;text-transform:uppercase;letter-spacing:.7px;">Impacto financiero</div>
+                    <div style="margin-top:14px;font-size:.72rem;font-weight:700;color:#a6455a;text-transform:uppercase;letter-spacing:.7px;">Impacto financiero</div>
                     ${row('Abono inicial', money(dep.abonoInicial), false)}
                     ${row('Recibos posteriores', safe((dep.recibos || []).length) + ' · ' + money(dep.totalRecibos), false)}
                     ${row('Total pagado', money(dep.totalPagado), true)}
@@ -764,13 +766,13 @@
 
             const advertencias = Array.isArray(diag.advertencias) ? diag.advertencias : [];
             const advertenciasHtml = advertencias.length
-                ? `<div style="margin-top:14px;text-align:left;"><div style="font-size:.72rem;font-weight:800;color:#a6455a;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;">Observaciones</div>${advertencias.map(item => `<div style="display:flex;gap:8px;margin:6px 0;color:#655f62;font-size:.76rem;line-height:1.4;"><i class="fas fa-circle-exclamation" style="color:#c2a468;margin-top:2px;"></i><span>${safe(item)}</span></div>`).join('')}</div>`
+                ? `<div style="margin-top:14px;text-align:left;"><div style="font-size:.72rem;font-weight:700;color:#a6455a;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;">Observaciones</div>${advertencias.map(item => `<div style="display:flex;gap:8px;margin:6px 0;color:#655f62;font-size:.76rem;line-height:1.4;"><i class="fas fa-circle-exclamation" style="color:#c2a468;margin-top:2px;"></i><span>${safe(item)}</span></div>`).join('')}</div>`
                 : '';
 
             return `
                 <div style="text-align:left;">
                     <div style="padding:13px 15px;border-radius:14px;background:${colores.fondo};border-left:5px solid ${colores.borde};color:${colores.texto};font-size:.82rem;line-height:1.5;font-weight:650;">
-                        <div style="font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Riesgo ${safe(diag.nivel)}</div>
+                        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Riesgo ${safe(diag.nivel)}</div>
                         ${safe(diag.mensaje)}
                     </div>
                     <div style="margin-top:14px;">${resumen}</div>
@@ -778,7 +780,7 @@
                     ${relacionesHtml}
                     ${advertenciasHtml}
                     ${construirEstadoEjecucionAnulacion(resultado)}
-                    <div style="margin-top:12px;padding:10px 12px;border-radius:12px;background:#f1faf3;color:#27763b;font-size:.73rem;font-weight:750;text-align:center;">
+                    <div style="margin-top:12px;padding:10px 12px;border-radius:12px;background:#f1faf3;color:#27763b;font-size:.73rem;font-weight:650;text-align:center;">
                         <i class="fas fa-lock me-1"></i> Revisión terminada: no se modificaron datos, saldos ni archivos.
                     </div>
                 </div>`;
@@ -845,14 +847,14 @@
             let campos = '';
             if (codigo === 'REEMBOLSO_TOTAL') {
                 campos = `
-                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Medio del reembolso</label>
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Medio del reembolso</label>
                     <select id="anulacion-medio-reembolso" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;">
                         <option value="">Seleccionar…</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="OTRO">Otro</option>
                     </select>`;
             } else if (codigo === 'TRASLADO_TOTAL_A_OP') {
                 const disponibles = opciones.filter(item => item.disponible);
                 campos = `
-                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">OP de destino</label>
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">OP de destino</label>
                     <select id="anulacion-op-destino" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;">
                         <option value="">Seleccionar…</option>
                         ${disponibles.map(item => `<option value="${HomeEasyCore.escapeHtml(item.numero)}">OP-${HomeEasyCore.escapeHtml(item.numero)} · saldo $${Number(item.saldo || 0).toLocaleString('es-CO')}</option>`).join('')}
@@ -860,17 +862,17 @@
                     ${disponibles.length ? '' : '<div style="margin-top:7px;color:#b34b56;font-size:.72rem;font-weight:700;">No hay otra OP del mismo cliente con saldo y cupo suficiente.</div>'}`;
             } else if (codigo === 'RETENCION_POR_ACUERDO') {
                 campos = `
-                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Confirmación especial</label>
-                    <input id="anulacion-confirmacion-especial" type="text" placeholder="DINERO RETENIDO" autocomplete="off" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 12px;text-align:center;font-weight:800;text-transform:uppercase;outline:none;">`;
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Confirmación especial</label>
+                    <input id="anulacion-confirmacion-especial" type="text" placeholder="DINERO RETENIDO" autocomplete="off" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 12px;text-align:center;font-weight:700;text-transform:uppercase;outline:none;">`;
             } else if (codigo === 'CORRECCION_ADMINISTRATIVA') {
                 campos = `
-                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Confirmación especial</label>
-                    <input id="anulacion-confirmacion-especial" type="text" placeholder="NO HUBO DINERO" autocomplete="off" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 12px;text-align:center;font-weight:800;text-transform:uppercase;outline:none;">`;
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Confirmación especial</label>
+                    <input id="anulacion-confirmacion-especial" type="text" placeholder="NO HUBO DINERO" autocomplete="off" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 12px;text-align:center;font-weight:700;text-transform:uppercase;outline:none;">`;
             }
             container.innerHTML = `
                 <div style="margin-top:10px;padding:10px 12px;border-radius:11px;background:#fff8ed;color:#80570f;font-size:.74rem;line-height:1.45;">${HomeEasyCore.escapeHtml(descripcionTratamientoAnulacion(codigo, total))}</div>
                 ${campos}
-                ${codigo !== 'NO_APLICA_SIN_PAGOS' ? `<label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Detalle del tratamiento (opcional)</label><textarea id="anulacion-detalle-tratamiento" maxlength="300" rows="2" placeholder="Ej: comprobante de transferencia, acuerdo firmado, observación interna…" style="width:100%;border:1px solid #e5e5ea;border-radius:11px;padding:9px 11px;resize:none;outline:none;font:inherit;font-size:.78rem;"></textarea>` : ''}`;
+                ${codigo !== 'NO_APLICA_SIN_PAGOS' ? `<label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Detalle del tratamiento (opcional)</label><textarea id="anulacion-detalle-tratamiento" maxlength="300" rows="2" placeholder="Ej: comprobante de transferencia, acuerdo firmado, observación interna…" style="width:100%;border:1px solid #e5e5ea;border-radius:11px;padding:9px 11px;resize:none;outline:none;font:inherit;font-size:.78rem;"></textarea>` : ''}`;
         }
 
         async function solicitarConfirmacionFinalAnulacion(resultado, pin) {
@@ -886,13 +888,13 @@
                 ? `<label style="display:flex;align-items:flex-start;gap:9px;margin:14px 0 4px;padding:10px 11px;border-radius:11px;background:#f8f9fa;color:#5f5a5d;font-size:.76rem;line-height:1.4;cursor:pointer;"><input id="anulacion-cancelar-eventos" type="checkbox" checked style="margin-top:2px;width:17px;height:17px;accent-color:#a6455a;"><span>Cancelar también ${eventos} evento${eventos === 1 ? '' : 's'} pendiente${eventos === 1 ? '' : 's'} de Agenda.</span></label>`
                 : '';
             const origenHtml = doc.tipo === 'OP' && cotizacionesOrigen.length
-                ? `<label style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Cotización de origen</label><select id="anulacion-cotizacion-origen" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;"><option value="ARCHIVAR">Archivar cotización de origen</option><option value="REACTIVAR">Reactivar como cotización</option></select>`
+                ? `<label style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Cotización de origen</label><select id="anulacion-cotizacion-origen" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;"><option value="ARCHIVAR">Archivar cotización de origen</option><option value="REACTIVAR">Reactivar como cotización</option></select>`
                 : '';
             const cajaHtml = referenciasCaja
                 ? `<label style="display:flex;align-items:flex-start;gap:9px;margin:14px 0 4px;padding:10px 11px;border-radius:11px;background:#fff6e8;color:#80570f;font-size:.75rem;line-height:1.4;cursor:pointer;"><input id="anulacion-confirmar-caja" type="checkbox" style="margin-top:2px;width:17px;height:17px;accent-color:#a6455a;"><span>Revisé las ${referenciasCaja} posible${referenciasCaja === 1 ? '' : 's'} referencia${referenciasCaja === 1 ? '' : 's'} manual${referenciasCaja === 1 ? '' : 'es'} encontradas en Caja y confirmo continuar.</span></label>`
                 : '';
             const tratamientoHtml = requiereTratamiento
-                ? `<label style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">¿Qué ocurrió con $${Number(dep.totalPagado || 0).toLocaleString('es-CO')}?</label><select id="anulacion-tratamiento" style="width:100%;height:46px;border:1px solid #e5e5ea;border-radius:12px;padding:0 11px;background:white;font-weight:700;outline:none;">${opcionesTratamientoHtml(resultado)}</select><div id="anulacion-tratamiento-detalle"></div>`
+                ? `<label style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">¿Qué ocurrió con $${Number(dep.totalPagado || 0).toLocaleString('es-CO')}?</label><select id="anulacion-tratamiento" style="width:100%;height:46px;border:1px solid #e5e5ea;border-radius:12px;padding:0 11px;background:white;font-weight:700;outline:none;">${opcionesTratamientoHtml(resultado)}</select><div id="anulacion-tratamiento-detalle"></div>`
                 : `<input id="anulacion-tratamiento" type="hidden" value="NO_APLICA_SIN_PAGOS">`;
 
             const confirmacion = await Swal.fire({
@@ -906,10 +908,10 @@
                         ${cajaHtml}
                         ${origenHtml}
                         ${eventosHtml}
-                        <label for="anulacion-motivo" style="display:block;margin:15px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Motivo</label>
+                        <label for="anulacion-motivo" style="display:block;margin:15px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Motivo</label>
                         <textarea id="anulacion-motivo" maxlength="300" rows="3" placeholder="Explica por qué se anula este documento…" style="width:100%;border:1px solid #e5e5ea;border-radius:12px;padding:11px 12px;resize:none;outline:none;font:inherit;font-size:.82rem;"></textarea>
-                        <label for="anulacion-confirmacion" style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:800;color:#8e8e93;text-transform:uppercase;">Escribe ${codigo}</label>
-                        <input id="anulacion-confirmacion" type="text" autocomplete="off" placeholder="${codigo}" style="width:100%;height:46px;border:1px solid #e5e5ea;border-radius:12px;padding:0 13px;text-align:center;font-weight:800;letter-spacing:1px;outline:none;text-transform:uppercase;">
+                        <label for="anulacion-confirmacion" style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Escribe ${codigo}</label>
+                        <input id="anulacion-confirmacion" type="text" autocomplete="off" placeholder="${codigo}" style="width:100%;height:46px;border:1px solid #e5e5ea;border-radius:12px;padding:0 13px;text-align:center;font-weight:700;letter-spacing:1px;outline:none;text-transform:uppercase;">
                     </div>`,
                 showCancelButton: true,
                 confirmButtonText: 'Anular documento',
@@ -1019,7 +1021,7 @@
                     html: `
                         <div style="font-size:.84rem;color:#5f5a5d;line-height:1.6;">
                             <b>${doc.tipo === 'OP' ? 'OP-' : 'COT-'}${doc.numero}</b> quedó en estado <b>ANULADA</b>.<br>
-                            <span style="color:#a6455a;font-weight:750;">${HomeEasyCore.escapeHtml(etiquetaTratamientoAnulacion(response.tratamientoFinanciero || 'NO_APLICA_SIN_PAGOS'))}</span>
+                            <span style="color:#a6455a;font-weight:650;">${HomeEasyCore.escapeHtml(etiquetaTratamientoAnulacion(response.tratamientoFinanciero || 'NO_APLICA_SIN_PAGOS'))}</span>
                             ${extras.length ? '<div style="margin-top:10px;padding:10px;border-radius:10px;background:#f8f9fa;text-align:left;">' + extras.map(item => '• ' + HomeEasyCore.escapeHtml(item)).join('<br>') + '</div>' : ''}
                             <span style="display:block;margin-top:10px;font-size:.72rem;color:#8e8e93;">Registro: ${HomeEasyCore.escapeHtml(response.idAnulacion || 'creado')}</span>
                         </div>`,
