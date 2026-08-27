@@ -1,0 +1,62 @@
+{
+  "testedAt": "2026-08-27T16:40:00-05:00",
+  "servedTree": "current repository root via HTTP",
+  "modelViewer": "4.3.1 vendored",
+  "httpHtmlStatus": 200,
+  "consoleErrors": 0,
+  "knownExporterWarnings": "model-viewer USDZExporter warns that USDZ does not support double-sided materials in existing golden materials; no golden material was modified",
+  "commonAssertions": {
+    "viewerSrcExact": true,
+    "iosSrcAbsent": true,
+    "mimeType": "model/vnd.usdz+zip",
+    "sourceLayerName": "model.usda",
+    "firstEntry": "placement.usda",
+    "allEntriesStoredAnd64ByteAligned": true,
+    "anchoringApi": "Preliminary_AnchoringAPI",
+    "anchoringType": "plane",
+    "planeAlignment": "vertical",
+    "allowsContentScaling": false
+  },
+  "representatives": [
+    {
+      "productId": "sheer",
+      "configuration": "White | 1.00 x 2.20 m | Binovo | Abierta",
+      "glbBytes": 1567976,
+      "glbSha256": "263b671bc7b891ebb1819f36ae24236ba32852e5753c9c3c79a49f080b599577",
+      "usdzBytes": 3487919,
+      "usdzSha256": "35a95726185b43deb931ad1243e0766e772c15e0b779bdee900ac31645fba6e3",
+      "mountPointM": [0, 2.36, 0],
+      "wallBackZ": 0,
+      "minimumClearanceM": 0,
+      "maximumProjectionM": 0.1,
+      "wallPlaneTestPassed": true
+    },
+    {
+      "productId": "panel",
+      "configuration": "White Grey | 2.50 x 2.20 m | Cerrado",
+      "glbBytes": 6020460,
+      "glbSha256": "2a588aa58d576e98687f8a84921c068fb3904514bfa3f12d0187b9126c728aec",
+      "usdzBytes": 8245178,
+      "usdzSha256": "dba82b9d468a14131bc17d15e77f165ccb99a71bc31bcec89101d5eb7d3fa767",
+      "mountPointM": [0, 2.2, -0.048],
+      "wallBackZ": -0.048,
+      "minimumClearanceM": 0,
+      "maximumProjectionM": 0.088,
+      "wallPlaneTestPassed": true
+    },
+    {
+      "productId": "onda",
+      "configuration": "Velo / Coral White | 1.00 x 2.20 m | Cerrada",
+      "glbBytes": 3700172,
+      "glbSha256": "d78a23490bfd3250ab97f6887c71929a174ca472abf8bb76e083b4792a91e3ab",
+      "usdzBytes": 7669761,
+      "usdzSha256": "98b887f9167c169d05443e7462cfc98a5eda61cf10797cf869cb31c59d2dd7c9",
+      "mountPointM": [0, 2.2355, -0.099],
+      "wallBackZ": -0.099,
+      "minimumClearanceM": 0,
+      "maximumProjectionM": 0.137,
+      "wallPlaneTestPassed": true
+    }
+  ],
+  "physicalQuickLookIphoneTest": "PENDING"
+}

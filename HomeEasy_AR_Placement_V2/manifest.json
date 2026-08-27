@@ -1,0 +1,28 @@
+{
+  "name": "HomeEasy_AR_Placement_V2",
+  "type": "isolated-web-placement-lab",
+  "sourceRepository": "alejoherrera05-del/Homeeasy",
+  "sourceBranch": "main",
+  "sourceCommit": "5b54a99a1f8434f017c3e7304d26d71dbfbe7f72",
+  "productionPageModified": false,
+  "goldenProductsCopied": false,
+  "goldenProductsModified": false,
+  "representativeConfigurations": {
+    "sheer": "White | 1.00 x 2.20 m | Binovo | Abierta",
+    "panel": "White Grey | 2.50 x 2.20 m | Cerrado",
+    "onda": "Velo / Coral White | 1.00 x 2.20 m | Cerrada"
+  },
+  "files": [
+    "ar-homeeasy-placement-v2.html",
+    "production/quicklook-placement-v2.js",
+    "docs/PLACEMENT_V2_RESEARCH.md",
+    "docs/IPHONE_PLACEMENT_TEST.md",
+    "docs/REALITYKIT_PLACEMENT_PATH.md",
+    "tests/placement-v2-static.test.mjs",
+    "tests/golden-products-lock.test.mjs",
+    "tests/browser-representative-report.json",
+    "tests/run-tests.mjs",
+    "manifest.json"
+  ],
+  "physicalIphoneTest": "PENDING"
+}
