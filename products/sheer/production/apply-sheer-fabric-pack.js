@@ -367,7 +367,7 @@ function assignRigidMaterial(parsed, nodeNames, definition) {
       metallicFactor: definition.metallicFactor,
       roughnessFactor: definition.roughnessFactor,
     },
-    doubleSided: false,
+    doubleSided: Boolean(definition.doubleSided),
   });
   for (const name of nodeNames) {
     const node = parsed.json.nodes.find(item => item.name === name);
@@ -582,6 +582,7 @@ export async function applySheerFabricPack(masterGlb, fabricPack, input = {}) {
   if (system.id !== 'standard') for (const name of headrailNames) recomputeMeshFrame(parsed, name);
   const headrailMaterial = assignRigidMaterial(parsed, headrailNames, {name: 'HomeEasy_Headrail_Matte_V23', baseColorFactor: [0.84, 0.84, 0.80, 1], metallicFactor: 0.08, roughnessFactor: 0.62});
   const capMaterial = assignRigidMaterial(parsed, endPieceNames, {name: 'HomeEasy_EndCaps_Matte_V23', baseColorFactor: [0.72, 0.69, 0.62, 1], metallicFactor: 0, roughnessFactor: 0.68});
+  const lowerRailMaterial = assignRigidMaterial(parsed, ['Perfil_Inferior'], {name: 'HomeEasy_LowerRail_Matte_V23', baseColorFactor: [0.84, 0.84, 0.80, 1], metallicFactor: 0.08, roughnessFactor: 0.62, doubleSided: true});
   renameNode(parsed, 'Cabezal_Binovo_Plano', `Cabezal_${system.label.replace(/\s+/g, '_')}_Plano`, {
     system: system.label,
     sectionM: system.geometry.sectionM,
@@ -604,10 +605,16 @@ export async function applySheerFabricPack(masterGlb, fabricPack, input = {}) {
   mutateIfPresent(parsed, ['Tela_Frontal'], ([x, y]) => [x * (width / BASE.fabricWidth), textileY(y), frontZ]);
   mutateIfPresent(parsed, ['Canto_Textil_Izq', 'Canto_Textil_Der'], ([x, y]) => [signOffset(x, dw), textileY(y), (rearZ + frontZ) / 2]);
   const lowerZShift = (rearZ + frontZ) / 2 - 0.0635;
-  mutateIfPresent(parsed, ['Tela_Retorno_Inferior'], ([x, y, z]) => [x * (width / BASE.fabricWidth), y, z + lowerZShift]);
+  const lowerReturnCenter = [0.0600, 0.0635 + lowerZShift], lowerReturnClearanceM = 0.00035, lowerInsertClearanceM = 0.00060;
+  mutateIfPresent(parsed, ['Tela_Retorno_Inferior'], ([x, y, z]) => {
+    const shiftedZ = z + lowerZShift, dy = y - lowerReturnCenter[0], dz = shiftedZ - lowerReturnCenter[1], radius = Math.hypot(dy, dz), scale = radius > 1e-8 ? (radius + lowerReturnClearanceM) / radius : 1;
+    return [x * (width / BASE.fabricWidth), lowerReturnCenter[0] + dy * scale, lowerReturnCenter[1] + dz * scale];
+  });
   mutateIfPresent(parsed, ['Rodillo_Retorno_Inferior'], ([x, y, z]) => [x * ((width - 0.030) / (BASE.fabricWidth - 0.030)), y, z + lowerZShift]);
   mutateIfPresent(parsed, ['Perfil_Inferior'], ([x, y, z]) => [x * ((width + BASE.lowerProfileOverhang) / (BASE.fabricWidth + BASE.lowerProfileOverhang)), y, z + lowerZShift]);
-  mutateIfPresent(parsed, ['Inserto_Perfil_Inferior'], ([x, y, z]) => [x * ((width - 0.012) / (BASE.fabricWidth - 0.012)), y, z + lowerZShift]);
+  mutateIfPresent(parsed, ['Inserto_Perfil_Inferior'], ([x, y, z]) => [x * ((width - 0.012) / (BASE.fabricWidth - 0.012)), y, z + lowerZShift + lowerInsertClearanceM]);
+  const lowerRailNode = parsed.json.nodes.find(node => node.name === 'Perfil_Inferior');
+  if (lowerRailNode) lowerRailNode.extras = {...lowerRailNode.extras, finishMatchedTo: system.label, material: 'HomeEasy_LowerRail_Matte_V23', lowerRailMaterial, lowerInsertClearanceM, lowerReturnClearanceM, coplanarInterfacesSeparated: true};
 
   const frontUv=accessorInfo(parsed,primitiveForNode(parsed,'Tela_Frontal').primitive.attributes.TEXCOORD_0),oldU=Math.abs(Number(frontUv.accessor.max?.[0])-Number(frontUv.accessor.min?.[0])),newU=width/Number(profile.repeatWidthM);
   if(!(oldU>0))throw new Error('El master no declara un rango UV horizontal válido.');

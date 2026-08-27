@@ -1,0 +1,5805 @@
+{
+  "schemaVersion": "1.0.0",
+  "scope": "Panel overlap density and Sheer lower rail only",
+  "baselineCommit": "01afc861321d38b454d518e6c1a0e380c64e2c97",
+  "measurements": {
+    "panel": {
+      "before": {
+        "closed": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "closed",
+            "color": "white-black",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "index": 1,
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "index": 2,
+              "x": -0.36249999999999993,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "index": 3,
+              "x": 0.36250000000000004,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "index": 4,
+              "x": 1.0875,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            }
+          ],
+          "overlaps": [
+            0.07999999999999996,
+            0.07999999999999996,
+            0.08000000000000007
+          ],
+          "overlays": [],
+          "baseMaterial": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "baseColorFactor": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "metallicFactor": 0,
+            "roughnessFactor": 1,
+            "alphaMode": "MASK",
+            "alpha": 1,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white-black",
+              "colorName": "White Black",
+              "productCode": "PANSCTRE3WHBL",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "closed",
+              "color": "white-black",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Cerrado",
+              "projection": 0,
+              "classification": "documentedState"
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          },
+          "primaryGeometryHash": "10fbf9d2e0f43a7d71f7f840bf209206998d1338bcb547352851f9e2b2ce3d7c"
+        },
+        "partial": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "partial",
+            "color": "white-black",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "index": 1,
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "index": 2,
+              "x": -0.7259799999999998,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "index": 3,
+              "x": -0.3644599999999999,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "index": 4,
+              "x": -0.0029399999999999427,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            }
+          ],
+          "overlaps": [
+            0.4434799999999999,
+            0.44348,
+            0.44348
+          ],
+          "overlays": [],
+          "baseMaterial": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "baseColorFactor": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "metallicFactor": 0,
+            "roughnessFactor": 1,
+            "alphaMode": "MASK",
+            "alpha": 1,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white-black",
+              "colorName": "White Black",
+              "productCode": "PANSCTRE3WHBL",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "partial",
+              "color": "white-black",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Parcial",
+              "projection": 0.52,
+              "classification": "visualApproximation",
+              "partialPositionVisualApproximation": true
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          },
+          "primaryGeometryHash": "10fbf9d2e0f43a7d71f7f840bf209206998d1338bcb547352851f9e2b2ce3d7c"
+        },
+        "collected": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "collected",
+            "color": "white-black",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "index": 1,
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "index": 2,
+              "x": -1.0614999999999999,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "index": 3,
+              "x": -1.0354999999999999,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "index": 4,
+              "x": -1.0094999999999996,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            }
+          ],
+          "overlaps": [
+            0.7789999999999999,
+            0.7789999999999999,
+            0.7789999999999997
+          ],
+          "overlays": [],
+          "baseMaterial": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "baseColorFactor": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "metallicFactor": 0,
+            "roughnessFactor": 1,
+            "alphaMode": "MASK",
+            "alpha": 1,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white-black",
+              "colorName": "White Black",
+              "productCode": "PANSCTRE3WHBL",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "collected",
+              "color": "white-black",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Recogido",
+              "projection": 1,
+              "classification": "documentedState"
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          },
+          "primaryGeometryHash": "10fbf9d2e0f43a7d71f7f840bf209206998d1338bcb547352851f9e2b2ce3d7c"
+        }
+      },
+      "after": {
+        "closed": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "closed",
+            "color": "white-black",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "index": 1,
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "index": 2,
+              "x": -0.36249999999999993,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "index": 3,
+              "x": 0.36250000000000004,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "index": 4,
+              "x": 1.0875,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            }
+          ],
+          "overlaps": [
+            0.07999999999999996,
+            0.07999999999999996,
+            0.08000000000000007
+          ],
+          "overlays": [
+            {
+              "left": -0.765,
+              "right": -0.685,
+              "centerX": -0.7250000000000001,
+              "widthM": 0.07999999999999996,
+              "layerCount": 2,
+              "panelIndices": [
+                1,
+                2
+              ],
+              "tracks": [
+                0,
+                1
+              ],
+              "frontPanelIndex": 2,
+              "frontZ": -0.009000000000000001,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.9,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_1",
+              "material": {
+                "index": 5,
+                "name": "PANEL_OVERLAP_DENSITY_2X_1",
+                "baseColorFactor": [
+                  0.9,
+                  0.9,
+                  0.9,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939393,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939393,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939393,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 2,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -0.04,
+              "right": 0.04,
+              "centerX": 0,
+              "widthM": 0.08,
+              "layerCount": 2,
+              "panelIndices": [
+                2,
+                3
+              ],
+              "tracks": [
+                1,
+                2
+              ],
+              "frontPanelIndex": 3,
+              "frontZ": 0.009000000000000001,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.9,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_2",
+              "material": {
+                "index": 6,
+                "name": "PANEL_OVERLAP_DENSITY_2X_2",
+                "baseColorFactor": [
+                  0.9,
+                  0.9,
+                  0.9,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939394,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939394,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939394,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 2,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": 0.685,
+              "right": 0.765,
+              "centerX": 0.7250000000000001,
+              "widthM": 0.07999999999999996,
+              "layerCount": 2,
+              "panelIndices": [
+                3,
+                4
+              ],
+              "tracks": [
+                2,
+                3
+              ],
+              "frontPanelIndex": 4,
+              "frontZ": 0.027000000000000003,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.9,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_3",
+              "material": {
+                "index": 7,
+                "name": "PANEL_OVERLAP_DENSITY_2X_3",
+                "baseColorFactor": [
+                  0.9,
+                  0.9,
+                  0.9,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939393,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939393,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.893939393939393,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 2,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            }
+          ],
+          "baseMaterial": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "baseColorFactor": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "metallicFactor": 0,
+            "roughnessFactor": 1,
+            "alphaMode": "MASK",
+            "alpha": 1,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white-black",
+              "colorName": "White Black",
+              "productCode": "PANSCTRE3WHBL",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "closed",
+              "color": "white-black",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Cerrado",
+              "projection": 0,
+              "classification": "documentedState"
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "overlapDensityModel": {
+              "type": "actual-layer-intersection",
+              "decorativeBorder": false,
+              "attenuationPerExtraLayer": 0.9,
+              "opticalClearanceM": 0.00008,
+              "intervals": [
+                {
+                  "left": -0.765,
+                  "right": -0.685,
+                  "centerX": -0.7250000000000001,
+                  "widthM": 0.07999999999999996,
+                  "layerCount": 2,
+                  "panelIndices": [
+                    1,
+                    2
+                  ],
+                  "tracks": [
+                    0,
+                    1
+                  ],
+                  "frontPanelIndex": 2,
+                  "frontZ": -0.009000000000000001,
+                  "densityFactor": 0.9,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -0.04,
+                  "right": 0.04,
+                  "centerX": 0,
+                  "widthM": 0.08,
+                  "layerCount": 2,
+                  "panelIndices": [
+                    2,
+                    3
+                  ],
+                  "tracks": [
+                    1,
+                    2
+                  ],
+                  "frontPanelIndex": 3,
+                  "frontZ": 0.009000000000000001,
+                  "densityFactor": 0.9,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": 0.685,
+                  "right": 0.765,
+                  "centerX": 0.7250000000000001,
+                  "widthM": 0.07999999999999996,
+                  "layerCount": 2,
+                  "panelIndices": [
+                    3,
+                    4
+                  ],
+                  "tracks": [
+                    2,
+                    3
+                  ],
+                  "frontPanelIndex": 4,
+                  "frontZ": 0.027000000000000003,
+                  "densityFactor": 0.9,
+                  "opticalClearanceM": 0.00008
+                }
+              ]
+            },
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          },
+          "primaryGeometryHash": "10fbf9d2e0f43a7d71f7f840bf209206998d1338bcb547352851f9e2b2ce3d7c"
+        },
+        "partial": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "partial",
+            "color": "white-black",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "index": 1,
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "index": 2,
+              "x": -0.7259799999999998,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "index": 3,
+              "x": -0.3644599999999999,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "index": 4,
+              "x": -0.0029399999999999427,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            }
+          ],
+          "overlaps": [
+            0.4434799999999999,
+            0.44348,
+            0.44348
+          ],
+          "overlays": [
+            {
+              "left": -1.12848,
+              "right": -0.76696,
+              "centerX": -0.9477199999999999,
+              "widthM": 0.36151999999999995,
+              "layerCount": 2,
+              "panelIndices": [
+                1,
+                2
+              ],
+              "tracks": [
+                0,
+                1
+              ],
+              "frontPanelIndex": 2,
+              "frontZ": -0.009000000000000001,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.9,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_1",
+              "material": {
+                "index": 5,
+                "name": "PANEL_OVERLAP_DENSITY_2X_1",
+                "baseColorFactor": [
+                  0.9,
+                  0.9,
+                  0.9,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        8.55871212121212,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        8.55871212121212,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        8.55871212121212,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 2,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -0.76696,
+              "right": -0.685,
+              "centerX": -0.7259800000000001,
+              "widthM": 0.08195999999999992,
+              "layerCount": 3,
+              "panelIndices": [
+                1,
+                2,
+                3
+              ],
+              "tracks": [
+                0,
+                1,
+                2
+              ],
+              "frontPanelIndex": 3,
+              "frontZ": 0.009000000000000001,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.81,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_2",
+              "material": {
+                "index": 6,
+                "name": "PANEL_OVERLAP_DENSITY_3X_2",
+                "baseColorFactor": [
+                  0.81,
+                  0.81,
+                  0.81,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.9403409090909072,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.9403409090909072,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.9403409090909072,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 3,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -0.685,
+              "right": -0.40544,
+              "centerX": -0.54522,
+              "widthM": 0.27956000000000003,
+              "layerCount": 2,
+              "panelIndices": [
+                2,
+                3
+              ],
+              "tracks": [
+                1,
+                2
+              ],
+              "frontPanelIndex": 3,
+              "frontZ": 0.009000000000000001,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.9,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_3",
+              "material": {
+                "index": 7,
+                "name": "PANEL_OVERLAP_DENSITY_2X_3",
+                "baseColorFactor": [
+                  0.9,
+                  0.9,
+                  0.9,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        6.618371212121213,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        6.618371212121213,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        6.618371212121213,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 2,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -0.40544,
+              "right": -0.32348,
+              "centerX": -0.36446,
+              "widthM": 0.08196000000000003,
+              "layerCount": 3,
+              "panelIndices": [
+                2,
+                3,
+                4
+              ],
+              "tracks": [
+                1,
+                2,
+                3
+              ],
+              "frontPanelIndex": 4,
+              "frontZ": 0.027000000000000003,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.81,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_4",
+              "material": {
+                "index": 8,
+                "name": "PANEL_OVERLAP_DENSITY_3X_4",
+                "baseColorFactor": [
+                  0.81,
+                  0.81,
+                  0.81,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.9403409090909098,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.9403409090909098,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        1.9403409090909098,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 3,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -0.32348,
+              "right": 0.03804,
+              "centerX": -0.14271999999999999,
+              "widthM": 0.36152,
+              "layerCount": 2,
+              "panelIndices": [
+                3,
+                4
+              ],
+              "tracks": [
+                2,
+                3
+              ],
+              "frontPanelIndex": 4,
+              "frontZ": 0.027000000000000003,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.9,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_5",
+              "material": {
+                "index": 9,
+                "name": "PANEL_OVERLAP_DENSITY_2X_5",
+                "baseColorFactor": [
+                  0.9,
+                  0.9,
+                  0.9,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        8.558712121212121,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        8.558712121212121,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        8.558712121212121,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 2,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            }
+          ],
+          "baseMaterial": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "baseColorFactor": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "metallicFactor": 0,
+            "roughnessFactor": 1,
+            "alphaMode": "MASK",
+            "alpha": 1,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white-black",
+              "colorName": "White Black",
+              "productCode": "PANSCTRE3WHBL",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "partial",
+              "color": "white-black",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Parcial",
+              "projection": 0.52,
+              "classification": "visualApproximation",
+              "partialPositionVisualApproximation": true
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "overlapDensityModel": {
+              "type": "actual-layer-intersection",
+              "decorativeBorder": false,
+              "attenuationPerExtraLayer": 0.9,
+              "opticalClearanceM": 0.00008,
+              "intervals": [
+                {
+                  "left": -1.12848,
+                  "right": -0.76696,
+                  "centerX": -0.9477199999999999,
+                  "widthM": 0.36151999999999995,
+                  "layerCount": 2,
+                  "panelIndices": [
+                    1,
+                    2
+                  ],
+                  "tracks": [
+                    0,
+                    1
+                  ],
+                  "frontPanelIndex": 2,
+                  "frontZ": -0.009000000000000001,
+                  "densityFactor": 0.9,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -0.76696,
+                  "right": -0.685,
+                  "centerX": -0.7259800000000001,
+                  "widthM": 0.08195999999999992,
+                  "layerCount": 3,
+                  "panelIndices": [
+                    1,
+                    2,
+                    3
+                  ],
+                  "tracks": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "frontPanelIndex": 3,
+                  "frontZ": 0.009000000000000001,
+                  "densityFactor": 0.81,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -0.685,
+                  "right": -0.40544,
+                  "centerX": -0.54522,
+                  "widthM": 0.27956000000000003,
+                  "layerCount": 2,
+                  "panelIndices": [
+                    2,
+                    3
+                  ],
+                  "tracks": [
+                    1,
+                    2
+                  ],
+                  "frontPanelIndex": 3,
+                  "frontZ": 0.009000000000000001,
+                  "densityFactor": 0.9,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -0.40544,
+                  "right": -0.32348,
+                  "centerX": -0.36446,
+                  "widthM": 0.08196000000000003,
+                  "layerCount": 3,
+                  "panelIndices": [
+                    2,
+                    3,
+                    4
+                  ],
+                  "tracks": [
+                    1,
+                    2,
+                    3
+                  ],
+                  "frontPanelIndex": 4,
+                  "frontZ": 0.027000000000000003,
+                  "densityFactor": 0.81,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -0.32348,
+                  "right": 0.03804,
+                  "centerX": -0.14271999999999999,
+                  "widthM": 0.36152,
+                  "layerCount": 2,
+                  "panelIndices": [
+                    3,
+                    4
+                  ],
+                  "tracks": [
+                    2,
+                    3
+                  ],
+                  "frontPanelIndex": 4,
+                  "frontZ": 0.027000000000000003,
+                  "densityFactor": 0.9,
+                  "opticalClearanceM": 0.00008
+                }
+              ]
+            },
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          },
+          "primaryGeometryHash": "10fbf9d2e0f43a7d71f7f840bf209206998d1338bcb547352851f9e2b2ce3d7c"
+        },
+        "collected": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "collected",
+            "color": "white-black",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "index": 1,
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "index": 2,
+              "x": -1.0614999999999999,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "index": 3,
+              "x": -1.0354999999999999,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "index": 4,
+              "x": -1.0094999999999996,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "material": {
+                "index": 3,
+                "name": "PANEL_FABRIC",
+                "baseColorFactor": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        19.05776515151515,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "product": "PANEL JAPONÉS",
+                  "reference": "SCREEN TRETTO 3%",
+                  "colorId": "white-black",
+                  "colorName": "White Black",
+                  "productCode": "PANSCTRE3WHBL",
+                  "officialOpennessPercent": 3,
+                  "measuredOpenAreaPercent": 2.9998779296875,
+                  "physicalRepeatM": [
+                    0.04224,
+                    0.04224
+                  ],
+                  "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+                }
+              }
+            }
+          ],
+          "overlaps": [
+            0.7789999999999999,
+            0.7789999999999999,
+            0.7789999999999997
+          ],
+          "overlays": [
+            {
+              "left": -1.464,
+              "right": -1.438,
+              "centerX": -1.451,
+              "widthM": 0.026000000000000023,
+              "layerCount": 2,
+              "panelIndices": [
+                1,
+                2
+              ],
+              "tracks": [
+                0,
+                1
+              ],
+              "frontPanelIndex": 2,
+              "frontZ": -0.009000000000000001,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.9,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_1",
+              "material": {
+                "index": 5,
+                "name": "PANEL_OVERLAP_DENSITY_2X_1",
+                "baseColorFactor": [
+                  0.9,
+                  0.9,
+                  0.9,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 2,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -1.438,
+              "right": -1.412,
+              "centerX": -1.4249999999999998,
+              "widthM": 0.026000000000000023,
+              "layerCount": 3,
+              "panelIndices": [
+                1,
+                2,
+                3
+              ],
+              "tracks": [
+                0,
+                1,
+                2
+              ],
+              "frontPanelIndex": 3,
+              "frontZ": 0.009000000000000001,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.81,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_2",
+              "material": {
+                "index": 6,
+                "name": "PANEL_OVERLAP_DENSITY_3X_2",
+                "baseColorFactor": [
+                  0.81,
+                  0.81,
+                  0.81,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 3,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -1.412,
+              "right": -0.685,
+              "centerX": -1.0485,
+              "widthM": 0.7269999999999999,
+              "layerCount": 4,
+              "panelIndices": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "tracks": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "frontPanelIndex": 4,
+              "frontZ": 0.027000000000000003,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.729,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_3",
+              "material": {
+                "index": 7,
+                "name": "PANEL_OVERLAP_DENSITY_4X_3",
+                "baseColorFactor": [
+                  0.729,
+                  0.729,
+                  0.729,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        17.21117424242424,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        17.21117424242424,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        17.21117424242424,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 4,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -0.685,
+              "right": -0.659,
+              "centerX": -0.672,
+              "widthM": 0.026000000000000023,
+              "layerCount": 3,
+              "panelIndices": [
+                2,
+                3,
+                4
+              ],
+              "tracks": [
+                1,
+                2,
+                3
+              ],
+              "frontPanelIndex": 4,
+              "frontZ": 0.027000000000000003,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.81,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_4",
+              "material": {
+                "index": 8,
+                "name": "PANEL_OVERLAP_DENSITY_3X_4",
+                "baseColorFactor": [
+                  0.81,
+                  0.81,
+                  0.81,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 3,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            },
+            {
+              "left": -0.659,
+              "right": -0.633,
+              "centerX": -0.646,
+              "widthM": 0.026000000000000023,
+              "layerCount": 2,
+              "panelIndices": [
+                3,
+                4
+              ],
+              "tracks": [
+                2,
+                3
+              ],
+              "frontPanelIndex": 4,
+              "frontZ": 0.027000000000000003,
+              "opticalClearanceM": 0.00008,
+              "densityFactor": 0.9,
+              "derivedFromActualLayerIntersection": true,
+              "decorativeBorder": false,
+              "name": "PANEL_OVERLAP_DENSITY_5",
+              "material": {
+                "index": 9,
+                "name": "PANEL_OVERLAP_DENSITY_2X_5",
+                "baseColorFactor": [
+                  0.9,
+                  0.9,
+                  0.9,
+                  1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 1,
+                "alphaMode": "MASK",
+                "alpha": 1,
+                "doubleSided": false,
+                "baseColorTexture": {
+                  "index": 1,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "normalTexture": {
+                  "index": 2,
+                  "scale": 0.45,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "roughnessTexture": {
+                  "index": 3,
+                  "extensions": {
+                    "KHR_texture_transform": {
+                      "scale": [
+                        0.6155303030303035,
+                        54.40340909090909
+                      ]
+                    }
+                  }
+                },
+                "extras": {
+                  "opticalRole": "physical-overlap-density",
+                  "layerCount": 2,
+                  "attenuationPerExtraLayer": 0.9,
+                  "sameTrettoMapsAsPanelFabric": true,
+                  "decorativeBorder": false
+                }
+              }
+            }
+          ],
+          "baseMaterial": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "baseColorFactor": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "metallicFactor": 0,
+            "roughnessFactor": 1,
+            "alphaMode": "MASK",
+            "alpha": 1,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white-black",
+              "colorName": "White Black",
+              "productCode": "PANSCTRE3WHBL",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white-black"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "collected",
+              "color": "white-black",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Recogido",
+              "projection": 1,
+              "classification": "documentedState"
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "overlapDensityModel": {
+              "type": "actual-layer-intersection",
+              "decorativeBorder": false,
+              "attenuationPerExtraLayer": 0.9,
+              "opticalClearanceM": 0.00008,
+              "intervals": [
+                {
+                  "left": -1.464,
+                  "right": -1.438,
+                  "centerX": -1.451,
+                  "widthM": 0.026000000000000023,
+                  "layerCount": 2,
+                  "panelIndices": [
+                    1,
+                    2
+                  ],
+                  "tracks": [
+                    0,
+                    1
+                  ],
+                  "frontPanelIndex": 2,
+                  "frontZ": -0.009000000000000001,
+                  "densityFactor": 0.9,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -1.438,
+                  "right": -1.412,
+                  "centerX": -1.4249999999999998,
+                  "widthM": 0.026000000000000023,
+                  "layerCount": 3,
+                  "panelIndices": [
+                    1,
+                    2,
+                    3
+                  ],
+                  "tracks": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "frontPanelIndex": 3,
+                  "frontZ": 0.009000000000000001,
+                  "densityFactor": 0.81,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -1.412,
+                  "right": -0.685,
+                  "centerX": -1.0485,
+                  "widthM": 0.7269999999999999,
+                  "layerCount": 4,
+                  "panelIndices": [
+                    1,
+                    2,
+                    3,
+                    4
+                  ],
+                  "tracks": [
+                    0,
+                    1,
+                    2,
+                    3
+                  ],
+                  "frontPanelIndex": 4,
+                  "frontZ": 0.027000000000000003,
+                  "densityFactor": 0.729,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -0.685,
+                  "right": -0.659,
+                  "centerX": -0.672,
+                  "widthM": 0.026000000000000023,
+                  "layerCount": 3,
+                  "panelIndices": [
+                    2,
+                    3,
+                    4
+                  ],
+                  "tracks": [
+                    1,
+                    2,
+                    3
+                  ],
+                  "frontPanelIndex": 4,
+                  "frontZ": 0.027000000000000003,
+                  "densityFactor": 0.81,
+                  "opticalClearanceM": 0.00008
+                },
+                {
+                  "left": -0.659,
+                  "right": -0.633,
+                  "centerX": -0.646,
+                  "widthM": 0.026000000000000023,
+                  "layerCount": 2,
+                  "panelIndices": [
+                    3,
+                    4
+                  ],
+                  "tracks": [
+                    2,
+                    3
+                  ],
+                  "frontPanelIndex": 4,
+                  "frontZ": 0.027000000000000003,
+                  "densityFactor": 0.9,
+                  "opticalClearanceM": 0.00008
+                }
+              ]
+            },
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          },
+          "primaryGeometryHash": "10fbf9d2e0f43a7d71f7f840bf209206998d1338bcb547352851f9e2b2ce3d7c"
+        }
+      }
+    },
+    "sheer": {
+      "before": {
+        "headName": "Cabezal_Binovo_Plano",
+        "headMaterial": {
+          "index": 7,
+          "name": "HomeEasy_Headrail_Matte_V23",
+          "baseColorFactor": [
+            0.84,
+            0.84,
+            0.8,
+            1
+          ],
+          "metallicFactor": 0.08,
+          "roughnessFactor": 0.62,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": false
+        },
+        "profileMaterial": {
+          "index": 3,
+          "name": "Aluminio_Satinado",
+          "baseColorFactor": [
+            0.6899999976158142,
+            0.7200000286102295,
+            0.75,
+            1
+          ],
+          "metallicFactor": 0.6200000047683716,
+          "roughnessFactor": 0.3100000023841858,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": true
+        },
+        "insertMaterial": {
+          "index": 4,
+          "name": "Junta_Sombra",
+          "baseColorFactor": [
+            0.07500000298023224,
+            0.0820000022649765,
+            0.08799999952316284,
+            1
+          ],
+          "metallicFactor": 0.15000000596046448,
+          "roughnessFactor": 0.44999998807907104,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": true
+        },
+        "profileBounds": {
+          "min": [
+            -0.9089999794960022,
+            0.014000000432133675,
+            0.04349999874830246
+          ],
+          "max": [
+            0.9089999794960022,
+            0.05999999865889549,
+            0.08649999648332596
+          ],
+          "size": [
+            1.8179999589920044,
+            0.04599999822676182,
+            0.0429999977350235
+          ]
+        },
+        "insertBounds": {
+          "min": [
+            -0.8939999938011169,
+            0.04000000283122063,
+            0.08150000125169754
+          ],
+          "max": [
+            0.8939999938011169,
+            0.04600000008940697,
+            0.08649999648332596
+          ],
+          "size": [
+            1.7879999876022339,
+            0.00599999725818634,
+            0.004999995231628418
+          ]
+        },
+        "insertFrontGapM": 0,
+        "returnTextileRadius": {
+          "min": 0.009499997907429399,
+          "median": 0.009500000737396826,
+          "max": 0.009500002961527596
+        },
+        "returnRollerRadius": {
+          "min": 0.009499955678942094,
+          "median": 0.009499998763282015,
+          "max": 0.009500040144764773
+        },
+        "protectedHeadrailGeometryHash": "6499cf0e1d82974090d47068692c386940b97f40e2a653fcc46d15de5aa0395f",
+        "textileMaterial": {
+          "index": 2,
+          "name": "SHEER_FABRIC",
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallicFactor": 0,
+          "alphaMode": "MASK",
+          "alpha": 1,
+          "doubleSided": true,
+          "baseColorTexture": {
+            "index": 0,
+            "texCoord": 0
+          },
+          "normalTexture": {
+            "index": 1,
+            "texCoord": 0,
+            "scale": 0.3799999952316284
+          },
+          "roughnessTexture": {
+            "index": 2,
+            "texCoord": 0
+          },
+          "extras": {
+            "alpha_strategy": "MASK cutout yarn grid; no global opacity",
+            "texture_count": 3,
+            "slot": "SHEER_FABRIC",
+            "interchangeableFabricPack": true,
+            "commercialColorBaked": false,
+            "frontRearSharedMaterial": true,
+            "fabricPackId": "serenade-screen-clark-white",
+            "materialSharedByFrontAndRear": true,
+            "rgbaFundamentalRepeat": true,
+            "repeatWidthM": 0.16,
+            "repeatHeightM": 0.12,
+            "segments": [
+              {
+                "type": "opaque",
+                "heightM": 0.07,
+                "colorRole": "primary"
+              },
+              {
+                "type": "sheer",
+                "heightM": 0.05,
+                "colorRole": "sheer"
+              }
+            ],
+            "alphaMetrics": {
+              "minimum": 0,
+              "maximum": 255,
+              "transparentPixels": 273287,
+              "opaquePixels": 739215,
+              "transparentFraction": 0.26062679290771484,
+              "opaqueFraction": 0.7049703598022461,
+              "width": 1024,
+              "height": 1024,
+              "colorType": 6
+            },
+            "normalBoundOnlyWithTangents": true,
+            "geometryModifiedByMaterialPack": false,
+            "evidence": "serenade-screen-clark-white-evidence"
+          }
+        }
+      },
+      "after": {
+        "headName": "Cabezal_Binovo_Plano",
+        "headMaterial": {
+          "index": 7,
+          "name": "HomeEasy_Headrail_Matte_V23",
+          "baseColorFactor": [
+            0.84,
+            0.84,
+            0.8,
+            1
+          ],
+          "metallicFactor": 0.08,
+          "roughnessFactor": 0.62,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": false
+        },
+        "profileMaterial": {
+          "index": 9,
+          "name": "HomeEasy_LowerRail_Matte_V23",
+          "baseColorFactor": [
+            0.84,
+            0.84,
+            0.8,
+            1
+          ],
+          "metallicFactor": 0.08,
+          "roughnessFactor": 0.62,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": true
+        },
+        "insertMaterial": {
+          "index": 4,
+          "name": "Junta_Sombra",
+          "baseColorFactor": [
+            0.07500000298023224,
+            0.0820000022649765,
+            0.08799999952316284,
+            1
+          ],
+          "metallicFactor": 0.15000000596046448,
+          "roughnessFactor": 0.44999998807907104,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": true
+        },
+        "profileBounds": {
+          "min": [
+            -0.9089999794960022,
+            0.014000000432133675,
+            0.04349999874830246
+          ],
+          "max": [
+            0.9089999794960022,
+            0.05999999865889549,
+            0.08649999648332596
+          ],
+          "size": [
+            1.8179999589920044,
+            0.04599999822676182,
+            0.0429999977350235
+          ]
+        },
+        "insertBounds": {
+          "min": [
+            -0.8939999938011169,
+            0.04000000283122063,
+            0.08210000125169754
+          ],
+          "max": [
+            0.8939999938011169,
+            0.04600000008940697,
+            0.08709999648332596
+          ],
+          "size": [
+            1.7879999876022339,
+            0.00599999725818634,
+            0.004999995231628418
+          ]
+        },
+        "insertFrontGapM": 0.0006000000000000033,
+        "returnTextileRadius": {
+          "min": 0.009849994277978015,
+          "median": 0.009849999567841277,
+          "max": 0.009850001427787533
+        },
+        "returnRollerRadius": {
+          "min": 0.009499955678942094,
+          "median": 0.009499998763282015,
+          "max": 0.009500040144764773
+        },
+        "protectedHeadrailGeometryHash": "6499cf0e1d82974090d47068692c386940b97f40e2a653fcc46d15de5aa0395f",
+        "textileMaterial": {
+          "index": 2,
+          "name": "SHEER_FABRIC",
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallicFactor": 0,
+          "alphaMode": "MASK",
+          "alpha": 1,
+          "doubleSided": true,
+          "baseColorTexture": {
+            "index": 0,
+            "texCoord": 0
+          },
+          "normalTexture": {
+            "index": 1,
+            "texCoord": 0,
+            "scale": 0.3799999952316284
+          },
+          "roughnessTexture": {
+            "index": 2,
+            "texCoord": 0
+          },
+          "extras": {
+            "alpha_strategy": "MASK cutout yarn grid; no global opacity",
+            "texture_count": 3,
+            "slot": "SHEER_FABRIC",
+            "interchangeableFabricPack": true,
+            "commercialColorBaked": false,
+            "frontRearSharedMaterial": true,
+            "fabricPackId": "serenade-screen-clark-white",
+            "materialSharedByFrontAndRear": true,
+            "rgbaFundamentalRepeat": true,
+            "repeatWidthM": 0.16,
+            "repeatHeightM": 0.12,
+            "segments": [
+              {
+                "type": "opaque",
+                "heightM": 0.07,
+                "colorRole": "primary"
+              },
+              {
+                "type": "sheer",
+                "heightM": 0.05,
+                "colorRole": "sheer"
+              }
+            ],
+            "alphaMetrics": {
+              "minimum": 0,
+              "maximum": 255,
+              "transparentPixels": 273287,
+              "opaquePixels": 739215,
+              "transparentFraction": 0.26062679290771484,
+              "opaqueFraction": 0.7049703598022461,
+              "width": 1024,
+              "height": 1024,
+              "colorType": 6
+            },
+            "normalBoundOnlyWithTangents": true,
+            "geometryModifiedByMaterialPack": false,
+            "evidence": "serenade-screen-clark-white-evidence"
+          }
+        }
+      },
+      "standardBefore": {
+        "headName": "Cabezal_Standard_Plano",
+        "headMaterial": {
+          "index": 7,
+          "name": "HomeEasy_Headrail_Matte_V23",
+          "baseColorFactor": [
+            0.84,
+            0.84,
+            0.8,
+            1
+          ],
+          "metallicFactor": 0.08,
+          "roughnessFactor": 0.62,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": false
+        },
+        "profileMaterial": {
+          "index": 3,
+          "name": "Aluminio_Satinado",
+          "baseColorFactor": [
+            0.6899999976158142,
+            0.7200000286102295,
+            0.75,
+            1
+          ],
+          "metallicFactor": 0.6200000047683716,
+          "roughnessFactor": 0.3100000023841858,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": true
+        },
+        "insertMaterial": {
+          "index": 4,
+          "name": "Junta_Sombra",
+          "baseColorFactor": [
+            0.07500000298023224,
+            0.0820000022649765,
+            0.08799999952316284,
+            1
+          ],
+          "metallicFactor": 0.15000000596046448,
+          "roughnessFactor": 0.44999998807907104,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": true
+        },
+        "profileBounds": {
+          "min": [
+            -0.7589999828795002,
+            0.014000000432133675,
+            0.015499998748302456
+          ],
+          "max": [
+            0.7589999828795002,
+            0.05999999865889549,
+            0.058499996483325954
+          ],
+          "size": [
+            1.5179999657590004,
+            0.04599999822676182,
+            0.0429999977350235
+          ]
+        },
+        "insertBounds": {
+          "min": [
+            -0.743999994841198,
+            0.04000000283122063,
+            0.053500001251697536
+          ],
+          "max": [
+            0.743999994841198,
+            0.04600000008940697,
+            0.058499996483325954
+          ],
+          "size": [
+            1.487999989682396,
+            0.00599999725818634,
+            0.004999995231628418
+          ]
+        },
+        "insertFrontGapM": 0,
+        "returnTextileRadius": {
+          "min": 0.009499997231718104,
+          "median": 0.00950000019853495,
+          "max": 0.009500002118929188
+        },
+        "returnRollerRadius": {
+          "min": 0.009499955847552938,
+          "median": 0.009499999627538842,
+          "max": 0.009500039976154824
+        },
+        "protectedHeadrailGeometryHash": "c228136aa8db3db8e9f57fff5ed7b7507fea679a4b63ef177a3ae65a40d3c007",
+        "textileMaterial": {
+          "index": 2,
+          "name": "SHEER_FABRIC",
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallicFactor": 0,
+          "alphaMode": "MASK",
+          "alpha": 1,
+          "doubleSided": true,
+          "baseColorTexture": {
+            "index": 0,
+            "texCoord": 0
+          },
+          "normalTexture": {
+            "index": 1,
+            "texCoord": 0,
+            "scale": 0.3799999952316284
+          },
+          "roughnessTexture": {
+            "index": 2,
+            "texCoord": 0
+          },
+          "extras": {
+            "alpha_strategy": "MASK cutout yarn grid; no global opacity",
+            "texture_count": 3,
+            "slot": "SHEER_FABRIC",
+            "interchangeableFabricPack": true,
+            "commercialColorBaked": false,
+            "frontRearSharedMaterial": true,
+            "fabricPackId": "serenade-screen-clark-white",
+            "materialSharedByFrontAndRear": true,
+            "rgbaFundamentalRepeat": true,
+            "repeatWidthM": 0.16,
+            "repeatHeightM": 0.12,
+            "segments": [
+              {
+                "type": "opaque",
+                "heightM": 0.07,
+                "colorRole": "primary"
+              },
+              {
+                "type": "sheer",
+                "heightM": 0.05,
+                "colorRole": "sheer"
+              }
+            ],
+            "alphaMetrics": {
+              "minimum": 0,
+              "maximum": 255,
+              "transparentPixels": 273287,
+              "opaquePixels": 739215,
+              "transparentFraction": 0.26062679290771484,
+              "opaqueFraction": 0.7049703598022461,
+              "width": 1024,
+              "height": 1024,
+              "colorType": 6
+            },
+            "normalBoundOnlyWithTangents": true,
+            "geometryModifiedByMaterialPack": false,
+            "evidence": "serenade-screen-clark-white-evidence"
+          }
+        }
+      },
+      "standardAfter": {
+        "headName": "Cabezal_Standard_Plano",
+        "headMaterial": {
+          "index": 7,
+          "name": "HomeEasy_Headrail_Matte_V23",
+          "baseColorFactor": [
+            0.84,
+            0.84,
+            0.8,
+            1
+          ],
+          "metallicFactor": 0.08,
+          "roughnessFactor": 0.62,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": false
+        },
+        "profileMaterial": {
+          "index": 9,
+          "name": "HomeEasy_LowerRail_Matte_V23",
+          "baseColorFactor": [
+            0.84,
+            0.84,
+            0.8,
+            1
+          ],
+          "metallicFactor": 0.08,
+          "roughnessFactor": 0.62,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": true
+        },
+        "insertMaterial": {
+          "index": 4,
+          "name": "Junta_Sombra",
+          "baseColorFactor": [
+            0.07500000298023224,
+            0.0820000022649765,
+            0.08799999952316284,
+            1
+          ],
+          "metallicFactor": 0.15000000596046448,
+          "roughnessFactor": 0.44999998807907104,
+          "alphaMode": "OPAQUE",
+          "alpha": 1,
+          "doubleSided": true
+        },
+        "profileBounds": {
+          "min": [
+            -0.7589999828795002,
+            0.014000000432133675,
+            0.015499998748302456
+          ],
+          "max": [
+            0.7589999828795002,
+            0.05999999865889549,
+            0.058499996483325954
+          ],
+          "size": [
+            1.5179999657590004,
+            0.04599999822676182,
+            0.0429999977350235
+          ]
+        },
+        "insertBounds": {
+          "min": [
+            -0.743999994841198,
+            0.04000000283122063,
+            0.05410000125169754
+          ],
+          "max": [
+            0.743999994841198,
+            0.04600000008940697,
+            0.05909999648332596
+          ],
+          "size": [
+            1.487999989682396,
+            0.00599999725818634,
+            0.004999995231628418
+          ]
+        },
+        "insertFrontGapM": 0.0006000000000000033,
+        "returnTextileRadius": {
+          "min": 0.009849996514815442,
+          "median": 0.009849999890578992,
+          "max": 0.009850002435644175
+        },
+        "returnRollerRadius": {
+          "min": 0.009499955847552938,
+          "median": 0.009499999627538842,
+          "max": 0.009500039976154824
+        },
+        "protectedHeadrailGeometryHash": "c228136aa8db3db8e9f57fff5ed7b7507fea679a4b63ef177a3ae65a40d3c007",
+        "textileMaterial": {
+          "index": 2,
+          "name": "SHEER_FABRIC",
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallicFactor": 0,
+          "alphaMode": "MASK",
+          "alpha": 1,
+          "doubleSided": true,
+          "baseColorTexture": {
+            "index": 0,
+            "texCoord": 0
+          },
+          "normalTexture": {
+            "index": 1,
+            "texCoord": 0,
+            "scale": 0.3799999952316284
+          },
+          "roughnessTexture": {
+            "index": 2,
+            "texCoord": 0
+          },
+          "extras": {
+            "alpha_strategy": "MASK cutout yarn grid; no global opacity",
+            "texture_count": 3,
+            "slot": "SHEER_FABRIC",
+            "interchangeableFabricPack": true,
+            "commercialColorBaked": false,
+            "frontRearSharedMaterial": true,
+            "fabricPackId": "serenade-screen-clark-white",
+            "materialSharedByFrontAndRear": true,
+            "rgbaFundamentalRepeat": true,
+            "repeatWidthM": 0.16,
+            "repeatHeightM": 0.12,
+            "segments": [
+              {
+                "type": "opaque",
+                "heightM": 0.07,
+                "colorRole": "primary"
+              },
+              {
+                "type": "sheer",
+                "heightM": 0.05,
+                "colorRole": "sheer"
+              }
+            ],
+            "alphaMetrics": {
+              "minimum": 0,
+              "maximum": 255,
+              "transparentPixels": 273287,
+              "opaquePixels": 739215,
+              "transparentFraction": 0.26062679290771484,
+              "opaqueFraction": 0.7049703598022461,
+              "width": 1024,
+              "height": 1024,
+              "colorType": 6
+            },
+            "normalBoundOnlyWithTangents": true,
+            "geometryModifiedByMaterialPack": false,
+            "evidence": "serenade-screen-clark-white-evidence"
+          }
+        }
+      }
+    }
+  },
+  "validators": [
+    {
+      "key": "panelAfter_closed",
+      "file": "after-panel-white-black-closed.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/30"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/31"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/32"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/33"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/34"
+        }
+      ]
+    },
+    {
+      "key": "panelAfter_partial",
+      "file": "after-panel-white-black-partial.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/30"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/31"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/32"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/33"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/34"
+        }
+      ]
+    },
+    {
+      "key": "panelAfter_collected",
+      "file": "after-panel-white-black-collected.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/30"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/31"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/32"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/33"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/34"
+        }
+      ]
+    },
+    {
+      "key": "sheerAfter",
+      "file": "after-sheer-binovo-lower.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/6/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/10/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/11/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/19/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/19/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/20/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/20/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/24/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/82"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/materials/0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/4"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/9"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/17"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/18"
+        }
+      ]
+    },
+    {
+      "key": "standardAfter",
+      "file": "after-sheer-standard-lower.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/6/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/10/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/11/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/24/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/1"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/2"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/3"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/4"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/78"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/79"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/80"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/81"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/82"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/83"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/84"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/85"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/86"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/materials/0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/4"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/9"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/17"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/18"
+        }
+      ]
+    }
+  ],
+  "validatorTotals": {
+    "files": 5,
+    "errors": 0,
+    "warnings": 0
+  },
+  "protectedDiff": [],
+  "consoleErrors": [],
+  "checks": {
+    "panelBaseMaterialAndMapsUnchanged": true,
+    "panelPrimaryGeometryUnchanged": true,
+    "panelClosedOverlapExactlyEightCm": true,
+    "panelOverlapDerivedFromGeometry": true,
+    "panelOverlapUsesSameMaps": true,
+    "panelFrontOrderMatchesZ": true,
+    "panelStatesPreserved": true,
+    "sheerInsertCoplanarityRemoved": true,
+    "sheerReturnCoplanarityRemoved": true,
+    "sheerFinishMatchesHeadrail": true,
+    "binovoHeadrailGeometryUnchanged": true,
+    "standardHeadrailGeometryUnchanged": true,
+    "sheerTextileMaterialUnchanged": true,
+    "khronosClean": true,
+    "protectedSurfacesUnchanged": true,
+    "consoleClean": true
+  },
+  "status": "PASS"
+}

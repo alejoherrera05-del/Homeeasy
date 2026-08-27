@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0.0",
+  "scope": "Real HomeEasy Studio in the Codex in-app browser",
+  "url": "http://127.0.0.1:4317/ar-homeeasy-v3.html?qa=panel-sheer",
+  "modelViewer": {
+    "stubbed": false,
+    "script": "production/vendor/model-viewer-4.3.1.min.js",
+    "arModes": "quick-look scene-viewer webxr",
+    "arPlacement": "wall",
+    "arScale": "fixed",
+    "iosSrcAbsent": true
+  },
+  "panel": {
+    "color": "White Black",
+    "widthM": 3.0,
+    "heightM": 2.4,
+    "configuration": "4 vías / 4 telos",
+    "states": {
+      "closed": "READY",
+      "partial": "READY",
+      "collected": "READY"
+    },
+    "arButtonEnabledInEveryState": true
+  },
+  "sheer": {
+    "binovo": "READY",
+    "standard": "READY",
+    "states": {
+      "open": "READY",
+      "medium": "READY",
+      "closed": "READY"
+    },
+    "controlSides": {
+      "left": "READY",
+      "right": "READY"
+    }
+  },
+  "productSwitching": [
+    "sheer-to-panel",
+    "panel-to-sheer",
+    "sheer-to-panel"
+  ],
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "physicalQuickLookIphoneTest": "PENDING",
+  "status": "PASS"
+}

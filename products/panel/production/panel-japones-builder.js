@@ -146,6 +146,99 @@ function installPhysicalTeloGeometry(json, parts, meshIndex, material, thickness
   };
 }
 
+const OVERLAP_ATTENUATION_PER_EXTRA_LAYER = 0.90;
+const OVERLAP_OPTICAL_CLEARANCE_M = 0.00008;
+
+function computeOverlapDensityIntervals(transforms, panelWidthM) {
+  const panels = transforms.map((transform) => ({
+    panelIndex: transform.index + 1,
+    track: transform.track,
+    z: transform.z,
+    left: transform.x - panelWidthM / 2,
+    right: transform.x + panelWidthM / 2,
+  }));
+  const edges = [...new Set(panels.flatMap((panel) => [panel.left, panel.right]).map((value) => value.toFixed(9)))]
+    .map(Number)
+    .sort((a, b) => a - b);
+  const intervals = [];
+  for (let index = 0; index < edges.length - 1; index += 1) {
+    const left = edges[index], right = edges[index + 1], widthM = right - left;
+    if (widthM <= 1e-6) continue;
+    const middle = (left + right) / 2;
+    const layers = panels.filter((panel) => middle > panel.left + 1e-7 && middle < panel.right - 1e-7);
+    if (layers.length < 2) continue;
+    const front = [...layers].sort((a, b) => b.z - a.z)[0];
+    intervals.push({
+      left,
+      right,
+      centerX: middle,
+      widthM,
+      layerCount: layers.length,
+      panelIndices: layers.map((panel) => panel.panelIndex),
+      tracks: layers.map((panel) => panel.track),
+      frontPanelIndex: front.panelIndex,
+      frontZ: front.z,
+    });
+  }
+  return intervals;
+}
+
+function appendOverlapDensityNodes(json, parts, intervals, geometry, textures, pattern, rules) {
+  if (!intervals.length) return [];
+  const positions = [-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0];
+  const normals = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
+  const tangents = [1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1];
+  const uvs = [0, 0, 1, 0, 1, 1, 0, 1];
+  const indices = [0, 1, 2, 0, 2, 3];
+  const position = appendAccessorPart(json, parts, positions, 5126, "VEC3", 34962, [-0.5, -0.5, 0], [0.5, 0.5, 0]);
+  const normal = appendAccessorPart(json, parts, normals, 5126, "VEC3", 34962);
+  const tangent = appendAccessorPart(json, parts, tangents, 5126, "VEC4", 34962);
+  const texcoord = appendAccessorPart(json, parts, uvs, 5126, "VEC2", 34962, [0, 0], [1, 1]);
+  const indexAccessor = appendAccessorPart(json, parts, indices, 5123, "SCALAR", 34963, [0], [3]);
+  const scene = json.scenes[json.scene || 0];
+  return intervals.map((interval, index) => {
+    const densityFactor = Number((OVERLAP_ATTENUATION_PER_EXTRA_LAYER ** (interval.layerCount - 1)).toFixed(6));
+    const transform = {KHR_texture_transform: {scale: [interval.widthM / pattern.repeatWidthM, geometry.fabricHeightM / pattern.repeatHeightM]}};
+    const material = json.materials.length;
+    json.materials.push({
+      name: `PANEL_OVERLAP_DENSITY_${interval.layerCount}X_${index + 1}`,
+      pbrMetallicRoughness: {
+        baseColorFactor: [densityFactor, densityFactor, densityFactor, 1],
+        baseColorTexture: {index: textures.base, extensions: transform},
+        metallicFactor: 0,
+        roughnessFactor: 1,
+        metallicRoughnessTexture: {index: textures.roughness, extensions: transform},
+      },
+      normalTexture: {index: textures.normal, scale: 0.45, extensions: transform},
+      alphaMode: "MASK",
+      alphaCutoff: 0.5,
+      doubleSided: false,
+      extras: {
+        opticalRole: "physical-overlap-density",
+        layerCount: interval.layerCount,
+        attenuationPerExtraLayer: OVERLAP_ATTENUATION_PER_EXTRA_LAYER,
+        sameTrettoMapsAsPanelFabric: true,
+        decorativeBorder: false,
+      },
+    });
+    const mesh = json.meshes.length;
+    json.meshes.push({
+      name: `PANEL_OVERLAP_DENSITY_MESH_${index + 1}`,
+      primitives: [{attributes: {POSITION: position, NORMAL: normal, TANGENT: tangent, TEXCOORD_0: texcoord}, indices: indexAccessor, material}],
+    });
+    const node = json.nodes.length;
+    json.nodes.push(makeNode(
+      `PANEL_OVERLAP_DENSITY_${index + 1}`,
+      mesh,
+      [interval.centerX, geometry.fabricBottomM + geometry.fabricHeightM / 2, interval.frontZ + rules.components.fabricThicknessM / 2 + OVERLAP_OPTICAL_CLEARANCE_M],
+      [interval.widthM, geometry.fabricHeightM, 1],
+      {...interval, opticalClearanceM: OVERLAP_OPTICAL_CLEARANCE_M, densityFactor, derivedFromActualLayerIntersection: true, decorativeBorder: false},
+    ));
+    scene.nodes.push(node);
+    return {...interval, densityFactor, opticalClearanceM: OVERLAP_OPTICAL_CLEARANCE_M};
+  });
+}
+
 async function decodeImage(blob) {
   if (typeof createImageBitmap === "function") return createImageBitmap(blob);
   if (typeof document !== "undefined") {
@@ -464,7 +557,7 @@ function buildRuntimeNodes(json, mesh, config, metrics, transforms, rules) {
   json.nodes = nodes;
   json.scenes = [{name: "Panel Japonés · Screen Tretto 3% · HomeEasy", nodes: sceneNodes, extras: {config, metrics}}];
   json.scene = 0;
-  return {fabricHeightM: fabricHeight, textileWidthM: config.qaScene === "singleTelo" ? Math.min(0.8, metrics.teloWidthM) : metrics.teloWidthM};
+  return {fabricBottomM: fabricBottom, fabricHeightM: fabricHeight, textileWidthM: config.qaScene === "singleTelo" ? Math.min(0.8, metrics.teloWidthM) : metrics.teloWidthM};
 }
 
 async function geometryHash(parsed) {
@@ -551,6 +644,16 @@ export async function buildPanelJaponesGlb(masterGlb, fabricPackBase, configurat
     },
   };
   for (const primitive of json.meshes[mesh.PANEL_TELO_MASTER].primitives) primitive.material = textileMaterial;
+  const overlapIntervals = config.qaScene === "singleTelo" ? [] : computeOverlapDensityIntervals(transforms, validation.metrics.teloWidthM);
+  const overlapDensity = appendOverlapDensityNodes(
+    json,
+    parts,
+    overlapIntervals,
+    geometry,
+    {base: baseTexture, normal: normalTexture, roughness: roughnessTexture},
+    pattern,
+    rules,
+  );
   json.extensionsUsed = [...new Set([...(json.extensionsUsed || []), "KHR_texture_transform"] )];
   json.asset.generator = "HomeEasy Panel Japonés Phase 1 · parametric component-kit runtime";
   json.asset.extras = {
@@ -568,6 +671,13 @@ export async function buildPanelJaponesGlb(masterGlb, fabricPackBase, configurat
     panelTeloPhysicalThicknessM: rules.components.fabricThicknessM,
     panelTeloGeometry: "closed-thin-textile-volume",
     panelSeparationUsesRealGeometry: true,
+    overlapDensityModel: {
+      type: "actual-layer-intersection",
+      decorativeBorder: false,
+      attenuationPerExtraLayer: OVERLAP_ATTENUATION_PER_EXTRA_LAYER,
+      opticalClearanceM: OVERLAP_OPTICAL_CLEARANCE_M,
+      intervals: overlapDensity,
+    },
     texturePhysicalScalePreserved: true,
     runtimeUsesSingleMaster: true,
     masterGeometrySha256: await geometryHash(parsed),
@@ -589,6 +699,7 @@ export async function buildPanelJaponesGlb(masterGlb, fabricPackBase, configurat
     pattern,
     evidence,
     alphaMetrics: rgba.metrics,
+    overlapDensity,
     revoke() { URL.revokeObjectURL(this.url); },
   };
 }
