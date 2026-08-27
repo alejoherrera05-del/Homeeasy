@@ -1,0 +1,3336 @@
+{
+  "schemaVersion": "1.0.0",
+  "scope": "Sheer Binovo end-cap closure and Panel Japonés physical telo separation only",
+  "baselineCommit": "8787ca30fd1b4ee076f5262a00ba4cff1f8d4479",
+  "root": "C:\\Users\\alejo\\Documents\\Codex\\2026-07-18\\estas-conectado-a-github\\.reference-homeeasy",
+  "sourceDiff": [
+    "products/panel/production/panel-japones-builder.js",
+    "products/sheer/production/apply-sheer-fabric-pack.js"
+  ],
+  "protectedAssetDiff": [],
+  "measurements": {
+    "binovo": {
+      "before": {
+        "parts": [
+          {
+            "name": "Cabezal_Binovo_Plano",
+            "bounds": {
+              "min": [
+                -0.9160000245808523,
+                2.2600000000000002,
+                0
+              ],
+              "max": [
+                0.9160000245808523,
+                2.359999895095825,
+                0.1
+              ],
+              "size": [
+                1.8320000491617046,
+                0.09999989509582496,
+                0.1
+              ]
+            },
+            "accessors": {
+              "position": 0,
+              "indices": 4
+            },
+            "material": {
+              "name": "HomeEasy_Headrail_Matte_V23",
+              "alphaMode": "OPAQUE",
+              "alpha": 1,
+              "doubleSided": false
+            },
+            "triangles": 296,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "bounds": {
+              "min": [
+                -0.9240000247955322,
+                2.263000011444092,
+                0.0030000023543834686
+              ],
+              "max": [
+                -0.9160000085830688,
+                2.3569998741149902,
+                0.09700000286102295
+              ],
+              "size": [
+                0.008000016212463379,
+                0.09399986267089844,
+                0.09400000050663948
+              ]
+            },
+            "accessors": {
+              "position": 83,
+              "indices": 82
+            },
+            "material": {
+              "name": "HomeEasy_EndCaps_Matte_V23",
+              "alphaMode": "OPAQUE",
+              "alpha": 1,
+              "doubleSided": false
+            },
+            "triangles": 184,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "bounds": {
+              "min": [
+                0.9160000085830688,
+                2.263000011444092,
+                0.0030000023543834686
+              ],
+              "max": [
+                0.9240000247955322,
+                2.3569998741149902,
+                0.09700000286102295
+              ],
+              "size": [
+                0.008000016212463379,
+                0.09399986267089844,
+                0.09400000050663948
+              ]
+            },
+            "accessors": {
+              "position": 78,
+              "indices": 82
+            },
+            "material": {
+              "name": "HomeEasy_EndCaps_Matte_V23",
+              "alphaMode": "OPAQUE",
+              "alpha": 1,
+              "doubleSided": false
+            },
+            "triangles": 184,
+            "inverted": 0,
+            "degenerate": 0
+          }
+        ],
+        "exteriorCapFaces": {
+          "left": 0,
+          "right": 0
+        },
+        "internalMatingFaces": {
+          "bodyLeft": 0,
+          "bodyRight": 0,
+          "capLeft": 0,
+          "capRight": 0
+        },
+        "visibleSupports": [],
+        "bodySize": [
+          1.8320000491617046,
+          0.09999989509582496,
+          0.1
+        ]
+      },
+      "after": {
+        "parts": [
+          {
+            "name": "Cabezal_Binovo_Plano",
+            "bounds": {
+              "min": [
+                -0.9160000245808523,
+                2.2600000000000002,
+                0
+              ],
+              "max": [
+                0.9160000245808523,
+                2.359999895095825,
+                0.1
+              ],
+              "size": [
+                1.8320000491617046,
+                0.09999989509582496,
+                0.1
+              ]
+            },
+            "accessors": {
+              "position": 0,
+              "indices": 4
+            },
+            "material": {
+              "name": "HomeEasy_Headrail_Matte_V23",
+              "alphaMode": "OPAQUE",
+              "alpha": 1,
+              "doubleSided": false
+            },
+            "triangles": 296,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "bounds": {
+              "min": [
+                -0.9240000247955322,
+                2.263000011444092,
+                0.0030000023543834686
+              ],
+              "max": [
+                -0.9160000085830688,
+                2.3569998741149902,
+                0.09700000286102295
+              ],
+              "size": [
+                0.008000016212463379,
+                0.09399986267089844,
+                0.09400000050663948
+              ]
+            },
+            "accessors": {
+              "position": 83,
+              "indices": 105
+            },
+            "material": {
+              "name": "HomeEasy_EndCaps_Matte_V23",
+              "alphaMode": "OPAQUE",
+              "alpha": 1,
+              "doubleSided": false
+            },
+            "triangles": 186,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "bounds": {
+              "min": [
+                0.9160000085830688,
+                2.263000011444092,
+                0.0030000023543834686
+              ],
+              "max": [
+                0.9240000247955322,
+                2.3569998741149902,
+                0.09700000286102295
+              ],
+              "size": [
+                0.008000016212463379,
+                0.09399986267089844,
+                0.09400000050663948
+              ]
+            },
+            "accessors": {
+              "position": 78,
+              "indices": 106
+            },
+            "material": {
+              "name": "HomeEasy_EndCaps_Matte_V23",
+              "alphaMode": "OPAQUE",
+              "alpha": 1,
+              "doubleSided": false
+            },
+            "triangles": 186,
+            "inverted": 0,
+            "degenerate": 0
+          }
+        ],
+        "exteriorCapFaces": {
+          "left": 2,
+          "right": 2
+        },
+        "internalMatingFaces": {
+          "bodyLeft": 0,
+          "bodyRight": 0,
+          "capLeft": 0,
+          "capRight": 0
+        },
+        "visibleSupports": [],
+        "bodySize": [
+          1.8320000491617046,
+          0.09999989509582496,
+          0.1
+        ]
+      }
+    },
+    "panel": {
+      "before": {
+        "closed": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "closed",
+            "color": "white",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "x": -0.36249999999999993,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "x": 0.36250000000000004,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "x": 1.0875,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            }
+          ],
+          "components": [
+            {
+              "panel": "PANEL_TELO_1",
+              "hanger": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_2",
+              "hanger": {
+                "x": -0.36249999999999993,
+                "z": -0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -0.36249999999999993,
+                "z": -0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_3",
+              "hanger": {
+                "x": 0.36250000000000004,
+                "z": 0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": 0.36250000000000004,
+                "z": 0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_4",
+              "hanger": {
+                "x": 1.0875,
+                "z": 0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": 1.0875,
+                "z": 0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            }
+          ],
+          "overlaps": [
+            0.07999999999999996,
+            0.07999999999999996,
+            0.08000000000000007
+          ],
+          "zValues": [
+            -0.027000000000000003,
+            -0.009000000000000001,
+            0.009000000000000001,
+            0.027000000000000003
+          ],
+          "zGaps": [
+            0.018000000000000002,
+            0.018000000000000002,
+            0.018000000000000002
+          ],
+          "mesh": {
+            "name": "PANEL_TELO_MASTER_MESH",
+            "vertices": 4,
+            "triangles": 2,
+            "bounds": {
+              "min": [
+                -0.5,
+                -0.5,
+                0
+              ],
+              "max": [
+                0.5,
+                0.5,
+                0
+              ],
+              "size": [
+                1,
+                1,
+                0
+              ]
+            },
+            "inverted": 0,
+            "degenerate": 0
+          },
+          "material": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "alphaMode": "MASK",
+            "alphaCutoff": 0.5,
+            "doubleSided": true,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white",
+              "colorName": "White",
+              "productCode": "PANSCTRE3WHI",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "closed",
+              "color": "white",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Cerrado",
+              "projection": 0,
+              "classification": "documentedState"
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          }
+        },
+        "partial": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "partial",
+            "color": "white",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "x": -0.7259799999999998,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "x": -0.3644599999999999,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "x": -0.0029399999999999427,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            }
+          ],
+          "components": [
+            {
+              "panel": "PANEL_TELO_1",
+              "hanger": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_2",
+              "hanger": {
+                "x": -0.7259799999999998,
+                "z": -0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -0.7259799999999998,
+                "z": -0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_3",
+              "hanger": {
+                "x": -0.3644599999999999,
+                "z": 0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -0.3644599999999999,
+                "z": 0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_4",
+              "hanger": {
+                "x": -0.0029399999999999427,
+                "z": 0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -0.0029399999999999427,
+                "z": 0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            }
+          ],
+          "overlaps": [
+            0.4434799999999999,
+            0.44348,
+            0.44348
+          ],
+          "zValues": [
+            -0.027000000000000003,
+            -0.009000000000000001,
+            0.009000000000000001,
+            0.027000000000000003
+          ],
+          "zGaps": [
+            0.018000000000000002,
+            0.018000000000000002,
+            0.018000000000000002
+          ],
+          "mesh": {
+            "name": "PANEL_TELO_MASTER_MESH",
+            "vertices": 4,
+            "triangles": 2,
+            "bounds": {
+              "min": [
+                -0.5,
+                -0.5,
+                0
+              ],
+              "max": [
+                0.5,
+                0.5,
+                0
+              ],
+              "size": [
+                1,
+                1,
+                0
+              ]
+            },
+            "inverted": 0,
+            "degenerate": 0
+          },
+          "material": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "alphaMode": "MASK",
+            "alphaCutoff": 0.5,
+            "doubleSided": true,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white",
+              "colorName": "White",
+              "productCode": "PANSCTRE3WHI",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "partial",
+              "color": "white",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Parcial",
+              "projection": 0.52,
+              "classification": "visualApproximation",
+              "partialPositionVisualApproximation": true
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          }
+        },
+        "collected": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "collected",
+            "color": "white",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "x": -1.0614999999999999,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "x": -1.0354999999999999,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "x": -1.0094999999999996,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "mesh": "PANEL_TELO_MASTER_MESH",
+              "material": 3
+            }
+          ],
+          "components": [
+            {
+              "panel": "PANEL_TELO_1",
+              "hanger": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_2",
+              "hanger": {
+                "x": -1.0614999999999999,
+                "z": -0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0614999999999999,
+                "z": -0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_3",
+              "hanger": {
+                "x": -1.0354999999999999,
+                "z": 0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0354999999999999,
+                "z": 0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_4",
+              "hanger": {
+                "x": -1.0094999999999996,
+                "z": 0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0094999999999996,
+                "z": 0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            }
+          ],
+          "overlaps": [
+            0.7789999999999999,
+            0.7789999999999999,
+            0.7789999999999997
+          ],
+          "zValues": [
+            -0.027000000000000003,
+            -0.009000000000000001,
+            0.009000000000000001,
+            0.027000000000000003
+          ],
+          "zGaps": [
+            0.018000000000000002,
+            0.018000000000000002,
+            0.018000000000000002
+          ],
+          "mesh": {
+            "name": "PANEL_TELO_MASTER_MESH",
+            "vertices": 4,
+            "triangles": 2,
+            "bounds": {
+              "min": [
+                -0.5,
+                -0.5,
+                0
+              ],
+              "max": [
+                0.5,
+                0.5,
+                0
+              ],
+              "size": [
+                1,
+                1,
+                0
+              ]
+            },
+            "inverted": 0,
+            "degenerate": 0
+          },
+          "material": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "alphaMode": "MASK",
+            "alphaCutoff": 0.5,
+            "doubleSided": true,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white",
+              "colorName": "White",
+              "productCode": "PANSCTRE3WHI",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "collected",
+              "color": "white",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Recogido",
+              "projection": 1,
+              "classification": "documentedState"
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          }
+        }
+      },
+      "after": {
+        "closed": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "closed",
+            "color": "white",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "x": -0.36249999999999993,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "x": 0.36250000000000004,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "x": 1.0875,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            }
+          ],
+          "components": [
+            {
+              "panel": "PANEL_TELO_1",
+              "hanger": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_2",
+              "hanger": {
+                "x": -0.36249999999999993,
+                "z": -0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -0.36249999999999993,
+                "z": -0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_3",
+              "hanger": {
+                "x": 0.36250000000000004,
+                "z": 0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": 0.36250000000000004,
+                "z": 0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_4",
+              "hanger": {
+                "x": 1.0875,
+                "z": 0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": 1.0875,
+                "z": 0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            }
+          ],
+          "overlaps": [
+            0.07999999999999996,
+            0.07999999999999996,
+            0.08000000000000007
+          ],
+          "zValues": [
+            -0.027000000000000003,
+            -0.009000000000000001,
+            0.009000000000000001,
+            0.027000000000000003
+          ],
+          "zGaps": [
+            0.018000000000000002,
+            0.018000000000000002,
+            0.018000000000000002
+          ],
+          "mesh": {
+            "name": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+            "vertices": 24,
+            "triangles": 12,
+            "bounds": {
+              "min": [
+                -0.5,
+                -0.5,
+                -0.00028
+              ],
+              "max": [
+                0.5,
+                0.5,
+                0.00028
+              ],
+              "size": [
+                1,
+                1,
+                0.00056
+              ]
+            },
+            "inverted": 0,
+            "degenerate": 0
+          },
+          "material": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "alphaMode": "MASK",
+            "alphaCutoff": 0.5,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white",
+              "colorName": "White",
+              "productCode": "PANSCTRE3WHI",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "closed",
+              "color": "white",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Cerrado",
+              "projection": 0,
+              "classification": "documentedState"
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          }
+        },
+        "partial": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "partial",
+            "color": "white",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "x": -0.7259799999999998,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "x": -0.3644599999999999,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "x": -0.0029399999999999427,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            }
+          ],
+          "components": [
+            {
+              "panel": "PANEL_TELO_1",
+              "hanger": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_2",
+              "hanger": {
+                "x": -0.7259799999999998,
+                "z": -0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -0.7259799999999998,
+                "z": -0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_3",
+              "hanger": {
+                "x": -0.3644599999999999,
+                "z": 0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -0.3644599999999999,
+                "z": 0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_4",
+              "hanger": {
+                "x": -0.0029399999999999427,
+                "z": 0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -0.0029399999999999427,
+                "z": 0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            }
+          ],
+          "overlaps": [
+            0.4434799999999999,
+            0.44348,
+            0.44348
+          ],
+          "zValues": [
+            -0.027000000000000003,
+            -0.009000000000000001,
+            0.009000000000000001,
+            0.027000000000000003
+          ],
+          "zGaps": [
+            0.018000000000000002,
+            0.018000000000000002,
+            0.018000000000000002
+          ],
+          "mesh": {
+            "name": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+            "vertices": 24,
+            "triangles": 12,
+            "bounds": {
+              "min": [
+                -0.5,
+                -0.5,
+                -0.00028
+              ],
+              "max": [
+                0.5,
+                0.5,
+                0.00028
+              ],
+              "size": [
+                1,
+                1,
+                0.00056
+              ]
+            },
+            "inverted": 0,
+            "degenerate": 0
+          },
+          "material": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "alphaMode": "MASK",
+            "alphaCutoff": 0.5,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white",
+              "colorName": "White",
+              "productCode": "PANSCTRE3WHI",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "partial",
+              "color": "white",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Parcial",
+              "projection": 0.52,
+              "classification": "visualApproximation",
+              "partialPositionVisualApproximation": true
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          }
+        },
+        "collected": {
+          "config": {
+            "widthM": 3,
+            "heightM": 2.4,
+            "direction": "left",
+            "position": "collected",
+            "color": "white",
+            "layout": "4:4",
+            "controlSide": "right",
+            "qaScene": "product"
+          },
+          "metrics": {
+            "ways": 4,
+            "telos": 4,
+            "overlapM": 0.08,
+            "standardDeductionM": 0.02,
+            "teloWidthM": 0.8049999999999999,
+            "fabricCoverageM": 2.98,
+            "coveredFabricWidthM": 2.9799999999999995,
+            "systemWidthM": 2.9999999999999996,
+            "stacks": 1,
+            "stackWidthM": 0.8829999999999999,
+            "collectedObstructionM": 0.8829999999999999
+          },
+          "entries": [
+            {
+              "name": "PANEL_TELO_1",
+              "x": -1.0875,
+              "z": -0.027000000000000003,
+              "track": 0,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_2",
+              "x": -1.0614999999999999,
+              "z": -0.009000000000000001,
+              "track": 1,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_3",
+              "x": -1.0354999999999999,
+              "z": 0.009000000000000001,
+              "track": 2,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            },
+            {
+              "name": "PANEL_TELO_4",
+              "x": -1.0094999999999996,
+              "z": 0.027000000000000003,
+              "track": 3,
+              "widthM": 0.8049999999999999,
+              "heightM": 2.298,
+              "thicknessM": 0.00056,
+              "mesh": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+              "material": 3
+            }
+          ],
+          "components": [
+            {
+              "panel": "PANEL_TELO_1",
+              "hanger": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0875,
+                "z": -0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_2",
+              "hanger": {
+                "x": -1.0614999999999999,
+                "z": -0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0614999999999999,
+                "z": -0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_3",
+              "hanger": {
+                "x": -1.0354999999999999,
+                "z": 0.009000000000000001,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0354999999999999,
+                "z": 0.009000000000000001,
+                "widthM": 0.7929999999999999
+              }
+            },
+            {
+              "panel": "PANEL_TELO_4",
+              "hanger": {
+                "x": -1.0094999999999996,
+                "z": 0.027000000000000003,
+                "widthM": 0.7909999999999999
+              },
+              "weight": {
+                "x": -1.0094999999999996,
+                "z": 0.027000000000000003,
+                "widthM": 0.7929999999999999
+              }
+            }
+          ],
+          "overlaps": [
+            0.7789999999999999,
+            0.7789999999999999,
+            0.7789999999999997
+          ],
+          "zValues": [
+            -0.027000000000000003,
+            -0.009000000000000001,
+            0.009000000000000001,
+            0.027000000000000003
+          ],
+          "zGaps": [
+            0.018000000000000002,
+            0.018000000000000002,
+            0.018000000000000002
+          ],
+          "mesh": {
+            "name": "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+            "vertices": 24,
+            "triangles": 12,
+            "bounds": {
+              "min": [
+                -0.5,
+                -0.5,
+                -0.00028
+              ],
+              "max": [
+                0.5,
+                0.5,
+                0.00028
+              ],
+              "size": [
+                1,
+                1,
+                0.00056
+              ]
+            },
+            "inverted": 0,
+            "degenerate": 0
+          },
+          "material": {
+            "index": 3,
+            "name": "PANEL_FABRIC",
+            "alphaMode": "MASK",
+            "alphaCutoff": 0.5,
+            "doubleSided": false,
+            "baseColorTexture": {
+              "index": 1,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "normalTexture": {
+              "index": 2,
+              "scale": 0.45,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "roughnessTexture": {
+              "index": 3,
+              "extensions": {
+                "KHR_texture_transform": {
+                  "scale": [
+                    19.05776515151515,
+                    54.40340909090909
+                  ]
+                }
+              }
+            },
+            "extras": {
+              "product": "PANEL JAPONÉS",
+              "reference": "SCREEN TRETTO 3%",
+              "colorId": "white",
+              "colorName": "White",
+              "productCode": "PANSCTRE3WHI",
+              "officialOpennessPercent": 3,
+              "measuredOpenAreaPercent": 2.9998779296875,
+              "physicalRepeatM": [
+                0.04224,
+                0.04224
+              ],
+              "sourceEvidenceId": "pentagrama-panel-standard-screen-tretto-3-white"
+            }
+          },
+          "asset": {
+            "architecture": "single-master-plus-fabric-packs",
+            "colorsBaked": false,
+            "product": "PANEL JAPONÉS",
+            "system": "STANDARD",
+            "actuation": "MANUAL_CORDEL",
+            "fabricReference": "SCREEN TRETTO 3%",
+            "configuration": {
+              "widthM": 3,
+              "heightM": 2.4,
+              "direction": "left",
+              "position": "collected",
+              "color": "white",
+              "layout": "4:4",
+              "controlSide": "right",
+              "qaScene": "product"
+            },
+            "layout": {
+              "ways": 4,
+              "telos": 4,
+              "overlapM": 0.08,
+              "standardDeductionM": 0.02,
+              "teloWidthM": 0.8049999999999999,
+              "fabricCoverageM": 2.98,
+              "coveredFabricWidthM": 2.9799999999999995,
+              "systemWidthM": 2.9999999999999996,
+              "stacks": 1,
+              "stackWidthM": 0.8829999999999999,
+              "collectedObstructionM": 0.8829999999999999
+            },
+            "recommendation": {
+              "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+              "disclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+              "direction": "left",
+              "explanation": "4 vías y 4 telos equilibran el ancho de telo calculado con las configuraciones válidas para left.",
+              "selected": {
+                "layout": "4:4",
+                "ways": 4,
+                "telos": 4,
+                "label": "4 vías · 4 telos",
+                "overlapM": 0.08,
+                "standardDeductionM": 0.02,
+                "teloWidthM": 0.8049999999999999,
+                "fabricCoverageM": 2.98,
+                "coveredFabricWidthM": 2.9799999999999995,
+                "systemWidthM": 2.9999999999999996,
+                "stacks": 1,
+                "stackWidthM": 0.8829999999999999,
+                "collectedObstructionM": 0.8829999999999999,
+                "withinRecommended": true,
+                "screenOnlyException": false,
+                "valid": true,
+                "score": 0.055439999999999934
+              },
+              "alternatives": [
+                {
+                  "layout": "5:5",
+                  "ways": 5,
+                  "telos": 5,
+                  "label": "5 vías · 5 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.6599999999999999,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.7639999999999999,
+                  "collectedObstructionM": 0.7639999999999999,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.09055000000000007
+                },
+                {
+                  "layout": "6:6",
+                  "ways": 6,
+                  "telos": 6,
+                  "label": "6 vías · 6 telos",
+                  "overlapM": 0.08,
+                  "standardDeductionM": 0.02,
+                  "teloWidthM": 0.5633333333333334,
+                  "fabricCoverageM": 2.98,
+                  "coveredFabricWidthM": 2.98,
+                  "systemWidthM": 3,
+                  "stacks": 1,
+                  "stackWidthM": 0.6933333333333334,
+                  "collectedObstructionM": 0.6933333333333334,
+                  "withinRecommended": true,
+                  "screenOnlyException": false,
+                  "valid": true,
+                  "score": 0.18732666666666664
+                }
+              ],
+              "evaluated": 5
+            },
+            "positionProjection": {
+              "label": "Recogido",
+              "projection": 1,
+              "classification": "documentedState"
+            },
+            "panelCountConstantAcrossStates": true,
+            "panelWidthConstantAcrossStates": true,
+            "panelTeloPhysicalThicknessM": 0.00056,
+            "panelTeloGeometry": "closed-thin-textile-volume",
+            "panelSeparationUsesRealGeometry": true,
+            "texturePhysicalScalePreserved": true,
+            "runtimeUsesSingleMaster": true,
+            "masterGeometrySha256": "acbd173e1be356e38cd56716c4ae3b345b9b91bb532187a6e67baa6c6b6cd84c"
+          }
+        }
+      }
+    },
+    "standardGeometry": {
+      "before": "925925528b444442c1c0e8327fa1a80e2cffbedd5aa093054da44785d4688b08",
+      "after": "925925528b444442c1c0e8327fa1a80e2cffbedd5aa093054da44785d4688b08"
+    }
+  },
+  "validators": [
+    {
+      "key": "sheerAfter",
+      "file": "after-binovo-180x220-right-abierta.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/6/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/10/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/11/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/19/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/19/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/20/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/20/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/24/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/82"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/materials/0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/4"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/9"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/17"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/18"
+        }
+      ]
+    },
+    {
+      "key": "sheerLeft",
+      "file": "after-binovo-180x220-left-cerrada.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/6/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/10/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/11/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/19/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/19/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/20/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/20/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/24/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/82"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/materials/0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/4"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/9"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/17"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/18"
+        }
+      ]
+    },
+    {
+      "key": "standardAfter",
+      "file": "after-standard-150x150-right-abierta.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/6/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/9/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/10/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/11/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/13/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/16/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/17/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/18/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/24/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/1"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/2"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/3"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/4"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/78"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/79"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/80"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/81"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/82"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/83"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/84"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/85"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/86"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/materials/0"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/4"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/9"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/17"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/nodes/18"
+        }
+      ]
+    },
+    {
+      "key": "panelAfter_closed",
+      "file": "after-panel-white-closed.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/30"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/31"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/32"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/33"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/34"
+        }
+      ]
+    },
+    {
+      "key": "panelAfter_partial",
+      "file": "after-panel-white-partial.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/30"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/31"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/32"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/33"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/34"
+        }
+      ]
+    },
+    {
+      "key": "panelAfter_collected",
+      "file": "after-panel-white-collected.glb",
+      "errors": 0,
+      "warnings": 0,
+      "messages": [
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "UNUSED_MESH_TANGENT",
+          "message": "Tangents are not used because the material has no normal texture.",
+          "severity": 2,
+          "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/30"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/31"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/32"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/33"
+        },
+        {
+          "code": "UNUSED_OBJECT",
+          "message": "This object may be unused.",
+          "severity": 2,
+          "pointer": "/accessors/34"
+        }
+      ]
+    }
+  ],
+  "validatorTotals": {
+    "files": 6,
+    "errors": 0,
+    "warnings": 0
+  },
+  "consoleErrors": [],
+  "checks": {
+    "binovoExteriorCapsRestored": true,
+    "binovoInternalInterfacesOpen": true,
+    "binovoCapIndicesIndependent": true,
+    "binovoMetalOpaque": true,
+    "binovoWindingAndDegeneratesClean": true,
+    "binovoSupportsHidden": true,
+    "binovoEnvelopePreserved": true,
+    "standardGeometryHashUnchanged": true,
+    "panelPhysicalThickness": true,
+    "panelClosedVolumeValid": true,
+    "panelOverlapPreserved": true,
+    "panelTracksPhysicallySeparated": true,
+    "panelRailDepthPreserved": true,
+    "panelSameMaterialAllTelos": true,
+    "panelHangersAndWeightsFollowTelos": true,
+    "panelMaterialMapsPreserved": true,
+    "panelStatesRemainDistinct": true,
+    "panelArchitecturePreserved": true,
+    "khronosClean": true,
+    "protectedAssetsUnchanged": true,
+    "consoleClean": true
+  },
+  "status": "PASS"
+}

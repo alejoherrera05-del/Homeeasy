@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "1.0.0",
+  "scope": "Real model-viewer 4.3.1 integration regression: Sheer Binovo and Panel Japonés",
+  "modelViewer": {
+    "stubbed": false,
+    "path": "production/vendor/model-viewer-4.3.1.min.js",
+    "bytes": 1068903,
+    "sha256": "283b0672384614b4847636c306fc93fe4b1fcadc76d668b4e47f0ca76bcf033b"
+  },
+  "snapshots": [
+    {
+      "label": "sheer-binovo-initial",
+      "activeProduct": "sheer",
+      "currentProduct": "sheer",
+      "state": {
+        "variantId": "white",
+        "fabricWidthM": 1.8,
+        "fabricHeightM": 2.2,
+        "headrailSystem": "binovo",
+        "controlSide": "right",
+        "bandState": "abierta"
+      },
+      "ready": true,
+      "viewerLoaded": true,
+      "src": "blob:http://127.0.0.1:57782/efee0c88-e009-41fe-b459-c8f07d31b20d",
+      "srcIsBlob": true,
+      "iosSrcAbsent": true,
+      "arEnabled": true,
+      "arModes": "quick-look scene-viewer webxr",
+      "arPlacement": "wall",
+      "arScale": "fixed",
+      "quickLookGeneratedFromExactPreviewGlb": true,
+      "modelViewerDefined": true
+    },
+    {
+      "label": "panel-closed",
+      "activeProduct": "panel",
+      "currentProduct": "panel",
+      "state": {
+        "variantId": "white",
+        "color": "white",
+        "widthM": 3,
+        "heightM": 2.4,
+        "direction": "left",
+        "position": "closed",
+        "controlSide": "right",
+        "layout": null
+      },
+      "ready": true,
+      "viewerLoaded": true,
+      "src": "blob:http://127.0.0.1:57782/75b2f571-60ab-4b61-9479-74a1703259bd",
+      "srcIsBlob": true,
+      "iosSrcAbsent": true,
+      "arEnabled": true,
+      "arModes": "quick-look scene-viewer webxr",
+      "arPlacement": "wall",
+      "arScale": "fixed",
+      "quickLookGeneratedFromExactPreviewGlb": true,
+      "modelViewerDefined": true
+    },
+    {
+      "label": "panel-partial",
+      "activeProduct": "panel",
+      "currentProduct": "panel",
+      "state": {
+        "variantId": "white",
+        "color": "white",
+        "widthM": 3,
+        "heightM": 2.4,
+        "direction": "left",
+        "position": "partial",
+        "controlSide": "right",
+        "layout": "4:4"
+      },
+      "ready": true,
+      "viewerLoaded": true,
+      "src": "blob:http://127.0.0.1:57782/75b2f571-60ab-4b61-9479-74a1703259bd",
+      "srcIsBlob": true,
+      "iosSrcAbsent": true,
+      "arEnabled": true,
+      "arModes": "quick-look scene-viewer webxr",
+      "arPlacement": "wall",
+      "arScale": "fixed",
+      "quickLookGeneratedFromExactPreviewGlb": true,
+      "modelViewerDefined": true
+    },
+    {
+      "label": "panel-collected",
+      "activeProduct": "panel",
+      "currentProduct": "panel",
+      "state": {
+        "variantId": "white",
+        "color": "white",
+        "widthM": 3,
+        "heightM": 2.4,
+        "direction": "left",
+        "position": "collected",
+        "controlSide": "right",
+        "layout": "4:4"
+      },
+      "ready": true,
+      "viewerLoaded": true,
+      "src": "blob:http://127.0.0.1:57782/75b2f571-60ab-4b61-9479-74a1703259bd",
+      "srcIsBlob": true,
+      "iosSrcAbsent": true,
+      "arEnabled": true,
+      "arModes": "quick-look scene-viewer webxr",
+      "arPlacement": "wall",
+      "arScale": "fixed",
+      "quickLookGeneratedFromExactPreviewGlb": true,
+      "modelViewerDefined": true
+    },
+    {
+      "label": "sheer-after-panel",
+      "activeProduct": "sheer",
+      "currentProduct": "sheer",
+      "state": {
+        "variantId": "white",
+        "fabricWidthM": 1.8,
+        "fabricHeightM": 2.2,
+        "headrailSystem": "binovo",
+        "controlSide": "right",
+        "bandState": "abierta"
+      },
+      "ready": true,
+      "viewerLoaded": true,
+      "src": "blob:http://127.0.0.1:57782/13020c24-63f1-401f-b379-2a11f9b79fe5",
+      "srcIsBlob": true,
+      "iosSrcAbsent": true,
+      "arEnabled": true,
+      "arModes": "quick-look scene-viewer webxr",
+      "arPlacement": "wall",
+      "arScale": "fixed",
+      "quickLookGeneratedFromExactPreviewGlb": true,
+      "modelViewerDefined": true
+    },
+    {
+      "label": "panel-after-sheer",
+      "activeProduct": "panel",
+      "currentProduct": "panel",
+      "state": {
+        "variantId": "white",
+        "color": "white",
+        "widthM": 3,
+        "heightM": 2.4,
+        "direction": "left",
+        "position": "collected",
+        "controlSide": "right",
+        "layout": "4:4"
+      },
+      "ready": true,
+      "viewerLoaded": true,
+      "src": "blob:http://127.0.0.1:57782/e4028feb-eaef-4c9c-9aeb-fe9744347806",
+      "srcIsBlob": true,
+      "iosSrcAbsent": true,
+      "arEnabled": true,
+      "arModes": "quick-look scene-viewer webxr",
+      "arPlacement": "wall",
+      "arScale": "fixed",
+      "quickLookGeneratedFromExactPreviewGlb": true,
+      "modelViewerDefined": true
+    }
+  ],
+  "rotation": {
+    "before": {
+      "theta": 0,
+      "phi": 1.3089969389957472,
+      "radius": 6.079528166863166
+    },
+    "after": {
+      "theta": 0.6108652381980153,
+      "phi": 1.2217304763960306,
+      "radius": 6.079528166863166
+    }
+  },
+  "quickLook": {
+    "clicked": true,
+    "srcBefore": "blob:http://127.0.0.1:57782/e4028feb-eaef-4c9c-9aeb-fe9744347806",
+    "srcAfter": "blob:http://127.0.0.1:57782/e4028feb-eaef-4c9c-9aeb-fe9744347806",
+    "currentUrl": "blob:http://127.0.0.1:57782/e4028feb-eaef-4c9c-9aeb-fe9744347806",
+    "sameExactPreviewGlb": true,
+    "iosSrcAbsent": true,
+    "buttonEnabled": true
+  },
+  "consoleErrors": [],
+  "checks": {
+    "realModelViewer431": true,
+    "binovoLoadsAndRotates": true,
+    "panelThreeStatesLoad": true,
+    "panelSheerPanelFlow": true,
+    "sameExactGlbForQuickLook": true,
+    "arContractPreserved": true,
+    "allViewsReady": true,
+    "consoleClean": true
+  },
+  "status": "PASS",
+  "physicalQuickLookIphoneTest": "PENDING"
+}

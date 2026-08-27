@@ -340,6 +340,24 @@ function removePlanarInterface(parsed, nodeName, axis, coordinate, tolerance = 2
   return filterIndexedTriangles(parsed, nodeName, points => !points.every(point => Math.abs(point[axis] - coordinate) <= tolerance));
 }
 
+// The V2.3 golden master intentionally reuses one index accessor for both
+// Binovo end caps. Build a filtered, detached accessor from the original data
+// for each cap so the second repair cannot truncate the first cap's exterior.
+function removePlanarInterfaceDetached(parsed, nodeName, axis, coordinate, tolerance = 2e-6) {
+  const {primitive} = primitiveForNode(parsed, nodeName);
+  if (primitive.indices === undefined) throw new Error(`La malla ${nodeName} debe tener índices para separar su topología.`);
+  const position = accessorInfo(parsed, primitive.attributes.POSITION), indices = accessorInfo(parsed, primitive.indices), filtered = [];
+  for (let readAt = 0; readAt < indices.accessor.count; readAt += 3) {
+    const ids = [readIndex(parsed, indices, readAt), readIndex(parsed, indices, readAt + 1), readIndex(parsed, indices, readAt + 2)];
+    const points = ids.map(index => readFloatVector(parsed, position, index, 3));
+    if (points.every(point => Math.abs(point[axis] - coordinate) <= tolerance)) continue;
+    filtered.push(...ids);
+  }
+  const removed = (indices.accessor.count - filtered.length) / 3;
+  primitive.indices = appendAccessor(parsed, filtered, indices.accessor.componentType, 'SCALAR', 34963);
+  return removed;
+}
+
 function assignRigidMaterial(parsed, nodeNames, definition) {
   const materialIndex = parsed.json.materials.length;
   parsed.json.materials.push({
@@ -555,10 +573,13 @@ export async function applySheerFabricPack(masterGlb, fabricPack, input = {}) {
   const removedInterfaces = system.id === 'standard' ? null : {
     railLeft: removePlanarInterface(parsed, 'Cabezal_Binovo_Plano', 0, -bodyHalfWidth),
     railRight: removePlanarInterface(parsed, 'Cabezal_Binovo_Plano', 0, bodyHalfWidth),
-    capLeft: removePlanarInterface(parsed, 'Tapa_Lateral_Izq', 0, -bodyHalfWidth),
-    capRight: removePlanarInterface(parsed, 'Tapa_Lateral_Der', 0, bodyHalfWidth),
+    capLeft: null,
+    capRight: null,
   };
-  if (system.id !== 'standard') for (const name of [...headrailNames, ...endPieceNames]) recomputeMeshFrame(parsed, name);
+  // The cap normals/tangents were already corrected for the linear transform;
+  // removing one hard planar face does not change the remaining vertex frames.
+  // Only the body needs a frame rebuild after its two in-place interface cuts.
+  if (system.id !== 'standard') for (const name of headrailNames) recomputeMeshFrame(parsed, name);
   const headrailMaterial = assignRigidMaterial(parsed, headrailNames, {name: 'HomeEasy_Headrail_Matte_V23', baseColorFactor: [0.84, 0.84, 0.80, 1], metallicFactor: 0.08, roughnessFactor: 0.62});
   const capMaterial = assignRigidMaterial(parsed, endPieceNames, {name: 'HomeEasy_EndCaps_Matte_V23', baseColorFactor: [0.72, 0.69, 0.62, 1], metallicFactor: 0, roughnessFactor: 0.68});
   renameNode(parsed, 'Cabezal_Binovo_Plano', `Cabezal_${system.label.replace(/\s+/g, '_')}_Plano`, {
@@ -569,7 +590,7 @@ export async function applySheerFabricPack(masterGlb, fabricPack, input = {}) {
     profileShapeSource: system.id === 'standard' ? '581_FichaSheerElegance.pdf pp.2-3' : '581_FichaSheerElegance.pdf p.2',
     profileReconstruction: system.id === 'standard' ? 'independent-standard-envelope-v1' : 'visual-binovo-profile-v2-3',
     ...(system.id === 'standard' ? {sourceGeometry: 'independent-parametric-standard'} : {}),
-    flickerCorrection: {coplanarOverlaysRemoved: ['Fascia_Frontal', 'Junta_Inferior_Cabezal'], hiddenSupportsRemoved: ['Soporte_Pared_Izq', 'Soporte_Pared_Der'], openInterfaces: removedInterfaces, capThicknessM: capThickness},
+    flickerCorrection: {coplanarOverlaysRemoved: ['Fascia_Frontal', 'Junta_Inferior_Cabezal'], hiddenSupportsRemoved: ['Soporte_Pared_Izq', 'Soporte_Pared_Der'], capIndexTopologyDetached: system.id !== 'standard', openInterfaces: removedInterfaces, capThicknessM: capThickness},
   });
 
   const tubeDiameter = matchedConfiguration.tubeDiameterMm / 1000, tubeScale = tubeDiameter / BASE.upperTubeDiameter;
@@ -642,6 +663,13 @@ export async function applySheerFabricPack(masterGlb, fabricPack, input = {}) {
   if (rearNode) rearNode.extras = {homeeasy_role: 'rear_textile_layer', materialSlot: 'SHEER_FABRIC', phase_cycles: state.phase, rearLayerOffsetM: state.displacementM, physical_repeat_m: profile.repeatHeightM, physical_repeat_width_m: profile.repeatWidthM, segments: profile.segments, patternScalePhysical: true};
   const frontNode = parsed.json.nodes.find(node => node.name === 'Tela_Frontal');
   if (frontNode) frontNode.extras = {homeeasy_role: 'front_textile_layer', materialSlot: 'SHEER_FABRIC', phase_cycles: 0, rearLayerOffsetM: 0, physical_repeat_m: profile.repeatHeightM, physical_repeat_width_m: profile.repeatWidthM, segments: profile.segments, patternScalePhysical: true};
+  // Detaching creates new BIN data, so it is deliberately the final geometry
+  // operation. All parametric mutations above are therefore captured before
+  // the output buffer is cloned and compacted.
+  if (system.id !== 'standard') {
+    removedInterfaces.capLeft = removePlanarInterfaceDetached(parsed, 'Tapa_Lateral_Izq', 0, -bodyHalfWidth);
+    removedInterfaces.capRight = removePlanarInterfaceDetached(parsed, 'Tapa_Lateral_Der', 0, bodyHalfWidth);
+  }
   const appliedSlot=appendFabricPack(parsed,pack,alpha),compaction=compactGLBResources(parsed);parsed.json.scenes[sceneIndex].extras.compaction=compaction;const bytes=new Uint8Array(packGLB(parsed));
   return {bytes,blob:new Blob([bytes],{type:'model/gltf-binary'}),filename:`sheer-master-${profile.id}-${config.headrailSystem}-${config.bandState}.glb`,config,profile,alphaMetrics:alpha,compaction,textileMaterialIndex:appliedSlot.index};
 }

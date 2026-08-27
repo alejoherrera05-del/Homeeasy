@@ -89,6 +89,63 @@ function combineParts(parts) {
   return output;
 }
 
+function appendAccessorPart(json, parts, values, componentType, type, target, min = undefined, max = undefined) {
+  const typed = componentType === 5123 ? new Uint16Array(values) : new Float32Array(values);
+  let offset = 0;
+  for (const part of parts) offset = PAD4(offset) + part.byteLength;
+  offset = PAD4(offset);
+  parts.push(new Uint8Array(typed.buffer, typed.byteOffset, typed.byteLength));
+  const bufferView = json.bufferViews.length;
+  json.bufferViews.push({buffer: 0, byteOffset: offset, byteLength: typed.byteLength, target});
+  const width = {SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4}[type];
+  const accessor = json.accessors.length;
+  json.accessors.push({
+    bufferView,
+    componentType,
+    count: values.length / width,
+    type,
+    ...(min ? {min} : {}),
+    ...(max ? {max} : {}),
+  });
+  return accessor;
+}
+
+function physicalTeloGeometry(thicknessM) {
+  const half = thicknessM / 2;
+  const positions = [], normals = [], tangents = [], uvs = [], indices = [];
+  const addFace = (corners, normal, tangent) => {
+    const start = positions.length / 3;
+    for (let index = 0; index < 4; index += 1) {
+      positions.push(...corners[index]);
+      normals.push(...normal);
+      tangents.push(...tangent);
+      uvs.push(...[[0, 0], [1, 0], [1, 1], [0, 1]][index]);
+    }
+    indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
+  };
+  addFace([[-0.5, -0.5, half], [0.5, -0.5, half], [0.5, 0.5, half], [-0.5, 0.5, half]], [0, 0, 1], [1, 0, 0, 1]);
+  addFace([[0.5, -0.5, -half], [-0.5, -0.5, -half], [-0.5, 0.5, -half], [0.5, 0.5, -half]], [0, 0, -1], [-1, 0, 0, 1]);
+  addFace([[-0.5, -0.5, -half], [-0.5, -0.5, half], [-0.5, 0.5, half], [-0.5, 0.5, -half]], [-1, 0, 0], [0, 0, 1, 1]);
+  addFace([[0.5, -0.5, half], [0.5, -0.5, -half], [0.5, 0.5, -half], [0.5, 0.5, half]], [1, 0, 0], [0, 0, -1, 1]);
+  addFace([[-0.5, 0.5, half], [0.5, 0.5, half], [0.5, 0.5, -half], [-0.5, 0.5, -half]], [0, 1, 0], [1, 0, 0, 1]);
+  addFace([[-0.5, -0.5, -half], [0.5, -0.5, -half], [0.5, -0.5, half], [-0.5, -0.5, half]], [0, -1, 0], [1, 0, 0, 1]);
+  return {positions, normals, tangents, uvs, indices, half};
+}
+
+function installPhysicalTeloGeometry(json, parts, meshIndex, material, thicknessM) {
+  const geometry = physicalTeloGeometry(thicknessM);
+  const position = appendAccessorPart(json, parts, geometry.positions, 5126, "VEC3", 34962, [-0.5, -0.5, -geometry.half], [0.5, 0.5, geometry.half]);
+  const normal = appendAccessorPart(json, parts, geometry.normals, 5126, "VEC3", 34962);
+  const tangent = appendAccessorPart(json, parts, geometry.tangents, 5126, "VEC4", 34962);
+  const texcoord = appendAccessorPart(json, parts, geometry.uvs, 5126, "VEC2", 34962, [0, 0], [1, 1]);
+  const indices = appendAccessorPart(json, parts, geometry.indices, 5123, "SCALAR", 34963, [0], [geometry.positions.length / 3 - 1]);
+  json.meshes[meshIndex] = {
+    name: "PANEL_TELO_PHYSICAL_0_56MM_MESH",
+    extras: {physicalThicknessM: thicknessM, separationSource: "real-cloth-thickness-and-track-depth"},
+    primitives: [{attributes: {POSITION: position, NORMAL: normal, TANGENT: tangent, TEXCOORD_0: texcoord}, indices, material}],
+  };
+}
+
 async function decodeImage(blob) {
   if (typeof createImageBitmap === "function") return createImageBitmap(blob);
   if (typeof document !== "undefined") {
@@ -401,7 +458,7 @@ function buildRuntimeNodes(json, mesh, config, metrics, transforms, rules) {
     const panelWidth = config.qaScene === "singleTelo" ? Math.min(0.8, metrics.teloWidthM) : metrics.teloWidthM;
     add(makeNode(`PANEL_CARRIER_${number}`, mesh.PANEL_CARRIER, [x, fabricTop + rules.components.hangerDropM + 0.004, z], [1, 1, 1], {track: transform.track}));
     add(makeNode(`PANEL_HANGER_${number}`, mesh.PANEL_HANGER, [x, fabricTop + 0.006, z], [Math.max(0.08, panelWidth - 0.014), 1, 1], {presentation: "VELCRO_STANDARD"}));
-    add(makeNode(`PANEL_TELO_${number}`, mesh.PANEL_TELO_MASTER, [x, fabricBottom + fabricHeight / 2, z], [panelWidth, fabricHeight, 1], {panelIndex: number, track: transform.track, physicalWidthM: panelWidth, physicalHeightM: fabricHeight}));
+    add(makeNode(`PANEL_TELO_${number}`, mesh.PANEL_TELO_MASTER, [x, fabricBottom + fabricHeight / 2, z], [panelWidth, fabricHeight, 1], {panelIndex: number, track: transform.track, physicalWidthM: panelWidth, physicalHeightM: fabricHeight, physicalThicknessM: rules.components.fabricThicknessM}));
     add(makeNode(`PANEL_BOTTOM_WEIGHT_${number}`, mesh.PANEL_BOTTOM_WEIGHT, [x, rules.components.bottomWeightHeightM / 2, z], [Math.max(0.08, panelWidth - 0.012), 1, 1], {profile: "Standard Out", dimensionsExact: false}));
   }
   json.nodes = nodes;
@@ -452,6 +509,7 @@ export async function buildPanelJaponesGlb(masterGlb, fabricPackBase, configurat
   const mesh = componentMeshes(json);
   const textileMaterial = materialIndex(json, "PANEL_FABRIC");
   const parts = [parsed.bin];
+  installPhysicalTeloGeometry(json, parts, mesh.PANEL_TELO_MASTER, textileMaterial, rules.components.fabricThicknessM);
   const rgbaImage = appendBufferView(json, parts, rgba.bytes, "image/png");
   const normalImage = appendBufferView(json, parts, normal, "image/png");
   const roughnessImage = appendBufferView(json, parts, roughness, "image/png");
@@ -479,7 +537,7 @@ export async function buildPanelJaponesGlb(masterGlb, fabricPackBase, configurat
     normalTexture: {index: normalTexture, scale: 0.45, extensions: transformExtension},
     alphaMode: "MASK",
     alphaCutoff: 0.5,
-    doubleSided: true,
+    doubleSided: false,
     extras: {
       product: rules.product,
       reference: rules.fabric.reference,
@@ -507,6 +565,9 @@ export async function buildPanelJaponesGlb(masterGlb, fabricPackBase, configurat
     positionProjection: rules.positions[config.position],
     panelCountConstantAcrossStates: true,
     panelWidthConstantAcrossStates: true,
+    panelTeloPhysicalThicknessM: rules.components.fabricThicknessM,
+    panelTeloGeometry: "closed-thin-textile-volume",
+    panelSeparationUsesRealGeometry: true,
     texturePhysicalScalePreserved: true,
     runtimeUsesSingleMaster: true,
     masterGeometrySha256: await geometryHash(parsed),
