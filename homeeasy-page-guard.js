@@ -1,5 +1,5 @@
 /**
- * HomeEasy Page Guard v3.2
+ * HomeEasy Page Guard v3.4
  * Navegación cache-first: usa la sesión ya validada para abrir módulos al instante
  * y revalida silenciosamente en segundo plano. AR permanece fuera de este mapa.
  */
@@ -100,7 +100,7 @@
             target.searchParams.set('navegador', device.browser || '');
         }
         target.searchParams.set('pagina', currentPage);
-        target.searchParams.set('versionApp', '3.1');
+        target.searchParams.set('versionApp', '3.4');
         return target.href;
     }
 
@@ -120,7 +120,7 @@
         const data = parseJsonBody(options.body);
         if (!data || isAuthPayload(data)) return { options, isAuth: isAuthPayload(data) };
         const token = global.HomeEasyAuth && global.HomeEasyAuth.getAppSessionToken ? global.HomeEasyAuth.getAppSessionToken() : '';
-        const meta = global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : { pagina: currentPage, versionApp: '3.1' };
+        const meta = global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : { pagina: currentPage, versionApp: '3.4' };
         options.body = JSON.stringify({
             ...data,
             appSessionToken: token,
@@ -175,6 +175,33 @@
         }
     }
 
+    function isTransientAuthError(error) {
+        return Boolean(global.HomeEasyAuth && typeof global.HomeEasyAuth.isTransientError === 'function' && global.HomeEasyAuth.isTransientError(error));
+    }
+
+    function showConnectionIssue(error) {
+        if (pageAuthStatus === 'network-error') return;
+        pageAuthStatus = 'network-error';
+        reveal();
+        const render = () => {
+            if (!global.document || !global.document.body || global.document.getElementById('homeeasyModuleConnectionIssue')) return;
+            const overlay = global.document.createElement('div');
+            overlay.id = 'homeeasyModuleConnectionIssue';
+            overlay.setAttribute('role', 'alert');
+            overlay.style.cssText = 'position:fixed;z-index:2147483647;inset:0;display:grid;place-items:center;padding:24px;background:rgba(242,242,247,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#252125';
+            overlay.innerHTML = '<section style="width:min(430px,100%);padding:28px;border-radius:24px;background:#fff;box-shadow:0 22px 60px rgba(45,35,40,.14);text-align:center"><div style="font-size:30px;margin-bottom:12px">↻</div><h1 style="margin:0;font-size:1.35rem;letter-spacing:-.035em">Conexión interrumpida</h1><p style="margin:10px auto 20px;max-width:35ch;color:#777075;font-size:.84rem;line-height:1.5">No se cerró tu sesión. Reintenta cuando tengas conexión con HomeEasy.</p><button id="homeeasyRetryModule" style="width:100%;height:50px;border:0;border-radius:14px;background:#a6455a;color:#fff;font-weight:720">Reintentar</button><button id="homeeasyBackFromConnection" style="width:100%;height:46px;margin-top:8px;border:0;background:transparent;color:#a6455a;font-weight:680">Volver al Inicio</button></section>';
+            global.document.body.appendChild(overlay);
+            global.document.getElementById('homeeasyRetryModule').addEventListener('click', () => global.location.reload());
+            global.document.getElementById('homeeasyBackFromConnection').addEventListener('click', () => {
+                if (global.HomeEasyCore && typeof global.HomeEasyCore.goHome === 'function') global.HomeEasyCore.goHome();
+                else global.location.assign('index.html');
+            });
+        };
+        if (global.document && global.document.body) render();
+        else if (global.document) global.document.addEventListener('DOMContentLoaded', render, { once: true });
+        console.warn('HomeEasy: módulo conservado por error transitorio.', error);
+    }
+
     function showDenied(message) {
         if (pageAuthStatus === 'denied') return;
         pageAuthStatus = 'denied';
@@ -182,7 +209,10 @@
         reveal();
         const profile = global.HomeEasyAuth && global.HomeEasyAuth.getCurrentProfile ? global.HomeEasyAuth.getCurrentProfile() : null;
         global.document.body.innerHTML = `<main style="min-height:100svh;display:grid;place-items:center;padding:24px;background:#f2f2f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#252125"><section style="width:min(460px,100%);padding:30px;border-radius:26px;background:#fff;box-shadow:0 22px 65px rgba(45,35,40,.12);text-align:center"><div style="width:58px;height:58px;margin:0 auto 17px;border-radius:18px;display:grid;place-items:center;background:rgba(166,69,90,.10);color:#a6455a;font-size:24px">🔒</div><h1 style="margin:0;font-size:1.55rem;letter-spacing:-.04em">Acceso restringido</h1><p style="margin:10px auto 20px;max-width:34ch;color:#777075;font-size:.86rem;line-height:1.55">${String(message || 'Tu rol no tiene permiso para abrir este módulo.').replace(/[<>]/g,'')}</p><div style="margin-bottom:20px;padding:12px 14px;border-radius:15px;background:#f8f6f7;color:#6e676b;font-size:.73rem">${profile ? String(profile.nombre || profile.email || '').replace(/[<>]/g,'') + ' · ' + String(profile.rol || '').replace(/[<>]/g,'') : ''}</div><button id="heBackHome" style="width:100%;height:50px;border:0;border-radius:14px;background:#a6455a;color:#fff;font-weight:720">Volver a HomeEasy</button></section></main>`;
-        global.document.getElementById('heBackHome').addEventListener('click', () => global.location.replace('index.html'));
+        global.document.getElementById('heBackHome').addEventListener('click', () => {
+            if (global.HomeEasyCore && typeof global.HomeEasyCore.goHome === 'function') global.HomeEasyCore.goHome();
+            else global.location.assign('index.html');
+        });
     }
 
     function authorizeLocally(session) {
@@ -209,14 +239,20 @@
             .then(() => {
                 if (!auth.hasPermission(requiredPermission)) showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
             })
-            .catch(() => redirectToLogin());
+            .catch(error => {
+                if (isTransientAuthError(error)) {
+                    console.warn('HomeEasy: revalidación del módulo aplazada por conexión.', error);
+                    return;
+                }
+                redirectToLogin();
+            });
     }
 
     async function authorizePage() {
         schedulePendingCover();
         try {
             await loadScriptOnce('homeeasy-auth-config.js?v=3.1', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
-            await loadScriptOnce('homeeasy-auth.js?v=3.1', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
+            await loadScriptOnce('homeeasy-auth.js?v=3.4', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
             if (!global.HomeEasyAuth || !global.HomeEasyAuth.isConfigured()) { redirectToLogin(); return; }
 
             const cached = global.HomeEasyAuth.getCachedHomeEasySession ? global.HomeEasyAuth.getCachedHomeEasySession() : null;
@@ -237,6 +273,10 @@
             if (authorizeLocally(session)) revalidateInBackground();
         } catch (error) {
             console.error('HomeEasy Page Guard:', error);
+            if (isTransientAuthError(error)) {
+                showConnectionIssue(error);
+                return;
+            }
             redirectToLogin();
         }
     }

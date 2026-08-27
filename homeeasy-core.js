@@ -1,5 +1,5 @@
 /**
- * HomeEasy Core v3.3
+ * HomeEasy Core v3.4
  * Comunicación central, identificación del dispositivo, trazabilidad y guard de acceso del Index.
  * La protección general se aplica únicamente a index.html en esta fase.
  */
@@ -7,7 +7,7 @@
     'use strict';
 
     const API_URL = 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
-    const APP_VERSION = '3.3';
+    const APP_VERSION = '3.4';
     const CONFIG_CACHE_KEY = 'HOMEEASY_CONFIG_BROWSER_V1';
     const CONFIG_CACHE_FRESH_MS = 5 * 60 * 1000;
     const CONFIG_CACHE_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -50,11 +50,21 @@
             || parseStoredAuthSession(readStorageValue(global.localStorage, AUTH_SESSION_STORAGE_KEY));
     }
 
+    function parseExpiryMs(value) {
+        if (!value) return 0;
+        if (typeof value === 'number') return value > 100000000000 ? value : value * 1000;
+        const numeric = Number(value);
+        if (Number.isFinite(numeric) && numeric > 0) return numeric > 100000000000 ? numeric : numeric * 1000;
+        const parsed = Date.parse(String(value));
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
     function hasFreshCachedAppSession() {
         const session = getStoredAuthSessionSnapshot();
         if (!session || !session.appSessionToken) return false;
-        const expiresAt = Date.parse(session.appSessionExpiresAt || '');
-        if (!Number.isFinite(expiresAt) || expiresAt <= Date.now() + 30000) return false;
+        if (!Number(session.expiresAt || 0) || Number(session.expiresAt) <= Date.now() + 30000) return false;
+        const appExpiry = parseExpiryMs(session.appSessionExpiresAt);
+        if (!appExpiry || appExpiry <= Date.now() + 30000) return false;
         return true;
     }
 
@@ -515,6 +525,29 @@
         global.location.replace(fallback.href);
     }
 
+    function isTransientAuthError(error) {
+        return Boolean(global.HomeEasyAuth && typeof global.HomeEasyAuth.isTransientError === 'function' && global.HomeEasyAuth.isTransientError(error));
+    }
+
+    function showIndexConnectionIssue(error) {
+        indexAuthStatus = 'network-error';
+        clearTimeout(indexPendingTimer);
+        if (global.document && global.document.documentElement) global.document.documentElement.classList.remove(AUTH_PENDING_CLASS);
+        const render = () => {
+            if (!global.document || !global.document.body || global.document.getElementById('homeeasyIndexConnectionIssue')) return;
+            const box = global.document.createElement('div');
+            box.id = 'homeeasyIndexConnectionIssue';
+            box.setAttribute('role', 'alert');
+            box.style.cssText = 'position:fixed;z-index:2147483647;inset:0;display:grid;place-items:center;padding:24px;background:rgba(242,242,247,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#252125';
+            box.innerHTML = '<section style="width:min(430px,100%);padding:28px;border-radius:24px;background:#fff;box-shadow:0 22px 60px rgba(45,35,40,.14);text-align:center"><div style="font-size:30px;margin-bottom:12px">↻</div><h1 style="margin:0;font-size:1.35rem;letter-spacing:-.035em">Conexión interrumpida</h1><p style="margin:10px auto 20px;max-width:34ch;color:#777075;font-size:.84rem;line-height:1.5">Tu sesión sigue guardada. HomeEasy no pudo verificarla en este momento.</p><button id="homeeasyRetryIndex" style="width:100%;height:50px;border:0;border-radius:14px;background:#a6455a;color:#fff;font-weight:720">Reintentar</button></section>';
+            global.document.body.appendChild(box);
+            global.document.getElementById('homeeasyRetryIndex').addEventListener('click', () => global.location.reload());
+        };
+        if (global.document && global.document.body) render();
+        else if (global.document) global.document.addEventListener('DOMContentLoaded', render, { once: true });
+        console.warn('HomeEasy: sesión conservada por error transitorio.', error);
+    }
+
     function markInternalHomeReturn() {
         writeSessionValue('APP_INIT_DONE', 'true');
         writeSessionValue(INTERNAL_HOME_RETURN_KEY, '1');
@@ -641,7 +674,7 @@
                 () => Boolean(global.HOMEEASY_AUTH_CONFIG)
             );
             await loadScriptOnce(
-                'homeeasy-auth.js?v=3.1',
+                'homeeasy-auth.js?v=3.4',
                 'homeeasyAuthScript',
                 () => Boolean(global.HomeEasyAuth)
             );
@@ -674,10 +707,20 @@
             revealAuthenticatedIndex();
 
             if (global.HomeEasyAuth.shouldRevalidateAppSession && global.HomeEasyAuth.shouldRevalidateAppSession(5 * 60 * 1000)) {
-                global.HomeEasyAuth.validateAppSession({ meta: buildMeta() }).catch(() => redirectIndexToLogin());
+                global.HomeEasyAuth.validateAppSession({ meta: buildMeta() }).catch(error => {
+                    if (isTransientAuthError(error)) {
+                        console.warn('HomeEasy: revalidación del Index aplazada por conexión.', error);
+                        return;
+                    }
+                    redirectIndexToLogin();
+                });
             }
         } catch (error) {
             console.error('HomeEasy Auth Guard:', error);
+            if (isTransientAuthError(error)) {
+                showIndexConnectionIssue(error);
+                return;
+            }
             redirectIndexToLogin();
         }
     }

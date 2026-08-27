@@ -1,5 +1,5 @@
 /**
- * HomeEasy Auth v0.4.0
+ * HomeEasy Auth v0.4.1
  * Firebase Authentication + sesión general emitida por el Cerebro HomeEasy.
  *
  * - Usa únicamente las API REST oficiales de Firebase; no añade SDK externo.
@@ -12,7 +12,7 @@
 (function (global) {
     'use strict';
 
-    const VERSION = '0.4.0';
+    const VERSION = '0.4.1';
     const STORAGE_KEY = 'HOMEEASY_AUTH_SESSION_V1';
     const DEVICE_ID_KEY = 'HOMEEASY_DEVICE_ID';
     const DEVICE_NAME_KEY = 'HOMEEASY_DEVICE_NAME';
@@ -46,6 +46,22 @@
             this.code = String(code || 'AUTH_ERROR');
             this.details = details || null;
         }
+    }
+
+    const TRANSIENT_ERROR_CODES = new Set([
+        'AUTH_TIMEOUT',
+        'AUTH_NETWORK_ERROR',
+        'BACKEND_TIMEOUT',
+        'BACKEND_NETWORK_ERROR',
+        'BACKEND_INVALID_RESPONSE'
+    ]);
+
+    function isTransientError(error) {
+        const code = String(error && error.code || '').trim().toUpperCase();
+        if (TRANSIENT_ERROR_CODES.has(code)) return true;
+        if (/^(?:HTTP_)?5\d\d$/.test(code)) return true;
+        const name = String(error && error.name || '').toUpperCase();
+        return name === 'ABORTERROR' || name === 'NETWORKERROR';
     }
 
     function getStorage(type) {
@@ -270,7 +286,7 @@
             plataforma: detectPlatform(),
             navegador: detectBrowser(),
             pagina: page,
-            versionApp: '3.1',
+            versionApp: '3.4',
             horaCliente: new Date().toISOString(),
             ...(extra && typeof extra === 'object' ? extra : {})
         };
@@ -510,8 +526,12 @@
             try {
                 await openAppSession({ meta: options && options.meta ? options.meta : {} });
             } catch (error) {
-                clearStoredSessions();
-                emitAuthChange('session-rejected', null);
+                // Una caída temporal del Cerebro no invalida las credenciales de Firebase.
+                // Conservamos la identidad para que el usuario pueda reintentar sin perder sesión.
+                if (!isTransientError(error)) {
+                    clearStoredSessions();
+                    emitAuthChange('session-rejected', null);
+                }
                 throw error;
             }
         }
@@ -722,6 +742,9 @@
         if (current && current.appSessionToken) {
             try { return await validateAppSession({ meta: opts.meta }); }
             catch (error) {
+                // No convertimos una caída de red en una revocación de sesión.
+                // Además evitamos golpear el mismo backend dos veces seguidas mientras está caído.
+                if (isTransientError(error)) throw error;
                 if (!opts.reopen) {
                     if (opts.silent) return null;
                     throw error;
@@ -732,9 +755,13 @@
         if (!opts.reopen) return null;
         try { return await openAppSession({ meta: opts.meta }); }
         catch (error) {
-            clearStoredSessions();
-            emitAuthChange('session-rejected', null);
-            if (opts.silent) return null;
+            if (!isTransientError(error)) {
+                clearStoredSessions();
+                emitAuthChange('session-rejected', null);
+                if (opts.silent) return null;
+            }
+            // Los errores transitorios se propagan para que la UI muestre recuperación,
+            // sin destruir la sesión ni redirigir al login.
             throw error;
         }
     }
@@ -1071,6 +1098,7 @@
         safeReturnUrl,
         buildLoginUrl,
         redirectToLogin,
+        isTransientError,
         onAuthChange
     });
 })(window);
