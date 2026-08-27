@@ -1,5 +1,5 @@
 /**
- * HomeEasy Page Guard v3.1
+ * HomeEasy Page Guard v3.2
  * Navegación cache-first: usa la sesión ya validada para abrir módulos al instante
  * y revalida silenciosamente en segundo plano. AR permanece fuera de este mapa.
  */
@@ -197,7 +197,7 @@
         resolvePageReady(true);
         reveal();
         try { global.dispatchEvent(new CustomEvent('homeeasy:page-auth-ready', { detail: { page: currentPage, permission: requiredPermission, profile, timestamp: Date.now() } })); } catch (error) {}
-        if (currentPage === 'configuracion.html') loadScriptOnce('homeeasy-settings-auth-ui.js?v=3.1', 'homeeasySettingsAuthUiScript', () => false).catch(() => {});
+        if (currentPage === 'configuracion.html') loadScriptOnce('homeeasy-settings-auth-ui.js?v=3.2', 'homeeasySettingsAuthUiScript', () => false).catch(() => {});
         return true;
     }
 
