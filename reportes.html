@@ -112,7 +112,7 @@
         .estrella-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
         .estrella-title { font-size: 0.8rem; font-weight: 700; color: #a48644; text-transform: uppercase; letter-spacing: 0.5px; }
         .crown-icon { font-size: 1.5rem; color: #f1c40f; filter: drop-shadow(0 2px 4px rgba(241, 196, 15, 0.4)); animation: bounceCrown 2s infinite; }
-        .estrella-val { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); letter-spacing: -0.5px; }
+        .estrella-val { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px; }
         .estrella-sub { font-size: 0.85rem; color: #666; font-weight: 500; margin-top: 4px; }
         
         @keyframes bounceCrown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
@@ -154,7 +154,9 @@
         .pdf-mode .app-wrapper { max-width: none !important; box-shadow: none !important; }
         .pdf-mode .meta-card, .pdf-mode .estrella-card, .pdf-mode .stat-box, .pdf-mode .chart-card { box-shadow: none !important; border: 1px solid #eee; }
     </style>
-    <script src="homeeasy-core.js?v=2.2"></script>
+    <script src="homeeasy-core.js?v=3.1"></script>
+    <script src="homeeasy-page-guard.js?v=3.1"></script>
+<style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
 </head>
 <body>
 
@@ -167,7 +169,7 @@
         <header class="report-header">
             <div class="header-top">
                 <a href="index.html" class="btn-back no-export" id="btn-volver"><i class="fas fa-chevron-left"></i></a>
-                <img src="Hommydinero.png" class="hommy-header-img" alt="Hommy" onerror="this.src='HOMMY.png'">
+                <img src="Hommydinero.png" class="hommy-header-img" alt="Hommy" onerror="this.src='hommy.png'">
                 <div class="header-titles">
                     <h1>Reporte de ventas</h1>
                     <p>Resumen comercial de Hommy</p>
