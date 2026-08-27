@@ -1,0 +1,185 @@
+name: Publish HomeEasy stable 3.1 final
+
+on:
+  push:
+    branches: [release/stable-3-1]
+    paths: [.github/workflows/publish-stable-3-1-final.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/stable-3-1
+          fetch-depth: 0
+
+      - name: Fetch production base
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+
+      - name: Prepare stable candidate when needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -f perfil.html \
+             && test -f activar-cuenta.html \
+             && grep -q 'homeeasy-page-guard.js?v=3.1' configuracion.html \
+             && grep -q 'AUTH_ACTIVAR_INVITACION' activar-cuenta.html; then
+            echo 'Stable candidate already applied; reconstruction skipped.'
+          else
+            echo 'Reconstructing audited candidate from verified transport blocks.'
+            test -f .release3/p00
+            for n in 01 02 03 04 05 06 07 08 09 10; do test -f ".release4/c${n}"; done
+            cat .release3/p00 \
+                .release4/c01 .release4/c02 .release4/c03 .release4/c04 .release4/c05 \
+                .release4/c06 .release4/c07 .release4/c08 .release4/c09 .release4/c10 \
+              | tr -d '\r\n\t ' | base64 -d > /tmp/stable-final.patch.gz
+            echo 'e82c48e821ca70882496acca15c7aebad12273acaf6a8486a68f86abf4e58296  /tmp/stable-final.patch.gz' | sha256sum -c -
+            gzip -dc /tmp/stable-final.patch.gz > /tmp/stable-final.patch
+            python - <<'PY'
+          from pathlib import Path
+          targets = [
+            'login.html','homeeasy-auth-config.js','homeeasy-auth.js','homeeasy-page-guard.js',
+            'homeeasy-account.js','homeeasy-settings-auth-ui.js','homeeasy-core.js','index.html',
+            'clientes.html','ventas.html','cotizacion.html','seguimiento.html','pedido.html','abono.html',
+            'caja.html','documentos.html','calendario.html','reportes.html','configuracion.html',
+            'Hommychat.html','asistente.html'
+          ]
+          for name in targets:
+              p = Path(name)
+              if p.exists():
+                  p.write_bytes(p.read_bytes().replace(b'\r\n', b'\n').replace(b'\r', b'\n'))
+          PY
+            patch --batch --forward -p1 < /tmp/stable-final.patch
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('login.html')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace(
+              'filter:drop-shadow(0 25px 30px rgba(60,14,29,.27));pointer-events:none}',
+              'filter:none;pointer-events:none}'
+          )
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Full stable QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in homeeasy-auth-config.js homeeasy-auth.js homeeasy-page-guard.js homeeasy-account.js homeeasy-settings-auth-ui.js homeeasy-core.js; do
+            node --check "$f"
+          done
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile, sys
+          htmls = sorted(Path('.').glob('*.html'))
+          failures = []
+          for p in htmls:
+              text = p.read_text(encoding='utf-8', errors='replace')
+              scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', text, re.I | re.S)
+              for i, script in enumerate(scripts):
+                  if not script.strip():
+                      continue
+                  with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as f:
+                      f.write(script)
+                      tmp = f.name
+                  r = subprocess.run(['node', '--check', tmp], capture_output=True, text=True)
+                  Path(tmp).unlink(missing_ok=True)
+                  if r.returncode:
+                      failures.append(f'{p}:{i}: {r.stderr.strip()}')
+          if failures:
+              print('\n'.join(failures))
+              sys.exit(1)
+          print(f'Inline JS OK: {len(htmls)} HTML files')
+          PY
+          test -f login.html
+          test -f perfil.html
+          test -f activar-cuenta.html
+          grep -q 'Bienvenido' login.html
+          grep -q 'assets/auth/login-bg-desktop.webp' login.html
+          grep -q 'assets/auth/login-bg-mobile.webp' login.html
+          grep -q 'assets/auth/hommy-crossed.webp' login.html
+          grep -q 'class="watermark" src="triangulo.png"' login.html
+          grep -q 'Cuenta de cobro' configuracion.html
+          grep -q 'Usuarios y roles' homeeasy-settings-auth-ui.js
+          grep -q 'ultimaConexion' homeeasy-settings-auth-ui.js
+          grep -q 'AUTH_INVITAR_USUARIO' homeeasy-settings-auth-ui.js
+          grep -q 'AUTH_ACTIVAR_INVITACION' activar-cuenta.html
+          ! grep -q '<option value="Alejandro">Alejandro</option>' configuracion.html
+          ! grep -q 'VALIDAR_PIN_CONFIGURACION' configuracion.html
+          for f in clientes.html ventas.html cotizacion.html seguimiento.html pedido.html abono.html caja.html documentos.html calendario.html reportes.html configuracion.html Hommychat.html asistente.html; do
+            grep -q 'homeeasy-page-guard.js?v=3.1' "$f"
+          done
+          ! grep -R --include='*.html' -n 'HOMMY.png' .
+          test $(stat -c%s assets/auth/hommy-crossed.webp) -gt 250000
+          test $(stat -c%s assets/auth/login-bg-desktop.webp) -gt 70000
+          test $(stat -c%s assets/auth/login-bg-mobile.webp) -gt 60000
+
+      - name: Verify AR is byte-identical to production
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet origin/main -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221; then
+            echo 'ERROR: candidate changes AR compared with production.' >&2
+            git diff --name-only origin/main -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221 >&2
+            exit 1
+          fi
+
+      - name: Create clean release tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .release .release2 .release3 .release4 \
+                 .github/workflows/apply-stable-3-1.yml \
+                 .github/workflows/publish-stable-3-1-final.yml \
+                 RELEASE_STABLE_3_1_UPLOAD_MARKER.tmp
+          git config user.name 'HomeEasy Release Bot'
+          git config user.email 'actions@github.com'
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'Prepare HomeEasy stable 3.1 frontend'
+            git push origin HEAD:release/stable-3-1
+          fi
+          test ! -d .release
+          test ! -d .release2
+          test ! -d .release3
+          test ! -d .release4
+
+      - name: Publish one clean commit to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_sha=$(git rev-parse HEAD)
+          git fetch origin main
+          main_sha=$(git rev-parse origin/main)
+          if ! git merge-base --is-ancestor "$main_sha" "$release_sha"; then
+            echo 'ERROR: main advanced independently; refusing to overwrite production.' >&2
+            exit 1
+          fi
+          if ! git diff --quiet "$main_sha" "$release_sha" -- ar-homeeasy-v3.html ar-homeeasy-v4-quicklook.html ar-sheer-v221; then
+            echo 'ERROR: AR differs between final release and main.' >&2
+            exit 1
+          fi
+          rm -rf /tmp/homeeasy-prod
+          git worktree add --detach /tmp/homeeasy-prod "$main_sha"
+          cd /tmp/homeeasy-prod
+          git read-tree --reset -u "$release_sha"
+          test ! -e .github/workflows/publish-stable-3-1-final.yml
+          test ! -d .release
+          test ! -d .release2
+          test ! -d .release3
+          test ! -d .release4
+          git config user.name 'HomeEasy Release Bot'
+          git config user.email 'actions@github.com'
+          git commit -m 'Publish HomeEasy stable 3.1 authentication and profiles'
+          git push origin HEAD:main
+          echo "Published main from ${main_sha} to $(git rev-parse HEAD)"
