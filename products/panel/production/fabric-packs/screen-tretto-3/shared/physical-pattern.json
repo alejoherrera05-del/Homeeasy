@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "1.1.0",
+  "reference": "SCREEN TRETTO 3%",
+  "officialOpennessPercent": 3,
+  "measuredOpenAreaPercent": 2.9999,
+  "openAreaErrorPercentagePoints": -0.0001,
+  "tolerancePercentagePoints": 0.5,
+  "runtimeTileSizePx": [
+    2048,
+    2048
+  ],
+  "runtimeSourceCropPx": [
+    384,
+    384
+  ],
+  "runtimeSynthesis": "seamless stationary orthogonal weave; 32 px per thread pitch; alternating over/under crossings; periodic yarn waviness and width microvariation",
+  "runtimeTilePhysicalSizeM": [
+    0.04224,
+    0.04224
+  ],
+  "repeatWidthM": 0.04224,
+  "repeatHeightM": 0.04224,
+  "physicalThreadPitchM": [
+    0.00066,
+    0.00066
+  ],
+  "physicalWeaveRepeatM": [
+    0.00132,
+    0.00132
+  ],
+  "estimatedThreadPitchesPerRuntimeTile": [
+    64,
+    64
+  ],
+  "pixelsPerThreadPitch": 32,
+  "calibratedYarnWidthFraction": 0.736244,
+  "sourceScaleConfidence": "low-to-medium",
+  "sourceScaleMethod": "estimated from 0.56 mm published fabric thickness plus visible density; portal swatches contain no ruler",
+  "weaveDirection": "orthogonal fine basket/plain weave observed in all five official swatches",
+  "microperforationTopologyVerified": true,
+  "topologyStatus": "verified after official/reconstruction/GLB macro and multiscale visual QA",
+  "alphaDerivation": "continuous reconstructed warp/weft coverage; Alpha is the complement of the real inter-yarn spaces; 3% was used only to calibrate yarn width after topology existed",
+  "normalDerivation": "height gradient of continuous rounded yarns with alternating over/under crossings",
+  "roughnessDerivation": "shared technical-screen response modulated by reconstructed yarn height",
+  "antiMoire": {
+    "runtimeTileContainsEstimatedThreadPitches": 64,
+    "seamlessPeriodicField": true,
+    "stationaryNoPatchBlocks": true,
+    "noLargeScaleColorVariation": true,
+    "mipmappedRuntimeSampler": true
+  },
+  "declaredFabricThicknessM": 0.00056,
+  "exact": false,
+  "sharedAcrossColors": [
+    "alpha.png",
+    "normal.png",
+    "roughness.png"
+  ],
+  "sources": [
+    {
+      "document": "973_FichaTecnicaScreenTretto3.pdf",
+      "page": 1,
+      "fields": [
+        "Apertura",
+        "Grosor"
+      ],
+      "classification": "exactPublished"
+    },
+    {
+      "path": "qa/source-evidence/portal-swatches/",
+      "role": "primaryTopologyAndColorEvidence",
+      "classification": "officialVisualReference"
+    }
+  ],
+  "generatedAt": "2026-08-26T18:17:25.468Z",
+  "topologyVerificationEvidence": [
+    "qa/TRETTO_V1_1_REAL_WEAVE_CONTACT_SHEET.jpg",
+    "qa/TRETTO_V1_1_MULTISCALE_CONTACT_SHEET.jpg",
+    "qa/validation/tretto-v1-1-tests.json"
+  ],
+  "topologyVerifiedAt": "2026-08-26T18:33:17.821Z"
+}

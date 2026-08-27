@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "serenade-screen-clark-alabaster-evidence",
+  "reference": "SERENADE SCREEN CLARK",
+  "commercialColor": "Alabaster",
+  "portalLabels": {
+    "binovo": "ALABASTRO",
+    "standard": "ALABASTER"
+  },
+  "classification": "OFFICIAL_REFERENCE_RECONSTRUCTED_PACK",
+  "retrievedOn": "2026-08-26",
+  "sources": [
+    {
+      "title": "Solicitar Producto - catálogo autenticado",
+      "url": "https://pedidos.persianaspentagrama.com/Order/SearchProduct?reset=True",
+      "headrailSystems": [
+        "BINOVO",
+        "STANDARD"
+      ],
+      "thumbnailUrl": "https://images.persianaspentagrama.com:8762/wsSistemas/linkImageProduct.php?EncodeF=VABFAEwAVABSAFMARQBTAEMAQwBMAEEATAA=&option=A&Data=9f6cbefda4d35087e5eee8715fc20b4f24ed46bd",
+      "localEvidence": "qa/source-evidence/portal-thumbnails/alabaster.jpg",
+      "sha256": "f03c4750ab146f553f44c4035d1b8bbee8ebe6fd3d0041cdef2f6cffefea8073",
+      "dimensions": "80 x 77/80 px"
+    },
+    {
+      "title": "Catálogo Web Telas Sheer Elegance Screen Pentagrama",
+      "url": "https://pedidos.persianaspentagrama.com/Files/Descargas/2505/163/717_SheerEleganceScreenWebPentagrama9.pdf",
+      "sha256": "0e1d786c8632ca9298cd50d67c3c5812594ff80685c81d8246d86a7477a9104f",
+      "page": 8,
+      "localRenderedEvidence": "qa/source-evidence/catalog-pages/page-8.png",
+      "sampleCropPx": {
+        "x": 1820,
+        "y": 300,
+        "width": 360,
+        "height": 150
+      }
+    },
+    {
+      "title": "Ficha Técnica Serenade Screen Clark",
+      "url": "https://pedidos.persianaspentagrama.com/Files/Descargas/2369/163/608_FichaTecnicaSerenadeScreenClark.pdf",
+      "sha256": "67d8d7cfc613c8ea0ee734d11e06843de6cba17c379c3bf84e786f5e9109bb33",
+      "localEvidence": "qa/source-evidence/608_FichaTecnicaSerenadeScreenClark.pdf",
+      "facts": {
+        "opaqueBandM": 0.07,
+        "sheerBandM": 0.05,
+        "repeatHeightM": 0.12,
+        "composition": "35% Poliéster + 65% PVC",
+        "fabricWidthM": 3
+      }
+    }
+  ],
+  "reconstruction": {
+    "portalThumbnailUsedAsTile": false,
+    "catalogPhotographyUsedAsTile": false,
+    "photographicEdgesPresent": false,
+    "photographicLightingBaked": false,
+    "method": "Color calibrado contra el centro de la franja oficial; la iluminación fotográfica se descarta. El weave y Alpha proceden de la plantilla Sheer golden aprobada. Se reconstruye un solo repeat fundamental.",
+    "opaqueToneCount": 1,
+    "sheerToneCount": 1,
+    "targetOpaqueRgb": [
+      198,
+      196,
+      188
+    ],
+    "targetSheerRgb": [
+      230,
+      230,
+      227
+    ],
+    "alphaSource": "Golden Sheer approved alpha/weave mask",
+    "rgbaSha256": "04523b743e444dc27a1ccf7243dfb59cec6c0b832a5b163057b76b02e880171b"
+  },
+  "architecture": {
+    "master": "production/sheer-master-white.glb",
+    "geometryModified": false,
+    "frontAndRearUseSameMaterial": true,
+    "stateChangesMaterial": false
+  }
+}

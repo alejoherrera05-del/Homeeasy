@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "blackout-felice-sand",
+  "officialHierarchy": [
+    "CORTINA ONDA SERENA",
+    "AL 2.8",
+    "BLACK OUT",
+    "FELICE",
+    "SAND"
+  ],
+  "portalRoute": "/Order/SearchProduct?reset=True",
+  "officialProductCode": "CORONSEBOFESA2.8",
+  "officialImage": "qa/source-evidence/portal-swatches/felice-sand-official.jpg",
+  "officialImageSha256": "c14615924b5ac024332f6b4dea97b6b8590560a799367af56ace76b46cafee64",
+  "officialImageDimensionsPx": [
+    80,
+    77
+  ],
+  "officialDocument": "882_FichaTecnicaCortineriaBlackoutFelice.pdf",
+  "catalogDocument": "713_TelasOndaSerenaTripleatZigZagHoteleraRingPentagrama10.pdf",
+  "verifiedOn": "2026-08-26",
+  "exact": {
+    "identity": true,
+    "colorOption": true,
+    "rollWidthM": true,
+    "weightGm2": true,
+    "materialFamily": true
+  },
+  "inferred": {
+    "physicalTextureScaleM": true,
+    "microWeave": true,
+    "alphaDistribution": false
+  },
+  "reconstruction": {
+    "sourceRole": "color and microvariation reference only; not tiled directly",
+    "centralCrop": {
+      "left": 13,
+      "top": 12,
+      "width": 54,
+      "height": 52
+    },
+    "robustRgb": [
+      175,
+      169,
+      147
+    ],
+    "borderExcluded": true,
+    "photographicShadowExcluded": true,
+    "seamlessProceduralMicrostructure": true,
+    "artificialPatternClaims": false
+  }
+}

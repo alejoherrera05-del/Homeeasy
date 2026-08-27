@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "blackout-felice-taupe",
+  "officialHierarchy": [
+    "CORTINA ONDA SERENA",
+    "AL 2.8",
+    "BLACK OUT",
+    "FELICE",
+    "TAUPE"
+  ],
+  "portalRoute": "/Order/SearchProduct?reset=True",
+  "officialProductCode": "CORONSEBOFETAU2.8",
+  "officialImage": "qa/source-evidence/portal-swatches/felice-taupe-official.jpg",
+  "officialImageSha256": "1b2cae3d4135eff0d7bd518f8420de81b29934c00f48be3fbcdb23f865d112f4",
+  "officialImageDimensionsPx": [
+    80,
+    77
+  ],
+  "officialDocument": "882_FichaTecnicaCortineriaBlackoutFelice.pdf",
+  "catalogDocument": "713_TelasOndaSerenaTripleatZigZagHoteleraRingPentagrama10.pdf",
+  "verifiedOn": "2026-08-26",
+  "exact": {
+    "identity": true,
+    "colorOption": true,
+    "rollWidthM": true,
+    "weightGm2": true,
+    "materialFamily": true
+  },
+  "inferred": {
+    "physicalTextureScaleM": true,
+    "microWeave": true,
+    "alphaDistribution": false
+  },
+  "reconstruction": {
+    "sourceRole": "color and microvariation reference only; not tiled directly",
+    "centralCrop": {
+      "left": 13,
+      "top": 12,
+      "width": 54,
+      "height": 52
+    },
+    "robustRgb": [
+      177,
+      170,
+      162
+    ],
+    "borderExcluded": true,
+    "photographicShadowExcluded": true,
+    "seamlessProceduralMicrostructure": true,
+    "artificialPatternClaims": false
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.1.0",
+  "id": "velo-coral-white",
+  "product": "CORTINA ONDA SERENA",
+  "system": "AL 2.8",
+  "family": "VELO",
+  "collection": "CORAL",
+  "color": "White",
+  "productCode": "CORONSEVECORWH2.8",
+  "materialClass": "sheer",
+  "alphaMode": "BLEND",
+  "doubleSided": true,
+  "physicalTextureScaleM": 0.24,
+  "physicalTextureScaleClassification": "large seamless runtime tile; weave repeat and exact source scale not published",
+  "sourceScaleConfidence": "low",
+  "rollWidthM": 3,
+  "weightGm2": 115,
+  "composition": "100% Poliéster",
+  "maps": {
+    "baseColor": "base-color.png",
+    "normal": "normal.png",
+    "roughness": "roughness.png",
+    "metallicRoughness": "metallic-roughness.png",
+    "alpha": "alpha.png"
+  },
+  "transmissionFactor": 0.34,
+  "roughnessFactor": 0.62,
+  "microstructure": {
+    "classification": "fine vertical-dominant voile",
+    "checkerboard": false,
+    "screenLike": false,
+    "source": "713_TelasOndaSerenaTripleatZigZagHoteleraRingPentagrama10.pdf page 101"
+  }
+}

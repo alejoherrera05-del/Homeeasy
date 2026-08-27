@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "1.0.0",
+  "authority": "Pentagrama",
+  "product": "PANEL JAPONÉS",
+  "system": "STANDARD",
+  "actuation": "MANUAL_CORDEL",
+  "presentation": "VELCRO_STANDARD",
+  "fabric": {
+    "family": "SCREEN",
+    "reference": "SCREEN TRETTO 3%",
+    "officialOpennessPercent": 3,
+    "allowedColors": [
+      {"id": "ebony", "name": "Ebony", "variantCode": "100", "productCode": "PANSCTRE3EBO"},
+      {"id": "white", "name": "White", "variantCode": "391", "productCode": "PANSCTRE3WHI"},
+      {"id": "white-black", "name": "White Black", "variantCode": "838", "productCode": "PANSCTRE3WHBL"},
+      {"id": "white-grey", "name": "White Grey", "variantCode": "393", "productCode": "PANSCTRE3WHGR"},
+      {"id": "white-sand", "name": "White Sand", "variantCode": "621", "productCode": "PANSCTRE3WHSA"}
+    ]
+  },
+  "measurementConvention": {
+    "inputWidthMeaning": "finishedOverallSystemWidth",
+    "inputHeightMeaning": "finishedOverallProductHeight",
+    "units": "m",
+    "railWidthCalculation": "railWidthM = inputWidthM",
+    "teloWidthCalculation": "((inputWidthM - 0.02) + ((teloCount - 1) * 0.08)) / teloCount",
+    "teloHeightCalculation": "inputHeightM - railHeightM - carrierHeightM - hangerDropM - bottomWeightHeightM",
+    "teloHeightClassification": "technicalApproximationNotPublished",
+    "source": {
+      "document": "735_Paneles2026May.pdf",
+      "pages": [3, 4],
+      "portalSection": "Cálculo de Páneles",
+      "verifiedOn": "2026-08-26"
+    }
+  },
+  "manufacturing": {
+    "widthM": {"min": 0.6, "maxSingleRailManual": 5.75},
+    "heightM": {"min": 0.3, "max": 3.5},
+    "teloWidthM": {"minRecommended": 0.55, "maxRecommended": 0.85, "calculationToleranceM": 0.01},
+    "overlapM": 0.08,
+    "standardDeductionM": 0.02,
+    "fixedPanelPosition": "rear",
+    "sources": [
+      {"document": "735_Paneles2026May.pdf", "page": 3, "classification": "exact"},
+      {"document": "735_Paneles2026May.pdf", "page": 4, "classification": "exact"}
+    ]
+  },
+  "rail": {
+    "ways": [2, 3, 4, 5, 6],
+    "depthM": {"2": 0.038, "3": 0.052, "4": 0.066, "5": 0.083, "6": 0.1},
+    "heightM": 0.048,
+    "heightClassification": "reconstructedFromOfficialPhotography",
+    "color": "white",
+    "profileShapeExact": false,
+    "sources": [
+      {"document": "735_Paneles2026May.pdf", "page": 3, "classification": "exactDepths"},
+      {"document": "735_Paneles2026May.pdf", "pages": [26, 27], "classification": "photographicReconstruction"}
+    ]
+  },
+  "components": {
+    "fabricThicknessM": 0.00056,
+    "carrierHeightM": 0.012,
+    "hangerDropM": 0.018,
+    "bottomWeightHeightM": 0.024,
+    "bottomWeightDepthM": 0.012,
+    "trackClearanceM": 0.006,
+    "collectedRevealM": 0.026,
+    "dimensionClassification": "technicalApproximationNotPublished",
+    "sources": [
+      {"document": "973_FichaTecnicaScreenTretto3.pdf", "page": 1, "field": "Grosor de la tela", "classification": "exact"},
+      {"document": "735_Paneles2026May.pdf", "pages": [26, 27, 28, 29, 30, 32], "classification": "photographicReconstruction"}
+    ]
+  },
+  "directions": {
+    "left": {"label": "Izquierda", "layouts": [[2, 2], [3, 3], [4, 4], [5, 5], [6, 6]]},
+    "right": {"label": "Derecha", "layouts": [[2, 2], [3, 3], [4, 4], [5, 5], [6, 6]]},
+    "center": {"label": "Centro", "layouts": [[3, 3], [5, 5]]},
+    "ends": {"label": "Extremos", "layouts": [[4, 4], [4, 6], [5, 8], [6, 10]]}
+  },
+  "positions": {
+    "closed": {"label": "Cerrado", "projection": 0, "classification": "documentedState"},
+    "partial": {"label": "Parcial", "projection": 0.52, "classification": "visualApproximation", "partialPositionVisualApproximation": true},
+    "collected": {"label": "Recogido", "projection": 1, "classification": "documentedState"}
+  },
+  "recommendation": {
+    "targetTeloWidthM": 0.75,
+    "recommendationSource": "homeeasyDerivedFromPentagramaRules",
+    "displayDisclosure": "Recomendación HomeEasy basada en reglas Pentagrama",
+    "screenOnlyBelowRecommendedRangeAllowed": true,
+    "screenOnlyMinimumM": 0.16,
+    "screenOnlySource": {"portalSection": "Cálculo de Páneles", "verifiedOn": "2026-08-26"}
+  },
+  "scope": {
+    "otherProductsIncluded": false,
+    "motorizationIncluded": false,
+    "valancesIncluded": false,
+    "renuevaIncluded": false,
+    "multipleRailsIncluded": false
+  }
+}

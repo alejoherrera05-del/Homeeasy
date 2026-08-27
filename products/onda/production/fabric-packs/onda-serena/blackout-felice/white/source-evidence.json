@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "blackout-felice-white",
+  "officialHierarchy": [
+    "CORTINA ONDA SERENA",
+    "AL 2.8",
+    "BLACK OUT",
+    "FELICE",
+    "WHITE"
+  ],
+  "portalRoute": "/Order/SearchProduct?reset=True",
+  "officialProductCode": "CORONSEBOFEWH2.8",
+  "officialImage": "qa/source-evidence/portal-swatches/felice-white-official.jpg",
+  "officialImageSha256": "bbe328f495c6bfae68042286644c43317b8ae981c327e0cbb1536700c829b3cd",
+  "officialImageDimensionsPx": [
+    80,
+    77
+  ],
+  "officialDocument": "882_FichaTecnicaCortineriaBlackoutFelice.pdf",
+  "catalogDocument": "713_TelasOndaSerenaTripleatZigZagHoteleraRingPentagrama10.pdf",
+  "verifiedOn": "2026-08-26",
+  "exact": {
+    "identity": true,
+    "colorOption": true,
+    "rollWidthM": true,
+    "weightGm2": true,
+    "materialFamily": true
+  },
+  "inferred": {
+    "physicalTextureScaleM": true,
+    "microWeave": true,
+    "alphaDistribution": false
+  },
+  "reconstruction": {
+    "sourceRole": "color and microvariation reference only; not tiled directly",
+    "centralCrop": {
+      "left": 13,
+      "top": 12,
+      "width": 54,
+      "height": 52
+    },
+    "robustRgb": [
+      207,
+      208,
+      203
+    ],
+    "borderExcluded": true,
+    "photographicShadowExcluded": true,
+    "seamlessProceduralMicrostructure": true,
+    "artificialPatternClaims": false
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "traslucente-reverso-grey",
+  "product": "CORTINA ONDA SERENA",
+  "system": "AL 2.8",
+  "family": "TRASLUCENTE",
+  "collection": "REVERSO",
+  "color": "Grey",
+  "productCode": "CORONSETRASREGR2.8",
+  "materialClass": "translucent",
+  "alphaMode": "BLEND",
+  "doubleSided": true,
+  "physicalTextureScaleM": 0.24,
+  "physicalTextureScaleClassification": "reconstructed runtime tile; repeat not published",
+  "sourceScaleConfidence": "low",
+  "rollWidthM": 2.9,
+  "weightGm2": 190,
+  "maps": {
+    "baseColor": "base-color.png",
+    "normal": "normal.png",
+    "roughness": "roughness.png",
+    "metallicRoughness": "metallic-roughness.png",
+    "alpha": "alpha.png"
+  },
+  "transmissionFactor": 0.12,
+  "roughnessFactor": 0.74
+}

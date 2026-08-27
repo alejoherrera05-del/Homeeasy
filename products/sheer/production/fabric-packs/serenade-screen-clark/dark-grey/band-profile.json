@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "serenade-screen-clark-dark-grey",
+  "label": "Dark Grey",
+  "reference": "SERENADE SCREEN CLARK",
+  "product": "SHEER ELEGANCE",
+  "commercialColorClaim": true,
+  "repeatWidthM": 0.16,
+  "repeatHeightM": 0.12,
+  "segments": [
+    {
+      "type": "opaque",
+      "heightM": 0.07,
+      "colorRole": "primary"
+    },
+    {
+      "type": "sheer",
+      "heightM": 0.05,
+      "colorRole": "sheer"
+    }
+  ],
+  "rearLayerOffsetsM": {
+    "abierta": 0,
+    "media": 0.025,
+    "cerrada": 0.05
+  },
+  "compatibleHeadrailSystems": [
+    "binovo",
+    "standard"
+  ],
+  "officialCodes": {
+    "binovo": "SHEELEADVSESCCLDAGR",
+    "standard": "SHEELESTDSESCCLDAGR"
+  },
+  "fundamentalRepeatsInRgba": 1,
+  "documentedOpaqueToneCount": 1,
+  "exact": true
+}

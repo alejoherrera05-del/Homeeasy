@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "blackout-felice-brown",
+  "product": "CORTINA ONDA SERENA",
+  "system": "AL 2.8",
+  "family": "BLACK OUT",
+  "collection": "FELICE",
+  "color": "Brown",
+  "productCode": "CORONSEBOFEBR2.8",
+  "materialClass": "blackout",
+  "alphaMode": "OPAQUE",
+  "doubleSided": true,
+  "physicalTextureScaleM": 0.24,
+  "physicalTextureScaleClassification": "reconstructed runtime tile; repeat not published",
+  "sourceScaleConfidence": "low",
+  "rollWidthM": 2.8,
+  "weightGm2": 275,
+  "maps": {
+    "baseColor": "base-color.png",
+    "normal": "normal.png",
+    "roughness": "roughness.png",
+    "metallicRoughness": "metallic-roughness.png",
+    "alpha": null
+  },
+  "transmissionFactor": 0,
+  "roughnessFactor": 0.87
+}

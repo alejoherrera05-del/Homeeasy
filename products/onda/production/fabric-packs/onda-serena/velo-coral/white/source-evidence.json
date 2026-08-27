@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.1.0",
+  "id": "velo-coral-white",
+  "officialHierarchy": [
+    "CORTINA ONDA SERENA",
+    "AL 2.8",
+    "VELO",
+    "CORAL",
+    "WHITE"
+  ],
+  "portalRoute": "/Order/SearchProduct?reset=True",
+  "officialProductCode": "CORONSEVECORWH2.8",
+  "officialImage": "qa/source-evidence/portal-swatches/coral-white-official.jpg",
+  "officialImageSha256": "4ee049b911796afe2bc351d80fbfabbb34105a1c1a9386d0cee7a329ecffa312",
+  "officialImageDimensionsPx": [
+    80,
+    80
+  ],
+  "officialDocument": "284_FichaTecnicaCortineriaVeloCoral.pdf",
+  "catalogDocument": "713_TelasOndaSerenaTripleatZigZagHoteleraRingPentagrama10.pdf",
+  "catalogPage": 101,
+  "verifiedOn": "2026-08-26",
+  "exact": {
+    "identity": true,
+    "colorOption": true,
+    "rollWidthM": true,
+    "weightGm2": true,
+    "composition": true,
+    "materialFamily": true
+  },
+  "inferred": {
+    "physicalTextureScaleM": true,
+    "alphaDistribution": true,
+    "exactThreadCount": false
+  },
+  "reconstruction": {
+    "sourceRole": "official color plus page 101 microstructure reference; neither image is tiled directly",
+    "centralCrop": {
+      "left": 13,
+      "top": 13,
+      "width": 54,
+      "height": 54
+    },
+    "robustRgb": [
+      225,
+      224,
+      232
+    ],
+    "borderExcluded": true,
+    "photographicShadowExcluded": true,
+    "seamlessFineVerticalVoile": true,
+    "checkerboard": false,
+    "screenTopology": false,
+    "sourceScaleConfidence": "low"
+  }
+}

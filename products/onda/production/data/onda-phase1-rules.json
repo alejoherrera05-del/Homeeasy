@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "1.1.0",
+  "product": "CORTINA ONDA SERENA",
+  "system": "AL 2.8",
+  "authority": "Pentagrama",
+  "verifiedOn": "2026-08-26",
+  "rules": {
+    "snapshot": "2026-08-26",
+    "scope": {
+      "actuation": "Bastón manual",
+      "fullness": "AL 2.8",
+      "families": ["VELO / CORAL", "BLACK OUT / FELICE", "TRASLUCENTE / REVERSO"]
+    },
+    "manufacturing": {
+      "widthM": {
+        "minPilotGuard": 0.3,
+        "maxDocumentedOneSideManual": 7.0,
+        "maxDocumentedCenterOrEndsManual": 11.8,
+        "maxModeledRailM": 5.8
+      },
+      "heightM": {
+        "minPilotGuard": 0.6,
+        "maxBaston": 3.0,
+        "maxCord": 3.2,
+        "maxMotorized": 4.0
+      },
+      "heightToleranceM": 0.01,
+      "railSplitAboveM": 5.8,
+      "railSplitStrategyV11": "blockAbove5.8UntilRealJointIsModeled"
+    },
+    "fullness": {
+      "2.8": {
+        "fabricPerRailM": 2.8,
+        "frontDepthM": 0.06,
+        "backDepthM": 0.06,
+        "installationClearanceM": 0.13,
+        "headerTapeMm": 50,
+        "snapSpacingM": 0.163,
+        "carrierSpacingM": 0.06,
+        "officialWaveLabel": "6 cm frente / 6 cm atrás"
+      }
+    },
+    "fullnessGeometry": {
+      "method": "material-coordinate C2 spline constrained by carrier positions and tape snap length",
+      "constraints": {
+        "fabricPerRailM": 2.8,
+        "frontEnvelopeM": 0.06,
+        "backEnvelopeM": 0.06,
+        "closedCarrierSpacingM": 0.06,
+        "officialSnapSpacingM": 0.163,
+        "headerTapeHeightM": 0.05,
+        "statePathLengthToleranceRatio": 0.01,
+        "targetPathLengthToleranceRatio": 0.02
+      },
+      "materialCoordinatePreservedAcrossStates": true,
+      "carrierCountInvariantAcrossStates": true,
+      "tolerance": 0.02,
+      "sharedMethodology": true
+    },
+    "directions": ["left", "right"],
+    "directionMechanics": {
+      "left": {
+        "bodyCount": 1,
+        "masterCarrierCount": 1,
+        "wandCount": 1,
+        "fixedPoints": ["left"],
+        "masterPositions": ["moving-right-edge"],
+        "collectionDirection": "left"
+      },
+      "right": {
+        "bodyCount": 1,
+        "masterCarrierCount": 1,
+        "wandCount": 1,
+        "fixedPoints": ["right"],
+        "masterPositions": ["moving-left-edge"],
+        "collectionDirection": "right"
+      }
+    },
+    "positions": ["closed", "partial", "collected"],
+    "positionProjection": {
+      "closed": {"factor": 1.0, "classification": "official-state"},
+      "partial": {"factor": 0.68, "classification": "visualApproximation", "note": "Pentagrama no publica un porcentaje intermedio; 68% se usa solo para la demostración de movimiento. La longitud material completa se conserva."},
+      "collected": {"factor": 0.36, "classification": "official", "note": "36 cm de paquete por cada metro lineal de ancho; los carros se agrupan y la tela mantiene su recorrido físico completo."}
+    },
+    "stackWidthPerRailM": 0.36,
+    "rail": {
+      "material": "aluminum",
+      "colors": ["white"],
+      "profileDepthM": 0.02,
+      "profileHeightM": 0.025,
+      "profileShapeExact": false,
+      "profileSectionClassification": "depthOfficialFrom984; heightAndDetailedSilhouetteReconstructed"
+    },
+    "bottoms": [
+      {"id": "hem-15", "label": "Bajo de 15 cm", "heightM": 0.15}
+    ],
+    "fabricBottomPolicy": {},
+    "fabricCollectionPolicies": [
+      {
+        "collectionToken": "felice",
+        "maxHeightWithoutMandatoryHem15M": 2.6,
+        "requiredBottomAbove": "hem-15",
+        "joinMethod": "Costura ubicada en valle posterior; confirmar acabado final",
+        "source": "882_FichaTecnicaCortineriaBlackoutFelice.pdf + 984_FichaOndaSerena.pdf"
+      }
+    ],
+    "components": ["rail", "terminal caps", "carriers", "transparent header tape", "continuous fabric", "15 cm bottom hem", "manual wand"],
+    "sources": [
+      {"document": "984_FichaOndaSerena.pdf", "pages": [2, 3]},
+      {"document": "713_TelasOndaSerenaTripleatZigZagHoteleraRingPentagrama10.pdf", "pages": [13, 14, 64, 65, 100, 101]},
+      {"document": "882_FichaTecnicaCortineriaBlackoutFelice.pdf", "pages": [1]},
+      {"portalRoute": "CORTINA ONDA SERENA / AL 2.8"}
+    ]
+  },
+  "fabrics": [
+    {"id":"velo-coral-white","officialName":"VELO / CORAL / WHITE","family":"VELO","collection":"CORAL","color":"WHITE","productCode":"CORONSEVECORWH2.8","rollWidthM":3.0,"opacityType":"Velo translúcido","composition":"100% Poliéster","weightGm2":115,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/velo-coral/white/"},
+    {"id":"blackout-felice-brown","officialName":"BLACK OUT / FELICE / BROWN","family":"BLACK OUT","collection":"FELICE","color":"BROWN","productCode":"CORONSEBOFEBR2.8","rollWidthM":2.8,"opacityType":"100% Blackout","composition":"100% Poliéster con reverso acrílico","weightGm2":275,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/blackout-felice/brown/"},
+    {"id":"blackout-felice-grey","officialName":"BLACK OUT / FELICE / GREY","family":"BLACK OUT","collection":"FELICE","color":"GREY","productCode":"CORONSEBOFEGR2.8","rollWidthM":2.8,"opacityType":"100% Blackout","composition":"100% Poliéster con reverso acrílico","weightGm2":275,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/blackout-felice/grey/"},
+    {"id":"blackout-felice-sand","officialName":"BLACK OUT / FELICE / SAND","family":"BLACK OUT","collection":"FELICE","color":"SAND","productCode":"CORONSEBOFESA2.8","rollWidthM":2.8,"opacityType":"100% Blackout","composition":"100% Poliéster con reverso acrílico","weightGm2":275,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/blackout-felice/sand/"},
+    {"id":"blackout-felice-taupe","officialName":"BLACK OUT / FELICE / TAUPE","family":"BLACK OUT","collection":"FELICE","color":"TAUPE","productCode":"CORONSEBOFETAU2.8","rollWidthM":2.8,"opacityType":"100% Blackout","composition":"100% Poliéster con reverso acrílico","weightGm2":275,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/blackout-felice/taupe/"},
+    {"id":"blackout-felice-white","officialName":"BLACK OUT / FELICE / WHITE","family":"BLACK OUT","collection":"FELICE","color":"WHITE","productCode":"CORONSEBOFEWH2.8","rollWidthM":2.8,"opacityType":"100% Blackout","composition":"100% Poliéster con reverso acrílico","weightGm2":275,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/blackout-felice/white/"},
+    {"id":"traslucente-reverso-grey","officialName":"TRASLUCENTE / REVERSO / GREY","family":"TRASLUCENTE","collection":"REVERSO","color":"GREY","productCode":"CORONSETRASREGR2.8","rollWidthM":2.9,"opacityType":"Traslúcida","composition":"100% Poliéster","weightGm2":190,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/traslucente-reverso/grey/"},
+    {"id":"traslucente-reverso-ivory","officialName":"TRASLUCENTE / REVERSO / IVORY","family":"TRASLUCENTE","collection":"REVERSO","color":"IVORY","productCode":"CORONSETRASREIV2.8","rollWidthM":2.9,"opacityType":"Traslúcida","composition":"100% Poliéster","weightGm2":190,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/traslucente-reverso/ivory/"},
+    {"id":"traslucente-reverso-taupe","officialName":"TRASLUCENTE / REVERSO / TAUPE","family":"TRASLUCENTE","collection":"REVERSO","color":"TAUPE","productCode":"CORONSETRASRETAU2.8","rollWidthM":2.9,"opacityType":"Traslúcida","composition":"100% Poliéster","weightGm2":190,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/traslucente-reverso/taupe/"},
+    {"id":"traslucente-reverso-white","officialName":"TRASLUCENTE / REVERSO / WHITE","family":"TRASLUCENTE","collection":"REVERSO","color":"WHITE","productCode":"CORONSETRASREWH2.8","rollWidthM":2.9,"opacityType":"Traslúcida","composition":"100% Poliéster","weightGm2":190,"physicalTextureScaleM":0.24,"pbrVerified":true,"technicalPreviewOnly":false,"packPath":"../fabric-packs/onda-serena/traslucente-reverso/white/"}
+  ]
+}

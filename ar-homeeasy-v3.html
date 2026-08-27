@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f3f1">
+  <title>Vista AR · HomeEasy</title>
+  <script type="module" src="./production/vendor/model-viewer-4.3.1.min.js"></script>
+  <style>
+    :root{--wine:#8b2944;--wine-dark:#651a31;--gold:#c6a35a;--ink:#251f22;--muted:#746b6e;--line:#e5dfe1;--bg:#f5f3f1;--card:#fff;--good:#1d7b53;--bad:#a52b3f;--shadow:0 14px 38px rgba(50,30,37,.09)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif}button,input,select{font:inherit}button{touch-action:manipulation}.topbar{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:88px 1fr 88px;align-items:center;min-height:58px;padding:calc(7px + env(safe-area-inset-top)) 13px 7px;background:rgba(250,249,248,.92);border-bottom:1px solid rgba(120,99,106,.16);backdrop-filter:blur(18px) saturate(1.3)}.back{justify-self:start;border:0;background:none;color:var(--wine);font-size:16px;font-weight:700;padding:10px 3px}.brand{text-align:center}.brand strong{display:block;color:var(--wine-dark);font-size:16px;letter-spacing:-.02em}.brand span{display:block;margin-top:1px;color:var(--gold);font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.top-spacer{width:88px}.shell{max-width:1240px;margin:auto;padding:18px 15px calc(36px + env(safe-area-inset-bottom))}.studio-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,.65fr);gap:17px;align-items:start}.card{overflow:hidden;border:1px solid rgba(76,50,59,.07);border-radius:22px;background:var(--card);box-shadow:var(--shadow)}.viewer-card{position:sticky;top:78px}.viewer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}.viewer-title{min-width:0}.viewer-title strong{display:block;font-size:14px}.viewer-title span{display:block;margin-top:3px;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ready-pill{flex:0 0 auto;padding:6px 9px;border-radius:999px;background:#f2edef;color:var(--wine-dark);font-size:10px;font-weight:800}.ready-pill[data-state="ready"]{background:#e7f4ed;color:var(--good)}.stage{position:relative;height:min(70vh,680px);min-height:480px;background:radial-gradient(circle at 50% 33%,#fff 0,#f0eded 63%,#dedada 100%)}model-viewer{display:block;width:100%;height:100%;--poster-color:transparent}.stage-overlay{position:absolute;inset:0;display:grid;place-items:center;padding:28px;text-align:center;background:rgba(245,243,241,.78);color:var(--muted);font-size:13px;line-height:1.45;backdrop-filter:blur(5px);transition:opacity .18s}.stage-overlay[hidden]{display:none}.viewer-actions{padding:14px 16px;border-top:1px solid var(--line)}.ar-button{width:100%;min-height:53px;border:0;border-radius:15px;background:var(--wine);color:#fff;font-size:15px;font-weight:820;box-shadow:0 9px 22px rgba(139,41,68,.23)}.ar-button:disabled{background:#c9c1c4;box-shadow:none}.viewer-note{margin:9px 1px 0;color:var(--muted);font-size:11px;text-align:center}.controls-card{padding:17px}.section{padding:0 0 17px;margin:0 0 17px;border-bottom:1px solid var(--line)}.section:last-child{padding-bottom:0;margin-bottom:0;border-bottom:0}.section-title{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.section-title label,.section-title strong,.label{display:block;color:#554a4e;font-size:11px;font-weight:850;letter-spacing:.065em;text-transform:uppercase}.section-title small{color:var(--muted);font-size:10px}.select,.input{width:100%;min-height:48px;border:1px solid #ddd5d8;border-radius:13px;background:#faf9fa;color:var(--ink);font-size:16px;font-weight:680;outline:0}.select{padding:0 38px 0 12px}.input{padding:0 12px}.select:focus,.input:focus{border-color:var(--wine);background:#fff;box-shadow:0 0 0 3px rgba(139,41,68,.1)}.product-select{border-color:#d7c7cc;background:#fff}.product-copy{margin:8px 2px 0;color:var(--muted);font-size:11px}.product-panel[hidden]{display:none}.reference{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;padding:10px 11px;border-radius:12px;background:#f8f3f4;color:var(--wine-dark);font-size:12px;font-weight:750}.reference span:last-child{color:var(--gold);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.swatches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.swatch{min-width:0;padding:6px;border:1px solid var(--line);border-radius:13px;background:#fff;text-align:left;color:var(--ink)}.swatch img{display:block;width:100%;aspect-ratio:1.55;object-fit:cover;border-radius:8px;background:#ece9e9}.swatch span{display:block;margin:6px 1px 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:10px;font-weight:730}.swatch[aria-pressed="true"]{border-color:var(--wine);box-shadow:0 0 0 2px rgba(139,41,68,.11)}.swatch[aria-pressed="true"] span{color:var(--wine-dark)}.measure-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label{display:block;margin:0 0 5px 2px;color:var(--muted);font-size:11px}.unit-wrap{position:relative}.unit-wrap .input{padding-right:38px}.unit{position:absolute;right:12px;top:15px;color:var(--muted);font-size:11px}.segments{display:grid;grid-template-columns:repeat(var(--columns,2),minmax(0,1fr));gap:4px;padding:4px;border:1px solid var(--line);border-radius:13px;background:#f2f0f1}.segments button{min-height:39px;padding:7px 4px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-size:11px;font-weight:760}.segments button[aria-pressed="true"]{background:#fff;color:var(--wine-dark);box-shadow:0 2px 8px rgba(52,32,39,.1)}.segments.three{--columns:3}.segments.four{--columns:4}.control-block{margin-top:12px}.control-block>.label{margin:0 0 7px 2px}.recommendation{margin-top:11px;padding:11px 12px;border:1px solid #eadbb9;border-radius:12px;background:#fbf7ec}.recommendation strong{display:block;color:#775a1f;font-size:12px}.recommendation span{display:block;margin-top:3px;color:#796c53;font-size:11px;line-height:1.4}.secondary-control{margin-top:9px}.secondary-control summary{padding:6px 1px;color:var(--wine);font-size:11px;font-weight:760}.secondary-control .select{margin-top:4px}.collection-line{display:flex;justify-content:space-between;align-items:center;margin:8px 2px 10px;color:var(--muted);font-size:11px}.collection-line b{color:var(--wine-dark)}.status{margin-top:15px;padding:11px 12px;border-radius:12px;background:#f1eff0;color:var(--muted);font-size:11px;line-height:1.42}.status[data-tone="ready"]{background:#e8f5ee;color:var(--good)}.status[data-tone="error"]{background:#fae9ed;color:var(--bad)}.qa{margin-top:16px;padding:12px;border:1px dashed #b6a5aa;border-radius:12px;background:#fbfafb}.qa h2{margin:0 0 8px;font-size:12px}.qa pre{max-height:260px;overflow:auto;margin:0;white-space:pre-wrap;font:10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;color:#51464a}@media(max-width:900px){.studio-grid{grid-template-columns:1fr}.controls-card{order:1}.viewer-card{order:2;position:static}.stage{height:57vh;min-height:390px}}@media(max-width:480px){.shell{padding:12px 10px calc(30px + env(safe-area-inset-bottom))}.topbar{grid-template-columns:72px 1fr 72px}.top-spacer{width:72px}.card{border-radius:18px}.controls-card{padding:14px}.stage{min-height:350px}.swatches{gap:6px}.swatch{padding:5px}.segments.four{grid-template-columns:1fr 1fr}.segments button{font-size:10.5px}.viewer-head{padding:12px 13px}}
+  </style>
+</head>
+<body>
+  <header class="topbar"><button class="back" type="button" id="back">‹ Volver</button><div class="brand"><strong>Vista AR</strong><span>HomeEasy</span></div><div class="top-spacer"></div></header>
+  <main class="shell">
+    <div class="studio-grid">
+      <section class="card viewer-card" aria-label="Vista previa 3D">
+        <div class="viewer-head"><div class="viewer-title"><strong id="preview-title">Sheer Elegance</strong><span id="preview-subtitle">Preparando vista previa</span></div><span class="ready-pill" id="ready-pill" data-state="working">Preparando</span></div>
+        <div class="stage"><model-viewer id="viewer" camera-controls touch-action="pan-y" interaction-prompt="none" shadow-intensity=".65" exposure="1" ar ar-modes="quick-look scene-viewer webxr" ar-placement="wall" ar-scale="fixed" quick-look-browsers="safari chrome" alt="Vista previa del producto configurado"></model-viewer><div class="stage-overlay" id="stage-overlay">Construyendo la configuración seleccionada…</div></div>
+        <div class="viewer-actions"><button id="ar-button" class="ar-button" type="button" disabled>Ver en mi ventana</button><p class="viewer-note">La vista previa y la vista AR usan el mismo modelo.</p></div>
+      </section>
+
+      <section class="card controls-card" aria-label="Configuración">
+        <div class="section"><div class="section-title"><label for="product">Producto</label></div><select id="product" class="select product-select"><option value="sheer">Sheer Elegance</option><option value="panel">Panel Japonés</option><option value="onda">Onda Serena</option></select><p class="product-copy">Elige el producto y configura únicamente sus opciones disponibles.</p></div>
+
+        <div class="product-panel" data-product="sheer">
+          <div class="section"><div class="reference"><span>Serenade Screen Clark</span><span>Sheer Elegance</span></div><div class="section-title"><strong>Tela y color</strong><small>9 colores</small></div><div class="swatches" id="sheer-swatches"></div></div>
+          <div class="section"><div class="section-title"><strong>Medidas de tela</strong><small>metros</small></div><div class="measure-grid"><div class="field"><label for="sheer-width">Ancho de tela</label><div class="unit-wrap"><input id="sheer-width" class="input" type="number" inputmode="decimal" min=".30" max="3" step=".01" value="1.80"><span class="unit">m</span></div></div><div class="field"><label for="sheer-height">Alto de tela</label><div class="unit-wrap"><input id="sheer-height" class="input" type="number" inputmode="decimal" min=".45" max="3" step=".01" value="2.20"><span class="unit">m</span></div></div></div></div>
+          <div class="section"><div class="section-title"><strong>Configuración</strong></div><div class="control-block"><span class="label">Sistema</span><div class="segments" data-group="sheer-system"><button type="button" data-value="binovo" aria-pressed="true">Binovo</button><button type="button" data-value="standard" aria-pressed="false">Standard</button></div></div><div class="control-block"><span class="label">Mando</span><div class="segments" data-group="sheer-side"><button type="button" data-value="left" aria-pressed="false">Izquierda</button><button type="button" data-value="right" aria-pressed="true">Derecha</button></div></div><div class="control-block"><span class="label">Estado</span><div class="segments three" data-group="sheer-state"><button type="button" data-value="abierta" aria-pressed="true">Abierta</button><button type="button" data-value="media" aria-pressed="false">Media</button><button type="button" data-value="cerrada" aria-pressed="false">Cerrada</button></div></div></div>
+        </div>
+
+        <div class="product-panel" data-product="panel" hidden>
+          <div class="section"><div class="reference"><span>Screen Tretto 3%</span><span>Panel Japonés</span></div><div class="section-title"><strong>Tela y color</strong><small>5 colores</small></div><div class="swatches" id="panel-swatches"></div></div>
+          <div class="section"><div class="section-title"><strong>Medidas terminadas</strong><small>metros</small></div><div class="measure-grid"><div class="field"><label for="panel-width">Ancho total</label><div class="unit-wrap"><input id="panel-width" class="input" type="number" inputmode="decimal" min=".60" max="5.75" step=".01" value="3.00"><span class="unit">m</span></div></div><div class="field"><label for="panel-height">Alto total</label><div class="unit-wrap"><input id="panel-height" class="input" type="number" inputmode="decimal" min=".30" max="3.50" step=".01" value="2.40"><span class="unit">m</span></div></div></div><div id="panel-recommendation" class="recommendation"><strong>Calculando configuración</strong><span>La recomendación aparecerá aquí.</span></div><details class="secondary-control"><summary>Ver alternativas válidas</summary><select id="panel-layout" class="select"></select></details></div>
+          <div class="section"><div class="section-title"><strong>Configuración</strong></div><div class="control-block"><span class="label">Dirección</span><div class="segments four" data-group="panel-direction"><button type="button" data-value="left" aria-pressed="true">Izquierda</button><button type="button" data-value="right" aria-pressed="false">Derecha</button><button type="button" data-value="center" aria-pressed="false">Centro</button><button type="button" data-value="ends" aria-pressed="false">Extremos</button></div></div><div class="control-block"><span class="label">Estado</span><div class="segments three" data-group="panel-state"><button type="button" data-value="closed" aria-pressed="true">Cerrado</button><button type="button" data-value="partial" aria-pressed="false">Parcial</button><button type="button" data-value="collected" aria-pressed="false">Recogido</button></div></div></div>
+        </div>
+
+        <div class="product-panel" data-product="onda" hidden>
+          <div class="section"><div class="reference"><span>AL 2.8</span><span>Onda Serena</span></div><div class="section-title"><label for="onda-family">Tipo de tela</label></div><select id="onda-family" class="select"><option value="VELO">Velo</option><option value="BLACK OUT">Black Out</option><option value="TRASLUCENTE">Traslucente</option></select><div class="collection-line"><span>Colección</span><b id="onda-collection">Coral</b></div><div class="section-title"><strong>Color</strong><small id="onda-color-count"></small></div><div class="swatches" id="onda-swatches"></div></div>
+          <div class="section"><div class="section-title"><strong>Medidas</strong><small>metros</small></div><div class="measure-grid"><div class="field"><label for="onda-width">Ancho</label><div class="unit-wrap"><input id="onda-width" class="input" type="number" inputmode="decimal" min=".40" max="5.80" step=".01" value="3.00"><span class="unit">m</span></div></div><div class="field"><label for="onda-height">Alto</label><div class="unit-wrap"><input id="onda-height" class="input" type="number" inputmode="decimal" min=".40" max="3.50" step=".01" value="2.40"><span class="unit">m</span></div></div></div></div>
+          <div class="section"><div class="section-title"><strong>Configuración</strong></div><div class="control-block"><span class="label">Recogida</span><div class="segments" data-group="onda-direction"><button type="button" data-value="left" aria-pressed="true">Izquierda</button><button type="button" data-value="right" aria-pressed="false">Derecha</button></div></div><div class="control-block"><span class="label">Estado</span><div class="segments three" data-group="onda-state"><button type="button" data-value="closed" aria-pressed="true">Cerrada</button><button type="button" data-value="partial" aria-pressed="false">Parcial</button><button type="button" data-value="collected" aria-pressed="false">Recogida</button></div></div></div>
+        </div>
+
+        <div id="status" class="status">Preparando Sheer Elegance…</div>
+        <aside id="qa" class="qa" hidden><h2>QA de integración</h2><pre id="qa-output"></pre></aside>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import {HomeEasyStudioController} from "./production/studio-core.js";
+    const $=id=>document.getElementById(id),viewer=$("viewer"),arButton=$("ar-button"),status=$("status"),overlay=$("stage-overlay"),pill=$("ready-pill"),qaEnabled=new URLSearchParams(location.search).get("qa")==="1";
+    const productNames={sheer:"Sheer Elegance",panel:"Panel Japonés",onda:"Onda Serena"},stateLabels={sheer:{abierta:"Abierta",media:"Media",cerrada:"Cerrada"},panel:{closed:"Cerrado",partial:"Parcial",collected:"Recogido"},onda:{closed:"Cerrada",partial:"Parcial",collected:"Recogida"}};
+    let buildTimer=null,activeModule=null,activeVariants=[];
+    if(qaEnabled)$("qa").hidden=false;
+    $("back").addEventListener("click",()=>history.back());
+
+    function selected(group){return document.querySelector(`[data-group="${group}"] button[aria-pressed="true"]`)?.dataset.value;}
+    function press(group,value){for(const button of document.querySelectorAll(`[data-group="${group}"] button`))button.setAttribute("aria-pressed",String(button.dataset.value===value));}
+    function showPanel(productId){for(const panel of document.querySelectorAll(".product-panel"))panel.hidden=panel.dataset.product!==productId;}
+    function setStatus(message,tone="working"){status.textContent=message;status.dataset.tone=tone;}
+    function setBusy(message){overlay.hidden=false;overlay.textContent=message;pill.dataset.state="working";pill.textContent="Preparando";arButton.disabled=true;}
+    function escapeText(value){const span=document.createElement("span");span.textContent=value;return span.innerHTML;}
+
+    function domState(productId){
+      if(productId==="sheer")return {fabricWidthM:Number($("sheer-width").value),fabricHeightM:Number($("sheer-height").value),headrailSystem:selected("sheer-system"),controlSide:selected("sheer-side"),bandState:selected("sheer-state")};
+      if(productId==="panel")return {widthM:Number($("panel-width").value),heightM:Number($("panel-height").value),direction:selected("panel-direction"),position:selected("panel-state"),controlSide:"right",layout:$("panel-layout").value||null};
+      return {widthM:Number($("onda-width").value),heightM:Number($("onda-height").value),direction:selected("onda-direction"),position:selected("onda-state"),fullness:"2.8",bottom:"hem-15"};
+    }
+
+    function applyState(productId,state){
+      if(productId==="sheer"){$("sheer-width").value=state.fabricWidthM;$("sheer-height").value=state.fabricHeightM;press("sheer-system",state.headrailSystem);press("sheer-side",state.controlSide);press("sheer-state",state.bandState);}
+      if(productId==="panel"){$("panel-width").value=state.widthM;$("panel-height").value=state.heightM;press("panel-direction",state.direction);press("panel-state",state.position);}
+      if(productId==="onda"){$("onda-width").value=state.widthM;$("onda-height").value=state.heightM;press("onda-direction",state.direction);press("onda-state",state.position);const variant=activeVariants.find(item=>item.id===state.variantId);if(variant)$("onda-family").value=variant.family;}
+    }
+
+    async function refreshPanelSupport(){
+      if(controller.activeProduct!=="panel"||!activeModule?.getConfigurationSupport)return;
+      const state={...controller.getState(),...domState("panel")},support=await activeModule.getConfigurationSupport(state),select=$("panel-layout"),current=state.layout||support.recommendation.selected?.layout||"",options=[support.recommendation.selected,...support.recommendation.alternatives].filter(Boolean);
+      select.replaceChildren(...options.map(item=>{const option=document.createElement("option");option.value=item.layout;option.textContent=`${item.ways} vías · ${item.telos} telos · telo ${(item.teloWidthM*100).toFixed(1)} cm`;option.selected=item.layout===current;return option;}));
+      const chosen=options.find(item=>item.layout===current)||options[0];$("panel-recommendation").innerHTML=chosen?`<strong>${escapeText(support.recommendation.disclosure)}</strong><span>${chosen.ways} vías · ${chosen.telos} telos · ancho de telo ${(chosen.teloWidthM*100).toFixed(1)} cm · solape 8 cm</span>`:"<strong>Sin configuración válida</strong><span>Revisa las medidas seleccionadas.</span>";
+    }
+
+    function renderSwatches(productId,state){
+      const container=$(`${productId}-swatches`);if(!container)return;
+      let variants=activeVariants;
+      if(productId==="onda"){
+        const family=$("onda-family").value;variants=activeVariants.filter(item=>item.family===family);const selectedVariant=activeVariants.find(item=>item.id===state.variantId),collection=variants[0]?.collection||selectedVariant?.collection||"";$("onda-collection").textContent=collection[0]+collection.slice(1).toLowerCase();$("onda-color-count").textContent=`${variants.length} ${variants.length===1?"color":"colores"}`;
+      }
+      container.replaceChildren(...variants.map(variant=>{const button=document.createElement("button");button.type="button";button.className="swatch";button.dataset.variant=variant.id;button.setAttribute("aria-pressed",String(variant.id===state.variantId));const image=document.createElement("img");image.src=variant.thumbnailUrl;image.alt=variant.label;image.loading="lazy";const label=document.createElement("span");label.textContent=variant.label;button.append(image,label);button.addEventListener("click",()=>selectVariant(variant.id));return button;}));
+    }
+
+    function syncActiveState({resetLayout=false}={}){
+      if(!controller.activeProduct)return;const partial=domState(controller.activeProduct);if(resetLayout&&controller.activeProduct==="panel")partial.layout=null;controller.updateState(partial);if(controller.activeProduct==="panel")refreshPanelSupport().catch(showError);
+    }
+
+    function scheduleBuild(options={}){syncActiveState(options);clearTimeout(buildTimer);buildTimer=setTimeout(()=>controller.buildActive().catch(()=>{}),430);}
+    function showError(error){setStatus(error?.message||String(error),"error");overlay.hidden=false;overlay.textContent="Revisa la configuración seleccionada.";pill.dataset.state="error";pill.textContent="Revisar";}
+    function selectVariant(variantId){controller.selectVariant(variantId,{build:false});renderSwatches(controller.activeProduct,controller.getState());scheduleBuild();}
+
+    const controller=new HomeEasyStudioController({viewer,arButton,
+      onProductLoaded:async({productId,module,state,variants})=>{activeModule=module;activeVariants=variants;showPanel(productId);applyState(productId,state);if(productId==="onda"){const selectedVariant=variants.find(item=>item.id===state.variantId);if(selectedVariant)$("onda-family").value=selectedVariant.family;}renderSwatches(productId,state);if(productId==="panel")await refreshPanelSupport();$("preview-title").textContent=productNames[productId];$("preview-subtitle").textContent=module.descriptor.reference;},
+      onBuildStarted:({productId})=>{setBusy(`Preparando ${productNames[productId]}…`);setStatus(`Construyendo ${productNames[productId]}…`);},
+      onBuildReady:({productId,state,result,module})=>{overlay.hidden=true;pill.dataset.state="ready";pill.textContent="Listo";$("preview-title").textContent=productNames[productId];$("preview-subtitle").textContent=module.commercialSummary(state,result);setStatus("Modelo listo para vista previa y AR.","ready");},
+      onError:({error})=>showError(error),
+      onDebug:snapshot=>{if(qaEnabled)$("qa-output").textContent=JSON.stringify(snapshot,null,2);}
+    });
+
+    $("product").addEventListener("change",()=>{clearTimeout(buildTimer);showPanel($("product").value);setBusy(`Cambiando a ${productNames[$("product").value]}…`);controller.activateProduct($("product").value).catch(showError);});
+    for(const group of document.querySelectorAll("[data-group]"))group.addEventListener("click",event=>{const button=event.target.closest("button[data-value]");if(!button)return;press(group.dataset.group,button.dataset.value);scheduleBuild({resetLayout:group.dataset.group==="panel-direction"});});
+    for(const input of document.querySelectorAll('input[type="number"]'))input.addEventListener("input",()=>scheduleBuild({resetLayout:controller.activeProduct==="panel"}));
+    $("panel-layout").addEventListener("change",()=>scheduleBuild());
+    $("onda-family").addEventListener("change",()=>{const variants=activeVariants.filter(item=>item.family===$("onda-family").value),state=controller.getState();if(!variants.some(item=>item.id===state.variantId))controller.selectVariant(variants[0].id,{build:false});renderSwatches("onda",controller.getState());scheduleBuild();});
+
+    function syncDomFromApi(){const productId=controller.activeProduct,state=controller.getState();applyState(productId,state);if(productId==="onda"){const variant=activeVariants.find(item=>item.id===state.variantId);if(variant)$("onda-family").value=variant.family;}renderSwatches(productId,state);if(productId==="panel")return refreshPanelSupport();}
+    window.__HOMEEASY_STUDIO__={
+      controller,
+      async selectProduct(productId){$("product").value=productId;showPanel(productId);const result=await controller.activateProduct(productId);await syncDomFromApi();return result;},
+      async selectVariant(variantId){controller.selectVariant(variantId,{build:false});const sync=syncDomFromApi(),build=controller.buildActive();await sync;return build;},
+      async setConfig(partial){controller.updateState(partial);const sync=syncDomFromApi(),build=controller.buildActive();await sync;return build;},
+      get ready(){return controller.debugSnapshot().ready&&viewer.loaded;},
+      get snapshot(){return controller.debugSnapshot();},
+      get state(){return controller.getState();},
+      get variants(){return controller.getVariants();},
+      get activeProduct(){return controller.activeProduct;},
+      get viewer(){return viewer;},
+      get arButton(){return arButton;}
+    };
+    window.addEventListener("pagehide",()=>controller.destroy());
+    controller.activateProduct("sheer").catch(showError);
+  </script>
+</body>
+</html>

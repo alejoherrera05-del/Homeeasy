@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "pentagrama-panel-standard-screen-tretto-3-white-grey",
+  "product": "PANEL JAPONÉS",
+  "system": "STANDARD",
+  "actuation": "MANUAL",
+  "reference": "SCREEN TRETTO 3%",
+  "colorId": "white-grey",
+  "colorName": "White Grey",
+  "variantCode": "393",
+  "productCode": "PANSCTRE3WHGR",
+  "portalPath": "PANEL JAPONÉS / STANDARD / SCREEN / SCREEN TRETTO 3%",
+  "officialImageFile": "qa/source-evidence/portal-swatches/tretto-3-white-grey-official.jpg",
+  "officialImageSha256": "f876be990e211d7ae92d02822b0357898a888fbd0f7bf4b220d121f603ba1c5f",
+  "officialImageRole": "visualSourceOnlyNotRuntimeTile",
+  "reconstruction": {
+    "crop": "central 62 percent; luminance tails removed",
+    "color": "robust average from official central weave",
+    "topology": "shared screen weave reconstructed from official macros",
+    "openness": "official 3 percent; alpha generated and measured at 3 percent",
+    "falseHorizontalBandsIntroduced": false
+  },
+  "sources": [
+    {
+      "portal": "pedidos.persianaspentagrama.com",
+      "route": "Order/SearchProduct",
+      "verifiedOn": "2026-08-26",
+      "classification": "official"
+    },
+    {
+      "document": "973_FichaTecnicaScreenTretto3.pdf",
+      "page": 1,
+      "classification": "official"
+    }
+  ],
+  "reconstructionV1_1": {
+    "method": "official swatch analysis → measured orthogonal yarn topology → seamless analytic plain-weave reconstruction with alternating over/under crossings",
+    "paletteSource": "own official swatch; two-cluster analysis retained per color",
+    "twoClusterPalette": [
+      {
+        "rgb": [
+          150,
+          153,
+          153
+        ],
+        "share": 0.4651061228054852
+      },
+      {
+        "rgb": [
+          201,
+          204,
+          204
+        ],
+        "share": 0.5348938771945148
+      }
+    ],
+    "colorDistance": 88.33,
+    "mixedYarnAssignment": "distinct official light/dark clusters assigned to crossing yarn directions",
+    "alphaDerivation": "spaces left by reconstructed continuous orthogonal yarns; yarn width calibrated only after topology reconstruction until measured opening matched 3%",
+    "normalDerivation": "height gradient of continuous yarns with alternating warp/weft crossing order",
+    "runtimeTileUsedAsOfficialPhoto": false,
+    "fullPortalThumbnailUsedAsTile": false,
+    "microperforationTopologyVerified": true,
+    "analysisFile": "qa/validation/tretto-official-swatches-analysis.json",
+    "topologyVerificationEvidence": "qa/tretto-v1-1-comparisons/white-grey.jpg",
+    "topologyVerifiedAt": "2026-08-26T18:33:17.821Z"
+  }
+}

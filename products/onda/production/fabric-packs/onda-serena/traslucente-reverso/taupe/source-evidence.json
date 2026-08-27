@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "traslucente-reverso-taupe",
+  "officialHierarchy": [
+    "CORTINA ONDA SERENA",
+    "AL 2.8",
+    "TRASLUCENTE",
+    "REVERSO",
+    "TAUPE"
+  ],
+  "portalRoute": "/Order/SearchProduct?reset=True",
+  "officialProductCode": "CORONSETRASRETAU2.8",
+  "officialImage": "qa/source-evidence/portal-swatches/reverso-taupe-official.jpg",
+  "officialImageSha256": "ffd21ae6d0e0130d6d4c98885bd6eeed9b1ec964f4466ffe47e225c4315ae4cc",
+  "officialImageDimensionsPx": [
+    80,
+    77
+  ],
+  "officialDocument": "861_FichaTecnicaCortineriaTraslucenteReverso.pdf",
+  "catalogDocument": "713_TelasOndaSerenaTripleatZigZagHoteleraRingPentagrama10.pdf",
+  "verifiedOn": "2026-08-26",
+  "exact": {
+    "identity": true,
+    "colorOption": true,
+    "rollWidthM": true,
+    "weightGm2": true,
+    "materialFamily": true
+  },
+  "inferred": {
+    "physicalTextureScaleM": true,
+    "microWeave": true,
+    "alphaDistribution": true
+  },
+  "reconstruction": {
+    "sourceRole": "color and microvariation reference only; not tiled directly",
+    "centralCrop": {
+      "left": 13,
+      "top": 12,
+      "width": 54,
+      "height": 52
+    },
+    "robustRgb": [
+      205,
+      196,
+      194
+    ],
+    "borderExcluded": true,
+    "photographicShadowExcluded": true,
+    "seamlessProceduralMicrostructure": true,
+    "artificialPatternClaims": false
+  }
+}

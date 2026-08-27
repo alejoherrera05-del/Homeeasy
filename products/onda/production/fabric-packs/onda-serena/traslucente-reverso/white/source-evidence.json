@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "traslucente-reverso-white",
+  "officialHierarchy": [
+    "CORTINA ONDA SERENA",
+    "AL 2.8",
+    "TRASLUCENTE",
+    "REVERSO",
+    "WHITE"
+  ],
+  "portalRoute": "/Order/SearchProduct?reset=True",
+  "officialProductCode": "CORONSETRASREWH2.8",
+  "officialImage": "qa/source-evidence/portal-swatches/reverso-white-official.jpg",
+  "officialImageSha256": "a9318bfd6b220e97f4372b1bb2dff9ba9a7d560278e95f38d982f9b16dace20d",
+  "officialImageDimensionsPx": [
+    80,
+    77
+  ],
+  "officialDocument": "861_FichaTecnicaCortineriaTraslucenteReverso.pdf",
+  "catalogDocument": "713_TelasOndaSerenaTripleatZigZagHoteleraRingPentagrama10.pdf",
+  "verifiedOn": "2026-08-26",
+  "exact": {
+    "identity": true,
+    "colorOption": true,
+    "rollWidthM": true,
+    "weightGm2": true,
+    "materialFamily": true
+  },
+  "inferred": {
+    "physicalTextureScaleM": true,
+    "microWeave": true,
+    "alphaDistribution": true
+  },
+  "reconstruction": {
+    "sourceRole": "color and microvariation reference only; not tiled directly",
+    "centralCrop": {
+      "left": 13,
+      "top": 12,
+      "width": 54,
+      "height": 52
+    },
+    "robustRgb": [
+      236,
+      232,
+      238
+    ],
+    "borderExcluded": true,
+    "photographicShadowExcluded": true,
+    "seamlessProceduralMicrostructure": true,
+    "artificialPatternClaims": false
+  }
+}
