@@ -1,0 +1,8 @@
+from pathlib import Path
+p=Path('.github/scripts/full_fire_browser.mjs')
+t=p.read_text(encoding='utf-8')
+old="""await check('definitive session revocation still forces login',async()=>{const {context,page}=await makePage({stale:true,backendMode:'revoked'}); await page.goto(base+'clientes.html',{waitUntil:'domcontentloaded'}); await page.waitForURL('**/login.html?**',{timeout:3500}); const stored=await page.evaluate(()=>sessionStorage.getItem('HOMEEASY_AUTH_SESSION_V1')); if(stored) throw Error('revoked session still stored'); await context.close();});"""
+new="""await check('definitive session revocation stays on login and removes app session',async()=>{const {context,page}=await makePage({stale:true,backendMode:'revoked'}); await page.goto(base+'clientes.html',{waitUntil:'domcontentloaded'}); await page.waitForURL(url=>url.pathname.endsWith('/login.html'),{timeout:3500,waitUntil:'domcontentloaded'}); await page.waitForTimeout(900); if(!new URL(page.url()).pathname.endsWith('/login.html')) throw Error('login did not remain stable after revocation'); const stored=await page.evaluate(()=>{try{return JSON.parse(sessionStorage.getItem('HOMEEASY_AUTH_SESSION_V1')||'null')}catch{return null}}); if(stored&&stored.appSessionToken) throw Error('revoked appSessionToken is still present'); const email=await page.locator('#emailInput').inputValue(); if(!email) throw Error('known Firebase email was not preserved for re-login'); await context.close();});"""
+if old not in t: raise SystemExit('Old revocation test not found')
+p.write_text(t.replace(old,new,1),encoding='utf-8')
+print('Final fire expectations patched')
