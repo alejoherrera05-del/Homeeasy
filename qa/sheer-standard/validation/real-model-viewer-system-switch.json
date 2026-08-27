@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "1.0.0",
+  "scope": "Sheer Binovo/Standard system switch with real model-viewer 4.3.1",
+  "modelViewer": {
+    "source": "production/vendor/model-viewer-4.3.1.min.js",
+    "stubbed": false,
+    "bytes": 1068903,
+    "sha256": "283b0672384614b4847636c306fc93fe4b1fcadc76d668b4e47f0ca76bcf033b"
+  },
+  "directLoads": {
+    "binovoHttp": {
+      "loaded": true,
+      "errors": []
+    },
+    "standardHttp": {
+      "loaded": true,
+      "errors": []
+    },
+    "standardBlob": {
+      "loaded": true,
+      "errors": []
+    },
+    "binovoClearThenStandardBlob": {
+      "loaded": true,
+      "errors": []
+    },
+    "binovoRevokeThenClearThenStandardBlob": {
+      "loaded": true,
+      "errors": []
+    }
+  },
+  "initialBinovo": {
+    "ready": true,
+    "loaded": true,
+    "arEnabled": true,
+    "state": {
+      "variantId": "white",
+      "fabricWidthM": 1.8,
+      "fabricHeightM": 2.2,
+      "headrailSystem": "binovo",
+      "controlSide": "right",
+      "bandState": "abierta"
+    }
+  },
+  "incompatible": {
+    "status": "Standard no está disponible para 1,80 × 2,20 m. Usa hasta 1,60 × 1,80 m o, para anchos de hasta 2,60 m, una altura máxima de 1,20 m. Ajusta las medidas o continúa con Binovo.",
+    "overlay": "Estas medidas no son compatibles con el sistema seleccionado.",
+    "pill": "Ajustar",
+    "arDisabled": true,
+    "viewerSrc": null,
+    "failure": {
+      "code": "CONFIGURATION_INCOMPATIBLE",
+      "userMessage": "Standard no está disponible para 1,80 × 2,20 m. Usa hasta 1,60 × 1,80 m o, para anchos de hasta 2,60 m, una altura máxima de 1,20 m. Ajusta las medidas o continúa con Binovo.",
+      "technicalMessage": "Standard no está disponible para 1,80 × 2,20 m. Usa hasta 1,60 × 1,80 m o, para anchos de hasta 2,60 m, una altura máxima de 1,20 m. Ajusta las medidas o continúa con Binovo."
+    },
+    "state": {
+      "variantId": "white",
+      "fabricWidthM": 1.8,
+      "fabricHeightM": 2.2,
+      "headrailSystem": "standard",
+      "controlSide": "right",
+      "bandState": "abierta"
+    },
+    "immediateUnder2500Ms": true
+  },
+  "standard": {
+    "ready": true,
+    "loaded": true,
+    "srcIsBlob": true,
+    "arEnabled": true,
+    "iosSrcAbsent": true,
+    "loading": "eager",
+    "modelViewerDefined": true,
+    "modelViewerScript": "./production/vendor/model-viewer-4.3.1.min.js",
+    "state": {
+      "variantId": "white",
+      "fabricWidthM": 1.5,
+      "fabricHeightM": 1.5,
+      "headrailSystem": "standard",
+      "controlSide": "right",
+      "bandState": "abierta"
+    }
+  },
+  "finalBinovo": {
+    "ready": true,
+    "loaded": true,
+    "arEnabled": true,
+    "state": {
+      "variantId": "white",
+      "fabricWidthM": 1.8,
+      "fabricHeightM": 2.2,
+      "headrailSystem": "binovo",
+      "controlSide": "right",
+      "bandState": "abierta"
+    },
+    "audit": {
+      "loads": 3,
+      "errors": []
+    }
+  },
+  "consoleErrors": [],
+  "protectedDiff": [],
+  "checks": {
+    "realModelViewer431": true,
+    "directModelViewerLoads": true,
+    "initialBinovoReady": true,
+    "incompatibleImmediate": true,
+    "incompatibleCommercialMessage": true,
+    "incompatibleDeterministicState": true,
+    "standardReady": true,
+    "binovoRegressionFree": true,
+    "realLoadEvents": true,
+    "consoleClean": true,
+    "protectedSurfacesUnchanged": true
+  },
+  "status": "PASS",
+  "physicalQuickLookIphoneTest": "PENDING"
+}

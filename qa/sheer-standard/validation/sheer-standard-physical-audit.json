@@ -4,7 +4,7 @@
   "masterHash": "fee237285d7dbe3e2a00c74da7cb6367c78f244324e798a43c30064bbbe56779",
   "approvedBinovoGeometryHash": "e36298e2652f98148d7d7592c5e806e8180f9c93a2fe5dcfcccf34ddc3f3cf59",
   "baseline": {
-    "sourceCommit": "HEAD before this correction",
+    "sourceCommit": "6b47c886f14ef23fd54df835c4cae7f4fa3adb17",
     "standard": {
       "key": "standard-150x150-right-abierta",
       "config": {

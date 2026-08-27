@@ -1,15 +1,21 @@
 const PRODUCT_LOADERS=Object.freeze({
-  sheer:()=>import("../products/sheer/studio-product.js?v=2.1"),
+  sheer:()=>import("../products/sheer/studio-product.js?v=2.2"),
   panel:()=>import("../products/panel/studio-product.js?v=2.1"),
   onda:()=>import("../products/onda/studio-product.js?v=2.1")
 });
 
 const clone=value=>structuredClone(value);
 
+class HomeEasyStudioError extends Error{
+  constructor(code,userMessage,technicalMessage=userMessage){super(technicalMessage);this.name="HomeEasyStudioError";this.code=code;this.userMessage=userMessage;this.technicalMessage=technicalMessage;}
+}
+
+const studioError=(error,code,userMessage)=>error instanceof HomeEasyStudioError?error:new HomeEasyStudioError(code,userMessage,error?.stack||error?.message||String(error));
+
 export class HomeEasyStudioController{
   constructor({viewer,arButton,onProductLoaded=()=>{},onBuildStarted=()=>{},onBuildReady=()=>{},onError=()=>{},onDebug=()=>{}}){
     this.viewer=viewer;this.arButton=arButton;this.callbacks={onProductLoaded,onBuildStarted,onBuildReady,onError,onDebug};
-    this.modules=new Map();this.states=new Map();this.variants=new Map();this.activeProduct=null;this.current=null;this.buildToken=0;this.revokedUrlCount=0;this.buildCount=0;this.transitionLog=[];
+    this.modules=new Map();this.states=new Map();this.variants=new Map();this.activeProduct=null;this.current=null;this.lastFailure=null;this.buildToken=0;this.revokedUrlCount=0;this.buildCount=0;this.transitionLog=[];
     this.arButton.disabled=true;this._arHandler=()=>this.openAR();this.arButton.addEventListener("click",this._arHandler);
   }
 
@@ -23,7 +29,7 @@ export class HomeEasyStudioController{
   }
 
   _clearViewer(){
-    this.viewer.removeAttribute("src");this.viewer.removeAttribute("ios-src");this.viewer.dataset.product="";this.viewer.dataset.variant="";
+    this.viewer.src="";this.viewer.removeAttribute("src");this.viewer.removeAttribute("ios-src");this.viewer.dataset.product="";this.viewer.dataset.variant="";
   }
 
   _revoke(result){
@@ -37,6 +43,8 @@ export class HomeEasyStudioController{
     this._clearViewer();this.callbacks.onDebug(this.debugSnapshot(reason));
     return this.buildToken;
   }
+
+  invalidateActive(reason="configuration-invalid"){return this._invalidate(reason);}
 
   async activateProduct(productId){
     const previous=this.activeProduct;this._invalidate("product-change");this.activeProduct=productId;
@@ -63,32 +71,34 @@ export class HomeEasyStudioController{
   }
 
   async _waitForViewer(token,url){
-    if(this.viewer.loaded&&this.viewer.src===url)return;
     await new Promise((resolve,reject)=>{
-      const timeout=setTimeout(()=>finish(new Error("La vista 3D no terminó de cargar.")),45000);
-      const onLoad=()=>finish(),onError=()=>finish(new Error("El GLB no pudo mostrarse."));
+      const timeout=setTimeout(()=>finish(new HomeEasyStudioError("MODEL_VIEWER_TIMEOUT","La vista 3D está tardando más de lo esperado. Inténtalo de nuevo.","model-viewer no emitió load dentro de 45 segundos.")),45000);
+      const onLoad=()=>{if(token===this.buildToken&&this.viewer.src===url)finish();},onError=event=>{if(token===this.buildToken&&this.viewer.src===url)finish(new HomeEasyStudioError("MODEL_VIEWER_LOAD_FAILED","El modelo se generó, pero la vista 3D no pudo abrirlo. Inténtalo de nuevo.",event?.detail?.message||"model-viewer emitió error al cargar el Blob GLB."));};
       const finish=error=>{clearTimeout(timeout);this.viewer.removeEventListener("load",onLoad);this.viewer.removeEventListener("error",onError);if(error)reject(error);else resolve();};
-      this.viewer.addEventListener("load",onLoad,{once:true});this.viewer.addEventListener("error",onError,{once:true});
-      queueMicrotask(()=>{if(token===this.buildToken&&this.viewer.loaded&&this.viewer.src===url)finish();});
+      this.viewer.addEventListener("load",onLoad);this.viewer.addEventListener("error",onError);this.viewer.src=url;
     });
   }
 
   async buildActive(){
     const productId=this.activeProduct;if(!productId)throw new Error("Selecciona un producto.");
-    const token=this._invalidate("build"),module=await this._loadProduct(productId),state=this.getState(productId);
-    this.callbacks.onBuildStarted({productId,state,token});
+    const token=this._invalidate("build");let module,state,result;
     try{
-      const result=await module.buildProduct(state);
+      module=await this._loadProduct(productId);state=this.getState(productId);
+      const support=module.getConfigurationSupport?await module.getConfigurationSupport(state):null;
+      if(support&&support.supported===false)throw new HomeEasyStudioError(support.code||"CONFIGURATION_INCOMPATIBLE",support.userMessage||"La configuración seleccionada no está disponible.",support.technicalMessage||support.userMessage);
+      this.lastFailure=null;this.callbacks.onBuildStarted({productId,state,token});
+      try{result=await module.buildProduct(state);}catch(error){throw studioError(error,"BUILD_FAILED","No pudimos preparar este modelo. Revisa la configuración e inténtalo de nuevo.");}
       if(token!==this.buildToken||productId!==this.activeProduct){this._revoke(result);return null;}
       if(!result?.url||!result?.bytes)throw new Error("El motor no devolvió un Blob GLB válido.");
-      this.viewer.dataset.product=productId;this.viewer.dataset.variant=state.variantId;this.viewer.orientation=module.descriptor.viewerOrientation||"0deg 0deg 0deg";this.viewer.src=result.url;
+      this.viewer.dataset.product=productId;this.viewer.dataset.variant=state.variantId;this.viewer.orientation=module.descriptor.viewerOrientation||"0deg 0deg 0deg";
       await this._waitForViewer(token,result.url);
       if(token!==this.buildToken||productId!==this.activeProduct){this._revoke(result);return null;}
-      this.current={productId,state,result,module,url:result.url};this.buildCount+=1;this.arButton.disabled=false;this.arButton.dataset.ready="true";
+      this.current={productId,state,result,module,url:result.url};this.lastFailure=null;this.buildCount+=1;this.arButton.disabled=false;this.arButton.dataset.ready="true";
       this.callbacks.onBuildReady({productId,state,result,module,token});this.callbacks.onDebug(this.debugSnapshot("ready"));return result;
     }catch(error){
-      if(token===this.buildToken){this.arButton.disabled=true;this._clearViewer();this.callbacks.onError({productId,state,error,token});this.callbacks.onDebug(this.debugSnapshot("error"));}
-      throw error;
+      const failure=studioError(error,"BUILD_FAILED","No pudimos preparar este modelo. Revisa la configuración e inténtalo de nuevo.");
+      if(token===this.buildToken){this._revoke(result);this.arButton.disabled=true;this._clearViewer();this.lastFailure={code:failure.code,userMessage:failure.userMessage,technicalMessage:failure.technicalMessage};this.callbacks.onError({productId,state,error:failure,token});this.callbacks.onDebug(this.debugSnapshot("error"));}
+      throw failure;
     }
   }
 
@@ -99,7 +109,7 @@ export class HomeEasyStudioController{
   }
 
   debugSnapshot(reason="snapshot"){
-    return {reason,activeProduct:this.activeProduct,states:Object.fromEntries([...this.states].map(([id,state])=>[id,clone(state)])),loadedProducts:[...this.modules.keys()],ready:Boolean(this.current)&&!this.arButton.disabled,currentProduct:this.current?.productId||null,currentVariant:this.current?.state?.variantId||null,currentUrl:this.current?.url||null,quickLookGeneratedFromExactPreviewGlb:Boolean(this.current)&&this.viewer.src===this.current.url&&!this.viewer.hasAttribute("ios-src"),arDisabled:this.arButton.disabled,revokedUrlCount:this.revokedUrlCount,buildCount:this.buildCount,transitionLog:clone(this.transitionLog)};
+    return {reason,activeProduct:this.activeProduct,states:Object.fromEntries([...this.states].map(([id,state])=>[id,clone(state)])),loadedProducts:[...this.modules.keys()],ready:Boolean(this.current)&&!this.arButton.disabled,currentProduct:this.current?.productId||null,currentVariant:this.current?.state?.variantId||null,currentUrl:this.current?.url||null,quickLookGeneratedFromExactPreviewGlb:Boolean(this.current)&&this.viewer.src===this.current.url&&!this.viewer.hasAttribute("ios-src"),arDisabled:this.arButton.disabled,lastFailure:this.lastFailure?clone(this.lastFailure):null,revokedUrlCount:this.revokedUrlCount,buildCount:this.buildCount,transitionLog:clone(this.transitionLog)};
   }
 
   destroy(){this._invalidate("destroy");this.arButton.removeEventListener("click",this._arHandler);}

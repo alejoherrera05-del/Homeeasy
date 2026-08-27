@@ -49,7 +49,7 @@
               <div class="tool"><svg viewBox="0 0 24 24"><path d="m12 3 7 4v10l-7 4-7-4V7z"/><path d="m12 3 7 4-7 4-7-4"/><path d="M12 11v10"/></svg></div>
               <div class="tool"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></div>
             </div>
-            <model-viewer id="viewer" camera-controls touch-action="pan-y" interaction-prompt="none" shadow-intensity=".65" exposure="1" ar ar-modes="quick-look scene-viewer webxr" ar-placement="wall" ar-scale="fixed" quick-look-browsers="safari chrome" alt="Vista previa del producto configurado"></model-viewer>
+            <model-viewer id="viewer" loading="eager" camera-controls touch-action="pan-y" interaction-prompt="none" shadow-intensity=".65" exposure="1" ar ar-modes="quick-look scene-viewer webxr" ar-placement="wall" ar-scale="fixed" quick-look-browsers="safari chrome" alt="Vista previa del producto configurado"></model-viewer>
             <div class="stage-overlay" id="stage-overlay" aria-live="polite">Preparando la configuración seleccionada…</div>
             <div class="gesture-hint">Arrastra para girar · Pellizca para acercar</div>
           </div>
@@ -96,6 +96,6 @@
     </div>
   </main>
 
-  <script type="module" src="./production/ar-app-v2.js?v=2.1"></script>
+  <script type="module" src="./production/ar-app-v2.js?v=2.2"></script>
 </body>
 </html>

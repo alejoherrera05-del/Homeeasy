@@ -1,4 +1,4 @@
-import {HomeEasyStudioController} from "./studio-core.js?v=2.1";
+import {HomeEasyStudioController} from "./studio-core.js?v=2.2";
     const $=id=>document.getElementById(id),viewer=$("viewer"),arButton=$("ar-button"),status=$("status"),overlay=$("stage-overlay"),pill=$("ready-pill"),qaEnabled=new URLSearchParams(location.search).get("qa")==="1";
     const productNames={sheer:"Sheer Elegance",panel:"Panel Japonés",onda:"Onda Serena"},stateLabels={sheer:{abierta:"Abierta",media:"Media",cerrada:"Cerrada"},panel:{closed:"Cerrado",partial:"Parcial",collected:"Recogido"},onda:{closed:"Cerrada",partial:"Parcial",collected:"Recogida"}};
     let buildTimer=null,activeModule=null,activeVariants=[];
@@ -65,8 +65,8 @@ import {HomeEasyStudioController} from "./studio-core.js?v=2.1";
       if(!controller.activeProduct)return false;const partial=domState(controller.activeProduct);if(!partial)return false;if(resetLayout&&controller.activeProduct==="panel")partial.layout=null;controller.updateState(partial);if(controller.activeProduct==="panel")refreshPanelSupport().catch(showError);return true;
     }
 
-    function scheduleBuild(options={}){clearTimeout(buildTimer);try{if(!syncActiveState(options))return;}catch(error){showError(error);return;}buildTimer=setTimeout(()=>controller.buildActive().catch(()=>{}),430);}
-    function showError(error){setStatus(error?.message||String(error),"error");overlay.hidden=false;overlay.textContent="Revisa la configuración seleccionada.";pill.dataset.state="error";pill.textContent="Revisar";}
+    function scheduleBuild(options={}){clearTimeout(buildTimer);try{if(!syncActiveState(options))return;}catch(error){controller.invalidateActive("input-invalid");showError(error);return;}const build=()=>controller.buildActive().catch(()=>{});if(options.immediate)build();else buildTimer=setTimeout(build,430);}
+    function showError(error){const code=error?.code||"UNKNOWN",message=error?.userMessage||error?.message||String(error),configuration=code==="CONFIGURATION_INCOMPATIBLE"||code==="CONFIGURATION_INCOMPLETE";setStatus(message,"error");overlay.hidden=false;overlay.textContent=configuration?"Estas medidas no son compatibles con el sistema seleccionado.":code==="MODEL_VIEWER_TIMEOUT"?"La vista 3D tardó demasiado en responder.":code==="MODEL_VIEWER_LOAD_FAILED"?"No pudimos mostrar la vista 3D.":"No pudimos preparar el modelo.";pill.dataset.state="error";pill.textContent=configuration?"Ajustar":"Reintentar";arButton.disabled=true;}
     function selectVariant(variantId){controller.selectVariant(variantId,{build:false});renderSwatches(controller.activeProduct,controller.getState());scheduleBuild();}
 
     const controller=new HomeEasyStudioController({viewer,arButton,
@@ -78,7 +78,7 @@ import {HomeEasyStudioController} from "./studio-core.js?v=2.1";
     });
 
     $("product").addEventListener("change",()=>{clearTimeout(buildTimer);showPanel($("product").value);setBusy(`Cambiando a ${productNames[$("product").value]}…`);controller.activateProduct($("product").value).catch(showError);});
-    for(const group of document.querySelectorAll("[data-group]"))group.addEventListener("click",event=>{const button=event.target.closest("button[data-value]");if(!button)return;press(group.dataset.group,button.dataset.value);scheduleBuild({resetLayout:group.dataset.group==="panel-direction"});});
+    for(const group of document.querySelectorAll("[data-group]"))group.addEventListener("click",event=>{const button=event.target.closest("button[data-value]");if(!button)return;press(group.dataset.group,button.dataset.value);scheduleBuild({resetLayout:group.dataset.group==="panel-direction",immediate:group.dataset.group==="sheer-system"});});
     for(const id of ["sheer-width","sheer-height","panel-width","panel-height","onda-width","onda-height"])$(id).addEventListener("input",()=>scheduleBuild({resetLayout:controller.activeProduct==="panel"}));
     $("panel-layout").addEventListener("change",()=>scheduleBuild());
     $("onda-family").addEventListener("change",()=>{const variants=activeVariants.filter(item=>item.family===$("onda-family").value),state=controller.getState();if(!variants.some(item=>item.id===state.variantId))controller.selectVariant(variants[0].id,{build:false});renderSwatches("onda",controller.getState());scheduleBuild();});
