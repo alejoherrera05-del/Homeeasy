@@ -1,8 +1,8 @@
-const { chromium, devices } = require('playwright');
+const { chromium } = require('playwright');
 const fs = require('fs');
 
 const BASE = process.env.HOMEEASY_BASE || 'https://alejoherrera05-del.github.io/Homeeasy/';
-const report = { status:'ok', errors:[], warnings:[], timings:{}, pages:{} };
+const report = { status:'ok', errors:[], warnings:[], timings:{}, pages:{}, stress:{} };
 const fail = msg => { report.errors.push(msg); report.status='error'; };
 const warn = msg => report.warnings.push(msg);
 
@@ -21,8 +21,7 @@ function fakeSession(){
 async function mockBackend(context){
   await context.route('https://script.google.com/**', async route => {
     const req=route.request();
-    let payload={};
-    try { payload=JSON.parse(req.postData()||'{}'); } catch {}
+    let payload={}; try { payload=JSON.parse(req.postData()||'{}'); } catch {}
     const url=new URL(req.url());
     const tipo=payload.tipo || url.searchParams.get('tipo') || '';
     let body={status:'ok'};
@@ -37,14 +36,10 @@ async function mockBackend(context){
 }
 
 function observe(page, name){
-  const bucket={consoleErrors:[],pageErrors:[],failedRequests:[]};
-  report.pages[name]=bucket;
+  const bucket={consoleErrors:[],pageErrors:[],failedRequests:[]}; report.pages[name]=bucket;
   page.on('console', msg => { if(msg.type()==='error') bucket.consoleErrors.push(msg.text()); });
   page.on('pageerror', err => bucket.pageErrors.push(String(err)));
-  page.on('requestfailed', req => {
-    const u=req.url();
-    if(u.startsWith(BASE) || u.includes('script.google.com')) bucket.failedRequests.push(`${u} :: ${req.failure()?.errorText||''}`);
-  });
+  page.on('requestfailed', req => { const u=req.url(); if(u.startsWith(BASE) || u.includes('script.google.com')) bucket.failedRequests.push(`${u} :: ${req.failure()?.errorText||''}`); });
   return bucket;
 }
 
@@ -54,10 +49,8 @@ async function testLogin(browser){
     {name:'login-iphone',viewport:{width:390,height:844},isMobile:true,hasTouch:true}
   ]) {
     const context=await browser.newContext({viewport:cfg.viewport,isMobile:!!cfg.isMobile,hasTouch:!!cfg.hasTouch});
-    const page=await context.newPage(); const obs=observe(page,cfg.name);
-    const t=Date.now();
-    const resp=await page.goto(BASE+'login.html',{waitUntil:'domcontentloaded',timeout:30000});
-    report.timings[cfg.name]=Date.now()-t;
+    const page=await context.newPage(); const obs=observe(page,cfg.name); const t=Date.now();
+    const resp=await page.goto(BASE+'login.html',{waitUntil:'domcontentloaded',timeout:30000}); report.timings[cfg.name]=Date.now()-t;
     if(!resp || resp.status()>=400) fail(`${cfg.name}: HTTP ${resp&&resp.status()}`);
     await page.waitForTimeout(800);
     if(!(await page.locator('#loginForm').count())) fail(`${cfg.name}: login form missing`);
@@ -75,20 +68,24 @@ async function testAR(browser){
     {name:'ar-iphone',viewport:{width:390,height:844},isMobile:true,hasTouch:true}
   ]) {
     const context=await browser.newContext({viewport:cfg.viewport,isMobile:!!cfg.isMobile,hasTouch:!!cfg.hasTouch});
-    const page=await context.newPage(); const obs=observe(page,cfg.name);
-    const t=Date.now();
-    const resp=await page.goto(BASE+'ar-homeeasy-v3.html',{waitUntil:'domcontentloaded',timeout:30000});
-    report.timings[cfg.name]=Date.now()-t;
+    const page=await context.newPage(); const obs=observe(page,cfg.name); const t=Date.now();
+    const resp=await page.goto(BASE+'ar-homeeasy-v3.html',{waitUntil:'domcontentloaded',timeout:30000}); report.timings[cfg.name]=Date.now()-t;
     if(!resp || resp.status()>=400) fail(`${cfg.name}: HTTP ${resp&&resp.status()}`);
-    await page.waitForSelector('#viewer',{timeout:15000});
-    await page.waitForTimeout(2200);
-    for(const product of ['panel','onda','sheer']){
-      await page.selectOption('#product',product);
-      await page.waitForTimeout(650);
-      const visible=await page.locator(`.product-panel[data-product="${product}"]`).isVisible();
-      if(!visible) fail(`${cfg.name}: product panel ${product} not visible`);
+    await page.waitForSelector('#viewer',{timeout:15000}); await page.waitForTimeout(1800);
+    let switches=0;
+    for(let cycle=0; cycle<4; cycle++){
+      for(const product of ['panel','onda','sheer']){
+        await page.selectOption('#product',product); await page.waitForTimeout(350); switches++;
+        if(!(await page.locator(`.product-panel[data-product="${product}"]`).isVisible())) fail(`${cfg.name}: product panel ${product} not visible`);
+      }
     }
-    const status=(await page.locator('#status').innerText()).toLowerCase();
+    report.stress[`${cfg.name}-product-switches`]=switches;
+    // Stress decimal/measure updates.
+    for(const [id,val] of [['#sheer-width','1.75'],['#sheer-height','2.35']]){
+      await page.locator(id).fill(val); await page.locator(id).dispatchEvent('change'); await page.waitForTimeout(350);
+    }
+    const statusLocator=page.locator('.controls-card #status').first();
+    const status=((await statusLocator.count()) ? await statusLocator.innerText() : '').toLowerCase();
     if(status.includes('error') || status.includes('no se pudo')) fail(`${cfg.name}: AR status error: ${status}`);
     if(obs.pageErrors.length) fail(`${cfg.name}: page errors ${obs.pageErrors.join(' | ')}`);
     if(obs.failedRequests.length) warn(`${cfg.name}: failed local requests ${obs.failedRequests.join(' | ')}`);
@@ -96,47 +93,39 @@ async function testAR(browser){
   }
 }
 
+async function assertHomeReady(page, label){
+  await page.waitForURL(/index\.html/, {timeout:10000}); await page.waitForTimeout(100);
+  const visible=await page.locator('#intro-curtain').isVisible().catch(()=>false); if(visible) fail(`${label}: intro curtain visible`);
+  const pending=await page.evaluate(()=>document.documentElement.classList.contains('homeeasy-auth-pending')); if(pending) fail(`${label}: auth pending visible`);
+}
+
 async function testAuthenticatedNavigation(browser){
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   await mockBackend(context);
-  await context.addInitScript(session => {
-    sessionStorage.setItem('HOMEEASY_AUTH_SESSION_V1', JSON.stringify(session));
-    sessionStorage.setItem('APP_INIT_DONE','true');
-  }, fakeSession());
+  await context.addInitScript(session => { sessionStorage.setItem('HOMEEASY_AUTH_SESSION_V1', JSON.stringify(session)); sessionStorage.setItem('APP_INIT_DONE','true'); }, fakeSession());
   const page=await context.newPage(); const obs=observe(page,'authenticated-navigation');
-  let t=Date.now();
-  await page.goto(BASE+'index.html',{waitUntil:'domcontentloaded',timeout:30000});
-  await page.waitForTimeout(700);
-  report.timings['index-auth-mock']=Date.now()-t;
-  const curtainVisible=await page.locator('#intro-curtain').isVisible().catch(()=>false);
-  if(curtainVisible) fail('index mock: intro curtain visible despite active session');
-  const authPending=await page.evaluate(()=>document.documentElement.classList.contains('homeeasy-auth-pending'));
-  if(authPending) fail('index mock: auth pending cover remained');
+  let t=Date.now(); await page.goto(BASE+'index.html',{waitUntil:'domcontentloaded',timeout:30000}); await page.waitForTimeout(500); report.timings['index-auth-mock']=Date.now()-t; await assertHomeReady(page,'index mock');
 
   const routes=['caja.html','clientes.html','ventas.html','documentos.html','calendario.html','configuracion.html'];
   for(const route of routes){
-    await page.goto(BASE+'index.html',{waitUntil:'domcontentloaded'}); await page.waitForTimeout(220);
-    const link=page.locator(`a[href="${route}"]`).first();
-    if(!(await link.count())) { warn(`nav: link ${route} not found on index`); continue; }
-    await link.click();
-    await page.waitForURL(new RegExp(route.replace('.','\\.')), {timeout:10000});
-    await page.waitForTimeout(250);
+    await page.goto(BASE+'index.html',{waitUntil:'domcontentloaded'}); await page.waitForTimeout(180); await assertHomeReady(page,`pre-${route}`);
+    const link=page.locator(`a[href="${route}"]`).first(); if(!(await link.count())) { warn(`nav: link ${route} not found`); continue; }
+    await link.click(); await page.waitForURL(new RegExp(route.replace('.','\\.')), {timeout:10000}); await page.waitForTimeout(180);
     const start=Date.now();
-    if(route==='caja.html'){
-      await page.locator('#pin-screen button[aria-label="Volver"]').click();
-    } else {
-      const back=page.locator('a[href="index.html"]').first();
-      if(await back.count()) await back.click();
-      else await page.evaluate(()=>window.HomeEasyCore && HomeEasyCore.goHome());
-    }
-    await page.waitForURL(/index\.html/, {timeout:10000});
-    const elapsed=Date.now()-start;
-    report.timings[`return-${route}`]=elapsed;
-    await page.waitForTimeout(120);
-    const visible=await page.locator('#intro-curtain').isVisible().catch(()=>false);
-    if(visible) fail(`return ${route}: intro curtain visible`);
-    if(elapsed>1500) warn(`return ${route}: slow ${elapsed}ms`);
+    if(route==='caja.html') await page.locator('#pin-screen button[aria-label="Volver"]').click();
+    else { const back=page.locator('a[href="index.html"]').first(); if(await back.count()) await back.click(); else await page.evaluate(()=>window.HomeEasyCore && HomeEasyCore.goHome()); }
+    await assertHomeReady(page,`return ${route}`); const elapsed=Date.now()-start; report.timings[`return-${route}`]=elapsed; if(elapsed>1500) warn(`return ${route}: slow ${elapsed}ms`);
   }
+
+  // Repeated Caja stress: 12 open/back cycles.
+  let maxReturn=0;
+  for(let i=0;i<12;i++){
+    await page.goto(BASE+'index.html',{waitUntil:'domcontentloaded'}); await page.waitForTimeout(80); await assertHomeReady(page,`stress-index-${i}`);
+    await page.locator('a[href="caja.html"]').click(); await page.waitForURL(/caja\.html/); await page.waitForTimeout(80);
+    const s=Date.now(); await page.locator('#pin-screen button[aria-label="Volver"]').click(); await assertHomeReady(page,`stress-caja-${i}`); maxReturn=Math.max(maxReturn,Date.now()-s);
+  }
+  report.stress['caja-return-cycles']=12; report.stress['caja-max-return-ms']=maxReturn;
+  if(maxReturn>1500) warn(`caja stress max return ${maxReturn}ms`);
   if(obs.pageErrors.length) fail(`authenticated nav: page errors ${obs.pageErrors.join(' | ')}`);
   await context.close();
 }
@@ -146,7 +135,5 @@ async function testAuthenticatedNavigation(browser){
   try { await testLogin(browser); await testAR(browser); await testAuthenticatedNavigation(browser); }
   catch(e){ fail(`UNCAUGHT:${e.stack||e}`); }
   finally { await browser.close(); }
-  fs.writeFileSync('FIRE_AUDIT_BROWSER.json',JSON.stringify(report,null,2));
-  console.log(JSON.stringify(report,null,2));
-  process.exit(report.errors.length?1:0);
+  fs.writeFileSync('FIRE_AUDIT_BROWSER.json',JSON.stringify(report,null,2)); console.log(JSON.stringify(report,null,2)); process.exit(report.errors.length?1:0);
 })();
