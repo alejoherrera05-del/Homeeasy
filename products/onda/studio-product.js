@@ -6,6 +6,7 @@ const catalog=()=>catalogPromise||(catalogPromise=getOndaPhase1Catalog());
 
 export const descriptor=Object.freeze({
   id:"onda",label:"Onda Serena",reference:"AL 2.8",
+  viewerOrientation:"0deg 0deg 180deg",
   defaultState:Object.freeze({variantId:"velo-coral-white",fabricId:"velo-coral-white",widthM:3,heightM:2.4,direction:"left",position:"closed",fullness:"2.8",bottom:"hem-15"})
 });
 

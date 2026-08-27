@@ -1,4 +1,4 @@
-import {HomeEasyStudioController} from "./studio-core.js";
+import {HomeEasyStudioController} from "./studio-core.js?v=2.1";
     const $=id=>document.getElementById(id),viewer=$("viewer"),arButton=$("ar-button"),status=$("status"),overlay=$("stage-overlay"),pill=$("ready-pill"),qaEnabled=new URLSearchParams(location.search).get("qa")==="1";
     const productNames={sheer:"Sheer Elegance",panel:"Panel Japonés",onda:"Onda Serena"},stateLabels={sheer:{abierta:"Abierta",media:"Media",cerrada:"Cerrada"},panel:{closed:"Cerrado",partial:"Parcial",collected:"Recogido"},onda:{closed:"Cerrada",partial:"Parcial",collected:"Recogida"}};
     let buildTimer=null,activeModule=null,activeVariants=[];
@@ -12,10 +12,31 @@ import {HomeEasyStudioController} from "./studio-core.js";
     function setBusy(message){overlay.hidden=false;overlay.textContent=message;pill.dataset.state="working";pill.textContent="Preparando";arButton.disabled=true;}
     function escapeText(value){const span=document.createElement("span");span.textContent=value;return span.innerHTML;}
 
+    function parseLocaleDecimal(value){
+      const raw=String(value??"").trim().replace(/\s/g,"");
+      if(!raw)return {complete:false,value:NaN};
+      if(/^\d+[,.]$/.test(raw))return {complete:false,value:NaN};
+      if(!/^\d+(?:[,.]\d+)?$/.test(raw))return {complete:false,value:NaN};
+      const number=Number(raw.replace(",","."));
+      return {complete:Number.isFinite(number),value:number};
+    }
+
+    function readMeasure(input){
+      const parsed=parseLocaleDecimal(input.value);
+      if(!parsed.complete)return {complete:false,valid:false,value:NaN,message:""};
+      const min=Number(input.min),max=Number(input.max),valid=parsed.value>=min&&parsed.value<=max;
+      const label=document.querySelector(`label[for="${input.id}"]`)?.textContent||"La medida";
+      return {complete:true,valid,value:parsed.value,message:valid?"":`${label}: usa un valor entre ${min} y ${max} m.`};
+    }
+
     function domState(productId){
-      if(productId==="sheer")return {fabricWidthM:Number($("sheer-width").value),fabricHeightM:Number($("sheer-height").value),headrailSystem:selected("sheer-system"),controlSide:selected("sheer-side"),bandState:selected("sheer-state")};
-      if(productId==="panel")return {widthM:Number($("panel-width").value),heightM:Number($("panel-height").value),direction:selected("panel-direction"),position:selected("panel-state"),controlSide:"right",layout:$("panel-layout").value||null};
-      return {widthM:Number($("onda-width").value),heightM:Number($("onda-height").value),direction:selected("onda-direction"),position:selected("onda-state"),fullness:"2.8",bottom:"hem-15"};
+      const ids=productId==="sheer"?["sheer-width","sheer-height"]:productId==="panel"?["panel-width","panel-height"]:["onda-width","onda-height"],measures=ids.map(id=>readMeasure($(id)));
+      if(measures.some(measure=>!measure.complete))return null;
+      const invalid=measures.find(measure=>!measure.valid);if(invalid)throw new RangeError(invalid.message);
+      const [width,height]=measures.map(measure=>measure.value);
+      if(productId==="sheer")return {fabricWidthM:width,fabricHeightM:height,headrailSystem:selected("sheer-system"),controlSide:selected("sheer-side"),bandState:selected("sheer-state")};
+      if(productId==="panel")return {widthM:width,heightM:height,direction:selected("panel-direction"),position:selected("panel-state"),controlSide:"right",layout:$("panel-layout").value||null};
+      return {widthM:width,heightM:height,direction:selected("onda-direction"),position:selected("onda-state"),fullness:"2.8",bottom:"hem-15"};
     }
 
     function applyState(productId,state){
@@ -41,10 +62,10 @@ import {HomeEasyStudioController} from "./studio-core.js";
     }
 
     function syncActiveState({resetLayout=false}={}){
-      if(!controller.activeProduct)return;const partial=domState(controller.activeProduct);if(resetLayout&&controller.activeProduct==="panel")partial.layout=null;controller.updateState(partial);if(controller.activeProduct==="panel")refreshPanelSupport().catch(showError);
+      if(!controller.activeProduct)return false;const partial=domState(controller.activeProduct);if(!partial)return false;if(resetLayout&&controller.activeProduct==="panel")partial.layout=null;controller.updateState(partial);if(controller.activeProduct==="panel")refreshPanelSupport().catch(showError);return true;
     }
 
-    function scheduleBuild(options={}){syncActiveState(options);clearTimeout(buildTimer);buildTimer=setTimeout(()=>controller.buildActive().catch(()=>{}),430);}
+    function scheduleBuild(options={}){clearTimeout(buildTimer);try{if(!syncActiveState(options))return;}catch(error){showError(error);return;}buildTimer=setTimeout(()=>controller.buildActive().catch(()=>{}),430);}
     function showError(error){setStatus(error?.message||String(error),"error");overlay.hidden=false;overlay.textContent="Revisa la configuración seleccionada.";pill.dataset.state="error";pill.textContent="Revisar";}
     function selectVariant(variantId){controller.selectVariant(variantId,{build:false});renderSwatches(controller.activeProduct,controller.getState());scheduleBuild();}
 
@@ -58,7 +79,7 @@ import {HomeEasyStudioController} from "./studio-core.js";
 
     $("product").addEventListener("change",()=>{clearTimeout(buildTimer);showPanel($("product").value);setBusy(`Cambiando a ${productNames[$("product").value]}…`);controller.activateProduct($("product").value).catch(showError);});
     for(const group of document.querySelectorAll("[data-group]"))group.addEventListener("click",event=>{const button=event.target.closest("button[data-value]");if(!button)return;press(group.dataset.group,button.dataset.value);scheduleBuild({resetLayout:group.dataset.group==="panel-direction"});});
-    for(const input of document.querySelectorAll('input[type="number"]'))input.addEventListener("input",()=>scheduleBuild({resetLayout:controller.activeProduct==="panel"}));
+    for(const id of ["sheer-width","sheer-height","panel-width","panel-height","onda-width","onda-height"])$(id).addEventListener("input",()=>scheduleBuild({resetLayout:controller.activeProduct==="panel"}));
     $("panel-layout").addEventListener("change",()=>scheduleBuild());
     $("onda-family").addEventListener("change",()=>{const variants=activeVariants.filter(item=>item.family===$("onda-family").value),state=controller.getState();if(!variants.some(item=>item.id===state.variantId))controller.selectVariant(variants[0].id,{build:false});renderSwatches("onda",controller.getState());scheduleBuild();});
 

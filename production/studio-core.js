@@ -1,7 +1,7 @@
 const PRODUCT_LOADERS=Object.freeze({
-  sheer:()=>import("../products/sheer/studio-product.js"),
-  panel:()=>import("../products/panel/studio-product.js"),
-  onda:()=>import("../products/onda/studio-product.js")
+  sheer:()=>import("../products/sheer/studio-product.js?v=2.1"),
+  panel:()=>import("../products/panel/studio-product.js?v=2.1"),
+  onda:()=>import("../products/onda/studio-product.js?v=2.1")
 });
 
 const clone=value=>structuredClone(value);
@@ -81,7 +81,7 @@ export class HomeEasyStudioController{
       const result=await module.buildProduct(state);
       if(token!==this.buildToken||productId!==this.activeProduct){this._revoke(result);return null;}
       if(!result?.url||!result?.bytes)throw new Error("El motor no devolvió un Blob GLB válido.");
-      this.viewer.dataset.product=productId;this.viewer.dataset.variant=state.variantId;this.viewer.src=result.url;
+      this.viewer.dataset.product=productId;this.viewer.dataset.variant=state.variantId;this.viewer.orientation=module.descriptor.viewerOrientation||"0deg 0deg 0deg";this.viewer.src=result.url;
       await this._waitForViewer(token,result.url);
       if(token!==this.buildToken||productId!==this.activeProduct){this._revoke(result);return null;}
       this.current={productId,state,result,module,url:result.url};this.buildCount+=1;this.arButton.disabled=false;this.arButton.dataset.ready="true";
