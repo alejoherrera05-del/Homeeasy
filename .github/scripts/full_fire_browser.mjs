@@ -28,7 +28,7 @@ const browser=await chromium.launch({headless:true});
 let failures=[]; let notes=[];
 async function makePage({stale=false,backendMode='ok',perms=permissions,role='PROPIETARIO',width=1280,height=800}={}){
   const context=await browser.newContext({viewport:{width,height}});
-  await context.addInitScript(({s})=>{sessionStorage.setItem('HOMEEASY_AUTH_SESSION_V1',JSON.stringify(s));sessionStorage.setItem('APP_INIT_DONE','true');},{s:session({stale,perms,role})});
+  await context.addInitScript(({s})=>{if(!sessionStorage.getItem('HOMEEASY_AUTH_SESSION_V1'))sessionStorage.setItem('HOMEEASY_AUTH_SESSION_V1',JSON.stringify(s));sessionStorage.setItem('APP_INIT_DONE','true');},{s:session({stale,perms,role})});
   const page=await context.newPage();
   const pageErrors=[]; const consoleErrors=[];
   page.on('pageerror',e=>pageErrors.push(e.message));
