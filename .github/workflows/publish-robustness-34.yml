@@ -1,0 +1,117 @@
+name: Publish verified HomeEasy robustness 3.4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-robustness-34.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify publication base
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD^)" = "a163963e4cc0314db7eccbbb623b704d3a675473"
+          test "$(git rev-parse HEAD^:HomeEasy_AR_Placement_V2)" = "4f779495735229188b618a9e3e81e5bf2fc8057c"
+      - name: Apply audited production files only
+        shell: bash
+        run: |
+          git fetch origin audit/full-fire-2026-08-27
+          git checkout origin/audit/full-fire-2026-08-27 -- \
+            Hommychat.html \
+            abono.html \
+            activar-cuenta.html \
+            asistente.html \
+            caja.html \
+            calendario.html \
+            clientes.html \
+            configuracion.html \
+            cotizacion.html \
+            documentos.html \
+            homeeasy-auth.js \
+            homeeasy-core.js \
+            homeeasy-page-guard.js \
+            index.html \
+            login.html \
+            pedido.html \
+            perfil.html \
+            reportes.html \
+            seguimiento.html \
+            ventas.html
+      - name: Validate exact scope and core syntax
+        shell: bash
+        run: |
+          node --check homeeasy-auth.js
+          node --check homeeasy-core.js
+          node --check homeeasy-page-guard.js
+          grep -q 'HomeEasy Auth v0.4.1' homeeasy-auth.js
+          grep -q 'HomeEasy Core v3.4' homeeasy-core.js
+          grep -q 'HomeEasy Page Guard v3.4' homeeasy-page-guard.js
+          grep -q 'restoreSession({validate:false,homeEasy:false})' login.html
+          test "$(grep -c 'function deshacerBorrado' calendario.html)" = "1"
+          test -z "$(git status --porcelain -- HomeEasy_AR_Placement_V2 ar-homeeasy-v3.html production products ar-sheer-v221)"
+          python3 - <<'PY'
+          import subprocess
+          allowed=set('''Hommychat.html
+          abono.html
+          activar-cuenta.html
+          asistente.html
+          caja.html
+          calendario.html
+          clientes.html
+          configuracion.html
+          cotizacion.html
+          documentos.html
+          homeeasy-auth.js
+          homeeasy-core.js
+          homeeasy-page-guard.js
+          index.html
+          login.html
+          pedido.html
+          perfil.html
+          reportes.html
+          seguimiento.html
+          ventas.html'''.split())
+          changed=set(subprocess.check_output(['git','diff','--name-only','HEAD'],text=True).split())
+          extra=changed-allowed
+          missing=allowed-changed
+          if extra: raise SystemExit('Unexpected changed files: '+', '.join(sorted(extra)))
+          if missing: raise SystemExit('Expected files not changed: '+', '.join(sorted(missing)))
+          print('Scope OK:',len(changed),'production files')
+          PY
+      - name: Run full static and browser fire suite on final working tree
+        shell: bash
+        run: |
+          git show origin/audit/full-fire-2026-08-27:.github/scripts/full_fire_audit.py > /tmp/full_fire_audit.py
+          git show origin/audit/full-fire-2026-08-27:.github/scripts/full_fire_browser.mjs > /tmp/full_fire_browser.mjs
+          python3 /tmp/full_fire_audit.py
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node /tmp/full_fire_browser.mjs
+      - name: Verify isolated AR Placement pilot remains intact
+        shell: bash
+        run: |
+          node HomeEasy_AR_Placement_V2/tests/run-tests.mjs
+          test "$(git rev-parse HEAD:HomeEasy_AR_Placement_V2)" = "4f779495735229188b618a9e3e81e5bf2fc8057c"
+          test -z "$(git status --porcelain -- HomeEasy_AR_Placement_V2)"
+      - name: Publish robustness 3.4
+        shell: bash
+        run: |
+          git config user.name 'HomeEasy QA'
+          git config user.email 'homeeasy-qa@users.noreply.github.com'
+          git add Hommychat.html abono.html activar-cuenta.html asistente.html caja.html calendario.html clientes.html configuracion.html cotizacion.html documentos.html homeeasy-auth.js homeeasy-core.js homeeasy-page-guard.js index.html login.html pedido.html perfil.html reportes.html seguimiento.html ventas.html
+          git commit -m 'Harden HomeEasy navigation and session resilience'
+          git push origin HEAD:main
