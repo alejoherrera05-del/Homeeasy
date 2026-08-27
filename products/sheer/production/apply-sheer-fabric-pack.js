@@ -137,11 +137,88 @@ function mutateUV(parsed, nodeName, callback) {
 function mutateIfPresent(parsed, names, callback) { for (const name of names) if (parsed.json.nodes.some(node => node.name === name)) mutateVec3(parsed, name, callback); }
 function signOffset(x, delta) { return Math.abs(x) < 1e-7 ? x : x + Math.sign(x) * delta / 2; }
 function clamp01(value) { return Math.max(0, Math.min(1, value)); }
-function standardProfile(normalizedHeight, normalizedDepth) {
-  const u = clamp01(normalizedHeight), v = clamp01(normalizedDepth);
-  const compactHeight = clamp01(u + 0.12 * (1 - u) * v);
-  const taperedDepth = 0.58 + 0.42 * Math.pow(u, 0.72);
-  return [compactHeight, v * taperedDepth];
+
+// Pentagrama documents the Standard envelope as 72 x 72 mm. The technical
+// sheet shows a compact rounded exterior, but it does not publish a CAD
+// section, wall thicknesses or slot dimensions. This polygon therefore keeps
+// the documented envelope exact while identifying the exterior contour as an
+// evidence-based approximation instead of deforming the Binovo mesh.
+function standardExteriorProfile(fabricTop, height, depth) {
+  const cubic = (start, controlA, controlB, end, step) => {
+    const inverse = 1 - step;
+    return [0, 1].map(axis => inverse ** 3 * start[axis] + 3 * inverse ** 2 * step * controlA[axis] + 3 * inverse * step ** 2 * controlB[axis] + step ** 3 * end[axis]);
+  };
+  const points = [[0.000, 0.000], [1.000, 0.000], [1.000, 0.690]];
+  for (let step = 1; step <= 10; step++) points.push(cubic([1.000, 0.690], [1.000, 0.900], [0.895, 1.000], [0.680, 1.000], step / 10));
+  points.push([0.205, 1.000]);
+  for (let step = 1; step <= 10; step++) points.push(cubic([0.205, 1.000], [0.075, 1.000], [0.000, 0.915], [0.000, 0.790], step / 10));
+  return points.map(([y, z]) => [fabricTop + y * height, z * depth]);
+}
+
+function createExtrudedProfile(profile, xMin, xMax, closedEnd = null) {
+  const positions = [], normals = [], indices = [];
+  const addVertex = (position, normal) => { positions.push(...position); normals.push(...normal); return positions.length / 3 - 1; };
+  for (let index = 0; index < profile.length; index++) {
+    const [y0, z0] = profile[index], [y1, z1] = profile[(index + 1) % profile.length];
+    const dy = y1 - y0, dz = z1 - z0, length = Math.hypot(dy, dz), normal = [0, dz / length, -dy / length];
+    const a = addVertex([xMin, y0, z0], normal), b = addVertex([xMin, y1, z1], normal);
+    const c = addVertex([xMax, y1, z1], normal), d = addVertex([xMax, y0, z0], normal);
+    indices.push(a, b, c, a, c, d);
+  }
+  if (closedEnd === 'left' || closedEnd === 'right') {
+    const x = closedEnd === 'left' ? xMin : xMax, normal = closedEnd === 'left' ? [-1, 0, 0] : [1, 0, 0];
+    const centerY = profile.reduce((sum, point) => sum + point[0], 0) / profile.length;
+    const centerZ = profile.reduce((sum, point) => sum + point[1], 0) / profile.length;
+    const center = addVertex([x, centerY, centerZ], normal);
+    const rim = profile.map(([y, z]) => addVertex([x, y, z], normal));
+    for (let index = 0; index < rim.length; index++) {
+      const next = rim[(index + 1) % rim.length];
+      if (closedEnd === 'right') indices.push(center, rim[index], next);
+      else indices.push(center, next, rim[index]);
+    }
+  }
+  return {positions, normals, indices};
+}
+
+function appendAccessor(parsed, values, componentType, type, target, bounds = null) {
+  const source = parsed.outputBin || new Uint8Array(parsed.arrayBuffer, parsed.binOffset, parsed.binLength);
+  const typed = componentType === 5123 ? new Uint16Array(values) : new Float32Array(values);
+  const aligned = Math.ceil(source.byteLength / 4) * 4, output = new Uint8Array(aligned + typed.byteLength);
+  output.set(source); output.set(new Uint8Array(typed.buffer, typed.byteOffset, typed.byteLength), aligned);
+  parsed.outputBin = output; parsed.json.buffers[0].byteLength = output.byteLength;
+  const bufferView = parsed.json.bufferViews.length;
+  parsed.json.bufferViews.push({buffer: 0, byteOffset: aligned, byteLength: typed.byteLength, target});
+  const accessor = parsed.json.accessors.length, definition = {bufferView, componentType, count: values.length / componentWidth(type), type};
+  if (bounds) { definition.min = bounds.min; definition.max = bounds.max; }
+  parsed.json.accessors.push(definition);
+  return accessor;
+}
+
+function replaceNodeWithGeometry(parsed, nodeName, geometry, material, meshName) {
+  const node = parsed.json.nodes.find(item => item.name === nodeName);
+  if (!node || node.mesh === undefined) throw new Error(`No se encontró la malla ${nodeName}.`);
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  for (let index = 0; index < geometry.positions.length; index += 3) for (let axis = 0; axis < 3; axis++) {
+    const value = geometry.positions[index + axis]; min[axis] = Math.min(min[axis], value); max[axis] = Math.max(max[axis], value);
+  }
+  const position = appendAccessor(parsed, geometry.positions, 5126, 'VEC3', 34962, {min, max});
+  const normal = appendAccessor(parsed, geometry.normals, 5126, 'VEC3', 34962);
+  const indices = appendAccessor(parsed, geometry.indices, 5123, 'SCALAR', 34963);
+  parsed.json.meshes[node.mesh] = {name: meshName, primitives: [{attributes: {POSITION: position, NORMAL: normal}, indices, material}]};
+}
+
+function installIndependentStandardHeadrail(parsed, {railWidth, fabricTop, systemHeight, systemDepth, capThickness, headrailMaterial, capMaterial}) {
+  const profile = standardExteriorProfile(fabricTop, systemHeight, systemDepth), outerHalfWidth = railWidth / 2, bodyHalfWidth = outerHalfWidth - capThickness;
+  replaceNodeWithGeometry(parsed, 'Cabezal_Standard_Plano', createExtrudedProfile(profile, -bodyHalfWidth, bodyHalfWidth), headrailMaterial, 'HomeEasy_Standard_Independent_Body');
+  replaceNodeWithGeometry(parsed, 'Tapa_Lateral_Izq', createExtrudedProfile(profile, -outerHalfWidth, -bodyHalfWidth, 'left'), capMaterial, 'HomeEasy_Standard_Left_EndCap');
+  replaceNodeWithGeometry(parsed, 'Tapa_Lateral_Der', createExtrudedProfile(profile, bodyHalfWidth, outerHalfWidth, 'right'), capMaterial, 'HomeEasy_Standard_Right_EndCap');
+  return {
+    bodyHalfWidth,
+    visibleOpenFaces: 0,
+    intentionalOpenInterfaces: ['body-left-cap-mating-plane', 'body-right-cap-mating-plane'],
+    externalEnvelopeM: [railWidth, systemHeight, systemDepth],
+    backPlaneZ: 0,
+  };
 }
 function readFloatVector(parsed, info, index, width) {
   const at = info.byteOffset + index * info.stride;
@@ -377,7 +454,7 @@ function textileMaterial(parsed){
 
 function appendFabricPack(parsed,pack,alpha){
   pngHeader(pack.normal,'normal.png');pngHeader(pack.roughness,'roughness.png');
-  const slot=textileMaterial(parsed),baseBin=new Uint8Array(parsed.arrayBuffer,parsed.binOffset,parsed.binLength),images=[
+  const slot=textileMaterial(parsed),baseBin=parsed.outputBin||new Uint8Array(parsed.arrayBuffer,parsed.binOffset,parsed.binLength),images=[
     {name:`${pack.profile.id} · RGBA fundamental repeat`,bytes:pack.rgba},
     {name:`${pack.profile.id} · Normal`,bytes:pack.normal},
     {name:`${pack.profile.id} · Roughness`,bytes:pack.roughness},
@@ -458,45 +535,40 @@ export async function applySheerFabricPack(masterGlb, fabricPack, input = {}) {
   const baseHeadrailBottom = BASE.fabricBottom + BASE.fabricHeight;
   const profilePoint = (y, z) => {
     const normalized = [(y - baseHeadrailBottom) / BASE.headrailHeight, z / BASE.headrailDepth];
-    const shaped = system.id === 'standard' ? standardProfile(normalized[0], normalized[1]) : normalized.map(clamp01);
+    const shaped = normalized.map(clamp01);
     return [fabricTop + shaped[0] * systemHeight, shaped[1] * systemDepth];
   };
   const headrailNames = ['Cabezal_Binovo_Plano'];
   const endPieceNames = ['Tapa_Lateral_Izq', 'Tapa_Lateral_Der'];
   const capThickness = 0.008, bodyHalfWidth = railWidth / 2 - capThickness;
   const railScaleX = bodyHalfWidth / ((BASE.fabricWidth + BASE.headrailOverhang) / 2);
-  mutateIfPresent(parsed, headrailNames, ([x, y, z]) => { const yz = profilePoint(y, z); return [x * railScaleX, yz[0], yz[1]]; });
-  mutateIfPresent(parsed, endPieceNames, ([x, y, z]) => { const yz = profilePoint(y, z); return [signOffset(x, dw), yz[0], yz[1]]; });
-  if (system.id === 'standard') {
-    const railPrimitive = primitiveForNode(parsed, 'Cabezal_Binovo_Plano').primitive;
-    const railPosition = accessorInfo(parsed, railPrimitive.attributes.POSITION).accessor;
-    const mappedYMin = railPosition.min[1], mappedYSize = railPosition.max[1] - railPosition.min[1], mappedZMin = railPosition.min[2], mappedZSize = railPosition.max[2] - railPosition.min[2];
-    mutateIfPresent(parsed, [...headrailNames, ...endPieceNames], ([x, y, z]) => [x, fabricTop + (y - mappedYMin) * (systemHeight / mappedYSize), (z - mappedZMin) * (systemDepth / mappedZSize)]);
+  if (system.id !== 'standard') {
+    mutateIfPresent(parsed, headrailNames, ([x, y, z]) => { const yz = profilePoint(y, z); return [x * railScaleX, yz[0], yz[1]]; });
+    mutateIfPresent(parsed, endPieceNames, ([x, y, z]) => { const yz = profilePoint(y, z); return [signOffset(x, dw), yz[0], yz[1]]; });
   }
   mutateIfPresent(parsed, ['Soporte_Pared_Izq', 'Soporte_Pared_Der'], ([x, y, z]) => [signOffset(x, dw), fabricTop + (y - (BASE.fabricBottom + BASE.fabricHeight)) * (systemHeight / BASE.headrailHeight), z * (systemDepth / BASE.headrailDepth)]);
-  if (system.id === 'standard') {
-    for (const name of [...headrailNames, ...endPieceNames]) if (parsed.json.nodes.some(node => node.name === name)) recomputeMeshFrame(parsed, name);
-  } else {
+  if (system.id !== 'standard') {
     for (const name of headrailNames) if (parsed.json.nodes.some(node => node.name === name)) correctLinearMeshFrame(parsed, name, [railScaleX, systemHeight / BASE.headrailHeight, systemDepth / BASE.headrailDepth]);
     for (const name of endPieceNames) if (parsed.json.nodes.some(node => node.name === name)) correctLinearMeshFrame(parsed, name, [1, systemHeight / BASE.headrailHeight, systemDepth / BASE.headrailDepth]);
   }
   removeSceneNodes(parsed, ['Fascia_Frontal', 'Junta_Inferior_Cabezal', 'Soporte_Pared_Izq', 'Soporte_Pared_Der']);
-  const removedInterfaces = {
+  const removedInterfaces = system.id === 'standard' ? null : {
     railLeft: removePlanarInterface(parsed, 'Cabezal_Binovo_Plano', 0, -bodyHalfWidth),
     railRight: removePlanarInterface(parsed, 'Cabezal_Binovo_Plano', 0, bodyHalfWidth),
     capLeft: removePlanarInterface(parsed, 'Tapa_Lateral_Izq', 0, -bodyHalfWidth),
     capRight: removePlanarInterface(parsed, 'Tapa_Lateral_Der', 0, bodyHalfWidth),
   };
-  for (const name of [...headrailNames, ...endPieceNames]) recomputeMeshFrame(parsed, name);
-  assignRigidMaterial(parsed, headrailNames, {name: 'HomeEasy_Headrail_Matte_V23', baseColorFactor: [0.84, 0.84, 0.80, 1], metallicFactor: 0.08, roughnessFactor: 0.62});
-  assignRigidMaterial(parsed, endPieceNames, {name: 'HomeEasy_EndCaps_Matte_V23', baseColorFactor: [0.72, 0.69, 0.62, 1], metallicFactor: 0, roughnessFactor: 0.68});
+  if (system.id !== 'standard') for (const name of [...headrailNames, ...endPieceNames]) recomputeMeshFrame(parsed, name);
+  const headrailMaterial = assignRigidMaterial(parsed, headrailNames, {name: 'HomeEasy_Headrail_Matte_V23', baseColorFactor: [0.84, 0.84, 0.80, 1], metallicFactor: 0.08, roughnessFactor: 0.62});
+  const capMaterial = assignRigidMaterial(parsed, endPieceNames, {name: 'HomeEasy_EndCaps_Matte_V23', baseColorFactor: [0.72, 0.69, 0.62, 1], metallicFactor: 0, roughnessFactor: 0.68});
   renameNode(parsed, 'Cabezal_Binovo_Plano', `Cabezal_${system.label.replace(/\s+/g, '_')}_Plano`, {
     system: system.label,
     sectionM: system.geometry.sectionM,
     sectionDimensionsExact: true,
     profileShapeExact: false,
-    profileShapeSource: '581_FichaSheerElegance.pdf p.2',
-    profileReconstruction: system.id === 'standard' ? 'independent-compact-d-profile-v2-3' : 'visual-binovo-profile-v2-3',
+    profileShapeSource: system.id === 'standard' ? '581_FichaSheerElegance.pdf pp.2-3' : '581_FichaSheerElegance.pdf p.2',
+    profileReconstruction: system.id === 'standard' ? 'independent-standard-envelope-v1' : 'visual-binovo-profile-v2-3',
+    ...(system.id === 'standard' ? {sourceGeometry: 'independent-parametric-standard'} : {}),
     flickerCorrection: {coplanarOverlaysRemoved: ['Fascia_Frontal', 'Junta_Inferior_Cabezal'], hiddenSupportsRemoved: ['Soporte_Pared_Izq', 'Soporte_Pared_Der'], openInterfaces: removedInterfaces, capThicknessM: capThickness},
   });
 
@@ -540,6 +612,13 @@ export async function applySheerFabricPack(masterGlb, fabricPack, input = {}) {
     const node = parsed.json.nodes.find(item => item.name === name); if (node) node.extras = {...node.extras, controlSide: config.controlSide, mechanism: matchedConfiguration.mechanism, tubeDiameterMm: matchedConfiguration.tubeDiameterMm};
   }
 
+  let standardGeometry = null;
+  if (system.id === 'standard') {
+    standardGeometry = installIndependentStandardHeadrail(parsed, {railWidth, fabricTop, systemHeight, systemDepth, capThickness, headrailMaterial, capMaterial});
+    const node = parsed.json.nodes.find(item => item.name === 'Cabezal_Standard_Plano');
+    if (node) node.extras = {...node.extras, ...standardGeometry, profileShapeExact: false, sectionDimensionsExact: true};
+  }
+
   const sceneIndex = parsed.json.scene || 0, sceneExtras = {},opaqueHeight=profile.segments.filter(segment=>segment.type==='opaque').reduce((sum,segment)=>sum+Number(segment.heightM),0),sheerHeight=profile.segments.filter(segment=>segment.type==='sheer').reduce((sum,segment)=>sum+Number(segment.heightM),0);
   Object.assign(sceneExtras, {
     homeeasyAsset: 'HomeEasy AR Sheer Master V1', sourceGeometry: 'GOLDEN V2.3 White', product: 'Sheer Elegance',
@@ -549,7 +628,7 @@ export async function applySheerFabricPack(masterGlb, fabricPack, input = {}) {
     matchedConfigurationId: matchedConfiguration.id,
     state: state.extra, stateUi: config.bandState, rear_phase_cycles: state.phase, rear_material_displacement_m: state.displacementM,
     physical_repeat_m: profile.repeatHeightM, physical_repeat_width_m: profile.repeatWidthM, opaque_band_m: opaqueHeight, transparent_band_m: sheerHeight, bandSegments: profile.segments, layer_separation_m: BASE.layerSeparation,
-    headrail: {system: system.label, sectionM: system.geometry.sectionM, sectionDimensionsExact: true, profileShapeExact: false, profileShapeSource: '581_FichaSheerElegance.pdf p.2', architecture: system.geometry.architecture, longitudinalOverhang: {valueM: BASE.headrailOverhang, approximate: true}},
+    headrail: {system: system.label, sectionM: system.geometry.sectionM, sectionDimensionsExact: true, profileShapeExact: false, profileShapeSource: system.id === 'standard' ? '581_FichaSheerElegance.pdf pp.2-3' : '581_FichaSheerElegance.pdf p.2', architecture: system.geometry.architecture, ...(system.id === 'standard' ? {geometrySource: 'independent-parametric-standard', standardGeometry} : {}), longitudinalOverhang: {valueM: BASE.headrailOverhang, approximate: true}},
     architectureEvidence: {goldenAssetSha256: '8c283be06029688b5ae7ba9a7afcb667cb285fe429a364ea457ccdab98f37b33', bandProfileEvidence: pack.evidence.id},
     approximateDimensions: {
       lowerProfile: {sectionM: [0.043, 0.046], overhangM: BASE.lowerProfileOverhang, approximate: true},

@@ -1,0 +1,1647 @@
+{
+  "schemaVersion": "1.0.0",
+  "scope": "Sheer Elegance / Standard physical geometry only",
+  "masterHash": "fee237285d7dbe3e2a00c74da7cb6367c78f244324e798a43c30064bbbe56779",
+  "approvedBinovoGeometryHash": "e36298e2652f98148d7d7592c5e806e8180f9c93a2fe5dcfcccf34ddc3f3cf59",
+  "baseline": {
+    "sourceCommit": "HEAD before this correction",
+    "standard": {
+      "key": "standard-150x150-right-abierta",
+      "config": {
+        "fabricWidthM": 1.5,
+        "fabricHeightM": 1.5,
+        "headrailSystem": "standard",
+        "controlSide": "right",
+        "bandState": "abierta"
+      },
+      "name": "before-standard-150x150-right-abierta.glb",
+      "bytes": 1567904,
+      "compaction": {
+        "before": {
+          "bytes": 3033142,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 111
+        },
+        "after": {
+          "bytes": 1538082,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 108
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "97cfb20c7257962276f17445dfb5f442aa3296493529f23b4fc61bef2e657d16",
+      "geometryHash": "d1ca9e18923d08fd06ac134ff1544935c46da4e04d09ad0c39fc886315025603",
+      "bounds": {
+        "min": [
+          -0.7740000486373901,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          0.8006999861001969,
+          1.6320000364874294,
+          0.07199999763272594
+        ],
+        "size": [
+          1.574700034737587,
+          1.6180000360552957,
+          0.07199999763272594
+        ],
+        "minZOwners": [
+          "Cabezal_Standard_Plano"
+        ]
+      },
+      "frames": {
+        "normalCount": 8483,
+        "tangentCount": 1589,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          0.7464199741633734,
+          0.4709629973717826,
+          0.03274999899864196
+        ],
+        "max": [
+          0.8006999861001969,
+          1.5986999711990357,
+          0.06170000100135803
+        ]
+      },
+      "rearMaterialDisplacementM": 0,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62",
+      "headrail": {
+        "assembly": {
+          "min": [
+            -0.7740000486373901,
+            1.560000049902167,
+            0
+          ],
+          "max": [
+            0.7740000486373901,
+            1.6320000364874294,
+            0.07199999763272594
+          ],
+          "size": [
+            1.5480000972747803,
+            0.07199998658526252,
+            0.07199999763272594
+          ]
+        },
+        "expectedSize": [
+          1.548,
+          0.072,
+          0.072
+        ],
+        "body": {
+          "min": [
+            -0.7660000324249268,
+            1.560000049902167,
+            0
+          ],
+          "max": [
+            0.7660000324249268,
+            1.6320000364874294,
+            0.07199999763272594
+          ]
+        },
+        "left": {
+          "min": [
+            -0.7740000486373901,
+            1.5623284184042703,
+            0.001387053506261842
+          ],
+          "max": [
+            -0.7660000324249268,
+            1.6300743830230908,
+            0.06932749744162738
+          ]
+        },
+        "right": {
+          "min": [
+            0.7660000324249268,
+            1.5623284184042703,
+            0.001387053506261842
+          ],
+          "max": [
+            0.7740000486373901,
+            1.6300743830230908,
+            0.06932749744162738
+          ]
+        },
+        "outerCapFaces": {
+          "left": 0,
+          "right": 0
+        },
+        "innerMatingFaces": {
+          "bodyLeft": 0,
+          "bodyRight": 0,
+          "capLeft": 0,
+          "capRight": 0
+        },
+        "orientation": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "triangles": 296,
+            "inverted": 217,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "triangles": 184,
+            "inverted": 132,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "triangles": 184,
+            "inverted": 132,
+            "degenerate": 0
+          }
+        ],
+        "metal": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "mesh": "Cube.002",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.7660000324249268,
+                1.560000049902167,
+                0
+              ],
+              "max": [
+                0.7660000324249268,
+                1.6320000364874294,
+                0.07199999763272594
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "mesh": "Cube.005",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.7740000486373901,
+                1.5623284184042703,
+                0.001387053506261842
+              ],
+              "max": [
+                -0.7660000324249268,
+                1.6300743830230908,
+                0.06932749744162738
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "mesh": "Cube.007",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                0.7660000324249268,
+                1.5623284184042703,
+                0.001387053506261842
+              ],
+              "max": [
+                0.7740000486373901,
+                1.6300743830230908,
+                0.06932749744162738
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "binovo": {
+      "key": "binovo-180x220-right-abierta",
+      "config": {
+        "fabricWidthM": 1.8,
+        "fabricHeightM": 2.2,
+        "headrailSystem": "binovo",
+        "controlSide": "right",
+        "bandState": "abierta"
+      },
+      "name": "before-binovo-180x220-right-abierta.glb",
+      "bytes": 1567972,
+      "compaction": {
+        "before": {
+          "bytes": 3033142,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 111
+        },
+        "after": {
+          "bytes": 1538082,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 108
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "64b664565859076aa59c9a2b2e55468b6aa256f3717d3a1d16471ef7b408ae27",
+      "geometryHash": "e36298e2652f98148d7d7592c5e806e8180f9c93a2fe5dcfcccf34ddc3f3cf59",
+      "bounds": {
+        "min": [
+          -0.9240000247955322,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          0.9506999861001968,
+          2.359999895095825,
+          0.1
+        ],
+        "size": [
+          1.874700010895729,
+          2.3459998946636915,
+          0.1
+        ],
+        "minZOwners": [
+          "Cabezal_Binovo_Plano"
+        ]
+      },
+      "frames": {
+        "normalCount": 8483,
+        "tangentCount": 1589,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          0.8964200138998031,
+          0.6949629924047288,
+          0.046750001482168825
+        ],
+        "max": [
+          0.9506999861001968,
+          2.312589971199036,
+          0.08970000100135805
+        ]
+      },
+      "rearMaterialDisplacementM": 0,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62"
+    }
+  },
+  "builds": [
+    {
+      "key": "standard-100x120-left-abierta",
+      "config": {
+        "fabricWidthM": 1,
+        "fabricHeightM": 1.2,
+        "headrailSystem": "standard",
+        "controlSide": "left",
+        "bandState": "abierta"
+      },
+      "name": "after-standard-100x120-left-abierta.glb",
+      "bytes": 1578960,
+      "compaction": {
+        "before": {
+          "bytes": 3042406,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 120
+        },
+        "after": {
+          "bytes": 1547346,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 117
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "a604bde70ab835c81e02a3ad4e9134d5277e732295c38fcd53891865a6912c9b",
+      "geometryHash": "89825be3c93fb5e12286c02bd6cbc4c06e4a7cecac9feae4a7e82d65d56c36bb",
+      "bounds": {
+        "min": [
+          -0.5507000258366267,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          0.524,
+          1.332,
+          0.072
+        ],
+        "size": [
+          1.0747000258366266,
+          1.3179999995678664,
+          0.072
+        ],
+        "minZOwners": [
+          "Cabezal_Standard_Plano",
+          "Tapa_Lateral_Der",
+          "Tapa_Lateral_Izq"
+        ]
+      },
+      "frames": {
+        "normalCount": 8411,
+        "tangentCount": 1179,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          -0.5507000258366267,
+          0.374962987437675,
+          0.0327500002404054
+        ],
+        "max": [
+          -0.4964199940315882,
+          1.298699971199036,
+          0.06170000100135803
+        ]
+      },
+      "rearMaterialDisplacementM": 0,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62",
+      "headrail": {
+        "assembly": {
+          "min": [
+            -0.524,
+            1.26,
+            0
+          ],
+          "max": [
+            0.524,
+            1.332,
+            0.072
+          ],
+          "size": [
+            1.048,
+            0.07200000000000006,
+            0.072
+          ]
+        },
+        "expectedSize": [
+          1.048,
+          0.072,
+          0.072
+        ],
+        "body": {
+          "min": [
+            -0.516,
+            1.26,
+            0
+          ],
+          "max": [
+            0.516,
+            1.332,
+            0.072
+          ]
+        },
+        "left": {
+          "min": [
+            -0.524,
+            1.26,
+            0
+          ],
+          "max": [
+            -0.516,
+            1.332,
+            0.072
+          ]
+        },
+        "right": {
+          "min": [
+            0.516,
+            1.26,
+            0
+          ],
+          "max": [
+            0.524,
+            1.332,
+            0.072
+          ]
+        },
+        "outerCapFaces": {
+          "left": 24,
+          "right": 24
+        },
+        "innerMatingFaces": {
+          "bodyLeft": 0,
+          "bodyRight": 0,
+          "capLeft": 0,
+          "capRight": 0
+        },
+        "orientation": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "triangles": 48,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          }
+        ],
+        "metal": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "mesh": "HomeEasy_Standard_Independent_Body",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.516,
+                1.26,
+                0
+              ],
+              "max": [
+                0.516,
+                1.332,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "mesh": "HomeEasy_Standard_Left_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.524,
+                1.26,
+                0
+              ],
+              "max": [
+                -0.516,
+                1.332,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "mesh": "HomeEasy_Standard_Right_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                0.516,
+                1.26,
+                0
+              ],
+              "max": [
+                0.524,
+                1.332,
+                0.072
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "standard-150x150-right-abierta",
+      "config": {
+        "fabricWidthM": 1.5,
+        "fabricHeightM": 1.5,
+        "headrailSystem": "standard",
+        "controlSide": "right",
+        "bandState": "abierta"
+      },
+      "name": "after-standard-150x150-right-abierta.glb",
+      "bytes": 1578984,
+      "compaction": {
+        "before": {
+          "bytes": 3042406,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 120
+        },
+        "after": {
+          "bytes": 1547346,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 117
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "eb201580703188cbe7fc0564a66f33c2debc4032714f9e1a22ee48265d1c8e7e",
+      "geometryHash": "1a9e67e48e7550e30cee2b5165de13c067a1c22f58cbd061bb23230d71d04f50",
+      "bounds": {
+        "min": [
+          -0.774,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          0.8006999861001969,
+          1.6320000000000001,
+          0.072
+        ],
+        "size": [
+          1.574699986100197,
+          1.6179999995678664,
+          0.072
+        ],
+        "minZOwners": [
+          "Cabezal_Standard_Plano",
+          "Tapa_Lateral_Der",
+          "Tapa_Lateral_Izq"
+        ]
+      },
+      "frames": {
+        "normalCount": 8411,
+        "tangentCount": 1179,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          0.7464199741633734,
+          0.4709629973717826,
+          0.03274999899864196
+        ],
+        "max": [
+          0.8006999861001969,
+          1.5986999711990357,
+          0.06170000100135803
+        ]
+      },
+      "rearMaterialDisplacementM": 0,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62",
+      "headrail": {
+        "assembly": {
+          "min": [
+            -0.774,
+            1.56,
+            0
+          ],
+          "max": [
+            0.774,
+            1.6320000000000001,
+            0.072
+          ],
+          "size": [
+            1.548,
+            0.07200000000000006,
+            0.072
+          ]
+        },
+        "expectedSize": [
+          1.548,
+          0.072,
+          0.072
+        ],
+        "body": {
+          "min": [
+            -0.766,
+            1.56,
+            0
+          ],
+          "max": [
+            0.766,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "left": {
+          "min": [
+            -0.774,
+            1.56,
+            0
+          ],
+          "max": [
+            -0.766,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "right": {
+          "min": [
+            0.766,
+            1.56,
+            0
+          ],
+          "max": [
+            0.774,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "outerCapFaces": {
+          "left": 24,
+          "right": 24
+        },
+        "innerMatingFaces": {
+          "bodyLeft": 0,
+          "bodyRight": 0,
+          "capLeft": 0,
+          "capRight": 0
+        },
+        "orientation": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "triangles": 48,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          }
+        ],
+        "metal": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "mesh": "HomeEasy_Standard_Independent_Body",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.766,
+                1.56,
+                0
+              ],
+              "max": [
+                0.766,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "mesh": "HomeEasy_Standard_Left_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.774,
+                1.56,
+                0
+              ],
+              "max": [
+                -0.766,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "mesh": "HomeEasy_Standard_Right_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                0.766,
+                1.56,
+                0
+              ],
+              "max": [
+                0.774,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "standard-150x150-right-media",
+      "config": {
+        "fabricWidthM": 1.5,
+        "fabricHeightM": 1.5,
+        "headrailSystem": "standard",
+        "controlSide": "right",
+        "bandState": "media"
+      },
+      "name": "after-standard-150x150-right-media.glb",
+      "bytes": 1579024,
+      "compaction": {
+        "before": {
+          "bytes": 3042406,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 120
+        },
+        "after": {
+          "bytes": 1547346,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 117
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "d75b06fed766b0e18af4dcd6114bef9549cd0f0e7616b2d95deb547b51805b92",
+      "geometryHash": "1a9e67e48e7550e30cee2b5165de13c067a1c22f58cbd061bb23230d71d04f50",
+      "bounds": {
+        "min": [
+          -0.774,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          0.8006999861001969,
+          1.6320000000000001,
+          0.072
+        ],
+        "size": [
+          1.574699986100197,
+          1.6179999995678664,
+          0.072
+        ],
+        "minZOwners": [
+          "Cabezal_Standard_Plano",
+          "Tapa_Lateral_Der",
+          "Tapa_Lateral_Izq"
+        ]
+      },
+      "frames": {
+        "normalCount": 8411,
+        "tangentCount": 1179,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          0.7464199741633734,
+          0.4709629973717826,
+          0.03274999899864196
+        ],
+        "max": [
+          0.8006999861001969,
+          1.5986999711990357,
+          0.06170000100135803
+        ]
+      },
+      "rearMaterialDisplacementM": 0.025,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62",
+      "headrail": {
+        "assembly": {
+          "min": [
+            -0.774,
+            1.56,
+            0
+          ],
+          "max": [
+            0.774,
+            1.6320000000000001,
+            0.072
+          ],
+          "size": [
+            1.548,
+            0.07200000000000006,
+            0.072
+          ]
+        },
+        "expectedSize": [
+          1.548,
+          0.072,
+          0.072
+        ],
+        "body": {
+          "min": [
+            -0.766,
+            1.56,
+            0
+          ],
+          "max": [
+            0.766,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "left": {
+          "min": [
+            -0.774,
+            1.56,
+            0
+          ],
+          "max": [
+            -0.766,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "right": {
+          "min": [
+            0.766,
+            1.56,
+            0
+          ],
+          "max": [
+            0.774,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "outerCapFaces": {
+          "left": 24,
+          "right": 24
+        },
+        "innerMatingFaces": {
+          "bodyLeft": 0,
+          "bodyRight": 0,
+          "capLeft": 0,
+          "capRight": 0
+        },
+        "orientation": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "triangles": 48,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          }
+        ],
+        "metal": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "mesh": "HomeEasy_Standard_Independent_Body",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.766,
+                1.56,
+                0
+              ],
+              "max": [
+                0.766,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "mesh": "HomeEasy_Standard_Left_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.774,
+                1.56,
+                0
+              ],
+              "max": [
+                -0.766,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "mesh": "HomeEasy_Standard_Right_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                0.766,
+                1.56,
+                0
+              ],
+              "max": [
+                0.774,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "standard-150x150-right-cerrada",
+      "config": {
+        "fabricWidthM": 1.5,
+        "fabricHeightM": 1.5,
+        "headrailSystem": "standard",
+        "controlSide": "right",
+        "bandState": "cerrada"
+      },
+      "name": "after-standard-150x150-right-cerrada.glb",
+      "bytes": 1579028,
+      "compaction": {
+        "before": {
+          "bytes": 3042406,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 120
+        },
+        "after": {
+          "bytes": 1547346,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 117
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "f923a5e51e21be10b16db3d20272c8b480b3eb75c67ca010f8cfb54c3141a221",
+      "geometryHash": "1a9e67e48e7550e30cee2b5165de13c067a1c22f58cbd061bb23230d71d04f50",
+      "bounds": {
+        "min": [
+          -0.774,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          0.8006999861001969,
+          1.6320000000000001,
+          0.072
+        ],
+        "size": [
+          1.574699986100197,
+          1.6179999995678664,
+          0.072
+        ],
+        "minZOwners": [
+          "Cabezal_Standard_Plano",
+          "Tapa_Lateral_Der",
+          "Tapa_Lateral_Izq"
+        ]
+      },
+      "frames": {
+        "normalCount": 8411,
+        "tangentCount": 1179,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          0.7464199741633734,
+          0.4709629973717826,
+          0.03274999899864196
+        ],
+        "max": [
+          0.8006999861001969,
+          1.5986999711990357,
+          0.06170000100135803
+        ]
+      },
+      "rearMaterialDisplacementM": 0.05,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62",
+      "headrail": {
+        "assembly": {
+          "min": [
+            -0.774,
+            1.56,
+            0
+          ],
+          "max": [
+            0.774,
+            1.6320000000000001,
+            0.072
+          ],
+          "size": [
+            1.548,
+            0.07200000000000006,
+            0.072
+          ]
+        },
+        "expectedSize": [
+          1.548,
+          0.072,
+          0.072
+        ],
+        "body": {
+          "min": [
+            -0.766,
+            1.56,
+            0
+          ],
+          "max": [
+            0.766,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "left": {
+          "min": [
+            -0.774,
+            1.56,
+            0
+          ],
+          "max": [
+            -0.766,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "right": {
+          "min": [
+            0.766,
+            1.56,
+            0
+          ],
+          "max": [
+            0.774,
+            1.6320000000000001,
+            0.072
+          ]
+        },
+        "outerCapFaces": {
+          "left": 24,
+          "right": 24
+        },
+        "innerMatingFaces": {
+          "bodyLeft": 0,
+          "bodyRight": 0,
+          "capLeft": 0,
+          "capRight": 0
+        },
+        "orientation": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "triangles": 48,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          }
+        ],
+        "metal": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "mesh": "HomeEasy_Standard_Independent_Body",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.766,
+                1.56,
+                0
+              ],
+              "max": [
+                0.766,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "mesh": "HomeEasy_Standard_Left_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -0.774,
+                1.56,
+                0
+              ],
+              "max": [
+                -0.766,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "mesh": "HomeEasy_Standard_Right_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                0.766,
+                1.56,
+                0
+              ],
+              "max": [
+                0.774,
+                1.6320000000000001,
+                0.072
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "standard-260x120-left-cerrada",
+      "config": {
+        "fabricWidthM": 2.6,
+        "fabricHeightM": 1.2,
+        "headrailSystem": "standard",
+        "controlSide": "left",
+        "bandState": "cerrada"
+      },
+      "name": "after-standard-260x120-left-cerrada.glb",
+      "bytes": 1578956,
+      "compaction": {
+        "before": {
+          "bytes": 3042406,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 120
+        },
+        "after": {
+          "bytes": 1547346,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 117
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "f9309fc5ae5758a0e4a6b2cbb88eef1c071ee8d62082ead2791636a62166786c",
+      "geometryHash": "2a3a4fb9c652ee9f7a4b7c5de753951b632a44d7d8180f83341b7ea864928f80",
+      "bounds": {
+        "min": [
+          -1.3507000258366264,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          1.324,
+          1.332,
+          0.072
+        ],
+        "size": [
+          2.6747000258366267,
+          1.3179999995678664,
+          0.072
+        ],
+        "minZOwners": [
+          "Cabezal_Standard_Plano",
+          "Tapa_Lateral_Der",
+          "Tapa_Lateral_Izq"
+        ]
+      },
+      "frames": {
+        "normalCount": 8411,
+        "tangentCount": 1179,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          -1.3507000258366264,
+          0.374962987437675,
+          0.0327500002404054
+        ],
+        "max": [
+          -1.2964199940315884,
+          1.298699971199036,
+          0.06170000100135803
+        ]
+      },
+      "rearMaterialDisplacementM": 0.05,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62",
+      "headrail": {
+        "assembly": {
+          "min": [
+            -1.324,
+            1.26,
+            0
+          ],
+          "max": [
+            1.324,
+            1.332,
+            0.072
+          ],
+          "size": [
+            2.648,
+            0.07200000000000006,
+            0.072
+          ]
+        },
+        "expectedSize": [
+          2.648,
+          0.072,
+          0.072
+        ],
+        "body": {
+          "min": [
+            -1.316,
+            1.26,
+            0
+          ],
+          "max": [
+            1.316,
+            1.332,
+            0.072
+          ]
+        },
+        "left": {
+          "min": [
+            -1.324,
+            1.26,
+            0
+          ],
+          "max": [
+            -1.316,
+            1.332,
+            0.072
+          ]
+        },
+        "right": {
+          "min": [
+            1.316,
+            1.26,
+            0
+          ],
+          "max": [
+            1.324,
+            1.332,
+            0.072
+          ]
+        },
+        "outerCapFaces": {
+          "left": 24,
+          "right": 24
+        },
+        "innerMatingFaces": {
+          "bodyLeft": 0,
+          "bodyRight": 0,
+          "capLeft": 0,
+          "capRight": 0
+        },
+        "orientation": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "triangles": 48,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "triangles": 72,
+            "inverted": 0,
+            "degenerate": 0
+          }
+        ],
+        "metal": [
+          {
+            "name": "Cabezal_Standard_Plano",
+            "mesh": "HomeEasy_Standard_Independent_Body",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -1.316,
+                1.26,
+                0
+              ],
+              "max": [
+                1.316,
+                1.332,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Izq",
+            "mesh": "HomeEasy_Standard_Left_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                -1.324,
+                1.26,
+                0
+              ],
+              "max": [
+                -1.316,
+                1.332,
+                0.072
+              ]
+            }
+          },
+          {
+            "name": "Tapa_Lateral_Der",
+            "mesh": "HomeEasy_Standard_Right_EndCap",
+            "alphaMode": "OPAQUE",
+            "alpha": 1,
+            "doubleSided": false,
+            "bounds": {
+              "min": [
+                1.316,
+                1.26,
+                0
+              ],
+              "max": [
+                1.324,
+                1.332,
+                0.072
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "binovo-180x220-right-abierta",
+      "config": {
+        "fabricWidthM": 1.8,
+        "fabricHeightM": 2.2,
+        "headrailSystem": "binovo",
+        "controlSide": "right",
+        "bandState": "abierta"
+      },
+      "name": "after-binovo-180x220-right-abierta.glb",
+      "bytes": 1567972,
+      "compaction": {
+        "before": {
+          "bytes": 3033142,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 111
+        },
+        "after": {
+          "bytes": 1538082,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 108
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "64b664565859076aa59c9a2b2e55468b6aa256f3717d3a1d16471ef7b408ae27",
+      "geometryHash": "e36298e2652f98148d7d7592c5e806e8180f9c93a2fe5dcfcccf34ddc3f3cf59",
+      "bounds": {
+        "min": [
+          -0.9240000247955322,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          0.9506999861001968,
+          2.359999895095825,
+          0.1
+        ],
+        "size": [
+          1.874700010895729,
+          2.3459998946636915,
+          0.1
+        ],
+        "minZOwners": [
+          "Cabezal_Binovo_Plano"
+        ]
+      },
+      "frames": {
+        "normalCount": 8483,
+        "tangentCount": 1589,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          0.8964200138998031,
+          0.6949629924047288,
+          0.046750001482168825
+        ],
+        "max": [
+          0.9506999861001968,
+          2.312589971199036,
+          0.08970000100135805
+        ]
+      },
+      "rearMaterialDisplacementM": 0,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62"
+    },
+    {
+      "key": "binovo-180x220-left-cerrada",
+      "config": {
+        "fabricWidthM": 1.8,
+        "fabricHeightM": 2.2,
+        "headrailSystem": "binovo",
+        "controlSide": "left",
+        "bandState": "cerrada"
+      },
+      "name": "after-binovo-180x220-left-cerrada.glb",
+      "bytes": 1568044,
+      "compaction": {
+        "before": {
+          "bytes": 3033142,
+          "images": 6,
+          "textures": 6,
+          "samplers": 2,
+          "bufferViews": 111
+        },
+        "after": {
+          "bytes": 1538082,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 108
+        },
+        "removed": {
+          "bytes": 1495060,
+          "images": 3,
+          "textures": 3,
+          "samplers": 1,
+          "bufferViews": 3
+        }
+      },
+      "sha256": "fa13101047ddf051c695ff61ca2e33b039a07c0eb8fdd0e8de2c395e43210a9d",
+      "geometryHash": "7a63b9d776b345d43fe3526b60ba2d7493e8cf4dcaa17ed6cce284500e345eaa",
+      "bounds": {
+        "min": [
+          -0.9507000159025193,
+          0.014000000432133675,
+          0
+        ],
+        "max": [
+          0.9240000247955322,
+          2.359999895095825,
+          0.1
+        ],
+        "size": [
+          1.8747000406980514,
+          2.3459998946636915,
+          0.1
+        ],
+        "minZOwners": [
+          "Cabezal_Binovo_Plano"
+        ]
+      },
+      "frames": {
+        "normalCount": 8483,
+        "tangentCount": 1589,
+        "invalidNormals": 0,
+        "invalidTangents": 0
+      },
+      "chainBounds": {
+        "min": [
+          -0.9507000159025193,
+          0.6949629924047288,
+          0.046750001482168825
+        ],
+        "max": [
+          -0.8964199840974808,
+          2.312589971199036,
+          0.08970000100135805
+        ]
+      },
+      "rearMaterialDisplacementM": 0.05,
+      "textileMaterialHash": "aa3894907f515b4bd90b822d558b52b875ebd0c3d0beff7a58a8ff7000589e62"
+    }
+  ],
+  "validatorTotals": {
+    "files": 7,
+    "errors": 0,
+    "warnings": 0
+  },
+  "integration": {
+    "ready": true,
+    "product": "sheer",
+    "system": "standard",
+    "quickLookGeneratedFromExactPreviewGlb": true,
+    "srcIsBlob": true,
+    "iosSrcAbsent": true,
+    "arPlacement": "wall",
+    "arScale": "fixed",
+    "arModes": "quick-look scene-viewer webxr"
+  },
+  "consoleErrors": [],
+  "protectedPathDiff": [],
+  "checks": {
+    "masterHashPreserved": true,
+    "khronosClean": true,
+    "documentedEnvelope": true,
+    "independentStandardGeometry": true,
+    "outerCapsClosed": true,
+    "matingPlanesNoCoplanarFaces": true,
+    "visibleMetalOpaque": true,
+    "normalsAndTangentsValid": true,
+    "windingValid": true,
+    "bothControlSides": true,
+    "threeSizes": true,
+    "statesPreserved": true,
+    "binovoGeometryUnchanged": true,
+    "binovoRuntimeByteIdentical": true,
+    "integratedStudio": true,
+    "consoleClean": true,
+    "protectedSurfacesUnchanged": true
+  },
+  "status": "PASS",
+  "physicalQuickLookIphoneTest": "PENDING"
+}
