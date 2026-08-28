@@ -39,6 +39,7 @@ class HommyHttpContractTests(unittest.TestCase):
             allowed.headers.get('Access-Control-Allow-Origin'),
             'https://alejoherrera05-del.github.io',
         )
+        self.assertIsNone(allowed.headers.get('Access-Control-Allow-Credentials'))
         self.assertEqual(allowed.headers.get('X-Content-Type-Options'), 'nosniff')
 
         blocked = self.client.open(
@@ -51,6 +52,7 @@ class HommyHttpContractTests(unittest.TestCase):
         )
         self.assertEqual(blocked.status_code, 204)
         self.assertIsNone(blocked.headers.get('Access-Control-Allow-Origin'))
+        self.assertIsNone(blocked.headers.get('Access-Control-Allow-Credentials'))
 
 
 if __name__ == '__main__':
