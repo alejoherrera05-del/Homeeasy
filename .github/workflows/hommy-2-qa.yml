@@ -77,14 +77,67 @@ jobs:
           print('OpenAI Responses, Conversations and Realtime contracts available')
           PY
 
+      - name: Smoke production WSGI process
+        run: |
+          set -euo pipefail
+          PORT=5050 gunicorn --bind 127.0.0.1:5050 --workers 1 --threads 2 --timeout 30 servidor:app > /tmp/hommy-gunicorn.log 2>&1 &
+          GUNICORN_PID=$!
+          trap 'kill "$GUNICORN_PID" 2>/dev/null || true' EXIT
+
+          READY=0
+          for attempt in $(seq 1 20); do
+            if curl --silent --fail --max-time 2 http://127.0.0.1:5050/api/health > /tmp/hommy-health.json; then
+              READY=1
+              break
+            fi
+            sleep 0.5
+          done
+          if [ "$READY" -ne 1 ]; then
+            cat /tmp/hommy-gunicorn.log
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/hommy-health.json').read_text())
+          assert payload['ok'] is True
+          assert payload['service'] == 'Hommy'
+          assert payload['version'].startswith('2.')
+          print('Gunicorn health contract OK:', payload['version'])
+          PY
+
+          UNAUTH_STATUS=$(curl --silent --output /tmp/hommy-unauth.json --write-out '%{http_code}' \
+            -X POST http://127.0.0.1:5050/api/hommy/chat \
+            -H 'Content-Type: application/json' \
+            --data '{"message":"hola"}')
+          test "$UNAUTH_STATUS" = '401'
+          grep -q 'AUTH_REQUIRED' /tmp/hommy-unauth.json
+
+          LEGACY_STATUS=$(curl --silent --output /tmp/hommy-legacy.json --write-out '%{http_code}' \
+            -X POST http://127.0.0.1:5050/api/chat \
+            -H 'Content-Type: application/json' \
+            --data '{"pregunta":"hola"}')
+          test "$LEGACY_STATUS" = '426'
+          grep -q 'CLIENT_UPGRADE_REQUIRED' /tmp/hommy-legacy.json
+
+          PREFLIGHT_STATUS=$(curl --silent --output /dev/null --dump-header /tmp/hommy-cors.txt --write-out '%{http_code}' \
+            -X OPTIONS http://127.0.0.1:5050/api/hommy/chat \
+            -H 'Origin: https://alejoherrera05-del.github.io' \
+            -H 'Access-Control-Request-Method: POST')
+          test "$PREFLIGHT_STATUS" = '204'
+          grep -qi '^Access-Control-Allow-Origin: https://alejoherrera05-del.github.io' /tmp/hommy-cors.txt
+          grep -qi '^X-Content-Type-Options: nosniff' /tmp/hommy-cors.txt
+          echo 'Production WSGI smoke tests passed'
+
       - name: Probe current public Render backend
         continue-on-error: true
         run: |
           echo '--- GET /api/health ---'
-          curl --silent --show-error --location --max-time 35 --connect-timeout 10 \
+          curl --silent --show-error --location --max-time 20 --connect-timeout 8 \
             --write-out '\nHTTP_STATUS=%{http_code}\n' \
             https://homeeasy-l5n1.onrender.com/api/health || true
           echo '--- GET / ---'
-          curl --silent --show-error --location --max-time 35 --connect-timeout 10 \
+          curl --silent --show-error --location --max-time 20 --connect-timeout 8 \
             --write-out '\nHTTP_STATUS=%{http_code}\n' \
             https://homeeasy-l5n1.onrender.com/ || true
