@@ -1,0 +1,14 @@
+# HomeEasy / Hommy private runtime files
+.env
+.env.*
+!.env.example
+config.py
+credenciales.json
+*.pem
+*.key
+
+# Python local artifacts
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
