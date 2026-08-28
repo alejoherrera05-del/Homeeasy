@@ -28,7 +28,7 @@ function fakeJwt(projectId = 'homeeasy-auth') {
   })}.signature`;
 }
 
-function makeSession({ appExpired = false, projectId = 'homeeasy-auth' } = {}) {
+function makeSession({ appExpired = false, projectId = 'homeeasy-auth', validatedAt = Date.now() - 10_000 } = {}) {
   return {
     version: 2,
     persistence: 'session',
@@ -37,11 +37,11 @@ function makeSession({ appExpired = false, projectId = 'homeeasy-auth' } = {}) {
     displayName: 'QA User',
     idToken: fakeJwt(projectId),
     refreshToken: 'fake-refresh-token',
-    // Deliberately expired Firebase ID token window. This is the incident case.
+    // Deliberately expired Firebase ID-token window: this reproduces the incident.
     expiresAt: Date.now() - 120_000,
     appSessionToken: 'opaque-homeeasy-session',
     appSessionExpiresAt: new Date(Date.now() + (appExpired ? -60_000 : 3_600_000)).toISOString(),
-    appSessionValidatedAt: Date.now() - 10_000,
+    appSessionValidatedAt: validatedAt,
     profile: {
       uid: 'homeeasy-user-1',
       nombre: 'QA User',
@@ -83,16 +83,24 @@ function makeContext(session) {
   return sandbox;
 }
 
+function authError(code, message = code) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
+
 async function testExpiredFirebaseStillUsesValidOperationalSession() {
   const sandbox = makeContext(makeSession());
-  let nativeRestoreCalls = 0;
+  let validateCalls = 0;
+  let openCalls = 0;
+  let legacyRestoreCalls = 0;
   sandbox.HomeEasyAuth = Object.freeze({
     getCachedHomeEasySession: () => null,
     shouldRevalidateAppSession: () => true,
-    restoreHomeEasySession: async () => {
-      nativeRestoreCalls += 1;
-      return { native: true };
-    },
+    validateAppSession: async () => { validateCalls += 1; return { validated: true }; },
+    openAppSession: async () => { openCalls += 1; return { opened: true }; },
+    restoreHomeEasySession: async () => { legacyRestoreCalls += 1; return { native: true }; },
+    isTransientError: error => ['AUTH_TIMEOUT', 'AUTH_NETWORK_ERROR', 'BACKEND_TIMEOUT', 'BACKEND_NETWORK_ERROR', 'BACKEND_INVALID_RESPONSE'].includes(error?.code),
   });
 
   const cached = sandbox.HomeEasyAuth.getCachedHomeEasySession();
@@ -103,36 +111,92 @@ async function testExpiredFirebaseStillUsesValidOperationalSession() {
 
   const restored = await sandbox.HomeEasyAuth.restoreHomeEasySession({ preferCache: true });
   assert.equal(restored.profile.uid, 'homeeasy-user-1');
-  assert.equal(nativeRestoreCalls, 0, 'navigation must not force Firebase refresh while app session is valid');
+  assert.equal(validateCalls, 0, 'navigation must not hit backend while the operational cache is valid');
+  assert.equal(openCalls, 0, 'navigation must not refresh Firebase while the operational cache is valid');
+  assert.equal(legacyRestoreCalls, 0, 'legacy restore path must not run while the app session is valid');
 }
 
-async function testExpiredOperationalSessionFallsBackToNativeRestore() {
+async function testStaleOperationalSessionRevalidatesBeforeFirebaseRefresh() {
   const sandbox = makeContext(makeSession({ appExpired: true }));
-  let nativeRestoreCalls = 0;
+  let validateCalls = 0;
+  let openCalls = 0;
+  let legacyRestoreCalls = 0;
   sandbox.HomeEasyAuth = Object.freeze({
     getCachedHomeEasySession: () => null,
-    restoreHomeEasySession: async () => {
-      nativeRestoreCalls += 1;
-      return { native: true };
+    validateAppSession: async () => {
+      validateCalls += 1;
+      return { profile: { uid: 'homeeasy-user-1' }, permissions: ['clientes.read'] };
     },
+    openAppSession: async () => { openCalls += 1; return { opened: true }; },
+    restoreHomeEasySession: async () => { legacyRestoreCalls += 1; return { native: true }; },
+    isTransientError: () => false,
   });
 
   assert.equal(sandbox.HomeEasyAuth.getCachedHomeEasySession(), null);
   const result = await sandbox.HomeEasyAuth.restoreHomeEasySession({ preferCache: true });
-  assert.deepEqual(result, { native: true });
-  assert.equal(nativeRestoreCalls, 1, 'expired HomeEasy app session must not be extended locally');
+  assert.equal(result.profile.uid, 'homeeasy-user-1');
+  assert.equal(validateCalls, 1, 'opaque HomeEasy session must be revalidated first');
+  assert.equal(openCalls, 0, 'Firebase/open-session must not run when opaque session revalidates');
+  assert.equal(legacyRestoreCalls, 0, 'legacy destructive restore path must be bypassed');
+}
+
+async function testTransientRevalidationNeverFallsThroughToFirebaseOrDeletesSession() {
+  const initial = makeSession({ appExpired: true });
+  const sandbox = makeContext(initial);
+  let openCalls = 0;
+  let legacyRestoreCalls = 0;
+  sandbox.HomeEasyAuth = Object.freeze({
+    getCachedHomeEasySession: () => null,
+    validateAppSession: async () => { throw authError('BACKEND_NETWORK_ERROR', 'temporary outage'); },
+    openAppSession: async () => { openCalls += 1; return { opened: true }; },
+    restoreHomeEasySession: async () => { legacyRestoreCalls += 1; return { native: true }; },
+    isTransientError: error => error?.code === 'BACKEND_NETWORK_ERROR',
+  });
+
+  await assert.rejects(
+    sandbox.HomeEasyAuth.restoreHomeEasySession({ preferCache: true, silent: true }),
+    error => error?.code === 'BACKEND_NETWORK_ERROR',
+  );
+  assert.equal(openCalls, 0, 'temporary HomeEasy outage must not trigger Firebase refresh/open');
+  assert.equal(legacyRestoreCalls, 0, 'temporary outage must not call legacy restore that can clear session');
+  const stored = JSON.parse(sandbox.sessionStorage.getItem('HOMEEASY_AUTH_SESSION_V1'));
+  assert.equal(stored.appSessionToken, initial.appSessionToken, 'temporary outage must preserve stored session');
+  assert.equal(stored.refreshToken, initial.refreshToken, 'temporary outage must preserve Firebase refresh token');
+}
+
+async function testRejectedOpaqueSessionMayOpenNewSessionWithoutLegacyRestore() {
+  const sandbox = makeContext(makeSession({ appExpired: true }));
+  let openCalls = 0;
+  let legacyRestoreCalls = 0;
+  sandbox.HomeEasyAuth = Object.freeze({
+    getCachedHomeEasySession: () => null,
+    validateAppSession: async () => { throw authError('APP_SESSION_EXPIRED'); },
+    openAppSession: async () => { openCalls += 1; return { profile: { uid: 'homeeasy-user-1' }, permissions: ['clientes.read'] }; },
+    restoreHomeEasySession: async () => { legacyRestoreCalls += 1; return { native: true }; },
+    isTransientError: () => false,
+  });
+
+  const result = await sandbox.HomeEasyAuth.restoreHomeEasySession({ preferCache: true, reopen: true });
+  assert.equal(result.profile.uid, 'homeeasy-user-1');
+  assert.equal(openCalls, 1, 'rejected opaque session may reopen via the safe public openAppSession path');
+  assert.equal(legacyRestoreCalls, 0, 'legacy restore path must stay bypassed');
 }
 
 async function testWrongFirebaseProjectIsNeverAccepted() {
   const sandbox = makeContext(makeSession({ projectId: 'another-project' }));
   sandbox.HomeEasyAuth = Object.freeze({
     getCachedHomeEasySession: () => null,
+    validateAppSession: async () => null,
+    openAppSession: async () => null,
     restoreHomeEasySession: async () => null,
+    isTransientError: () => false,
   });
   assert.equal(sandbox.HomeEasyAuth.getCachedHomeEasySession(), null, 'project binding must remain enforced');
 }
 
 await testExpiredFirebaseStillUsesValidOperationalSession();
-await testExpiredOperationalSessionFallsBackToNativeRestore();
+await testStaleOperationalSessionRevalidatesBeforeFirebaseRefresh();
+await testTransientRevalidationNeverFallsThroughToFirebaseOrDeletesSession();
+await testRejectedOpaqueSessionMayOpenNewSessionWithoutLegacyRestore();
 await testWrongFirebaseProjectIsNeverAccepted();
 console.log('HomeEasy long-lived session stability: PASS');
