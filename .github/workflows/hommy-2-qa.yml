@@ -171,14 +171,14 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Probe current public Render backend
+      - name: Probe Hommy staging backend
         continue-on-error: true
         run: |
           echo '--- GET /api/health ---'
           curl --silent --show-error --location --max-time 20 --connect-timeout 8 \
             --write-out '\nHTTP_STATUS=%{http_code}\n' \
-            https://homeeasy-l5n1.onrender.com/api/health || true
+            https://homeeasy-hommy-staging.onrender.com/api/health || true
           echo '--- GET / ---'
           curl --silent --show-error --location --max-time 20 --connect-timeout 8 \
             --write-out '\nHTTP_STATUS=%{http_code}\n' \
-            https://homeeasy-l5n1.onrender.com/ || true
+            https://homeeasy-hommy-staging.onrender.com/ || true

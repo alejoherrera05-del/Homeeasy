@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const API_BASE = String(window.HOMMY_API_BASE || 'https://homeeasy-l5n1.onrender.com').replace(/\/$/, '');
+  const API_BASE = String(window.HOMMY_API_BASE || 'https://homeeasy-hommy-staging.onrender.com').replace(/\/$/, '');
   const HEALTH_INTERVAL_MS = 60_000;
   const REQUEST_TIMEOUT_MS = 55_000;
   const MAX_STORED_MESSAGES = 50;

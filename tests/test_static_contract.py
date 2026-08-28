@@ -19,6 +19,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('RTCPeerConnection', js)
         self.assertIn('homeeasy-page-guard.js?v=3.4', html)
 
+    def test_frontend_defaults_to_hommy_staging_only(self):
+        js = (ROOT / 'hommy-chat.js').read_text(encoding='utf-8')
+        workflow = (ROOT / '.github' / 'workflows' / 'hommy-2-qa.yml').read_text(encoding='utf-8')
+        self.assertIn('https://homeeasy-hommy-staging.onrender.com', js)
+        self.assertIn('https://homeeasy-hommy-staging.onrender.com', workflow)
+        self.assertNotIn('https://homeeasy-l5n1.onrender.com', js)
+        self.assertNotIn('https://homeeasy-l5n1.onrender.com', workflow)
+
     def test_text_context_is_carried_into_realtime_voice(self):
         js = (ROOT / 'hommy-chat.js').read_text(encoding='utf-8')
         self.assertIn('seedVoiceHistory', js)

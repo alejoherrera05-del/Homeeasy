@@ -10,7 +10,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 DEFAULT_SHEET_ID = "1hnHAeKhyd9MVCn1bCm8XExl4hdV2ijqdIjCXoJba1iY"
-SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets"
+SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly"
 
 
 def normalize(value: Any) -> str:

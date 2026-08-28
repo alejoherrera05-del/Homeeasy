@@ -54,7 +54,7 @@ async function mockPage(page) {
     contentType: 'application/javascript; charset=utf-8',
     body: guardStub,
   }));
-  await page.route('https://homeeasy-l5n1.onrender.com/**', async route => {
+  await page.route('https://homeeasy-hommy-staging.onrender.com/**', async route => {
     const request = route.request();
     const url = new URL(request.url());
     if (url.pathname === '/api/health') {

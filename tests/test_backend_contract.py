@@ -34,7 +34,7 @@ if 'openai' not in sys.modules:
 ROOT = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, ROOT)
 from hommy_backend.auth import AuthContext, decode_client_meta
-from hommy_backend.data import HomeEasyDataStore, Snapshot, money_number
+from hommy_backend.data import HomeEasyDataStore, SHEETS_SCOPE, Snapshot, money_number
 from hommy_backend.engine import ConversationSigner
 from hommy_backend.realtime import session_config
 from hommy_backend.tools import ToolPermissionError, execute_tool
@@ -68,6 +68,9 @@ class BackendContractTests(unittest.TestCase):
 
     def test_colombian_money_parser(self):
         self.assertEqual(money_number('$1.250.000'), 1250000); self.assertEqual(money_number('1.250.000,50'), 1250000.5)
+
+    def test_google_sheets_scope_is_read_only(self):
+        self.assertEqual(SHEETS_SCOPE, 'https://www.googleapis.com/auth/spreadsheets.readonly')
 
     def test_client_search_is_precise(self):
         rows = self.store.search_clients('Andrea'); self.assertEqual(len(rows), 1); self.assertEqual(rows[0]['cedula'], '123')
