@@ -19,6 +19,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('RTCPeerConnection', js)
         self.assertIn('homeeasy-page-guard.js?v=3.4', html)
 
+    def test_text_context_is_carried_into_realtime_voice(self):
+        js = (ROOT / 'hommy-chat.js').read_text(encoding='utf-8')
+        self.assertIn('seedVoiceHistory', js)
+        self.assertIn('MAX_VOICE_CONTEXT_MESSAGES', js)
+        self.assertIn("type: 'conversation.item.create'", js)
+        self.assertIn("'output_text'", js)
+        self.assertIn("'input_text'", js)
+
     def test_backend_has_no_embedded_provider_secret(self):
         sources = '\n'.join(path.read_text(encoding='utf-8') for path in [ROOT / 'servidor.py', *sorted((ROOT / 'hommy_backend').glob('*.py'))])
         self.assertIsNone(re.search(r'sk-[A-Za-z0-9_-]{16,}', sources))
