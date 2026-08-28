@@ -5,7 +5,7 @@ from datetime import date
 from typing import Any
 
 from .auth import AuthContext
-from .data import HomeEasyDataError, HomeEasyDataStore
+from .data import HomeEasyDataError, HomeEasyDataStore, money_number
 
 
 class ToolPermissionError(RuntimeError):
@@ -42,13 +42,13 @@ TOOL_SPECS = [
     ),
     fn(
         "consultar_orden",
-        "Consulta una orden de pedido/venta por número OP.",
+        "Consulta una orden de pedido/venta por número OP. Devuelve total, abono y saldo actuales.",
         {"numero_op": {"type": "string"}},
         ["numero_op"],
     ),
     fn(
         "consultar_saldos_pendientes",
-        "Obtiene cartera real: órdenes con saldo pendiente.",
+        "Obtiene cartera real: órdenes con saldo pendiente, incluyendo el saldo numérico en pesos colombianos.",
         {"limite": {"type": "integer", "minimum": 1, "maximum": 100}},
         ["limite"],
     ),
@@ -60,7 +60,7 @@ TOOL_SPECS = [
     ),
     fn(
         "obtener_ultimas_ventas",
-        "Obtiene las ventas más recientes de HomeEasy.",
+        "Obtiene las ventas más recientes de HomeEasy. Cada venta incluye OP, cliente, total, abono inicial y saldo actual; úsala también para identificar la OP de una pregunta de seguimiento.",
         {"cantidad": {"type": "integer", "minimum": 1, "maximum": 20}},
         ["cantidad"],
     ),
@@ -75,7 +75,7 @@ TOOL_SPECS = [
     ),
     fn(
         "consultar_historial_pagos",
-        "Consulta total, saldo y abonos de una OP real.",
+        "Consulta total, saldo y abonos de una OP real. Úsala obligatoriamente para preguntas de seguimiento como '¿cuánto debe?', '¿cuál es el saldo?' o '¿cuánto ha abonado?' sobre una venta mencionada antes.",
         {"numero_op": {"type": "string"}},
         ["numero_op"],
     ),
@@ -144,6 +144,61 @@ def _contact_only(client: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _cop_number(value: Any) -> int:
+    return int(round(money_number(value)))
+
+
+def _cop_text(value: Any) -> str:
+    return "$" + f"{_cop_number(value):,}".replace(",", ".")
+
+
+def _payment_payload(payment: dict[str, Any]) -> dict[str, Any]:
+    result = dict(payment)
+    result["valor_cop"] = _cop_number(payment.get("valor"))
+    return result
+
+
+def _order_payload(order: dict[str, Any]) -> dict[str, Any]:
+    result = dict(order)
+    result["total_cop"] = _cop_number(order.get("total"))
+    result["abono_inicial_cop"] = _cop_number(order.get("abono_inicial"))
+    result["saldo_cop"] = _cop_number(order.get("saldo"))
+    result["abonos_extra"] = [_payment_payload(item) for item in (order.get("abonos_extra") or [])]
+    return result
+
+
+def _order_card(order: dict[str, Any]) -> dict[str, Any]:
+    number = str(order.get("numero") or "").strip()
+    name = str(order.get("nombre") or "Cliente").strip()
+    description = str(order.get("descripcion") or "").strip()
+    day = str(order.get("fecha") or "").strip()
+    meta_parts = []
+    if order.get("abono_inicial"):
+        meta_parts.append(f"Abono {_cop_text(order.get('abono_inicial'))}")
+    if order.get("saldo") != "":
+        meta_parts.append(f"Saldo {_cop_text(order.get('saldo'))}")
+    return {
+        "type": "order",
+        "title": f"OP {number} · {name}" if number else name,
+        "subtitle": " · ".join(part for part in (day, description) if part),
+        "amount": _cop_number(order.get("total")),
+        "meta": " · ".join(meta_parts),
+        "status": str(order.get("estado") or "").strip(),
+    }
+
+
+def _balance_card(order: dict[str, Any]) -> dict[str, Any]:
+    number = str(order.get("numero") or "").strip()
+    return {
+        "type": "balance",
+        "title": f"OP {number} · {order.get('nombre') or 'Cliente'}",
+        "subtitle": str(order.get("descripcion") or "").strip(),
+        "amount": _cop_number(order.get("saldo")),
+        "meta": f"Total {_cop_text(order.get('total'))}",
+        "status": "Saldo pendiente",
+    }
+
+
 def _documents(value: Any) -> list[dict[str, Any]]:
     found = []
 
@@ -151,7 +206,9 @@ def _documents(value: Any) -> list[dict[str, Any]]:
         if isinstance(node, dict):
             url = str(node.get("url_pdf") or "").strip()
             if url.startswith("https://"):
-                found.append({"type": "document", "title": "Abrir documento", "url": url})
+                number = str(node.get("numero") or node.get("numero_op") or "").strip()
+                label = f"OP {number} · Ver documento" if number else "Ver documento"
+                found.append({"type": "document", "title": label, "url": url})
             for key, child in node.items():
                 if key != "url_pdf":
                     walk(child)
@@ -202,7 +259,7 @@ def execute_tool(name: str, arguments: dict[str, Any], context: AuthContext, dat
                 client = raw_matches[0]
                 result = {"cliente": _contact_only(client)}
                 if context.has("ventas.read"):
-                    result["ordenes"] = list(client.get("ordenes") or [])[-10:]
+                    result["ordenes"] = [_order_payload(item) for item in list(client.get("ordenes") or [])[-10:]]
                 if context.has_any(("cotizaciones.read", "cotizaciones.write")):
                     result["cotizaciones"] = list(client.get("cotizaciones") or [])[-10:]
                 ui.append(
@@ -215,26 +272,21 @@ def execute_tool(name: str, arguments: dict[str, Any], context: AuthContext, dat
                 )
 
         elif name == "consultar_orden":
-            result = data.get_order(arguments.get("numero_op", ""))
+            raw = data.get_order(arguments.get("numero_op", ""))
+            result = _order_payload(raw) if raw else None
             if result:
-                ui.append(
-                    {
-                        "type": "order",
-                        "title": f"OP-{result.get('numero', '')}",
-                        "subtitle": result.get("nombre", ""),
-                        "amount": result.get("total", ""),
-                        "status": result.get("estado", ""),
-                    }
-                )
+                ui.append(_order_card(result))
 
         elif name == "consultar_saldos_pendientes":
-            result = data.pending_balances(int(arguments.get("limite", 20)))
+            result = [_order_payload(item) for item in data.pending_balances(int(arguments.get("limite", 20)))]
+            ui.extend(_balance_card(item) for item in result[:8])
 
         elif name == "consultar_agenda":
             result = data.schedule_for(arguments.get("fecha") or date.today().isoformat())
 
         elif name == "obtener_ultimas_ventas":
-            result = data.recent_sales(int(arguments.get("cantidad", 5)))
+            result = [_order_payload(item) for item in data.recent_sales(int(arguments.get("cantidad", 5)))]
+            ui.extend(_order_card(item) for item in result[:8])
 
         elif name == "generar_reporte_ventas":
             result = data.sales_report(arguments.get("fecha_inicio", ""), arguments.get("fecha_fin", ""))
@@ -248,14 +300,24 @@ def execute_tool(name: str, arguments: dict[str, Any], context: AuthContext, dat
             )
 
         elif name == "consultar_historial_pagos":
-            result = data.payment_history(arguments.get("numero_op", ""))
+            raw = data.payment_history(arguments.get("numero_op", ""))
+            if raw:
+                result = dict(raw)
+                result["total_cop"] = _cop_number(raw.get("total"))
+                result["abono_inicial_cop"] = _cop_number(raw.get("abono_inicial"))
+                result["saldo_cop"] = _cop_number(raw.get("saldo"))
+                result["abonos"] = [_payment_payload(item) for item in (raw.get("abonos") or [])]
+            else:
+                result = None
             if result:
                 ui.append(
                     {
                         "type": "balance",
-                        "title": f"OP-{result.get('numero', '')}",
-                        "subtitle": result.get("cliente", ""),
-                        "amount": result.get("saldo", ""),
+                        "title": f"OP {result.get('numero', '')} · {result.get('cliente', '')}",
+                        "subtitle": f"Total {_cop_text(result.get('total'))} · Abono inicial {_cop_text(result.get('abono_inicial'))}",
+                        "amount": result.get("saldo_cop", 0),
+                        "meta": "Saldo actual",
+                        "status": result.get("estado", ""),
                     }
                 )
 
