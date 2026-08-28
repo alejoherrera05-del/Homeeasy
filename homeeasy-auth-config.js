@@ -126,6 +126,12 @@ window.HOMEEASY_AUTH_CONFIG = Object.freeze({
         if (!api || typeof api !== 'object' || api.__SESSION_STABILITY_BRIDGE__) return api;
         const nativeCached = typeof api.getCachedHomeEasySession === 'function'
             ? api.getCachedHomeEasySession.bind(api) : null;
+        const nativeValidateApp = typeof api.validateAppSession === 'function'
+            ? api.validateAppSession.bind(api) : null;
+        const nativeOpenApp = typeof api.openAppSession === 'function'
+            ? api.openAppSession.bind(api) : null;
+        const nativeIsTransient = typeof api.isTransientError === 'function'
+            ? api.isTransientError.bind(api) : null;
         const nativeRestore = typeof api.restoreHomeEasySession === 'function'
             ? api.restoreHomeEasySession.bind(api) : null;
 
@@ -136,6 +142,10 @@ window.HOMEEASY_AUTH_CONFIG = Object.freeze({
             } catch (error) {}
             return operationalCache();
         };
+
+        function transient(error) {
+            return nativeIsTransient ? nativeIsTransient(error) : false;
+        }
 
         const patched = {
             ...api,
@@ -148,13 +158,57 @@ window.HOMEEASY_AUTH_CONFIG = Object.freeze({
                 return !cached.validatedAt || Date.now() - cached.validatedAt >= maxAge;
             },
             async restoreHomeEasySession(options) {
-                const opts = { preferCache: true, ...(options || {}) };
+                const opts = {
+                    validateFirebase: false,
+                    reopen: true,
+                    silent: false,
+                    meta: {},
+                    preferCache: true,
+                    ...(options || {})
+                };
+
                 if (opts.preferCache !== false) {
                     const cached = resilientCached();
                     if (cached) return cached;
                 }
-                if (!nativeRestore) return null;
-                return nativeRestore(options);
+
+                const stored = readStoredSession();
+                if (!stored) return null;
+
+                // Revalida primero la sesión opaca de HomeEasy. Esto no necesita
+                // un ID token Firebase fresco y evita expulsar al usuario por una
+                // caída transitoria del servicio de refresh.
+                if (stored.appSessionToken && nativeValidateApp) {
+                    try {
+                        return await nativeValidateApp({ meta: opts.meta || {} });
+                    } catch (error) {
+                        if (transient(error)) throw error;
+                        if (!opts.reopen) {
+                            if (opts.silent) return null;
+                            throw error;
+                        }
+                    }
+                }
+
+                if (!opts.reopen) return null;
+
+                // Solo si HomeEasy realmente necesita una sesión nueva se renueva
+                // Firebase. refreshSession ya distingue errores transitorios de
+                // credenciales revocadas, por lo que no pasamos por el restore
+                // legado que borraba todo ante cualquier excepción.
+                if (nativeOpenApp) {
+                    try {
+                        return await nativeOpenApp({ meta: opts.meta || {} });
+                    } catch (error) {
+                        if (transient(error)) throw error;
+                        if (opts.silent) return null;
+                        throw error;
+                    }
+                }
+
+                // Compatibilidad defensiva si una versión anterior del API no
+                // expone validate/open de forma pública.
+                return nativeRestore ? nativeRestore(options) : null;
             }
         };
         return Object.freeze(patched);
