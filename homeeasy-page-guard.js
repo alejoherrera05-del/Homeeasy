@@ -1,5 +1,5 @@
 /**
- * HomeEasy Page Guard v3.4
+ * HomeEasy Page Guard v3.5
  * Navegación cache-first: usa la sesión ya validada para abrir módulos al instante
  * y revalida silenciosamente en segundo plano. AR permanece fuera de este mapa.
  */
@@ -19,8 +19,7 @@
         'reportes.html': 'reportes.read',
         'configuracion.html': 'config.read',
         'perfil.html': 'perfil.read',
-        'Hommychat.html': 'app.access',
-        'asistente.html': 'app.access'
+        'Hommychat.html': 'app.access'
     });
 
     const API_URL = global.HomeEasyCore && global.HomeEasyCore.API_URL
@@ -251,7 +250,7 @@
     async function authorizePage() {
         schedulePendingCover();
         try {
-            await loadScriptOnce('homeeasy-auth-config.js?v=3.1', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
+            await loadScriptOnce('homeeasy-auth-config.js?v=3.2', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
             await loadScriptOnce('homeeasy-auth.js?v=3.4', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
             if (!global.HomeEasyAuth || !global.HomeEasyAuth.isConfigured()) { redirectToLogin(); return; }
 
