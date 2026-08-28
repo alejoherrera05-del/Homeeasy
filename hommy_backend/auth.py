@@ -145,9 +145,18 @@ class SessionValidator:
             },
         }
         try:
+            # HomeEasy's browser client posts a JSON string without a custom JSON
+            # content type. Fetch serializes that body as UTF-8 text/plain. Mirror
+            # the same wire format server-to-server so Apps Script parses mobile
+            # and desktop sessions identically.
+            body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             response = requests.post(
                 self.backend_url,
-                data=json.dumps(payload, ensure_ascii=False),
+                data=body,
+                headers={
+                    "Content-Type": "text/plain;charset=UTF-8",
+                    "Accept": "application/json",
+                },
                 timeout=self.timeout,
                 allow_redirects=True,
             )
@@ -167,13 +176,18 @@ class SessionValidator:
             ) from exc
 
         if not data or data.get("status") != "success" or data.get("valido") is not True:
-            code = str((data or {}).get("code") or "APP_SESSION_EXPIRED")
-            status = 403 if code == "PERMISSION_DENIED" else 401
-            raise HommyAuthError(
-                str((data or {}).get("msg") or "Tu sesión de HomeEasy venció."),
-                code,
-                status,
-            )
+            message = str((data or {}).get("msg") or "Tu sesión de HomeEasy venció.")
+            raw_code = str((data or {}).get("code") or "").strip()
+            if raw_code:
+                code = raw_code
+                status = 403 if code == "PERMISSION_DENIED" else 401
+            elif "JSON" in message.upper() or "SOLICITUD NO CONTIENE" in message.upper():
+                code = "AUTH_UPSTREAM_INVALID_REQUEST"
+                status = 502
+            else:
+                code = "APP_SESSION_EXPIRED"
+                status = 401
+            raise HommyAuthError(message, code, status)
 
         profile = data.get("perfil") or {}
         permissions = frozenset(str(p).strip() for p in (data.get("permisos") or []) if str(p).strip())
