@@ -109,7 +109,7 @@ def health():
     })
 
 
-@app.post("/api/hommy/chat")
+@app.post("/api/hommy/chat", provide_automatic_options=False)
 def hommy_chat():
     context = auth_context()
     payload: dict[str, Any] = request.get_json(silent=True) or {}
@@ -117,7 +117,7 @@ def hommy_chat():
     return jsonify({"ok": True, **result})
 
 
-@app.post("/api/hommy/tool")
+@app.post("/api/hommy/tool", provide_automatic_options=False)
 def hommy_tool():
     context = auth_context()
     payload: dict[str, Any] = request.get_json(silent=True) or {}
@@ -126,7 +126,7 @@ def hommy_tool():
     return jsonify({"ok": True, "result": execute_tool(name, arguments, context, data_store)})
 
 
-@app.post("/api/hommy/realtime/session")
+@app.post("/api/hommy/realtime/session", provide_automatic_options=False)
 def hommy_realtime_session():
     context = auth_context()
     answer = create_call(request.get_data(as_text=True), context)
@@ -135,12 +135,12 @@ def hommy_realtime_session():
     return response
 
 
-@app.post("/api/chat")
+@app.post("/api/chat", provide_automatic_options=False)
 def legacy_chat_disabled():
     return json_error("Este cliente de Hommy está desactualizado. Abre Hommy desde HomeEasy.", "CLIENT_UPGRADE_REQUIRED", 426)
 
 
-@app.post("/api/tts")
+@app.post("/api/tts", provide_automatic_options=False)
 def legacy_tts_disabled():
     return json_error("La voz anterior fue reemplazada por Hommy Realtime.", "CLIENT_UPGRADE_REQUIRED", 426)
 
