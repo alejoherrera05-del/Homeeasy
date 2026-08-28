@@ -26,7 +26,6 @@
         'reportes.html': 'reportes.read',
         'configuracion.html': 'config.read',
         'Hommychat.html': 'app.access',
-        'asistente.html': 'app.access'
     });
 
     function filterNavigationByPermissions() {

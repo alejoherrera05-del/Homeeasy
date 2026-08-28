@@ -1,5 +1,5 @@
 /**
- * HomeEasy Auth configuration + session stability bridge v3.2.
+ * HomeEasy Auth configuration + session stability bridge v3.3.
  * Firebase Authentication en plan Spark, sin servicios de pago.
  *
  * La sesión operativa de HomeEasy es opaca, vinculada al usuario/dispositivo y
@@ -21,8 +21,8 @@ window.HOMEEASY_AUTH_CONFIG = Object.freeze({
 (function installHomeEasySessionStability(global) {
     'use strict';
 
-    if (!global || global.__HOMEEASY_SESSION_STABILITY_V32__) return;
-    global.__HOMEEASY_SESSION_STABILITY_V32__ = true;
+    if (!global || global.__HOMEEASY_SESSION_STABILITY_V33__) return;
+    global.__HOMEEASY_SESSION_STABILITY_V33__ = true;
 
     const STORAGE_KEY = 'HOMEEASY_AUTH_SESSION_V1';
     const APP_EXPIRY_SKEW_MS = 30 * 1000;
@@ -149,7 +149,7 @@ window.HOMEEASY_AUTH_CONFIG = Object.freeze({
 
         const patched = {
             ...api,
-            __SESSION_STABILITY_BRIDGE__: '3.2',
+            __SESSION_STABILITY_BRIDGE__: '3.3',
             getCachedHomeEasySession: resilientCached,
             shouldRevalidateAppSession(maxAgeMs) {
                 const cached = resilientCached();
@@ -183,6 +183,12 @@ window.HOMEEASY_AUTH_CONFIG = Object.freeze({
                         return await nativeValidateApp({ meta: opts.meta || {} });
                     } catch (error) {
                         if (transient(error)) throw error;
+                        const code = String(error && error.code || '').trim().toUpperCase();
+                        const mayReopen = code === 'APP_SESSION_EXPIRED' || code === 'APP_SESSION_REJECTED' || code === 'NO_SESSION';
+                        if (!mayReopen) {
+                            if (opts.silent) return null;
+                            throw error;
+                        }
                         if (!opts.reopen) {
                             if (opts.silent) return null;
                             throw error;

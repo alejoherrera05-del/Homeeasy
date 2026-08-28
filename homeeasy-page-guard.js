@@ -1,5 +1,5 @@
 /**
- * HomeEasy Page Guard v3.5
+ * HomeEasy Page Guard v3.6
  * Navegación cache-first: usa la sesión ya validada para abrir módulos al instante
  * y revalida silenciosamente en segundo plano. AR permanece fuera de este mapa.
  */
@@ -35,6 +35,7 @@
     let pageAuthStatus = 'checking';
     let resolvePageReady;
     let pendingTimer = null;
+    let sessionRecoveryPromise = null;
     const pageReady = new Promise(resolve => { resolvePageReady = resolve; });
 
     function showPendingCover() {
@@ -128,15 +129,56 @@
         return { options, isAuth: false };
     }
 
-    function handleSecurityResponse(response) {
+    async function readSecurityPayload(response) {
         try {
-            response.clone().json().then(data => {
-                if (!data || typeof data !== 'object') return;
-                if (data.requiresLogin === true) redirectToLogin();
-                else if (data.forbidden === true || data.code === 'PERMISSION_DENIED') showDenied(data.msg || 'Tu rol no tiene permiso para realizar esta acción.');
-            }).catch(() => {});
-        } catch (error) {}
-        return response;
+            const data = await response.clone().json();
+            return data && typeof data === 'object' ? data : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function authErrorCode(error) {
+        return String(error && error.code || '').trim().toUpperCase();
+    }
+
+    function isRecoverableSessionError(error) {
+        const code = authErrorCode(error);
+        return code === 'APP_SESSION_EXPIRED' || code === 'APP_SESSION_REJECTED' || code === 'NO_SESSION';
+    }
+
+    async function recoverOperationalSession() {
+        const auth = global.HomeEasyAuth;
+        if (!auth || typeof auth.restoreHomeEasySession !== 'function') return false;
+        if (sessionRecoveryPromise) return sessionRecoveryPromise;
+
+        sessionRecoveryPromise = (async () => {
+            try {
+                const recovered = await auth.restoreHomeEasySession({
+                    validateFirebase: false,
+                    reopen: true,
+                    silent: false,
+                    preferCache: false,
+                    meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {}
+                });
+                if (!recovered) return false;
+                if (!auth.hasPermission(requiredPermission)) {
+                    showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                if (isTransientAuthError(error)) {
+                    showConnectionIssue(error);
+                    return null;
+                }
+                console.warn('HomeEasy: no fue posible recuperar la sesión operativa.', error);
+                return false;
+            } finally {
+                sessionRecoveryPromise = null;
+            }
+        })();
+        return sessionRecoveryPromise;
     }
 
     function installFetchBridge() {
@@ -148,15 +190,31 @@
             if (!targetsHomeEasy) return nativeFetch(resource, options);
 
             let isAuth = false;
-            let finalUrl = rawUrl;
             if (method === 'POST') isAuth = enrichPost(options).isAuth;
-            if (method === 'GET') finalUrl = buildMetaQuery(rawUrl);
 
-            const execute = () => nativeFetch(finalUrl || resource, options).then(handleSecurityResponse);
-            if (isAuth) return execute();
+            const execute = async (allowRecovery) => {
+                if (method === 'POST' && !isAuth) enrichPost(options);
+                const finalUrl = method === 'GET' ? buildMetaQuery(rawUrl) : rawUrl;
+                const response = await nativeFetch(finalUrl || resource, options);
+                const data = await readSecurityPayload(response);
+
+                if (data && data.requiresLogin === true) {
+                    if (allowRecovery) {
+                        const recovered = await recoverOperationalSession();
+                        if (recovered === true) return execute(false);
+                        if (recovered === null) return response;
+                    }
+                    redirectToLogin();
+                } else if (data && (data.forbidden === true || data.code === 'PERMISSION_DENIED')) {
+                    showDenied(data.msg || 'Tu rol no tiene permiso para realizar esta acción.');
+                }
+                return response;
+            };
+
+            if (isAuth) return execute(false);
             return pageReady.then(allowed => {
                 if (!allowed) throw new Error('PERMISSION_DENIED');
-                return execute();
+                return execute(true);
             });
         };
     }
@@ -238,10 +296,14 @@
             .then(() => {
                 if (!auth.hasPermission(requiredPermission)) showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
             })
-            .catch(error => {
+            .catch(async error => {
                 if (isTransientAuthError(error)) {
                     console.warn('HomeEasy: revalidación del módulo aplazada por conexión.', error);
                     return;
+                }
+                if (isRecoverableSessionError(error)) {
+                    const recovered = await recoverOperationalSession();
+                    if (recovered !== false) return;
                 }
                 redirectToLogin();
             });
@@ -250,7 +312,7 @@
     async function authorizePage() {
         schedulePendingCover();
         try {
-            await loadScriptOnce('homeeasy-auth-config.js?v=3.2', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
+            await loadScriptOnce('homeeasy-auth-config.js?v=3.3', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
             await loadScriptOnce('homeeasy-auth.js?v=3.4', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
             if (!global.HomeEasyAuth || !global.HomeEasyAuth.isConfigured()) { redirectToLogin(); return; }
 

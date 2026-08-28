@@ -1,5 +1,5 @@
 /**
- * HomeEasy Core v3.4
+ * HomeEasy Core v3.5
  * Comunicación central, identificación del dispositivo, trazabilidad y guard de acceso del Index.
  * La protección general se aplica únicamente a index.html en esta fase.
  */
@@ -7,7 +7,7 @@
     'use strict';
 
     const API_URL = 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
-    const APP_VERSION = '3.4';
+    const APP_VERSION = '3.5';
     const CONFIG_CACHE_KEY = 'HOMEEASY_CONFIG_BROWSER_V1';
     const CONFIG_CACHE_FRESH_MS = 5 * 60 * 1000;
     const CONFIG_CACHE_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -669,7 +669,7 @@
         scheduleIndexPending();
         try {
             await loadScriptOnce(
-                'homeeasy-auth-config.js?v=3.1',
+                'homeeasy-auth-config.js?v=3.3',
                 'homeeasyAuthConfigScript',
                 () => Boolean(global.HOMEEASY_AUTH_CONFIG)
             );
@@ -707,10 +707,33 @@
             revealAuthenticatedIndex();
 
             if (global.HomeEasyAuth.shouldRevalidateAppSession && global.HomeEasyAuth.shouldRevalidateAppSession(5 * 60 * 1000)) {
-                global.HomeEasyAuth.validateAppSession({ meta: buildMeta() }).catch(error => {
+                global.HomeEasyAuth.validateAppSession({ meta: buildMeta() }).catch(async error => {
                     if (isTransientAuthError(error)) {
                         console.warn('HomeEasy: revalidación del Index aplazada por conexión.', error);
                         return;
+                    }
+                    const code = String(error && error.code || '').trim().toUpperCase();
+                    const mayRecover = code === 'APP_SESSION_EXPIRED' || code === 'APP_SESSION_REJECTED' || code === 'NO_SESSION';
+                    if (mayRecover && global.HomeEasyAuth.restoreHomeEasySession) {
+                        try {
+                            const recovered = await global.HomeEasyAuth.restoreHomeEasySession({
+                                validateFirebase: false,
+                                reopen: true,
+                                silent: false,
+                                preferCache: false,
+                                meta: buildMeta()
+                            });
+                            if (recovered) {
+                                const refreshedProfile = global.HomeEasyAuth.getCurrentProfile();
+                                if (refreshedProfile) setOperator(refreshedProfile.nombre || refreshedProfile.email || 'Sin identificar');
+                                return;
+                            }
+                        } catch (recoveryError) {
+                            if (isTransientAuthError(recoveryError)) {
+                                showIndexConnectionIssue(recoveryError);
+                                return;
+                            }
+                        }
                     }
                     redirectIndexToLogin();
                 });
