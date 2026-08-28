@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const executablePath = process.env.CHROME_PATH;
 assert.ok(executablePath, 'CHROME_PATH is required for browser QA');
+fs.mkdirSync('qa/hommy-2-browser', { recursive: true });
 
 const browser = await chromium.launch({
   headless: true,
@@ -119,6 +121,11 @@ async function runViewport(name, viewport) {
   assert.ok(before.scrollWidth <= before.innerWidth + 1, `${name}: horizontal overflow before chat`);
   assert.equal(before.zoomDisabled, false, `${name}: viewport must not disable zoom`);
 
+  await page.screenshot({
+    path: `qa/hommy-2-browser/${name}-welcome.png`,
+    fullPage: true,
+  });
+
   await page.locator('#message-input').fill('prueba-xss');
   assert.equal(await page.locator('#send-button').isDisabled(), false, `${name}: send should enable with text`);
   await page.locator('#send-button').click();
@@ -147,6 +154,11 @@ async function runViewport(name, viewport) {
   assert.ok(after.scrollWidth <= after.innerWidth + 1, `${name}: horizontal overflow after chat`);
   assert.ok(after.composerBottom <= after.viewportHeight + 2, `${name}: composer escaped viewport`);
   assert.deepEqual(consoleErrors, [], `${name}: console/page errors: ${consoleErrors.join(' | ')}`);
+
+  await page.screenshot({
+    path: `qa/hommy-2-browser/${name}-chat.png`,
+    fullPage: true,
+  });
 
   console.log(`${name}: PASS (${viewport.width}x${viewport.height})`);
   await context.close();
