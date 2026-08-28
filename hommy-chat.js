@@ -5,6 +5,7 @@
   const HEALTH_INTERVAL_MS = 60_000;
   const REQUEST_TIMEOUT_MS = 55_000;
   const MAX_STORED_MESSAGES = 50;
+  const MAX_VOICE_CONTEXT_MESSAGES = 12;
 
   const el = {
     conversation: document.getElementById('conversation'),
@@ -300,6 +301,24 @@
     }
   }
 
+  function seedVoiceHistory(channel) {
+    const recent = state.messages
+      .filter(item => item && ['user', 'assistant'].includes(item.role) && safeText(item.text).trim())
+      .slice(-MAX_VOICE_CONTEXT_MESSAGES);
+    for (const item of recent) {
+      const assistant = item.role === 'assistant';
+      const text = safeText(item.text).trim().slice(0, 2400);
+      channel.send(JSON.stringify({
+        type: 'conversation.item.create',
+        item: {
+          type: 'message',
+          role: assistant ? 'assistant' : 'user',
+          content: [{ type: assistant ? 'output_text' : 'input_text', text }],
+        },
+      }));
+    }
+  }
+
   function handleRealtimeEvent(event, voice) {
     const type = safeText(event?.type);
     if (type === 'input_audio_buffer.speech_started') setVoiceState('listening', 'Te escucho', 'Habla con naturalidad. Hommy mantiene el contexto de esta conversación.');
@@ -322,7 +341,10 @@
       pc.ontrack = event => { audio.srcObject = event.streams[0]; };
       for (const track of voice.stream.getTracks()) pc.addTrack(track, voice.stream);
       const channel = pc.createDataChannel('oai-events'); voice.channel = channel;
-      channel.addEventListener('open', () => setVoiceState('listening', 'Te escucho', 'Habla con naturalidad. Hommy consultará HomeEasy cuando lo necesite.'));
+      channel.addEventListener('open', () => {
+        seedVoiceHistory(channel);
+        setVoiceState('listening', 'Te escucho', 'Habla con naturalidad. Hommy conserva el contexto reciente del chat.');
+      });
       channel.addEventListener('message', raw => { try { handleRealtimeEvent(JSON.parse(raw.data), voice); } catch (_) {} });
       channel.addEventListener('close', () => { if (state.voice === voice) setVoiceState('connecting', 'Conversación terminada', 'Puedes cerrar esta pantalla o iniciar otra llamada.'); });
       const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
