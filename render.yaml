@@ -26,7 +26,7 @@ services:
       - key: HOMMY_REALTIME_MODEL
         value: gpt-realtime-2.1
       - key: HOMMY_REALTIME_VOICE
-        value: marin
+        value: cedar
       - key: HOMEEASY_BACKEND_URL
         value: https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec
       - key: HOMEEASY_SHEET_ID
