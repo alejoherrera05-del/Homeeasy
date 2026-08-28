@@ -1,0 +1,69 @@
+name: Build standalone Clientes visual test
+
+on:
+  push:
+    branches:
+      - build/clientes-standalone-v2
+    paths:
+      - 'scripts/build_clientes_standalone_v2.py'
+      - '.github/workflows/build-clientes-standalone-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build complete standalone HTML
+        run: python scripts/build_clientes_standalone_v2.py
+
+      - name: Validate generated document
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s clientes-prueba/clientes.html
+          grep -q '<base href="../">' clientes-prueba/clientes.html
+          grep -q 'clientes-standalone-v2-style' clientes-prueba/clientes.html
+          grep -q 'clientes-standalone-v2-script' clientes-prueba/clientes.html
+          grep -q 'v2-profile-card' clientes-prueba/clientes.html
+          grep -q 'Resumen comercial' clientes-prueba/clientes.html
+          ! grep -q 'document.write(' clientes-prueba/clientes.html
+          ! grep -q "fetch('./clientes.html" clientes-prueba/clientes.html
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          html = Path('clientes-prueba/clientes.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)</script>', html, re.I)
+          if not scripts:
+              raise SystemExit('No inline scripts found')
+          for i, script in enumerate(scripts):
+              p = Path(tempfile.gettempdir()) / f'clientes-inline-{i}.js'
+              p.write_text(script, encoding='utf-8')
+              subprocess.run(['node', '--check', str(p)], check=True)
+          print(f'Validated {len(scripts)} inline scripts')
+          PY
+
+      - name: Publish only the independent test HTML to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp clientes-prueba/clientes.html /tmp/clientes-standalone.html
+          git fetch origin main
+          git checkout -B publish-clientes origin/main
+          mkdir -p clientes-prueba
+          cp /tmp/clientes-standalone.html clientes-prueba/clientes.html
+          git config user.name 'HomeEasy Clientes Builder'
+          git config user.email 'actions@users.noreply.github.com'
+          git add clientes-prueba/clientes.html
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Standalone Clientes HTML already current.'
+            exit 0
+          fi
+          git commit -m 'Add standalone Clientes 2.0 test'
+          git push origin HEAD:main
