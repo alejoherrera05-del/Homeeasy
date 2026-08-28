@@ -93,6 +93,7 @@ jobs:
             sleep 0.5
           done
           if [ "$READY" -ne 1 ]; then
+            echo 'Gunicorn did not become ready:'
             cat /tmp/hommy-gunicorn.log
             exit 1
           fi
@@ -111,6 +112,9 @@ jobs:
             -X POST http://127.0.0.1:5050/api/hommy/chat \
             -H 'Content-Type: application/json' \
             --data '{"message":"hola"}')
+          echo "Unauthenticated chat status: $UNAUTH_STATUS"
+          cat /tmp/hommy-unauth.json
+          echo
           test "$UNAUTH_STATUS" = '401'
           grep -q 'AUTH_REQUIRED' /tmp/hommy-unauth.json
 
@@ -118,6 +122,9 @@ jobs:
             -X POST http://127.0.0.1:5050/api/chat \
             -H 'Content-Type: application/json' \
             --data '{"pregunta":"hola"}')
+          echo "Legacy chat status: $LEGACY_STATUS"
+          cat /tmp/hommy-legacy.json
+          echo
           test "$LEGACY_STATUS" = '426'
           grep -q 'CLIENT_UPGRADE_REQUIRED' /tmp/hommy-legacy.json
 
@@ -125,6 +132,8 @@ jobs:
             -X OPTIONS http://127.0.0.1:5050/api/hommy/chat \
             -H 'Origin: https://alejoherrera05-del.github.io' \
             -H 'Access-Control-Request-Method: POST')
+          echo "Preflight status: $PREFLIGHT_STATUS"
+          cat /tmp/hommy-cors.txt
           test "$PREFLIGHT_STATUS" = '204'
           grep -qi '^Access-Control-Allow-Origin: https://alejoherrera05-del.github.io' /tmp/hommy-cors.txt
           grep -qi '^X-Content-Type-Options: nosniff' /tmp/hommy-cors.txt
