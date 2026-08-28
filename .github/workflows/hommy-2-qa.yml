@@ -171,14 +171,75 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Probe Hommy staging backend
-        continue-on-error: true
+      - name: Verify Hommy staging live contracts
         run: |
-          echo '--- GET /api/health ---'
-          curl --silent --show-error --location --max-time 20 --connect-timeout 8 \
-            --write-out '\nHTTP_STATUS=%{http_code}\n' \
-            https://homeeasy-hommy-staging.onrender.com/api/health || true
-          echo '--- GET / ---'
-          curl --silent --show-error --location --max-time 20 --connect-timeout 8 \
-            --write-out '\nHTTP_STATUS=%{http_code}\n' \
-            https://homeeasy-hommy-staging.onrender.com/ || true
+          set -euo pipefail
+          BASE='https://homeeasy-hommy-staging.onrender.com'
+
+          READY=0
+          for attempt in $(seq 1 8); do
+            HEALTH_STATUS=$(curl --silent --show-error --location --max-time 25 --connect-timeout 10 \
+              --output /tmp/hommy-staging-health.json --write-out '%{http_code}' \
+              "$BASE/api/health" || true)
+            echo "Staging health attempt $attempt: HTTP $HEALTH_STATUS"
+            if [ "$HEALTH_STATUS" = '200' ]; then
+              READY=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$READY" -ne 1 ]; then
+            echo 'Staging did not become healthy.'
+            cat /tmp/hommy-staging-health.json 2>/dev/null || true
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/hommy-staging-health.json').read_text())
+          assert payload['ok'] is True
+          assert payload['service'] == 'Hommy'
+          assert payload['version'].startswith('2.')
+          print('Staging health contract OK:', payload['version'])
+          PY
+
+          ROOT_STATUS=$(curl --silent --show-error --location --max-time 20 --connect-timeout 8 \
+            --output /tmp/hommy-staging-root.json --write-out '%{http_code}' "$BASE/")
+          echo "Staging root status: $ROOT_STATUS"
+          test "$ROOT_STATUS" = '200'
+
+          UNAUTH_STATUS=$(curl --silent --show-error --max-time 20 --connect-timeout 8 \
+            --output /tmp/hommy-staging-unauth.json --write-out '%{http_code}' \
+            -X POST "$BASE/api/hommy/chat" \
+            -H 'Content-Type: application/json' \
+            --data '{"message":"hola"}')
+          echo "Staging unauthenticated chat status: $UNAUTH_STATUS"
+          test "$UNAUTH_STATUS" = '401'
+          grep -q 'AUTH_REQUIRED' /tmp/hommy-staging-unauth.json
+
+          LEGACY_STATUS=$(curl --silent --show-error --max-time 20 --connect-timeout 8 \
+            --output /tmp/hommy-staging-legacy.json --write-out '%{http_code}' \
+            -X POST "$BASE/api/chat" \
+            -H 'Content-Type: application/json' \
+            --data '{"pregunta":"hola"}')
+          echo "Staging legacy chat status: $LEGACY_STATUS"
+          test "$LEGACY_STATUS" = '426'
+          grep -q 'CLIENT_UPGRADE_REQUIRED' /tmp/hommy-staging-legacy.json
+
+          PREFLIGHT_STATUS=$(curl --silent --show-error --max-time 20 --connect-timeout 8 \
+            --output /dev/null --dump-header /tmp/hommy-staging-cors.txt --write-out '%{http_code}' \
+            -X OPTIONS "$BASE/api/hommy/chat" \
+            -H 'Origin: https://alejoherrera05-del.github.io' \
+            -H 'Access-Control-Request-Method: POST')
+          echo "Staging preflight status: $PREFLIGHT_STATUS"
+          test "$PREFLIGHT_STATUS" = '204'
+          grep -qi '^Access-Control-Allow-Origin: https://alejoherrera05-del.github.io' /tmp/hommy-staging-cors.txt
+          grep -qi '^X-Content-Type-Options: nosniff' /tmp/hommy-staging-cors.txt
+          if grep -qi '^Access-Control-Allow-Credentials:' /tmp/hommy-staging-cors.txt; then
+            echo 'Unexpected Access-Control-Allow-Credentials header in staging.'
+            cat /tmp/hommy-staging-cors.txt
+            exit 1
+          fi
+
+          echo 'Hommy staging live contracts passed'
