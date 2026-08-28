@@ -104,6 +104,12 @@ body {
   box-shadow: var(--hommy-soft-shadow);
 }
 
+.entity-card,
+.kpi-group-card,
+.chart-card {
+  border-radius: 16px;
+}
+
 .card-topline {
   gap: 14px;
 }
@@ -174,8 +180,8 @@ body {
 }
 
 .composer:focus-within {
-  border-color: rgba(166,69,90,.34);
-  box-shadow: 0 13px 36px rgba(55,38,45,.09), 0 0 0 3px rgba(166,69,90,.055);
+  border-color: rgba(131,52,69,.58);
+  box-shadow: 0 13px 36px rgba(55,38,45,.09), 0 0 0 3px rgba(131,52,69,.14);
 }
 
 .voice-mode {

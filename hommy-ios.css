@@ -1,12 +1,20 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  min-height: 100%;
 }
 
 @media (max-width: 640px) {
   html, body {
     width: 100%;
     overflow-x: hidden;
+  }
+
+  body,
+  .hommy-app,
+  .voice-mode {
+    min-height: 100svh;
+    min-height: 100dvh;
   }
 
   .composer textarea {
@@ -18,7 +26,10 @@ html {
   .composer textarea,
   .send-button,
   .icon-button,
-  .voice-control {
+  .voice-control,
+  .contact-action,
+  .entity-document-link,
+  .suggestion-chip {
     touch-action: manipulation;
   }
 }

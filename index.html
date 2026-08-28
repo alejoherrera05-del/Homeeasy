@@ -1577,9 +1577,17 @@ button, input, select, textarea { font-family: inherit; }
 // ==========================================
 // ⚡ DESPERTADOR DE HOMMY (PRE-WARMING)
 // ==========================================
-// Le damos un "toque" silencioso al servidor en Render para que encienda los motores
-// en segundo plano mientras el usuario está en el menú principal.
-fetch("https://homeeasy-l5n1.onrender.com/", { mode: 'no-cors' }).catch(() => {});
+// Un único toque no bloqueante durante uso real despierta solo el staging de Hommy.
+(() => {
+    const wakeHommy = () => fetch("https://homeeasy-hommy-staging.onrender.com/api/health", {
+        method: 'GET',
+        mode: 'no-cors',
+        cache: 'no-store',
+        keepalive: true
+    }).catch(() => {});
+    if ('requestIdleCallback' in window) window.requestIdleCallback(wakeHommy, { timeout: 2200 });
+    else window.setTimeout(wakeHommy, 1200);
+})();
 
 // ==========================================
 // 🚨 FUNCIONES DE LAS VENTANAS BONITAS
