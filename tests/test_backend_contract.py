@@ -36,6 +36,7 @@ sys.path.insert(0, ROOT)
 from hommy_backend.auth import AuthContext, decode_client_meta
 from hommy_backend.data import HomeEasyDataStore, Snapshot, money_number
 from hommy_backend.engine import ConversationSigner
+from hommy_backend.realtime import session_config
 from hommy_backend.tools import ToolPermissionError, execute_tool
 
 
@@ -92,6 +93,15 @@ class BackendContractTests(unittest.TestCase):
         self.assertEqual(meta['plataforma'], 'iPhone')
         self.assertNotIn('unexpected', meta)
         self.assertEqual(decode_client_meta('not-valid-base64'), {})
+
+    def test_realtime_uses_only_documented_function_tool_fields(self):
+        config = session_config(self.full)
+        self.assertEqual(config['model'], 'gpt-realtime-2.1')
+        self.assertEqual(config['output_modalities'], ['audio'])
+        self.assertFalse(config['parallel_tool_calls'])
+        for tool in config['tools']:
+            self.assertEqual(set(tool), {'type', 'name', 'description', 'parameters'})
+            self.assertNotIn('strict', tool)
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)

@@ -57,12 +57,22 @@ jobs:
       - name: Import production server
         run: python -c "import servidor; print('Hommy server import OK')"
 
-      - name: Verify OpenAI SDK capabilities
+      - name: Verify current OpenAI SDK contracts
         run: |
           python - <<'PY'
+          import inspect
           from openai import OpenAI
+
           client = OpenAI(api_key='test-key-not-for-network-calls')
           assert hasattr(client, 'responses'), 'Responses API missing from installed SDK'
           assert hasattr(client, 'conversations'), 'Conversations API missing from installed SDK'
-          print('OpenAI Responses + Conversations SDK surfaces available')
+          assert hasattr(client, 'realtime') and hasattr(client.realtime, 'calls'), 'Realtime calls API missing from installed SDK'
+
+          response_params = inspect.signature(client.responses.create).parameters
+          conversation_params = inspect.signature(client.conversations.create).parameters
+          realtime_params = inspect.signature(client.realtime.calls.create).parameters
+          assert 'safety_identifier' in response_params, 'Responses safety_identifier parameter missing'
+          assert 'metadata' in conversation_params, 'Conversations metadata parameter missing'
+          assert 'sdp' in realtime_params and 'session' in realtime_params, 'Realtime create-call contract changed'
+          print('OpenAI Responses, Conversations and Realtime contracts available')
           PY

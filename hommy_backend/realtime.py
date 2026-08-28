@@ -1,19 +1,24 @@
 from __future__ import annotations
 
-import json
 import os
 from typing import Any
 
-import requests
+from openai import OpenAI
 
-from .auth import AuthContext, safety_identifier
+from .auth import AuthContext
 from .engine import HommyEngine
-from .tools import TOOL_SPECS
 from .settings import openai_api_key
+from .tools import TOOL_SPECS
 
 
 class RealtimeError(RuntimeError):
     pass
+
+
+def realtime_tools() -> list[dict[str, Any]]:
+    """Realtime accepts the documented function-tool subset, not Responses-only fields."""
+    allowed = ("type", "name", "description", "parameters")
+    return [{key: tool[key] for key in allowed if key in tool} for tool in TOOL_SPECS]
 
 
 def session_config(context: AuthContext) -> dict[str, Any]:
@@ -23,6 +28,7 @@ def session_config(context: AuthContext) -> dict[str, Any]:
         "type": "realtime",
         "model": model,
         "instructions": HommyEngine.instructions(context) + "\nEstás en modo voz. Responde conversacionalmente y con frases naturales.",
+        "output_modalities": ["audio"],
         "audio": {
             "input": {
                 "turn_detection": {
@@ -33,8 +39,9 @@ def session_config(context: AuthContext) -> dict[str, Any]:
             },
             "output": {"voice": voice},
         },
-        "tools": TOOL_SPECS,
+        "tools": realtime_tools(),
         "tool_choice": "auto",
+        "parallel_tool_calls": False,
     }
 
 
@@ -45,23 +52,12 @@ def create_call(sdp: str, context: AuthContext) -> str:
     if not str(sdp or "").strip():
         raise RealtimeError("No se recibió una oferta WebRTC válida.")
 
-    files = {
-        "sdp": (None, sdp),
-        "session": (None, json.dumps(session_config(context), ensure_ascii=False)),
-    }
     try:
-        response = requests.post(
-            "https://api.openai.com/v1/realtime/calls",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "OpenAI-Safety-Identifier": safety_identifier(context),
-            },
-            files=files,
+        response = OpenAI(api_key=api_key).realtime.calls.create(
+            sdp=sdp,
+            session=session_config(context),
             timeout=25,
         )
-    except requests.RequestException as exc:
+    except Exception as exc:
         raise RealtimeError("No fue posible iniciar la conversación por voz.") from exc
-
-    if not response.ok:
-        raise RealtimeError(f"OpenAI Realtime rechazó la conexión ({response.status_code}).")
     return response.text

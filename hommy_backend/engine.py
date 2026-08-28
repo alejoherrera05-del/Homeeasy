@@ -108,7 +108,6 @@ ESTILO
         conversation_id = self.signer.verify(token or "", context.uid)
         if not conversation_id:
             conversation = self.client.conversations.create(
-                extra_headers={"OpenAI-Safety-Identifier": safety_identifier(context)},
                 metadata={
                     "surface": "homeeasy-hommy-2",
                     "user_hash": hashlib.sha256(context.uid.encode()).hexdigest()[:24],
@@ -116,6 +115,20 @@ ESTILO
             )
             conversation_id = conversation.id
         return conversation_id, self.signer.sign(conversation_id, context.uid)
+
+    def _response(self, *, conversation_id: str, instructions: str, input_items: list[dict[str, Any]], context: AuthContext):
+        return self.client.responses.create(
+            model=self.model,
+            conversation=conversation_id,
+            instructions=instructions,
+            input=input_items,
+            tools=TOOL_SPECS,
+            tool_choice="auto",
+            parallel_tool_calls=False,
+            reasoning={"effort": self.reasoning_effort},
+            max_output_tokens=self.max_output_tokens,
+            safety_identifier=safety_identifier(context),
+        )
 
     def chat(self, message: str, context: AuthContext, conversation_token: str | None = None) -> dict[str, Any]:
         text = str(message or "").strip()
@@ -129,17 +142,11 @@ ESTILO
         ui_cards: list[dict[str, Any]] = []
         tool_trace: list[dict[str, str]] = []
 
-        response = self.client.responses.create(
-            model=self.model,
-            conversation=conversation_id,
+        response = self._response(
+            conversation_id=conversation_id,
             instructions=instructions,
-            input=[{"role": "user", "content": text}],
-            tools=TOOL_SPECS,
-            tool_choice="auto",
-            parallel_tool_calls=False,
-            reasoning={"effort": self.reasoning_effort},
-            max_output_tokens=self.max_output_tokens,
-            extra_headers={"OpenAI-Safety-Identifier": safety_identifier(context)},
+            input_items=[{"role": "user", "content": text}],
+            context=context,
         )
 
         for _ in range(self.max_tool_rounds):
@@ -177,17 +184,11 @@ ESTILO
                     }
                 )
 
-            response = self.client.responses.create(
-                model=self.model,
-                conversation=conversation_id,
+            response = self._response(
+                conversation_id=conversation_id,
                 instructions=instructions,
-                input=outputs,
-                tools=TOOL_SPECS,
-                tool_choice="auto",
-                parallel_tool_calls=False,
-                reasoning={"effort": self.reasoning_effort},
-                max_output_tokens=self.max_output_tokens,
-                extra_headers={"OpenAI-Safety-Identifier": safety_identifier(context)},
+                input_items=outputs,
+                context=context,
             )
 
         raise HommyEngineError("Hommy necesitó demasiadas consultas para responder. Intenta una pregunta más concreta.")
