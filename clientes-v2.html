@@ -6,71 +6,95 @@
   <meta name="theme-color" content="#f8f9fa">
   <title>HomeEasy | Clientes 2.0 Preview</title>
   <style>
-    html,body{margin:0;min-height:100%;background:#f8f9fa;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",sans-serif;color:#1d1d1f}
-    .preview-bootstrap{position:fixed;inset:0;display:grid;place-items:center;padding:24px;background:#f8f9fa;z-index:999999}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f8f9fa;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#1d1d1f}
+    #clientesPreviewFrame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f8f9fa;opacity:0;transition:opacity .16s ease}
+    #clientesPreviewFrame.is-ready{opacity:1}
+    .preview-loader{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:24px;background:#f8f9fa;transition:opacity .16s ease}
+    .preview-loader.is-hidden{opacity:0;pointer-events:none}
     .preview-card{width:min(360px,100%);text-align:center}
     .preview-mark{width:52px;height:52px;margin:0 auto 16px;border-radius:18px;background:#fff;display:grid;place-items:center;box-shadow:0 10px 32px rgba(38,31,34,.08);color:#a6455a;font-size:22px;font-weight:800}
-    .preview-title{font-size:1.08rem;font-weight:750;letter-spacing:-.02em}
-    .preview-sub{margin-top:7px;color:#8e8e93;font-size:.82rem}
-    .preview-error{display:none;margin-top:18px;padding:14px 16px;border-radius:16px;background:#fff;color:#8a3b4c;font-size:.78rem;line-height:1.5}
+    .preview-title{font-size:1.08rem;font-weight:760;letter-spacing:-.02em}
+    .preview-sub{margin-top:7px;color:#8e8e93;font-size:.82rem;line-height:1.45}
+    .preview-error{display:none;margin-top:18px;padding:14px 16px;border-radius:16px;background:#fff;color:#8a3b4c;font-size:.78rem;line-height:1.5;box-shadow:0 8px 26px rgba(30,24,27,.06)}
   </style>
 </head>
 <body>
-  <div class="preview-bootstrap" id="previewBootstrap">
+  <div class="preview-loader" id="previewLoader">
     <div class="preview-card">
       <div class="preview-mark">H</div>
       <div class="preview-title">Preparando Clientes</div>
-      <div class="preview-sub">Cargando la vista de prueba…</div>
-      <div class="preview-error" id="previewError">No fue posible abrir la vista de prueba. Inténtalo nuevamente.</div>
+      <div class="preview-sub">Cargando la experiencia de prueba…</div>
+      <div class="preview-error" id="previewError">No fue posible aplicar la vista de prueba. Cierra esta pestaña e inténtalo nuevamente.</div>
     </div>
   </div>
 
+  <iframe id="clientesPreviewFrame" title="Clientes HomeEasy" src="./clientes.html?clientesPreview=iphone-r3"></iframe>
+
   <script>
-  (async function(){
-    try{
-      const stamp='clientes-v2-20260828-r2';
-      const [pageResponse,guardResponse]=await Promise.all([
-        fetch('./clientes.html?previewSource='+stamp,{cache:'no-store'}),
-        fetch('./homeeasy-page-guard.js?previewGuard='+stamp,{cache:'no-store'})
-      ]);
-      if(!pageResponse.ok||!guardResponse.ok) throw new Error('No fue posible cargar Clientes.');
+  (function(){
+    'use strict';
+    const frame=document.getElementById('clientesPreviewFrame');
+    const loader=document.getElementById('previewLoader');
+    const errorBox=document.getElementById('previewError');
+    let injecting=false;
 
-      let source=await pageResponse.text();
-      let guard=await guardResponse.text();
-      guard=guard.replace(/const currentPage = \(\(global\.location[\s\S]*?\.trim\(\);/,"const currentPage = 'clientes.html';");
-      guard=guard.replace(/<\/script/gi,'<\\/script');
-      source=source.replace('`clientes.html?search=${cedula}`','`clientes-v2.html?search=${cedula}`');
-      source=source.replace("window.history.replaceState({}, '', 'clientes.html');","window.history.replaceState({}, '', 'clientes-v2.html');");
+    async function injectPreview(){
+      if(injecting)return;
+      injecting=true;
+      try{
+        const doc=frame.contentDocument;
+        const win=frame.contentWindow;
+        if(!doc||!doc.head||!doc.body||!win)throw new Error('Documento de Clientes no disponible');
 
-      const parser=new DOMParser();
-      const doc=parser.parseFromString(source,'text/html');
-      doc.title='HomeEasy | Clientes 2.0';
-      doc.body.classList.add('clientes-v2-preview');
+        const path=(win.location.pathname.split('/').pop()||'').toLowerCase();
+        if(path&&path!=='clientes.html'){
+          window.location.replace(win.location.href);
+          return;
+        }
 
-      const guardTag=[...doc.querySelectorAll('script[src]')].find(node=>String(node.getAttribute('src')||'').includes('homeeasy-page-guard.js'));
-      if(!guardTag) throw new Error('No se encontró el guard de Clientes.');
-      const inlineGuard=doc.createElement('script');
-      inlineGuard.textContent=guard;
-      guardTag.replaceWith(inlineGuard);
+        const stamp='iphone-r3-20260828';
+        const [cssResponse,jsResponse]=await Promise.all([
+          fetch('./clientes-v2-preview.css?'+stamp,{cache:'no-store'}),
+          fetch('./clientes-v2-preview.js?'+stamp,{cache:'no-store'})
+        ]);
+        if(!cssResponse.ok||!jsResponse.ok)throw new Error('Assets de Clientes 2.0 no disponibles');
 
-      const css=doc.createElement('link');
-      css.rel='stylesheet';
-      css.href='./clientes-v2-preview.css?v=2';
-      doc.head.appendChild(css);
+        const [cssText,jsText]=await Promise.all([cssResponse.text(),jsResponse.text()]);
+        doc.getElementById('clientesV2InjectedStyle')?.remove();
+        doc.getElementById('clientesV2InjectedScript')?.remove();
 
-      const enhancer=doc.createElement('script');
-      enhancer.src='./clientes-v2-preview.js?v=2';
-      enhancer.defer=false;
-      doc.body.appendChild(enhancer);
+        const style=doc.createElement('style');
+        style.id='clientesV2InjectedStyle';
+        style.textContent=cssText;
+        doc.head.appendChild(style);
 
-      document.open();
-      document.write('<!DOCTYPE html>'+doc.documentElement.outerHTML);
-      document.close();
-    }catch(error){
-      console.error('Clientes 2.0 preview:',error);
-      const box=document.getElementById('previewError');
-      if(box)box.style.display='block';
+        const script=doc.createElement('script');
+        script.id='clientesV2InjectedScript';
+        script.textContent=jsText+'\n//# sourceURL=clientes-v2-preview-injected.js';
+        doc.body.appendChild(script);
+
+        doc.addEventListener('click',function(event){
+          const link=event.target&&event.target.closest?event.target.closest('a[href]'):null;
+          if(!link)return;
+          const href=String(link.getAttribute('href')||'');
+          if(href==='index.html'||href.startsWith('index.html?')){
+            event.preventDefault();
+            window.location.href='./index.html';
+          }
+        },true);
+
+        frame.classList.add('is-ready');
+        loader.classList.add('is-hidden');
+        setTimeout(()=>{loader.style.display='none'},220);
+      }catch(error){
+        console.error('Clientes 2.0 preview:',error);
+        if(errorBox)errorBox.style.display='block';
+      }finally{
+        injecting=false;
+      }
     }
+
+    frame.addEventListener('load',()=>setTimeout(injectPreview,0));
   })();
   </script>
 </body>
