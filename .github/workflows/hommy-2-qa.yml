@@ -49,7 +49,9 @@ jobs:
         run: python -m py_compile servidor.py hommy_backend/*.py
 
       - name: Validate JavaScript syntax
-        run: node --check hommy-chat.js
+        run: |
+          node --check hommy-chat.js
+          node --check tests/hommy-browser-qa.mjs
 
       - name: Run Hommy contracts
         run: python -m unittest discover -s tests -v
@@ -138,6 +140,27 @@ jobs:
           grep -qi '^Access-Control-Allow-Origin: https://alejoherrera05-del.github.io' /tmp/hommy-cors.txt
           grep -qi '^X-Content-Type-Options: nosniff' /tmp/hommy-cors.txt
           echo 'Production WSGI smoke tests passed'
+
+      - name: Run Hommy browser QA
+        run: |
+          set -euo pipefail
+          CHROME_PATH="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$CHROME_PATH" ]; then
+            echo 'No Chromium/Chrome executable found on runner.'
+            exit 1
+          fi
+          echo "Using browser: $CHROME_PATH"
+          npm install --no-save --no-package-lock playwright-core@1.55.0
+          python -m http.server 8000 > /tmp/hommy-static.log 2>&1 &
+          STATIC_PID=$!
+          trap 'kill "$STATIC_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --silent --fail --max-time 2 http://127.0.0.1:8000/Hommychat.html > /dev/null; then
+              break
+            fi
+            sleep 0.25
+          done
+          CHROME_PATH="$CHROME_PATH" node tests/hommy-browser-qa.mjs
 
       - name: Probe current public Render backend
         continue-on-error: true
