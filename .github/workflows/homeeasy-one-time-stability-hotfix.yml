@@ -1,0 +1,375 @@
+name: HomeEasy one-time stability hotfix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/homeeasy-one-time-stability-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  hotfix:
+    if: github.event.head_commit.message == 'Apply one-time HomeEasy navigation hotfix'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch session recovery and invalidate stale iOS cache
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_exact(path, old, new, *, count=None):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              found = text.count(old)
+              if found == 0:
+                  raise SystemExit(f'Expected text not found in {path}: {old[:90]!r}')
+              if count is not None and found != count:
+                  raise SystemExit(f'Unexpected occurrence count in {path}: expected {count}, got {found}')
+              p.write_text(text.replace(old, new), encoding='utf-8')
+
+          # 1) Harden the session bridge. Only normal session expiry may transparently reopen.
+          auth_config = Path('homeeasy-auth-config.js')
+          text = auth_config.read_text(encoding='utf-8')
+          text = text.replace('session stability bridge v3.2', 'session stability bridge v3.3')
+          text = text.replace('__HOMEEASY_SESSION_STABILITY_V32__', '__HOMEEASY_SESSION_STABILITY_V33__')
+          text = text.replace("__SESSION_STABILITY_BRIDGE__: '3.2'", "__SESSION_STABILITY_BRIDGE__: '3.3'")
+          old_validate_catch = """                    } catch (error) {
+                        if (transient(error)) throw error;
+                        if (!opts.reopen) {
+                            if (opts.silent) return null;
+                            throw error;
+                        }
+                    }
+                }
+
+                if (!opts.reopen) return null;
+"""
+          new_validate_catch = """                    } catch (error) {
+                        if (transient(error)) throw error;
+                        const code = String(error && error.code || '').trim().toUpperCase();
+                        const mayReopen = code === 'APP_SESSION_EXPIRED' || code === 'APP_SESSION_REJECTED' || code === 'NO_SESSION';
+                        if (!mayReopen) {
+                            if (opts.silent) return null;
+                            throw error;
+                        }
+                        if (!opts.reopen) {
+                            if (opts.silent) return null;
+                            throw error;
+                        }
+                    }
+                }
+
+                if (!opts.reopen) return null;
+"""
+          if old_validate_catch not in text:
+              raise SystemExit('Auth bridge validation block did not match expected source')
+          text = text.replace(old_validate_catch, new_validate_catch, 1)
+          auth_config.write_text(text, encoding='utf-8')
+
+          # 2) Module guard: recover an ordinary expired HomeEasy session instead of bouncing to login/index.
+          guard = Path('homeeasy-page-guard.js')
+          text = guard.read_text(encoding='utf-8')
+          text = text.replace('HomeEasy Page Guard v3.5', 'HomeEasy Page Guard v3.6')
+          text = text.replace("    let pendingTimer = null;\n", "    let pendingTimer = null;\n    let sessionRecoveryPromise = null;\n", 1)
+
+          old_security = """    function handleSecurityResponse(response) {
+        try {
+            response.clone().json().then(data => {
+                if (!data || typeof data !== 'object') return;
+                if (data.requiresLogin === true) redirectToLogin();
+                else if (data.forbidden === true || data.code === 'PERMISSION_DENIED') showDenied(data.msg || 'Tu rol no tiene permiso para realizar esta acción.');
+            }).catch(() => {});
+        } catch (error) {}
+        return response;
+    }
+
+    function installFetchBridge() {
+        global.fetch = function homeEasyAuthorizedFetch(resource, init) {
+            const rawUrl = typeof resource === 'string' ? resource : (resource && resource.url ? resource.url : '');
+            const options = { ...(init || {}) };
+            const method = String(options.method || (resource && resource.method) || 'GET').toUpperCase();
+            const targetsHomeEasy = rawUrl.startsWith(API_URL);
+            if (!targetsHomeEasy) return nativeFetch(resource, options);
+
+            let isAuth = false;
+            let finalUrl = rawUrl;
+            if (method === 'POST') isAuth = enrichPost(options).isAuth;
+            if (method === 'GET') finalUrl = buildMetaQuery(rawUrl);
+
+            const execute = () => nativeFetch(finalUrl || resource, options).then(handleSecurityResponse);
+            if (isAuth) return execute();
+            return pageReady.then(allowed => {
+                if (!allowed) throw new Error('PERMISSION_DENIED');
+                return execute();
+            });
+        };
+    }
+"""
+          new_security = """    async function readSecurityPayload(response) {
+        try {
+            const data = await response.clone().json();
+            return data && typeof data === 'object' ? data : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function authErrorCode(error) {
+        return String(error && error.code || '').trim().toUpperCase();
+    }
+
+    function isRecoverableSessionError(error) {
+        const code = authErrorCode(error);
+        return code === 'APP_SESSION_EXPIRED' || code === 'APP_SESSION_REJECTED' || code === 'NO_SESSION';
+    }
+
+    async function recoverOperationalSession() {
+        const auth = global.HomeEasyAuth;
+        if (!auth || typeof auth.restoreHomeEasySession !== 'function') return false;
+        if (sessionRecoveryPromise) return sessionRecoveryPromise;
+
+        sessionRecoveryPromise = (async () => {
+            try {
+                const recovered = await auth.restoreHomeEasySession({
+                    validateFirebase: false,
+                    reopen: true,
+                    silent: false,
+                    preferCache: false,
+                    meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {}
+                });
+                if (!recovered) return false;
+                if (!auth.hasPermission(requiredPermission)) {
+                    showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                if (isTransientAuthError(error)) {
+                    showConnectionIssue(error);
+                    return null;
+                }
+                console.warn('HomeEasy: no fue posible recuperar la sesión operativa.', error);
+                return false;
+            } finally {
+                sessionRecoveryPromise = null;
+            }
+        })();
+        return sessionRecoveryPromise;
+    }
+
+    function installFetchBridge() {
+        global.fetch = function homeEasyAuthorizedFetch(resource, init) {
+            const rawUrl = typeof resource === 'string' ? resource : (resource && resource.url ? resource.url : '');
+            const options = { ...(init || {}) };
+            const method = String(options.method || (resource && resource.method) || 'GET').toUpperCase();
+            const targetsHomeEasy = rawUrl.startsWith(API_URL);
+            if (!targetsHomeEasy) return nativeFetch(resource, options);
+
+            let isAuth = false;
+            if (method === 'POST') isAuth = enrichPost(options).isAuth;
+
+            const execute = async (allowRecovery) => {
+                if (method === 'POST' && !isAuth) enrichPost(options);
+                const finalUrl = method === 'GET' ? buildMetaQuery(rawUrl) : rawUrl;
+                const response = await nativeFetch(finalUrl || resource, options);
+                const data = await readSecurityPayload(response);
+
+                if (data && data.requiresLogin === true) {
+                    if (allowRecovery) {
+                        const recovered = await recoverOperationalSession();
+                        if (recovered === true) return execute(false);
+                        if (recovered === null) return response;
+                    }
+                    redirectToLogin();
+                } else if (data && (data.forbidden === true || data.code === 'PERMISSION_DENIED')) {
+                    showDenied(data.msg || 'Tu rol no tiene permiso para realizar esta acción.');
+                }
+                return response;
+            };
+
+            if (isAuth) return execute(false);
+            return pageReady.then(allowed => {
+                if (!allowed) throw new Error('PERMISSION_DENIED');
+                return execute(true);
+            });
+        };
+    }
+"""
+          if old_security not in text:
+              raise SystemExit('Page guard security/fetch block did not match expected source')
+          text = text.replace(old_security, new_security, 1)
+
+          old_revalidate = """    function revalidateInBackground() {
+        const auth = global.HomeEasyAuth;
+        if (!auth || !auth.validateAppSession) return;
+        if (auth.shouldRevalidateAppSession && !auth.shouldRevalidateAppSession(REVALIDATE_AFTER_MS)) return;
+        auth.validateAppSession({ meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {} })
+            .then(() => {
+                if (!auth.hasPermission(requiredPermission)) showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
+            })
+            .catch(error => {
+                if (isTransientAuthError(error)) {
+                    console.warn('HomeEasy: revalidación del módulo aplazada por conexión.', error);
+                    return;
+                }
+                redirectToLogin();
+            });
+    }
+"""
+          new_revalidate = """    function revalidateInBackground() {
+        const auth = global.HomeEasyAuth;
+        if (!auth || !auth.validateAppSession) return;
+        if (auth.shouldRevalidateAppSession && !auth.shouldRevalidateAppSession(REVALIDATE_AFTER_MS)) return;
+        auth.validateAppSession({ meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {} })
+            .then(() => {
+                if (!auth.hasPermission(requiredPermission)) showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
+            })
+            .catch(async error => {
+                if (isTransientAuthError(error)) {
+                    console.warn('HomeEasy: revalidación del módulo aplazada por conexión.', error);
+                    return;
+                }
+                if (isRecoverableSessionError(error)) {
+                    const recovered = await recoverOperationalSession();
+                    if (recovered !== false) return;
+                }
+                redirectToLogin();
+            });
+    }
+"""
+          if old_revalidate not in text:
+              raise SystemExit('Page guard revalidation block did not match expected source')
+          text = text.replace(old_revalidate, new_revalidate, 1)
+          text = text.replace("homeeasy-auth-config.js?v=3.2", "homeeasy-auth-config.js?v=3.3")
+          guard.write_text(text, encoding='utf-8')
+
+          # 3) Index guard gets the same transparent recovery behavior.
+          core = Path('homeeasy-core.js')
+          text = core.read_text(encoding='utf-8')
+          text = text.replace('HomeEasy Core v3.4', 'HomeEasy Core v3.5')
+          text = text.replace("const APP_VERSION = '3.4';", "const APP_VERSION = '3.5';")
+          text = text.replace("homeeasy-auth-config.js?v=3.1", "homeeasy-auth-config.js?v=3.3")
+          old_index_revalidate = """            if (global.HomeEasyAuth.shouldRevalidateAppSession && global.HomeEasyAuth.shouldRevalidateAppSession(5 * 60 * 1000)) {
+                global.HomeEasyAuth.validateAppSession({ meta: buildMeta() }).catch(error => {
+                    if (isTransientAuthError(error)) {
+                        console.warn('HomeEasy: revalidación del Index aplazada por conexión.', error);
+                        return;
+                    }
+                    redirectIndexToLogin();
+                });
+            }
+"""
+          new_index_revalidate = """            if (global.HomeEasyAuth.shouldRevalidateAppSession && global.HomeEasyAuth.shouldRevalidateAppSession(5 * 60 * 1000)) {
+                global.HomeEasyAuth.validateAppSession({ meta: buildMeta() }).catch(async error => {
+                    if (isTransientAuthError(error)) {
+                        console.warn('HomeEasy: revalidación del Index aplazada por conexión.', error);
+                        return;
+                    }
+                    const code = String(error && error.code || '').trim().toUpperCase();
+                    const mayRecover = code === 'APP_SESSION_EXPIRED' || code === 'APP_SESSION_REJECTED' || code === 'NO_SESSION';
+                    if (mayRecover && global.HomeEasyAuth.restoreHomeEasySession) {
+                        try {
+                            const recovered = await global.HomeEasyAuth.restoreHomeEasySession({
+                                validateFirebase: false,
+                                reopen: true,
+                                silent: false,
+                                preferCache: false,
+                                meta: buildMeta()
+                            });
+                            if (recovered) {
+                                const refreshedProfile = global.HomeEasyAuth.getCurrentProfile();
+                                if (refreshedProfile) setOperator(refreshedProfile.nombre || refreshedProfile.email || 'Sin identificar');
+                                return;
+                            }
+                        } catch (recoveryError) {
+                            if (isTransientAuthError(recoveryError)) {
+                                showIndexConnectionIssue(recoveryError);
+                                return;
+                            }
+                        }
+                    }
+                    redirectIndexToLogin();
+                });
+            }
+"""
+          if old_index_revalidate not in text:
+              raise SystemExit('Index revalidation block did not match expected source')
+          text = text.replace(old_index_revalidate, new_index_revalidate, 1)
+          core.write_text(text, encoding='utf-8')
+
+          # 4) Force every protected HTML to request fresh shared JS on iOS/Safari/PWA.
+          protected = [
+              'Hommychat.html', 'perfil.html', 'caja.html', 'abono.html', 'ventas.html',
+              'pedido.html', 'reportes.html', 'seguimiento.html', 'clientes.html',
+              'cotizacion.html', 'documentos.html', 'calendario.html', 'configuracion.html'
+          ]
+          for name in protected:
+              p = Path(name)
+              html = p.read_text(encoding='utf-8')
+              if 'homeeasy-page-guard.js?v=3.4' not in html:
+                  raise SystemExit(f'{name} does not have expected guard cache key')
+              if 'homeeasy-core.js?v=3.4' not in html:
+                  raise SystemExit(f'{name} does not have expected core cache key')
+              html = html.replace('homeeasy-page-guard.js?v=3.4', 'homeeasy-page-guard.js?v=3.6')
+              html = html.replace('homeeasy-core.js?v=3.4', 'homeeasy-core.js?v=3.5')
+              p.write_text(html, encoding='utf-8')
+
+          # Index also needs a fresh Core URL.
+          p = Path('index.html')
+          html = p.read_text(encoding='utf-8')
+          if 'homeeasy-core.js?v=3.4' not in html:
+              raise SystemExit('index.html does not have expected core cache key')
+          p.write_text(html.replace('homeeasy-core.js?v=3.4', 'homeeasy-core.js?v=3.5'), encoding='utf-8')
+
+          # Login/activation must never bootstrap the stale v3.1 bridge.
+          for name in ('login.html', 'activar-cuenta.html'):
+              p = Path(name)
+              html = p.read_text(encoding='utf-8')
+              if 'homeeasy-auth-config.js?v=3.1' not in html:
+                  raise SystemExit(f'{name} does not have expected auth config cache key')
+              p.write_text(html.replace('homeeasy-auth-config.js?v=3.1', 'homeeasy-auth-config.js?v=3.3'), encoding='utf-8')
+
+          # Remove remaining navigation-only references to obsolete Hommy.
+          for name in ('homeeasy-account.js', 'homeeasy-account-template.js'):
+              p = Path(name)
+              if not p.exists():
+                  continue
+              js = p.read_text(encoding='utf-8')
+              js = js.replace("        'asistente.html': 'app.access'\n", '')
+              js = js.replace("        'asistente.html': 'app.access',\n", '')
+              p.write_text(js, encoding='utf-8')
+
+          # Static acceptance checks before commit.
+          for name in protected:
+              html = Path(name).read_text(encoding='utf-8')
+              assert 'homeeasy-page-guard.js?v=3.6' in html, name
+              assert 'homeeasy-core.js?v=3.5' in html, name
+              assert 'homeeasy-page-guard.js?v=3.4' not in html, name
+          assert 'homeeasy-auth-config.js?v=3.3' in Path('homeeasy-page-guard.js').read_text(encoding='utf-8')
+          assert 'recoverOperationalSession' in Path('homeeasy-page-guard.js').read_text(encoding='utf-8')
+          assert 'homeeasy-auth-config.js?v=3.3' in Path('homeeasy-core.js').read_text(encoding='utf-8')
+          assert "__SESSION_STABILITY_BRIDGE__: '3.3'" in Path('homeeasy-auth-config.js').read_text(encoding='utf-8')
+          print('HomeEasy stability patch prepared successfully')
+          PY
+
+      - name: Validate shared JavaScript
+        run: |
+          node --check homeeasy-auth-config.js
+          node --check homeeasy-page-guard.js
+          node --check homeeasy-core.js
+          node --check homeeasy-account.js
+
+      - name: Commit the tested hotfix
+        run: |
+          git config user.name 'HomeEasy Stability Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add homeeasy-auth-config.js homeeasy-page-guard.js homeeasy-core.js homeeasy-account.js homeeasy-account-template.js '*.html'
+          git diff --cached --check
+          git commit -m 'Fix HomeEasy session recovery and iOS cache'
+          git push origin HEAD:main
