@@ -1,0 +1,305 @@
+/* Hommy 2.3 visual refinement: presentation-only overrides. */
+:root {
+  --hommy-glass: rgba(255, 255, 255, .82);
+  --hommy-glass-strong: rgba(255, 255, 255, .94);
+  --hommy-border: rgba(37, 31, 34, .075);
+  --hommy-soft-shadow: 0 14px 38px rgba(49, 37, 42, .065);
+}
+
+body {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(166, 69, 90, .035), transparent 32%),
+    #f6f6f8;
+}
+
+.app-header {
+  background: rgba(247, 247, 249, .87);
+  border-bottom-color: rgba(29, 29, 31, .065);
+}
+
+.identity-avatar {
+  border: 2px solid rgba(255,255,255,.92);
+  box-shadow: 0 5px 15px rgba(55, 37, 44, .09);
+}
+
+.identity-copy strong {
+  font-weight: 760;
+  letter-spacing: -.025em;
+}
+
+.service-status {
+  font-size: 11.5px;
+}
+
+.conversation {
+  gap: 14px;
+}
+
+.message-row.assistant .message {
+  max-width: min(92%, 720px);
+}
+
+.message-row.assistant .message-bubble {
+  padding: 16px 18px;
+  border-radius: 22px;
+  border-bottom-left-radius: 8px;
+  background: var(--hommy-glass-strong);
+  border-color: var(--hommy-border);
+  box-shadow: 0 9px 28px rgba(40, 31, 35, .045);
+}
+
+.message-row.user .message-bubble {
+  padding: 13px 17px;
+  background: linear-gradient(145deg, #b24862, #a43f57);
+  box-shadow: 0 7px 18px rgba(166, 69, 90, .14);
+}
+
+.message-meta {
+  margin-top: 7px;
+  font-size: 10.5px;
+}
+
+.assistant-copy {
+  display: grid;
+  gap: 10px;
+  color: #232124;
+}
+
+.assistant-copy p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.assistant-copy strong {
+  font-weight: 760;
+  color: #171518;
+}
+
+.assistant-copy ol,
+.assistant-copy ul {
+  margin: 2px 0 2px 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 9px;
+}
+
+.assistant-copy li {
+  padding-left: 3px;
+  line-height: 1.5;
+}
+
+.card-stack {
+  margin-top: 11px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hommy-card {
+  min-width: 0;
+  padding: 16px;
+  border-radius: 19px;
+  border: 1px solid var(--hommy-border);
+  background: rgba(255,255,255,.92);
+  box-shadow: var(--hommy-soft-shadow);
+}
+
+.card-topline {
+  gap: 14px;
+}
+
+.card-kicker {
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: .1em;
+}
+
+.card-title {
+  font-size: 14.5px;
+  font-weight: 760;
+  letter-spacing: -.018em;
+}
+
+.card-subtitle {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.card-meta {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(29,29,31,.06);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.card-amount {
+  font-size: 17px;
+  font-weight: 790;
+  letter-spacing: -.035em;
+}
+
+.card-status {
+  margin-top: 10px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  text-transform: capitalize;
+}
+
+.document-link {
+  min-height: 42px;
+  align-items: center;
+  text-decoration: none;
+}
+
+.document-link .card-kicker {
+  margin-bottom: 3px;
+}
+
+.document-link .card-title {
+  color: #9f3d54;
+  font-size: 13.5px;
+}
+
+.composer-shell {
+  background: linear-gradient(to top, #f6f6f8 64%, rgba(246,246,248,.92) 78%, rgba(246,246,248,0));
+}
+
+.composer {
+  border-color: rgba(166,69,90,.16);
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 13px 36px rgba(55, 38, 45, .09);
+}
+
+.composer:focus-within {
+  border-color: rgba(166,69,90,.34);
+  box-shadow: 0 13px 36px rgba(55,38,45,.09), 0 0 0 3px rgba(166,69,90,.055);
+}
+
+.voice-mode {
+  background:
+    radial-gradient(circle at 50% 31%, rgba(226, 132, 153, .72) 0, rgba(174, 71, 94, .72) 23%, transparent 51%),
+    linear-gradient(165deg, #9d3e54 0%, #682a3a 47%, #241519 100%);
+}
+
+.voice-topbar {
+  font-size: 13px;
+  color: rgba(255,255,255,.86);
+}
+
+.voice-dismiss {
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.voice-orb {
+  width: min(43vw, 200px);
+  margin-bottom: 30px;
+}
+
+.voice-orb img {
+  width: 66%;
+  height: 66%;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,.92);
+  box-shadow: 0 24px 70px rgba(22, 8, 12, .26);
+}
+
+.voice-ring,
+.voice-ring.ring-b {
+  border-radius: 50%;
+}
+
+.voice-ring {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.22);
+}
+
+.voice-ring.ring-b {
+  background: rgba(255,255,255,.045);
+  border-color: rgba(255,255,255,.12);
+}
+
+.voice-eyebrow {
+  margin-bottom: 10px;
+  letter-spacing: .14em;
+}
+
+.voice-stage h2 {
+  font-weight: 760;
+  letter-spacing: -.05em;
+}
+
+.voice-help {
+  margin-top: 11px;
+  max-width: 390px;
+  color: rgba(255,255,255,.7);
+}
+
+.voice-controls {
+  gap: 34px;
+  padding: 14px 18px;
+  border-radius: 28px;
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.07);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.voice-control-icon {
+  width: 58px;
+  height: 58px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+@media (max-width: 640px) {
+  .conversation-shell {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .message-row.assistant .message {
+    max-width: 94%;
+  }
+
+  .message-row.assistant .message-bubble {
+    padding: 15px 16px;
+  }
+
+  .card-stack {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .hommy-card {
+    padding: 14px 15px;
+    border-radius: 18px;
+  }
+
+  .card-title {
+    font-size: 14px;
+  }
+
+  .card-amount {
+    font-size: 16px;
+  }
+
+  .voice-stage {
+    padding-bottom: 2vh;
+  }
+
+  .voice-orb {
+    width: min(48vw, 186px);
+    margin-bottom: 28px;
+  }
+
+  .voice-controls {
+    width: min(100%, 340px);
+    gap: 28px;
+  }
+}
