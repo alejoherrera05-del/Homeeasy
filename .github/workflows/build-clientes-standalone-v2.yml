@@ -60,10 +60,13 @@ jobs:
           git config user.name 'HomeEasy Clientes Builder'
           git config user.email 'actions@users.noreply.github.com'
           git add clientes-prueba/clientes.html
-          git diff --cached --check
           if git diff --cached --quiet; then
             echo 'Standalone Clientes HTML already current.'
             exit 0
+          fi
+          if git diff --cached --name-only | grep -v '^clientes-prueba/clientes.html$'; then
+            echo 'Unexpected staged files.' >&2
+            exit 1
           fi
           git commit -m 'Add standalone Clientes 2.0 test'
           git push origin HEAD:main
