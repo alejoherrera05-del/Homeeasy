@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: homeeasy-hommy-staging
+    runtime: python
+    plan: free
+    region: virginia
+    branch: hommy-2.0
+    autoDeployTrigger: off
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 60 servidor:app
+    healthCheckPath: /api/health
+    renderSubdomainPolicy: enabled
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: HOMMY_CONVERSATION_SECRET
+        generateValue: true
+      - key: HOMMY_SAFETY_SALT
+        generateValue: true
+      - key: HOMMY_MODEL
+        value: gpt-5.6-terra
+      - key: HOMMY_REASONING_EFFORT
+        value: low
+      - key: HOMMY_REALTIME_MODEL
+        value: gpt-realtime-2.1
+      - key: HOMMY_REALTIME_VOICE
+        value: marin
+      - key: HOMEEASY_BACKEND_URL
+        value: https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec
+      - key: HOMEEASY_SHEET_ID
+        value: 1hnHAeKhyd9MVCn1bCm8XExl4hdV2ijqdIjCXoJba1iY
+      - key: HOMMY_DATA_TTL_SECONDS
+        value: "30"
+      - key: HOMMY_AUTH_CACHE_SECONDS
+        value: "45"
+      - key: HOMMY_CONVERSATION_MAX_AGE_SECONDS
+        value: "604800"
+      - key: HOMMY_ALLOWED_ORIGINS
+        value: https://alejoherrera05-del.github.io
+      - key: HOMMY_INSTALL_DEFAULT
+        value: "30000"
+      - key: HOMMY_INSTALL_ONDA
+        value: "50000"
+      - key: HOMMY_VAT_RATE
+        value: "0.19"
+      - key: HOMMY_TRANSPORT
+        value: "50000"
