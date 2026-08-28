@@ -17,11 +17,11 @@ jobs:
           fetch-depth: 0
 
       - name: Prepare byte-safe patch
-        if: github.event.head_commit.message == 'Run byte-safe HomeEasy hotfix'
+        if: github.event.head_commit.message == 'Publish byte-safe HomeEasy hotfix'
         run: python scripts/homeeasy_stability_hotfix_once.py
 
       - name: Validate shared JavaScript
-        if: github.event.head_commit.message == 'Run byte-safe HomeEasy hotfix'
+        if: github.event.head_commit.message == 'Publish byte-safe HomeEasy hotfix'
         run: |
           node --check homeeasy-auth-config.js
           node --check homeeasy-page-guard.js
@@ -29,8 +29,9 @@ jobs:
           node --check homeeasy-account.js
 
       - name: Verify minimal diff and publish
-        if: github.event.head_commit.message == 'Run byte-safe HomeEasy hotfix'
+        if: github.event.head_commit.message == 'Publish byte-safe HomeEasy hotfix'
         run: |
+          git config core.whitespace cr-at-eol
           git diff --check
           git diff --stat
           git config user.name 'HomeEasy Stability Bot'
