@@ -76,3 +76,15 @@ jobs:
           assert 'sdp' in realtime_params and 'session' in realtime_params, 'Realtime create-call contract changed'
           print('OpenAI Responses, Conversations and Realtime contracts available')
           PY
+
+      - name: Probe current public Render backend
+        continue-on-error: true
+        run: |
+          echo '--- GET /api/health ---'
+          curl --silent --show-error --location --max-time 35 --connect-timeout 10 \
+            --write-out '\nHTTP_STATUS=%{http_code}\n' \
+            https://homeeasy-l5n1.onrender.com/api/health || true
+          echo '--- GET / ---'
+          curl --silent --show-error --location --max-time 35 --connect-timeout 10 \
+            --write-out '\nHTTP_STATUS=%{http_code}\n' \
+            https://homeeasy-l5n1.onrender.com/ || true
