@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f8f9fa">
+  <title>HomeEasy | Clientes 2.0 Preview</title>
+  <style>
+    html,body{margin:0;min-height:100%;background:#f8f9fa;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",sans-serif;color:#1d1d1f}
+    .preview-bootstrap{position:fixed;inset:0;display:grid;place-items:center;padding:24px;background:#f8f9fa;z-index:999999}
+    .preview-bootstrap__card{width:min(360px,100%);text-align:center}
+    .preview-bootstrap__mark{width:52px;height:52px;margin:0 auto 16px;border-radius:18px;background:#fff;display:grid;place-items:center;box-shadow:0 10px 32px rgba(38,31,34,.08);color:#a6455a;font-size:22px;font-weight:800}
+    .preview-bootstrap__title{font-size:1.08rem;font-weight:750;letter-spacing:-.02em}
+    .preview-bootstrap__sub{margin-top:7px;color:#8e8e93;font-size:.82rem}
+    .preview-bootstrap__error{display:none;margin-top:18px;padding:14px 16px;border-radius:16px;background:#fff;color:#8a3b4c;font-size:.78rem;line-height:1.5}
+  </style>
+</head>
+<body>
+  <div class="preview-bootstrap" id="previewBootstrap">
+    <div class="preview-bootstrap__card">
+      <div class="preview-bootstrap__mark">H</div>
+      <div class="preview-bootstrap__title">Preparando Clientes</div>
+      <div class="preview-bootstrap__sub">Cargando la experiencia de prueba…</div>
+      <div class="preview-bootstrap__error" id="previewError">No fue posible abrir la vista de prueba. Vuelve a intentarlo en unos segundos.</div>
+    </div>
+  </div>
+
+  <script>
+  (async function loadClientesPreview(){
+    const previewCss = `
+      /* Clientes 2.0: solo resultados. La pantalla inicial original queda intacta. */
+      .clientes-v2-preview #pantalla-resultados{
+        padding-top:118px!important;
+        padding-bottom:calc(52px + env(safe-area-inset-bottom,0px))!important;
+        min-height:100dvh!important;
+        background:#f4f4f6!important;
+      }
+      .clientes-v2-preview .header-mini{
+        height:auto!important;
+        min-height:92px!important;
+        padding:calc(env(safe-area-inset-top,0px) + 14px) max(22px,calc((100vw - 760px)/2)) 14px!important;
+        background:rgba(248,249,250,.88)!important;
+        -webkit-backdrop-filter:saturate(180%) blur(22px)!important;
+        backdrop-filter:saturate(180%) blur(22px)!important;
+        border-bottom:1px solid rgba(60,60,67,.10)!important;
+        box-shadow:none!important;
+      }
+      .clientes-v2-preview .header-mini .mini-brand{
+        color:#1d1d1f!important;
+        font-size:1.08rem!important;
+        font-weight:760!important;
+        letter-spacing:-.025em!important;
+        gap:9px!important;
+      }
+      .clientes-v2-preview .header-mini .mini-brand img{width:25px!important;height:auto!important}
+      .clientes-v2-preview .header-mini > button{
+        background:rgba(255,255,255,.88)!important;
+        border:1px solid rgba(60,60,67,.10)!important;
+        color:#a6455a!important;
+        border-radius:999px!important;
+        padding:9px 14px!important;
+        font-size:.76rem!important;
+        font-weight:720!important;
+        box-shadow:0 5px 18px rgba(34,27,31,.045)!important;
+      }
+      .clientes-v2-preview #pantalla-resultados > .container{
+        width:min(100% - 28px,760px)!important;
+        max-width:760px!important;
+        padding:0!important;
+      }
+      .clientes-v2-preview #loader{
+        margin:42px auto!important;
+        padding:26px!important;
+        max-width:430px!important;
+        border-radius:24px!important;
+        background:#fff!important;
+        color:#a6455a!important;
+        box-shadow:0 12px 36px rgba(34,27,31,.055)!important;
+      }
+      .clientes-v2-preview .client-card{
+        position:relative!important;
+        margin:0 0 18px!important;
+        padding:24px!important;
+        border:1px solid rgba(60,60,67,.09)!important;
+        border-left:1px solid rgba(60,60,67,.09)!important;
+        border-radius:28px!important;
+        background:#fff!important;
+        box-shadow:0 14px 38px rgba(45,36,40,.055)!important;
+        overflow:hidden!important;
+      }
+      .clientes-v2-preview .client-card::before{
+        content:"";
+        position:absolute;
+        width:170px;height:170px;
+        top:-110px;right:-95px;
+        border-radius:50%;
+        background:rgba(166,69,90,.055);
+        pointer-events:none;
+      }
+      .clientes-v2-preview .client-name{
+        position:relative!important;
+        display:grid!important;
+        grid-template-columns:48px minmax(0,1fr) auto!important;
+        gap:13px!important;
+        align-items:center!important;
+        margin:0!important;
+        padding:0 0 19px!important;
+        border-bottom:1px solid rgba(60,60,67,.09)!important;
+        color:#1d1d1f!important;
+        font-size:1.12rem!important;
+        font-weight:780!important;
+        line-height:1.15!important;
+        letter-spacing:-.03em!important;
+        text-transform:none!important;
+      }
+      .clientes-v2-preview .client-name > span{min-width:0!important;overflow-wrap:anywhere!important}
+      .clientes-v2-preview .cliente-v2-avatar{
+        width:48px;height:48px;
+        display:grid;place-items:center;
+        border-radius:16px;
+        background:linear-gradient(145deg,#a6455a,#8f394b);
+        color:#fff;
+        font-size:.88rem;
+        font-weight:780;
+        letter-spacing:.02em;
+        box-shadow:0 8px 20px rgba(166,69,90,.18);
+      }
+      .clientes-v2-preview .btn-edit-client{
+        background:#f5f5f7!important;
+        color:#a6455a!important;
+        border:0!important;
+        border-radius:999px!important;
+        padding:8px 11px!important;
+        font-size:.7rem!important;
+        font-weight:720!important;
+        white-space:nowrap!important;
+      }
+      .clientes-v2-preview .client-info{
+        display:grid!important;
+        grid-template-columns:1fr 1fr!important;
+        gap:10px 14px!important;
+        margin-top:18px!important;
+        font-size:.82rem!important;
+      }
+      .clientes-v2-preview .client-info > div{
+        min-width:0!important;
+        margin:0!important;
+        padding:11px 12px!important;
+        border-radius:15px!important;
+        background:#f7f7f9!important;
+        color:#3a3a3c!important;
+        line-height:1.35!important;
+        overflow-wrap:anywhere!important;
+      }
+      .clientes-v2-preview .client-info > div::before{
+        content:attr(data-v2-label);
+        display:block;
+        margin-bottom:4px;
+        color:#8e8e93;
+        font-size:.58rem;
+        font-weight:760;
+        letter-spacing:.08em;
+        text-transform:uppercase;
+      }
+      .clientes-v2-preview .client-info i{display:none!important}
+      .clientes-v2-preview .cliente-v2-actions{
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:8px;
+        margin-top:14px;
+      }
+      .clientes-v2-preview .cliente-v2-action{
+        appearance:none;
+        min-width:0;
+        border:0;
+        border-radius:15px;
+        background:#f5f5f7;
+        color:#3a3a3c;
+        padding:11px 5px 9px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:5px;
+        font:inherit;
+        font-size:.61rem;
+        font-weight:690;
+        line-height:1.05;
+        transition:transform .16s ease,background .16s ease;
+      }
+      .clientes-v2-preview .cliente-v2-action i{font-size:.94rem;color:#a6455a}
+      .clientes-v2-preview .cliente-v2-action:active{transform:scale(.96);background:#ececef}
+      .clientes-v2-preview .cliente-v2-section-title{
+        margin:20px 0 9px;
+        color:#8e8e93;
+        font-size:.61rem;
+        font-weight:780;
+        letter-spacing:.09em;
+        text-transform:uppercase;
+      }
+      .clientes-v2-preview .cliente-v2-metrics{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:9px;
+      }
+      .clientes-v2-preview .cliente-v2-metric{
+        min-width:0;
+        padding:13px 14px 12px;
+        border-radius:17px;
+        background:#f7f7f9;
+        border:1px solid rgba(60,60,67,.055);
+      }
+      .clientes-v2-preview .cliente-v2-metric-label{
+        color:#8e8e93;
+        font-size:.58rem;
+        font-weight:740;
+        letter-spacing:.055em;
+        text-transform:uppercase;
+      }
+      .clientes-v2-preview .cliente-v2-metric-value{
+        margin-top:4px;
+        color:#1d1d1f;
+        font-size:.96rem;
+        font-weight:770;
+        letter-spacing:-.025em;
+        overflow-wrap:anywhere;
+      }
+      .clientes-v2-preview .cliente-v2-metric--saldo .cliente-v2-metric-value{color:#a6455a}
+      .clientes-v2-preview .nav-tabs-custom{
+        display:flex!important;
+        margin:14px 0 0!important;
+        padding:3px!important;
+        border-radius:13px!important;
+        background:#ededf0!important;
+      }
+      .clientes-v2-preview .nav-tabs-custom .nav-link{
+        min-height:38px!important;
+        padding:8px 10px!important;
+        border-radius:10px!important;
+        color:#7c7c80!important;
+        font-size:.68rem!important;
+        font-weight:700!important;
+        letter-spacing:0!important;
+        text-transform:none!important;
+      }
+      .clientes-v2-preview .nav-tabs-custom .nav-link.active{
+        background:#fff!important;
+        color:#1d1d1f!important;
+        box-shadow:0 2px 8px rgba(0,0,0,.075)!important;
+      }
+      .clientes-v2-preview .cliente-v2-tab-count{
+        display:inline-grid;place-items:center;
+        min-width:20px;height:20px;
+        margin-left:5px;padding:0 5px;
+        border-radius:999px;
+        background:#e9e9ed;
+        color:#757579;
+        font-size:.58rem;
+      }
+      .clientes-v2-preview .nav-link.active .cliente-v2-tab-count{background:rgba(166,69,90,.09);color:#a6455a}
+      .clientes-v2-preview .item-card{
+        margin-bottom:12px!important;
+        overflow:hidden!important;
+        border:1px solid rgba(60,60,67,.085)!important;
+        border-radius:22px!important;
+        background:#fff!important;
+        box-shadow:0 9px 28px rgba(43,35,39,.04)!important;
+      }
+      .clientes-v2-preview .item-card::before{display:none!important}
+      .clientes-v2-preview .item-header{
+        padding:16px 17px 5px!important;
+        background:#fff!important;
+        border-radius:0!important;
+      }
+      .clientes-v2-preview .item-header .text-muted{color:#6e6e73!important}
+      .clientes-v2-preview .status-badge{
+        padding:5px 9px!important;
+        border-radius:999px!important;
+        font-size:.56rem!important;
+        font-weight:780!important;
+        letter-spacing:.04em!important;
+      }
+      .clientes-v2-preview .status-COMPLETADO{background:#edf7ef!important;color:#24713b!important}
+      .clientes-v2-preview .status-ACTIVO{background:#fff7e6!important;color:#8c6210!important}
+      .clientes-v2-preview .status-ANULADA{background:#fff0f0!important;color:#a43b3b!important}
+      .clientes-v2-preview .badge-cot{background:#f3eff9!important;color:#725195!important}
+      .clientes-v2-preview .item-body{
+        padding:12px 17px 16px!important;
+        color:#1d1d1f!important;
+      }
+      .clientes-v2-preview .item-desc{
+        margin:0 0 7px!important;
+        font-size:.84rem!important;
+        font-weight:630!important;
+        line-height:1.42!important;
+        color:#2c2c2e!important;
+      }
+      .clientes-v2-preview .item-footer{
+        padding:13px 17px 15px!important;
+        border-top:1px solid rgba(60,60,67,.075)!important;
+        border-radius:0!important;
+        background:#fff!important;
+        gap:12px!important;
+      }
+      .clientes-v2-preview .total-price,
+      .clientes-v2-preview .saldo-price{
+        position:relative;
+        padding-top:11px;
+        letter-spacing:-.02em!important;
+      }
+      .clientes-v2-preview .total-price{font-size:1rem!important;color:#1d1d1f!important;font-weight:770!important}
+      .clientes-v2-preview .saldo-price{margin-top:2px!important;font-size:.78rem!important;color:#a6455a!important;font-weight:700!important}
+      .clientes-v2-preview .saldo-finalizado{color:#747479!important}
+      .clientes-v2-preview .total-price::before,
+      .clientes-v2-preview .saldo-price::before{
+        position:absolute;top:0;left:0;
+        color:#9a9aa0;
+        font-size:.48rem;
+        font-weight:760;
+        letter-spacing:.08em;
+        text-transform:uppercase;
+      }
+      .clientes-v2-preview .total-price::before{content:"Total"}
+      .clientes-v2-preview .saldo-price::before{content:"Estado / saldo"}
+      .clientes-v2-preview .btn-pdf{
+        padding:8px 11px!important;
+        border:0!important;
+        border-radius:12px!important;
+        background:#f5f5f7!important;
+        color:#a6455a!important;
+        font-size:.61rem!important;
+        font-weight:730!important;
+      }
+      .clientes-v2-preview .opciones-icono{color:#9a9aa0!important}
+      .clientes-v2-preview .preview-payments-toggle{
+        width:calc(100% - 34px);
+        margin:0 17px 12px;
+        border:0;
+        border-radius:13px;
+        background:#f7f7f9;
+        color:#65656a;
+        padding:9px 11px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        font:inherit;
+        font-size:.68rem;
+        font-weight:690;
+      }
+      .clientes-v2-preview .preview-payments-toggle i{color:#a6455a;font-size:.66rem}
+      .clientes-v2-preview .payment-history{
+        padding:3px 17px 14px!important;
+        background:#fff!important;
+      }
+      .clientes-v2-preview .payment-history h6{
+        margin:0 0 9px!important;
+        padding:0 0 8px!important;
+        color:#8e8e93!important;
+        font-size:.58rem!important;
+        font-weight:760!important;
+        letter-spacing:.07em!important;
+        text-transform:uppercase!important;
+      }
+      .clientes-v2-preview .payment-item{
+        margin-bottom:6px!important;
+        padding:10px 11px!important;
+        border-radius:12px!important;
+        background:#f7f7f9!important;
+        font-size:.7rem!important;
+        gap:8px!important;
+      }
+      .clientes-v2-preview .dropdown-opciones{
+        border:1px solid rgba(60,60,67,.09)!important;
+        border-radius:15px!important;
+        box-shadow:0 14px 38px rgba(31,24,28,.12)!important;
+      }
+      .clientes-v2-preview .modal-content{border-radius:26px!important;overflow:hidden!important;box-shadow:0 24px 80px rgba(0,0,0,.18)!important}
+      .clientes-v2-preview .modal-header{background:#fff!important;color:#1d1d1f!important;border-bottom:1px solid rgba(60,60,67,.08)!important}
+      .clientes-v2-preview .modal-header .btn-close{filter:none!important}
+      .clientes-v2-preview .modal-body .form-control{min-height:46px;border-radius:13px!important;border-color:#e5e5ea!important;font-size:16px!important}
+      .clientes-v2-preview .cliente-v2-toast{
+        position:fixed;z-index:20000;
+        left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));
+        transform:translate(-50%,12px);
+        padding:10px 14px;
+        border-radius:999px;
+        background:rgba(30,30,32,.90);
+        color:#fff;
+        font-size:.72rem;
+        font-weight:700;
+        opacity:0;
+        pointer-events:none;
+        transition:opacity .18s ease,transform .18s ease;
+        -webkit-backdrop-filter:blur(18px);
+        backdrop-filter:blur(18px);
+      }
+      .clientes-v2-preview .cliente-v2-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+      @media(max-width:560px){
+        .clientes-v2-preview #pantalla-resultados{padding-top:108px!important}
+        .clientes-v2-preview .header-mini{min-height:84px!important;padding-left:18px!important;padding-right:18px!important}
+        .clientes-v2-preview #pantalla-resultados > .container{width:calc(100% - 20px)!important}
+        .clientes-v2-preview .client-card{padding:19px!important;border-radius:24px!important}
+        .clientes-v2-preview .client-name{grid-template-columns:44px minmax(0,1fr) auto!important;gap:10px!important;font-size:1rem!important}
+        .clientes-v2-preview .cliente-v2-avatar{width:44px;height:44px;border-radius:15px}
+        .clientes-v2-preview .client-info{grid-template-columns:1fr!important;gap:7px!important}
+        .clientes-v2-preview .cliente-v2-actions{gap:6px!important}
+        .clientes-v2-preview .cliente-v2-action{padding-left:3px!important;padding-right:3px!important;font-size:.56rem!important}
+        .clientes-v2-preview .cliente-v2-metric{padding:12px!important}
+        .clientes-v2-preview .cliente-v2-metric-value{font-size:.88rem!important}
+        .clientes-v2-preview .item-footer{align-items:flex-end!important}
+        .clientes-v2-preview .item-footer > .d-flex{flex-wrap:wrap!important;justify-content:flex-end!important}
+      }
+    `;
+
+    function previewEnhancer(){
+      'use strict';
+      const previewState={OP:[],COT:[]};
+      let toastTimer=null;
+
+      function text(id){const el=document.getElementById(id);return el?String(el.textContent||'').trim():''}
+      function number(value){const parsed=Number(String(value??'').replace(/[^0-9.-]/g,''));return Number.isFinite(parsed)?parsed:0}
+      function money(value){return '$'+Math.round(number(value)).toLocaleString('es-CO')}
+      function initials(name){return String(name||'C').trim().split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join('').toUpperCase()||'C'}
+      function phoneDigits(raw){
+        let digits=String(raw||'').replace(/\D/g,'');
+        if(digits.length===10&&digits.startsWith('3')) digits='57'+digits;
+        if(digits.length===12&&digits.startsWith('57')) return digits;
+        return digits;
+      }
+      function contactText(){
+        const email=text('c_email');
+        return [
+          text('c_nombre'),
+          'Cédula: '+text('c_cedula'),
+          'Teléfono: '+text('c_tel'),
+          'Correo: '+(email||'Sin correo registrado'),
+          'Dirección: '+text('c_dir')
+        ].filter(Boolean).join('\n');
+      }
+      function showToast(message){
+        let toast=document.querySelector('.cliente-v2-toast');
+        if(!toast){toast=document.createElement('div');toast.className='cliente-v2-toast';document.body.appendChild(toast)}
+        toast.textContent=message;
+        requestAnimationFrame(()=>toast.classList.add('is-visible'));
+        clearTimeout(toastTimer);
+        toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),1500);
+      }
+      async function copyText(value){
+        try{
+          if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value)}
+          else{
+            const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();
+          }
+          showToast('Datos copiados');
+        }catch(error){showToast('No se pudo copiar')}
+      }
+      function makeAction(icon,label,handler){
+        const button=document.createElement('button');
+        button.type='button';button.className='cliente-v2-action';button.setAttribute('aria-label',label);
+        const i=document.createElement('i');i.className='fas '+icon;i.setAttribute('aria-hidden','true');
+        const span=document.createElement('span');span.textContent=label;
+        button.append(i,span);button.addEventListener('click',handler);return button;
+      }
+      function makeMetric(label,value,extraClass){
+        const card=document.createElement('div');card.className='cliente-v2-metric'+(extraClass?' '+extraClass:'');
+        const l=document.createElement('div');l.className='cliente-v2-metric-label';l.textContent=label;
+        const v=document.createElement('div');v.className='cliente-v2-metric-value';v.textContent=value;
+        card.append(l,v);return card;
+      }
+      function updateTabs(){
+        [['ordenes-tab','Órdenes',previewState.OP.length],['cotizaciones-tab','Cotizaciones',previewState.COT.length]].forEach(([id,label,count])=>{
+          const tab=document.getElementById(id);if(!tab)return;
+          tab.textContent='';
+          const title=document.createElement('span');title.textContent=label;
+          const badge=document.createElement('span');badge.className='cliente-v2-tab-count';badge.textContent=String(count||0);
+          tab.append(title,badge);
+        });
+      }
+      function updateMetrics(){
+        const host=document.querySelector('.cliente-v2-metrics');if(!host)return;
+        const validOps=previewState.OP.filter(item=>!String(item&&item.estado||'').toUpperCase().includes('ANUL'));
+        const validQuotes=previewState.COT.filter(item=>!String(item&&item.estado||'').toUpperCase().includes('ANUL'));
+        const total=validOps.reduce((sum,item)=>sum+number(item&&item.total),0);
+        const saldo=validOps.reduce((sum,item)=>sum+Math.max(0,number(item&&item.saldo)),0);
+        host.replaceChildren(
+          makeMetric('Compras registradas',money(total)),
+          makeMetric('Saldo pendiente',money(saldo),'cliente-v2-metric--saldo'),
+          makeMetric('Órdenes',String(validOps.length)),
+          makeMetric('Cotizaciones',String(validQuotes.length))
+        );
+      }
+      function decorateCards(prefix){
+        const container=document.getElementById(prefix==='OP'?'lista_ordenes':'lista_cotizaciones');if(!container)return;
+        container.querySelectorAll('.item-card').forEach(card=>{
+          if(card.dataset.v2Decorated==='1')return;
+          card.dataset.v2Decorated='1';
+          if(prefix==='OP'){
+            const history=card.querySelector('.payment-history');
+            const footer=card.querySelector('.item-footer');
+            if(history&&footer){
+              const count=history.querySelectorAll('.payment-item').length;
+              const toggle=document.createElement('button');toggle.type='button';toggle.className='preview-payments-toggle';
+              const label=document.createElement('span');label.textContent=count?('Ver historial de pagos · '+count):'Ver historial de pagos';
+              const icon=document.createElement('i');icon.className='fas fa-chevron-down';icon.setAttribute('aria-hidden','true');
+              toggle.append(label,icon);
+              toggle.addEventListener('click',event=>{event.stopPropagation();if(typeof togglePagos==='function')togglePagos(history.id);icon.className=history.style.display==='block'?'fas fa-chevron-up':'fas fa-chevron-down'});
+              footer.before(toggle);
+            }
+          }
+        });
+      }
+      function buildClientWorkspace(){
+        const card=document.querySelector('.client-card');
+        const nameRow=card&&card.querySelector('.client-name');
+        const nameSpan=document.getElementById('c_nombre');
+        const info=card&&card.querySelector('.client-info');
+        const tabs=card&&card.querySelector('.nav-tabs-custom');
+        if(!card||!nameRow||!info||!tabs||!nameSpan)return;
+
+        if(!nameRow.querySelector('.cliente-v2-avatar')){
+          const avatar=document.createElement('div');avatar.className='cliente-v2-avatar';avatar.textContent=initials(nameSpan.textContent);
+          nameRow.insertBefore(avatar,nameSpan);
+        }else{nameRow.querySelector('.cliente-v2-avatar').textContent=initials(nameSpan.textContent)}
+
+        const labels=['Cédula','Teléfono','Correo','Dirección'];
+        [...info.children].forEach((row,index)=>{row.dataset.v2Label=labels[index]||'Dato'});
+        const email=document.getElementById('c_email');
+        if(email&&/sincorreo|no registrado/i.test(String(email.textContent||''))) email.textContent='Sin correo registrado';
+
+        let actions=card.querySelector('.cliente-v2-actions');
+        if(!actions){
+          actions=document.createElement('div');actions.className='cliente-v2-actions';
+          actions.append(
+            makeAction('fa-whatsapp','WhatsApp',()=>{const digits=phoneDigits(text('c_tel'));if(digits)window.open('https://wa.me/'+digits,'_blank','noopener,noreferrer');else showToast('Sin teléfono válido')}),
+            makeAction('fa-phone','Llamar',()=>{const digits=phoneDigits(text('c_tel'));if(digits)window.location.href='tel:+'+digits;else showToast('Sin teléfono válido')}),
+            makeAction('fa-copy','Copiar',()=>copyText(contactText())),
+            makeAction('fa-share-nodes','Compartir',async()=>{const value=contactText();if(navigator.share){try{await navigator.share({title:'Cliente HomeEasy',text:value});return}catch(error){if(error&&error.name==='AbortError')return}}await copyText(value)})
+          );
+          info.after(actions);
+        }
+
+        let section=card.querySelector('.cliente-v2-section-title');
+        if(!section){section=document.createElement('div');section.className='cliente-v2-section-title';section.textContent='Resumen del cliente';actions.after(section)}
+        let metrics=card.querySelector('.cliente-v2-metrics');
+        if(!metrics){metrics=document.createElement('div');metrics.className='cliente-v2-metrics';section.after(metrics)}
+        updateMetrics();updateTabs();
+      }
+
+      if(typeof renderLista==='function'){
+        const originalRenderLista=renderLista;
+        renderLista=function(items,containerId,prefix){
+          previewState[prefix]=Array.isArray(items)?items:[];
+          const result=originalRenderLista.apply(this,arguments);
+          queueMicrotask(()=>{decorateCards(prefix);buildClientWorkspace();updateMetrics();updateTabs()});
+          return result;
+        };
+      }
+      if(typeof buscarHistorial==='function'){
+        const originalBuscarHistorial=buscarHistorial;
+        buscarHistorial=async function(){
+          const result=await originalBuscarHistorial.apply(this,arguments);
+          requestAnimationFrame(()=>{buildClientWorkspace();decorateCards('OP');decorateCards('COT');updateMetrics();updateTabs()});
+          return result;
+        };
+      }
+      window.addEventListener('DOMContentLoaded',()=>{document.body.classList.add('clientes-v2-preview')},{once:true});
+    }
+
+    try{
+      const stamp='20260828-clientes-v2';
+      const [pageResponse,guardResponse]=await Promise.all([
+        fetch('./clientes.html?previewSource='+stamp,{cache:'no-store'}),
+        fetch('./homeeasy-page-guard.js?previewGuard='+stamp,{cache:'no-store'})
+      ]);
+      if(!pageResponse.ok||!guardResponse.ok) throw new Error('No fue posible cargar la base de Clientes.');
+      let source=await pageResponse.text();
+      let guard=await guardResponse.text();
+
+      guard=guard.replace(/const currentPage = \(\(global\.location[\s\S]*?\.trim\(\);/,"const currentPage = 'clientes.html';");
+      guard=guard.replace(/<\/script/gi,'<\\/script');
+      source=source.replace('`clientes.html?search=${cedula}`','`clientes-v2.html?search=${cedula}`');
+      source=source.replace("window.history.replaceState({}, '', 'clientes.html');","window.history.replaceState({}, '', 'clientes-v2.html');");
+
+      const parser=new DOMParser();
+      const doc=parser.parseFromString(source,'text/html');
+      doc.body.classList.add('clientes-v2-preview');
+      doc.title='HomeEasy | Clientes 2.0';
+
+      const guardTag=[...doc.querySelectorAll('script[src]')].find(node=>String(node.getAttribute('src')||'').includes('homeeasy-page-guard.js'));
+      if(!guardTag) throw new Error('No se encontró el guard de Clientes.');
+      const inlineGuard=doc.createElement('script');inlineGuard.textContent=guard;guardTag.replaceWith(inlineGuard);
+
+      const style=doc.createElement('style');style.id='clientes-v2-preview-style';style.textContent=previewCss;doc.head.appendChild(style);
+      const enhancer=doc.createElement('script');enhancer.id='clientes-v2-preview-script';enhancer.textContent='('+previewEnhancer.toString()+')();';doc.body.appendChild(enhancer);
+
+      document.open();
+      document.write('<!DOCTYPE html>'+doc.documentElement.outerHTML);
+      document.close();
+    }catch(error){
+      console.error('Clientes preview:',error);
+      const box=document.getElementById('previewError');if(box)box.style.display='block';
+    }
+  })();
+  </script>
+</body>
+</html>
