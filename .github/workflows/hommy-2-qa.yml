@@ -7,10 +7,18 @@ on:
     paths:
       - 'Hommychat.html'
       - 'hommy-chat.css'
+      - 'hommy-ios.css'
+      - 'hommy-polish.css'
       - 'hommy-chat.js'
+      - 'hommy-transport.js'
+      - 'hommy-richtext.js'
+      - 'index.html'
       - 'hommy_backend/**'
       - 'servidor.py'
       - 'requirements.txt'
+      - 'render.yaml'
+      - '.env.example'
+      - '.python-version'
       - 'tests/**'
       - '.github/workflows/hommy-2-qa.yml'
   workflow_dispatch:
@@ -21,7 +29,7 @@ permissions:
 jobs:
   qa:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     env:
       OPENAI_API_KEY: test-key-not-for-network-calls
       HOMMY_CONVERSATION_SECRET: hommy-ci-conversation-secret
@@ -51,6 +59,8 @@ jobs:
       - name: Validate JavaScript syntax
         run: |
           node --check hommy-chat.js
+          node --check hommy-transport.js
+          node --check hommy-richtext.js
           node --check tests/hommy-browser-qa.mjs
 
       - name: Run Hommy contracts
@@ -106,7 +116,7 @@ jobs:
           payload = json.loads(Path('/tmp/hommy-health.json').read_text())
           assert payload['ok'] is True
           assert payload['service'] == 'Hommy'
-          assert payload['version'].startswith('2.')
+          assert payload['version'] == '2.1.0'
           print('Gunicorn health contract OK:', payload['version'])
           PY
 
@@ -119,6 +129,16 @@ jobs:
           echo
           test "$UNAUTH_STATUS" = '401'
           grep -q 'AUTH_REQUIRED' /tmp/hommy-unauth.json
+
+          for ENDPOINT in bootstrap realtime/sync; do
+            STATUS=$(curl --silent --output "/tmp/hommy-${ENDPOINT//\//-}.json" --write-out '%{http_code}' \
+              -X POST "http://127.0.0.1:5050/api/hommy/$ENDPOINT" \
+              -H 'Content-Type: application/json' \
+              --data '{}')
+            echo "Unauthenticated $ENDPOINT status: $STATUS"
+            test "$STATUS" = '401'
+            grep -q 'AUTH_REQUIRED' "/tmp/hommy-${ENDPOINT//\//-}.json"
+          done
 
           LEGACY_STATUS=$(curl --silent --output /tmp/hommy-legacy.json --write-out '%{http_code}' \
             -X POST http://127.0.0.1:5050/api/chat \
@@ -175,6 +195,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE='https://homeeasy-hommy-staging.onrender.com'
+          EXPECTED_VERSION=$(python -c 'from hommy_backend import __version__; print(__version__)')
 
           READY=0
           for attempt in $(seq 1 8); do
@@ -182,7 +203,9 @@ jobs:
               --output /tmp/hommy-staging-health.json --write-out '%{http_code}' \
               "$BASE/api/health" || true)
             echo "Staging health attempt $attempt: HTTP $HEALTH_STATUS"
-            if [ "$HEALTH_STATUS" = '200' ]; then
+            CURRENT_VERSION=$(python -c "import json; print(json.load(open('/tmp/hommy-staging-health.json')).get('version', ''))" 2>/dev/null || true)
+            echo "Staging version attempt $attempt: ${CURRENT_VERSION:-unknown}; expected $EXPECTED_VERSION"
+            if [ "$HEALTH_STATUS" = '200' ] && [ "$CURRENT_VERSION" = "$EXPECTED_VERSION" ]; then
               READY=1
               break
             fi
@@ -200,7 +223,7 @@ jobs:
           payload = json.loads(Path('/tmp/hommy-staging-health.json').read_text())
           assert payload['ok'] is True
           assert payload['service'] == 'Hommy'
-          assert payload['version'].startswith('2.')
+          assert payload['version'] == '2.1.0'
           print('Staging health contract OK:', payload['version'])
           PY
 
@@ -217,6 +240,17 @@ jobs:
           echo "Staging unauthenticated chat status: $UNAUTH_STATUS"
           test "$UNAUTH_STATUS" = '401'
           grep -q 'AUTH_REQUIRED' /tmp/hommy-staging-unauth.json
+
+          for ENDPOINT in bootstrap realtime/sync; do
+            STATUS=$(curl --silent --show-error --max-time 20 --connect-timeout 8 \
+              --output "/tmp/hommy-staging-${ENDPOINT//\//-}.json" --write-out '%{http_code}' \
+              -X POST "$BASE/api/hommy/$ENDPOINT" \
+              -H 'Content-Type: application/json' \
+              --data '{}')
+            echo "Staging unauthenticated $ENDPOINT status: $STATUS"
+            test "$STATUS" = '401'
+            grep -q 'AUTH_REQUIRED' "/tmp/hommy-staging-${ENDPOINT//\//-}.json"
+          done
 
           LEGACY_STATUS=$(curl --silent --show-error --max-time 20 --connect-timeout 8 \
             --output /tmp/hommy-staging-legacy.json --write-out '%{http_code}' \

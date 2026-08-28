@@ -82,9 +82,30 @@ class BackendContractTests(unittest.TestCase):
         self.assertTrue(self.store.quote_product(system='Sheer Elegance', fabric='Serenade', width=2, height=2)['ok'])
         bad = self.store.quote_product(system='Sheer Elegance', fabric='Serenade', width=3.5, height=2); self.assertFalse(bad['ok']); self.assertEqual(bad['code'], 'OUTSIDE_TECHNICAL_LIMITS'); self.assertNotIn('total', bad)
 
+    def test_quote_rejects_missing_or_ambiguous_tariff_reference(self):
+        missing = self.store.quote_product(system='', fabric='', width=2, height=2)
+        self.assertFalse(missing['ok']); self.assertEqual(missing['code'], 'MISSING_TARIFF_REFERENCE')
+        second = dict(self.store._snapshot.tariffs[0]); second['Sistema'] = 'Sheer Onda'; second['Precio_M2'] = '120000'
+        self.store._snapshot.tariffs.append(second)
+        ambiguous = self.store.quote_product(system='Sheer', fabric='Serenade', width=2, height=2)
+        self.assertFalse(ambiguous['ok']); self.assertEqual(ambiguous['code'], 'AMBIGUOUS_TARIFF')
+
+    def test_quote_rejects_tariff_rows_without_technical_limits(self):
+        self.store._snapshot.tariffs[0]['Ancho_Maximo'] = ''
+        result = self.store.quote_product(system='Sheer Elegance', fabric='Serenade', width=2, height=2)
+        self.assertFalse(result['ok']); self.assertEqual(result['code'], 'INVALID_TARIFF_LIMITS')
+
     def test_tool_returns_structured_quote_card(self):
         result = execute_tool('cotizar_producto', {'sistema':'Sheer Elegance','tela':'Serenade','ancho':2.0,'alto':2.0,'cantidad':1,'incluir_lujo':False,'solo_renueva':False}, self.full, self.store)
         self.assertTrue(result['ok']); self.assertEqual(result['ui'][0]['type'], 'quote')
+
+    def test_non_blocking_server_calculated_quote_warning_is_visible(self):
+        self.store._snapshot.tariffs[0]['Sistema'] = 'Enrollable'
+        result = execute_tool('cotizar_producto', {'sistema':'Enrollable','tela':'Serenade','ancho':0.5,'alto':2.0,'cantidad':1,'incluir_lujo':False,'solo_renueva':False}, self.full, self.store)
+        self.assertTrue(result['data']['ok'])
+        self.assertIn('efecto cono', result['data']['advertencias_tecnicas'][0])
+        self.assertIn('efecto cono', result['ui'][0]['meta'])
+        self.assertEqual(result['ui'][0]['warnings'], result['data']['advertencias_tecnicas'])
 
     def test_conversation_token_is_bound_to_user(self):
         signer = ConversationSigner(); token = signer.sign('conv_abc123', 'u1'); self.assertEqual(signer.verify(token, 'u1'), 'conv_abc123'); self.assertIsNone(signer.verify(token, 'u2'))

@@ -7,7 +7,7 @@ services:
     branch: hommy-2.0
     autoDeployTrigger: commit
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 60 servidor:app
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 90 servidor:app
     healthCheckPath: /api/health
     renderSubdomainPolicy: enabled
     envVars:
@@ -33,8 +33,28 @@ services:
         value: 1hnHAeKhyd9MVCn1bCm8XExl4hdV2ijqdIjCXoJba1iY
       - key: HOMMY_DATA_TTL_SECONDS
         value: "30"
+      - key: HOMMY_DATA_STALE_SECONDS
+        value: "180"
+      - key: HOMMY_DATA_REFRESH_WAIT_SECONDS
+        value: "30"
+      - key: HOMMY_SHEETS_CONNECT_TIMEOUT_SECONDS
+        value: "5"
+      - key: HOMMY_SHEETS_READ_TIMEOUT_SECONDS
+        value: "20"
       - key: HOMMY_AUTH_CACHE_SECONDS
         value: "45"
+      - key: HOMMY_OPENAI_TIMEOUT_SECONDS
+        value: "55"
+      - key: HOMMY_OPENAI_MAX_RETRIES
+        value: "1"
+      - key: HOMMY_RATE_CHAT_PER_MINUTE
+        value: "20"
+      - key: HOMMY_RATE_TOOL_PER_MINUTE
+        value: "60"
+      - key: HOMMY_RATE_REALTIME_SESSION_PER_MINUTE
+        value: "8"
+      - key: HOMMY_RATE_SYNC_PER_MINUTE
+        value: "60"
       - key: HOMMY_CONVERSATION_MAX_AGE_SECONDS
         value: "604800"
       - key: HOMMY_ALLOWED_ORIGINS

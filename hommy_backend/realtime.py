@@ -43,17 +43,27 @@ Estás en modo voz.
         "output_modalities": ["audio"],
         "audio": {
             "input": {
+                "noise_reduction": {"type": "near_field"},
+                "transcription": {
+                    "model": "gpt-4o-mini-transcribe",
+                    "language": "es",
+                    "prompt": (
+                        "Conversación operativa de HomeEasy en español colombiano. "
+                        "Vocabulario posible: HomeEasy, Hommy, OP, orden de pedido, "
+                        "Sheer Elegance, Onda Serena, Vertesse, cotización, abono, "
+                        "saldo, COP y pesos colombianos."
+                    ),
+                },
                 "turn_detection": {
-                    "type": "server_vad",
-                    "threshold": 0.68,
-                    "prefix_padding_ms": 350,
-                    "silence_duration_ms": 900,
+                    "type": "semantic_vad",
+                    "eagerness": "low",
                     "create_response": True,
                     "interrupt_response": True,
-                }
+                },
             },
             "output": {"voice": voice},
         },
+        "reasoning": {"effort": "low"},
         "tools": realtime_tools(context),
         "tool_choice": "auto",
         "parallel_tool_calls": False,

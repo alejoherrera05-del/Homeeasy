@@ -90,6 +90,14 @@ class HommyRbacTests(unittest.TestCase):
         self.assertNotIn("consultar_saldos_pendientes", voice_names)
         self.assertNotIn("consultar_historial_cliente", voice_names)
 
+    def test_read_only_order_and_payment_permissions_enable_read_tools(self):
+        order_names = {tool["name"] for tool in tools_for_context(context("app.access", "pedidos.read"))}
+        payment_names = {tool["name"] for tool in tools_for_context(context("app.access", "abonos.read"))}
+        self.assertIn("consultar_orden", order_names)
+        self.assertIn("consultar_historial_pagos", payment_names)
+        history_names = {tool["name"] for tool in tools_for_context(context("app.access", "clientes.read", "pedidos.read"))}
+        self.assertIn("consultar_historial_cliente", history_names)
+
 
 if __name__ == "__main__":
     unittest.main()

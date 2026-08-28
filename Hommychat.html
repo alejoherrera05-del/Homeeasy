@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f5f5f7">
   <title>Hommy | HomeEasy</title>
-  <link rel="stylesheet" href="hommy-chat.css?v=2.3">
-  <link rel="stylesheet" href="hommy-ios.css?v=2.3">
-  <link rel="stylesheet" href="hommy-polish.css?v=2.3">
+  <link rel="stylesheet" href="hommy-chat.css?v=2.4">
+  <link rel="stylesheet" href="hommy-ios.css?v=2.4">
+  <link rel="stylesheet" href="hommy-polish.css?v=2.4">
   <script src="homeeasy-core.js?v=3.4"></script>
   <script src="homeeasy-page-guard.js?v=3.4"></script>
-  <script defer src="hommy-transport.js?v=2.3"></script>
-  <script defer src="hommy-chat.js?v=2.3"></script>
-  <script defer src="hommy-richtext.js?v=2.3"></script>
+  <script defer src="hommy-transport.js?v=2.4"></script>
+  <script defer src="hommy-chat.js?v=2.4"></script>
+  <script defer src="hommy-richtext.js?v=2.4"></script>
 </head>
 <body>
   <main class="hommy-app" id="hommy-app">
@@ -32,7 +32,7 @@
           <button class="icon-button" id="new-chat-button" type="button" aria-label="Nueva conversación" title="Nueva conversación">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           </button>
-          <button class="icon-button accent" id="voice-button" type="button" aria-label="Hablar con Hommy" title="Hablar con Hommy">
+          <button class="icon-button accent" id="voice-button" type="button" aria-label="Hablar con Hommy" title="Hablar con Hommy" disabled>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3zM5 11a7 7 0 0014 0M12 18v3M9 21h6"/></svg>
           </button>
         </div>
@@ -64,7 +64,7 @@
     </footer>
   </main>
 
-  <section class="voice-mode" id="voice-mode" role="dialog" aria-modal="true" aria-labelledby="voice-title" hidden>
+  <section class="voice-mode" id="voice-mode" role="dialog" aria-modal="true" aria-labelledby="voice-title" aria-describedby="voice-help" tabindex="-1" hidden>
     <div class="voice-topbar">
       <button class="voice-dismiss" id="voice-dismiss" type="button" aria-label="Cerrar conversación por voz">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -77,11 +77,11 @@
       </div>
       <p class="eyebrow voice-eyebrow">HomeEasy</p>
       <h2 id="voice-title">Conectando con Hommy</h2>
-      <p class="voice-help" id="voice-help">Preparando una conversación desde tu sesión actual.</p>
+      <p class="voice-help" id="voice-help" role="status" aria-live="polite" aria-atomic="true">Preparando una conversación desde tu sesión actual.</p>
     </div>
     <div class="voice-controls">
       <button class="voice-control" id="mute-button" type="button" aria-pressed="false">
-        <span class="voice-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 0014 0M12 18v3M9 21h6"/></svg></span><span id="mute-label">Silenciar</span>
+        <span class="voice-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3zM5 11a7 7 0 0014 0M12 18v3M9 21h6"/></svg></span><span id="mute-label">Silenciar</span>
       </button>
       <button class="voice-control end" id="end-call-button" type="button">
         <span class="voice-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5c4.5-4 9.5-4 14 0M7.5 15l-2.5-2.5M16.5 15l2.5-2.5"/></svg></span><span>Terminar</span>
