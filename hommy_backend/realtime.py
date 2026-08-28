@@ -8,17 +8,20 @@ from openai import OpenAI
 from .auth import AuthContext
 from .engine import HommyEngine
 from .settings import openai_api_key
-from .tools import TOOL_SPECS
+from .tools import tools_for_context
 
 
 class RealtimeError(RuntimeError):
     pass
 
 
-def realtime_tools() -> list[dict[str, Any]]:
-    """Realtime accepts the documented function-tool subset, not Responses-only fields."""
+def realtime_tools(context: AuthContext) -> list[dict[str, Any]]:
+    """Realtime accepts the documented function-tool subset, filtered by HomeEasy permissions."""
     allowed = ("type", "name", "description", "parameters")
-    return [{key: tool[key] for key in allowed if key in tool} for tool in TOOL_SPECS]
+    return [
+        {key: tool[key] for key in allowed if key in tool}
+        for tool in tools_for_context(context)
+    ]
 
 
 def session_config(context: AuthContext) -> dict[str, Any]:
@@ -27,7 +30,8 @@ def session_config(context: AuthContext) -> dict[str, Any]:
     return {
         "type": "realtime",
         "model": model,
-        "instructions": HommyEngine.instructions(context) + "\nEstás en modo voz. Responde conversacionalmente y con frases naturales.",
+        "instructions": HommyEngine.instructions(context)
+        + "\nEstás en modo voz. Responde conversacionalmente y con frases naturales.",
         "output_modalities": ["audio"],
         "audio": {
             "input": {
@@ -39,7 +43,7 @@ def session_config(context: AuthContext) -> dict[str, Any]:
             },
             "output": {"voice": voice},
         },
-        "tools": realtime_tools(),
+        "tools": realtime_tools(context),
         "tool_choice": "auto",
         "parallel_tool_calls": False,
     }
