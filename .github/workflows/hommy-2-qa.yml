@@ -1,0 +1,68 @@
+name: Hommy 2 QA
+
+on:
+  push:
+    branches:
+      - hommy-2.0
+    paths:
+      - 'Hommychat.html'
+      - 'hommy-chat.css'
+      - 'hommy-chat.js'
+      - 'hommy_backend/**'
+      - 'servidor.py'
+      - 'requirements.txt'
+      - 'tests/**'
+      - '.github/workflows/hommy-2-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      OPENAI_API_KEY: test-key-not-for-network-calls
+      HOMMY_CONVERSATION_SECRET: hommy-ci-conversation-secret
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile Python
+        run: python -m py_compile servidor.py hommy_backend/*.py
+
+      - name: Validate JavaScript syntax
+        run: node --check hommy-chat.js
+
+      - name: Run Hommy contracts
+        run: python -m unittest discover -s tests -v
+
+      - name: Import production server
+        run: python -c "import servidor; print('Hommy server import OK')"
+
+      - name: Verify OpenAI SDK capabilities
+        run: |
+          python - <<'PY'
+          from openai import OpenAI
+          client = OpenAI(api_key='test-key-not-for-network-calls')
+          assert hasattr(client, 'responses'), 'Responses API missing from installed SDK'
+          assert hasattr(client, 'conversations'), 'Conversations API missing from installed SDK'
+          print('OpenAI Responses + Conversations SDK surfaces available')
+          PY
