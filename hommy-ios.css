@@ -1,0 +1,24 @@
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 640px) {
+  html, body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .composer textarea {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .composer,
+  .composer textarea,
+  .send-button,
+  .icon-button,
+  .voice-control {
+    touch-action: manipulation;
+  }
+}
