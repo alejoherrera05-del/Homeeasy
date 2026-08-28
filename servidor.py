@@ -7,7 +7,7 @@ from typing import Any
 from flask import Flask, jsonify, make_response, request
 
 from hommy_backend import __version__
-from hommy_backend.auth import HommyAuthError, SessionValidator
+from hommy_backend.auth import HommyAuthError, SessionValidator, decode_client_meta
 from hommy_backend.data import HomeEasyDataStore, HomeEasyDataError
 from hommy_backend.engine import HommyEngine, HommyEngineError
 from hommy_backend.realtime import RealtimeError, create_call
@@ -46,7 +46,7 @@ def cors_headers(response):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Vary"] = "Origin"
         response.headers["Access-Control-Allow-Credentials"] = "false"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-HomeEasy-Session"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-HomeEasy-Session, X-HomeEasy-Meta"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Access-Control-Max-Age"] = "600"
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -61,7 +61,10 @@ def options_route(_path: str):
 
 
 def auth_context():
-    return validator.validate(request.headers.get("X-HomeEasy-Session", ""))
+    return validator.validate(
+        request.headers.get("X-HomeEasy-Session", ""),
+        client_meta=decode_client_meta(request.headers.get("X-HomeEasy-Meta", "")),
+    )
 
 
 def json_error(message: str, code: str, status: int):

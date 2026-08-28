@@ -1,3 +1,5 @@
+import base64
+import json
 import os
 import sys
 import time
@@ -31,7 +33,7 @@ if 'openai' not in sys.modules:
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, ROOT)
-from hommy_backend.auth import AuthContext
+from hommy_backend.auth import AuthContext, decode_client_meta
 from hommy_backend.data import HomeEasyDataStore, Snapshot, money_number
 from hommy_backend.engine import ConversationSigner
 from hommy_backend.tools import ToolPermissionError, execute_tool
@@ -49,6 +51,11 @@ def make_store():
         'Sistema':'Sheer Elegance','Nombre_Tela':'Serenade','Precio_M2':'100000','Precio_Renueva_M2':'60000','Recargos_Mecanismo':'+ 10000','Cobro_Min_M2':'1.5','Cobro_Min_Alto':'1.0','Ancho_Maximo':'3.0','Alto_Maximo':'3.0','Privacidad':'Media','Etiqueta_Venta':'Premium','Argumento_Venta':'Elegante','Notas_Tecnicas':'',
     }])
     return store
+
+
+def encode_meta(payload):
+    raw = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+    return base64.urlsafe_b64encode(raw).decode().rstrip('=')
 
 
 class BackendContractTests(unittest.TestCase):
@@ -78,6 +85,13 @@ class BackendContractTests(unittest.TestCase):
     def test_conversation_token_is_bound_to_user(self):
         signer = ConversationSigner(); token = signer.sign('conv_abc123', 'u1'); self.assertEqual(signer.verify(token, 'u1'), 'conv_abc123'); self.assertIsNone(signer.verify(token, 'u2'))
         payload, signature = token.split('.', 1); tampered = ('A' if payload[0] != 'A' else 'B') + payload[1:]; self.assertIsNone(signer.verify(tampered + '.' + signature, 'u1'))
+
+    def test_device_metadata_header_is_sanitized(self):
+        meta = decode_client_meta(encode_meta({'dispositivoId':'device-123','dispositivoNombre':'iPhone de Alejo','plataforma':'iPhone','navegador':'Safari','unexpected':'ignored'}))
+        self.assertEqual(meta['dispositivoId'], 'device-123')
+        self.assertEqual(meta['plataforma'], 'iPhone')
+        self.assertNotIn('unexpected', meta)
+        self.assertEqual(decode_client_meta('not-valid-base64'), {})
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)

@@ -14,6 +14,8 @@ class StaticContractTests(unittest.TestCase):
         self.assertNotIn('SpeechRecognition', js)
         self.assertNotIn('.innerHTML', js)
         self.assertIn('X-HomeEasy-Session', js)
+        self.assertIn('X-HomeEasy-Meta', js)
+        self.assertIn('HomeEasyCore.buildMeta', js)
         self.assertIn('RTCPeerConnection', js)
         self.assertIn('homeeasy-page-guard.js?v=3.4', html)
 
@@ -22,6 +24,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertIsNone(re.search(r'sk-[A-Za-z0-9_-]{16,}', sources))
         self.assertNotIn('ELEVENLABS_API_KEY =', sources)
         self.assertIn('openai_api_key()', sources)
+
+    def test_session_validation_preserves_device_binding(self):
+        server = (ROOT / 'servidor.py').read_text(encoding='utf-8')
+        auth = (ROOT / 'hommy_backend' / 'auth.py').read_text(encoding='utf-8')
+        self.assertIn('X-HomeEasy-Meta', server)
+        self.assertIn('decode_client_meta', server)
+        self.assertIn('dispositivoId', auth)
+        self.assertIn('device_id', auth)
 
     def test_legacy_unauthenticated_endpoints_are_disabled(self):
         server = (ROOT / 'servidor.py').read_text(encoding='utf-8')

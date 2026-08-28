@@ -80,6 +80,30 @@
       ? window.HomeEasyAuth.getAppSessionToken() : '';
   }
 
+  function homeEasyMetaHeader() {
+    try {
+      const meta = window.HomeEasyCore && typeof window.HomeEasyCore.buildMeta === 'function'
+        ? window.HomeEasyCore.buildMeta() : {};
+      const bytes = new TextEncoder().encode(JSON.stringify(meta));
+      let binary = '';
+      for (const byte of bytes) binary += String.fromCharCode(byte);
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function authenticatedHeaders(extra = {}) {
+    const token = sessionToken();
+    if (!token) throw new Error('Tu sesión de HomeEasy no está disponible.');
+    const meta = homeEasyMetaHeader();
+    return {
+      ...extra,
+      'X-HomeEasy-Session': token,
+      ...(meta ? { 'X-HomeEasy-Meta': meta } : {}),
+    };
+  }
+
   function persist() {
     if (!state.storageKey) return;
     try {
@@ -200,10 +224,10 @@
   }
 
   async function apiJSON(path, body) {
-    const token = sessionToken();
-    if (!token) throw new Error('Tu sesión de HomeEasy no está disponible.');
     const response = await fetchWithTimeout(`${API_BASE}${path}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-HomeEasy-Session': token }, body: JSON.stringify(body || {}),
+      method: 'POST',
+      headers: authenticatedHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body || {}),
     });
     let data = null; try { data = await response.json(); } catch (_) {}
     if (!response.ok || !data || data.ok === false) {
@@ -223,7 +247,7 @@
       state.conversationToken = safeText(data.conversationToken); hideTyping(); appendMessage('assistant', data.answer || 'No recibí una respuesta completa.', data.cards || []);
     } catch (error) {
       hideTyping(); appendMessage('assistant', `No pude completar esa consulta. ${safeText(error.message)}`);
-      if (['APP_SESSION_EXPIRED', 'AUTH_REQUIRED'].includes(error.code)) showToast('Tu sesión debe renovarse. Vuelve a HomeEasy e inténtalo de nuevo.');
+      if (['APP_SESSION_EXPIRED', 'AUTH_REQUIRED', 'DEVICE_MISMATCH'].includes(error.code)) showToast('Tu sesión debe renovarse. Vuelve a HomeEasy e inténtalo de nuevo.');
     } finally {
       state.sending = false; el.input.disabled = false; el.composerNote.textContent = 'Hommy consulta datos reales según tus permisos de HomeEasy.'; updateSendButton(); el.input.focus({ preventScroll: true });
     }
@@ -302,8 +326,11 @@
       channel.addEventListener('message', raw => { try { handleRealtimeEvent(JSON.parse(raw.data), voice); } catch (_) {} });
       channel.addEventListener('close', () => { if (state.voice === voice) setVoiceState('connecting', 'Conversación terminada', 'Puedes cerrar esta pantalla o iniciar otra llamada.'); });
       const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
-      const token = sessionToken(); if (!token) throw new Error('Tu sesión de HomeEasy no está disponible.');
-      const response = await fetchWithTimeout(`${API_BASE}/api/hommy/realtime/session`, { method: 'POST', headers: { 'Content-Type': 'application/sdp', 'X-HomeEasy-Session': token }, body: offer.sdp }, 35_000);
+      const response = await fetchWithTimeout(`${API_BASE}/api/hommy/realtime/session`, {
+        method: 'POST',
+        headers: authenticatedHeaders({ 'Content-Type': 'application/sdp' }),
+        body: offer.sdp,
+      }, 35_000);
       if (!response.ok) { let message = 'No fue posible iniciar Hommy Voice.'; try { message = (await response.json())?.error?.message || message; } catch (_) {} throw new Error(message); }
       await pc.setRemoteDescription({ type: 'answer', sdp: await response.text() });
     } catch (error) { stopVoice({ hide: false }); setVoiceState('connecting', 'No pude abrir el micrófono', safeText(error.message)); showToast(safeText(error.message)); }

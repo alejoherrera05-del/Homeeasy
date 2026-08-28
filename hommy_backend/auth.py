@@ -1,18 +1,30 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
 import threading
 import time
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Any, Iterable
 
 import requests
 
 DEFAULT_HOMEEASY_BACKEND = (
     "https://script.google.com/macros/s/"
     "AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec"
+)
+
+_ALLOWED_META_FIELDS = (
+    "operador",
+    "dispositivoId",
+    "dispositivoNombre",
+    "plataforma",
+    "navegador",
+    "pagina",
+    "versionApp",
+    "horaCliente",
 )
 
 
@@ -44,6 +56,27 @@ class AuthContext:
         return not required or "*" in self.permissions or any(p in self.permissions for p in required)
 
 
+def decode_client_meta(value: str) -> dict[str, str]:
+    """Decode the browser HomeEasy meta header without trusting arbitrary fields."""
+    raw = str(value or "").strip()
+    if not raw or len(raw) > 4096:
+        return {}
+    try:
+        padded = raw.replace("-", "+").replace("_", "/")
+        padded += "=" * ((4 - len(padded) % 4) % 4)
+        payload = json.loads(base64.b64decode(padded).decode("utf-8"))
+    except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+    clean: dict[str, str] = {}
+    for field in _ALLOWED_META_FIELDS:
+        text = str(payload.get(field) or "").replace("\r", " ").replace("\n", " ").strip()
+        if text:
+            clean[field] = text[:180]
+    return clean
+
+
 class SessionValidator:
     """Validates opaque HomeEasy sessions against the existing Apps Script auth backend."""
 
@@ -55,11 +88,11 @@ class SessionValidator:
         self._lock = threading.Lock()
 
     @staticmethod
-    def _cache_key(token: str) -> str:
-        return hashlib.sha256(token.encode("utf-8")).hexdigest()
+    def _cache_key(token: str, device_id: str) -> str:
+        return hashlib.sha256(f"{token}:{device_id}".encode("utf-8")).hexdigest()
 
-    def _from_cache(self, token: str) -> AuthContext | None:
-        key = self._cache_key(token)
+    def _from_cache(self, token: str, device_id: str) -> AuthContext | None:
+        key = self._cache_key(token, device_id)
         now = time.monotonic()
         with self._lock:
             item = self._cache.get(key)
@@ -71,19 +104,33 @@ class SessionValidator:
                 return None
             return context
 
-    def _store_cache(self, token: str, context: AuthContext) -> None:
+    def _store_cache(self, token: str, device_id: str, context: AuthContext) -> None:
         with self._lock:
-            self._cache[self._cache_key(token)] = (time.monotonic() + self.cache_ttl, context)
+            self._cache[self._cache_key(token, device_id)] = (time.monotonic() + self.cache_ttl, context)
             if len(self._cache) > 500:
                 now = time.monotonic()
                 self._cache = {k: v for k, v in self._cache.items() if v[0] > now}
 
-    def validate(self, token: str, *, page: str = "Hommychat.html") -> AuthContext:
+    def validate(
+        self,
+        token: str,
+        *,
+        page: str = "Hommychat.html",
+        client_meta: dict[str, Any] | None = None,
+    ) -> AuthContext:
         token = str(token or "").strip()
         if not token:
             raise HommyAuthError("Tu sesión de HomeEasy no está disponible.")
 
-        cached = self._from_cache(token)
+        source_meta = client_meta if isinstance(client_meta, dict) else {}
+        clean_meta = {
+            field: str(source_meta.get(field) or "").replace("\r", " ").replace("\n", " ").strip()[:180]
+            for field in _ALLOWED_META_FIELDS
+            if str(source_meta.get(field) or "").strip()
+        }
+        device_id = clean_meta.get("dispositivoId", "")
+
+        cached = self._from_cache(token, device_id)
         if cached:
             return cached
 
@@ -91,6 +138,7 @@ class SessionValidator:
             "tipo": "AUTH_VALIDAR_SESION",
             "appSessionToken": token,
             "meta": {
+                **clean_meta,
                 "pagina": page,
                 "versionApp": "hommy-2.0",
                 "origen": "hommy-backend",
@@ -141,7 +189,7 @@ class SessionValidator:
         if not context.has("app.access"):
             raise HommyAuthError("Tu rol no tiene acceso a Hommy.", "PERMISSION_DENIED", 403)
 
-        self._store_cache(token, context)
+        self._store_cache(token, device_id, context)
         return context
 
 
