@@ -25,18 +25,29 @@ def realtime_tools(context: AuthContext) -> list[dict[str, Any]]:
 
 
 def session_config(context: AuthContext) -> dict[str, Any]:
-    voice = os.getenv("HOMMY_REALTIME_VOICE", "marin").strip()
+    voice = os.getenv("HOMMY_REALTIME_VOICE", "cedar").strip()
     model = os.getenv("HOMMY_REALTIME_MODEL", "gpt-realtime-2.1").strip()
+    voice_instructions = """
+Estás en modo voz.
+- Habla con una voz masculina, cálida, segura y profesional, con ritmo tranquilo y español colombiano natural. Evita sonar como locutor o robot.
+- Responde de forma breve y conversacional; normalmente 1 a 3 frases antes de esperar al usuario.
+- Todos los campos terminados en _cop son PESOS COLOMBIANOS completos. Lee 2900000 como "dos millones novecientos mil pesos", 1350000 como "un millón trescientos cincuenta mil pesos" y 675000 como "seiscientos setenta y cinco mil pesos". Nunca reduzcas millones a miles ni omitas ceros.
+- Si recibes también una cifra formateada como $2.900.000, interprétala como dos millones novecientos mil pesos colombianos.
+- Si el usuario pregunta por el saldo, deuda o abonos de la venta u OP que acabas de mencionar, identifica esa OP en el contexto y usa consultar_historial_pagos antes de responder. No digas que no tienes el saldo sin consultar la herramienta.
+- No te adelantes por una pausa corta. Espera a que el usuario realmente termine la idea.
+""".strip()
     return {
         "type": "realtime",
         "model": model,
-        "instructions": HommyEngine.instructions(context)
-        + "\nEstás en modo voz. Responde conversacionalmente y con frases naturales.",
+        "instructions": HommyEngine.instructions(context) + "\n\n" + voice_instructions,
         "output_modalities": ["audio"],
         "audio": {
             "input": {
                 "turn_detection": {
                     "type": "server_vad",
+                    "threshold": 0.68,
+                    "prefix_padding_ms": 350,
+                    "silence_duration_ms": 900,
                     "create_response": True,
                     "interrupt_response": True,
                 }
