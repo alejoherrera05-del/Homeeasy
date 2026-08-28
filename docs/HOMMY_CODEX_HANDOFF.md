@@ -1,97 +1,76 @@
-# Hommy 2.0 - Handoff de Codex
+# Hommy - Handoff vigente de Codex
 
 Fecha de cierre técnico: 2026-08-28
 
-Repositorio: `alejoherrera05-del/Homeeasy`
+Rama backend: `hommy-2.0`
 
-Rama: `hommy-2.0`
+Documento detallado: `docs/HOMMY_CODEX_HANDOFF_V2.md`
 
 ## Estado final
 
-- Hommy 2.0 quedó desplegado y `Live` exclusivamente en el servicio Render `homeeasy-hommy-staging`.
-- El servicio de producción `Homeeasy` no fue modificado.
-- El despliegue activo de staging usa el commit técnico `75407015cd370d6b7823bd217cfab2a6ab3462ac`.
-- `main` continúa intacto en `cf904486711a1eb69ded02adc0972068477bcc51`.
-- Google Sheets usa exactamente el scope `https://www.googleapis.com/auth/spreadsheets.readonly`.
-- Las credenciales sensibles quedaron almacenadas en Render; las copias locales temporales se eliminaron.
+- Hommy `2.1.0` está `Live` exclusivamente en `homeeasy-hommy-staging`.
+- El frontend validado está publicado en GitHub Pages.
+- El servicio Render de producción `Homeeasy` no fue modificado.
+- No hubo merge entre `hommy-2.0` y `main`, ni force-push.
+- Google Sheets usa únicamente `https://www.googleapis.com/auth/spreadsheets.readonly`.
+- No hay secretos, claves privadas ni JSON de credenciales en Git.
 
 ## Commits realizados
 
-- `75407015cd370d6b7823bd217cfab2a6ab3462ac` - `Harden Hommy staging isolation and Sheets access`.
-- `HEAD` - `Document Hommy 2 staging handoff` (este documento).
-
-No se realizó merge a `main`.
+- `b41317137f1ccf5f534c34edfdf4024b9360f48c` - `Complete Hommy 2.1 staging` (`hommy-2.0`).
+- `eb42eaae3d5156c6e98b4cf766020c01c5a98a07` - `Publish Hommy 2.1 frontend [skip render]` (`main`).
+- `Document Hommy 2.1 handoff [skip render]` - actualización documental en `hommy-2.0`.
 
 ## Archivos modificados
 
-- `.github/workflows/hommy-2-qa.yml`
-- `hommy-chat.js`
-- `hommy_backend/data.py`
-- `tests/hommy-browser-qa.mjs`
-- `tests/test_backend_contract.py`
-- `tests/test_static_contract.py`
-- `docs/HOMMY_CODEX_HANDOFF.md`
+- Backend Hommy: `servidor.py` y `hommy_backend/`.
+- Frontend Hommy: `Hommychat.html`, `hommy-chat.css`, `hommy-chat.js`, `hommy-ios.css`, `hommy-polish.css` y `hommy-transport.js`.
+- Prewarm mínimo: `index.html`.
+- Infraestructura: `render.yaml`, `.env.example`, `.python-version` y `.github/workflows/hommy-2-qa.yml`.
+- QA: tests Hommy bajo `tests/`.
+- Documentación: este archivo y `docs/HOMMY_CODEX_HANDOFF_V2.md`.
 
-Los cambios de código fueron quirúrgicos: aislar frontend y QA hacia staging y reducir Google Sheets al scope de solo lectura. No se modificaron AR, modelos, productos ni otros módulos operativos.
+No se modificaron AR, modelos GLB, productos, Quick Look ni módulos operativos ajenos a Hommy. El inventario exacto de archivos está en el handoff V2.
 
-## Pruebas y validaciones
+## Resultados de pruebas
 
-- Python 3.12: compilación de `servidor.py` y `hommy_backend/`, aprobada.
-- JavaScript: validación sintáctica de `hommy-chat.js` y `tests/hommy-browser-qa.mjs`, aprobada.
-- Contratos Hommy: 24 pruebas, aprobadas.
-- Contratos del SDK de OpenAI: Responses, Conversations y Realtime, aprobados.
-- OpenAI real: autenticación y acceso a `gpt-5.6-terra`, aprobados.
-- Flask local: `/api/health` 200; chat sin autenticación 401; cliente legado 426; preflight CORS 204.
-- Gunicorn: smoke test Linux y `/api/health`, aprobados en GitHub Actions.
-- Navegador: desktop 1440x1000, móvil 390x844 y protección XSS, aprobados.
-- GitHub Actions `Hommy 2 QA`, run `33179652129`: `success` sobre `75407015cd370d6b7823bd217cfab2a6ab3462ac`, incluyendo el probe de staging.
-- Staging real:
-  - `GET /api/health`: 200 desde Gunicorn.
-  - `POST /api/hommy/chat` sin sesión: 401 `AUTH_REQUIRED`.
-  - `POST /api/chat`: 426 `CLIENT_UPGRADE_REQUIRED`.
-  - Preflight desde `https://alejoherrera05-del.github.io`: 204 con el origen permitido.
-- Google Sheets real: la Service Account autenticó y leyó metadatos de `Base de Datos HomeEasy` con el scope de solo lectura; no se leyó ni imprimió contenido operativo.
+- Suite Python: 99 pruebas descubiertas; 98 aprobadas y 1 evaluación real opt-in omitida intencionalmente.
+- Python 3.12, JavaScript, WSGI/Gunicorn, contratos OpenAI, RBAC y escaneo de secretos: aprobados.
+- Navegador real desktop `1440x1000` y móvil `390x844`: aprobados con mocks, incluidas tarjetas, chart, contacto, XSS, overflow y carreras de voz.
+- GitHub Actions Hommy 2 QA `33210265951`: `success`.
+- GitHub Pages `33210766484`: `success`.
+- Staging: health/root 200; rutas autenticadas sin sesión 401; legado 426; CORS 204.
 
-## Variables configuradas en Render
+## Variables configuradas
+
+Los valores permanecen únicamente en el servicio seguro. Variables sensibles:
 
 - `OPENAI_API_KEY`
 - `GOOGLE_SERVICE_ACCOUNT_JSON`
+- `HOMMY_CONVERSATION_SECRET`
+- `HOMMY_SAFETY_SALT`
 
-También quedaron presentes las variables no secretas y secretos generados definidos por `render.yaml`. No se registran valores en este documento.
+Las variables no sensibles de modelos, timeouts, cache, rate limits, origen permitido y reglas comerciales están enumeradas solo por nombre en `docs/HOMMY_CODEX_HANDOFF_V2.md`.
 
-## OpenAI
+## OpenAI, Google Cloud y Sheets
 
-- Organización: `Personal`.
-- Proyecto usado: `Default project` (único destino disponible en el flujo seguro desde esta sesión).
-- Nombre de la credencial nueva: `HomeEasy Hommy 2.0`.
-- La clave pegada en el chat no fue utilizada ni almacenada localmente.
-
-## Google Cloud y Google Sheets
-
-- Proyecto Google Cloud: `Hommy-HomeEasy` (`hommy-homeeasy`).
+- OpenAI project: `Default project`.
+- Credencial dedicada en Render: `HomeEasy Hommy 2.0`.
+- Google Cloud project: `Hommy-HomeEasy` (`hommy-homeeasy`).
 - Service Account: `homeeasy-hommy@hommy-homeeasy.iam.gserviceaccount.com`.
-- IAM del proyecto: sin roles administrativos ni roles operativos adicionales.
-- Hoja: `Base de Datos HomeEasy`.
-- Hoja compartida con la Service Account: sí, rol `reader`.
-- Scope de la aplicación: `https://www.googleapis.com/auth/spreadsheets.readonly`.
-- Validación RBAC: lectura aprobada; escritura no concedida por Drive y no solicitada por el scope OAuth.
+- Hoja compartida: sí, rol lector.
+- Scope: `https://www.googleapis.com/auth/spreadsheets.readonly`.
 
 ## Render staging
 
-- Blueprint: `homeeasy-hommy-staging`.
-- Servicio: `homeeasy-hommy-staging`.
-- Rama: `hommy-2.0`.
-- URL: https://homeeasy-hommy-staging.onrender.com
-- Health: https://homeeasy-hommy-staging.onrender.com/api/health - HTTP 200.
-- Último commit desplegado correctamente: `75407015cd370d6b7823bd217cfab2a6ab3462ac`.
+- URL: `https://homeeasy-hommy-staging.onrender.com`
+- Health: `https://homeeasy-hommy-staging.onrender.com/api/health`
+- Resultado: HTTP 200, `ok=true`, versión `2.1.0`.
+- Commit live: `b41317137f1ccf5f534c34edfdf4024b9360f48c`.
+- Deploy live: `dep-da8vb8gicp7s73f6nbsg`.
 
-El historial del Blueprint conserva `c002f66f02f403111c35a16015416f376b5b7a9e` como la sincronización inicial de `render.yaml`; la página del servicio confirma que el deploy `Live` usa `75407015cd370d6b7823bd217cfab2a6ab3462ac`.
+## Acciones humanas pendientes
 
-## Seguridad y acciones pendientes
-
-- No hay `.env`, JSON de Service Account, claves privadas ni tokens versionados.
-- Se eliminaron `.env.local` y el JSON descargado después de transmitir y validar las credenciales en Render.
-- Acción humana pendiente: revocar en OpenAI Platform la clave que fue pegada en el chat. Borrar el chat no revoca una credencial expuesta.
-- No queda ninguna autorización pendiente para staging.
-
-Listo para revisión de ChatGPT.
+- Ejecutar las pruebas físicas detalladas en el handoff V2 desde un iPhone real.
+- Revocar en OpenAI Platform la clave que se publicó en el chat; esa clave no fue utilizada por Codex y borrar el chat no la revoca.
+- No queda autorización pendiente para staging.
