@@ -7,6 +7,8 @@ on:
       - 'infra/whatsapp/bridge/**'
       - 'infra/whatsapp/update-bridge.sh'
       - 'infra/whatsapp/setup-https.sh'
+      - 'infra/whatsapp/install-https-domain.sh'
+      - 'infra/whatsapp/phase2-enable-https.sh'
       - '.github/workflows/validate-whatsapp-phase2.yml'
 
 jobs:
@@ -19,6 +21,8 @@ jobs:
           node --check infra/whatsapp/bridge/server.js
           bash -n infra/whatsapp/update-bridge.sh
           bash -n infra/whatsapp/setup-https.sh
+          bash -n infra/whatsapp/install-https-domain.sh
+          bash -n infra/whatsapp/phase2-enable-https.sh
       - name: Build Bridge
         run: docker build -t homeeasy-whatsapp-bridge:test infra/whatsapp/bridge
       - name: Smoke Bridge v0.2
@@ -33,3 +37,10 @@ jobs:
           curl -fsS http://127.0.0.1:18080/health | grep -q '0.2.0'
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/api/whatsapp/status)" = "401"
           docker stop he-bridge-test
+      - name: Confirm phase 2 safety markers
+        run: |
+          grep -q 'api.homeeasy.com.co' infra/whatsapp/phase2-enable-https.sh
+          grep -q 'reverse_proxy 127.0.0.1:8080' infra/whatsapp/install-https-domain.sh
+          grep -q 'X-HomeEasy-Token' infra/whatsapp/phase2-enable-https.sh
+          grep -q '401' infra/whatsapp/phase2-enable-https.sh
+          echo PHASE2_VALIDATION_OK
