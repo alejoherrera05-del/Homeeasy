@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Calendario - Sistema Hommy</title>
+    <!-- calendario-resilience-v2 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -55,7 +56,8 @@
         .header-brand img { height: 24px; width: auto; }
         .header-brand h1 { font-size: 1.1rem; color: var(--primary-wine); font-weight: 700; margin: 0; letter-spacing: -0.5px;}
         .header-icons { display: flex; gap: 15px; z-index: 2; }
-        .header-icons span { color: var(--primary-wine); font-size: 24px; cursor: pointer; padding: 5px; }
+        .header-icons .header-action-icon { color: var(--primary-wine); font-size: 20px; cursor: pointer; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; transition: background .16s ease, transform .16s ease; }
+        .header-icons .header-action-icon:active { background: rgba(166,69,90,.08); transform: scale(.94); }
 
         /* =========================================
            LAYOUT PRINCIPAL MÓVIL (default)
@@ -134,7 +136,7 @@
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .fab:active { transform: scale(0.9); }
-        .fab .material-icons-round { font-size: 32px; }
+        .fab i { font-size: 26px; }
 
         @keyframes pulse-steroids {
             0% { box-shadow: 0 0 0 0 rgba(194, 164, 104, 0.6); }
@@ -281,9 +283,54 @@
             .header-brand h1 { font-size: 0.95rem; }
             .header-brand img { height: 20px; }
             .fab { bottom: 85px; width: 50px; height: 50px; }
-            .fab .material-icons-round { font-size: 28px; }
+            .fab i { font-size: 23px; }
         }
 
+
+
+
+        /* Calendario: controles sin dependencia de Material Icons */
+        .month-nav { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; }
+        .month-nav:active { background: rgba(194,164,104,.10); transform: scale(.94); }
+        .fab i, .month-nav, .header-action-icon { line-height: 1; }
+
+        /* Evita que la marca central choque con las acciones en iPhone */
+        @media (max-width: 760px) {
+            header {
+                display: grid;
+                grid-template-columns: 76px minmax(0, 1fr) 76px;
+                gap: 8px;
+                justify-content: initial;
+            }
+            .header-left { justify-self: start; }
+            .header-center {
+                position: static;
+                left: auto;
+                transform: none;
+                width: auto;
+                min-width: 0;
+                justify-self: stretch;
+            }
+            .header-brand {
+                min-width: 0;
+                justify-content: center;
+                gap: 6px;
+            }
+            .header-brand h1 {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .header-icons {
+                justify-self: end;
+                gap: 4px;
+            }
+            .header-icons .header-action-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+        }
 
         /* Enlace directo desde la campana del inicio */
         @keyframes agendaFocusGlow {
@@ -313,8 +360,8 @@
             </div>
         </div>
         <div class="header-icons">
-            <span class="material-icons-round" onclick="abrirBuscador()">search</span>
-            <span class="material-icons-round" onclick="abrirProximos()">upcoming</span>
+            <i class="fas fa-search header-action-icon" onclick="abrirBuscador()" role="button" aria-label="Buscar"></i>
+            <i class="fas fa-calendar-check header-action-icon" onclick="abrirProximos()" role="button" aria-label="Próximas tareas"></i>
         </div>
     </header>
 
@@ -323,9 +370,9 @@
 
         <div class="calendar-container" id="swipeCalendarZone">
             <div class="month-header">
-                <span class="material-icons-round month-nav" onclick="changeMonth(-1)">chevron_left</span>
+                <i class="fas fa-chevron-left month-nav" onclick="changeMonth(-1)" role="button" aria-label="Mes anterior"></i>
                 <h2 id="currentMonthYear"></h2>
-                <span class="material-icons-round month-nav" onclick="changeMonth(1)">chevron_right</span>
+                <i class="fas fa-chevron-right month-nav" onclick="changeMonth(1)" role="button" aria-label="Mes siguiente"></i>
             </div>
             <div class="weekdays">
                 <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
@@ -347,7 +394,7 @@
     <!-- ========== FIN LAYOUT PRINCIPAL ========== -->
 
     <div class="fab" onclick="abrirNuevoEvento()">
-        <span class="material-icons-round">add</span>
+        <i class="fas fa-plus" aria-hidden="true"></i>
     </div>
 
     <footer class="app-footer">
@@ -359,7 +406,7 @@
     <!-- ========== MODAL BUSCADOR ========== -->
     <div class="fullscreen-modal" id="searchModal">
         <div class="fs-header">
-            <span class="material-icons-round" onclick="cerrarBuscador()" style="cursor:pointer; color: var(--primary-wine); font-size: 28px;">arrow_back</span>
+            <i class="fas fa-arrow-left" onclick="cerrarBuscador()" role="button" aria-label="Cerrar buscador" style="cursor:pointer; color: var(--primary-wine); font-size: 24px;"></i>
             <input type="text" id="searchInput" placeholder="Buscar título, cliente, categoría..." oninput="filtrarBusqueda(this.value)">
         </div>
         <div class="fs-content" id="searchResults">
@@ -370,7 +417,7 @@
     <!-- ========== MODAL PRÓXIMAS TAREAS ========== -->
     <div class="fullscreen-modal" id="upcomingModal">
         <div class="fs-header">
-            <span class="material-icons-round" onclick="cerrarProximos()" style="cursor:pointer; color: var(--primary-wine); font-size: 28px;">arrow_back</span>
+            <i class="fas fa-arrow-left" onclick="cerrarProximos()" role="button" aria-label="Cerrar próximas tareas" style="cursor:pointer; color: var(--primary-wine); font-size: 24px;"></i>
             <h2 style="font-size: 1.1rem; color: var(--primary-wine); margin-left: 10px; font-weight: 700;">Próximas Tareas</h2>
         </div>
         <div class="fs-content" id="upcomingResults"></div>
@@ -618,19 +665,34 @@
     // INICIALIZAR Y RENDERIZAR
     // ==========================================
     async function inicializarCalendario() {
+        // El calendario base debe existir aun sin caché o conexión.
+        // Antes dependía de que EVENTOS_TODOS respondiera para pintar el mes.
+        procesarEventosLocales();
+
         const cacheEventos = localStorage.getItem('CACHE_EVENTOS');
         if (cacheEventos) {
-            try { eventosGlobales = JSON.parse(cacheEventos); procesarEventosLocales(); } catch(e) {}
+            try {
+                const parsed = JSON.parse(cacheEventos);
+                if (Array.isArray(parsed)) eventosGlobales = parsed;
+                procesarEventosLocales();
+            } catch(e) {
+                console.warn("Caché de agenda inválida; se continúa con calendario vacío.");
+            }
         }
+
         try {
             const response = await fetch(`${WEBAPP_URL}?tipo=EVENTOS_TODOS`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
-            if (data.eventos) {
+            if (Array.isArray(data.eventos)) {
                 eventosGlobales = data.eventos;
                 localStorage.setItem('CACHE_EVENTOS', JSON.stringify(eventosGlobales));
-                procesarEventosLocales(); 
+                procesarEventosLocales();
             }
-        } catch(e) { console.log("Modo offline."); }
+        } catch(e) {
+            console.log("Agenda en modo local/offline.", e);
+            // No borrar la cuadrícula: ya fue renderizada arriba con caché o estado vacío.
+        }
     }
 
     function procesarEventosLocales() {
