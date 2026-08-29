@@ -1,0 +1,117 @@
+name: validate isolated WhatsApp settings lifecycle
+
+on:
+  push:
+    branches: [fix/whatsapp-config-isolated]
+    paths:
+      - 'homeeasy-whatsapp-client.js'
+      - 'homeeasy-whatsapp-settings.js'
+      - '.github/workflows/validate-whatsapp-isolation.yml'
+
+jobs:
+  isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Static safety checks
+        run: |
+          node --check homeeasy-whatsapp-client.js
+          node --check homeeasy-whatsapp-settings.js
+          ! grep -q 'restoreHomeEasySession' homeeasy-whatsapp-client.js
+          ! grep -q 'signOut' homeeasy-whatsapp-client.js
+          ! grep -q 'localStorage' homeeasy-whatsapp-client.js
+          ! grep -q 'sessionStorage' homeeasy-whatsapp-client.js
+          grep -q 'homeeasy:page-auth-ready' homeeasy-whatsapp-settings.js
+      - name: Install jsdom
+        run: npm install --no-save jsdom@24 >/dev/null 2>&1
+      - name: Test auth isolation and lazy status
+        run: |
+          cat > test-whatsapp-isolation.js <<'NODE'
+          const fs = require('fs');
+          const { JSDOM } = require('jsdom');
+
+          function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+          async function createApp(fetchImpl, hash='') {
+            const dom = new JSDOM(`<!doctype html><html><head></head><body>
+              <main id="settingsApp">
+                <header><nav class="mobile-tabs"><button class="mobile-tab active" data-section="empresa">Empresa</button><button class="mobile-tab" data-section="restauraciones">Restauraciones</button></nav></header>
+                <div class="layout"><aside><nav class="side-nav"><button class="nav-button active" data-section="empresa">Empresa</button><button class="nav-button" data-section="restauraciones">Restauraciones</button></nav></aside>
+                <section class="content"><div class="panel active" data-panel="empresa">EMPRESA_STABLE</div><div class="panel" id="panel-restauraciones" data-panel="restauraciones">RESTORE</div></section></div>
+              </main>
+            </body></html>`, { url:'https://alejoherrera05-del.github.io/Homeeasy/configuracion.html'+hash, runScripts:'dangerously' });
+            const w = dom.window;
+            w.scrollTo = () => {};
+            let restoreCalls = 0;
+            let signOutCalls = 0;
+            w.HomeEasyAuth = {
+              getAppSessionToken: () => 'valid-homeeasy-session',
+              restoreHomeEasySession: async () => { restoreCalls++; return {}; },
+              signOut: async () => { signOutCalls++; }
+            };
+            w.HomeEasyCore = { buildMeta: () => ({}) };
+            let fetchCalls = 0;
+            w.fetch = async (...args) => { fetchCalls++; return fetchImpl(...args); };
+            w.eval(fs.readFileSync('homeeasy-whatsapp-client.js','utf8'));
+            w.eval(fs.readFileSync('homeeasy-whatsapp-settings.js','utf8'));
+            return {w, dom, counts:()=>({restoreCalls,signOutCalls,fetchCalls})};
+          }
+
+          (async()=>{
+            // 1) Nothing happens before Page Guard authorization.
+            const okPayload = {ok:true,whatsapp:{exists:true,name:'homeeasy',status:'WORKING',ready:true,engine:'WEBJS',me:{id:'573334319374@c.us',pushName:'Homeeasy Popayán'}}};
+            const a = await createApp(async()=>new Response(JSON.stringify(okPayload),{status:200,headers:{'content-type':'application/json'}}));
+            await wait(1200);
+            if (a.counts().fetchCalls !== 0) throw new Error('WhatsApp called before page auth ready');
+            if (a.counts().restoreCalls !== 0) throw new Error('WhatsApp restored HomeEasy session before auth ready');
+            if (a.w.document.querySelector('[data-section="integraciones"]')) throw new Error('Integrations mounted before auth ready');
+            if (!a.w.document.body.textContent.includes('EMPRESA_STABLE')) throw new Error('Base configuration DOM changed');
+
+            // 2) Auth ready mounts shell but still does not call WhatsApp.
+            a.w.dispatchEvent(new a.w.CustomEvent('homeeasy:page-auth-ready',{detail:{page:'configuracion.html',permission:'config.read'}}));
+            await wait(100);
+            if (!a.w.document.querySelector('[data-section="integraciones"]')) throw new Error('Integrations did not mount after auth ready');
+            if (!a.w.document.getElementById('panel-integraciones')) throw new Error('Integrations panel missing');
+            if (a.counts().fetchCalls !== 0) throw new Error('WhatsApp called immediately after auth ready');
+
+            // 3) Only explicit Integraciones click triggers status.
+            a.w.document.querySelector('.side-nav [data-section="integraciones"]').click();
+            await wait(100);
+            if (a.counts().fetchCalls !== 1) throw new Error('Expected exactly one lazy status request');
+            if (a.w.document.getElementById('heWaChip').textContent !== 'Conectado') throw new Error('Connected state not rendered');
+            if (a.counts().restoreCalls !== 0 || a.counts().signOutCalls !== 0) throw new Error('WhatsApp mutated HomeEasy auth on success');
+
+            // 4) 401 must remain inside WhatsApp panel and never recover/logout HomeEasy.
+            const b = await createApp(async()=>new Response(JSON.stringify({ok:false,error:'Unauthorized'}),{status:401,headers:{'content-type':'application/json'}}));
+            b.w.dispatchEvent(new b.w.CustomEvent('homeeasy:page-auth-ready',{detail:{page:'configuracion.html'}}));
+            await wait(30);
+            b.w.document.querySelector('.side-nav [data-section="integraciones"]').click();
+            await wait(100);
+            if (b.counts().restoreCalls !== 0 || b.counts().signOutCalls !== 0) throw new Error('401 touched HomeEasy auth');
+            if (b.w.document.getElementById('heWaChip').textContent !== 'Sin respuesta') throw new Error('401 not isolated in panel');
+            if (!b.w.document.body.textContent.includes('EMPRESA_STABLE')) throw new Error('401 disrupted base configuration');
+
+            // 5) Network failure must also remain local.
+            const c = await createApp(async()=>{ throw new TypeError('network down'); });
+            c.w.dispatchEvent(new c.w.CustomEvent('homeeasy:page-auth-ready',{detail:{page:'configuracion.html'}}));
+            await wait(30);
+            c.w.document.querySelector('.side-nav [data-section="integraciones"]').click();
+            await wait(100);
+            if (c.counts().restoreCalls !== 0 || c.counts().signOutCalls !== 0) throw new Error('Network error touched HomeEasy auth');
+            if (!c.w.document.body.textContent.includes('EMPRESA_STABLE')) throw new Error('Network error disrupted base configuration');
+
+            // 6) Duplicate auth events do not duplicate UI.
+            a.w.dispatchEvent(new a.w.CustomEvent('homeeasy:page-auth-ready',{detail:{page:'configuracion.html'}}));
+            await wait(20);
+            if (a.w.document.querySelectorAll('[data-section="integraciones"]').length !== 2) throw new Error('Duplicate integration navigation detected');
+            if (a.w.document.querySelectorAll('#panel-integraciones').length !== 1) throw new Error('Duplicate integration panel detected');
+
+            console.log('WHATSAPP_AUTH_ISOLATION_OK');
+          })().catch(err=>{ console.error(err); process.exit(1); });
+          NODE
+          node test-whatsapp-isolation.js
+          rm -f test-whatsapp-isolation.js
