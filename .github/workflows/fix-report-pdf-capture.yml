@@ -1,0 +1,40 @@
+name: fix report PDF capture
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-report-pdf-capture.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Keep executive report inside renderable viewport
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('reportes-diseno-v4.html')
+          s=p.read_text(encoding='utf-8')
+          old='.board-pdf-root{position:fixed;left:-240mm;top:0;width:210mm;background:#fff;color:#202024;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;z-index:-9999;pointer-events:none;'
+          new='.board-pdf-root{position:fixed;left:0;top:0;width:210mm;background:#fff;color:#202024;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;z-index:2147483000;pointer-events:none;'
+          if old not in s:
+              raise SystemExit('PDF root positioning marker not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+          grep -q 'board-pdf-root{position:fixed;left:0;top:0' reportes-diseno-v4.html
+          git diff --check
+      - name: Commit fix and remove temporary workflow
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git rm .github/workflows/fix-report-pdf-capture.yml
+          git add reportes-diseno-v4.html
+          git commit -m 'Fix executive report PDF capture viewport'
+          git push
