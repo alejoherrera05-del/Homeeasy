@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>HomeEasy · Reportes — Propuesta visual</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --brand:#B2566C;
+  --brand-dark:#99485c;
+  --brand-soft:#f8eef1;
+  --gold:#C2A468;
+  --gold-soft:#fbf6ea;
+  --ink:#202024;
+  --muted:#77777d;
+  --line:#e9e7e8;
+  --bg:#f6f6f7;
+  --card:#fff;
+  --green:#28725c;
+  --green-soft:#eaf5f0;
+  --red:#b13e4f;
+  --red-soft:#fff0f2;
+  --shadow:0 14px 38px rgba(42,31,35,.05);
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible{outline:3px solid rgba(178,86,108,.2);outline-offset:3px}
+.app{min-height:100dvh;padding-bottom:42px}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(246,246,247,.9);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border-bottom:1px solid rgba(60,60,67,.07)}
+.topbar-inner{width:calc(100% - 40px);margin:0 auto;min-height:78px;padding:calc(8px + env(safe-area-inset-top,0px)) 0 8px;display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center}
+.back{width:44px;height:44px;border:1px solid rgba(60,60,67,.07);border-radius:50%;background:#fff;color:var(--brand);box-shadow:0 6px 18px rgba(0,0,0,.045);display:grid;place-items:center;transition:.18s ease}
+.back:hover{background:var(--brand-soft);transform:translateY(-1px)}
+.title{display:flex;justify-content:center;align-items:center;gap:9px;font-weight:680;font-size:20px;letter-spacing:-.025em;white-space:nowrap}
+.title img{width:22px;height:auto}
+.period{position:relative}
+.period select{appearance:none;-webkit-appearance:none;height:44px;border:1.25px solid var(--brand);border-radius:999px;background:#fff;color:var(--brand);padding:0 40px 0 16px;font-weight:600;font-size:14px;transition:.18s ease}
+.period:after{content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;position:absolute;right:15px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--brand);pointer-events:none}
+.shell{width:calc(100% - 40px);margin:18px auto 0}
+.demo-note{display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;padding:7px 10px;border-radius:999px;background:var(--gold-soft);color:#866f3b;font-size:11px;font-weight:600}
+.demo-note i{font-size:10px}
+.hero{background:linear-gradient(135deg,#fff 0%,#fff 70%,#fdf8fa 100%);border:1px solid rgba(60,60,67,.07);border-radius:28px;box-shadow:var(--shadow);padding:26px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:30px;align-items:center}
+.hero-kicker{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;font-weight:560;margin-bottom:8px}
+.hero-kicker i{color:var(--brand)}
+.hero-value{font-size:clamp(40px,5vw,70px);font-weight:690;letter-spacing:-.055em;line-height:.98;margin:0}
+.hero-caption{margin-top:10px;color:var(--muted);font-size:14px}
+.hero-caption strong{color:var(--green);font-weight:650}
+.goal{padding:20px;border:1px solid var(--line);border-radius:22px;background:rgba(255,255,255,.76)}
+.goal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.goal-label{font-size:12px;color:var(--muted);font-weight:570}
+.goal-value{font-size:18px;font-weight:650;margin-top:4px}
+.goal-pct{min-width:54px;height:30px;padding:0 10px;border-radius:999px;background:var(--gold-soft);color:#967b3f;display:grid;place-items:center;font-size:12px;font-weight:700}
+.goal-bar{height:8px;background:#ece9ea;border-radius:999px;overflow:hidden;margin:16px 0 10px}
+.goal-bar span{display:block;height:100%;width:74%;border-radius:inherit;background:linear-gradient(90deg,var(--gold),#dfbf77)}
+.goal-foot{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted)}
+.goal-foot strong{color:var(--brand);font-weight:650}
+.row-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:14px}
+.winner{position:relative;overflow:hidden;background:linear-gradient(135deg,#fffdf7 0%,#fff 72%);border:1px solid rgba(194,164,104,.28);border-radius:24px;box-shadow:0 12px 32px rgba(194,164,104,.07);padding:22px}
+.winner:after{content:"";position:absolute;right:-50px;top:-70px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(194,164,104,.13),rgba(194,164,104,0) 70%)}
+.winner-head{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:1}
+.winner-kicker{display:flex;align-items:center;gap:9px;color:#8b733d;font-size:12px;font-weight:680;text-transform:uppercase;letter-spacing:.045em}
+.crown{width:42px;height:42px;border-radius:14px;background:var(--gold-soft);display:grid;place-items:center;color:var(--gold);font-size:18px;box-shadow:inset 0 0 0 1px rgba(194,164,104,.18)}
+.winner-amount{position:relative;z-index:1;margin-top:16px;font-size:32px;font-weight:690;letter-spacing:-.045em}
+.winner-detail{position:relative;z-index:1;margin-top:5px;color:var(--muted);font-size:13px}
+.winner-op{position:relative;z-index:1;margin-top:15px;display:inline-flex;align-items:center;gap:8px;color:var(--brand);font-size:13px;font-weight:620}
+.cash-card{border:1px solid rgba(60,60,67,.07);border-radius:24px;background:#fff;box-shadow:var(--shadow);padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.cash-item{min-width:0}
+.cash-item:first-child{padding-right:20px;border-right:1px solid var(--line)}
+.cash-item:last-child{padding-left:20px}
+.cash-label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:570}
+.cash-label i{color:var(--brand)}
+.cash-item:last-child .cash-label i{color:var(--red)}
+.cash-value{margin-top:9px;font-size:28px;font-weight:680;letter-spacing:-.04em;white-space:nowrap}
+.cash-sub{margin-top:5px;color:var(--muted);font-size:11.5px;line-height:1.35}
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.insight{background:#fff;border:1px solid rgba(60,60,67,.07);border-radius:20px;padding:17px 18px;box-shadow:0 9px 24px rgba(42,31,35,.035)}
+.insight-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.insight-label{font-size:12px;color:var(--muted);font-weight:560}
+.insight-icon{width:34px;height:34px;border-radius:11px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:13px}
+.insight-value{margin-top:12px;font-size:24px;font-weight:680;letter-spacing:-.035em}
+.insight-foot{margin-top:4px;font-size:11.5px;color:var(--muted)}
+.insight-foot.up{color:var(--green);font-weight:600}
+.section-head{margin:24px 2px 10px;display:flex;justify-content:space-between;align-items:end;gap:12px}
+.section-title{font-size:18px;font-weight:680;letter-spacing:-.025em}
+.section-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.charts{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,.55fr);gap:14px}
+.chart-card{background:#fff;border:1px solid rgba(60,60,67,.07);border-radius:24px;box-shadow:var(--shadow);padding:20px}
+.chart-title{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:630;margin-bottom:4px}
+.chart-title i{color:var(--brand)}
+.chart-sub{font-size:11.5px;color:var(--muted);margin-bottom:16px}
+.chart-wrap{height:270px;position:relative}
+.payment-wrap{height:270px;position:relative;display:grid;grid-template-columns:minmax(150px,.8fr) minmax(150px,1.2fr);gap:12px;align-items:center}
+.legend{display:flex;flex-direction:column;gap:12px}
+.legend-row{display:grid;grid-template-columns:10px 1fr auto;gap:8px;align-items:center;font-size:12px}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+.legend-name{color:#55545a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend-value{font-weight:650}
+.footer{display:flex;justify-content:flex-end;margin-top:16px}
+.export{height:48px;padding:0 18px;border-radius:15px;border:1px solid var(--ink);background:var(--ink);color:#fff;display:flex;align-items:center;gap:9px;font-size:13px;font-weight:620;transition:.18s ease}
+.export:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(32,32,36,.13)}
+.export i{color:#ff6961}
+@media(max-width:980px){
+  .hero{grid-template-columns:1fr;gap:20px}
+  .charts{grid-template-columns:1fr}
+  .chart-wrap,.payment-wrap{height:245px}
+}
+@media(max-width:760px){
+  .topbar-inner,.shell{width:calc(100% - 24px)}
+  .topbar-inner{grid-template-columns:42px 1fr auto;gap:8px}
+  .title{font-size:17px}
+  .title img{width:19px}
+  .period select{height:42px;padding-left:12px;padding-right:31px;font-size:12.5px;max-width:125px}
+  .period:after{right:11px}
+  .hero{padding:20px;border-radius:24px}
+  .hero-value{font-size:48px}
+  .row-two{grid-template-columns:1fr}
+  .insights{grid-template-columns:1fr 1fr}
+  .payment-wrap{grid-template-columns:1fr;height:auto;min-height:330px}
+  .payment-wrap canvas{max-height:210px}
+}
+@media(max-width:520px){
+  .title{justify-content:flex-start;font-size:15px;line-height:1.05;white-space:normal}
+  .period select{max-width:112px}
+  .hero-value{font-size:43px}
+  .goal{padding:17px}
+  .cash-card{grid-template-columns:1fr}
+  .cash-item:first-child{padding:0 0 17px;border-right:0;border-bottom:1px solid var(--line)}
+  .cash-item:last-child{padding:17px 0 0}
+  .insights{grid-template-columns:1fr}
+  .chart-card{padding:17px}
+  .chart-wrap{height:225px}
+  .footer{justify-content:stretch}.export{width:100%;justify-content:center}
+}
+@media print{
+  .topbar,.demo-note,.footer{display:none!important}
+  body,.app{background:#fff}
+  .shell{width:100%;margin:0}
+  .hero,.winner,.cash-card,.insight,.chart-card{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="back" type="button" aria-label="Volver"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="title"><img src="triangulo.png" alt="HomeEasy"><span>Reportes</span></div>
+      <div class="period">
+        <select id="periodo" aria-label="Periodo del reporte">
+          <option value="mes">Este mes</option>
+          <option value="mes_pasado">Mes pasado</option>
+          <option value="semana">Esta semana</option>
+          <option value="anio">Este año</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="demo-note"><i class="fa-solid fa-wand-magic-sparkles"></i> Propuesta visual · datos de ejemplo</div>
+
+    <section class="hero">
+      <div>
+        <div class="hero-kicker"><i class="fa-solid fa-chart-line"></i><span id="periodText">Ventas · agosto 2026</span></div>
+        <h1 class="hero-value" id="sold">$18.450.000</h1>
+        <div class="hero-caption">Frente al periodo anterior: <strong id="growth">↑ 14,6%</strong></div>
+      </div>
+      <div class="goal">
+        <div class="goal-head">
+          <div>
+            <div class="goal-label">Meta de ventas</div>
+            <div class="goal-value" id="goal">$25.000.000</div>
+          </div>
+          <div class="goal-pct" id="goalPct">74%</div>
+        </div>
+        <div class="goal-bar"><span id="goalBar"></span></div>
+        <div class="goal-foot"><strong id="achieved">Logrado $18.450.000</strong><span id="remaining">Faltan $6.550.000</span></div>
+      </div>
+    </section>
+
+    <div class="row-two">
+      <section class="winner">
+        <div class="winner-head">
+          <div class="winner-kicker"><span class="crown"><i class="fa-solid fa-crown"></i></span><span>OP ganadora del periodo</span></div>
+        </div>
+        <div class="winner-amount" id="winnerAmount">$4.500.000</div>
+        <div class="winner-detail" id="winnerDetail">OP 24 · 16 ago 2026</div>
+        <div class="winner-op"><i class="fa-regular fa-star"></i><span>Mayor venta individual del periodo</span></div>
+      </section>
+
+      <section class="cash-card">
+        <div class="cash-item">
+          <div class="cash-label"><i class="fa-solid fa-wallet"></i><span>Recaudado</span></div>
+          <div class="cash-value" id="collected">$12.900.000</div>
+          <div class="cash-sub">Entradas efectivas del periodo</div>
+        </div>
+        <div class="cash-item">
+          <div class="cash-label"><i class="fa-solid fa-hand-holding-dollar"></i><span>Por cobrar</span></div>
+          <div class="cash-value" id="pending">$5.550.000</div>
+          <div class="cash-sub">Saldo pendiente del negocio</div>
+        </div>
+      </section>
+    </div>
+
+    <section class="insights">
+      <article class="insight">
+        <div class="insight-top"><div class="insight-label">Órdenes del periodo</div><div class="insight-icon"><i class="fa-regular fa-file-lines"></i></div></div>
+        <div class="insight-value" id="orders">9</div>
+        <div class="insight-foot">OP activas registradas</div>
+      </article>
+      <article class="insight">
+        <div class="insight-top"><div class="insight-label">Ticket promedio</div><div class="insight-icon"><i class="fa-solid fa-receipt"></i></div></div>
+        <div class="insight-value" id="ticket">$2.050.000</div>
+        <div class="insight-foot">Venta promedio por OP</div>
+      </article>
+      <article class="insight">
+        <div class="insight-top"><div class="insight-label">Crecimiento</div><div class="insight-icon"><i class="fa-solid fa-arrow-trend-up"></i></div></div>
+        <div class="insight-value" id="growthBig">14,6%</div>
+        <div class="insight-foot up" id="growthFoot">↑ Mejor que el periodo anterior</div>
+      </article>
+    </section>
+
+    <div class="section-head">
+      <div><div class="section-title">Comportamiento comercial</div><div class="section-sub">Lectura rápida de tendencia y recaudo</div></div>
+    </div>
+
+    <section class="charts">
+      <article class="chart-card">
+        <div class="chart-title"><i class="fa-solid fa-chart-column"></i><span>Tendencia de ventas</span></div>
+        <div class="chart-sub">Ventas acumuladas por mes</div>
+        <div class="chart-wrap"><canvas id="salesChart"></canvas></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-title"><i class="fa-solid fa-chart-pie"></i><span>Medios de pago</span></div>
+        <div class="chart-sub">Distribución del recaudo del periodo</div>
+        <div class="payment-wrap">
+          <canvas id="paymentChart"></canvas>
+          <div class="legend" id="paymentLegend"></div>
+        </div>
+      </article>
+    </section>
+
+    <div class="footer"><button class="export" type="button" id="exportBtn"><i class="fa-regular fa-file-pdf"></i><span>Exportar informe</span></button></div>
+  </main>
+</div>
+<script>
+const datasets={
+  mes:{period:'Ventas · agosto 2026',sold:18450000,growth:14.6,goal:25000000,collected:12900000,pending:5550000,orders:9,winner:4500000,winnerDetail:'OP 24 · 16 ago 2026',sales:[9.2,11.4,12.1,14.8,13.5,16.2,17.1,18.45],payments:{'Transferencia':6500000,'Efectivo':3200000,'Pago inicial':2300000,'Tarjeta':900000}},
+  mes_pasado:{period:'Ventas · julio 2026',sold:16100000,growth:8.1,goal:22000000,collected:11300000,pending:4800000,orders:8,winner:3900000,winnerDetail:'OP 19 · 21 jul 2026',sales:[9.2,11.4,12.1,14.8,13.5,16.1,16.1],payments:{'Transferencia':5200000,'Efectivo':2800000,'Pago inicial':2500000,'Tarjeta':800000}},
+  semana:{period:'Ventas · esta semana',sold:6850000,growth:22.4,goal:8000000,collected:4400000,pending:2450000,orders:3,winner:3100000,winnerDetail:'OP 27 · 26 ago 2026',sales:[1.1,1.8,2.4,3.2,4.8,5.9,6.85],payments:{'Transferencia':2400000,'Efectivo':1200000,'Pago inicial':800000}},
+  anio:{period:'Ventas · 2026',sold:104600000,growth:18.9,goal:135000000,collected:78600000,pending:26000000,orders:48,winner:9200000,winnerDetail:'OP 11 · 4 abr 2026',sales:[9.2,11.4,12.1,14.8,13.5,16.2,17.1,10.3],payments:{'Transferencia':38600000,'Efectivo':21400000,'Pago inicial':14600000,'Tarjeta':4000000}}
+};
+const money=n=>'$'+Math.round(n).toLocaleString('es-CO');
+let salesChart,paymentChart;
+const labels=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago'];
+function colorFor(i){return ['#B2566C','#C2A468','#5F7E73','#8D849B','#D09A5B'][i%5]}
+function renderLegend(payments){const root=document.getElementById('paymentLegend');root.innerHTML='';Object.entries(payments).forEach(([name,value],i)=>{const row=document.createElement('div');row.className='legend-row';row.innerHTML=`<span class="legend-dot" style="background:${colorFor(i)}"></span><span class="legend-name">${name}</span><span class="legend-value">${money(value)}</span>`;root.appendChild(row)})}
+function renderCharts(d){
+  if(salesChart)salesChart.destroy();if(paymentChart)paymentChart.destroy();
+  Chart.defaults.font.family='-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif';Chart.defaults.color='#8a888e';
+  salesChart=new Chart(document.getElementById('salesChart'),{type:'bar',data:{labels:labels.slice(0,d.sales.length),datasets:[{data:d.sales.map(v=>v*1000000),backgroundColor:'#B2566C',borderRadius:7,borderSkipped:false,maxBarThickness:34}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.raw)}}},scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:11,weight:'600'}}},y:{beginAtZero:true,border:{display:false},grid:{color:'#f0eef0'},ticks:{font:{size:10},callback:v=>'$'+(v/1000000).toFixed(0)+'M'}}}}});
+  const entries=Object.entries(d.payments);paymentChart=new Chart(document.getElementById('paymentChart'),{type:'doughnut',data:{labels:entries.map(x=>x[0]),datasets:[{data:entries.map(x=>x[1]),backgroundColor:entries.map((_,i)=>colorFor(i)),borderWidth:4,borderColor:'#fff',hoverOffset:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${money(c.raw)}`}}}}});
+  renderLegend(d.payments);
+}
+function render(key){const d=datasets[key];document.getElementById('periodText').textContent=d.period;document.getElementById('sold').textContent=money(d.sold);document.getElementById('growth').textContent=(d.growth>=0?'↑ ':'↓ ')+Math.abs(d.growth).toLocaleString('es-CO')+'%';document.getElementById('growth').style.color=d.growth>=0?'var(--green)':'var(--red)';document.getElementById('goal').textContent=money(d.goal);const pct=Math.min(100,Math.round(d.sold/d.goal*100));document.getElementById('goalPct').textContent=pct+'%';document.getElementById('goalBar').style.width=pct+'%';document.getElementById('achieved').textContent='Logrado '+money(d.sold);document.getElementById('remaining').textContent='Faltan '+money(Math.max(0,d.goal-d.sold));document.getElementById('winnerAmount').textContent=money(d.winner);document.getElementById('winnerDetail').textContent=d.winnerDetail;document.getElementById('collected').textContent=money(d.collected);document.getElementById('pending').textContent=money(d.pending);document.getElementById('orders').textContent=d.orders;document.getElementById('ticket').textContent=money(d.sold/Math.max(1,d.orders));document.getElementById('growthBig').textContent=Math.abs(d.growth).toLocaleString('es-CO')+'%';document.getElementById('growthFoot').textContent=(d.growth>=0?'↑ Mejor':'↓ Menor')+' que el periodo anterior';document.getElementById('growthFoot').className='insight-foot '+(d.growth>=0?'up':'');renderCharts(d)}
+document.getElementById('periodo').addEventListener('change',e=>render(e.target.value));document.querySelector('.back').addEventListener('click',()=>history.length>1?history.back():location.href='index.html');document.getElementById('exportBtn').addEventListener('click',()=>window.print());render('mes');
+</script>
+</body>
+</html>
