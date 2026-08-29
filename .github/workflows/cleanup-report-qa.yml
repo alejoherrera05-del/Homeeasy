@@ -1,0 +1,34 @@
+name: cleanup report QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cleanup-report-qa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Align durable QA with final report and remove temporary workflows
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/reportes-v4-qa.yml')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace("'cumplimiento de meta'","'distancia a la meta'")
+          p.write_text(s,encoding='utf-8')
+          PY
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git rm -f .github/workflows/final-report-pdf-qa.yml .github/workflows/fix-report-qa-tolerance.yml .github/workflows/reportes-v4-diagnostic.yml .github/workflows/cleanup-report-qa.yml
+          git add .github/workflows/reportes-v4-qa.yml
+          git diff --cached --check
+          git commit -m 'Clean up report QA workflows after executive PDF validation'
+          git push
