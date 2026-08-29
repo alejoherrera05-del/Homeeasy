@@ -131,7 +131,7 @@ async function waitForStableConfiguration(page) {
     const overlay = document.getElementById('syncOverlay');
     return version && version.textContent.includes('QA-STABLE') && overlay && !overlay.classList.contains('visible');
   }, null, { timeout: 15000 });
-  await page.waitForSelector('[data-section="integraciones"]', { timeout: 8000 });
+  await page.waitForFunction(() => document.querySelectorAll('[data-section="integraciones"]').length >= 2, null, { timeout: 8000 });
   assert(!page.url().includes('login.html'), 'Configuracion redirected to login');
 }
 
