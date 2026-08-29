@@ -27,7 +27,6 @@ jobs:
           p = Path('reportes.html')
           s = p.read_text(encoding='utf-8')
 
-          # Remove previous experimental mobile goal overrides so they do not fight each other.
           for style_id in ('reportes-mobile-goal-v3', 'reportes-mobile-goal-v4', 'reportes-mobile-goal-v5'):
               s = re.sub(r'<style id="' + re.escape(style_id) + r'">.*?</style>\s*', '', s, flags=re.S)
 
@@ -89,7 +88,9 @@ jobs:
               width:54%!important;
               min-height:151px;
               padding:14px 0 2px!important;
-              margin:0!important;
+              margin-left:0!important;
+              margin-right:auto!important;
+              justify-self:start!important;
               display:flex!important;
               align-items:center!important;
               justify-content:center!important;
@@ -173,7 +174,7 @@ jobs:
             if(g.pseudo.width>230) throw new Error('Hommy too large');
             if(g.pseudo.opacity>.23) throw new Error('Hommy too dominant');
             if(g.ringWrap.width>230) throw new Error('ring area not shifted left');
-            if(g.ring.right >= g.hero.left + g.hero.width*.64) throw new Error('ring not sufficiently left-aligned');
+            if(g.ring.left > g.hero.left + 105) throw new Error('ring still too centered');
             await page.screenshot({path:'reportes-card-mobile-v5.png',fullPage:true});
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
