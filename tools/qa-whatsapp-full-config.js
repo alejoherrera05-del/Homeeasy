@@ -212,12 +212,22 @@ async function runScenario(browserType, browserName, viewport, mode) {
   assert(!pageErrors.some(msg => /restoreHomeEasySession|signOut|HomeEasy session/i.test(msg)), `${browserName}/${mode}: suspicious page error: ${pageErrors.join(' | ')}`);
 
   if (mode === '401') {
-    const callsBeforeReload = waCalls;
+    // Al recargar estando en #integraciones es correcto volver a consultar el estado,
+    // pero el 401 jamás debe modificar ni cerrar la sesión principal.
+    const callsBeforeHashReload = waCalls;
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 20000 });
     await waitForStableConfiguration(page);
+    await page.waitForFunction(() => document.getElementById('heWaChip')?.textContent === 'Sin respuesta', null, { timeout: 5000 });
+    assert.strictEqual(waCalls, callsBeforeHashReload + 1, `${browserName}/401: expected one status check when reloading #integraciones`);
+    await assertSessionUnchanged(page, before, `${browserName}/401 after #integraciones reload`);
+
+    // Al abrir Configuración normalmente, sin hash, WhatsApp debe permanecer pasivo.
+    const callsBeforePlainConfig = waCalls;
+    await page.goto(`${BASE}?qa=${browserName}-401-plain-${Date.now()}`, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await waitForStableConfiguration(page);
     await page.waitForTimeout(1200);
-    assert.strictEqual(waCalls, callsBeforeReload, `${browserName}/401: WhatsApp called automatically after reload`);
-    await assertSessionUnchanged(page, before, `${browserName}/401 after reload`);
+    assert.strictEqual(waCalls, callsBeforePlainConfig, `${browserName}/401: WhatsApp called automatically on plain Configuracion`);
+    await assertSessionUnchanged(page, before, `${browserName}/401 plain Configuracion`);
   }
 
   console.log(`FULL_CONFIG_OK browser=${browserName} mode=${mode} waCalls=${waCalls} pageErrors=${pageErrors.length}`);
