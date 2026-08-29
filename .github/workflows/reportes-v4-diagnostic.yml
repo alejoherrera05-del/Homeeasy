@@ -127,6 +127,8 @@ jobs:
             await page.waitForFunction(()=>document.querySelector('#detailDrawer')?.classList.contains('open'),{timeout:20000});
             const detail=await page.evaluate(()=>({title:drawerTitle.textContent.trim(),body:drawerBody.textContent}));
             if(detail.title!=='OP-38'||!detail.body.includes('CRISTHIAN GUZMAN MELIZO')) throw new Error('No abrió OP ganadora correcta');
+            await page.click('#drawerClose');
+            await page.waitForFunction(()=>!document.querySelector('#detailDrawer')?.classList.contains('open'),{timeout:5000});
             await page.click('#backBtn');
             await page.waitForURL(/reportes-diseno-v4\.html/,{timeout:10000});
             await page.waitForTimeout(600);
