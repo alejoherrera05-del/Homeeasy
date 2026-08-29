@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGET = ROOT / "clientes-conectado-v31.html"
@@ -7,12 +8,30 @@ html = TARGET.read_text(encoding="utf-8")
 replacements = {
     "shell.append(buildContact(client),buildSummary(orders));": "shell.append(buildContact(client));",
     "actions.append(wa,bottomMore);card.append(actions);return card}": "actions.append(wa);card.append(actions);return card}",
-    "title.append(logo,el('span','', 'Clientes'));": "title.append(logo,el('span','', 'Base de datos clientes'));",
 }
 for old, new in replacements.items():
-    if old not in html:
-        raise SystemExit(f"No se encontró el patrón esperado: {old}")
-    html = html.replace(old, new, 1)
+    if old in html:
+        html = html.replace(old, new, 1)
+
+# Remove JS that became unreachable after the approved UI simplification.
+html, removed_summary = re.subn(
+    r"\nfunction buildSummary\(orders\)\{.*?\}\nfunction statusClass",
+    "\nfunction statusClass",
+    html,
+    count=1,
+)
+html, removed_bottom_more = re.subn(
+    r"const bottomMore=el\('button','v31-more-bottom'\);.*?bottomMore\.onclick=\(\)=>openClientMenu\(c\);actions\.append\(wa\);",
+    "actions.append(wa);",
+    html,
+    count=1,
+)
+html, removed_active_items = re.subn(
+    r",activeItems=items=>\(Array\.isArray\(items\)\?items:\[\]\)\.filter\(i=>!/ANUL/i\.test\(clean\(i\?\.estado\)\)\)",
+    "",
+    html,
+    count=1,
+)
 
 script_marker = '<script id="clientes-connected-v31-script">'
 script_pos = html.find(script_marker)
@@ -57,17 +76,26 @@ refinement_css = r'''
   .v31-view-op{height:50px!important}
 }
 '''
-html = html[:style_pos] + refinement_css + '\n' + html[style_pos:]
+# The generated file may already contain this refinement when rebuilding from a promoted source.
+if '/* --- Auditoría de producto v3.3: menos ruido, acciones inequívocas --- */' not in html:
+    html = html[:style_pos] + refinement_css + '\n' + html[style_pos:]
 
-# Safety assertions for the visible product surface.
+# Title requested for the final product surface.
+html = html.replace("el('span','', 'Clientes')", "el('span','', 'Base de datos clientes')", 1)
+
+# Safety assertions for the visible and executable surface.
 assert "shell.append(buildContact(client));" in html
 assert "shell.append(buildContact(client),buildSummary(orders));" not in html
 assert "actions.append(wa);card.append(actions);return card}" in html
 assert "actions.append(wa,bottomMore)" not in html
-assert ".v31-summary{display:none!important}" in html
-assert "Ver recibos y movimientos" in html
+assert "function buildSummary(orders)" not in html
+assert "const bottomMore=" not in html
+assert "activeItems=items=>" not in html
 assert "Base de datos clientes" in html
-assert ".v31-more{position:absolute!important;right:22px!important;top:22px!important" in html
+assert "Ver recibos y movimientos" in html
 
 TARGET.write_text(html, encoding="utf-8")
-print(f"Refined {TARGET.name}: {TARGET.stat().st_size} bytes")
+print(
+    f"Refined {TARGET.name}: {TARGET.stat().st_size} bytes; "
+    f"dead-summary={removed_summary}, dead-menu={removed_bottom_more}, dead-helper={removed_active_items}"
+)
