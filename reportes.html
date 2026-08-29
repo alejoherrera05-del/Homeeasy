@@ -1,631 +1,118 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HomeEasy | Inteligencia Financiera</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HomeEasy · Reporte de ventas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{--brand:#B2566C;--brand-dark:#97475A;--brand-soft:#F8EEF1;--gold:#C2A468;--gold-dark:#967536;--gold-soft:#FBF5E8;--ink:#202024;--muted:#6F6E75;--line:#E8E6E7;--bg:#F6F6F7;--green:#2B765F;--red:#B44D5E;--shadow:0 14px 38px rgba(47,34,39,.045)}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-synthesis:none}button,input,select{font:inherit;font-synthesis:none}button{cursor:pointer}.app{min-height:100dvh;padding:8px 0 40px}.shell{width:min(1560px,calc(100% - 48px));margin-inline:auto}
+.report-header{position:relative}.header-main{position:relative;height:70px;display:flex;align-items:center;justify-content:center}.back{position:absolute;left:0;top:50%;transform:translateY(-50%);width:44px;height:44px;border:1px solid rgba(60,60,67,.08);border-radius:50%;background:#fff;color:var(--brand);display:grid;place-items:center;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.04)}.heading-lockup{display:grid;grid-template-columns:29px auto;column-gap:11px;align-items:center}.heading-lockup img{grid-row:1/3;width:29px;height:34px;object-fit:contain}.heading-copy{text-align:left}.heading h1{margin:0;font-size:clamp(29px,2.2vw,36px);line-height:1;font-weight:735;letter-spacing:-.043em}.heading p{margin:6px 0 0;color:var(--muted);font-size:16px;line-height:1.15;font-weight:460}.period-row{min-height:50px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 4px}.date-display{display:flex;align-items:center;gap:10px;color:#59575E;font-size:15px;font-weight:620}.date-display i{color:var(--brand);font-size:16px}.period-control{display:flex;align-items:center;gap:10px}.period-label{font-size:14px;font-weight:650;color:#858188}.period{position:relative;min-width:178px}.period select{appearance:none;width:100%;height:44px;border:1.25px solid rgba(178,86,108,.78);border-radius:15px;background:#fff;color:var(--brand-dark);padding:0 42px 0 16px;font-size:15px;font-weight:660;outline:none}.period:after{content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;position:absolute;right:15px;top:50%;transform:translateY(-50%);color:var(--brand);font-size:11px;pointer-events:none}.page{margin-top:6px;display:flex;flex-direction:column;gap:18px}
+.error-banner{display:none;border:1px solid rgba(180,77,94,.18);background:#FFF7F8;color:#7D3C49;border-radius:18px;padding:13px 16px;align-items:center;justify-content:space-between;gap:15px;font-size:14.5px}.error-banner.show{display:flex}.error-banner.warn{display:flex;border-color:rgba(194,164,104,.28);background:#FFFBF3;color:#77612E}.retry{border:0;border-radius:12px;height:38px;padding:0 14px;background:var(--brand);color:#fff;font-weight:650}
+.goal-hero{position:relative;overflow:hidden;min-height:338px;border-radius:30px;background:radial-gradient(circle at 82% 18%,rgba(194,164,104,.16),transparent 25%),radial-gradient(circle at 94% 84%,rgba(178,86,108,.10),transparent 30%),linear-gradient(135deg,#fff 0%,#fff 52%,#FDF6F8 100%);border:1px solid rgba(60,60,67,.07);box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1fr) 220px minmax(0,1fr);align-items:center;gap:20px;padding:28px 30px 25px}.goal-copy{min-width:0;max-width:610px;width:100%}.goal-kicker{display:flex;align-items:center;gap:9px;font-size:16px;color:var(--brand);font-weight:700}.goal-kicker i{width:34px;height:34px;border-radius:11px;background:var(--brand-soft);display:grid;place-items:center}.goal-label{margin-top:18px;font-size:16px;color:var(--muted);font-weight:560}.goal-total-row{display:flex;align-items:center;gap:12px;margin-top:4px}.goal-total{font-size:clamp(44px,4vw,61px);font-weight:720;letter-spacing:-.055em;line-height:.98}.edit-goal{width:38px;height:38px;border:0;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:15px}.goal-progress-copy{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-top:20px}.goal-progress-copy span{font-size:16px;color:var(--muted);font-weight:560}.goal-achieved{font-size:clamp(30px,2.6vw,39px);font-weight:700;color:var(--brand);letter-spacing:-.042em}.goal-remaining{margin-top:9px;font-size:15.5px;color:#626168}.goal-remaining strong{color:var(--gold-dark);font-weight:690}.ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;justify-self:center;width:220px}.ring{width:166px;height:166px;border-radius:50%;background:conic-gradient(var(--brand) 0 0%,#E9E6E7 0 100%);position:relative;box-shadow:0 10px 28px rgba(178,86,108,.08)}.ring:after{content:"";position:absolute;inset:17px;background:#fff;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(60,60,67,.05)}.ring-center{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.ring-center strong{font-size:42px;line-height:.95;font-weight:720;letter-spacing:-.05em;color:var(--brand)}.ring-center span{margin-top:8px;font-size:14px;line-height:1;color:var(--muted);font-weight:600}.ring-note{margin-top:12px;text-align:center;font-size:14px;color:var(--muted);line-height:1.4}.ring-note strong{color:var(--gold-dark);font-size:15px}.hommy-stage{position:relative;align-self:stretch;min-height:282px;display:grid;grid-template-columns:minmax(135px,165px) minmax(220px,270px);align-items:center;justify-content:end;gap:4px;min-width:0}.hommy-bubble{z-index:4;width:100%;max-width:165px;padding:13px 14px;border-radius:17px 17px 6px 17px;background:#fff;border:1px solid rgba(60,60,67,.06);box-shadow:0 11px 27px rgba(43,33,37,.085);font-size:14px;line-height:1.38;color:#5D595C;align-self:start;margin-top:40px}.hommy-bubble strong{color:var(--brand)}.hommy-art{position:relative;min-height:282px}.hommy-art:before{content:"";position:absolute;right:2%;bottom:7%;width:224px;height:224px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 20px 58px rgba(178,86,108,.07)}.hommy-art img{position:absolute;right:-3px;bottom:-24px;width:270px;max-height:326px;object-fit:contain;object-position:bottom;filter:drop-shadow(0 17px 27px rgba(48,35,40,.12));z-index:2}
+.period-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.strip-item{min-height:142px;padding:21px 22px;background:#fff;border:1px solid rgba(60,60,67,.07);border-radius:23px;box-shadow:var(--shadow);display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;gap:16px}.strip-icon{width:56px;height:56px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:21px}.strip-item.portfolio .strip-icon{background:var(--gold-soft);color:var(--gold-dark)}.strip-content{display:flex;flex-direction:column;justify-content:center;min-width:0}.strip-label{font-size:15px;color:var(--brand-dark);font-weight:650;line-height:1.25}.strip-item.portfolio .strip-label{color:var(--gold-dark)}.strip-value{margin-top:8px;font-size:clamp(27px,2.25vw,35px);font-weight:705;letter-spacing:-.04em;line-height:1}.strip-note{margin-top:7px;font-size:14px;color:var(--muted);line-height:1.35}.strip-item.growth .strip-value{color:var(--green)}.strip-item.growth.negative .strip-value{color:var(--red)}.strip-item.actionable{cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.strip-item.actionable:focus-visible,.winner.actionable:focus-visible{outline:3px solid rgba(178,86,108,.20);outline-offset:3px}.winner.actionable{cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}.strip-item.actionable:hover,.winner.actionable:hover{transform:translateY(-2px);box-shadow:0 16px 38px rgba(47,34,39,.08)}
+.winner,.trend,.payments{border-radius:28px;border:1px solid rgba(60,60,67,.07);box-shadow:var(--shadow)}.winner{background:radial-gradient(circle at 92% 18%,rgba(194,164,104,.21),transparent 26%),linear-gradient(120deg,#FFFDF8 0%,#FFF8EA 50%,#FDF6E4 100%);border-color:rgba(194,164,104,.29);padding:26px 29px}.winner-kicker{display:flex;align-items:center;gap:11px;color:#8A7139;font-size:14px;font-weight:730;letter-spacing:.03em;text-transform:uppercase}.crown{width:48px;height:48px;border-radius:15px;background:#fff7df;border:1px solid rgba(194,164,104,.26);display:grid;place-items:center;color:#D0A840;font-size:21px}.winner-amount{margin-top:15px;font-size:clamp(37px,3.6vw,52px);font-weight:710;letter-spacing:-.05em}.winner-detail{margin-top:7px;font-size:15px;color:#65615A}.winner-note{margin-top:13px;font-size:14px;color:#8B743F;font-weight:580}
+.trend{background:#fff;padding:27px 29px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,.45fr);gap:34px}.section-kicker{font-size:13.5px;text-transform:uppercase;letter-spacing:.055em;font-weight:720;color:#9A969C}.section-title{margin-top:6px;font-size:28px;font-weight:710;letter-spacing:-.033em}.section-sub{margin-top:5px;font-size:15px;color:var(--muted)}.trend-year{font-size:16px;color:var(--gold-dark);font-weight:690}.bars{height:270px;margin-top:25px;display:grid;grid-template-columns:repeat(12,1fr);gap:10px;align-items:end;border-bottom:1px solid #EAE8E9;padding:0 3px 14px}.bar-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px}.bar{width:min(36px,72%);border-radius:9px 9px 3px 3px;background:linear-gradient(180deg,#C9788B,var(--brand));min-height:4px}.bar-col.active .bar{background:linear-gradient(180deg,#DFC478,var(--gold));box-shadow:0 6px 16px rgba(194,164,104,.22)}.bar-label{font-size:12.5px;color:#8E8D94}.reading{border-left:1px solid var(--line);padding-left:28px}.reading-title{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}.reading-title i{color:var(--gold)}.reading-row{padding:17px 0;border-bottom:1px solid var(--line)}.reading-row:last-child{border-bottom:0}.reading-top{display:flex;justify-content:space-between;gap:14px}.reading-name{font-size:14px;color:var(--muted)}.reading-value{font-size:17px;font-weight:690}.reading-text{margin-top:6px;color:#65646A;font-size:13.5px;line-height:1.45}.up{color:var(--green)}.down{color:var(--red)}
+.payments{background:linear-gradient(135deg,#FBF3F6 0%,#FFFBF2 100%);border-color:rgba(178,86,108,.09);padding:27px 29px;display:grid;grid-template-columns:280px minmax(0,1fr);gap:38px;align-items:center}.donut-box{display:grid;place-items:center}.donut{width:198px;height:198px;border-radius:50%;background:conic-gradient(#D9D4D7 0 100%);position:relative}.donut:after{content:"";position:absolute;inset:36px;background:#FCF7F7;border-radius:50%}.donut-center{position:absolute;inset:0;z-index:2;display:grid;place-content:center;text-align:center}.donut-center span{font-size:13.5px;color:var(--muted)}.donut-center strong{margin-top:4px;font-size:24px}.pay-list{margin-top:21px}.pay-row{display:grid;grid-template-columns:13px minmax(0,1fr) auto auto;gap:13px;align-items:center;padding:13px 0;border-bottom:1px solid rgba(60,60,67,.08)}.pay-row:last-child{border-bottom:0}.dot{width:10px;height:10px;border-radius:50%}.pay-name{font-size:15px;font-weight:610}.pay-amount{font-size:15px;font-weight:690}.pay-pct{min-width:44px;text-align:right;font-size:13.5px;color:var(--muted)}.pay-empty{padding:18px 0;color:var(--muted);font-size:14.5px}.footer{display:flex;justify-content:flex-end}.export{height:48px;padding:0 18px;border:0;border-radius:15px;background:var(--brand);color:#fff;font-size:14.5px;font-weight:660;display:flex;align-items:center;gap:9px;box-shadow:0 9px 22px rgba(178,86,108,.16)}
+.loader-overlay{position:fixed;inset:0;z-index:9999;background:rgba(246,246,247,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}.loader-ring{width:40px;height:40px;border-radius:50%;border:3px solid var(--brand-soft);border-top-color:var(--brand);animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.loader-text{color:var(--brand-dark);font-weight:650}
+dialog{width:min(450px,calc(100% - 30px));border:0;border-radius:24px;padding:0;color:var(--ink);box-shadow:0 28px 80px rgba(40,29,33,.22)}dialog::backdrop{background:rgba(28,24,26,.25);backdrop-filter:blur(4px)}.dialog-body{padding:25px}.dialog-icon{width:44px;height:44px;border-radius:14px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;margin-bottom:14px}.dialog-title{font-size:23px;font-weight:720;letter-spacing:-.03em}.dialog-sub{margin-top:5px;color:var(--muted);font-size:14.5px;line-height:1.4}.field{margin-top:18px}.field label{display:block;font-size:13.5px;font-weight:650;color:#68656B;margin-bottom:7px}.goal-input-wrap{position:relative}.goal-input-wrap span{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:650}.dialog-input{width:100%;height:52px;border:1px solid var(--line);border-radius:15px;padding:0 14px;background:#FAFAFB;font-size:16px;font-weight:620;color:var(--ink)}.goal-input{padding-left:34px;font-size:18px}.date-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dialog-error{display:none;margin-top:11px;color:var(--red);font-size:13.5px;font-weight:570}.dialog-error.show{display:block}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.dialog-btn{height:44px;border-radius:13px;padding:0 16px;font-size:14.5px;font-weight:660}.dialog-btn.secondary{background:#fff;border:1px solid var(--line);color:#656269}.dialog-btn.primary{background:var(--brand);border:1px solid var(--brand);color:#fff}.dialog-btn:disabled{opacity:.55;cursor:wait}
+@media(max-width:1260px){.goal-hero{grid-template-columns:minmax(0,1fr) 190px minmax(0,1fr)}.ring-wrap{width:190px}.hommy-stage{grid-template-columns:1fr}.hommy-bubble{display:none}.hommy-art img{width:250px}.trend{grid-template-columns:1fr}.reading{border-left:0;border-top:1px solid var(--line);padding:22px 0 0}}
+@media(max-width:900px){.shell{width:calc(100% - 24px)}.header-main{height:64px}.heading h1{font-size:30px}.heading p{font-size:15px}.period-row{min-height:48px}.goal-hero{grid-template-columns:1fr 170px;min-height:auto;padding:24px 21px 0}.goal-copy{grid-column:1/-1}.ring-wrap{grid-column:1;width:170px}.hommy-stage{grid-column:2;min-height:230px;display:block}.hommy-art{min-height:230px}.hommy-art img{width:218px;right:-8px;bottom:-18px}.period-strip{grid-template-columns:1fr}.strip-item{min-height:124px}.trend,.payments{padding:24px 21px}.payments{grid-template-columns:1fr}}
+@media(max-width:620px){.app{padding-top:4px}.header-main{height:60px}.back{width:40px;height:40px}.heading-lockup{grid-template-columns:23px auto;column-gap:8px}.heading-lockup img{width:23px;height:27px}.heading h1{font-size:25px}.heading p{font-size:13.5px;margin-top:4px}.period-row{align-items:stretch;flex-direction:column;gap:8px;margin-top:2px}.date-display{font-size:14px}.period-control{justify-content:space-between}.period{min-width:170px}.period select{height:42px;font-size:14px}.page{margin-top:12px;gap:14px}.goal-hero{border-radius:25px;padding:22px 17px 0;grid-template-columns:1fr 140px;gap:4px}.goal-total{font-size:43px}.goal-achieved{font-size:30px}.ring-wrap{width:140px}.ring{width:136px;height:136px}.ring:after{inset:14px}.ring-center strong{font-size:34px}.hommy-stage{min-height:188px}.hommy-art{min-height:188px}.hommy-art img{width:174px;right:-12px;bottom:-14px}.strip-item{grid-template-columns:52px minmax(0,1fr);gap:12px;padding:18px 16px;min-height:116px}.strip-icon{width:50px;height:50px;font-size:18px}.strip-value{font-size:28px}.winner,.trend,.payments{border-radius:25px;padding:22px 17px}.section-title{font-size:25px}.bars{height:215px;gap:4px}.bar-label{font-size:11.5px}.donut{width:170px;height:170px}.donut:after{inset:31px}.pay-row{grid-template-columns:10px minmax(0,1fr) auto}.pay-pct{display:none}.footer{justify-content:stretch}.export{width:100%;justify-content:center}.date-fields{grid-template-columns:1fr}}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <style>
-        :root {
-            --home-wine: #a6455a;
-            --home-gold: #c2a468;
-            --ios-bg: #f2f2f7;
-            --text-dark: #1c1c1e;
-        }
-
-        body {
-            /* Fuente San Francisco */
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--ios-bg); 
-            margin: 0; padding: 0;
-            color: var(--text-dark);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* 🚨 OPTIMIZACIÓN RESPONSIVE PC / MÓVIL */
-        .app-wrapper {
-            max-width: 100%;
-            margin: 0 auto;
-            background-color: var(--ios-bg);
-            min-height: 100vh;
-            padding-bottom: 40px;
-        }
-        
-        .content-container { padding: 0 20px; margin-top: -25px; position: relative; z-index: 10;}
-
-        @media (min-width: 992px) {
-            .app-wrapper { max-width: 1200px; padding: 20px; border-radius: 20px; margin-top: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-            .report-header { border-radius: 24px !important; }
-            .content-container { margin-top: 20px; }
-            
-            /* Grids para PC */
-            .grid-desktop-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
-            .grid-desktop-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-            .meta-card { margin: 0 !important; height: 100%; }
-        }
-
-        /* --- CABECERA --- */
-        .report-header {
-            background: linear-gradient(135deg, var(--home-wine) 0%, #823646 100%);
-            padding: calc(20px + env(safe-area-inset-top)) 25px 45px;
-            border-radius: 0 0 32px 32px;
-            color: white;
-            box-shadow: 0 8px 24px rgba(166, 69, 90, 0.2);
-            position: relative;
-            display: flex; flex-direction: column;
-        }
-        
-        .no-export { display: flex; }
-
-        .header-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .btn-back {
-            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white; width: 38px; height: 38px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; text-decoration: none;
-            backdrop-filter: blur(5px); flex-shrink: 0; transition: transform 0.2s;
-        }
-        .btn-back:active { transform: scale(0.9); }
-        
-        .hommy-header-img { width: 85px; height: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25)); margin-right: 5px; }
-
-        .header-titles { flex: 1; }
-        .header-titles h1 { font-weight: 700; font-size: 1.4rem; margin:0; letter-spacing: -0.3px; }
-        .header-titles p { margin:0; opacity:0.85; font-size:0.8rem; font-weight: 400; }
-
-        /* Selector de Periodo */
-        .period-controls { display: flex; gap: 10px; align-items: center; }
-        .period-selector { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 6px 12px; backdrop-filter: blur(5px); flex: 1;}
-        .period-selector select { background: transparent; border: none; color: white; font-weight: 600; font-size: 0.85rem; outline: none; width: 100%; cursor: pointer;}
-        .period-selector select option { color: #333; }
-        .date-display { font-size: 0.75rem; opacity: 0.8; font-weight: 500; margin-top: 5px; }
-
-        /* --- TARJETA DE META --- */
-        .meta-card {
-            background: white; border-radius: 24px;
-            padding: 22px; margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
-            position: relative; 
-        }
-        .meta-label { font-size: 0.75rem; font-weight: 600; color: #8e8e93; letter-spacing: 0.2px; text-transform: uppercase; }
-        .meta-current { font-size: 1.6rem; font-weight: 700; color: var(--home-wine); letter-spacing: -0.5px; margin: 4px 0; display: flex; align-items: center; gap: 10px; }
-        .btn-edit-meta { font-size: 1rem; color: #d1d1d6; cursor: pointer; transition: color 0.2s; }
-        .btn-edit-meta:hover, .btn-edit-meta:active { color: var(--home-gold); }
-
-        .meta-progress-container { width: 100%; height: 10px; background: #f2f2f7; border-radius: 10px; overflow: hidden; margin: 15px 0 12px; }
-        .meta-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--home-gold) 0%, #e3c07d 100%); border-radius: 10px; transition: width 1s ease-out; }
-        .meta-footer { font-size: 0.8rem; color: #8e8e93; font-weight: 500; display: flex; justify-content: space-between; }
-
-        /* --- TARJETA VENTA ESTRELLA 👑 --- */
-        .estrella-card {
-            background: linear-gradient(135deg, #fdfbf5 0%, #ffffff 100%);
-            border: 1px solid rgba(194, 164, 104, 0.3);
-            border-radius: 24px; padding: 22px; margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(194, 164, 104, 0.1);
-        }
-        .estrella-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
-        .estrella-title { font-size: 0.8rem; font-weight: 700; color: #a48644; text-transform: uppercase; letter-spacing: 0.5px; }
-        .crown-icon { font-size: 1.5rem; color: #f1c40f; filter: drop-shadow(0 2px 4px rgba(241, 196, 15, 0.4)); animation: bounceCrown 2s infinite; }
-        .estrella-val { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px; }
-        .estrella-sub { font-size: 0.85rem; color: #666; font-weight: 500; margin-top: 4px; }
-        
-        @keyframes bounceCrown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-
-        /* --- KPIs RÁPIDOS --- */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-box { background: white; border-radius: 20px; padding: 18px 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: flex-start; }
-        .stat-icon-wrapper { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 1rem; }
-        
-        .icon-green { background: rgba(52, 199, 89, 0.12); color: #34c759; }
-        .icon-red { background: rgba(255, 59, 48, 0.12); color: #ff3b30; }
-        .icon-blue { background: rgba(0, 122, 255, 0.12); color: #007aff; }
-
-        .stat-box .val { font-size: 1.2rem; font-weight: 700; display: block; letter-spacing: -0.3px; color: var(--text-dark); margin-bottom: 2px;}
-        .stat-box .lbl { font-size: 0.7rem; color: #8e8e93; font-weight: 600; text-transform: uppercase; }
-        .stat-box .sub { font-size: 0.65rem; font-weight: 600; margin-top: 5px; }
-        
-        /* Colores dinámicos para crecimiento */
-        .text-up { color: #34c759; }
-        .text-down { color: #ff3b30; }
-        .text-neutral { color: #8e8e93; }
-
-        /* --- GRÁFICOS --- */
-        .chart-card { background: white; border-radius: 24px; padding: 22px 20px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .chart-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 20px; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
-        .chart-container { position: relative; height: 230px; width: 100%; display: flex; justify-content: center;}
-
-        /* --- BOTÓN EXPORTAR --- */
-        .footer-action { padding: 10px 0 30px; }
-        .btn-export { width: 100%; background: var(--text-dark); color: white; border: none; border-radius: 16px; padding: 15px; font-size: 0.95rem; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: transform 0.2s;}
-        .btn-export:active { transform: scale(0.96); }
-
-        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .swal2-premium { border-radius: 24px !important; font-family: inherit !important; }
-
-        /* 🚨 MODO PDF (Ajuste para impresión perfecta) */
-        .pdf-mode { padding: 20px !important; background: white !important; }
-        .pdf-mode .report-header { border-radius: 20px; padding: 20px; margin-bottom: 20px;}
-        .pdf-mode .app-wrapper { max-width: none !important; box-shadow: none !important; }
-        .pdf-mode .meta-card, .pdf-mode .estrella-card, .pdf-mode .stat-box, .pdf-mode .chart-card { box-shadow: none !important; border: 1px solid #eee; }
-    </style>
-    <script src="homeeasy-core.js?v=3.5"></script>
-    <script src="homeeasy-page-guard.js?v=3.6"></script>
-<style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
+.board-pdf-root{position:relative;width:210mm;margin:0 auto;background:#fff;color:#202024;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;pointer-events:none;-webkit-font-smoothing:antialiased}.board-pdf-page{width:210mm;height:297mm;padding:13mm 14mm 12mm;background:#fff;position:relative;overflow:hidden}.board-pdf-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:7mm;border-bottom:1px solid #e9e5e7}.board-pdf-brand{display:flex;align-items:center;gap:10px}.board-pdf-brand img{width:28px;height:33px;object-fit:contain}.board-pdf-brand-name{font-size:15pt;font-weight:760;letter-spacing:-.5px;color:#202024}.board-pdf-brand-sub{margin-top:2px;font-size:8.5pt;color:#8a8589;font-weight:600}.board-pdf-meta{text-align:right}.board-pdf-meta strong{display:block;font-size:10pt;color:#8f3f53}.board-pdf-meta span{display:block;margin-top:3px;font-size:8.5pt;color:#8b878a}.board-pdf-title{margin:9mm 0 0;font-size:25pt;line-height:1.02;font-weight:760;letter-spacing:-1.2px}.board-pdf-period{margin-top:3mm;font-size:10pt;color:#777277}.board-pdf-section{margin-top:8mm}.board-pdf-eyebrow{font-size:8.5pt;letter-spacing:.7px;text-transform:uppercase;font-weight:760;color:#a6455a}.board-pdf-h2{margin:1.5mm 0 0;font-size:16pt;letter-spacing:-.5px;font-weight:750}.board-pdf-summary{margin-top:4mm;padding:5mm 5.5mm;border-radius:5mm;background:#faf6f7;border:1px solid #f0e6e9;font-size:10.5pt;line-height:1.55;color:#4d484c}.board-pdf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin-top:6mm}.board-pdf-kpi{min-height:27mm;padding:4mm;border:1px solid #ece8ea;border-radius:4mm;background:#fff}.board-pdf-kpi span{display:block;font-size:7.8pt;text-transform:uppercase;letter-spacing:.45px;color:#8e898d;font-weight:720}.board-pdf-kpi strong{display:block;margin-top:3mm;font-size:16pt;line-height:1;font-weight:760;letter-spacing:-.6px}.board-pdf-kpi em{display:block;margin-top:2mm;font-style:normal;font-size:8pt;color:#817b7f;line-height:1.35}.board-pdf-grid2{display:grid;grid-template-columns:1fr 1.18fr;gap:5mm;margin-top:6mm}.board-pdf-card{border:1px solid #ece8ea;border-radius:5mm;padding:5mm;background:#fff}.board-pdf-goal{display:grid;grid-template-columns:42mm 1fr;align-items:center;gap:5mm}.board-pdf-goal-copy strong{display:block;font-size:22pt;color:#b2566c;letter-spacing:-.8px}.board-pdf-goal-copy span{display:block;margin-top:2mm;font-size:9pt;color:#746e72;line-height:1.45}.board-pdf-callouts{display:grid;gap:3mm}.board-pdf-callout{padding:3.5mm 4mm;border-radius:3.5mm;background:#fbfafb;border-left:3px solid #b2566c}.board-pdf-callout.gold{border-left-color:#c2a468}.board-pdf-callout.green{border-left-color:#2b765f}.board-pdf-callout b{display:block;font-size:9pt}.board-pdf-callout span{display:block;margin-top:1mm;font-size:8.5pt;color:#706a6e;line-height:1.4}.board-pdf-chart{margin-top:5mm;padding:4mm 4mm 3mm;border:1px solid #ece8ea;border-radius:5mm;background:#fff}.board-pdf-chart-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:3mm}.board-pdf-chart-head strong{font-size:11pt}.board-pdf-chart-head span{font-size:8.5pt;color:#9a7432;font-weight:700}.board-pdf-page-title{margin-top:8mm;font-size:21pt;font-weight:760;letter-spacing:-.8px}.board-pdf-winner{margin-top:5mm;padding:5mm;border-radius:5mm;background:linear-gradient(135deg,#fffaf0,#fbf2de);border:1px solid #ead7aa;display:grid;grid-template-columns:1fr auto;gap:6mm;align-items:center}.board-pdf-winner span{display:block;font-size:8.5pt;text-transform:uppercase;letter-spacing:.5px;color:#92722f;font-weight:760}.board-pdf-winner strong{display:block;margin-top:2mm;font-size:20pt}.board-pdf-winner p{margin:1.5mm 0 0;font-size:9.5pt;color:#625b50}.board-pdf-winner-badge{width:18mm;height:18mm;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid #ead7aa;color:#c39d3b;font-size:20pt}.board-pdf-table-wrap{margin-top:5mm;border:1px solid #ebe7e9;border-radius:4mm;overflow:hidden}.board-pdf-table{width:100%;border-collapse:collapse;font-size:8.5pt}.board-pdf-table th{padding:3mm 2.5mm;background:#f7f4f5;color:#777075;text-transform:uppercase;letter-spacing:.35px;font-size:7.2pt;text-align:left}.board-pdf-table td{padding:3mm 2.5mm;border-top:1px solid #eee9eb;color:#413d40;vertical-align:top}.board-pdf-table td.money{text-align:right;white-space:nowrap;font-weight:700}.board-pdf-table .client{font-weight:700}.board-pdf-table .muted{display:block;margin-top:1mm;color:#989195;font-size:7.6pt}.board-pdf-small-note{margin-top:2.5mm;font-size:7.8pt;color:#918b8f}.board-pdf-pay{display:grid;grid-template-columns:45mm 1fr;gap:6mm;align-items:center;margin-top:5mm}.board-pdf-pay-list{display:grid;gap:2.2mm}.board-pdf-pay-row{display:grid;grid-template-columns:5mm 1fr auto;align-items:center;gap:2mm;font-size:8.8pt}.board-pdf-pay-dot{width:3mm;height:3mm;border-radius:50%}.board-pdf-pay-row strong{font-size:9pt}.board-pdf-method{margin-top:6mm;padding:4mm 5mm;border-radius:4mm;background:#f8f7f8;border:1px solid #ece9ea}.board-pdf-method h3{margin:0;font-size:10pt}.board-pdf-method ul{margin:2.5mm 0 0;padding-left:5mm;color:#666065;font-size:8pt;line-height:1.5}.board-pdf-footer{position:absolute;left:14mm;right:14mm;bottom:7mm;display:flex;justify-content:space-between;padding-top:3mm;border-top:1px solid #eee9eb;color:#a09a9e;font-size:7.5pt}.board-pdf-svg{display:block;width:100%;height:auto}.board-pdf-goal-meter{width:100%;display:grid;gap:4mm}.board-pdf-goal-meter-head{display:flex;align-items:end;justify-content:space-between;gap:8px}.board-pdf-goal-meter-head strong{font-size:27pt;line-height:1;color:#b2566c;letter-spacing:-1px}.board-pdf-goal-meter-head span{font-size:8pt;text-transform:uppercase;letter-spacing:.55px;color:#8b8589;font-weight:750}.board-pdf-progress{height:7mm;border-radius:999px;background:#eee9eb;overflow:hidden}.board-pdf-progress>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#b2566c,#c9798c)}.board-pdf-bars-html{height:48mm;display:grid;grid-template-columns:repeat(12,1fr);gap:2.2mm;align-items:end;padding:2mm 1mm 0}.board-pdf-bar-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:1.7mm}.board-pdf-bar-track{width:100%;height:39mm;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid #eee9eb}.board-pdf-bar-fill{width:68%;min-height:1.2mm;border-radius:2mm 2mm .7mm .7mm;background:#b2566c}.board-pdf-bar-fill.active{background:#c2a468}.board-pdf-bar-label{font-size:7.2pt;color:#817b7f}.board-pdf-payment-visual{display:grid;gap:4mm;align-content:center}.board-pdf-payment-total strong{display:block;font-size:20pt;letter-spacing:-.7px}.board-pdf-payment-total span{display:block;margin-top:1mm;color:#817b7f;font-size:8pt}.board-pdf-payment-stack{height:8mm;border-radius:999px;display:flex;overflow:hidden;background:#eee9eb}.board-pdf-payment-stack i{display:block;height:100%}.board-pdf-payment-caption{font-size:7.8pt;color:#8b8589}.export:disabled{opacity:.65;cursor:wait}.pdf-report-exporting{background:#fff!important;overflow:hidden!important}.pdf-report-exporting #informe-exportar,.pdf-report-exporting .loader-overlay{display:none!important}
+.pdf-mode{width:1200px!important;max-width:1200px!important;padding:18px!important;background:#fff!important;margin:0!important}.pdf-mode .shell{width:100%!important}@media print{.no-export,.loader-overlay{display:none!important}body,.app{background:#fff}.shell{width:100%}.goal-hero,.strip-item,.winner,.trend,.payments{box-shadow:none;break-inside:avoid}}
+</style>
+<script src="homeeasy-core.js?v=3.5"></script><script src="homeeasy-page-guard.js?v=3.6"></script>
 </head>
 <body>
+<div class="loader-overlay" id="loaderFinance"><div class="loader-ring"></div><div class="loader-text">Analizando Finanzas...</div></div>
+<div class="app" id="informe-exportar">
+<header class="report-header shell">
+<div class="header-main"><a class="back no-export" href="index.html" aria-label="Volver"><i class="fa-solid fa-chevron-left"></i></a><div class="heading heading-lockup"><img src="triangulo.png" alt="HomeEasy"><div class="heading-copy"><h1>Reporte de ventas</h1><p>Resumen comercial de Hommy</p></div></div></div>
+<div class="period-row"><div class="date-display"><i class="fa-regular fa-calendar"></i><span id="dateDisplay">Calculando fechas...</span></div><div class="period-control no-export"><span class="period-label">Periodo</span><div class="period"><select id="periodo" aria-label="Periodo del reporte"><option value="este_mes" selected>Este mes</option><option value="mes_pasado">Mes pasado</option><option value="esta_semana">Esta semana</option><option value="semana_pasada">Semana pasada</option><option value="este_anio">Todo el año</option><option value="personalizado">Personalizado...</option></select></div></div></div>
+</header>
+<main class="page shell">
+<div class="error-banner" id="errorBanner"><span id="errorText">No se pudieron cargar los datos del reporte.</span><button class="retry" id="retryBtn" type="button">Reintentar</button></div>
+<section class="goal-hero"><div class="goal-copy"><div class="goal-kicker"><i class="fa-solid fa-bullseye"></i><span id="goalKicker">Meta de ventas</span></div><div class="goal-label">Objetivo del periodo</div><div class="goal-total-row"><div class="goal-total" id="goalTotal">$0</div><button class="edit-goal no-export" id="editGoalBtn" type="button" aria-label="Editar meta"><i class="fa-solid fa-pen"></i></button></div><div class="goal-progress-copy"><span>Llevamos</span><div class="goal-achieved" id="goalAchieved">$0</div></div><div class="goal-remaining" id="goalRemaining">Calculando avance...</div></div><div class="ring-wrap"><div class="ring" id="ring"><div class="ring-center"><strong id="goalPct">0%</strong><span>cumplido</span></div></div><div class="ring-note"><strong id="goalIndex">0 de cada 100</strong><br>pesos de la meta</div></div><div class="hommy-stage"><div class="hommy-bubble" id="hommyBubble">Vamos construyendo la meta paso a paso.</div><div class="hommy-art"><img src="Hommydinero.png" alt="Hommy con dinero" onerror="this.src='hommy.png'"></div></div></section>
+<section class="period-strip"><article class="strip-item"><div class="strip-icon"><i class="fa-solid fa-wallet"></i></div><div class="strip-content"><div class="strip-label">Recaudado en el periodo</div><div class="strip-value" id="collected">$0</div><div class="strip-note">Dinero efectivamente recibido.</div></div></article><article class="strip-item portfolio actionable" id="portfolioCard" role="button" tabindex="0" aria-label="Ver órdenes activas del periodo"><div class="strip-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div><div class="strip-content"><div class="strip-label">Cartera actual</div><div class="strip-value" id="portfolio">$0</div><div class="strip-note" id="portfolioNote">Saldo pendiente de OP activas del periodo.</div></div></article><article class="strip-item growth" id="growthCard"><div class="strip-icon"><i class="fa-solid fa-arrow-trend-up"></i></div><div class="strip-content"><div class="strip-label">Variación comercial</div><div class="strip-value" id="growth">0%</div><div class="strip-note">Frente al periodo inmediatamente anterior.</div></div></article></section>
+<section class="winner actionable" id="winnerCard" role="button" tabindex="0" aria-label="Abrir OP ganadora en historial"><div class="winner-kicker"><span class="crown"><i class="fa-solid fa-crown"></i></span><span>OP ganadora del periodo</span></div><div class="winner-amount" id="winnerAmount">$0</div><div class="winner-detail" id="winnerDetail">Sin ventas registradas en este periodo</div><div class="winner-note" id="winnerNote">La venta individual más alta del periodo.</div></section>
+<section class="trend"><div><div class="section-kicker">Comportamiento</div><div style="display:flex;justify-content:space-between;align-items:end;gap:12px"><div><div class="section-title">Tendencia de ventas</div><div class="section-sub">Vista anual para entender el ritmo del negocio.</div></div><div class="trend-year" id="trendYear"></div></div><div class="bars" id="bars"></div></div><aside class="reading"><div class="reading-title"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Lectura rápida</span></div><div class="reading-row"><div class="reading-top"><span class="reading-name">Mejor mes</span><span class="reading-value" id="bestMonth">—</span></div><div class="reading-text" id="bestMonthText">Calculando el mes con mayor volumen de OP.</div></div><div class="reading-row"><div class="reading-top"><span class="reading-name">Variación</span><span class="reading-value" id="readGrowth">0%</span></div><div class="reading-text">Comparado con el periodo inmediatamente anterior.</div></div><div class="reading-row"><div class="reading-top"><span class="reading-name">Índice de meta</span><span class="reading-value" id="readGoal">0%</span></div><div class="reading-text" id="readGoalText">Calculando distancia a la meta.</div></div></aside></section>
+<section class="payments"><div class="donut-box"><div class="donut" id="paymentDonut"><div class="donut-center"><span>Recaudado</span><strong id="donutTotal">$0</strong></div></div></div><div><div class="section-kicker">Composición</div><div class="section-title">Cómo están pagando</div><div class="section-sub">Distribución de los medios de pago del periodo.</div><div class="pay-list" id="payList"></div></div></section>
+<div class="footer no-export"><button class="export" id="exportBtn" type="button"><i class="fa-solid fa-file-pdf"></i><span>Exportar reporte</span></button></div>
+</main></div>
+<dialog id="goalDialog"><form class="dialog-body" id="goalForm"><div class="dialog-icon"><i class="fa-solid fa-bullseye"></i></div><div class="dialog-title">Editar meta de ventas</div><div class="dialog-sub">Este valor se guarda en HomeEasy y actualiza el índice de cumplimiento.</div><div class="field"><label for="goalInput">Nueva meta</label><div class="goal-input-wrap"><span>$</span><input class="dialog-input goal-input" id="goalInput" type="number" min="1" step="1000" inputmode="numeric" required></div></div><div class="dialog-error" id="goalError">Ingresa una meta válida.</div><div class="dialog-actions"><button class="dialog-btn secondary" type="button" id="cancelGoalBtn">Cancelar</button><button class="dialog-btn primary" type="submit" id="saveGoalBtn">Guardar meta</button></div></form></dialog>
+<dialog id="dateDialog"><form class="dialog-body" id="dateForm"><div class="dialog-icon"><i class="fa-regular fa-calendar"></i></div><div class="dialog-title">Rango personalizado</div><div class="dialog-sub">Selecciona una fecha inicial y una fecha final para recalcular todo el reporte.</div><div class="date-fields"><div class="field"><label for="customStartInput">Desde</label><input class="dialog-input" id="customStartInput" type="date" required></div><div class="field"><label for="customEndInput">Hasta</label><input class="dialog-input" id="customEndInput" type="date" required></div></div><div class="dialog-error" id="dateError">Revisa el rango seleccionado.</div><div class="dialog-actions"><button class="dialog-btn secondary" type="button" id="cancelDateBtn">Cancelar</button><button class="dialog-btn primary" type="submit">Aplicar rango</button></div></form></dialog>
+<script>
+const URL_G="https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec",monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],monthShort=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],paymentColors=['#B2566C','#C2A468','#8D8792','#D7C5CA','#6E917F','#D1AC7A','#A99DA2','#BFD2CA'],CACHE_KEY='HOMEEASY_REPORTES_CACHE_V1',VIEW_CACHE_KEY='HOMEEASY_REPORT_VIEW_CACHE_V2',RETURN_FLAG='HOMEEASY_REPORT_RETURNING_V1';
+let metaVentas=0,dataFinanzas=null,ventasHistorial=null,lastMetrics=null,customStart=null,customEnd=null,previousPeriod='este_mes';const $=id=>document.getElementById(id),money=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-CO'),compact=n=>'$'+((Number(n)||0)/1e6).toLocaleString('es-CO',{maximumFractionDigits:1})+' M',dateText=d=>d.toLocaleDateString('es-CO');
+function parseDate(v){const d=new Date(v);return Number.isNaN(d.getTime())?null:d}function setLoading(v){const l=$('loaderFinance');if(v){l.style.display='flex';l.style.opacity='1'}else{l.style.opacity='0';setTimeout(()=>l.style.display='none',180)}}function banner(mode,msg){const b=$('errorBanner');b.className='error-banner'+(mode?' show':'')+(mode==='warn'?' warn':'');$('errorText').textContent=msg||'No se pudieron cargar los datos del reporte.'}
+async function rawGet(tipo){const r=await fetch(`${URL_G}?tipo=${encodeURIComponent(tipo)}&t=${Date.now()}`,{cache:'no-store',redirect:'follow'}),txt=await r.text();if(!r.ok)throw new Error(`${tipo}: HTTP ${r.status}`);try{return JSON.parse(txt)}catch{throw new Error(`${tipo}: respuesta no válida`)}}
+async function apiGet(tipo){let first;try{if(window.HomeEasyCore&&HomeEasyCore.get)return await HomeEasyCore.get({tipo,t:Date.now()},{timeoutMs:30000})}catch(e){first=e}try{return await rawGet(tipo)}catch(e){throw first||e}}
+async function cargarMeta(){try{const d=await apiGet('GET_META');metaVentas=parseFloat(d?.meta??d?.valor??d?.data?.meta)||10000000}catch(e){console.warn('GET_META',e);metaVentas=10000000}}
+function normalizeReport(raw){const p=raw?.data&&(raw.data.ordenes||raw.data.abonos)?raw.data:raw;if(!p||typeof p!=='object')throw new Error('GET_REPORTES: respuesta vacía');const hasAny='ordenes'in p||'abonos'in p;if(!hasAny)throw new Error('GET_REPORTES: estructura inesperada');return{...p,ordenes:Array.isArray(p.ordenes)?p.ordenes:[],abonos:Array.isArray(p.abonos)?p.abonos:[]}}
+async function cargarFinanzas(){try{const raw=await apiGet('GET_REPORTES');dataFinanzas=normalizeReport(raw);localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),data:dataFinanzas}));return false}catch(e){console.error('GET_REPORTES',e);try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(c&&c.data&&Date.now()-Number(c.savedAt||0)<43200000){dataFinanzas=normalizeReport(c.data);banner('warn','No pudimos actualizar el reporte. Mostrando la última copia guardada.');return true}}catch{}throw e}}
 
-    <div class="app-wrapper" id="informe-exportar">
-        <div id="loader-finance" class="loader-overlay">
-            <div class="spinner-border mb-3" style="color: var(--home-wine) !important;"></div>
-            <h6 style="color: var(--home-wine); font-weight: 600; letter-spacing: -0.3px;">Analizando Finanzas...</h6>
-        </div>
-            
-        <header class="report-header">
-            <div class="header-top">
-                <a href="index.html" class="btn-back no-export" id="btn-volver"><i class="fas fa-chevron-left"></i></a>
-                <img src="Hommydinero.png" class="hommy-header-img" alt="Hommy" onerror="this.src='hommy.png'">
-                <div class="header-titles">
-                    <h1>Reporte de ventas</h1>
-                    <p>Resumen comercial de Hommy</p>
-                </div>
-            </div>
-            
-            <div class="period-controls no-export" id="selector-container">
-                <div class="period-selector">
-                    <select id="select-periodo" onchange="cambiarPeriodo()">
-                        <option value="este_mes" selected>Este Mes</option>
-                        <option value="mes_pasado">Mes Pasado</option>
-                        <option value="esta_semana">Esta Semana</option>
-                        <option value="semana_pasada">Semana Pasada</option>
-                        <option value="este_anio">Todo el Año</option>
-                        <option value="personalizado">Personalizado...</option>
-                    </select>
-                </div>
-            </div>
-            <div class="date-display" id="fechas-display">Calculando fechas...</div>
-        </header>
-
-        <div class="content-container">
-            
-            <div class="grid-desktop-2">
-                <div class="meta-card">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="meta-label" id="lbl-mes-meta">Meta de Ventas</span>
-                        <span class="badge" id="pct-badge" style="background: rgba(194, 164, 104, 0.15); color: #a48644; border-radius: 8px; font-weight: 700; font-size: 0.75rem;">0%</span>
-                    </div>
-                    <div class="meta-current">
-                        <span id="label-meta-valor">$0</span>
-                        <i class="fas fa-pen-to-square btn-edit-meta no-export" id="btn-editar-meta" onclick="ajustarMeta()"></i>
-                    </div>
-                    <div class="meta-progress-container">
-                        <div class="meta-progress-bar" id="meta-bar"></div>
-                    </div>
-                    <div class="meta-footer">
-                        <span id="txt-logrado" style="color: var(--home-wine); font-weight: 600;">Logrado: $0</span>
-                        <span id="txt-restante">Faltan: $0</span>
-                    </div>
-                </div>
-
-                <div class="estrella-card">
-                    <div class="estrella-header">
-                        <span class="estrella-title">OP Ganadora del Periodo</span>
-                        <i class="fas fa-crown crown-icon"></i>
-                    </div>
-                    <div class="estrella-val" id="estrella-monto">$0</div>
-                    <div class="estrella-sub" id="estrella-detalle">Sin ventas registradas en este periodo</div>
-                </div>
-            </div>
-
-            <div class="stats-grid grid-desktop-4" style="margin-top: 20px;">
-                <div class="stat-box">
-                    <div class="stat-icon-wrapper icon-blue"><i class="fas fa-chart-line"></i></div>
-                    <span class="val" id="kpi-crecimiento">0%</span>
-                    <span class="lbl">Crecimiento</span>
-                    <span class="sub" id="sub-crecimiento">vs periodo anterior</span>
-                </div>
-                
-                <div class="stat-box">
-                    <div class="stat-icon-wrapper icon-green" style="background: rgba(166,69,90,0.1); color: var(--home-wine);"><i class="fas fa-file-invoice-dollar"></i></div>
-                    <span class="val" id="kpi-vendido">$0</span>
-                    <span class="lbl">Total Vendido</span>
-                    <span class="sub text-neutral">En OPs generadas</span>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-icon-wrapper icon-green"><i class="fas fa-sack-dollar"></i></div>
-                    <span class="val" id="kpi-recaudado">$0</span>
-                    <span class="lbl">Caja (Recaudado)</span>
-                    <span class="sub text-neutral">Abonos efectivos</span>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-icon-wrapper icon-red"><i class="fas fa-hand-holding-dollar"></i></div>
-                    <span class="val" id="kpi-calle">$0</span>
-                    <span class="lbl">Por Cobrar</span>
-                    <span class="sub text-neutral">Saldo pendiente global</span>
-                </div>
-            </div>
-
-            <div class="grid-desktop-2">
-                <div class="chart-card">
-                    <div class="chart-title"><i class="fas fa-chart-column" style="color: var(--home-wine);"></i> Tendencia del Año</div>
-                    <div class="chart-container">
-                        <canvas id="chartBarras"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div class="chart-title"><i class="fas fa-chart-pie" style="color: var(--home-gold);"></i> Medios de Pago (Periodo)</div>
-                    <div class="chart-container" style="height: 200px;">
-                        <canvas id="chartDona"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer-action no-export" id="btn-exportar-container">
-                <button class="btn-export" onclick="exportarAPDF()">
-                    <i class="fas fa-file-pdf" style="color: #ff3b30;"></i> Exportar Informe
-                </button>
-            </div>
-
-        </div> </div> <script>
-        const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-        let metaVentas = 0;
-        let dataFinanzas = null;
-        let chartBarrasInstancia = null;
-        let chartDonaInstancia = null;
-
-        // Variables de Rango Personalizado
-        let customStart = null;
-        let customEnd = null;
-
-        const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-        window.onload = async () => {
-            await cargarMeta();
-            await cargarFinanzas();
-            document.getElementById('loader-finance').style.display = 'none';
-        };
-
-        async function cargarMeta() {
-            try {
-                const res = await fetch(`${URL_G}?tipo=GET_META`);
-                const data = await res.json();
-                metaVentas = parseFloat(data.meta) || 10000000;
-                document.getElementById('label-meta-valor').innerText = "$" + metaVentas.toLocaleString('es-CO');
-            } catch (e) {
-                metaVentas = 10000000;
-                document.getElementById('label-meta-valor').innerText = "$10.000.000";
-            }
-        }
-
-        async function cargarFinanzas() {
-            try {
-                const res = await fetch(`${URL_G}?tipo=GET_REPORTES`);
-                dataFinanzas = await res.json();
-                procesarDatos();
-            } catch (e) {
-                Swal.fire('Error', 'No se pudieron cargar los datos.', 'error');
-            }
-        }
-
-        // ==========================================
-        // 📅 MOTOR LÓGICO DE FECHAS Y COMPARATIVAS
-        // ==========================================
-        async function cambiarPeriodo() {
-            const selector = document.getElementById('select-periodo');
-            if(selector.value === 'personalizado') {
-                const { value: formValues } = await Swal.fire({
-                    title: 'Rango Personalizado',
-                    html:
-                        '<input id="swal-input1" type="date" class="swal2-input">' +
-                        '<input id="swal-input2" type="date" class="swal2-input">',
-                    focusConfirm: false,
-                    showCancelButton: true,
-                    confirmButtonColor: 'var(--home-wine)',
-                    customClass: { popup: 'swal2-premium' },
-                    preConfirm: () => {
-                        return [ document.getElementById('swal-input1').value, document.getElementById('swal-input2').value ];
-                    }
-                });
-
-                if (formValues && formValues[0] && formValues[1]) {
-                    customStart = new Date(formValues[0] + "T00:00:00");
-                    customEnd = new Date(formValues[1] + "T23:59:59");
-                    procesarDatos();
-                } else {
-                    selector.value = "este_mes"; // Restaurar si cancela
-                    procesarDatos();
-                }
-            } else {
-                procesarDatos();
-            }
-        }
-
-        function obtenerRangosDeFechas(periodo) {
-            const hoy = new Date();
-            let inicio, fin, prevInicio, prevFin;
-            let texto = "";
-
-            if(periodo === 'este_mes') {
-                inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-                fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
-                prevInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
-                prevFin = new Date(hoy.getFullYear(), hoy.getMonth(), 0, 23, 59, 59);
-                texto = nombresMeses[hoy.getMonth()];
-            } 
-            else if(periodo === 'mes_pasado') {
-                inicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
-                fin = new Date(hoy.getFullYear(), hoy.getMonth(), 0, 23, 59, 59);
-                prevInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
-                prevFin = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 0, 23, 59, 59);
-                texto = nombresMeses[inicio.getMonth()];
-            }
-            else if(periodo === 'esta_semana') {
-                const dia = hoy.getDay() || 7; 
-                inicio = new Date(hoy); inicio.setDate(hoy.getDate() - dia + 1); inicio.setHours(0,0,0,0);
-                fin = new Date(inicio); fin.setDate(inicio.getDate() + 6); fin.setHours(23,59,59);
-                prevInicio = new Date(inicio); prevInicio.setDate(inicio.getDate() - 7);
-                prevFin = new Date(fin); prevFin.setDate(fin.getDate() - 7);
-                texto = "Esta Semana";
-            }
-            else if(periodo === 'semana_pasada') {
-                const dia = hoy.getDay() || 7; 
-                let lunesActual = new Date(hoy); lunesActual.setDate(hoy.getDate() - dia + 1); lunesActual.setHours(0,0,0,0);
-                inicio = new Date(lunesActual); inicio.setDate(lunesActual.getDate() - 7);
-                fin = new Date(inicio); fin.setDate(inicio.getDate() + 6); fin.setHours(23,59,59);
-                prevInicio = new Date(inicio); prevInicio.setDate(inicio.getDate() - 7);
-                prevFin = new Date(fin); prevFin.setDate(fin.getDate() - 7);
-                texto = "Semana Pasada";
-            }
-            else if(periodo === 'este_anio') {
-                inicio = new Date(hoy.getFullYear(), 0, 1);
-                fin = new Date(hoy.getFullYear(), 11, 31, 23, 59, 59);
-                prevInicio = new Date(hoy.getFullYear() - 1, 0, 1);
-                prevFin = new Date(hoy.getFullYear() - 1, 11, 31, 23, 59, 59);
-                texto = "Año " + hoy.getFullYear();
-            }
-            else if(periodo === 'personalizado') {
-                inicio = customStart; fin = customEnd;
-                // Para personalizado, asumimos el mismo número de días hacia atrás
-                const diffTime = Math.abs(fin - inicio);
-                prevFin = new Date(inicio.getTime() - 1);
-                prevInicio = new Date(prevFin.getTime() - diffTime);
-                texto = `${inicio.toLocaleDateString()} al ${fin.toLocaleDateString()}`;
-            }
-
-            return { inicio, fin, prevInicio, prevFin, texto };
-        }
-
-        function procesarDatos() {
-            if(!dataFinanzas) return;
-
-            const periodoSel = document.getElementById('select-periodo').value;
-            const rangos = obtenerRangosDeFechas(periodoSel);
-            
-            document.getElementById('lbl-mes-meta').innerText = `Meta de Ventas (${rangos.texto})`;
-            document.getElementById('fechas-display').innerText = `Mostrando: ${rangos.inicio.toLocaleDateString()} - ${rangos.fin.toLocaleDateString()}`;
-
-            let totalVendidoActual = 0;
-            let totalVendidoAnterior = 0;
-            let totalRecaudadoActual = 0; 
-            let totalVendidoHistorico = 0; 
-            let totalRecaudadoHistorico = 0; 
-            
-            // OP Ganadora
-            let maxVentaOP = null;
-            
-            const pagos = {};
-            const ventasPorMes = [0,0,0,0,0,0,0,0,0,0,0,0];
-            const anioActual = new Date().getFullYear();
-
-           // 1. Procesar Órdenes
-            dataFinanzas.ordenes.forEach(op => {
-                if(op.estado !== "ANULADA") {
-                    const f = new Date(op.fecha);
-                    const total = parseFloat(op.total) || 0;
-                    const abonoIni = parseFloat(op.abonoInicial) || 0; // 👈 Rescatamos el abono inicial
-                    
-                    totalVendidoHistorico += total;
-                    totalRecaudadoHistorico += abonoIni; // 👈 Lo sumamos al histórico para que arregle el "Por Cobrar"
-
-                    if(f.getFullYear() === anioActual) ventasPorMes[f.getMonth()] += total;
-
-                    // Periodo Actual
-                    if(f >= rangos.inicio && f <= rangos.fin) {
-                        totalVendidoActual += total;
-                        totalRecaudadoActual += abonoIni; // 👈 Sumamos la plata que entró al crear la OP
-                        
-                        // Registramos este abono inicial en la dona gráfica de medios de pago
-                        if(abonoIni > 0) {
-                            pagos["PAGO INICIAL (OP)"] = (pagos["PAGO INICIAL (OP)"] || 0) + abonoIni;
-                        }
-
-                        // Lógica OP Ganadora
-                        if(!maxVentaOP || total > parseFloat(maxVentaOP.total)) {
-                            maxVentaOP = op;
-                        }
-                    }
-                    
-                    // Periodo Anterior (Para comparar el crecimiento)
-                    if(f >= rangos.prevInicio && f <= rangos.prevFin) {
-                        totalVendidoAnterior += total;
-                    }
-                }
-            });
-
-            // 2. Procesar Abonos
-            dataFinanzas.abonos.forEach(ab => {
-                const f = new Date(ab.fecha);
-                const valor = parseFloat(ab.valor) || 0;
-                
-                totalRecaudadoHistorico += valor;
-
-                if(f >= rangos.inicio && f <= rangos.fin) {
-                    totalRecaudadoActual += valor;
-                    const medio = ab.medio ? ab.medio.toUpperCase().trim() : "OTRO";
-                    pagos[medio] = (pagos[medio] || 0) + valor;
-                }
-            });
-
-            // 3. Pintar Meta y Crecimiento
-            const porcentaje = Math.min((totalVendidoActual / metaVentas) * 100, 100).toFixed(1);
-            setTimeout(() => { document.getElementById('meta-bar').style.width = porcentaje + "%"; }, 100);
-            document.getElementById('pct-badge').innerText = porcentaje + "%";
-            document.getElementById('txt-logrado').innerText = "Logrado: $" + totalVendidoActual.toLocaleString('es-CO');
-            document.getElementById('txt-restante').innerText = "Faltan: $" + Math.max(metaVentas - totalVendidoActual, 0).toLocaleString('es-CO');
-
-            // Crecimiento Lógica
-            let textCrecimiento = "0%";
-            let claseCrecimiento = "text-neutral";
-            let iconoCrecimiento = '<i class="fas fa-minus"></i>';
-            
-            if(totalVendidoAnterior === 0 && totalVendidoActual > 0) {
-                textCrecimiento = "100%"; claseCrecimiento = "text-up"; iconoCrecimiento = '<i class="fas fa-arrow-up"></i>';
-            } else if (totalVendidoAnterior > 0) {
-                const crec = ((totalVendidoActual - totalVendidoAnterior) / totalVendidoAnterior) * 100;
-                textCrecimiento = Math.abs(crec).toFixed(1) + "%";
-                if(crec > 0) { claseCrecimiento = "text-up"; iconoCrecimiento = '<i class="fas fa-arrow-up"></i>'; }
-                if(crec < 0) { claseCrecimiento = "text-down"; iconoCrecimiento = '<i class="fas fa-arrow-down"></i>'; }
-            }
-
-            const cajaCrecimiento = document.getElementById('kpi-crecimiento');
-            cajaCrecimiento.innerHTML = `${iconoCrecimiento} ${textCrecimiento}`;
-            cajaCrecimiento.className = `val ${claseCrecimiento}`;
-
-            // OP Estrella
-            if(maxVentaOP) {
-                document.getElementById('estrella-monto').innerText = "$" + parseFloat(maxVentaOP.total).toLocaleString('es-CO');
-                document.getElementById('estrella-detalle').innerText = `OP #${maxVentaOP.numero} - Fecha: ${new Date(maxVentaOP.fecha).toLocaleDateString()}`;
-            } else {
-                document.getElementById('estrella-monto').innerText = "$0";
-                document.getElementById('estrella-detalle').innerText = "Sin ventas en este periodo";
-            }
-
-            // 4. Pintar Resto KPIs
-            document.getElementById('kpi-vendido').innerText = "$" + totalVendidoActual.toLocaleString('es-CO');
-            document.getElementById('kpi-recaudado').innerText = "$" + totalRecaudadoActual.toLocaleString('es-CO');
-            // La calle siempre es un global histórico (lo que te deben en total)
-            document.getElementById('kpi-calle').innerText = "$" + Math.max(0, totalVendidoHistorico - totalRecaudadoHistorico).toLocaleString('es-CO');
-
-            renderCharts(pagos, nombresMeses, ventasPorMes);
-        }
-
-        function renderCharts(pagosData, labelsBarras, dataBarras) {
-            Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
-            Chart.defaults.color = '#8e8e93';
-
-            if(chartDonaInstancia) chartDonaInstancia.destroy();
-            if(chartBarrasInstancia) chartBarrasInstancia.destroy();
-
-            // Dona (Medios de Pago)
-            const ctxDona = document.getElementById('chartDona').getContext('2d');
-            chartDonaInstancia = new Chart(ctxDona, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(pagosData).length > 0 ? Object.keys(pagosData) : ['Sin pagos'],
-                    datasets: [{
-                        data: Object.keys(pagosData).length > 0 ? Object.values(pagosData) : [1],
-                        backgroundColor: ['#a6455a', '#c2a468', '#34c759', '#5856d6', '#ff9500', '#e5e5ea'],
-                        borderWidth: 2, borderColor: '#ffffff', hoverOffset: 4
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, cutout: '70%',
-                    plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { weight: '600', size: 11 } } } } 
-                }
-            });
-
-            // Barras (Ventas del Año)
-            const ctxBarras = document.getElementById('chartBarras').getContext('2d');
-            chartBarrasInstancia = new Chart(ctxBarras, {
-                type: 'bar',
-                data: {
-                    labels: labelsBarras,
-                    datasets: [{
-                        label: 'Ventas', data: dataBarras, 
-                        backgroundColor: '#a6455a', borderRadius: 4, barPercentage: 0.6
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { beginAtZero: true, grid: { color: '#f2f2f7', drawBorder: false }, ticks: { font:{weight:'500'}, callback: function(value) { return '$' + (value/1000000).toFixed(1) + 'M'; } } }, 
-                        x: { grid: { display: false, drawBorder: false }, ticks: { font:{weight:'600'}, maxRotation: 45, minRotation: 45 } } 
-                    } 
-                }
-            });
-        }
-
-        async function ajustarMeta() {
-            const { value: nuevaMeta } = await Swal.fire({
-                title: 'Ajustar Meta',
-                input: 'number',
-                inputLabel: 'Meta de ventas sin puntos ni comas:',
-                inputValue: metaVentas,
-                showCancelButton: true,
-                confirmButtonText: 'Guardar Meta',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: 'var(--home-wine)',
-                customClass: { popup: 'swal2-premium' }
-            });
-
-            if (nuevaMeta && parseFloat(nuevaMeta) > 0) {
-                Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-premium' } });
-                try {
-                    await fetch(URL_G, { method: 'POST', body: JSON.stringify({ tipo: "SET_META", valor: nuevaMeta }) });
-                    location.reload();
-                } catch(e) {
-                    Swal.fire('Error', 'No se pudo guardar la meta.', 'error');
-                }
-            }
-        }
-
-       // 🚨 FUNCIÓN EXPORTAR A PDF (CORREGIDA Y BLINDADA)
-        function exportarAPDF() {
-            const element = document.getElementById('informe-exportar');
-            
-            // 1. Preparar la vista para la "foto"
-            document.querySelectorAll('.no-export').forEach(el => el.style.display = 'none');
-            element.classList.add('pdf-mode');
-
-            // 2. Configuración súper estable para PC y Móvil
-            const opt = {
-                margin:       10, 
-                filename:     `Dashboard_Hommy_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // 3. Darle medio segundo a los gráficos para que se ajusten al nuevo tamaño antes de tomar la foto
-            setTimeout(() => {
-                html2pdf().set(opt).from(element).save()
-                .then(() => {
-                    // Restaurar la vista a la normalidad
-                    document.querySelectorAll('.no-export').forEach(el => el.style.display = '');
-                    element.classList.remove('pdf-mode');
-                })
-                .catch(err => {
-                    console.error("Error PDF:", err);
-                    // Restaurar la vista
-                    document.querySelectorAll('.no-export').forEach(el => el.style.display = '');
-                    element.classList.remove('pdf-mode');
-                    // Si el navegador bloquea la librería, abrimos el motor de impresión nativo del celular/PC
-                    window.print();
-                });
-            }, 500);
-        }
-    </script>
-</body>
-
-</html>
+async function cargarHistorialVentas(){try{if(!window.HomeEasyCore||!HomeEasyCore.get)throw new Error('HomeEasyCore no disponible');const d=await HomeEasyCore.get({init:'LOAD',t:Date.now()},{timeoutMs:45000});if(!d||d.status!=='ok'||!Array.isArray(d.ordenes)||!Array.isArray(d.ordenes[0]))throw new Error('Ordenes_Pedido no disponible');const headers=d.ordenes[0].map(x=>String(x??'').trim()),index={};headers.forEach((name,i)=>{if(name)index[name]=i});const required=['Fecha','Numero_OP','Nombre_Cliente','Saldo_Pendiente','Estado'];const missing=required.filter(k=>index[k]===undefined);if(missing.length)throw new Error('Faltan columnas: '+missing.join(', '));ventasHistorial={index,rows:d.ordenes.slice(1).filter(row=>String(row[index.Numero_OP]??'').trim()!=='')}}catch(e){console.warn('Historial de ventas para cartera',e);ventasHistorial=null}}
+function histGet(row,key){const i=ventasHistorial?.index?.[key];return i===undefined?'':row[i]}function histNumber(v){if(typeof v==='number')return Number.isFinite(v)?v:0;const raw=String(v??'').replace(/[^0-9.-]/g,''),n=Number(raw);return Number.isFinite(n)?n:0}function histStatus(row){return String(histGet(row,'Estado')||'').toUpperCase().trim()}function histOp(row){return String(histGet(row,'Numero_OP')??'').replace(/\.0$/,'')}function findHistoryByOp(n){const key=String(n??'').replace(/\.0$/,'');return ventasHistorial?.rows?.find(row=>histOp(row)===key)||null}function activeHistoryForRange(rg){return ventasHistorial?.rows?.filter(row=>{if(histStatus(row)!=='ACTIVO')return false;const d=parseDate(histGet(row,'Fecha'));return d&&d>=rg.inicio&&d<=rg.fin})||[]}
+function ymd(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}function hydrateReportState(){const q=new URLSearchParams(location.search),allowed=new Set(['este_mes','mes_pasado','esta_semana','semana_pasada','este_anio','personalizado']),p=q.get('periodo');if(p&&allowed.has(p)){if(p==='personalizado'){const s=q.get('desde'),e=q.get('hasta'),sd=s?new Date(s+'T00:00:00'):null,ed=e?new Date(e+'T23:59:59'):null;if(sd&&ed&&!Number.isNaN(sd.getTime())&&!Number.isNaN(ed.getTime())&&ed>=sd){customStart=sd;customEnd=ed;$('periodo').value=p;previousPeriod=p;return}}else{$('periodo').value=p;previousPeriod=p}}}function syncReportUrl(){const u=new URL(location.href),p=$('periodo').value;u.searchParams.set('periodo',p);if(p==='personalizado'&&customStart&&customEnd){u.searchParams.set('desde',ymd(customStart));u.searchParams.set('hasta',ymd(customEnd))}else{u.searchParams.delete('desde');u.searchParams.delete('hasta')}history.replaceState({periodo:p},'',u.pathname+u.search+u.hash)}function reportReturnTarget(){syncReportUrl();return location.pathname+location.search+location.hash}function fullMonth(rg){return rg.inicio.getDate()===1&&rg.inicio.getFullYear()===rg.fin.getFullYear()&&rg.inicio.getMonth()===rg.fin.getMonth()&&rg.fin.getDate()===new Date(rg.inicio.getFullYear(),rg.inicio.getMonth()+1,0).getDate()}function ventasUrl(kind,opNumber){const rg=lastMetrics?.rg||ranges($('periodo').value),u=new URL('ventas.html',location.href);u.searchParams.set('from',ymd(rg.inicio));u.searchParams.set('to',ymd(rg.fin));u.searchParams.set('return',reportReturnTarget());u.searchParams.set('context',kind);if(rg.inicio.getFullYear()===rg.fin.getFullYear())u.searchParams.set('year',String(rg.inicio.getFullYear()));if(fullMonth(rg))u.searchParams.set('month',String(rg.inicio.getMonth()));if(kind==='cartera'){u.searchParams.set('status','ACTIVO');u.searchParams.set('sort','BALANCE_DESC')}if(kind==='winner'&&opNumber){u.searchParams.set('search',String(opNumber));u.searchParams.set('op',String(opNumber))}return u.href}function bindAction(id,handler){const el=$(id);el.addEventListener('click',handler);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();handler()}})}
+function saveReportSnapshot(){try{sessionStorage.setItem(VIEW_CACHE_KEY,JSON.stringify({savedAt:Date.now(),metaVentas,dataFinanzas,ventasHistorial,periodo:$('periodo').value,customStart:customStart?customStart.toISOString():null,customEnd:customEnd?customEnd.toISOString():null}))}catch(e){}}
+function restoreReportSnapshot(){try{const s=JSON.parse(sessionStorage.getItem(VIEW_CACHE_KEY)||'null');if(!s||Date.now()-Number(s.savedAt||0)>10*60*1000||!s.dataFinanzas)return false;metaVentas=Number(s.metaVentas)||metaVentas;dataFinanzas=s.dataFinanzas;ventasHistorial=s.ventasHistorial||null;if(!customStart&&s.customStart){const d=new Date(s.customStart);if(!Number.isNaN(d.getTime()))customStart=d}if(!customEnd&&s.customEnd){const d=new Date(s.customEnd);if(!Number.isNaN(d.getTime()))customEnd=d}return true}catch(e){return false}}
+function fastReturnRequested(){const nav=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];return sessionStorage.getItem(RETURN_FLAG)==='1'||(nav&&nav.type==='back_forward')}
+function clearReturnFlag(){try{sessionStorage.removeItem(RETURN_FLAG)}catch(e){}}
+function goToVentas(kind,opNumber){saveReportSnapshot();location.href=ventasUrl(kind,opNumber)}
+window.addEventListener('pagehide',saveReportSnapshot);
+window.addEventListener('pageshow',e=>{if(e.persisted){clearReturnFlag();setLoading(false);saveReportSnapshot()}});
 
 
+function ranges(p){const h=new Date();let i,f,pi,pf,t,m;if(p==='este_mes'){i=new Date(h.getFullYear(),h.getMonth(),1);f=new Date(h.getFullYear(),h.getMonth()+1,0,23,59,59,999);pi=new Date(h.getFullYear(),h.getMonth()-1,1);pf=new Date(h.getFullYear(),h.getMonth(),0,23,59,59,999);t=monthNames[h.getMonth()];m=h.getMonth()}else if(p==='mes_pasado'){i=new Date(h.getFullYear(),h.getMonth()-1,1);f=new Date(h.getFullYear(),h.getMonth(),0,23,59,59,999);pi=new Date(h.getFullYear(),h.getMonth()-2,1);pf=new Date(h.getFullYear(),h.getMonth()-1,0,23,59,59,999);t=monthNames[i.getMonth()];m=i.getMonth()}else if(p==='esta_semana'||p==='semana_pasada'){const d=h.getDay()||7,l=new Date(h);l.setDate(h.getDate()-d+1);l.setHours(0,0,0,0);if(p==='semana_pasada')l.setDate(l.getDate()-7);i=new Date(l);f=new Date(l);f.setDate(i.getDate()+6);f.setHours(23,59,59,999);pi=new Date(i);pi.setDate(i.getDate()-7);pf=new Date(f);pf.setDate(f.getDate()-7);t=p==='esta_semana'?'Esta semana':'Semana pasada';m=i.getMonth()}else if(p==='este_anio'){i=new Date(h.getFullYear(),0,1);f=new Date(h.getFullYear(),11,31,23,59,59,999);pi=new Date(h.getFullYear()-1,0,1);pf=new Date(h.getFullYear()-1,11,31,23,59,59,999);t='Año '+h.getFullYear();m=h.getMonth()}else{i=customStart;f=customEnd;const diff=Math.abs(f-i);pf=new Date(i.getTime()-1);pi=new Date(pf.getTime()-diff);t=`${dateText(i)} al ${dateText(f)}`;m=i.getMonth()}return{inicio:i,fin:f,prevInicio:pi,prevFin:pf,texto:t,activeMonth:m}}
+function growth(c,p){if(!p&&c>0)return{value:100,text:'+100%',cls:'up'};if(p>0){const v=(c-p)/p*100;return{value:v,text:(v>0?'+':v<0?'−':'')+Math.abs(v).toLocaleString('es-CO',{maximumFractionDigits:1})+'%',cls:v>0?'up':v<0?'down':''}}return{value:0,text:'0%',cls:''}}
+function bubble(p){return p>=100?'¡Meta cumplida! <strong>Superamos el objetivo</strong> del periodo.':p>=75?'¡Vamos muy bien! Ya alcanzamos <strong>tres cuartas partes</strong> de la meta.':p>=50?'¡Buen ritmo! Ya superamos <strong>la mitad</strong> de la meta.':p>=25?'Vamos avanzando. Ya recorrimos <strong>una cuarta parte</strong> de la meta.':'Seguimos avanzando. Cada venta nos acerca <strong>más a la meta</strong>.'}
+function bars(vals,active){const box=$('bars');box.replaceChildren();const max=Math.max(...vals,1);vals.forEach((v,i)=>{const c=document.createElement('div');c.className='bar-col'+(i===active?' active':'');const b=document.createElement('div');b.className='bar';b.style.height=(v<=0?2:Math.max(5,v/max*100))+'%';b.title=`${monthNames[i]}: ${money(v)}`;const l=document.createElement('span');l.className='bar-label';l.textContent=monthShort[i];c.append(b,l);box.append(c)})}
+function payments(pagos,total){const list=$('payList');list.replaceChildren();const arr=Object.entries(pagos).filter(([,v])=>+v>0).sort((a,b)=>b[1]-a[1]);if(!arr.length||total<=0){$('paymentDonut').style.background='conic-gradient(#D9D4D7 0 100%)';$('donutTotal').textContent='$0';const e=document.createElement('div');e.className='pay-empty';e.textContent='No hay pagos registrados en este periodo.';list.append(e);return}let s=0,st=[];arr.forEach(([n,v],ix)=>{const pc=v/total*100,en=s+pc,col=paymentColors[ix%paymentColors.length];st.push(`${col} ${s}% ${en}%`);const r=document.createElement('div');r.className='pay-row';r.innerHTML=`<span class="dot" style="background:${col}"></span><span class="pay-name"></span><span class="pay-amount">${money(v)}</span><span class="pay-pct">${pc.toLocaleString('es-CO',{maximumFractionDigits:1})}%</span>`;r.querySelector('.pay-name').textContent=n;list.append(r);s=en});$('paymentDonut').style.background=`conic-gradient(${st.join(',')})`;$('donutTotal').textContent=compact(total)}
+function procesar(){
+if(!dataFinanzas)return;
+const rg=ranges($('periodo').value),vp=Array(12).fill(0),pagos={};let va=0,vprev=0,ra=0,vh=0,rh=0,w=null;const year=new Date().getFullYear();
+dataFinanzas.ordenes.forEach(op=>{if(op.estado==='ANULADA')return;const f=parseDate(op.fecha);if(!f)return;const total=parseFloat(op.total)||0,ai=parseFloat(op.abonoInicial)||0;vh+=total;rh+=ai;if(f.getFullYear()===year)vp[f.getMonth()]+=total;if(f>=rg.inicio&&f<=rg.fin){va+=total;ra+=ai;if(ai>0)pagos['PAGO INICIAL (OP)']=(pagos['PAGO INICIAL (OP)']||0)+ai;if(!w||total>(parseFloat(w.total)||0))w=op}if(f>=rg.prevInicio&&f<=rg.prevFin)vprev+=total});
+dataFinanzas.abonos.forEach(ab=>{const f=parseDate(ab.fecha);if(!f)return;const v=parseFloat(ab.valor)||0;rh+=v;if(f>=rg.inicio&&f<=rg.fin){ra+=v;const m=ab.medio?String(ab.medio).toUpperCase().trim():'OTRO';pagos[m]=(pagos[m]||0)+v}});
+const activeRows=activeHistoryForRange(rg),car=ventasHistorial?activeRows.reduce((s,row)=>s+Math.max(0,histNumber(histGet(row,'Saldo_Pendiente'))),0):Math.max(0,vh-rh),raw=metaVentas>0?va/metaVentas*100:0,pct=Math.min(raw,100),rem=Math.max(metaVentas-va,0),gr=growth(va,vprev),best=Math.max(...vp,0),bi=best>0?vp.indexOf(best):-1;
+const winnerHistory=w?findHistoryByOp(w.numero):null,winnerName=String(winnerHistory?histGet(winnerHistory,'Nombre_Cliente'):(w?.nombreCliente||w?.cliente||w?.nombre||'')).trim(),winnerOp=w?String(w.numero??'').replace(/\.0$/,''):'';
+$('dateDisplay').textContent=`Mostrando: ${dateText(rg.inicio)} - ${dateText(rg.fin)}`;$('goalKicker').textContent=`Meta de ventas · ${rg.texto}`;$('goalTotal').textContent=money(metaVentas);$('goalAchieved').textContent=money(va);$('goalRemaining').innerHTML=rem===0?'¡Meta cumplida! <strong>Superamos el objetivo del periodo.</strong>':`Nos faltan <strong>${money(rem)}</strong> para cumplir la meta.`;$('goalPct').textContent=pct.toLocaleString('es-CO',{maximumFractionDigits:1})+'%';$('goalIndex').textContent=`${Math.round(pct)} de cada 100`;$('ring').style.background=`conic-gradient(var(--brand) 0 ${pct}%,#E9E6E7 ${pct}% 100%)`;$('hommyBubble').innerHTML=bubble(pct);$('collected').textContent=money(ra);$('portfolio').textContent=money(car);$('portfolioNote').textContent=ventasHistorial?`${activeRows.length} ${activeRows.length===1?'OP activa':'OP activas'} · saldo pendiente del periodo.`:'No se pudo leer el saldo detallado; mostrando estimación histórica.';$('growth').textContent=gr.text;$('growthCard').classList.toggle('negative',gr.value<0);$('winnerAmount').textContent=w?money(parseFloat(w.total)||0):'$0';$('winnerDetail').textContent=w?`${winnerName?winnerName+' · ':''}OP #${winnerOp||'—'} · ${dateText(parseDate(w.fecha))}`:'Sin ventas registradas en este periodo';$('winnerNote').textContent=w?'La venta individual más alta del periodo.':'No hay una OP ganadora en este periodo.';$('readGrowth').textContent=gr.text;$('readGrowth').className=`reading-value ${gr.cls}`;$('readGoal').textContent=pct.toLocaleString('es-CO',{maximumFractionDigits:1})+'%';$('readGoalText').textContent=rem===0?'La meta del periodo ya fue alcanzada.':`Quedan ${compact(rem)} para llegar a la meta del periodo.`;$('bestMonth').textContent=bi>=0?monthNames[bi]:'—';$('bestMonthText').textContent=bi>=0?`${monthNames[bi]} lidera el año con ${compact(best)} en OP.`:'Todavía no hay ventas registradas en el año.';$('trendYear').textContent=year;bars(vp,rg.activeMonth);payments(pagos,ra);lastMetrics={rg,car,activeCount:activeRows.length,winnerOp,va,vprev,ra,pct,rem,gr,vp,pagos,best,bi,winnerName,winnerAmount:w?(parseFloat(w.total)||0):0,winnerDate:w?parseDate(w.fecha):null,activeRows};syncReportUrl();saveReportSnapshot();
+}
+async function init(opts={}){const showLoader=opts.showLoader!==false;if(showLoader)setLoading(true);banner(false);try{await cargarMeta();const cached=await cargarFinanzas();await cargarHistorialVentas();procesar();if(!cached)banner(false)}catch(e){console.error(e);banner('error','No se pudieron cargar los datos del reporte. Revisa la conexión e inténtalo nuevamente.')}finally{if(showLoader)setLoading(false)}}
+$('periodo').addEventListener('change',()=>{const s=$('periodo').value;if(s==='personalizado'){const h=new Date(),st=customStart||new Date(h.getFullYear(),h.getMonth(),1),en=customEnd||h;$('customStartInput').value=st.toISOString().slice(0,10);$('customEndInput').value=en.toISOString().slice(0,10);$('dateError').classList.remove('show');$('dateDialog').showModal();return}previousPeriod=s;procesar()});$('dateForm').addEventListener('submit',e=>{e.preventDefault();const s=new Date($('customStartInput').value+'T00:00:00'),en=new Date($('customEndInput').value+'T23:59:59');if(Number.isNaN(s.getTime())||Number.isNaN(en.getTime())||en<s){$('dateError').classList.add('show');return}customStart=s;customEnd=en;previousPeriod='personalizado';$('dateDialog').close();procesar()});$('cancelDateBtn').addEventListener('click',()=>{$('dateDialog').close();$('periodo').value=previousPeriod});
+$('editGoalBtn').addEventListener('click',()=>{$('goalInput').value=Math.round(metaVentas||0);$('goalError').classList.remove('show');$('goalDialog').showModal();setTimeout(()=>$('goalInput').select(),50)});$('cancelGoalBtn').addEventListener('click',()=>$('goalDialog').close());$('goalForm').addEventListener('submit',async e=>{e.preventDefault();const v=Number($('goalInput').value);if(!Number.isFinite(v)||v<=0){$('goalError').classList.add('show');return}const b=$('saveGoalBtn'),old=b.textContent;b.disabled=true;b.textContent='Guardando…';try{if(window.HomeEasyCore&&HomeEasyCore.post)await HomeEasyCore.post({tipo:'SET_META',valor:v},{timeoutMs:30000});else{const r=await fetch(URL_G,{method:'POST',body:JSON.stringify({tipo:'SET_META',valor:v})});if(!r.ok)throw new Error('SET_META '+r.status)}metaVentas=v;$('goalDialog').close();procesar()}catch(err){console.error(err);$('goalError').textContent='No se pudo guardar la meta. Inténtalo nuevamente.';$('goalError').classList.add('show')}finally{b.disabled=false;b.textContent=old}});
+
+function pdfEsc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+function histPaid(row){return ['Abono_Inicial','Abono_2','Abono_3','Abono_4','Abono_5','Abono_6','Abono_7','Abono_8','Abono_9','Abono_10'].reduce((s,k)=>s+histNumber(histGet(row,k)),0)}
+function pdfGoalSvg(pct){const p=Math.max(0,Math.min(100,Number(pct)||0));return `<svg class="board-pdf-svg" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="46" fill="none" stroke="#eee9eb" stroke-width="13"/><circle cx="60" cy="60" r="46" fill="none" stroke="#b2566c" stroke-width="13" stroke-linecap="round" pathLength="100" stroke-dasharray="${p} ${100-p}" transform="rotate(-90 60 60)"/><text x="60" y="57" text-anchor="middle" font-size="23" font-weight="750" fill="#b2566c">${Math.round(p)}%</text><text x="60" y="74" text-anchor="middle" font-size="9" font-weight="650" fill="#777075">cumplido</text></svg>`}
+function pdfTrendSvg(vals,active){const data=Array.isArray(vals)?vals:Array(12).fill(0),max=Math.max(...data,1),W=650,H=190,base=150,bw=27,gap=25,start=18;let bars='';data.forEach((value,i)=>{const h=value>0?Math.max(5,value/max*112):3,x=start+i*(bw+gap),y=base-h,color=i===active?'#c2a468':'#b2566c';bars+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="6" fill="${color}"/><text x="${x+bw/2}" y="170" text-anchor="middle" font-size="10" fill="#898389">${monthShort[i]}</text>`});return `<svg class="board-pdf-svg" viewBox="0 0 ${W} ${H}" aria-hidden="true"><line x1="8" y1="151" x2="642" y2="151" stroke="#e7e2e5" stroke-width="1"/>${bars}</svg>`}
+function pdfGoalHtml(pct){const p=Math.max(0,Math.min(100,Number(pct)||0));return `<div class="board-pdf-goal-meter"><div class="board-pdf-goal-meter-head"><strong>${Math.round(p)}%</strong><span>cumplimiento</span></div><div class="board-pdf-progress"><i style="width:${p}%"></i></div></div>`}function pdfTrendHtml(vals,active){const data=Array.isArray(vals)?vals:Array(12).fill(0),max=Math.max(...data,1);return `<div class="board-pdf-bars-html">${data.map((value,i)=>{const h=value>0?Math.max(3,value/max*100):1.5;return `<div class="board-pdf-bar-col"><div class="board-pdf-bar-track"><i class="board-pdf-bar-fill ${i===active?'active':''}" style="height:${h}%"></i></div><span class="board-pdf-bar-label">${monthShort[i]}</span></div>`}).join('')}</div>`}function pdfPaymentHtml(entries,total){const rows=Array.isArray(entries)?entries:[],sum=Number(total)||0;if(!rows.length||sum<=0)return `<div class="board-pdf-payment-visual"><div class="board-pdf-payment-total"><strong>$0</strong><span>Sin pagos registrados</span></div><div class="board-pdf-payment-stack"></div></div>`;const segments=rows.map(([name,value],i)=>{const pct=Math.max(0,Number(value)||0)/sum*100;return `<i style="width:${pct}%;background:${paymentColors[i%paymentColors.length]}"></i>`}).join('');return `<div class="board-pdf-payment-visual"><div class="board-pdf-payment-total"><strong>${pdfEsc(money(sum))}</strong><span>Recaudado en el periodo</span></div><div class="board-pdf-payment-stack">${segments}</div><div class="board-pdf-payment-caption">La barra representa la participación de cada medio de pago.</div></div>`}function pdfPaymentSvg(entries,total){const rows=Array.isArray(entries)?entries:[],sum=Number(total)||0;if(!rows.length||sum<=0)return `<svg class="board-pdf-svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="none" stroke="#e6e1e4" stroke-width="16"/><text x="60" y="64" text-anchor="middle" font-size="10" fill="#777075">Sin pagos</text></svg>`;let offset=0,circles='';rows.forEach(([name,value],i)=>{const pct=Number(value)/sum*100,color=paymentColors[i%paymentColors.length];circles+=`<circle cx="60" cy="60" r="44" fill="none" stroke="${color}" stroke-width="16" pathLength="100" stroke-dasharray="${pct} ${100-pct}" stroke-dashoffset="${-offset}" transform="rotate(-90 60 60)"/>`;offset+=pct});return `<svg class="board-pdf-svg" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="44" fill="none" stroke="#eee9eb" stroke-width="16"/>${circles}<text x="60" y="56" text-anchor="middle" font-size="8" fill="#777075">Recaudado</text><text x="60" y="71" text-anchor="middle" font-size="11" font-weight="750" fill="#202024">${pdfEsc(compact(sum))}</text></svg>`}
+function pdfNarrative(m){const p=Math.round(Number(m.pct)||0),growthText=String(m.gr?.text||'0%').replace('−','-');let opening=`Durante el periodo seleccionado se registraron ${money(m.va)} en ventas, equivalentes al ${p}% de la meta de ${money(metaVentas)}.`;opening+=` El recaudo del periodo fue ${money(m.ra)} y la cartera pendiente de ${m.activeCount} ${m.activeCount===1?'orden activa':'órdenes activas'} asciende a ${money(m.car)}.`;if(Number(m.gr?.value)>0)opening+=` El volumen vendido creció ${growthText} frente al periodo inmediatamente anterior.`;else if(Number(m.gr?.value)<0)opening+=` El volumen vendido se ubicó ${growthText.replace('-','')} por debajo del periodo inmediatamente anterior.`;else opening+=' El volumen vendido se mantuvo sin variación frente al periodo inmediatamente anterior.';return opening}
+function buildBoardReport(){if(!lastMetrics)throw new Error('El reporte todavía no tiene métricas listas.');const m=lastMetrics,period=$('dateDisplay').textContent.replace(/^Mostrando:\s*/,'').trim(),generated=new Date().toLocaleString('es-CO',{dateStyle:'long',timeStyle:'short'}),growthText=String(m.gr?.text||'0%').replace('−','-'),bestName=m.bi>=0?monthNames[m.bi]:'Sin datos',winnerName=m.winnerName||'Sin cliente',winnerOp=m.winnerOp||'—',winnerDate=m.winnerDate?dateText(m.winnerDate):'—',active=[...(m.activeRows||[])].sort((a,b)=>histNumber(histGet(b,'Saldo_Pendiente'))-histNumber(histGet(a,'Saldo_Pendiente'))),topActive=active.slice(0,8),payEntries=Object.entries(m.pagos||{}).filter(([,x])=>Number(x)>0).sort((a,b)=>b[1]-a[1]),payRows=payEntries.map(([name,value],i)=>`<div class="board-pdf-pay-row"><span class="board-pdf-pay-dot" style="background:${paymentColors[i%paymentColors.length]}"></span><span>${pdfEsc(name)}</span><strong>${pdfEsc(money(value))}</strong></div>`).join('')||'<div class="board-pdf-small-note">No hay pagos registrados en este periodo.</div>',portfolioRows=topActive.map(row=>{const total=histNumber(histGet(row,'Valor_Total')),paid=histPaid(row),balance=Math.max(0,histNumber(histGet(row,'Saldo_Pendiente')));return `<tr><td><strong>OP-${pdfEsc(histOp(row))}</strong></td><td><span class="client">${pdfEsc(histGet(row,'Nombre_Cliente')||'Sin nombre')}</span><span class="muted">${pdfEsc(dateText(parseDate(histGet(row,'Fecha'))))}</span></td><td class="money">${pdfEsc(money(total))}</td><td class="money">${pdfEsc(money(paid))}</td><td class="money">${pdfEsc(money(balance))}</td></tr>`}).join('')||'<tr><td colspan="5">No hay órdenes activas con saldo pendiente en el periodo.</td></tr>',extra=active.length>8?`<div class="board-pdf-small-note">Se muestran las 8 órdenes con mayor saldo. ${active.length-8} orden(es) adicional(es) quedan disponibles en Historial de ventas.</div>`:'',goalMessage=m.rem>0?`Faltan ${money(m.rem)} para alcanzar la meta.`:'La meta del periodo ya fue alcanzada.',variationMessage=Number(m.gr?.value)<0?'El periodo vende por debajo del anterior; conviene revisar cierres y oportunidades aún abiertas.':Number(m.gr?.value)>0?'El periodo supera al anterior; conviene sostener el ritmo de seguimiento comercial.':'El volumen vendido se mantiene estable frente al periodo anterior.';
+const root=document.createElement('div');root.className='board-pdf-root';root.setAttribute('aria-hidden','true');root.innerHTML=`
+<section class="board-pdf-page">
+  <header class="board-pdf-header"><div class="board-pdf-brand"><img src="triangulo.png" alt=""><div><div class="board-pdf-brand-name">HomeEasy</div><div class="board-pdf-brand-sub">Control comercial</div></div></div><div class="board-pdf-meta"><strong>Reporte de ventas</strong><span>Generado ${pdfEsc(generated)}</span></div></header>
+  <h1 class="board-pdf-title">Reporte ejecutivo de ventas</h1><div class="board-pdf-period">Periodo analizado: <strong>${pdfEsc(period)}</strong></div>
+  <section class="board-pdf-section"><div class="board-pdf-eyebrow">Resumen ejecutivo</div><div class="board-pdf-summary">${pdfEsc(pdfNarrative(m))}</div></section>
+  <div class="board-pdf-kpis"><div class="board-pdf-kpi"><span>Meta del periodo</span><strong>${pdfEsc(money(metaVentas))}</strong><em>Objetivo comercial configurado.</em></div><div class="board-pdf-kpi"><span>Ventas</span><strong>${pdfEsc(money(m.va))}</strong><em>${Math.round(m.pct)}% de cumplimiento.</em></div><div class="board-pdf-kpi"><span>Recaudado</span><strong>${pdfEsc(money(m.ra))}</strong><em>Ingresos efectivamente registrados.</em></div><div class="board-pdf-kpi"><span>Cartera activa</span><strong>${pdfEsc(money(m.car))}</strong><em>${m.activeCount} ${m.activeCount===1?'OP activa':'OP activas'} con saldo.</em></div></div>
+  <div class="board-pdf-grid2"><div class="board-pdf-card board-pdf-goal">${pdfGoalHtml(m.pct)}<div class="board-pdf-goal-copy"><div class="board-pdf-eyebrow">Distancia a la meta</div><strong>${m.rem>0?pdfEsc(money(m.rem)):"$0"}</strong><span>${m.rem>0?"Pendientes para alcanzar el objetivo comercial.":"Objetivo comercial alcanzado."}</span></div></div><div class="board-pdf-callouts"><div class="board-pdf-callout"><b>Variación comercial: ${pdfEsc(growthText)}</b><span>${pdfEsc(variationMessage)}</span></div><div class="board-pdf-callout gold"><b>Mejor mes del año: ${pdfEsc(bestName)}</b><span>${m.bi>=0?pdfEsc(`${bestName} acumula ${compact(m.best)} en órdenes.`):'Aún no hay un mes líder.'}</span></div><div class="board-pdf-callout green"><b>Liquidez del periodo</b><span>Se han recaudado ${pdfEsc(money(m.ra))}; la cartera activa del periodo es ${pdfEsc(money(m.car))}.</span></div></div></div>
+  <section class="board-pdf-section"><div class="board-pdf-chart-head"><div><div class="board-pdf-eyebrow">Comportamiento anual</div><div class="board-pdf-h2">Tendencia de ventas</div></div><span>${new Date().getFullYear()}</span></div><div class="board-pdf-chart">${pdfTrendHtml(m.vp,m.rg.activeMonth)}</div></section>
+  <footer class="board-pdf-footer"><span>HomeEasy · Reporte de ventas</span><span>Página 1 de 2</span></footer>
+</section>
+<section class="board-pdf-page">
+  <header class="board-pdf-header"><div class="board-pdf-brand"><img src="triangulo.png" alt=""><div><div class="board-pdf-brand-name">HomeEasy</div><div class="board-pdf-brand-sub">Detalle comercial</div></div></div><div class="board-pdf-meta"><strong>${pdfEsc(period)}</strong><span>Soporte para socialización y junta</span></div></header>
+  <div class="board-pdf-page-title">Detalle operativo del periodo</div>
+  <div class="board-pdf-winner"><div><span>OP ganadora</span><strong>${pdfEsc(money(m.winnerAmount))}</strong><p>${pdfEsc(winnerName)} · OP #${pdfEsc(winnerOp)} · ${pdfEsc(winnerDate)}</p></div><div class="board-pdf-winner-badge">★</div></div>
+  <section class="board-pdf-section"><div class="board-pdf-eyebrow">Cartera activa del periodo</div><div class="board-pdf-h2">Órdenes con saldo pendiente</div><div class="board-pdf-table-wrap"><table class="board-pdf-table"><thead><tr><th>OP</th><th>Cliente</th><th style="text-align:right">Venta</th><th style="text-align:right">Pagado</th><th style="text-align:right">Saldo</th></tr></thead><tbody>${portfolioRows}</tbody></table></div>${extra}</section>
+  <section class="board-pdf-section"><div class="board-pdf-eyebrow">Composición del recaudo</div><div class="board-pdf-h2">Cómo están pagando</div><div class="board-pdf-card board-pdf-pay">${pdfPaymentHtml(payEntries,m.ra)}<div class="board-pdf-pay-list">${payRows}</div></div></section>
+  <section class="board-pdf-method"><h3>Metodología del reporte</h3><ul><li><strong>Ventas:</strong> suma de órdenes no anuladas cuya fecha pertenece al periodo seleccionado.</li><li><strong>Recaudado:</strong> abonos iniciales de las OP más los abonos registrados dentro del periodo.</li><li><strong>Cartera activa:</strong> suma del campo Saldo_Pendiente de las OP con estado ACTIVO dentro del periodo.</li><li><strong>Variación:</strong> comparación del total vendido contra el periodo inmediatamente anterior equivalente.</li></ul></section>
+  <footer class="board-pdf-footer"><span>HomeEasy · Información comercial para uso interno</span><span>Página 2 de 2</span></footer>
+</section>`;document.body.appendChild(root);return root}
+function pdfFilename(){const label=String(lastMetrics?.rg?.texto||'Periodo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'');return `HomeEasy_Reporte_Ventas_${label}_${new Date().toISOString().slice(0,10)}.pdf`}
+async function exportPDF(){const btn=$('exportBtn'),label=btn.querySelector('span'),old=label?label.textContent:'Exportar reporte',sx=window.scrollX,sy=window.scrollY;let report=null;btn.disabled=true;if(label)label.textContent='Preparando reporte…';try{if(!lastMetrics)throw new Error('El reporte aún está cargando.');report=buildBoardReport();document.body.classList.add('pdf-report-exporting');window.scrollTo(0,0);if(document.fonts&&document.fonts.ready)await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));await html2pdf().set({margin:0,filename:pdfFilename(),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(report).toPdf().get('pdf').then(pdf=>{while(pdf.internal.getNumberOfPages()>2)pdf.deletePage(pdf.internal.getNumberOfPages())}).save()}catch(e){console.error('PDF report',e);alert('No se pudo generar el reporte PDF. Inténtalo nuevamente.')}finally{document.body.classList.remove('pdf-report-exporting');if(report)report.remove();window.scrollTo(sx,sy);btn.disabled=false;if(label)label.textContent=old}}
+$('exportBtn').addEventListener('click',exportPDF);$('retryBtn').addEventListener('click',()=>init());bindAction('portfolioCard',()=>goToVentas('cartera'));bindAction('winnerCard',()=>{if(lastMetrics?.winnerOp)goToVentas('winner',lastMetrics.winnerOp)});hydrateReportState();if(fastReturnRequested()&&restoreReportSnapshot()){clearReturnFlag();setLoading(false);banner(false);procesar()}else{clearReturnFlag();init()}
+</script>
+</body></html>
