@@ -1,5 +1,5 @@
 /**
- * HomeEasy Auth v0.4.1
+ * HomeEasy Auth v0.4.2
  * Firebase Authentication + sesión general emitida por el Cerebro HomeEasy.
  *
  * - Usa únicamente las API REST oficiales de Firebase; no añade SDK externo.
@@ -12,7 +12,7 @@
 (function (global) {
     'use strict';
 
-    const VERSION = '0.4.1';
+    const VERSION = '0.4.2';
     const STORAGE_KEY = 'HOMEEASY_AUTH_SESSION_V1';
     const DEVICE_ID_KEY = 'HOMEEASY_DEVICE_ID';
     const DEVICE_NAME_KEY = 'HOMEEASY_DEVICE_NAME';
@@ -1011,7 +1011,8 @@
         return user;
     }
 
-    function safeReturnUrl(value, fallback) {
+    function safeReturnUrl(value, fallback, options) {
+        const opts = { allowCurrent: false, ...(options || {}) };
         const defaultValue = String(fallback || config.homePath || 'index.html');
         const raw = String(value || '').trim();
         if (!raw) return defaultValue;
@@ -1022,7 +1023,7 @@
             const resolved = new URL(raw, global.location.href);
             if (resolved.origin !== global.location.origin) return defaultValue;
             const currentPath = global.location.pathname;
-            if (resolved.pathname === currentPath && resolved.search === global.location.search) return defaultValue;
+            if (!opts.allowCurrent && resolved.pathname === currentPath && resolved.search === global.location.search) return defaultValue;
             const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
             if (!resolved.pathname.startsWith(basePath)) return defaultValue;
             return resolved.pathname.slice(basePath.length) + resolved.search + resolved.hash;
@@ -1034,7 +1035,7 @@
     function buildLoginUrl(returnUrl) {
         const login = new URL(config.loginPath, global.location.href);
         const currentTarget = global.location.pathname.split('/').pop() + global.location.search + global.location.hash;
-        const target = safeReturnUrl(returnUrl || currentTarget, config.homePath);
+        const target = safeReturnUrl(returnUrl || currentTarget, config.homePath, { allowCurrent: true });
         login.searchParams.set('return', target);
         return login.href;
     }

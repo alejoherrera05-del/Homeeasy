@@ -674,7 +674,7 @@
                 () => Boolean(global.HOMEEASY_AUTH_CONFIG)
             );
             await loadScriptOnce(
-                'homeeasy-auth.js?v=3.4',
+                'homeeasy-auth.js?v=3.5',
                 'homeeasyAuthScript',
                 () => Boolean(global.HomeEasyAuth)
             );

@@ -313,7 +313,7 @@
         schedulePendingCover();
         try {
             await loadScriptOnce('homeeasy-auth-config.js?v=3.3', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
-            await loadScriptOnce('homeeasy-auth.js?v=3.4', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
+            await loadScriptOnce('homeeasy-auth.js?v=3.5', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
             if (!global.HomeEasyAuth || !global.HomeEasyAuth.isConfigured()) { redirectToLogin(); return; }
 
             const cached = global.HomeEasyAuth.getCachedHomeEasySession ? global.HomeEasyAuth.getCachedHomeEasySession() : null;
