@@ -21,70 +21,31 @@ jobs:
         run: |
           python3 <<'PY'
           from pathlib import Path
-
-          source = Path('reportes-diseno-v4.html')
-          target = Path('reportes.html')
-          ventas = Path('ventas.html')
-          guard = Path('homeeasy-page-guard.js')
-
-          if not source.exists():
-              raise SystemExit('reportes-diseno-v4.html no existe')
-
-          new_report = source.read_text(encoding='utf-8')
-          required = [
-              'Reporte de ventas',
-              'HOMEEASY_REPORT_VIEW_CACHE_V2',
-              'function buildBoardReport',
-              'function exportPDF',
-              'Cartera actual',
-              'Exportar reporte'
-          ]
-          missing = [x for x in required if x not in new_report]
-          if missing:
-              raise SystemExit('La versión nueva no contiene: ' + ', '.join(missing))
-
-          # reportes.html se convierte en el módulo oficial sin cambiar la funcionalidad validada.
-          target.write_text(new_report, encoding='utf-8')
-
-          # Historial debe reconocer tanto la ruta oficial como el alias antiguo para usar history.back/bfcache.
-          s = ventas.read_text(encoding='utf-8')
-          old = "function cameFromReport(){try{return new URL(document.referrer).pathname.endsWith('/reportes-diseno-v4.html')}catch(e){return false}}"
-          new = "function cameFromReport(){try{const p=new URL(document.referrer).pathname;return p.endsWith('/reportes.html')||p.endsWith('/reportes-diseno-v4.html')}catch(e){return false}}"
-          if old not in s:
-              raise SystemExit('No se encontró cameFromReport esperado en ventas.html')
-          ventas.write_text(s.replace(old, new, 1), encoding='utf-8')
-
-          # La ruta experimental deja de ser un segundo módulo y pasa a ser un alias compatible.
-          source.write_text('''<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="robots" content="noindex">
-<title>HomeEasy · Reporte de ventas</title>
-<script>
-(function(){
-  var target='reportes.html'+window.location.search+window.location.hash;
-  window.location.replace(target);
-})();
-</script>
-<noscript><meta http-equiv="refresh" content="0;url=reportes.html"></noscript>
-</head>
-<body></body>
-</html>
-''', encoding='utf-8')
-
-          # Ya no es un módulo independiente con permiso propio.
-          g = guard.read_text(encoding='utf-8')
-          g = g.replace("        'reportes-diseno-v4.html': 'reportes.read',\n", '')
-          guard.write_text(g, encoding='utf-8')
+          source=Path('reportes-diseno-v4.html')
+          target=Path('reportes.html')
+          ventas=Path('ventas.html')
+          guard=Path('homeeasy-page-guard.js')
+          if not source.exists(): raise SystemExit('reportes-diseno-v4.html no existe')
+          new_report=source.read_text(encoding='utf-8')
+          required=['Reporte de ventas','HOMEEASY_REPORT_VIEW_CACHE_V2','function buildBoardReport','function exportPDF','Cartera actual','Exportar reporte']
+          missing=[x for x in required if x not in new_report]
+          if missing: raise SystemExit('La versión nueva no contiene: '+', '.join(missing))
+          target.write_text(new_report,encoding='utf-8')
+          s=ventas.read_text(encoding='utf-8')
+          old="function cameFromReport(){try{return new URL(document.referrer).pathname.endsWith('/reportes-diseno-v4.html')}catch(e){return false}}"
+          new="function cameFromReport(){try{const p=new URL(document.referrer).pathname;return p.endsWith('/reportes.html')||p.endsWith('/reportes-diseno-v4.html')}catch(e){return false}}"
+          if old not in s: raise SystemExit('No se encontró cameFromReport esperado en ventas.html')
+          ventas.write_text(s.replace(old,new,1),encoding='utf-8')
+          redirect='<!DOCTYPE html>\n<html lang="es">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="robots" content="noindex">\n<title>HomeEasy · Reporte de ventas</title>\n<script>(function(){var target="reportes.html"+window.location.search+window.location.hash;window.location.replace(target)})();</script>\n<noscript><meta http-equiv="refresh" content="0;url=reportes.html"></noscript>\n</head>\n<body></body>\n</html>\n'
+          source.write_text(redirect,encoding='utf-8')
+          g=guard.read_text(encoding='utf-8')
+          guard.write_text(g.replace("        'reportes-diseno-v4.html': 'reportes.read',\n",''),encoding='utf-8')
           PY
-
           grep -q 'href="reportes.html"' index.html
           grep -q 'function buildBoardReport' reportes.html
           grep -q 'function exportPDF' reportes.html
           grep -q "p.endsWith('/reportes.html')" ventas.html
-          grep -q "location.replace(target)" reportes-diseno-v4.html
+          grep -q 'window.location.replace(target)' reportes-diseno-v4.html
           ! grep -q "'reportes-diseno-v4.html': 'reportes.read'" homeeasy-page-guard.js
           git diff --check
 
