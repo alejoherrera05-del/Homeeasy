@@ -1,0 +1,138 @@
+name: validate HomeEasy WhatsApp app integration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/whatsapp/bridge/**'
+      - 'infra/whatsapp/update-bridge.sh'
+      - 'homeeasy-whatsapp-client.js'
+      - 'homeeasy-whatsapp-settings.js'
+      - 'tools/patch-whatsapp-settings.py'
+      - '.github/workflows/validate-whatsapp-app-integration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply isolated Configuracion patch
+        run: |
+          python3 tools/patch-whatsapp-settings.py
+          grep -q 'homeeasy-whatsapp-client.js?v=0.1' configuracion.html
+          grep -q 'homeeasy-whatsapp-settings.js?v=0.1' configuracion.html
+
+      - name: Validate JavaScript and Docker image
+        run: |
+          node --check infra/whatsapp/bridge/server.js
+          node --check infra/whatsapp/bridge/auth.js
+          node --check homeeasy-whatsapp-client.js
+          node --check homeeasy-whatsapp-settings.js
+          bash -n infra/whatsapp/update-bridge.sh
+          docker build -t homeeasy-whatsapp-bridge:qa infra/whatsapp/bridge
+
+      - name: Start mock HomeEasy and WAHA services
+        run: |
+          cat > /tmp/whatsapp-mocks.js <<'NODE'
+          const http = require('http');
+
+          const authServer = http.createServer((req,res) => {
+            let raw=''; req.on('data',c=>raw+=c); req.on('end',()=>{
+              let body={}; try{body=JSON.parse(raw||'{}')}catch{}
+              const token=String(body.appSessionToken||'');
+              let payload;
+              if(token==='valid-config') payload={status:'success',valido:true,perfil:{uid:'u1',nombre:'QA Admin',email:'qa@homeeasy.test',rol:'ADMINISTRADOR',estado:'ACTIVO'},permisos:['config.read']};
+              else if(token==='valid-docs') payload={status:'success',valido:true,perfil:{uid:'u2',nombre:'QA Comercial',email:'ventas@homeeasy.test',rol:'COMERCIAL',estado:'ACTIVO'},permisos:['cotizaciones.write','pedidos.write','abonos.write']};
+              else if(token==='no-perm') payload={status:'success',valido:true,perfil:{uid:'u3',nombre:'QA Consulta',email:'consulta@homeeasy.test',rol:'CONSULTA',estado:'ACTIVO'},permisos:['app.access']};
+              else payload={status:'error',valido:false,code:'APP_SESSION_EXPIRED'};
+              res.writeHead(200,{'content-type':'application/json'}); res.end(JSON.stringify(payload));
+            });
+          }).listen(19000,'127.0.0.1');
+
+          const session={name:'homeeasy',status:'WORKING',engine:{engine:'WEBJS'},me:{id:'573334319374@c.us',pushName:'Homeeasy Popayán'}};
+          const wahaServer = http.createServer((req,res) => {
+            const url=new URL(req.url,'http://localhost'); let raw=''; req.on('data',c=>raw+=c); req.on('end',()=>{
+              let status=200, payload={};
+              if(req.method==='GET' && url.pathname==='/api/sessions/homeeasy') payload=session;
+              else if(req.method==='POST' && url.pathname==='/api/sendText') payload={id:'text-qa'};
+              else if(req.method==='POST' && url.pathname==='/api/sendFile') payload={id:'file-qa'};
+              else if(req.method==='POST' && url.pathname==='/api/sessions/homeeasy/restart') payload={...session,status:'STARTING'};
+              else if(req.method==='POST' && url.pathname==='/api/sessions/homeeasy/start') payload={...session,status:'STARTING'};
+              else if(req.method==='GET' && url.pathname==='/api/homeeasy/auth/qr') payload={mimetype:'image/png',data:'aGVsbG8='};
+              else {status=404;payload={error:'not found'}}
+              res.writeHead(status,{'content-type':'application/json'}); res.end(JSON.stringify(payload));
+            });
+          }).listen(19001,'127.0.0.1');
+          process.on('SIGTERM',()=>{authServer.close();wahaServer.close();});
+          NODE
+          node /tmp/whatsapp-mocks.js >/tmp/wa-mocks.log 2>&1 & echo $! >/tmp/wa-mocks.pid
+          PORT=18080 \
+          WAHA_BASE_URL=http://127.0.0.1:19001 \
+          WAHA_API_KEY=test-waha \
+          WAHA_SESSION=homeeasy \
+          BRIDGE_TOKEN=test-internal \
+          HOMEEASY_BACKEND_URL=http://127.0.0.1:19000 \
+          HOMEEASY_ALLOWED_ORIGINS=https://alejoherrera05-del.github.io \
+          DATA_DIR=/tmp/wa-bridge-data \
+          node infra/whatsapp/bridge/server.js >/tmp/wa-bridge.log 2>&1 & echo $! >/tmp/wa-bridge.pid
+          for i in {1..20}; do curl -fsS http://127.0.0.1:18080/health && break || sleep 1; done
+
+      - name: Validate session auth, permissions and CORS
+        run: |
+          set -e
+          test "$(curl -s -o /tmp/noauth -w '%{http_code}' http://127.0.0.1:18080/api/whatsapp/status)" = "401"
+          curl -fsS -H 'Origin: https://alejoherrera05-del.github.io' -H 'X-HomeEasy-Session: valid-config' http://127.0.0.1:18080/api/whatsapp/status | tee /tmp/status.json | grep -q 'WORKING'
+          test "$(curl -s -o /tmp/noperm -w '%{http_code}' -H 'Origin: https://alejoherrera05-del.github.io' -H 'X-HomeEasy-Session: no-perm' http://127.0.0.1:18080/api/whatsapp/status)" = "403"
+          test "$(curl -s -o /tmp/badorigin -w '%{http_code}' -H 'Origin: https://evil.example' -H 'X-HomeEasy-Session: valid-config' http://127.0.0.1:18080/api/whatsapp/status)" = "403"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS -H 'Origin: https://alejoherrera05-del.github.io' -H 'Access-Control-Request-Method: GET' -H 'Access-Control-Request-Headers: X-HomeEasy-Session' http://127.0.0.1:18080/api/whatsapp/status)" = "204"
+          curl -fsS -X POST -H 'Origin: https://alejoherrera05-del.github.io' -H 'X-HomeEasy-Session: valid-config' -H 'Content-Type: application/json' http://127.0.0.1:18080/api/whatsapp/test-message -d '{}' | grep -q 'text-qa'
+          PDF64=$(printf '%%PDF-1.4\n%%QA\n' | base64 -w0)
+          jq -nc --arg pdf "$PDF64" '{documentType:"cotizacion",phone:"3334319374",pdfBase64:$pdf,filename:"QA.pdf",caption:"QA",idempotencyKey:"qa-doc-1"}' >/tmp/doc.json
+          curl -fsS -X POST -H 'Origin: https://alejoherrera05-del.github.io' -H 'X-HomeEasy-Session: valid-docs' -H 'Content-Type: application/json' http://127.0.0.1:18080/api/whatsapp/send-document --data-binary @/tmp/doc.json | grep -q 'SENT'
+          test "$(curl -s -o /tmp/docnoperm -w '%{http_code}' -X POST -H 'Origin: https://alejoherrera05-del.github.io' -H 'X-HomeEasy-Session: no-perm' -H 'Content-Type: application/json' http://127.0.0.1:18080/api/whatsapp/send-document --data-binary @/tmp/doc.json)" = "403"
+          curl -fsS -H 'X-HomeEasy-Token: test-internal' http://127.0.0.1:18080/api/whatsapp/status | grep -q 'WORKING'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate settings UI mount
+        run: |
+          npm install --no-save jsdom@24 >/dev/null 2>&1
+          cat > /tmp/test-wa-ui.js <<'NODE'
+          const fs=require('fs');
+          const {JSDOM}=require('jsdom');
+          const dom=new JSDOM(`<!doctype html><html><body><main id="settingsApp"><header><nav class="mobile-tabs"><button class="mobile-tab" data-section="empresa">Empresa</button><button class="mobile-tab" data-section="restauraciones">Restauraciones</button></nav></header><div class="layout"><aside><nav class="side-nav"><button class="nav-button" data-section="empresa">Empresa</button><button class="nav-button" data-section="restauraciones">Restauraciones</button></nav></aside><section class="content"><div class="panel active" data-panel="empresa"></div><div class="panel" id="panel-restauraciones" data-panel="restauraciones"></div></section></div></main></body></html>`,{url:'https://alejoherrera05-del.github.io/Homeeasy/configuracion.html',runScripts:'dangerously'});
+          const w=dom.window;
+          w.scrollTo=()=>{};
+          w.HomeEasyAuth={getAppSessionToken:()=> 'valid-config',restoreHomeEasySession:async()=>({}),hasPermission:()=>true};
+          w.HomeEasyCore={buildMeta:()=>({})};
+          w.fetch=async()=>new Response(JSON.stringify({ok:true,whatsapp:{exists:true,name:'homeeasy',status:'WORKING',ready:true,engine:'WEBJS',me:{id:'573334319374@c.us',pushName:'Homeeasy Popayán'}}}),{status:200,headers:{'content-type':'application/json'}});
+          w.eval(fs.readFileSync('homeeasy-whatsapp-client.js','utf8'));
+          w.eval(fs.readFileSync('homeeasy-whatsapp-settings.js','utf8'));
+          w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+          setTimeout(()=>{
+            if(!w.document.querySelector('[data-section="integraciones"]')) throw new Error('Integraciones nav missing');
+            if(!w.document.getElementById('panel-integraciones')) throw new Error('Integraciones panel missing');
+            if(w.document.getElementById('heWaChip').textContent!=='Conectado') throw new Error('WhatsApp status did not render as connected');
+            if(!w.document.getElementById('heWaPhone').textContent.includes('+57')) throw new Error('Connected phone missing');
+            console.log('WHATSAPP_SETTINGS_UI_OK');
+          },1000);
+          setTimeout(()=>process.exit(0),1200);
+          NODE
+          node /tmp/test-wa-ui.js
+
+      - name: Commit tested Configuracion loader
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git add configuracion.html
+          git commit -m 'Add WhatsApp integration to Configuracion'
+          git push
