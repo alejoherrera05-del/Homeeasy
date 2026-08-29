@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f6f5">
+<meta name="homeeasy-brand-color" content="#B2566C">
+<title>HomeEasy · Clientes — modelo 3.1</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{
+  --wine:#B2566C;
+  --wine-2:#B2566C;
+  --wine-dark:#99495D;
+  --wine-soft:#F8EEF1;
+  --gold:#cda43d;
+  --gold-soft:#fff7df;
+  --ink:#171719;
+  --muted:#7b7b80;
+  --line:#ebe9e7;
+  --bg:#f7f6f5;
+  --card:#fff;
+  --green:#197157;
+  --green-soft:#eaf6ef;
+  --shadow:0 18px 45px rgba(28,24,23,.07);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+body{padding-bottom:calc(34px + env(safe-area-inset-bottom,0px))}
+button{font:inherit}
+button:focus-visible{outline:3px solid rgba(178,86,108,.20);outline-offset:2px}
+.app-header{position:sticky;top:0;z-index:20;background:rgba(247,246,245,.92);-webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);border-bottom:1px solid rgba(60,60,67,.05)}
+.header-inner{max-width:760px;margin:0 auto;min-height:82px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:12px}
+.back{width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:var(--wine);box-shadow:0 8px 24px rgba(0,0,0,.06);display:grid;place-items:center;font-size:18px;line-height:1}
+.header-title{text-align:center;font-size:21px;font-weight:780;letter-spacing:-.035em}
+.new-search{height:44px;border-radius:999px;padding:0 17px;border:1.2px solid var(--wine-2);background:rgba(255,255,255,.66);color:var(--wine);font-size:14px;font-weight:720;white-space:nowrap}
+.shell{width:min(calc(100% - 24px),720px);margin:16px auto 0}
+.card{background:var(--card);border:1px solid rgba(60,60,67,.07);border-radius:27px;box-shadow:var(--shadow)}
+.contact-card{padding:23px 20px 18px}
+.identity{display:grid;grid-template-columns:82px 1fr 42px;gap:16px;align-items:center}
+.avatar{position:relative;width:82px;height:82px;border-radius:50%;background:linear-gradient(145deg,#fbf6f4,#f4e8e8);display:grid;place-items:center;color:var(--wine);font-size:39px;font-weight:680;letter-spacing:-.04em}
+.avatar-badge{position:absolute;right:-3px;bottom:3px;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:0 5px 14px rgba(0,0,0,.1);display:grid;place-items:center;color:var(--gold);font-size:11px}
+.client-name{font-size:27px;font-weight:810;letter-spacing:-.045em;line-height:1.08;margin:0}
+.client-id-label{margin-top:9px;color:var(--muted);font-size:12px;font-weight:580}
+.client-id{margin-top:2px;font-size:16px;font-weight:620;letter-spacing:-.015em}
+.more{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:#faf9f8;color:var(--wine);display:grid;place-items:center;font-size:18px}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:22px}
+.contact-item{min-height:76px;display:grid;grid-template-columns:46px 1fr;gap:12px;align-items:center;padding:8px 14px 8px 0}
+.contact-item:nth-child(2){padding-left:17px;border-left:1px solid var(--line)}
+.contact-icon{width:42px;height:42px;border-radius:50%;background:var(--wine-soft);color:var(--wine);display:grid;place-items:center;font-size:18px}
+.contact-icon i,.summary-icon i,.payment-icon i,.view-op i,.back i,.more i,.more-bottom i,.avatar-badge i,.order-date i{line-height:1}
+.contact-label{font-size:12px;color:var(--muted);font-weight:580;margin-bottom:5px}
+.contact-value{font-size:15px;font-weight:640;letter-spacing:-.02em;line-height:1.25}
+.email-row{margin-top:4px;min-height:60px;display:flex;align-items:center;gap:12px;color:var(--muted);border-bottom:1px solid var(--line);padding:4px 0 16px}
+.email-row .contact-icon{flex:0 0 auto;background:#f7f5f4;color:#999}
+.email-row span{font-size:14px}
+.contact-actions{display:grid;grid-template-columns:1fr 52px;gap:12px;margin-top:18px}
+.whatsapp{height:52px;border:0;border-radius:18px;background:linear-gradient(90deg,var(--wine),var(--wine-dark));color:white;font-size:17px;font-weight:760;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 10px 24px rgba(178,86,108,.20)}
+.wa-icon{font-size:20px;line-height:1}
+.more-bottom{height:52px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--wine);font-size:20px}
+.summary-strip{margin-top:14px;background:#fff;border:1px solid rgba(60,60,67,.07);border-radius:22px;min-height:70px;box-shadow:0 12px 30px rgba(28,24,23,.045);display:grid;grid-template-columns:48px 1fr;align-items:center;padding:11px 16px}
+.summary-icon{width:42px;height:42px;border-radius:50%;background:var(--gold-soft);color:var(--gold);display:grid;place-items:center;font-size:17px}
+.summary-text{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;font-size:14px;white-space:nowrap;line-height:1.25}
+.summary-text strong{font-weight:720}
+.summary-text .pending{color:var(--wine);font-weight:760}
+.dot{color:var(--gold);font-weight:900}
+.segmented{margin-top:16px;background:#ecebea;border-radius:18px;padding:3px;display:grid;grid-template-columns:1fr 1fr}
+.segment{height:48px;border:0;border-radius:15px;background:transparent;color:#77777c;font-size:17px;font-weight:660;position:relative}
+.segment.active{background:#fff;color:var(--wine);box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.segment.active::after{content:"";position:absolute;left:15%;right:15%;bottom:-4px;height:3px;border-radius:999px;background:var(--wine)}
+.order-card{margin-top:14px;padding:22px 18px 16px}
+.order-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.order-code{font-size:20px;font-weight:820;letter-spacing:-.03em}
+.status{padding:7px 12px;border-radius:999px;background:var(--green-soft);color:var(--green);font-size:11px;font-weight:820;letter-spacing:.04em}
+.order-desc{margin-top:15px;font-size:15px;line-height:1.45;font-weight:570;color:#4f4f53}
+.order-date{margin-top:10px;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px}
+.divider{height:1px;background:var(--line);margin:17px 0}
+.finance{display:grid;grid-template-columns:minmax(130px,.85fr) 1.35fr;gap:20px;align-items:start}
+.finance-left{padding-right:18px;border-right:1px solid var(--line)}
+.finance-label{font-size:12px;color:var(--muted);font-weight:650;margin-bottom:6px}
+.total-amount{font-size:31px;font-weight:830;letter-spacing:-.055em;white-space:nowrap}
+.paid-head{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:#4f4f53}
+.paid-head strong{font-weight:720}
+.progress{height:8px;background:#e6e4e3;border-radius:999px;margin-top:10px;overflow:hidden}
+.progress>span{display:block;height:100%;width:38%;background:var(--wine);border-radius:inherit}
+.balance-label{font-size:12px;color:var(--wine);font-weight:650;margin-top:16px}
+.balance-amount{font-size:24px;color:var(--wine);font-weight:820;letter-spacing:-.04em;margin-top:3px}
+.payments{margin-top:18px;border:1px solid var(--line);border-radius:19px;overflow:hidden;background:#fffaf8}
+.payments-toggle{width:100%;height:50px;border:0;background:transparent;color:var(--wine);padding:0 14px;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:760}
+.payments-body{border-top:1px solid var(--line);background:#fff;overflow:hidden;max-height:320px;opacity:1;transition:max-height .3s ease,opacity .2s ease}
+.payments.collapsed .payments-body{max-height:0;opacity:0}
+.chev{font-size:14px;transition:transform .25s ease}
+.payments.collapsed .chev{transform:rotate(180deg)}
+.payment-row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:11px;align-items:center;min-height:70px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.payment-icon{width:36px;height:36px;border-radius:12px;background:var(--gold-soft);color:var(--gold);display:grid;place-items:center;font-size:14px}
+.payment-name{font-size:14px;font-weight:650}
+.payment-date{font-size:11px;color:var(--muted);margin-top:4px}
+.payment-right{text-align:right}
+.payment-amount{font-size:15px;font-weight:730;white-space:nowrap}
+.receipt{font-size:11px;color:var(--wine);font-weight:700;margin-top:5px}
+.payment-total{min-height:52px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px}
+.payment-total strong{color:var(--ink);font-size:16px}
+.view-op{height:52px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:9px;color:var(--wine);font-size:15px;font-weight:750;background:#fff}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);background:rgba(25,25,27,.92);color:#fff;padding:10px 15px;border-radius:999px;font-size:13px;font-weight:680;opacity:0;pointer-events:none;transition:.18s;z-index:50;white-space:nowrap}.toast.show{opacity:1;transform:translate(-50%,0)}
+.menu{position:fixed;inset:0;background:rgba(0,0,0,.16);z-index:40;display:none;align-items:flex-end;padding:12px}.menu.open{display:flex}.sheet{width:min(100%,520px);margin:0 auto;background:#f7f6f5;border-radius:24px;padding:9px;box-shadow:0 30px 80px rgba(0,0,0,.23)}.sheet button{width:100%;height:52px;border:0;border-bottom:1px solid var(--line);background:#fff;font-size:16px;font-weight:650;color:var(--ink)}.sheet button:first-child{border-radius:17px 17px 0 0}.sheet button:nth-child(3){border-radius:0 0 17px 17px;border-bottom:0}.sheet .cancel{margin-top:9px;border-radius:17px!important;border:0;color:var(--wine);font-weight:760}
+.quotes{display:none;margin-top:14px;background:#fff;border-radius:24px;border:1px solid var(--line);padding:26px;text-align:center;color:var(--muted)}
+@media(max-width:420px){
+  .summary-strip{padding-left:12px;padding-right:12px}.summary-icon{width:38px;height:38px}.summary-text{font-size:13.5px;gap:6px}
+  .header-inner{grid-template-columns:44px 1fr auto;padding-left:12px;padding-right:12px}.new-search{padding:0 13px;font-size:13px}.client-name{font-size:25px}.identity{grid-template-columns:76px 1fr 40px;gap:13px}.avatar{width:76px;height:76px;font-size:36px}.contact-grid{grid-template-columns:1fr}.contact-item:nth-child(2){padding-left:0;border-left:0;border-top:1px solid var(--line)}.summary-text{gap:8px;font-size:15px}.finance{grid-template-columns:1fr 1.1fr;gap:14px}.finance-left{padding-right:12px}.total-amount{font-size:28px}.balance-amount{font-size:22px}}
+@media(max-width:350px){.finance{grid-template-columns:1fr}.finance-left{border-right:0;border-bottom:1px solid var(--line);padding:0 0 14px}.header-title{font-size:18px}.new-search{font-size:12px;padding:0 10px}}
+</style>
+</head>
+<body data-build="clientes-modelo-v3.1">
+<header class="app-header">
+  <div class="header-inner">
+    <button class="back" aria-label="Volver" data-toast="Volver"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+    <div class="header-title">Clientes</div>
+    <button class="new-search" data-toast="Nueva búsqueda">Nueva búsqueda</button>
+  </div>
+</header>
+<main class="shell">
+  <section class="card contact-card">
+    <div class="identity">
+      <div class="avatar">K<span class="avatar-badge"><i class="fa-solid fa-crown" aria-hidden="true"></i></span></div>
+      <div>
+        <h1 class="client-name">Katherin Diaz</h1>
+        <div class="client-id-label">Cédula</div>
+        <div class="client-id">1061797389</div>
+      </div>
+      <button class="more" id="menuTop" aria-label="Más opciones"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i></button>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-item"><div class="contact-icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></div><div><div class="contact-label">Teléfono</div><div class="contact-value">323 589 9235</div></div></div>
+      <div class="contact-item"><div class="contact-icon"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></div><div><div class="contact-label">Dirección</div><div class="contact-value">Calatrava casa f3</div></div></div>
+    </div>
+    <div class="email-row"><div class="contact-icon"><i class="fa-regular fa-envelope" aria-hidden="true"></i></div><span>Sin correo registrado</span></div>
+    <div class="contact-actions">
+      <button class="whatsapp" data-toast="Abrir WhatsApp"><i class="fa-brands fa-whatsapp wa-icon" aria-hidden="true"></i> WhatsApp</button>
+      <button class="more-bottom" id="menuBottom" aria-label="Más opciones"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i></button>
+    </div>
+  </section>
+
+  <section class="summary-strip">
+    <div class="summary-icon"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i></div>
+    <div class="summary-text"><span>Comprado <strong>$4.500.000</strong></span><span class="dot">•</span><span>Pendiente <span class="pending">$2.800.000</span></span></div>
+  </section>
+
+  <div class="segmented" role="tablist">
+    <button class="segment active" id="ordersTab">Órdenes</button>
+    <button class="segment" id="quotesTab">Cotizaciones</button>
+  </div>
+
+  <section class="card order-card" id="ordersPane">
+    <div class="order-head"><div class="order-code">OP 24</div><div class="status">ACTIVO</div></div>
+    <div class="order-desc">1 x Sala / 1 x Vestier / 1 x Hab. Auxiliar / 1 x Hab. Principal</div>
+    <div class="order-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>16/6/2026</span></div>
+    <div class="divider"></div>
+    <div class="finance">
+      <div class="finance-left"><div class="finance-label">Total</div><div class="total-amount">$4.500.000</div></div>
+      <div>
+        <div class="paid-head"><span>Abonado <strong>$1.700.000</strong></span><span>38%</span></div>
+        <div class="progress"><span></span></div>
+        <div class="balance-label">Saldo</div><div class="balance-amount">$2.800.000</div>
+      </div>
+    </div>
+    <div class="payments" id="payments">
+      <button class="payments-toggle" id="paymentsToggle"><span>Abonos</span><i class="fa-solid fa-chevron-up chev" aria-hidden="true"></i></button>
+      <div class="payments-body">
+        <div class="payment-row"><div class="payment-icon"><i class="fa-solid fa-receipt" aria-hidden="true"></i></div><div><div class="payment-name">Abono inicial</div><div class="payment-date">10/6/2026</div></div><div class="payment-right"><div class="payment-amount">$1.200.000</div></div></div>
+        <div class="payment-row"><div class="payment-icon"><i class="fa-solid fa-building-columns" aria-hidden="true"></i></div><div><div class="payment-name">Transferencia</div><div class="payment-date">16/6/2026</div></div><div class="payment-right"><div class="payment-amount">$500.000</div><div class="receipt" data-toast="Ver recibo">Ver recibo ›</div></div></div>
+        <div class="payment-total"><span>Total abonado</span><strong>$1.700.000</strong></div>
+        <div class="view-op" data-toast="Ver OP"><i class="fa-regular fa-file-pdf" aria-hidden="true"></i><span>Ver OP ›</span></div>
+      </div>
+    </div>
+  </section>
+  <section class="quotes" id="quotesPane">No hay cotizaciones en esta demo.</section>
+</main>
+<div class="menu" id="menu"><div class="sheet"><button data-toast="Editar cliente"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>&nbsp;&nbsp;Editar</button><button data-toast="Copiar datos"><i class="fa-regular fa-copy" aria-hidden="true"></i>&nbsp;&nbsp;Copiar datos</button><button data-toast="Compartir contacto"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i>&nbsp;&nbsp;Compartir</button><button class="cancel" id="cancelMenu">Cancelar</button></div></div>
+<div class="toast" id="toast">Demo</div>
+<script>
+const toast=document.getElementById('toast');let toastTimer;
+function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),1400)}
+document.querySelectorAll('[data-toast]').forEach(el=>el.addEventListener('click',()=>showToast(el.dataset.toast)));
+const payments=document.getElementById('payments');document.getElementById('paymentsToggle').addEventListener('click',()=>payments.classList.toggle('collapsed'));
+const ordersTab=document.getElementById('ordersTab'),quotesTab=document.getElementById('quotesTab'),ordersPane=document.getElementById('ordersPane'),quotesPane=document.getElementById('quotesPane');
+ordersTab.addEventListener('click',()=>{ordersTab.classList.add('active');quotesTab.classList.remove('active');ordersPane.style.display='block';quotesPane.style.display='none'});
+quotesTab.addEventListener('click',()=>{quotesTab.classList.add('active');ordersTab.classList.remove('active');ordersPane.style.display='none';quotesPane.style.display='block'});
+const menu=document.getElementById('menu');function openMenu(){menu.classList.add('open')}document.getElementById('menuTop').onclick=openMenu;document.getElementById('menuBottom').onclick=openMenu;document.getElementById('cancelMenu').onclick=()=>menu.classList.remove('open');menu.addEventListener('click',e=>{if(e.target===menu)menu.classList.remove('open')});
+</script>
+</body>
+</html>
