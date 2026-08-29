@@ -1,0 +1,70 @@
+name: Build connected Clientes 3.1 preview
+
+on:
+  push:
+    branches:
+      - build/clientes-connected-v31
+    paths:
+      - 'scripts/build_clientes_connected_v31.py'
+      - '.github/workflows/build-clientes-connected-v31.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build connected preview
+        run: python scripts/build_clientes_connected_v31.py
+
+      - name: Validate generated HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s clientes-conectado-v31.html
+          grep -q "clientes-conectado-v31.html': 'clientes.read'" clientes-conectado-v31.html
+          grep -q '#B2566C' clientes-conectado-v31.html
+          grep -q 'fa-solid fa-phone' clientes-conectado-v31.html
+          grep -q 'triangulogold.png' clientes-conectado-v31.html
+          grep -q 'abonos_detalle' clientes-conectado-v31.html
+          grep -q 'HISTORIAL_CLIENTE' clientes-conectado-v31.html
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          html = Path('clientes-conectado-v31.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', html, re.I)
+          if len(scripts) < 3:
+              raise SystemExit(f'Expected at least 3 inline scripts, got {len(scripts)}')
+          for i, script in enumerate(scripts):
+              p = Path(tempfile.gettempdir()) / f'clientes-connected-{i}.js'
+              p.write_text(script, encoding='utf-8')
+              subprocess.run(['node','--check',str(p)], check=True)
+          print(f'Validated {len(scripts)} inline scripts')
+          PY
+
+      - name: Publish preview only
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp clientes-conectado-v31.html /tmp/clientes-conectado-v31.html
+          git fetch origin main
+          git checkout -B publish-connected origin/main
+          cp /tmp/clientes-conectado-v31.html clientes-conectado-v31.html
+          git config user.name 'HomeEasy Clientes Builder'
+          git config user.email 'actions@users.noreply.github.com'
+          git add clientes-conectado-v31.html
+          if git diff --cached --quiet; then
+            echo 'Connected preview already current.'
+            exit 0
+          fi
+          if git diff --cached --name-only | grep -v '^clientes-conectado-v31.html$'; then
+            echo 'Unexpected staged files.' >&2
+            exit 1
+          fi
+          git commit -m 'Add connected Clientes 3.1 preview'
+          git push origin HEAD:main
