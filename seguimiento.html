@@ -3,254 +3,612 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HomeEasy | Radar Comercial</title>
+    <meta name="theme-color" content="#f6f6f7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>HomeEasy | Seguimiento comercial</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
-            --home-wine: #a6455a;
-            --home-gold: #c2a468;
-            --bg-color: #f2f2f7; /* Gris estilo iOS */
-            --text-dark: #1c1c1e;
+            --brand: #B2566C;
+            --brand-dark: #97475A;
+            --brand-soft: #F8EEF1;
+            --gold: #C2A468;
+            --gold-dark: #967536;
+            --gold-soft: #FBF5E8;
+            --ink: #242126;
+            --muted: #767178;
+            --line: #E8E5E7;
+            --bg: #F6F6F7;
+            --green: #2B765F;
+            --green-soft: #EEF8F3;
+            --amber: #A87820;
+            --amber-soft: #FFF8E8;
+            --red: #B84E5C;
+            --red-soft: #FFF1F3;
+            --shadow: 0 14px 40px rgba(48, 35, 40, .055);
+
+            /* Alias de compatibilidad con la lógica existente */
+            --home-wine: var(--brand);
+            --home-gold: var(--gold);
+            --text-dark: var(--ink);
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html { background: var(--bg); }
         body {
-            /* 🚨 NUEVA TIPOGRAFÍA NATIVA ESTILO iOS (San Francisco) */
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; padding: 0;
-            padding-bottom: 50px;
-            color: var(--text-dark);
+            margin: 0;
+            min-height: 100%;
+            padding: 0 0 calc(34px + env(safe-area-inset-bottom));
+            background: var(--bg);
+            color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
+            font-synthesis: none;
         }
+        button, input, select, textarea { font: inherit; font-synthesis: none; }
+        button { cursor: pointer; }
+        a { color: inherit; }
 
-        /* --- CABECERA PREMIUM --- */
-        .crm-header {
-            background: linear-gradient(135deg, var(--home-wine) 0%, #823646 100%);
-            padding: calc(20px + env(safe-area-inset-top)) 20px 40px;
-            border-radius: 0 0 32px 32px;
-            position: relative;
-            box-shadow: 0 8px 24px rgba(166, 69, 90, 0.2);
+        /* ---------- SHELL ---------- */
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 1200;
+            background: rgba(246, 246, 247, .90);
+            backdrop-filter: blur(22px) saturate(155%);
+            -webkit-backdrop-filter: blur(22px) saturate(155%);
+            border-bottom: 1px solid rgba(35, 28, 31, .045);
+        }
+        .header-inner {
+            width: min(1480px, calc(100% - 44px));
+            margin: 0 auto;
+            min-height: 76px;
+            padding: calc(10px + env(safe-area-inset-top)) 0 10px;
+            display: grid;
+            grid-template-columns: 48px 1fr 48px;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-back, .btn-refresh {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid rgba(178, 86, 108, .09);
+            background: #fff;
+            color: var(--brand);
+            display: grid;
+            place-items: center;
+            text-decoration: none;
+            box-shadow: 0 7px 22px rgba(45, 34, 39, .065);
+            transition: transform .16s ease, box-shadow .16s ease;
+        }
+        .btn-back:active, .btn-refresh:active { transform: scale(.93); }
+        .btn-refresh { justify-self: end; }
+        .brand {
             display: flex;
             align-items: center;
-            gap: 15px; /* Separación de elementos */
+            justify-content: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .brand img { width: 28px; height: 33px; object-fit: contain; }
+        .brand-copy { text-align: left; min-width: 0; }
+        .brand-copy strong {
+            display: block;
+            font-size: 17px;
+            line-height: 1.05;
+            font-weight: 720;
+            letter-spacing: -.45px;
+            white-space: nowrap;
+        }
+        .brand-copy span {
+            display: block;
+            margin-top: 4px;
+            font-size: 13px;
+            line-height: 1;
+            color: var(--muted);
+            font-weight: 560;
+            white-space: nowrap;
         }
 
-        .btn-back {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white; width: 40px; height: 40px;
-            border-radius: 50%; display: flex;
-            align-items: center; justify-content: center;
-            text-decoration: none; font-size: 1.1rem;
-            backdrop-filter: blur(5px); flex-shrink: 0;
-        }
-        .btn-back:active { transform: scale(0.9); }
-
-        .hommy-header-img {
-            width: 85px; /* 🚨 Aumentado de 65px a 85px */
-            height: auto;
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25)); /* Sombra un poco más profunda */
-            margin-right: 5px; /* Un pequeño respiro con el borde */
+        .page-shell {
+            width: min(1480px, calc(100% - 44px));
+            margin: 0 auto;
+            padding: 28px 0 38px;
         }
 
-        .header-text { color: white; text-align: left; flex: 1; }
-        .header-text h1 { font-size: 1.4rem; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
-        .header-text p { font-size: 0.8rem; margin: 0; opacity: 0.85; font-weight: 400; }
-
-        /* --- DASHBOARD Y FILTROS --- */
-        .dashboard-stats {
-            margin: -20px 20px 20px;
-            background: white; border-radius: 20px;
-            padding: 18px 20px; display: flex;
-            justify-content: space-between; align-items: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-            position: relative; z-index: 2;
+        /* ---------- HERO ---------- */
+        .hero {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 28px;
+            margin-bottom: 20px;
         }
-        
-        .stat-item { text-align: center; }
-        .stat-val { font-size: 1.35rem; font-weight: 700; color: var(--home-wine); margin-bottom: 2px; letter-spacing: -0.5px;}
-        .stat-label { font-size: 0.65rem; font-weight: 600; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; }
+        .hero-copy { max-width: 720px; }
+        .hero-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--brand);
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .hero-eyebrow i {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: var(--brand-soft);
+            display: grid;
+            place-items: center;
+        }
+        .hero h1 {
+            margin: 12px 0 0;
+            font-size: clamp(32px, 3vw, 46px);
+            line-height: 1.02;
+            font-weight: 730;
+            letter-spacing: -1.7px;
+        }
+        .hero p {
+            margin: 9px 0 0;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        .age-legend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .legend-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            height: 38px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid var(--line);
+            color: #716c72;
+            font-size: 13px;
+            font-weight: 650;
+            box-shadow: 0 7px 20px rgba(45, 34, 39, .035);
+        }
+        .legend-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+        .legend-pill.new::before { background: var(--green); }
+        .legend-pill.mid::before { background: #D29E31; }
+        .legend-pill.old::before { background: var(--red); }
 
+        /* ---------- KPIs ---------- */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        .summary-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 132px;
+            padding: 21px 22px;
+            background: #fff;
+            border: 1px solid rgba(60, 60, 67, .065);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-columns: 58px minmax(0, 1fr);
+            align-items: center;
+            gap: 17px;
+        }
+        .summary-card::after {
+            content: "";
+            position: absolute;
+            right: -34px;
+            bottom: -48px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(178, 86, 108, .09), transparent 68%);
+            pointer-events: none;
+        }
+        .summary-card.amount-card::after { background: radial-gradient(circle, rgba(194, 164, 104, .14), transparent 68%); }
+        .summary-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background: var(--brand-soft);
+            color: var(--brand);
+            display: grid;
+            place-items: center;
+            font-size: 21px;
+        }
+        .amount-card .summary-icon { background: var(--gold-soft); color: var(--gold-dark); }
+        .summary-label { font-size: 14px; color: var(--muted); font-weight: 620; }
+        .summary-value {
+            margin-top: 7px;
+            font-size: clamp(31px, 3.1vw, 43px);
+            line-height: .98;
+            font-weight: 720;
+            letter-spacing: -1.35px;
+            font-variant-numeric: tabular-nums;
+        }
+        .amount-card .summary-value { color: var(--gold-dark); }
+        .summary-note { margin-top: 7px; color: #918b90; font-size: 13px; line-height: 1.35; font-weight: 520; }
+
+        /* ---------- FILTROS ---------- */
         .filters-card {
-            margin: 0 20px 20px; background: white;
-            border-radius: 20px; padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-            display: flex; gap: 10px; align-items: flex-end;
+            background: #fff;
+            border: 1px solid rgba(60, 60, 67, .065);
+            border-radius: 24px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+            margin-bottom: 18px;
         }
-        .filter-group { flex: 1; }
-        .filter-group label { font-size: 0.7rem; font-weight: 600; color: #8e8e93; margin-bottom: 5px; display: block;}
-        .filter-input { 
-            width: 100%; border: 1px solid #e5e5ea; border-radius: 12px; 
-            padding: 10px 12px; font-size: 0.85rem; font-family: inherit;
-            background: #fdfdfd; font-weight: 500; color: #333;
+        .filters-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 14px;
         }
-        .filter-input:focus { outline: none; border-color: var(--home-gold); }
-        
+        .filters-title { display: flex; align-items: center; gap: 10px; }
+        .filters-title i { color: var(--brand); }
+        .filters-title strong { display: block; font-size: 16px; font-weight: 700; color: #4D484C; }
+        .filters-title span { display: block; margin-top: 3px; font-size: 13px; color: var(--muted); font-weight: 520; }
+        .btn-reset {
+            height: 38px;
+            padding: 0 13px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--brand);
+            font-size: 13px;
+            font-weight: 680;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(180px, 1fr)) minmax(150px, .55fr);
+            gap: 11px;
+            align-items: end;
+        }
+        .filter-group label { display: block; margin: 0 0 7px 2px; color: #827D82; font-size: 13px; font-weight: 650; }
+        .filter-input {
+            width: 100%;
+            height: 48px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: #FAFAFA;
+            color: #393539;
+            padding: 0 14px;
+            font-size: 15px;
+            font-weight: 590;
+            outline: none;
+            transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+        }
+        .filter-input:focus { border-color: rgba(194, 164, 104, .9); background: #fff; box-shadow: 0 0 0 3px rgba(194, 164, 104, .11); }
         .btn-filter {
-            background: var(--home-gold); color: white; border: none;
-            border-radius: 12px; width: 42px; height: 42px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(194, 164, 104, 0.3);
-            font-size: 1.1rem;
+            width: 100%;
+            height: 48px;
+            border: 0;
+            border-radius: 14px;
+            background: var(--brand);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 9px 22px rgba(178, 86, 108, .17);
         }
-        .btn-filter:active { transform: scale(0.95); }
+        .btn-filter:active { transform: scale(.98); }
 
-        /* --- TARJETAS CRM --- */
-        .cards-container { padding: 0 20px; }
-        
+        /* ---------- TARJETAS ---------- */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            align-items: start;
+        }
         .crm-card {
-            background: white; border-radius: 20px; margin-bottom: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
-            border-left: 5px solid #ccc;
-            overflow: hidden; position: relative;
+            position: relative;
+            overflow: hidden;
+            min-width: 0;
+            background: #fff;
+            border: 1px solid rgba(60, 60, 67, .065);
+            border-radius: 24px;
+            box-shadow: 0 11px 34px rgba(48, 35, 40, .045);
+            transition: transform .18s ease, box-shadow .18s ease;
         }
-        
-        /* Semáforo de Tiempo */
-        .age-new { border-left-color: #34c759; } /* iOS Green */
-        .age-mid { border-left-color: #ffcc00; } /* iOS Yellow */
-        .age-old { border-left-color: #ff3b30; } /* iOS Red */
-
-        .card-header-crm {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 20px 5px;
+        .crm-card:hover { transform: translateY(-2px); box-shadow: 0 17px 42px rgba(48, 35, 40, .075); }
+        .crm-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: #D4D0D2; }
+        .crm-card.age-new::before { background: var(--green); }
+        .crm-card.age-mid::before { background: #D7A53B; }
+        .crm-card.age-old::before { background: var(--red); }
+        .card-header-crm { padding: 21px 20px 7px; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+        .doc-number {
+            display: inline-flex;
+            align-items: center;
+            height: 27px;
+            padding: 0 9px;
+            border-radius: 9px;
+            background: var(--brand-soft);
+            color: var(--brand);
+            font-size: 12px;
+            font-weight: 720;
+            letter-spacing: .15px;
+            margin-bottom: 9px;
         }
-        .client-name { font-weight: 700; font-size: 1.1rem; color: var(--text-dark); margin: 0; line-height: 1.2; letter-spacing: -0.3px;}
-        .doc-number { font-size: 0.7rem; color: #8e8e93; font-weight: 500; margin-bottom: 2px; }
-        
+        .client-name { margin: 0; color: var(--ink); font-size: 20px; line-height: 1.18; font-weight: 710; letter-spacing: -.55px; overflow-wrap: anywhere; }
         .time-badge {
-            font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 10px;
-            background: #f2f2f7; color: #8e8e93; display: flex; align-items: center; gap: 5px;
+            flex: 0 0 auto;
+            min-height: 31px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: #F4F3F4;
+            color: #7E797D;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 680;
+            white-space: nowrap;
         }
-
-        .card-body-crm { padding: 10px 20px 15px; }
-        .amount { font-size: 1.25rem; font-weight: 700; color: var(--home-wine); margin-bottom: 12px; letter-spacing: -0.5px;}
-        
-        /* Caja de Notas Secreta */
+        .age-new .time-badge { background: var(--green-soft); color: var(--green); }
+        .age-mid .time-badge { background: var(--amber-soft); color: var(--amber); }
+        .age-old .time-badge { background: var(--red-soft); color: var(--red); }
+        .time-badge i { color: currentColor !important; }
+        .card-body-crm { padding: 10px 20px 19px; }
+        .amount-label { font-size: 13px; color: var(--muted); font-weight: 580; }
+        .amount { margin-top: 5px; color: var(--brand); font-size: 29px; line-height: 1; font-weight: 720; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
         .note-box {
-            background: #fbfbfd; border: 1px dashed #d1d1d6;
-            border-radius: 12px; padding: 12px; font-size: 0.8rem;
-            color: #666; position: relative; margin-bottom: 5px;
-            font-weight: 500; line-height: 1.4;
+            margin-top: 18px;
+            min-height: 96px;
+            padding: 13px 14px;
+            border: 1px solid #ECE9EB;
+            border-radius: 15px;
+            background: #FBFAFB;
+            color: #5E595D;
+            font-size: 14px;
+            line-height: 1.45;
+            font-weight: 520;
         }
-        .note-box i { color: var(--home-gold); margin-right: 6px; }
-
-        .card-actions {
-            display: flex; gap: 10px; padding: 15px 20px;
-            background: #fafafa; border-top: 1px solid #f2f2f7;
-        }
-        
+        .note-box.has-note { background: linear-gradient(135deg, #FFFDFC, #FBF8F3); border-color: rgba(194, 164, 104, .25); }
+        .note-kicker { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; color: var(--gold-dark); font-size: 12px; font-weight: 720; text-transform: uppercase; letter-spacing: .45px; }
+        .note-copy { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .note-box.empty-note { color: #969095; }
+        .note-box.empty-note .note-kicker { color: #9E989C; }
+        .card-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 14px 14px; border-top: 1px solid #F0EDEF; background: #FDFCFC; }
         .btn-crm {
-            flex: 1; border: none; border-radius: 10px;
-            padding: 10px 0; font-size: 0.8rem; font-weight: 600;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            transition: transform 0.2s; font-family: inherit;
+            min-width: 0;
+            height: 44px;
+            border-radius: 12px;
+            border: 0;
+            padding: 0 10px;
+            font-size: 13px;
+            font-weight: 680;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: transform .16s ease;
         }
-        .btn-crm:active { transform: scale(0.95); }
-        
-        .btn-note { background: rgba(194, 164, 104, 0.12); color: #a48644; }
-        .btn-archive { background: rgba(255, 59, 48, 0.1); color: #ff3b30; }
-        .btn-view { background: rgba(166, 69, 90, 0.1); color: var(--home-wine); }
+        .btn-crm:active { transform: scale(.96); }
+        .btn-note { background: var(--gold-soft); color: var(--gold-dark); }
+        .btn-archive { background: var(--red-soft); color: var(--red); }
+        .btn-view { background: var(--brand); color: #fff; box-shadow: 0 7px 17px rgba(178, 86, 108, .14); }
 
-        /* Loader & Estados Vacíos */
+        /* ---------- ESTADOS ---------- */
         .loader-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(246, 246, 247, .96);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 13px;
         }
-        .swal2-premium { border-radius: 24px !important; font-family: inherit; }
+        .loader-ring { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--brand-soft); border-top-color: var(--brand); animation: spin .75s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-overlay h6 { margin: 0; font-size: 14px; color: var(--brand); font-weight: 680; }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 74px 20px; background: #fff; border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); }
+        .empty-state i { font-size: 34px; color: var(--gold); margin-bottom: 14px; }
+        .empty-state h3 { margin: 0; color: #4C474B; font-size: 20px; font-weight: 700; }
+        .empty-state p { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
+        .swal2-premium { border-radius: 24px !important; font-family: inherit !important; }
 
-        .empty-state { text-align: center; padding: 50px 20px; }
-        .empty-state i { font-size: 50px; color: #d1d1d6; margin-bottom: 15px; }
-        .empty-state h3 { color: #8e8e93; font-size: 1.1rem; font-weight: 600; margin-bottom: 5px;}
-        .empty-state p { color: #aeaeb2; font-size: 0.85rem; }
-
-        /* 🚨 NUEVO: MODAL VISOR DE PDF */
+        /* ---------- PDF ---------- */
         #pdf-viewer-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            z-index: 10000; flex-direction: column;
-            animation: fadeIn 0.3s ease;
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(27, 22, 25, .82);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            flex-direction: column;
+            animation: fadeIn .22s ease;
         }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .pdf-viewer-header {
-            padding: calc(env(safe-area-inset-top) + 15px) 20px 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.5); color: white; border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: calc(env(safe-area-inset-top) + 13px) 18px 13px;
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: rgba(255, 255, 255, .94);
+            color: var(--ink);
+            border-bottom: 1px solid rgba(0, 0, 0, .06);
+            backdrop-filter: blur(18px);
         }
-        .pdf-viewer-title { font-weight: 600; font-size: 1rem; }
-        .btn-close-pdf {
-            background: rgba(255,255,255,0.2); border: none; color: white;
-            width: 36px; height: 36px; border-radius: 18px;
-            display: flex; justify-content: center; align-items: center; font-size: 1.1rem;
+        .pdf-viewer-title { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 700; }
+        .pdf-viewer-title i { color: var(--brand) !important; }
+        .btn-close-pdf { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; }
+        .btn-close-pdf:active { transform: scale(.94); }
+        #pdf-iframe { flex: 1; width: 100%; border: 0; background: #ECEAEC; }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 1120px) {
+            .cards-container { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
-        .btn-close-pdf:active { background: rgba(255,255,255,0.4); }
-        
-        #pdf-iframe { flex: 1; width: 100%; border: none; background: #ececec; }
+        @media (max-width: 760px) {
+            .header-inner, .page-shell { width: calc(100% - 32px); }
+            .header-inner { min-height: 70px; padding-top: calc(9px + env(safe-area-inset-top)); grid-template-columns: 46px 1fr 46px; }
+            .brand img { width: 25px; height: 30px; }
+            .brand-copy strong { font-size: 16px; }
+            .brand-copy span { font-size: 12px; }
+            .page-shell { padding-top: 20px; }
+            .hero { display: block; margin-bottom: 16px; }
+            .hero h1 { font-size: 32px; letter-spacing: -1.2px; }
+            .hero p { font-size: 15px; max-width: 36ch; }
+            .age-legend { justify-content: flex-start; margin-top: 15px; }
+            .legend-pill { height: 34px; padding: 0 10px; font-size: 12.5px; }
+            .summary-grid { gap: 10px; }
+            .summary-card { min-height: 118px; padding: 17px 15px; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; border-radius: 20px; }
+            .summary-icon { width: 48px; height: 48px; border-radius: 15px; font-size: 18px; }
+            .summary-label { font-size: 13px; }
+            .summary-value { font-size: 27px; letter-spacing: -.8px; }
+            .summary-note { font-size: 12.5px; }
+            .filters-card { padding: 15px; border-radius: 20px; }
+            .filters-head { margin-bottom: 13px; }
+            .filters-title strong { font-size: 15px; }
+            .filters-title span { font-size: 12.5px; }
+            .btn-reset { height: 36px; font-size: 12.5px; }
+            .filters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+            .filter-group label { font-size: 12.5px; }
+            .filter-input { height: 46px; padding: 0 11px; font-size: 14px; }
+            .btn-filter { grid-column: 1 / -1; height: 46px; }
+            .cards-container { grid-template-columns: 1fr; gap: 12px; }
+            .crm-card { border-radius: 21px; }
+            .crm-card:hover { transform: none; }
+            .card-header-crm { padding: 19px 17px 6px; }
+            .client-name { font-size: 19px; }
+            .card-body-crm { padding: 9px 17px 16px; }
+            .amount { font-size: 28px; }
+            .note-box { min-height: 0; margin-top: 16px; font-size: 13.5px; }
+            .card-actions { padding: 11px 12px 12px; gap: 7px; }
+            .btn-crm { height: 45px; font-size: 12.5px; }
+        }
+        @media (max-width: 380px) {
+            .header-inner, .page-shell { width: calc(100% - 26px); }
+            .brand-copy span { display: none; }
+            .brand-copy strong { font-size: 15px; }
+            .hero h1 { font-size: 29px; }
+            .age-legend { gap: 6px; }
+            .legend-pill { font-size: 12px; padding: 0 9px; }
+            .summary-card { grid-template-columns: 42px minmax(0, 1fr); padding: 15px 12px; gap: 9px; }
+            .summary-icon { width: 42px; height: 42px; }
+            .summary-value { font-size: 24px; }
+            .summary-note { display: none; }
+            .filters-grid { grid-template-columns: 1fr; }
+            .btn-filter { grid-column: auto; }
+            .btn-crm { font-size: 12px; gap: 5px; padding: 0 6px; }
+        }
     </style>
+
     <script src="homeeasy-core.js?v=3.5"></script>
     <script src="homeeasy-page-guard.js?v=3.6"></script>
-<style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
 </head>
 <body>
 
     <div class="loader-overlay" id="loader">
-        <div class="spinner-border mb-3" role="status" style="color: var(--home-wine) !important;"></div>
-        <h6 style="color: var(--home-wine); font-weight: 600; letter-spacing: -0.3px;">Actualizando Radar...</h6>
+        <div class="loader-ring" role="status" aria-label="Cargando"></div>
+        <h6>Actualizando radar...</h6>
     </div>
 
-    <header class="crm-header">
-        <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
-        <img src="Hommycot.png" class="hommy-header-img" alt="Hommy" onerror="this.src='hommy.png'">
-        <div class="header-text">
-            <h1>Radar Comercial</h1>
-            <p>Seguimiento de Cotizaciones</p>
+    <header class="app-header">
+        <div class="header-inner">
+            <a href="index.html" class="btn-back" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+            <div class="brand">
+                <img src="triangulo.png" alt="HomeEasy">
+                <div class="brand-copy"><strong>HomeEasy</strong><span>Seguimiento comercial</span></div>
+            </div>
+            <button type="button" class="btn-refresh" onclick="obtenerDatosFrescos()" aria-label="Actualizar radar"><i class="fas fa-rotate"></i></button>
         </div>
     </header>
 
-    <div class="dashboard-stats">
-        <div class="stat-item">
-            <div class="stat-val" id="kpi-count">0</div>
-            <div class="stat-label">Activas</div>
-        </div>
-        <div style="width: 1px; height: 35px; background: #e5e5ea;"></div>
-        <div class="stat-item">
-            <div class="stat-val" id="kpi-total" style="color: var(--home-gold);">$0</div>
-            <div class="stat-label">Monto en Mesa</div>
-        </div>
-    </div>
+    <main class="page-shell">
+        <section class="hero">
+            <div class="hero-copy">
+                <div class="hero-eyebrow"><i class="fas fa-satellite-dish"></i><span>Radar comercial</span></div>
+                <h1>Cotizaciones en seguimiento</h1>
+                <p>Una vista clara de las oportunidades que siguen abiertas y necesitan una próxima acción.</p>
+            </div>
+            <div class="age-legend" aria-label="Antigüedad de cotizaciones">
+                <span class="legend-pill new">0–7 días</span>
+                <span class="legend-pill mid">8–15 días</span>
+                <span class="legend-pill old">+15 días</span>
+            </div>
+        </section>
 
-    <div class="filters-card">
-        <div class="filter-group">
-            <label>Desde</label>
-            <input type="date" id="fecha-desde" class="filter-input">
-        </div>
-        <div class="filter-group">
-            <label>Hasta</label>
-            <input type="date" id="fecha-hasta" class="filter-input">
-        </div>
-        <button class="btn-filter" onclick="aplicarFiltros()"><i class="fas fa-search"></i></button>
-    </div>
+        <section class="summary-grid">
+            <article class="summary-card">
+                <div class="summary-icon"><i class="fas fa-file-signature"></i></div>
+                <div>
+                    <div class="summary-label">Cotizaciones activas</div>
+                    <div class="summary-value" id="kpi-count">0</div>
+                    <div class="summary-note">Dentro del periodo seleccionado.</div>
+                </div>
+            </article>
+            <article class="summary-card amount-card">
+                <div class="summary-icon"><i class="fas fa-hand-holding-dollar"></i></div>
+                <div>
+                    <div class="summary-label">Monto en mesa</div>
+                    <div class="summary-value" id="kpi-total">$0</div>
+                    <div class="summary-note">Valor potencial de las oportunidades visibles.</div>
+                </div>
+            </article>
+        </section>
 
-    <div class="cards-container" id="tarjetas-container">
-        </div>
+        <section class="filters-card">
+            <div class="filters-head">
+                <div class="filters-title">
+                    <i class="far fa-calendar"></i>
+                    <div><strong>Periodo</strong><span>Acota el radar por fecha de cotización.</span></div>
+                </div>
+                <button type="button" class="btn-reset" onclick="restablecerFiltros()"><i class="fas fa-arrow-rotate-left"></i> Este mes</button>
+            </div>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="fecha-desde">Desde</label>
+                    <input type="date" id="fecha-desde" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <label for="fecha-hasta">Hasta</label>
+                    <input type="date" id="fecha-hasta" class="filter-input">
+                </div>
+                <button type="button" class="btn-filter" onclick="aplicarFiltros()"><i class="fas fa-filter"></i><span>Aplicar filtro</span></button>
+            </div>
+        </section>
+
+        <section class="cards-container" id="tarjetas-container"></section>
+    </main>
 
     <div id="pdf-viewer-overlay">
         <div class="pdf-viewer-header">
-            <div class="pdf-viewer-title"><i class="fas fa-file-pdf text-danger me-2"></i> Vista Previa</div>
-            <button class="btn-close-pdf" onclick="cerrarVisorPDF()"><i class="fas fa-times"></i></button>
+            <div class="pdf-viewer-title"><i class="fas fa-file-pdf"></i> Vista previa de cotización</div>
+            <button class="btn-close-pdf" onclick="cerrarVisorPDF()" aria-label="Cerrar PDF"><i class="fas fa-times"></i></button>
         </div>
-        <iframe id="pdf-iframe" src=""></iframe>
+        <iframe id="pdf-iframe" src="" title="Vista previa de cotización"></iframe>
     </div>
 
     <script>
         const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
-        
-        let allCotizaciones = []; 
+        let allCotizaciones = [];
 
         window.onload = () => {
             obtenerDatosFrescos();
@@ -260,9 +618,13 @@
         function establecerFechasPorDefecto() {
             const hoy = new Date();
             const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-            
             document.getElementById('fecha-hasta').value = hoy.toISOString().split('T')[0];
             document.getElementById('fecha-desde').value = primerDiaMes.toISOString().split('T')[0];
+        }
+
+        function restablecerFiltros() {
+            establecerFechasPorDefecto();
+            aplicarFiltros();
         }
 
         async function obtenerDatosFrescos() {
@@ -270,7 +632,6 @@
             try {
                 const response = await fetch(`${URL_G}?tipo=GET_SEGUIMIENTO`);
                 const data = await response.json();
-                
                 if (data.status === "ok") {
                     allCotizaciones = data.cotizaciones.filter(c => c.estado === 'COTIZACION');
                     aplicarFiltros();
@@ -287,7 +648,6 @@
         function aplicarFiltros() {
             const desde = document.getElementById('fecha-desde').value;
             const hasta = document.getElementById('fecha-hasta').value;
-            
             let filtradas = allCotizaciones;
 
             if (desde) {
@@ -300,21 +660,17 @@
             }
 
             filtradas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
             actualizarKPIs(filtradas);
             renderizarTarjetas(filtradas);
         }
 
         function actualizarKPIs(lista) {
             document.getElementById('kpi-count').innerText = lista.length;
-            
             const totalSuma = lista.reduce((acc, curr) => acc + (parseFloat(curr.total) || 0), 0);
-            
             let displayTotal = "$" + totalSuma.toLocaleString('es-CO');
-            if(totalSuma >= 1000000) {
+            if (totalSuma >= 1000000) {
                 displayTotal = "$" + (totalSuma / 1000000).toFixed(1) + "M";
             }
-            
             document.getElementById('kpi-total').innerText = displayTotal;
         }
 
@@ -325,28 +681,25 @@
             return Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
         }
 
-        // 🚨 FUNCIÓN PARA ABRIR EL PDF SIN SALIR DE LA PANTALLA
         function abrirVisorPDF(driveUrl) {
             if (!driveUrl) {
                 Swal.fire('Atención', 'Esta cotización no tiene un PDF vinculado.', 'info');
                 return;
             }
-            // Convierte el enlace "view" de drive a "preview" para que se pueda insertar
             let previewUrl = driveUrl;
-            if(previewUrl.includes('/view')) {
+            if (previewUrl.includes('/view')) {
                 previewUrl = previewUrl.replace('/view?usp=drivesdk', '/preview');
                 previewUrl = previewUrl.replace('/view', '/preview');
             }
-
             document.getElementById('pdf-iframe').src = previewUrl;
             document.getElementById('pdf-viewer-overlay').style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Bloquea el fondo
+            document.body.style.overflow = 'hidden';
         }
 
         function cerrarVisorPDF() {
             document.getElementById('pdf-viewer-overlay').style.display = 'none';
             document.getElementById('pdf-iframe').src = '';
-            document.body.style.overflow = ''; // Libera el fondo
+            document.body.style.overflow = '';
         }
 
         function renderizarTarjetas(lista) {
@@ -357,75 +710,58 @@
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-clipboard-check"></i>
-                        <h3>Radar Limpio</h3>
-                        <p>No hay cotizaciones pendientes.</p>
+                        <h3>Radar limpio</h3>
+                        <p>No hay cotizaciones pendientes en este periodo.</p>
                     </div>`;
                 return;
             }
 
             lista.forEach(cot => {
                 const dias = calcularDiasPasados(cot.fecha);
-                
                 let ageClass = 'age-new';
-                let iconClock = '<i class="fas fa-clock" style="color:#34c759;"></i>';
+                let iconClock = '<i class="fas fa-clock"></i>';
                 let textoDias = dias === 0 ? 'Hoy' : `Hace ${dias} d`;
 
-                if (dias > 7 && dias <= 15) { 
-                    ageClass = 'age-mid'; 
-                    iconClock = '<i class="fas fa-exclamation-circle" style="color:#ffcc00;"></i>'; 
-                } else if (dias > 15) { 
-                    ageClass = 'age-old'; 
-                    iconClock = '<i class="fas fa-fire" style="color:#ff3b30;"></i>'; 
+                if (dias > 7 && dias <= 15) {
+                    ageClass = 'age-mid';
+                    iconClock = '<i class="fas fa-circle-exclamation"></i>';
+                } else if (dias > 15) {
+                    ageClass = 'age-old';
+                    iconClock = '<i class="fas fa-fire"></i>';
                 }
 
                 let notaHtml = '';
                 if (cot.notas_seguimiento && cot.notas_seguimiento.trim() !== "") {
-                    notaHtml = `
-                    <div class="note-box">
-                        <i><i class="fas fa-comment-dots"></i> ${cot.notas_seguimiento}</i>
-                    </div>`;
+                    notaHtml = `<div class="note-box has-note"><div class="note-kicker"><i class="fas fa-comment-dots"></i><span>Seguimiento</span></div><div class="note-copy">${cot.notas_seguimiento}</div></div>`;
                 } else {
-                    notaHtml = `<div class="note-box" style="background:#fcfcfc; border-color:#e5e5ea; color:#8e8e93;"><i><i class="fas fa-pen"></i> Sin notas de seguimiento...</i></div>`;
+                    notaHtml = `<div class="note-box empty-note"><div class="note-kicker"><i class="fas fa-pen"></i><span>Seguimiento</span></div><div class="note-copy">Sin notas de seguimiento.</div></div>`;
                 }
 
                 const totalFormatted = (parseFloat(cot.total) || 0).toLocaleString('es-CO');
                 const urlSegura = cot.url ? cot.url : '';
 
                 container.innerHTML += `
-                <div class="crm-card ${ageClass}" id="card-${cot.numero}">
+                <article class="crm-card ${ageClass}" id="card-${cot.numero}">
                     <div class="card-header-crm">
                         <div>
                             <div class="doc-number">COT #${cot.numero}</div>
                             <h3 class="client-name">${cot.nombre}</h3>
                         </div>
-                        <div class="time-badge">
-                            ${iconClock} ${textoDias}
-                        </div>
+                        <div class="time-badge">${iconClock}<span>${textoDias}</span></div>
                     </div>
                     <div class="card-body-crm">
+                        <div class="amount-label">Valor cotizado</div>
                         <div class="amount">$${totalFormatted}</div>
                         ${notaHtml}
                     </div>
                     <div class="card-actions">
-                        <button class="btn-crm btn-note" onclick="abrirModalNota('${cot.numero}', \`${cot.notas_seguimiento || ''}\`)">
-                            <i class="fas fa-sticky-note"></i> Nota
-                        </button>
-                        <button class="btn-crm btn-archive" onclick="archivarCotizacion('${cot.numero}', '${cot.nombre}')">
-                            <i class="fas fa-box-archive"></i> Archivar
-                        </button>
-                        
-                        <button class="btn-crm btn-view" onclick="abrirVisorPDF('${urlSegura}')">
-                            <i class="fas fa-eye"></i> Ver
-                        </button>
+                        <button type="button" class="btn-crm btn-note" onclick="abrirModalNota('${cot.numero}', \`${cot.notas_seguimiento || ''}\`)"><i class="fas fa-note-sticky"></i><span>Nota</span></button>
+                        <button type="button" class="btn-crm btn-archive" onclick="archivarCotizacion('${cot.numero}', '${cot.nombre}')"><i class="fas fa-box-archive"></i><span>Archivar</span></button>
+                        <button type="button" class="btn-crm btn-view" onclick="abrirVisorPDF('${urlSegura}')"><i class="fas fa-eye"></i><span>Ver</span></button>
                     </div>
-                </div>
-                `;
+                </article>`;
             });
         }
-
-        // ==========================================
-        // 🚨 FUNCIONES DE ACCIÓN CRM
-        // ==========================================
 
         function abrirModalNota(numero, notaActual) {
             Swal.fire({
@@ -467,7 +803,7 @@
 
         async function ejecutarActualizacion(numero, payloadData, removerDePantalla = false) {
             Swal.fire({ title: 'Sincronizando...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'swal2-premium' } });
-            
+
             const payload = {
                 tipo: "actualizar_seguimiento",
                 numero: numero,
@@ -477,20 +813,20 @@
             try {
                 const response = await fetch(URL_G, { method: 'POST', body: JSON.stringify(payload) });
                 const res = await response.json();
-                
+
                 if (res.status === 'success') {
                     Swal.fire({ icon: 'success', title: '¡Listo!', showConfirmButton: false, timer: 1200, customClass: { popup: 'swal2-premium' } });
-                    
+
                     const index = allCotizaciones.findIndex(c => String(c.numero) === String(numero));
                     if (index !== -1) {
                         if (payloadData.notasSeguimiento !== undefined) {
                             allCotizaciones[index].notas_seguimiento = payloadData.notasSeguimiento;
                         }
                         if (removerDePantalla) {
-                            allCotizaciones.splice(index, 1); 
+                            allCotizaciones.splice(index, 1);
                         }
                     }
-                    aplicarFiltros(); 
+                    aplicarFiltros();
                 } else {
                     Swal.fire('Error', res.msg, 'error');
                 }
