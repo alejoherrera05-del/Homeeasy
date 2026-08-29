@@ -1,6 +1,6 @@
 # HomeEasy · Ruta de integración WhatsApp
 
-Estado: **Fase 1 iniciada**
+Estado: **Fase 1 completada · Fase 2 pendiente de HTTPS/Integraciones**
 
 ## Objetivo
 
@@ -10,7 +10,7 @@ Conectar HomeEasy con WhatsApp para enviar desde la app, sin depender de WhatsAp
 - Órdenes de pedido en PDF.
 - Recibos de abono en PDF.
 
-La primera implementación será **WAHA + WEBJS**, alojada en un VPS 24/7 con Docker y sesión persistente.
+La primera implementación usa **WAHA + WEBJS**, alojada en un VPS 24/7 con Docker y sesión persistente.
 
 ## Arquitectura aprobada
 
@@ -37,30 +37,33 @@ Cliente
 
 1. WAHA **no** se llama directamente desde los HTML públicos.
 2. Ninguna API key, token o sesión se guarda en GitHub.
-3. El Bridge es el único componente expuesto para la integración de HomeEasy.
-4. WAHA queda en una red Docker privada y protegido con `X-Api-Key`.
+3. El Bridge es el único componente que podrá exponerse para la integración de HomeEasy.
+4. WAHA queda privado en el VPS y protegido con `X-Api-Key`.
 5. La sesión de WhatsApp se guarda fuera del contenedor en almacenamiento persistente del VPS.
 6. `.env`, sesiones, backups y archivos temporales están excluidos de Git.
 
 ## Fases
 
-### Fase 1 · Infraestructura aislada
+### Fase 1 · Infraestructura aislada — COMPLETADA ✅
 
-- VPS Ubuntu 24/7.
-- Docker + Docker Compose.
-- WAHA con motor WEBJS.
+- VPS Hetzner CX23, Ubuntu 24.04, Falkenstein.
+- Docker + Docker Compose instalados.
+- WAHA 2026.8.1 con motor WEBJS.
 - Volumen persistente para `.sessions`.
 - Autoarranque después de reinicio.
-- Bridge privado de HomeEasy.
-- Primer QR.
-- Primer mensaje de prueba.
-- Primer PDF de prueba.
+- HomeEasy WhatsApp Bridge desplegado.
+- Sesión `homeeasy` vinculada por QR.
+- Estado verificado: `WORKING`, `ready: true`.
+- Primer mensaje de prueba enviado y recibido correctamente.
+- Primer PDF de prueba enviado y recibido correctamente.
 
-**No tocar Cotización, Pedido ni Abono hasta completar esta fase.**
+**Resultado:** la cadena `VPS → Bridge → WAHA → WhatsApp` funciona en producción real.
 
-### Fase 2 · Configuración dentro de HomeEasy
+### Fase 2 · HTTPS + Configuración dentro de HomeEasy
 
-Crear en `configuracion.html` una sección **Integraciones → WhatsApp HomeEasy** con:
+Antes de conectar los HTML públicos se debe exponer **solo el Bridge** mediante HTTPS válido y mantener WAHA privado.
+
+Después crear en `configuracion.html` una sección **Integraciones → WhatsApp HomeEasy** con:
 
 - Estado: Conectado / Reconectando / Necesita vincularse.
 - Número conectado.
@@ -114,7 +117,7 @@ El envío puede reintentarse posteriormente sin regenerar el documento.
 
 ## Sesión
 
-La sesión se almacenará en el VPS en un volumen persistente, por ejemplo:
+La sesión se almacena en el VPS en:
 
 ```text
 /opt/homeeasy-whatsapp/data/sessions/
@@ -122,12 +125,13 @@ La sesión se almacenará en el VPS en un volumen persistente, por ejemplo:
 
 Reiniciar Docker, WAHA o el VPS no debe requerir un nuevo QR mientras WhatsApp conserve válido el dispositivo vinculado.
 
-## Motor inicial
+## Motor actual
 
-- WAHA
+- WAHA 2026.8.1
 - `WHATSAPP_DEFAULT_ENGINE=WEBJS`
-- Imagen Docker para WEBJS/Chromium: `devlikeapro/waha:chrome`
+- Imagen Docker: `devlikeapro/waha:chrome`
+- Sesión: `homeeasy`
 
 ## Próximo hito
 
-**HomeEasy WhatsApp Bridge + WAHA funcionando en un VPS y enviando un PDF de prueba.**
+**Publicar únicamente el HomeEasy WhatsApp Bridge mediante HTTPS válido, probarlo desde fuera del VPS y después integrar el panel de WhatsApp en `configuracion.html`.**
