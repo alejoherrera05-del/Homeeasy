@@ -1,7 +1,9 @@
 from pathlib import Path
 
 p = Path('calendario.html')
-s = p.read_text(encoding='utf-8')
+raw = p.read_bytes().decode('utf-8')
+newline = '\r\n' if '\r\n' in raw else '\n'
+s = raw.replace('\r\n', '\n')
 
 replacements = [
     ('<span class="material-icons-round" onclick="abrirBuscador()">search</span>', '<i class="fas fa-search header-action-icon" onclick="abrirBuscador()" role="button" aria-label="Buscar"></i>'),
@@ -74,7 +76,6 @@ if old_init not in s:
     raise SystemExit('initialization marker missing')
 s = s.replace(old_init, new_init, 1)
 
-# Accessibility/robustness for icon buttons and month controls.
 extra_css = '''
 
         /* Calendario: controles sin dependencia de Material Icons */
@@ -87,8 +88,8 @@ if marker not in s:
     raise SystemExit('css insertion marker missing')
 s = s.replace(marker, extra_css + '\n' + marker, 1)
 
-# Version marker for cache busting/audit.
 s = s.replace('<title>Calendario - Sistema Hommy</title>', '<title>Calendario - Sistema Hommy</title>\n    <!-- calendario-resilience-v2 -->', 1)
 
-p.write_text(s, encoding='utf-8')
+out = s if newline == '\n' else s.replace('\n', '\r\n')
+p.write_bytes(out.encode('utf-8'))
 print('calendar resilience patch applied')
