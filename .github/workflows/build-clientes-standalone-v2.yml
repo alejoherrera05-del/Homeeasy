@@ -1,11 +1,11 @@
-name: Build standalone Clientes visual test
+name: Build connected Clientes 3.1 preview
 
 on:
   push:
     branches:
       - build/clientes-standalone-v2
     paths:
-      - 'scripts/build_clientes_standalone_v3.py'
+      - 'scripts/build_clientes_connected_v31.py'
       - '.github/workflows/build-clientes-standalone-v2.yml'
 
 permissions:
@@ -19,56 +19,55 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build root-level standalone HTML
-        run: python scripts/build_clientes_standalone_v3.py
+      - name: Build connected preview
+        run: python scripts/build_clientes_connected_v31.py
 
-      - name: Validate generated document
+      - name: Validate connected preview
         shell: bash
         run: |
           set -euo pipefail
-          test -s clientes-prueba-v2.html
-          grep -q 'clientes-standalone-v3-style' clientes-prueba-v2.html
-          grep -q 'clientes-standalone-v3-script' clientes-prueba-v2.html
-          grep -q 'clientes-v2-inline-guard' clientes-prueba-v2.html
-          grep -q "const currentPage = 'clientes.html';" clientes-prueba-v2.html
-          grep -q "'clientes.html': 'clientes.read'" clientes-prueba-v2.html
-          grep -q 'v2-profile-card' clientes-prueba-v2.html
-          grep -q 'Resumen comercial' clientes-prueba-v2.html
-          ! grep -q 'document.write(' clientes-prueba-v2.html
-          ! grep -q "fetch('./clientes.html" clientes-prueba-v2.html
-          ! grep -q '<base ' clientes-prueba-v2.html
+          test -s clientes-conectado-v31.html
+          grep -q 'clientes-connected-v31-script' clientes-conectado-v31.html
+          grep -q 'clientes-v31-inline-guard' clientes-conectado-v31.html
+          grep -q "const currentPage = 'clientes.html';" clientes-conectado-v31.html
+          grep -q 'HISTORIAL_CLIENTE' clientes-conectado-v31.html
+          grep -q 'actualizar_cliente' clientes-conectado-v31.html
+          grep -q 'ANALIZAR_ANULACION_DOCUMENTO' clientes-conectado-v31.html
+          grep -q '#B2566C' clientes-conectado-v31.html
+          grep -q 'fa-solid fa-phone' clientes-conectado-v31.html
+          ! grep -q 'document.write(' clientes-conectado-v31.html
           python - <<'PY'
           from pathlib import Path
           import re, subprocess, tempfile
-          html = Path('clientes-prueba-v2.html').read_text(encoding='utf-8')
+          html = Path('clientes-conectado-v31.html').read_text(encoding='utf-8')
           scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', html, re.I)
           if len(scripts) < 3:
               raise SystemExit(f'Expected at least 3 inline scripts, got {len(scripts)}')
           for i, script in enumerate(scripts):
-              p = Path(tempfile.gettempdir()) / f'clientes-v3-inline-{i}.js'
+              p = Path(tempfile.gettempdir()) / f'clientes-connected-{i}.js'
               p.write_text(script, encoding='utf-8')
               subprocess.run(['node', '--check', str(p)], check=True)
           print(f'Validated {len(scripts)} inline scripts')
           PY
 
-      - name: Publish only root-level independent HTML to main
+      - name: Publish only connected preview to main
         shell: bash
         run: |
           set -euo pipefail
-          cp clientes-prueba-v2.html /tmp/clientes-prueba-v2.html
+          cp clientes-conectado-v31.html /tmp/clientes-conectado-v31.html
           git fetch origin main
           git checkout -B publish-clientes origin/main
-          cp /tmp/clientes-prueba-v2.html clientes-prueba-v2.html
+          cp /tmp/clientes-conectado-v31.html clientes-conectado-v31.html
           git config user.name 'HomeEasy Clientes Builder'
           git config user.email 'actions@users.noreply.github.com'
-          git add clientes-prueba-v2.html
+          git add clientes-conectado-v31.html
           if git diff --cached --quiet; then
-            echo 'Root-level standalone Clientes HTML already current.'
+            echo 'Connected Clientes preview already current.'
             exit 0
           fi
-          if git diff --cached --name-only | grep -v '^clientes-prueba-v2.html$'; then
+          if git diff --cached --name-only | grep -v '^clientes-conectado-v31.html$'; then
             echo 'Unexpected staged files.' >&2
             exit 1
           fi
-          git commit -m 'Add root-level standalone Clientes 2.0 test'
+          git commit -m 'Add connected Clientes 3.1 preview'
           git push origin HEAD:main
