@@ -5,7 +5,7 @@ on:
     branches:
       - build/clientes-connected-v31
     paths:
-      - 'scripts/build_clientes_connected_v31.py'
+      - 'scripts/build_clientes_connected_v32.py'
       - '.github/workflows/build-clientes-connected-v31.yml'
 
 permissions:
@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build connected preview
-        run: python scripts/build_clientes_connected_v31.py
+        run: python scripts/build_clientes_connected_v32.py
 
       - name: Validate generated HTML
         shell: bash
@@ -29,7 +29,20 @@ jobs:
           test -s clientes-conectado-v31.html
           grep -q "clientes-conectado-v31.html': 'clientes.read'" clientes-conectado-v31.html
           grep -q '#B2566C' clientes-conectado-v31.html
-          grep -q 'fa-solid fa-phone' clientes-conectado-v31.html
+          grep -q 'Historial de abonos' clientes-conectado-v31.html
+          grep -q 'Historial de pagos' clientes-conectado-v31.html
+          grep -q 'fa-regular fa-eye' clientes-conectado-v31.html
+          grep -q 'v31-doc-popover' clientes-conectado-v31.html
+          grep -q 'confirmarEdicion' clientes-conectado-v31.html
+          grep -q 'confirmarAnulacion' clientes-conectado-v31.html
+          grep -q 'abrirVisorPDF' clientes-conectado-v31.html
+          grep -q 'ANALIZAR_ANULACION_DOCUMENTO' clientes-conectado-v31.html
+          grep -q 'EJECUTAR_ANULACION_SEGURA' clientes-conectado-v31.html
+          grep -q 'guardarEdicionCliente' clientes-conectado-v31.html
+          grep -q 'pedido.html?cotizacion=' clientes-conectado-v31.html
+          grep -q '.v31-new-search:hover' clientes-conectado-v31.html
+          grep -q '.v31-shell{width:calc(100% - 40px)' clientes-conectado-v31.html
+          grep -q 'triangulo.png' clientes-conectado-v31.html
           grep -q 'triangulogold.png' clientes-conectado-v31.html
           grep -q 'abonos_detalle' clientes-conectado-v31.html
           grep -q 'HISTORIAL_CLIENTE' clientes-conectado-v31.html
@@ -66,5 +79,5 @@ jobs:
             echo 'Unexpected staged files.' >&2
             exit 1
           fi
-          git commit -m 'Add connected Clientes 3.1 preview'
+          git commit -m 'Refine connected Clientes 3.1 preview'
           git push origin HEAD:main
