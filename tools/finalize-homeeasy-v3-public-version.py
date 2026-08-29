@@ -22,14 +22,14 @@ patch('homeeasy-docs.js', [
     ('"documentos.pie_sistema": "Documento generado automáticamente • Sistema Hommy V2.0",',
      '"documentos.pie_sistema": "Documento generado automáticamente • Sistema Hommy V3.0",'),
     ('  function escapeHtml(value) {',
-     '  function normalizePublicVersion(value) {\n    return clean(value).replace(/\\b2\\.0\\b/g, "3.0");\n  }\n\n  function escapeHtml(value) {'),
+     '  function normalizePublicVersion(value) {\n    return clean(value)\n      .replace(/\\bV2\\.0\\b/gi, "V3.0")\n      .replace(/\\b2\\.0\\b/g, "3.0");\n  }\n\n  function escapeHtml(value) {'),
     ('    setText("footer-system-line", key(cfg, "documentos.pie_sistema"));',
      '    setText("footer-system-line", normalizePublicVersion(key(cfg, "documentos.pie_sistema")));'),
 ])
 
 patch('configuracion.html', [
     ('        function applyConfiguration(response) {',
-     '        function normalizePublicVersionLabel(value) {\n            return String(value == null ? "" : value).replace(/\\b2\\.0\\b/g, "3.0");\n        }\n\n        function applyConfiguration(response) {'),
+     '        function normalizePublicVersionLabel(value) {\n            return String(value == null ? "" : value)\n                .replace(/\\bV2\\.0\\b/gi, "V3.0")\n                .replace(/\\b2\\.0\\b/g, "3.0");\n        }\n\n        function applyConfiguration(response) {'),
     ('                const value = flat[key];',
      '                const rawValue = flat[key];\n                const value = key === "documentos.pie_sistema" ? normalizePublicVersionLabel(rawValue) : rawValue;'),
     ("            document.getElementById('appVersion').textContent = HomeEasyCore.getByPath(configuration, 'sistema.version_app', '—');",
