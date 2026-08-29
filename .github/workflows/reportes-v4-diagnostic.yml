@@ -1,0 +1,103 @@
+name: reportes v4 diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'reportes-diseno-v4.html'
+      - '.github/workflows/reportes-v4-diagnostic.yml'
+  workflow_dispatch:
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect Apps Script responses
+        shell: bash
+        run: |
+          set -euo pipefail
+          API='https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec'
+          curl -L --fail --silent --show-error "$API?tipo=GET_META" -o /tmp/meta.json
+          curl -L --fail --silent --show-error "$API?tipo=GET_REPORTES" -o /tmp/reportes.json
+          node <<'NODE'
+          const fs=require('fs');
+          const metaRaw=fs.readFileSync('/tmp/meta.json','utf8');
+          const reportRaw=fs.readFileSync('/tmp/reportes.json','utf8');
+          console.log('META raw prefix:', metaRaw.slice(0,250));
+          console.log('REPORTES raw prefix:', reportRaw.slice(0,500));
+          const meta=JSON.parse(metaRaw);
+          const data=JSON.parse(reportRaw);
+          console.log('META keys:', Object.keys(meta));
+          console.log('REPORTES type:', Array.isArray(data)?'array':typeof data);
+          console.log('REPORTES keys:', data && typeof data==='object' ? Object.keys(data) : []);
+          for (const key of ['ordenes','abonos','data','reportes','result']) {
+            if (data && Object.prototype.hasOwnProperty.call(data,key)) {
+              const v=data[key];
+              console.log(key, Array.isArray(v)?`array(${v.length})`:typeof v, v && typeof v==='object' && !Array.isArray(v)?Object.keys(v):'');
+            }
+          }
+          NODE
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Serve current repository
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/reportes-http.log 2>&1 &
+          echo $! >/tmp/reportes-http.pid
+          sleep 2
+
+      - name: Browser smoke test
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1440,height:1000}});
+            const consoleErrors=[];
+            page.on('console',m=>{
+              console.log('BROWSER',m.type(),m.text());
+              if(m.type()==='error') consoleErrors.push(m.text());
+            });
+            page.on('pageerror',e=>console.log('PAGEERROR',e.message));
+            page.on('requestfailed',r=>console.log('REQUESTFAILED',r.url(),r.failure()?.errorText));
+            await page.goto('http://127.0.0.1:4173/reportes-diseno-v4.html?ci=1',{waitUntil:'domcontentloaded',timeout:60000});
+            await page.waitForTimeout(12000);
+            const state=await page.evaluate(()=>({
+              date:document.querySelector('#dateDisplay')?.textContent?.trim(),
+              goal:document.querySelector('#goalTotal')?.textContent?.trim(),
+              achieved:document.querySelector('#goalAchieved')?.textContent?.trim(),
+              collected:document.querySelector('#collected')?.textContent?.trim(),
+              portfolio:document.querySelector('#portfolio')?.textContent?.trim(),
+              growth:document.querySelector('#growth')?.textContent?.trim(),
+              errorVisible:document.querySelector('#errorBanner')?.classList.contains('show'),
+              errorText:document.querySelector('#errorBanner')?.textContent?.trim()
+            }));
+            console.log('UI_STATE',JSON.stringify(state,null,2));
+            await page.screenshot({path:'reportes-v4-smoke.png',fullPage:true});
+            await browser.close();
+            if(state.errorVisible) throw new Error('Error banner is visible');
+            if(!state.date || /Calculando/i.test(state.date)) throw new Error('Date range did not load');
+            if(!state.goal || state.goal==='$0') throw new Error('Real goal did not load');
+            if(!state.achieved || state.achieved==='$0') throw new Error('Real sales did not load');
+            if(!state.collected || state.collected==='$0') throw new Error('Real collected value did not load');
+          })().catch(err=>{console.error(err);process.exit(1)});
+          NODE
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-v4-smoke
+          path: reportes-v4-smoke.png
+          if-no-files-found: ignore
