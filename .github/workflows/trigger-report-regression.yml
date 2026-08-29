@@ -1,0 +1,30 @@
+name: trigger final report regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/trigger-report-regression.yml'
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Dispatch report regression
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run reportes-v4-diagnostic.yml --ref main
+      - name: Remove temporary trigger
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git rm .github/workflows/trigger-report-regression.yml
+          git commit -m 'Remove temporary report regression trigger'
+          git push
