@@ -1,0 +1,57 @@
+services:
+  waha:
+    image: devlikeapro/waha:chrome
+    container_name: homeeasy-waha
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ:-America/Bogota}
+      WHATSAPP_DEFAULT_ENGINE: WEBJS
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_DASHBOARD_ENABLED: "true"
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      WAHA_WORKER_RESTART_SESSIONS: "true"
+      WHATSAPP_RESTART_ALL_SESSIONS: "true"
+      WAHA_AUTO_START_DELAY_SECONDS: "5"
+      WAHA_PRINT_QR: "true"
+      WAHA_CLIENT_DEVICE_NAME: HomeEasy
+      WAHA_CLIENT_BROWSER_NAME: Chrome
+    volumes:
+      - ./data/sessions:/app/.sessions
+    ports:
+      # Solo disponible dentro del VPS. No se expone WAHA directamente a Internet.
+      - "127.0.0.1:3000:3000"
+    networks:
+      - homeeasy-whatsapp
+
+  bridge:
+    build:
+      context: ./bridge
+    container_name: homeeasy-whatsapp-bridge
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ:-America/Bogota}
+      PORT: "8080"
+      WAHA_BASE_URL: http://waha:3000
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_SESSION: ${WAHA_SESSION:-homeeasy}
+      BRIDGE_TOKEN: ${BRIDGE_TOKEN}
+      MAX_BODY_MB: ${MAX_BODY_MB:-18}
+      DATA_DIR: /app/data
+    volumes:
+      - ./data/bridge:/app/data
+    ports:
+      # Durante Fase 1 se prueba desde el propio VPS. HTTPS público se añade después.
+      - "127.0.0.1:${BRIDGE_PORT:-8080}:8080"
+    depends_on:
+      - waha
+    networks:
+      - homeeasy-whatsapp
+
+networks:
+  homeeasy-whatsapp:
+    name: homeeasy-whatsapp
