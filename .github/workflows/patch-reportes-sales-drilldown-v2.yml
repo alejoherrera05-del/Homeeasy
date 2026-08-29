@@ -1,0 +1,36 @@
+name: patch reportes sales drilldown v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/patch_reportes_sales.py'
+      - '.github/workflows/patch-reportes-sales-drilldown-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply patch
+        run: python3 tools/patch_reportes_sales.py
+      - name: Validate files
+        run: |
+          grep -q 'id="portfolioCard"' reportes-diseno-v4.html
+          grep -q 'cargarHistorialVentas' reportes-diseno-v4.html
+          grep -q 'id="backBtn"' ventas.html
+          grep -q 'applyIncomingFilters' ventas.html
+          git diff --check
+      - name: Commit patch
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git add reportes-diseno-v4.html ventas.html
+          git commit -m 'Align report portfolio with active sales and add drilldown navigation'
+          git push
