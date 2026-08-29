@@ -8,6 +8,8 @@ patterns = [
     (re.compile(r'Version\s*2\.0\b'), 'Version 3.0'),
     (re.compile(r'versión\s*2\.0\b'), 'versión 3.0'),
     (re.compile(r'version\s*2\.0\b'), 'version 3.0'),
+    (re.compile(r'\bV2\.0\b'), 'V3.0'),
+    (re.compile(r'\bv2\.0\b'), 'v3.0'),
 ]
 changed=[]
 for p in sorted(Path('.').rglob('*.html')):
@@ -26,5 +28,5 @@ for p in sorted(Path('.').rglob('*.html')):
         changed.append(p.as_posix())
 
 if not changed:
-    raise SystemExit('No visible Version 2.0 labels found to patch')
+    raise SystemExit('No visible HomeEasy 2.0 labels found to patch')
 print('HOME_EASY_V3_CHANGED='+','.join(changed))
