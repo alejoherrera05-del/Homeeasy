@@ -1,0 +1,193 @@
+name: patch document editors and smart PDF
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/patch-doc-editors-smart-pdf.py'
+      - '.github/workflows/patch-doc-editors-smart-pdf.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply isolated document patch
+        run: |
+          python3 tools/patch-doc-editors-smart-pdf.py
+          node --check homeeasy-docs.js
+          grep -q 'installMobileTextEditor' homeeasy-docs.js
+          grep -q 'preparePaginatedClone' homeeasy-docs.js
+          grep -q 'homeeasy-docs.js?v=4.3' cotizacion.html
+          grep -q 'homeeasy-docs.js?v=4.3' pedido.html
+          ! grep -q 'while (heightLeft > 25)' cotizacion.html
+          ! grep -q 'while (heightLeft > 25)' pedido.html
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install browser and PDF renderer
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+
+      - name: Serve patched app
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/docs-smart-pdf.log 2>&1 &
+          sleep 2
+
+      - name: Test mobile editor and long PDFs
+        run: |
+          mkdir -p qa-docs
+          cat > qa-docs.js <<'NODE'
+          const { chromium } = require('playwright');
+          const path = require('path');
+
+          const CONFIG = {
+            status:'ok', version:9, configuracion:{
+              empresa:{nombre_comercial:'HOMEEASY POPAYÁN',nit:'1061760852-1',direccion:'Popayán',telefono:'3334319374'},
+              documentos:{
+                cotizacion:{titulo:'COTIZACIÓN',validez_dias:15,medicion_instalacion:'Incluye toma de medidas e instalación GRATIS (Popayán).',forma_pago:'50% anticipo, 50% contra entrega.'},
+                pedido:{titulo:'ORDEN DE PEDIDO',garantia_anios:3,entrega_dias_habiles:10,condicion_saldo:'Se cancela contra entrega e instalación.',instalacion:'Incluida en el valor total pactado.'},
+                pie_principal:'HomeEasy - Viste tu hogar con estilo',
+                pie_sistema:'Documento generado automáticamente • Sistema Hommy V3.0',
+                mostrar_email:false,mostrar_web:false,mostrar_whatsapp:false,mostrar_instagram:false
+              }
+            }
+          };
+
+          async function prepare(page){
+            const errors=[];
+            page.on('pageerror',e=>errors.push(e.message));
+            await page.route('**/homeeasy-page-guard.js*',r=>r.fulfill({status:200,contentType:'application/javascript',body:''}));
+            await page.route('**/script.google.com/**',async r=>{
+              const req=r.request();
+              if(req.method()==='POST') return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'success'})});
+              const u=new URL(req.url());
+              if(u.searchParams.get('tipo')==='GET_CONFIGURACION') return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(CONFIG)});
+              if(u.searchParams.get('nextCotizacion')) return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'ok',nextCotizacion:'901'})});
+              if(u.searchParams.get('nextPedido')) return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'ok',nextPedido:'902'})});
+              if(u.searchParams.get('init')) return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'ok',clientes:[['CEDULA','NOMBRE']]})});
+              return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'ok'})});
+            });
+            return errors;
+          }
+
+          async function testEditor(browser,file,title){
+            const page=await browser.newPage({viewport:{width:430,height:932},deviceScaleFactor:2});
+            const errors=await prepare(page);
+            await page.goto('http://127.0.0.1:4173/'+file+'?qa=editor',{waitUntil:'domcontentloaded'});
+            await page.waitForSelector('#notas');
+            await page.waitForTimeout(250);
+            const readonly=await page.locator('#notas').evaluate(el=>el.readOnly);
+            if(!readonly) throw new Error(file+' notes should be readonly on mobile and use expanded editor');
+            await page.locator('#notas').click();
+            await page.locator('.homeeasy-text-editor-overlay.is-open').waitFor({state:'visible'});
+            const editor=page.locator('.homeeasy-text-editor-input');
+            const text=Array.from({length:22},(_,i)=>`Línea ${i+1}: detalle de observación para revisar cómodamente desde el celular.`).join('\n');
+            await editor.fill(text);
+            const scroll=await editor.evaluate(el=>({scrollHeight:el.scrollHeight,clientHeight:el.clientHeight}));
+            if(scroll.scrollHeight<=scroll.clientHeight) throw new Error(file+' expanded editor did not become scrollable with long text');
+            await page.locator('.homeeasy-text-editor-done').click();
+            const value=await page.locator('#notas').inputValue();
+            if(!value.includes('Línea 22')) throw new Error(file+' editor text did not sync back');
+            if(errors.length) throw new Error(file+' mobile editor JS errors: '+errors.join(' | '));
+            await page.screenshot({path:`qa-docs/${file.replace('.html','')}-editor-mobile.png`,fullPage:false});
+            await page.close();
+
+            const desktop=await browser.newPage({viewport:{width:1280,height:900}});
+            const desktopErrors=await prepare(desktop);
+            await desktop.goto('http://127.0.0.1:4173/'+file+'?qa=desktop',{waitUntil:'domcontentloaded'});
+            await desktop.waitForSelector('#notas');
+            await desktop.waitForTimeout(150);
+            const desktopReadonly=await desktop.locator('#notas').evaluate(el=>el.readOnly);
+            if(desktopReadonly) throw new Error(file+' notes unexpectedly readonly on desktop');
+            await desktop.locator('#notas').click();
+            const openCount=await desktop.locator('.homeeasy-text-editor-overlay.is-open').count();
+            if(openCount) throw new Error(file+' expanded editor opened on desktop');
+            if(desktopErrors.length) throw new Error(file+' desktop JS errors: '+desktopErrors.join(' | '));
+            await desktop.close();
+          }
+
+          async function createLongPdf(browser,file,kind){
+            const page=await browser.newPage({viewport:{width:1280,height:900},acceptDownloads:true});
+            const errors=await prepare(page);
+            await page.goto('http://127.0.0.1:4173/'+file+'?qa=longpdf',{waitUntil:'domcontentloaded'});
+            await page.waitForSelector('#tabla-body');
+            await page.waitForTimeout(300);
+            await page.evaluate(({kind})=>{
+              document.getElementById('cedula').value='1061760852';
+              document.getElementById('nombre').value='CLIENTE PRUEBA DOCUMENTO EXTENSO';
+              document.getElementById('telefono').value='3000000000';
+              document.getElementById('email').value='prueba@homeeasy.test';
+              document.getElementById('direccion').value='DIRECCIÓN DE INSTALACIÓN DE PRUEBA';
+              const body=document.getElementById('tabla-body');
+              while(body.children.length<24) window.agregarFila();
+              [...body.querySelectorAll('tr')].forEach((tr,i)=>{
+                const desc=tr.querySelector('.row-desc');
+                const cant=tr.querySelector('.cant');
+                const precio=tr.querySelector('.precio');
+                if(desc) desc.value=`Ítem ${i+1}: Persiana con especificación detallada, medida especial y accesorios de instalación`; 
+                if(cant) cant.value=String((i%3)+1);
+                if(precio) precio.value='$ 325.000';
+              });
+              const notes=Array.from({length:16},(_,i)=>`Observación ${i+1}: este texto largo debe mantenerse completo y nunca quedar cortado horizontalmente entre dos páginas.`).join('\n');
+              document.getElementById('notas').value=notes;
+              if(kind==='pedido') document.getElementById('abono').value='$ 2.000.000';
+              window.calcular();
+            },{kind});
+            const downloadPromise=page.waitForEvent('download',{timeout:120000});
+            await page.locator('#btnProcesar').click();
+            const download=await downloadPromise;
+            const out=path.resolve(`qa-docs/${kind}-long.pdf`);
+            await download.saveAs(out);
+            if(errors.length) throw new Error(file+' long PDF JS errors: '+errors.join(' | '));
+            await page.close();
+          }
+
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            await testEditor(browser,'cotizacion.html','Observaciones especiales');
+            await testEditor(browser,'pedido.html','Observaciones de fabricación');
+            await createLongPdf(browser,'cotizacion.html','cotizacion');
+            await createLongPdf(browser,'pedido.html','pedido');
+            await browser.close();
+            console.log('DOCUMENT_EDITOR_AND_PDF_QA_OK');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          node qa-docs.js
+
+      - name: Render and validate PDFs
+        run: |
+          set -e
+          for pdf in qa-docs/cotizacion-long.pdf qa-docs/pedido-long.pdf; do
+            pages=$(pdfinfo "$pdf" | awk '/^Pages:/ {print $2}')
+            echo "$pdf pages=$pages"
+            test "$pages" -ge 2
+            base=${pdf%.pdf}
+            pdftoppm -png -r 110 "$pdf" "$base-page" >/dev/null 2>&1
+          done
+          test -n "$(find qa-docs -name '*-page-*.png' -print -quit)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: document-editor-smart-pdf-qa
+          path: qa-docs/
+
+      - name: Commit tested document improvements
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git add homeeasy-docs.js cotizacion.html pedido.html
+          git commit -m 'Improve mobile observations and PDF pagination'
+          git push
