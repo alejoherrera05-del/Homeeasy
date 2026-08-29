@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f8f9fa">
+    
+    <title>HomeEasy | Buscar Cliente</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        /* --- VARIABLES PREMIUM --- */
+        :root { 
+            --homeeasy-wine: #f8f9fa; 
+            --homeeasy-gold: #c2a468;
+            --homeeasy-dark: #1c1c1e;
+            --ios-gray: #f8f9fa;
+            --success-ios: #34c759;
+            --warning-ios: #ffcc00;
+            --brand-wine: #a6455a;
+        }
+        
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            /* 🚨 FUENTE ESTILO iOS */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--homeeasy-wine); 
+            overscroll-behavior-y: none; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- PANTALLA DE INICIO BUSCADOR --- */
+        #pantalla-inicio {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100dvh;       
+            background-color: var(--homeeasy-wine); z-index: 2000; 
+            display: flex; flex-direction: column; justify-content: space-between;
+            overflow: hidden; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .btn-back-cover { 
+            position: absolute; top: 60px; left: 25px; width: 50px; height: 50px; 
+            background-color: rgba(255, 255, 255, 0.5); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--brand-wine); font-size: 1.2rem; text-decoration: none; 
+            z-index: 3000; backdrop-filter: blur(5px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            transition: transform 0.1s; 
+        }
+        .btn-back-cover:active { transform: scale(0.90); background-color: rgba(255, 255, 255, 0.8); }
+
+        .inicio-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 20px; }
+        .brand-box { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+        .logo-img { width: 38px; height: auto; }
+        .brand-txt { color: var(--brand-wine); font-size: 2rem; font-weight: 600; margin: 0; letter-spacing: -0.5px; }
+
+        .main-title { color: var(--homeeasy-gold); font-size: 2.8rem; font-weight: 700; margin: 0; line-height: 1.1; text-align: center; text-shadow: 0 4px 10px rgba(194, 164, 104, 0.2); letter-spacing: -1px; }
+        .sub-title { color: var(--brand-wine); font-size: 1.1rem; margin-top: 8px; font-weight: 500; text-align: center; margin-bottom: 40px; }
+
+        .search-wrapper { position: relative; width: 85%; max-width: 450px; }
+        .input-cover { width: 100%; border: none; background: white; padding: 22px 25px 22px 60px; border-radius: 50px; font-size: 1.1rem; color: #333; font-weight: 500; box-shadow: 0 10px 30px rgba(166, 69, 90, 0.1); }
+        .input-cover:focus { outline: none; box-shadow: 0 10px 35px rgba(166, 69, 90, 0.25); }
+        .input-cover::placeholder { color: #999; font-weight: 400; }
+        .icon-cover { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 1.3rem; }
+
+        .bottom-area { position: relative; width: 100%; display: flex; justify-content: center; align-items: flex-end; }
+        .hommy-img { width: 240px; max-width: 60%; z-index: 2; margin-bottom: -5px; pointer-events: none; }
+        .gold-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 55px; background-color: var(--homeeasy-gold); z-index: 1; padding-bottom: env(safe-area-inset-bottom); box-sizing: content-box; }
+
+        /* --- PANTALLA RESULTADOS --- */
+        #pantalla-resultados { display: none; padding-top: 130px; padding-bottom: 40px; background-color: var(--ios-gray); min-height: 100vh; }
+        .header-mini { position: fixed; top: 0; left: 0; width: 100%; background-color: var(--brand-wine) !important; padding: 20px 25px 15px; padding-top: 70px; z-index: 1000; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 5px 20px rgba(0,0,0,0.15); height: 110px; }
+        .mini-brand { color: white; font-weight: 700; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
+        
+        .client-card { background: white; border-radius: 28px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-left: 8px solid var(--homeeasy-gold); }
+        .client-name { font-weight: 700; color: var(--brand-wine); font-size: 1.3rem; letter-spacing: -0.5px; margin-bottom: 18px; text-transform: uppercase; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+        .btn-edit-client { background: rgba(166, 69, 90, 0.1); color: var(--brand-wine); border: none; border-radius: 12px; font-weight: 600; font-size: 0.8rem; padding: 6px 14px; transition: all 0.2s; }
+        .btn-edit-client:active { transform: scale(0.95); background: rgba(166, 69, 90, 0.2); }
+
+        .nav-tabs-custom { background: #efeff4; border-radius: 14px; padding: 3px; margin: 20px 0 0; border: none; }
+        .nav-tabs-custom .nav-link { border: none; color: #8e8e93; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-radius: 11px; padding: 10px; flex: 1; letter-spacing: 0.5px;}
+        .nav-tabs-custom .nav-link.active { background: white; color: var(--brand-wine); box-shadow: 0 3px 10px rgba(0,0,0,0.1); font-weight: 700;}
+
+        /* --- TARJETAS OP Y COTIZACIONES --- */
+        .item-card { background: white; border-radius: 22px; margin-bottom: 18px; overflow: visible; box-shadow: 0 5px 15px rgba(0,0,0,0.03); position: relative; }
+        
+        .item-card::before { content: ""; position: absolute; left: 0; top: 15%; height: 70%; width: 7px; border-radius: 0 10px 10px 0; }
+        .card-COMPLETADO::before { background: var(--success-ios); }
+        .card-ACTIVO::before { background: var(--warning-ios); }
+        .card-COT::before { background: #af52de; }
+        .card-ANULADA::before { background: #e74c3c; } 
+        .card-ANULADA .item-body { opacity: 0.55; }
+
+        .item-header { padding: 18px 20px 5px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; border-radius: 22px 22px 0 0; }
+        .status-badge { font-size: 0.65rem; font-weight: 700; padding: 5px 12px; border-radius: 10px; letter-spacing: 0.5px; }
+        .status-COMPLETADO { color: #155724; background: #d4edda; }
+        .status-ACTIVO { color: #856404; background: #fff3cd; }
+        .status-ANULADA { color: #721c24; background: #fadbd8; } 
+        .badge-cot { color: #9333ea; background: #f3e8ff; }
+
+        .item-body { padding: 15px 20px; transition: opacity 0.3s; }
+        .item-footer { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-top: 1px dashed #eee; border-radius: 0 0 22px 22px; }
+        
+        .payment-history { display: none; padding: 0 20px 20px; background: #fff; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .payment-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; background: #f9f9f9; border-radius: 12px; margin-bottom: 8px; font-size: 0.8rem; transition: background 0.2s;}
+        .payment-item:active { background: #eee; }
+
+        .total-price { font-weight: 700; color: var(--brand-wine); font-size: 1.1rem; letter-spacing: -0.5px;}
+        .saldo-price { font-weight: 600; color: #ff3b30; font-size: 0.9rem; }
+        .saldo-finalizado { color: #8e8e93 !important; }
+
+        .btn-pdf { background: white; color: var(--brand-wine); border: 1.5px solid var(--brand-wine); border-radius: 15px; font-size: 0.7rem; font-weight: 700; padding: 6px 14px; text-decoration: none; display: inline-block; cursor: pointer; transition: all 0.2s;}
+        .btn-pdf:active { background: rgba(166, 69, 90, 0.1); transform: scale(0.95); }
+        
+        /* Modal Bootstrap Contactos */
+        .modal-content { border-radius: 20px; border: none; }
+        .modal-header { background: var(--brand-wine); color: white; border-radius: 20px 20px 0 0; border-bottom: none; }
+        
+        /* SweetAlert Premium */
+        .swal2-premium { border-radius: 24px !important; font-family: inherit !important;}
+        
+        /* --- NUBECITA DE OPCIONES (Dropdown) --- */
+        .opciones-icono { color: #aaa; cursor: pointer; padding: 6px 12px; border-radius: 50%; transition: background 0.2s; position: relative; }
+        .opciones-icono:active { background: #eee; }
+
+        .dropdown-opciones {
+            position: absolute; top: 100%; right: 0; background: white; border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15); min-width: 140px; z-index: 2000;
+            display: none; flex-direction: column; overflow: hidden; border: 1px solid #eee;
+            transform-origin: top right; animation: popDropdown 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popDropdown { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .drop-item { padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); cursor: pointer; display: flex; align-items: center; transition: background 0.2s; }
+        .drop-item:active { background: #f5f5f5; }
+        .drop-item.text-danger { color: #e74c3c !important; border-top: 1px solid #f5f5f5; }
+        .drop-item i { width: 20px; text-align: center; margin-right: 6px; }
+
+        /* 🚨 NUEVO: MODAL VISOR DE PDF */
+        #pdf-viewer-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 10000; flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        
+        .pdf-viewer-header {
+            padding: calc(env(safe-area-inset-top) + 15px) 20px 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.5); color: white; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .pdf-viewer-title { font-weight: 600; font-size: 1rem; }
+        .btn-close-pdf {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 18px;
+            display: flex; justify-content: center; align-items: center; font-size: 1.1rem;
+        }
+        .btn-close-pdf:active { background: rgba(255,255,255,0.4); }
+        
+        #pdf-iframe { flex: 1; width: 100%; border: none; background: #ececec; }
+
+    </style>
+    <script src="homeeasy-core.js?v=3.5"></script>
+    <script id="clientes-v2-inline-guard">
+/**
+ * HomeEasy Page Guard v3.6
+ * Navegación cache-first: usa la sesión ya validada para abrir módulos al instante
+ * y revalida silenciosamente en segundo plano. AR permanece fuera de este mapa.
+ */
+(function (global) {
+    'use strict';
+
+    const PAGE_PERMISSIONS = Object.freeze({
+        'clientes.html': 'clientes.read',
+        'ventas.html': 'ventas.read',
+        'cotizacion.html': 'cotizaciones.write',
+        'seguimiento.html': 'cotizaciones.read',
+        'pedido.html': 'pedidos.write',
+        'abono.html': 'abonos.write',
+        'caja.html': 'caja.read',
+        'documentos.html': 'documentos.read',
+        'calendario.html': 'agenda.read',
+        'reportes.html': 'reportes.read',
+        'configuracion.html': 'config.read',
+        'perfil.html': 'perfil.read',
+        'Hommychat.html': 'app.access'
+    });
+
+    const API_URL = global.HomeEasyCore && global.HomeEasyCore.API_URL
+        ? global.HomeEasyCore.API_URL
+        : 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
+    const currentPage = 'clientes.html';
+    const requiredPermission = PAGE_PERMISSIONS[currentPage] || '';
+    if (!requiredPermission) return;
+
+    const nativeFetch = global.fetch.bind(global);
+    const PENDING_CLASS = 'homeeasy-module-auth-pending';
+    const REVALIDATE_AFTER_MS = 5 * 60 * 1000;
+    let pageAuthStatus = 'checking';
+    let resolvePageReady;
+    let pendingTimer = null;
+    let sessionRecoveryPromise = null;
+    const pageReady = new Promise(resolve => { resolvePageReady = resolve; });
+
+    function showPendingCover() {
+        if (pageAuthStatus !== 'checking' || !global.document || !global.document.documentElement) return;
+        global.document.documentElement.classList.add(PENDING_CLASS);
+        if (global.document.getElementById('homeeasy-module-auth-style')) return;
+        const style = global.document.createElement('style');
+        style.id = 'homeeasy-module-auth-style';
+        style.textContent = `
+            html.${PENDING_CLASS} body { visibility: hidden !important; }
+            html.${PENDING_CLASS} { min-height: 100%; background: #f2f2f7 !important; }
+            html.${PENDING_CLASS}::before { content:''; position:fixed; z-index:2147483646; inset:0; background:#f2f2f7; }
+            html.${PENDING_CLASS}::after { content:'Abriendo HomeEasy…'; position:fixed; z-index:2147483647; left:50%; top:50%; transform:translate(-50%,-50%); color:#777075; font:650 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; white-space:nowrap; }
+        `;
+        (global.document.head || global.document.documentElement).appendChild(style);
+    }
+
+    function schedulePendingCover() {
+        clearTimeout(pendingTimer);
+        pendingTimer = global.setTimeout(showPendingCover, 220);
+    }
+
+    function reveal() {
+        clearTimeout(pendingTimer);
+        if (global.document && global.document.documentElement) {
+            global.document.documentElement.classList.remove(PENDING_CLASS);
+        }
+    }
+
+    function loadScriptOnce(src, id, ready) {
+        if (typeof ready === 'function' && ready()) return Promise.resolve();
+        const existing = global.document.getElementById(id);
+        if (existing) {
+            if (existing.dataset.loaded === 'true' || (typeof ready === 'function' && ready())) return Promise.resolve();
+            return new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+            });
+        }
+        return new Promise((resolve, reject) => {
+            const script = global.document.createElement('script');
+            script.id = id;
+            script.src = src;
+            script.async = false;
+            script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
+            script.addEventListener('error', reject, { once: true });
+            (global.document.head || global.document.documentElement).appendChild(script);
+        });
+    }
+
+    function buildMetaQuery(url) {
+        const target = new URL(url, global.location.href);
+        const auth = global.HomeEasyAuth;
+        const core = global.HomeEasyCore;
+        const token = auth && auth.getAppSessionToken ? auth.getAppSessionToken() : '';
+        if (token) target.searchParams.set('appSessionToken', token);
+        if (core && core.getDeviceInfo) {
+            const device = core.getDeviceInfo();
+            target.searchParams.set('dispositivoId', device.id || 'SIN_ID');
+            target.searchParams.set('dispositivoNombre', device.name || '');
+            target.searchParams.set('plataforma', device.platform || '');
+            target.searchParams.set('navegador', device.browser || '');
+        }
+        target.searchParams.set('pagina', currentPage);
+        target.searchParams.set('versionApp', '3.4');
+        return target.href;
+    }
+
+    function parseJsonBody(body) {
+        if (typeof body !== 'string') return null;
+        try {
+            const data = JSON.parse(body);
+            return data && typeof data === 'object' && !Array.isArray(data) ? data : null;
+        } catch (error) { return null; }
+    }
+
+    function isAuthPayload(data) {
+        return Boolean(data && /^AUTH_/i.test(String(data.tipo || '')));
+    }
+
+    function enrichPost(options) {
+        const data = parseJsonBody(options.body);
+        if (!data || isAuthPayload(data)) return { options, isAuth: isAuthPayload(data) };
+        const token = global.HomeEasyAuth && global.HomeEasyAuth.getAppSessionToken ? global.HomeEasyAuth.getAppSessionToken() : '';
+        const meta = global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : { pagina: currentPage, versionApp: '3.4' };
+        options.body = JSON.stringify({
+            ...data,
+            appSessionToken: token,
+            meta: { ...meta, ...(data.meta && typeof data.meta === 'object' ? data.meta : {}) }
+        });
+        return { options, isAuth: false };
+    }
+
+    async function readSecurityPayload(response) {
+        try {
+            const data = await response.clone().json();
+            return data && typeof data === 'object' ? data : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function authErrorCode(error) {
+        return String(error && error.code || '').trim().toUpperCase();
+    }
+
+    function isRecoverableSessionError(error) {
+        const code = authErrorCode(error);
+        return code === 'APP_SESSION_EXPIRED' || code === 'APP_SESSION_REJECTED' || code === 'NO_SESSION';
+    }
+
+    async function recoverOperationalSession() {
+        const auth = global.HomeEasyAuth;
+        if (!auth || typeof auth.restoreHomeEasySession !== 'function') return false;
+        if (sessionRecoveryPromise) return sessionRecoveryPromise;
+
+        sessionRecoveryPromise = (async () => {
+            try {
+                const recovered = await auth.restoreHomeEasySession({
+                    validateFirebase: false,
+                    reopen: true,
+                    silent: false,
+                    preferCache: false,
+                    meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {}
+                });
+                if (!recovered) return false;
+                if (!auth.hasPermission(requiredPermission)) {
+                    showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                if (isTransientAuthError(error)) {
+                    showConnectionIssue(error);
+                    return null;
+                }
+                console.warn('HomeEasy: no fue posible recuperar la sesión operativa.', error);
+                return false;
+            } finally {
+                sessionRecoveryPromise = null;
+            }
+        })();
+        return sessionRecoveryPromise;
+    }
+
+    function installFetchBridge() {
+        global.fetch = function homeEasyAuthorizedFetch(resource, init) {
+            const rawUrl = typeof resource === 'string' ? resource : (resource && resource.url ? resource.url : '');
+            const options = { ...(init || {}) };
+            const method = String(options.method || (resource && resource.method) || 'GET').toUpperCase();
+            const targetsHomeEasy = rawUrl.startsWith(API_URL);
+            if (!targetsHomeEasy) return nativeFetch(resource, options);
+
+            let isAuth = false;
+            if (method === 'POST') isAuth = enrichPost(options).isAuth;
+
+            const execute = async (allowRecovery) => {
+                if (method === 'POST' && !isAuth) enrichPost(options);
+                const finalUrl = method === 'GET' ? buildMetaQuery(rawUrl) : rawUrl;
+                const response = await nativeFetch(finalUrl || resource, options);
+                const data = await readSecurityPayload(response);
+
+                if (data && data.requiresLogin === true) {
+                    if (allowRecovery) {
+                        const recovered = await recoverOperationalSession();
+                        if (recovered === true) return execute(false);
+                        if (recovered === null) return response;
+                    }
+                    redirectToLogin();
+                } else if (data && (data.forbidden === true || data.code === 'PERMISSION_DENIED')) {
+                    showDenied(data.msg || 'Tu rol no tiene permiso para realizar esta acción.');
+                }
+                return response;
+            };
+
+            if (isAuth) return execute(false);
+            return pageReady.then(allowed => {
+                if (!allowed) throw new Error('PERMISSION_DENIED');
+                return execute(true);
+            });
+        };
+    }
+
+    function redirectToLogin() {
+        if (pageAuthStatus === 'redirecting') return;
+        pageAuthStatus = 'redirecting';
+        reveal();
+        if (global.HomeEasyCore && global.HomeEasyCore.clearSensitiveBrowserCaches) global.HomeEasyCore.clearSensitiveBrowserCaches();
+        if (global.HomeEasyAuth && global.HomeEasyAuth.redirectToLogin) global.HomeEasyAuth.redirectToLogin(currentPage + global.location.search + global.location.hash);
+        else {
+            const url = new URL('login.html', global.location.href);
+            url.searchParams.set('return', currentPage + global.location.search + global.location.hash);
+            global.location.replace(url.href);
+        }
+    }
+
+    function isTransientAuthError(error) {
+        return Boolean(global.HomeEasyAuth && typeof global.HomeEasyAuth.isTransientError === 'function' && global.HomeEasyAuth.isTransientError(error));
+    }
+
+    function showConnectionIssue(error) {
+        if (pageAuthStatus === 'network-error') return;
+        pageAuthStatus = 'network-error';
+        reveal();
+        const render = () => {
+            if (!global.document || !global.document.body || global.document.getElementById('homeeasyModuleConnectionIssue')) return;
+            const overlay = global.document.createElement('div');
+            overlay.id = 'homeeasyModuleConnectionIssue';
+            overlay.setAttribute('role', 'alert');
+            overlay.style.cssText = 'position:fixed;z-index:2147483647;inset:0;display:grid;place-items:center;padding:24px;background:rgba(242,242,247,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#252125';
+            overlay.innerHTML = '<section style="width:min(430px,100%);padding:28px;border-radius:24px;background:#fff;box-shadow:0 22px 60px rgba(45,35,40,.14);text-align:center"><div style="font-size:30px;margin-bottom:12px">↻</div><h1 style="margin:0;font-size:1.35rem;letter-spacing:-.035em">Conexión interrumpida</h1><p style="margin:10px auto 20px;max-width:35ch;color:#777075;font-size:.84rem;line-height:1.5">No se cerró tu sesión. Reintenta cuando tengas conexión con HomeEasy.</p><button id="homeeasyRetryModule" style="width:100%;height:50px;border:0;border-radius:14px;background:#a6455a;color:#fff;font-weight:720">Reintentar</button><button id="homeeasyBackFromConnection" style="width:100%;height:46px;margin-top:8px;border:0;background:transparent;color:#a6455a;font-weight:680">Volver al Inicio</button></section>';
+            global.document.body.appendChild(overlay);
+            global.document.getElementById('homeeasyRetryModule').addEventListener('click', () => global.location.reload());
+            global.document.getElementById('homeeasyBackFromConnection').addEventListener('click', () => {
+                if (global.HomeEasyCore && typeof global.HomeEasyCore.goHome === 'function') global.HomeEasyCore.goHome();
+                else global.location.assign('index.html');
+            });
+        };
+        if (global.document && global.document.body) render();
+        else if (global.document) global.document.addEventListener('DOMContentLoaded', render, { once: true });
+        console.warn('HomeEasy: módulo conservado por error transitorio.', error);
+    }
+
+    function showDenied(message) {
+        if (pageAuthStatus === 'denied') return;
+        pageAuthStatus = 'denied';
+        resolvePageReady(false);
+        reveal();
+        const profile = global.HomeEasyAuth && global.HomeEasyAuth.getCurrentProfile ? global.HomeEasyAuth.getCurrentProfile() : null;
+        global.document.body.innerHTML = `<main id="homeeasyAccessDenied" role="alert" style="min-height:100svh;display:grid;place-items:center;padding:24px;background:#f2f2f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#252125"><section style="width:min(460px,100%);padding:30px;border-radius:26px;background:#fff;box-shadow:0 22px 65px rgba(45,35,40,.12);text-align:center"><div style="width:58px;height:58px;margin:0 auto 17px;border-radius:18px;display:grid;place-items:center;background:rgba(166,69,90,.10);color:#a6455a;font-size:24px">🔒</div><h1 style="margin:0;font-size:1.55rem;letter-spacing:-.04em">Acceso restringido</h1><p style="margin:10px auto 20px;max-width:34ch;color:#777075;font-size:.86rem;line-height:1.55">${String(message || 'Tu rol no tiene permiso para abrir este módulo.').replace(/[<>]/g,'')}</p><div style="margin-bottom:20px;padding:12px 14px;border-radius:15px;background:#f8f6f7;color:#6e676b;font-size:.73rem">${profile ? String(profile.nombre || profile.email || '').replace(/[<>]/g,'') + ' · ' + String(profile.rol || '').replace(/[<>]/g,'') : ''}</div><button id="heBackHome" style="width:100%;height:50px;border:0;border-radius:14px;background:#a6455a;color:#fff;font-weight:720">Volver a HomeEasy</button></section></main>`;
+        global.document.getElementById('heBackHome').addEventListener('click', () => {
+            if (global.HomeEasyCore && typeof global.HomeEasyCore.goHome === 'function') global.HomeEasyCore.goHome();
+            else global.location.assign('index.html');
+        });
+    }
+
+    function authorizeLocally(session) {
+        if (!session || !global.HomeEasyAuth) return false;
+        if (!global.HomeEasyAuth.hasPermission(requiredPermission)) {
+            showDenied('Tu rol no tiene permiso para abrir este módulo.');
+            return false;
+        }
+        const profile = global.HomeEasyAuth.getCurrentProfile();
+        if (profile && global.HomeEasyCore && global.HomeEasyCore.setOperator) global.HomeEasyCore.setOperator(profile.nombre || profile.email || 'Sin identificar');
+        pageAuthStatus = 'authorized';
+        resolvePageReady(true);
+        reveal();
+        try { global.dispatchEvent(new CustomEvent('homeeasy:page-auth-ready', { detail: { page: currentPage, permission: requiredPermission, profile, timestamp: Date.now() } })); } catch (error) {}
+        if (currentPage === 'configuracion.html') loadScriptOnce('homeeasy-settings-auth-ui.js?v=3.2', 'homeeasySettingsAuthUiScript', () => false).catch(() => {});
+        return true;
+    }
+
+    function revalidateInBackground() {
+        const auth = global.HomeEasyAuth;
+        if (!auth || !auth.validateAppSession) return;
+        if (auth.shouldRevalidateAppSession && !auth.shouldRevalidateAppSession(REVALIDATE_AFTER_MS)) return;
+        auth.validateAppSession({ meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {} })
+            .then(() => {
+                if (!auth.hasPermission(requiredPermission)) showDenied('Tu rol cambió y ya no tiene acceso a este módulo.');
+            })
+            .catch(async error => {
+                if (isTransientAuthError(error)) {
+                    console.warn('HomeEasy: revalidación del módulo aplazada por conexión.', error);
+                    return;
+                }
+                if (isRecoverableSessionError(error)) {
+                    const recovered = await recoverOperationalSession();
+                    if (recovered !== false) return;
+                }
+                redirectToLogin();
+            });
+    }
+
+    async function authorizePage() {
+        schedulePendingCover();
+        try {
+            await loadScriptOnce('homeeasy-auth-config.js?v=3.3', 'homeeasyAuthConfigScript', () => Boolean(global.HOMEEASY_AUTH_CONFIG));
+            await loadScriptOnce('homeeasy-auth.js?v=3.4', 'homeeasyAuthScript', () => Boolean(global.HomeEasyAuth));
+            if (!global.HomeEasyAuth || !global.HomeEasyAuth.isConfigured()) { redirectToLogin(); return; }
+
+            const cached = global.HomeEasyAuth.getCachedHomeEasySession ? global.HomeEasyAuth.getCachedHomeEasySession() : null;
+            if (cached && authorizeLocally(cached)) {
+                revalidateInBackground();
+                return;
+            }
+
+            const session = await global.HomeEasyAuth.restoreHomeEasySession({
+                validateFirebase: false,
+                reopen: true,
+                silent: true,
+                preferCache: true,
+                backgroundValidate: false,
+                meta: global.HomeEasyCore && global.HomeEasyCore.buildMeta ? global.HomeEasyCore.buildMeta() : {}
+            });
+            if (!session) { redirectToLogin(); return; }
+            if (authorizeLocally(session)) revalidateInBackground();
+        } catch (error) {
+            console.error('HomeEasy Page Guard:', error);
+            if (isTransientAuthError(error)) {
+                showConnectionIssue(error);
+                return;
+            }
+            redirectToLogin();
+        }
+    }
+
+    installFetchBridge();
+    authorizePage();
+
+    global.HomeEasyPageGuard = Object.freeze({
+        currentPage,
+        requiredPermission,
+        permissions: PAGE_PERMISSIONS,
+        getStatus: () => pageAuthStatus
+    });
+})(window);
+
+</script>
+<style id="he-font-synthesis-fix">body,button,input,select,textarea{font-synthesis:none}</style>
+
+<style id="clientes-standalone-v3-style">
+/* HomeEasy Clientes 2.0 Preview — scoped only to the results view. */
+body.clientes-v2-preview #pantalla-inicio{ /* intentionally untouched */ }
+
+body.clientes-v2-preview #pantalla-resultados{
+  --v2-wine:#a6455a;
+  --v2-wine-dark:#873849;
+  --v2-gold:#c2a468;
+  --v2-ink:#1d1d1f;
+  --v2-muted:#86868b;
+  --v2-bg:#f3f3f5;
+  --v2-card:#fff;
+  --v2-line:rgba(60,60,67,.10);
+  padding:108px 0 calc(46px + env(safe-area-inset-bottom,0px))!important;
+  min-height:100dvh!important;
+  background:var(--v2-bg)!important;
+}
+
+body.clientes-v2-preview #pantalla-resultados .header-mini{
+  height:auto!important;
+  min-height:88px!important;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) max(18px,calc((100vw - 720px)/2)) 12px!important;
+  background:rgba(248,248,250,.90)!important;
+  -webkit-backdrop-filter:saturate(180%) blur(24px)!important;
+  backdrop-filter:saturate(180%) blur(24px)!important;
+  border-bottom:1px solid var(--v2-line)!important;
+  box-shadow:none!important;
+}
+body.clientes-v2-preview .header-mini .mini-brand{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  color:var(--v2-ink)!important;text-decoration:none!important;
+  font-size:1rem!important;font-weight:760!important;letter-spacing:-.025em!important;
+}
+body.clientes-v2-preview .header-mini .mini-brand img{display:none!important}
+body.clientes-v2-preview .header-mini .mini-brand::before{
+  content:'‹';width:38px;height:38px;border-radius:50%;background:#fff;
+  display:grid;place-items:center;color:var(--v2-ink);font-size:29px;font-weight:400;
+  line-height:1;box-shadow:0 3px 14px rgba(30,24,27,.05);border:1px solid var(--v2-line);
+}
+body.clientes-v2-preview .header-mini > button{
+  min-height:38px!important;padding:0 14px!important;border:1px solid var(--v2-line)!important;
+  border-radius:999px!important;background:#fff!important;color:var(--v2-wine)!important;
+  font-size:.72rem!important;font-weight:720!important;box-shadow:none!important;
+}
+body.clientes-v2-preview #pantalla-resultados > .container{
+  width:min(calc(100% - 24px),720px)!important;max-width:720px!important;padding:0!important;
+}
+body.clientes-v2-preview #loader{
+  margin:42px auto!important;padding:26px!important;max-width:390px!important;
+  background:#fff!important;border:1px solid var(--v2-line)!important;border-radius:24px!important;
+  box-shadow:0 12px 34px rgba(28,23,26,.045)!important;color:var(--v2-wine)!important;
+}
+
+/* Hide the old contact card once the new workspace has been built. */
+body.clientes-v2-preview .client-card.v2-source-card{display:none!important}
+
+body.clientes-v2-preview .v2-profile-card,
+body.clientes-v2-preview .v2-summary-card,
+body.clientes-v2-preview .v2-history-shell{
+  background:var(--v2-card);border:1px solid var(--v2-line);border-radius:26px;
+  box-shadow:0 12px 34px rgba(33,27,30,.045);
+}
+body.clientes-v2-preview .v2-profile-card{padding:22px 20px 18px;margin-bottom:12px;overflow:hidden;position:relative}
+body.clientes-v2-preview .v2-profile-card::after{
+  content:'';position:absolute;right:-64px;top:-82px;width:170px;height:170px;border-radius:50%;
+  background:rgba(166,69,90,.055);pointer-events:none;
+}
+body.clientes-v2-preview .v2-eyebrow{
+  color:var(--v2-wine);font-size:.57rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  margin-bottom:15px;position:relative;z-index:1;
+}
+body.clientes-v2-preview .v2-profile-head{display:grid;grid-template-columns:62px minmax(0,1fr) 38px;gap:13px;align-items:center;position:relative;z-index:1}
+body.clientes-v2-preview .v2-avatar{
+  width:62px;height:62px;border-radius:21px;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--v2-wine),var(--v2-wine-dark));color:#fff;
+  font-size:1.06rem;font-weight:800;letter-spacing:.02em;box-shadow:0 10px 25px rgba(166,69,90,.18);
+}
+body.clientes-v2-preview .v2-profile-name{margin:0;color:var(--v2-ink);font-size:1.16rem;font-weight:790;line-height:1.14;letter-spacing:-.035em;overflow-wrap:anywhere}
+body.clientes-v2-preview .v2-profile-id{margin-top:5px;color:var(--v2-muted);font-size:.72rem;font-weight:570}
+body.clientes-v2-preview .v2-edit-button{
+  width:38px;height:38px;border:0;border-radius:50%;display:grid;place-items:center;background:#f3f3f5;
+  color:var(--v2-wine);font-size:.78rem;
+}
+body.clientes-v2-preview .v2-contact-list{margin-top:18px;border-top:1px solid var(--v2-line);border-bottom:1px solid var(--v2-line)}
+body.clientes-v2-preview .v2-contact-row{display:grid;grid-template-columns:30px 74px minmax(0,1fr);gap:8px;align-items:center;min-height:45px;border-bottom:1px solid rgba(60,60,67,.07)}
+body.clientes-v2-preview .v2-contact-row:last-child{border-bottom:0}
+body.clientes-v2-preview .v2-contact-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:rgba(166,69,90,.075);color:var(--v2-wine);font-size:.68rem}
+body.clientes-v2-preview .v2-contact-label{color:var(--v2-muted);font-size:.64rem;font-weight:650}
+body.clientes-v2-preview .v2-contact-value{color:#343437;font-size:.76rem;font-weight:610;overflow-wrap:anywhere;text-align:right}
+body.clientes-v2-preview .v2-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:15px}
+body.clientes-v2-preview .v2-action{
+  appearance:none;border:0;border-radius:15px;background:#f4f4f6;min-height:53px;padding:8px 3px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#4a4a4e;
+  font:inherit;font-size:.56rem;font-weight:690;transition:transform .14s ease,background .14s ease;
+}
+body.clientes-v2-preview .v2-action i{font-size:.88rem;color:var(--v2-wine)}
+body.clientes-v2-preview .v2-action:active{transform:scale(.96);background:#ebebee}
+
+body.clientes-v2-preview .v2-summary-card{padding:18px;margin-bottom:12px}
+body.clientes-v2-preview .v2-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px}
+body.clientes-v2-preview .v2-section-title{color:var(--v2-ink);font-size:.92rem;font-weight:760;letter-spacing:-.025em}
+body.clientes-v2-preview .v2-section-subtitle{margin-top:3px;color:var(--v2-muted);font-size:.61rem}
+body.clientes-v2-preview .v2-live-pill{padding:5px 8px;border-radius:999px;background:#eef8f0;color:#2c7b42;font-size:.52rem;font-weight:750;white-space:nowrap}
+body.clientes-v2-preview .v2-metrics{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px}
+body.clientes-v2-preview .v2-metric{min-width:0;padding:12px;border-radius:16px;background:#f6f6f8;border:1px solid rgba(60,60,67,.045)}
+body.clientes-v2-preview .v2-metric-label{color:var(--v2-muted);font-size:.52rem;font-weight:760;letter-spacing:.055em;text-transform:uppercase}
+body.clientes-v2-preview .v2-metric-value{margin-top:5px;color:var(--v2-ink);font-size:.90rem;font-weight:780;letter-spacing:-.03em;overflow-wrap:anywhere}
+body.clientes-v2-preview .v2-metric.is-balance .v2-metric-value{color:var(--v2-wine)}
+
+body.clientes-v2-preview .v2-history-shell{padding:15px;margin-bottom:12px}
+body.clientes-v2-preview .v2-history-head{padding:2px 2px 12px}
+body.clientes-v2-preview .v2-history-title{color:var(--v2-ink);font-size:.94rem;font-weight:760;letter-spacing:-.025em}
+body.clientes-v2-preview .v2-history-subtitle{margin-top:3px;color:var(--v2-muted);font-size:.61rem}
+body.clientes-v2-preview .v2-history-shell .nav-tabs-custom{display:flex!important;margin:0!important;padding:3px!important;background:#ececef!important;border:0!important;border-radius:12px!important}
+body.clientes-v2-preview .v2-history-shell .nav-tabs-custom .nav-link{min-height:38px!important;border:0!important;border-radius:10px!important;padding:8px!important;color:#76767b!important;font-size:.68rem!important;font-weight:690!important;text-transform:none!important;letter-spacing:0!important}
+body.clientes-v2-preview .v2-history-shell .nav-tabs-custom .nav-link.active{background:#fff!important;color:var(--v2-ink)!important;box-shadow:0 2px 8px rgba(0,0,0,.07)!important}
+body.clientes-v2-preview .v2-tab-count{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-left:5px;border-radius:999px;background:#e4e4e8;color:#77777c;font-size:.55rem}
+body.clientes-v2-preview .nav-link.active .v2-tab-count{background:rgba(166,69,90,.09);color:var(--v2-wine)}
+
+body.clientes-v2-preview .tab-content{margin-top:12px!important}
+body.clientes-v2-preview .item-card{
+  margin:0 0 10px!important;border:1px solid var(--v2-line)!important;border-radius:21px!important;
+  overflow:hidden!important;background:#fff!important;box-shadow:0 8px 26px rgba(30,25,28,.035)!important;
+}
+body.clientes-v2-preview .item-card::before{display:none!important}
+body.clientes-v2-preview .item-header{padding:15px 16px 4px!important;background:#fff!important;border-radius:0!important}
+body.clientes-v2-preview .item-header .text-muted{color:#5f5f64!important}
+body.clientes-v2-preview .status-badge{padding:5px 9px!important;border-radius:999px!important;font-size:.53rem!important;font-weight:800!important;letter-spacing:.04em!important}
+body.clientes-v2-preview .status-COMPLETADO{background:#edf7ef!important;color:#24713b!important}
+body.clientes-v2-preview .status-ACTIVO{background:#fff7e7!important;color:#8a6114!important}
+body.clientes-v2-preview .status-ANULADA{background:#fff0f0!important;color:#a13a3a!important}
+body.clientes-v2-preview .badge-cot{background:#f1eff8!important;color:#6f5790!important}
+body.clientes-v2-preview .item-body{padding:11px 16px 13px!important;background:#fff!important}
+body.clientes-v2-preview .item-desc{margin:0 0 6px!important;color:#29292c!important;font-size:.79rem!important;font-weight:620!important;line-height:1.42!important}
+body.clientes-v2-preview .item-footer{padding:12px 16px 14px!important;background:#fff!important;border-top:1px solid rgba(60,60,67,.075)!important;border-radius:0!important;align-items:flex-end!important;gap:10px!important}
+body.clientes-v2-preview .item-footer > div:first-child{display:none!important}
+body.clientes-v2-preview .v2-finance{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 16px 13px}
+body.clientes-v2-preview .v2-finance-cell{min-width:0;padding:9px 10px;border-radius:13px;background:#f6f6f8}
+body.clientes-v2-preview .v2-finance-label{color:var(--v2-muted);font-size:.48rem;font-weight:760;text-transform:uppercase;letter-spacing:.055em}
+body.clientes-v2-preview .v2-finance-value{margin-top:4px;color:var(--v2-ink);font-size:.73rem;font-weight:750;overflow-wrap:anywhere}
+body.clientes-v2-preview .v2-finance-cell.is-balance .v2-finance-value{color:var(--v2-wine)}
+body.clientes-v2-preview .btn-pdf{padding:8px 10px!important;border:0!important;border-radius:12px!important;background:#f3f3f5!important;color:var(--v2-wine)!important;font-size:.57rem!important;font-weight:740!important}
+body.clientes-v2-preview .opciones-icono{color:#9a9aa0!important}
+body.clientes-v2-preview .v2-payments-toggle{width:calc(100% - 32px);margin:0 16px 11px;border:0;border-radius:13px;background:#f6f6f8;color:#626267;padding:9px 10px;display:flex;align-items:center;justify-content:space-between;font:inherit;font-size:.62rem;font-weight:690}
+body.clientes-v2-preview .v2-payments-toggle i{color:var(--v2-wine);font-size:.58rem}
+body.clientes-v2-preview .payment-history{padding:2px 16px 13px!important;background:#fff!important}
+body.clientes-v2-preview .payment-history h6{margin:0 0 8px!important;padding:0 0 7px!important;color:var(--v2-muted)!important;font-size:.54rem!important;font-weight:760!important;text-transform:uppercase!important;letter-spacing:.06em!important}
+body.clientes-v2-preview .payment-item{margin-bottom:6px!important;padding:9px 10px!important;border-radius:12px!important;background:#f6f6f8!important;font-size:.66rem!important;gap:7px!important}
+
+body.clientes-v2-preview .modal-content{border:0!important;border-radius:26px!important;overflow:hidden!important;box-shadow:0 28px 80px rgba(0,0,0,.18)!important}
+body.clientes-v2-preview .modal-header{background:#fff!important;color:var(--v2-ink)!important;border-bottom:1px solid var(--v2-line)!important}
+body.clientes-v2-preview .modal-header .btn-close{filter:none!important}
+body.clientes-v2-preview .modal-body .form-control{min-height:46px;border-radius:13px!important;border-color:#e5e5ea!important;font-size:16px!important}
+body.clientes-v2-preview .v2-toast{position:fixed;z-index:22000;left:50%;bottom:calc(23px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);opacity:0;pointer-events:none;padding:10px 14px;border-radius:999px;background:rgba(28,28,30,.9);color:#fff;font-size:.69rem;font-weight:700;transition:.18s ease;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+body.clientes-v2-preview .v2-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:560px){
+  body.clientes-v2-preview #pantalla-resultados{padding-top:101px!important}
+  body.clientes-v2-preview #pantalla-resultados > .container{width:calc(100% - 18px)!important}
+  body.clientes-v2-preview .header-mini{min-height:82px!important;padding-left:12px!important;padding-right:12px!important}
+  body.clientes-v2-preview .v2-profile-card{padding:19px 16px 16px;border-radius:23px}
+  body.clientes-v2-preview .v2-profile-head{grid-template-columns:54px minmax(0,1fr) 36px;gap:10px}
+  body.clientes-v2-preview .v2-avatar{width:54px;height:54px;border-radius:18px;font-size:.92rem}
+  body.clientes-v2-preview .v2-profile-name{font-size:1.02rem}
+  body.clientes-v2-preview .v2-contact-row{grid-template-columns:28px 65px minmax(0,1fr)}
+  body.clientes-v2-preview .v2-actions{gap:5px}
+  body.clientes-v2-preview .v2-action{font-size:.52rem}
+  body.clientes-v2-preview .v2-summary-card{padding:15px;border-radius:23px}
+  body.clientes-v2-preview .v2-metrics{grid-template-columns:1.3fr 1fr 1fr;gap:6px}
+  body.clientes-v2-preview .v2-metric{padding:10px 8px}
+  body.clientes-v2-preview .v2-metric-value{font-size:.78rem}
+  body.clientes-v2-preview .v2-history-shell{padding:12px;border-radius:23px}
+  body.clientes-v2-preview .item-footer > .d-flex{flex-wrap:wrap!important;justify-content:flex-end!important}
+}
+
+</style>
+</head>
+<body class="clientes-v2-preview clientes-standalone-v3">
+
+    <div id="pantalla-inicio">
+        <a href="index.html" class="btn-back-cover"><i class="fas fa-chevron-left"></i></a>
+
+        <div class="inicio-content">
+            <div class="brand-box">
+                <img src="triangulo.png" class="logo-img" alt="Logo">
+                <h2 class="brand-txt">HomeEasy</h2>
+            </div>
+            <h1 class="main-title">Buscar Cliente</h1>
+            <p class="sub-title">Encuentra rápidamente con Hommy...</p>
+
+            <div class="search-wrapper">
+                <div id="cargando_clientes" style="text-align:center; font-size:0.8rem; color:var(--brand-wine); margin-bottom:10px;">
+                    <span class="spinner-border spinner-border-sm me-1"></span> Cargando base de datos...
+                </div>
+
+                <div class="position-relative">
+                    <i class="fas fa-search icon-cover"></i>
+                    <input type="text" id="cedula_busqueda" class="input-cover" placeholder="Cédula o nombre del cliente" autocomplete="off">
+                    <div id="sugerencias" style="position:absolute; top: 110%; background:white; width:100%; z-index:1000; border-radius:20px; max-height:250px; overflow-y:auto; box-shadow: 0 10px 40px rgba(0,0,0,0.15);"></div>
+                </div>
+            </div>
+        </div>
+
+       <div class="bottom-area">
+            <img src="Hommybuscando.png" class="hommy-img" alt="Hommy">
+            <div class="gold-bar"></div>
+        </div>
+    </div> <div id="pantalla-resultados"> 
+
+        <header class="header-mini">
+            <a href="index.html" class="mini-brand" style="text-decoration: none; cursor: pointer;">
+                <img src="triangulogold.png" style="width:28px;"> HomeEasy
+            </a>
+            <button onclick="reiniciarBusqueda()" class="btn btn-sm btn-light fw-bold" style="color:var(--brand-wine); border-radius:20px; padding: 8px 18px; font-size: 0.85rem;">Nueva Búsqueda</button>
+        </header>
+
+        <div class="container">
+            <div id="loader" class="text-center" style="display: none; color: var(--brand-wine); margin-top: 40px;">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+                <p class="mt-2 fw-bold small">Consultando el archivo central...</p>
+            </div>
+
+            <div id="resultado_cliente" style="display: none;">
+                <div class="client-card">
+                    <div class="client-name d-flex justify-content-between align-items-center">
+                        <span id="c_nombre" style="flex:1;"></span>
+                        <button class="btn-edit-client" onclick="abrirModalEditar()"><i class="fas fa-pen me-1"></i> Editar</button>
+                    </div>
+                    
+                    <div class="client-info" style="font-size: 0.85rem; font-weight: 500;">
+                        <div class="mb-1"><i class="fas fa-fingerprint me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_cedula"></span></div>
+                        <div class="mb-1"><i class="fas fa-phone-alt me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_tel"></span></div>
+                        <div class="mb-1"><i class="fas fa-envelope me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_email"></span></div>
+                        <div><i class="fas fa-map-marker-alt me-2" style="color: var(--homeeasy-gold);"></i> <span id="c_dir"></span></div>
+                    </div>
+                    
+                    <ul class="nav nav-tabs nav-tabs-custom" id="tabHistorial" role="tablist">
+                        <li class="nav-item" style="flex:1"><button class="nav-link active w-100" id="ordenes-tab" data-bs-toggle="tab" data-bs-target="#ordenes" type="button">Órdenes</button></li>
+                        <li class="nav-item" style="flex:1"><button class="nav-link w-100" id="cotizaciones-tab" data-bs-toggle="tab" data-bs-target="#cotizaciones" type="button">Cotizaciones</button></li>
+                    </ul>
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="ordenes"><div id="lista_ordenes"></div></div>
+                    <div class="tab-pane fade" id="cotizaciones"><div id="lista_cotizaciones"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditarCliente" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-user-edit me-2"></i>Editar Contacto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Cédula (Clave de Identificación)</label>
+                        <input type="text" class="form-control" id="edit_cedula" readonly style="background: #f0f0f0; color: #888; font-weight:600;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Nombre Completo</label>
+                        <input type="text" class="form-control" id="edit_nombre" style="font-weight:600; color: var(--brand-wine);">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Teléfono</label>
+                        <input type="tel" class="form-control" id="edit_telefono">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="edit_email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Dirección / Ciudad</label>
+                        <input type="text" class="form-control" id="edit_direccion">
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: none; padding: 0 1.5rem 1.5rem;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 12px; font-weight: 600;">Cancelar</button>
+                    <button type="button" class="btn text-white w-50" style="background: var(--brand-wine); border-radius: 12px; font-weight: 600;" id="btnGuardarEdicion" onclick="guardarEdicionCliente()">Actualizar Datos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdf-viewer-overlay">
+        <div class="pdf-viewer-header">
+            <div class="pdf-viewer-title"><i class="fas fa-file-pdf text-danger me-2"></i> Vista Previa</div>
+            <button class="btn-close-pdf" onclick="cerrarVisorPDF()"><i class="fas fa-times"></i></button>
+        </div>
+        <iframe id="pdf-iframe" src=""></iframe>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+        let CLIENTES_CACHE = [];
+        let clienteActual = null; 
+        let modalEditarInstance = null;
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            const indicador = document.getElementById("cargando_clientes");
+            modalEditarInstance = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
+            
+            const params = new URLSearchParams(window.location.search);
+            const autoSearchCedula = params.get("search");
+
+            if (autoSearchCedula) {
+                document.getElementById('cedula_busqueda').value = autoSearchCedula;
+                buscarHistorial(); 
+            }
+
+            try {
+                const response = await fetch(`${URL_G}?listaClientes=1`);
+                const data = await response.json();
+                if (data.status === "ok") {
+                    CLIENTES_CACHE = data.clientes;
+                    if (indicador) { 
+                        indicador.style.opacity = "0"; 
+                        setTimeout(() => indicador.style.display = "none", 300); 
+                    }
+                } else { 
+                    if (indicador) indicador.innerHTML = "⚠ Error cargando"; 
+                }
+            } catch (e) { 
+                if (indicador) indicador.innerHTML = "⚠ Error de conexión"; 
+            }
+        });
+
+        // ==========================================
+        // 🚨 FUNCIONES DEL VISOR PDF
+        // ==========================================
+        function abrirVisorPDF(driveUrl) {
+            if (!driveUrl) {
+                Swal.fire('Atención', 'Este documento no tiene un PDF vinculado.', 'info');
+                return;
+            }
+            let previewUrl = driveUrl;
+            if(previewUrl.includes('/view')) {
+                previewUrl = previewUrl.replace('/view?usp=drivesdk', '/preview');
+                previewUrl = previewUrl.replace('/view', '/preview');
+            }
+
+            document.getElementById('pdf-iframe').src = previewUrl;
+            document.getElementById('pdf-viewer-overlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function cerrarVisorPDF() {
+            document.getElementById('pdf-viewer-overlay').style.display = 'none';
+            document.getElementById('pdf-iframe').src = '';
+            document.body.style.overflow = ''; 
+        }
+
+        // ===============================================
+        // LÓGICA DE LA NUBECITA (POPOVER)
+        // ===============================================
+        function toggleDropdown(id) {
+            document.querySelectorAll('.dropdown-opciones').forEach(el => {
+                if(el.id !== id) el.style.display = 'none';
+            });
+            const drop = document.getElementById(id);
+            drop.style.display = drop.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown-opciones').forEach(el => el.style.display = 'none');
+        });
+
+        function togglePagos(id) {
+            const div = document.getElementById(id);
+            if(div) div.style.display = div.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function buscarHistorial() {
+            const cedula = document.getElementById('cedula_busqueda').value.trim();
+            if (!cedula) return;
+
+            document.getElementById('pantalla-inicio').style.transform = "translateY(-100%)";
+            document.getElementById('pantalla-resultados').style.display = "block";
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('resultado_cliente').style.display = 'none';
+
+            window.history.replaceState({}, '', 'clientes-prueba-v2.html?search=' + encodeURIComponent(cedula));
+
+            try {
+                const response = await fetch(`${URL_G}?tipo=HISTORIAL_CLIENTE&cedula=${cedula}`);
+                const data = await response.json();
+                
+                if (data.status === "found") {
+                    clienteActual = data.cliente; 
+                    document.getElementById('c_nombre').innerText = data.cliente.nombre;
+                    document.getElementById('c_cedula').innerText = data.cliente.cedula;
+                    document.getElementById('c_tel').innerText = data.cliente.telefono;
+                    document.getElementById('c_email').innerText = data.cliente.email || 'No registrado';
+                    document.getElementById('c_dir').innerText = data.cliente.direccion;
+                    
+                    renderLista(data.ordenes, 'lista_ordenes', 'OP');
+                    renderLista(data.cotizaciones, 'lista_cotizaciones', 'COT');
+                    
+                    document.getElementById('resultado_cliente').style.display = 'block';
+                } else { 
+                    alert("Cliente no encontrado."); 
+                    reiniciarBusqueda(); 
+                }
+            } catch(e) { 
+                alert("Error al conectar."); 
+                reiniciarBusqueda(); 
+            } finally { 
+                document.getElementById('loader').style.display = 'none'; 
+            }
+        }
+
+        function abrirModalEditar() {
+            if (!clienteActual) return;
+            document.getElementById('edit_cedula').value = clienteActual.cedula; 
+            document.getElementById('edit_nombre').value = clienteActual.nombre;
+            document.getElementById('edit_telefono').value = clienteActual.telefono; 
+            document.getElementById('edit_email').value = clienteActual.email !== 'No registrado' ? clienteActual.email : '';
+            document.getElementById('edit_direccion').value = clienteActual.direccion;
+            modalEditarInstance.show();
+        }
+
+        async function guardarEdicionCliente() {
+            const btn = document.getElementById('btnGuardarEdicion');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sincronizando...'; 
+            btn.disabled = true;
+            
+            const payload = { 
+                tipo: "actualizar_cliente", 
+                cedula: document.getElementById('edit_cedula').value, 
+                nombre: document.getElementById('edit_nombre').value, 
+                telefono: document.getElementById('edit_telefono').value, 
+                email: document.getElementById('edit_email').value, 
+                direccion: document.getElementById('edit_direccion').value 
+            };
+            
+            try {
+                const response = await fetch(URL_G, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const idx = CLIENTES_CACHE.findIndex(c => String(c.cedula) === String(payload.cedula));
+                    if (idx > -1) { 
+                        CLIENTES_CACHE[idx].nombre = payload.nombre; 
+                        CLIENTES_CACHE[idx].telefono = payload.telefono; 
+                    }
+                    modalEditarInstance.hide(); 
+                    buscarHistorial(); 
+                } else { 
+                    alert("Hubo un error al actualizar: " + result.msg); 
+                }
+            } catch (error) { 
+                alert("Error de conexión al servidor."); 
+            } finally { 
+                btn.innerHTML = 'Actualizar Datos'; 
+                btn.disabled = false; 
+            }
+        }
+
+        function reiniciarBusqueda() {
+            document.getElementById('pantalla-inicio').style.transform = "translateY(0%)";
+            window.history.replaceState({}, '', 'clientes-prueba-v2.html'); 
+            
+            setTimeout(() => { 
+                document.getElementById('pantalla-resultados').style.display = "none"; 
+                document.getElementById('cedula_busqueda').value = ""; 
+                document.getElementById('sugerencias').innerHTML = ""; 
+            }, 500);
+        }
+
+        function renderLista(items, containerId, prefix) {
+            const container = document.getElementById(containerId);
+            
+            if (!items || items.length === 0) { 
+                container.innerHTML = `<div class="text-center py-5 text-muted small">Sin registros</div>`; 
+                return; 
+            }
+
+            let html = "";
+            items.forEach(item => {
+                const num = item.numero_op || item.numero || item.numero_cotizacion || "S/N"; 
+                const urlDoc = item.pdf_url || item.url || null;
+                const total = parseFloat(item.total) || 0; 
+                
+                const saldo = parseFloat(item.saldo) || 0;
+                
+                const fecha = item.fecha ? new Date(item.fecha).toLocaleDateString() : 'N/A';
+                const estadoLimpio = (item.estado || 'REGISTRADO').toUpperCase();
+                const esConvertida = prefix === 'COT' && estadoLimpio.includes("CONVERTIDA");
+
+                let cardTypeClass = prefix === 'COT' ? 'card-COT' : `card-${estadoLimpio}`;
+                if (esConvertida) cardTypeClass = 'card-COMPLETADO';
+                
+                let badgeClass = prefix === 'COT' ? 'badge-cot' : `status-${estadoLimpio}`;
+                if (esConvertida) badgeClass = 'status-COMPLETADO';
+                
+                if (estadoLimpio === 'ANULADA') { 
+                    badgeClass = 'status-ANULADA'; 
+                    cardTypeClass = 'card-ANULADA'; 
+                }
+
+                const saldoClass = (estadoLimpio === 'ANULADA' || saldo <= 0) ? 'saldo-price saldo-finalizado' : 'saldo-price';
+                const saldoTexto = estadoLimpio === 'ANULADA'
+                    ? 'Orden anulada'
+                    : ((saldo <= 0) ? 'Orden Completa' : `Saldo: $${saldo.toLocaleString('es-CO')}`);
+
+                let abonosHtml = "";
+                if (item.abonos_detalle && item.abonos_detalle.length > 0) {
+                    abonosHtml = `<div class="payment-history" id="pagos-${num}">
+                                  <h6 class="small fw-bold mb-3 border-bottom pb-2">Historial de Pagos</h6>`;
+                    
+                    item.abonos_detalle.forEach(pago => { 
+                        let reciboDisplay = pago.recibo === "INICIAL" 
+                            ? `<b style="color:var(--brand-wine)">Abono Inicial</b>` 
+                            : `R.C: <b>${pago.recibo || 'N/A'}</b>`;
+                            
+                      // 🚨 FIX: El Abono Inicial no muestra el ojito de visor PDF
+                        const esInicial = pago.recibo === "INICIAL";
+                        const estadoPago = String(pago.estado || 'ACTIVO').toUpperCase();
+                        const estadoBadge = estadoPago !== 'ACTIVO' && estadoPago !== 'SIN_PAGO'
+                            ? `<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:7px;background:#fff1f0;color:#a6455a;font-size:.55rem;font-weight:700;">${estadoPago.replace(/_/g, ' ')}</span>`
+                            : '';
+                        const tipoBadge = String(pago.tipoRegistro || '').toUpperCase() === 'TRASLADO_CREDITO'
+                            ? '<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:7px;background:#eef6ff;color:#2371b7;font-size:.55rem;font-weight:700;">TRASLADO</span>'
+                            : '';
+                        
+                        abonosHtml += `
+                        <div class="payment-item" ${(!esInicial && pago.url) ? `onclick="event.stopPropagation(); abrirVisorPDF('${pago.url}')" style="cursor:pointer;"` : ''}>
+                            <div>
+                                <i class="fas fa-receipt me-2 text-muted"></i>${reciboDisplay}${tipoBadge}${estadoBadge}
+                                ${(!esInicial && pago.url) ? '<i class="fas fa-eye ms-1" style="color:var(--brand-wine); font-size:0.75rem;"></i>' : ''}
+                            </div>
+                            <div class="text-center">${pago.fecha || 'N/A'}</div>
+                            <div class="fw-bold">$${(parseFloat(pago.valor) || 0).toLocaleString('es-CO')}</div>
+                        </div>`;
+                    });
+                    
+                    abonosHtml += `</div>`;
+                } else if (prefix === 'OP') {
+                    abonosHtml = `<div class="payment-history" id="pagos-${num}"><p class="text-center small text-muted">No hay abonos registrados.</p></div>`;
+                }
+
+                const mostrarEditar = (estadoLimpio !== 'ANULADA' && !esConvertida);
+                const mostrarRevisionAnulacion = (estadoLimpio !== 'ANULADA');
+                const mostrarOpciones = mostrarEditar || mostrarRevisionAnulacion;
+
+                html += `
+                <div class="item-card ${cardTypeClass}">
+                    <div class="item-header" ${prefix === 'OP' ? `onclick="togglePagos('pagos-${num}')" style="cursor:pointer;"` : ''}>
+                        <div class="fw-bold small text-muted d-flex align-items-center justify-content-between w-100">
+                            <div>${prefix} N° ${num}</div>
+                            <div class="d-flex align-items-center gap-2 position-relative">
+                                <div class="status-badge ${badgeClass}">${estadoLimpio}</div>
+                                
+                                ${mostrarOpciones ? `
+                                <i class="fas fa-ellipsis-v opciones-icono" onclick="event.stopPropagation(); toggleDropdown('drop-${prefix}-${num}')"></i>
+                                
+                                <div class="dropdown-opciones" id="drop-${prefix}-${num}">
+                                    ${mostrarEditar ? `
+                                    <div class="drop-item" onclick="event.stopPropagation(); confirmarEdicion('${prefix}', '${num}')">
+                                        <i class="fas fa-edit" style="color: var(--brand-wine);"></i> Editar
+                                    </div>` : ''}
+                                    ${mostrarRevisionAnulacion ? `
+                                    <div class="drop-item text-danger" onclick="event.stopPropagation(); confirmarAnulacion('${prefix}', '${num}')">
+                                        <i class="fas fa-shield-halved"></i> Revisar anulación
+                                    </div>` : ''}
+                                </div>
+                                ` : ''}
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item-body" ${prefix === 'OP' ? `onclick="togglePagos('pagos-${num}')" style="cursor:pointer;"` : ''}>
+                        <div class="item-desc small fw-medium mb-2">${item.detalle || item.descripcion || 'Sin detalles'}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;"><i class="far fa-calendar-alt me-1"></i> ${fecha}</div>
+                    </div>
+                    ${abonosHtml}
+                    <div class="item-footer">
+                        <div>
+                            <div class="total-price">$${total.toLocaleString('es-CO')}</div>
+                            ${prefix === 'OP' ? `<div class="${saldoClass}">${saldoTexto}</div>` : ''}
+                        </div>
+                        <div class="d-flex align-items-center">
+                            ${prefix === 'COT' && !esConvertida && estadoLimpio !== 'ANULADA' ? `<a href="pedido.html?cotizacion=${num}" class="btn-pdf me-2" style="background:rgba(194, 164, 104, 0.15); color:var(--homeeasy-gold); border-color:transparent;"><i class="fas fa-random me-1"></i> A OP</a>` : ''}
+                            
+                            ${urlDoc ? `<button onclick="event.stopPropagation(); abrirVisorPDF('${urlDoc}')" class="btn-pdf"><i class="fas fa-file-pdf me-1"></i> VER PDF</button>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function confirmarEdicion(prefix, num) {
+            toggleDropdown('drop-' + prefix + '-' + num); 
+            
+            Swal.fire({
+                title: '¿Editar este documento?',
+                text: "Se cargará la información en el formulario. Al guardar se creará una nueva versión y el PDF anterior permanecerá protegido en el historial.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#a6455a',
+                cancelButtonColor: '#aaa',
+                confirmButtonText: 'Sí, editar',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal2-premium' }
+            }).then((res) => {
+                if(res.isConfirmed) {
+                    const returnCedula = clienteActual ? `&return_cedula=${clienteActual.cedula}` : '';
+                    window.location.href = `${prefix === 'OP' ? 'pedido.html' : 'cotizacion.html'}?edit=${num}${returnCedula}`;
+                }
+            });
+        }
+
+        async function confirmarAnulacion(prefix, num) {
+            toggleDropdown('drop-' + prefix + '-' + num);
+            const etiqueta = prefix === 'OP' ? 'orden OP-' + num : 'cotización COT-' + num;
+
+            const respuesta = await Swal.fire({
+                title: 'Revisar anulación',
+                html: `
+                    <div style="text-align:left; font-size:.86rem; line-height:1.55; color:#5f5a5d;">
+                        HomeEasy revisará pagos, recibos, Caja, Agenda y versiones antes de permitir cualquier cambio en la <b>${etiqueta}</b>.
+                        <div style="margin:14px 0 12px; padding:11px 13px; border-radius:12px; background:#f8f3f4; color:#8a3b4c; font-size:.78rem; font-weight:700;">
+                            <i class="fas fa-shield-halved me-2"></i>Esta revisión no anula ni modifica ningún dato.
+                        </div>
+                        <label for="anulacion-pin" style="display:block; margin-bottom:6px; font-size:.7rem; font-weight:700; color:#8e8e93; text-transform:uppercase;">PIN de Configuración</label>
+                        <input id="anulacion-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off"
+                               style="width:100%; height:48px; border:1px solid #e5e5ea; border-radius:13px; padding:0 15px; font-size:1.05rem; text-align:center; letter-spacing:5px; outline:none;">
+                    </div>`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#a6455a',
+                cancelButtonColor: '#aaa',
+                confirmButtonText: 'Analizar',
+                cancelButtonText: 'Cancelar',
+                focusConfirm: false,
+                customClass: { popup: 'swal2-premium' },
+                didOpen: () => {
+                    const input = document.getElementById('anulacion-pin');
+                    if (input) {
+                        input.focus();
+                        input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 8); });
+                        input.addEventListener('keydown', event => { if (event.key === 'Enter') Swal.clickConfirm(); });
+                    }
+                },
+                preConfirm: () => {
+                    const pin = String(document.getElementById('anulacion-pin').value || '').replace(/\D/g, '');
+                    if (pin.length < 4 || pin.length > 8) {
+                        Swal.showValidationMessage('Ingresa un PIN de 4 a 8 números.');
+                        return false;
+                    }
+                    return pin;
+                }
+            });
+
+            if (respuesta.isConfirmed) {
+                await analizarAnulacion(prefix, num, respuesta.value);
+            }
+        }
+
+        async function analizarAnulacion(prefix, num, pin) {
+            Swal.fire({
+                title: 'Analizando dependencias…',
+                html: '<span style="font-size:.82rem;color:#8e8e93;">No cierres esta ventana. Solo estamos leyendo información.</span>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => Swal.showLoading(),
+                customClass: { popup: 'swal2-premium' }
+            });
+
+            try {
+                const resultado = await HomeEasyCore.post({
+                    tipo: 'ANALIZAR_ANULACION_DOCUMENTO',
+                    docType: prefix,
+                    numero: num,
+                    pin: pin
+                }, { timeoutMs: 45000 });
+
+                if (!resultado || resultado.status !== 'ok') {
+                    throw new Error(resultado && resultado.msg ? resultado.msg : 'No fue posible analizar el documento.');
+                }
+
+                const ejecucion = resultado.ejecucion || {};
+                const diagnostico = await Swal.fire({
+                    title: resultado.documento.etiqueta + ' ' + (prefix === 'OP' ? 'OP-' : 'COT-') + resultado.documento.numero,
+                    html: construirDiagnosticoAnulacion(resultado),
+                    width: 720,
+                    icon: iconoDiagnosticoAnulacion(resultado.diagnostico.nivel),
+                    showCancelButton: Boolean(ejecucion.permitida),
+                    confirmButtonText: ejecucion.permitida ? 'Continuar con la anulación' : 'Entendido',
+                    cancelButtonText: 'Cerrar',
+                    confirmButtonColor: ejecucion.permitida ? '#d14a55' : '#a6455a',
+                    cancelButtonColor: '#aaa',
+                    reverseButtons: true,
+                    customClass: { popup: 'swal2-premium' }
+                });
+
+                if (ejecucion.permitida && diagnostico.isConfirmed) {
+                    await solicitarConfirmacionFinalAnulacion(resultado, pin);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No se pudo completar la revisión',
+                    text: error.message || 'Revisa la conexión e intenta nuevamente.',
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
+            }
+        }
+
+        function iconoDiagnosticoAnulacion(nivel) {
+            const value = String(nivel || '').toUpperCase();
+            if (value === 'BLOQUEADO' || value === 'ALTO') return 'warning';
+            if (value === 'INFORMATIVO') return 'info';
+            return 'success';
+        }
+
+        function colorDiagnosticoAnulacion(nivel) {
+            const value = String(nivel || '').toUpperCase();
+            if (value === 'BLOQUEADO') return { fondo: '#fff1f0', borde: '#ff3b30', texto: '#9f241d' };
+            if (value === 'ALTO') return { fondo: '#fff6e8', borde: '#ff9500', texto: '#9a5b00' };
+            if (value === 'MEDIO') return { fondo: '#fffbe8', borde: '#c2a468', texto: '#806a34' };
+            if (value === 'INFORMATIVO') return { fondo: '#eef6ff', borde: '#007aff', texto: '#145a9c' };
+            return { fondo: '#eefaf1', borde: '#34c759', texto: '#1e7b38' };
+        }
+
+        function construirDiagnosticoAnulacion(resultado) {
+            const doc = resultado.documento || {};
+            const dep = resultado.dependencias || {};
+            const diag = resultado.diagnostico || {};
+            const colores = colorDiagnosticoAnulacion(diag.nivel);
+            const safe = value => HomeEasyCore.escapeHtml(value === undefined || value === null || value === '' ? '—' : String(value));
+            const money = value => '$' + Number(value || 0).toLocaleString('es-CO');
+            const row = (label, value, strong) => `
+                <div style="display:flex;justify-content:space-between;gap:18px;padding:8px 0;border-bottom:1px solid #f0edef;font-size:.79rem;">
+                    <span style="color:#8e8e93;font-weight:650;">${safe(label)}</span>
+                    <span style="color:#292629;font-weight:${strong ? '800' : '650'};text-align:right;">${value}</span>
+                </div>`;
+
+            let resumen = row('Estado actual', safe(doc.estado), true) +
+                          row('Cliente', safe(doc.cliente), false) +
+                          row('Total', money(doc.total), true) +
+                          row('PDF activo', doc.pdfDisponible ? 'Disponible' : 'No disponible', false) +
+                          row('Versiones', safe((doc.versiones && doc.versiones.total) || 0) + ' registradas', false);
+
+            let financiero = '';
+            if (doc.tipo === 'OP') {
+                financiero = `
+                    <div style="margin-top:14px;font-size:.72rem;font-weight:700;color:#a6455a;text-transform:uppercase;letter-spacing:.7px;">Impacto financiero</div>
+                    ${row('Abono inicial', money(dep.abonoInicial), false)}
+                    ${row('Recibos posteriores', safe((dep.recibos || []).length) + ' · ' + money(dep.totalRecibos), false)}
+                    ${row('Total pagado', money(dep.totalPagado), true)}
+                    ${row('Saldo guardado', money(doc.saldo), false)}
+                    ${row('Saldo calculado', money(dep.saldoCalculado), false)}`;
+            }
+
+            const relaciones = [];
+            if ((dep.ordenesVinculadas || []).length) relaciones.push((dep.ordenesVinculadas || []).length + ' OP vinculada(s)');
+            if ((dep.cotizacionesOrigen || []).length) relaciones.push((dep.cotizacionesOrigen || []).length + ' cotización(es) de origen');
+            if ((dep.eventosAgenda || []).length) relaciones.push((dep.eventosAgenda || []).length + ' evento(s) de Agenda');
+            if ((dep.movimientosCajaPosibles || []).length) relaciones.push((dep.movimientosCajaPosibles || []).length + ' posible(s) referencia(s) manual(es) en Caja');
+            const relacionesHtml = relaciones.length
+                ? `<div style="margin-top:14px;padding:11px 13px;border-radius:12px;background:#f8f9fa;color:#5f5a5d;font-size:.77rem;line-height:1.5;"><b>Relaciones encontradas:</b><br>${relaciones.map(safe).join('<br>')}</div>`
+                : `<div style="margin-top:14px;padding:11px 13px;border-radius:12px;background:#f8f9fa;color:#7c777a;font-size:.77rem;">No se encontraron referencias adicionales.</div>`;
+
+            const advertencias = Array.isArray(diag.advertencias) ? diag.advertencias : [];
+            const advertenciasHtml = advertencias.length
+                ? `<div style="margin-top:14px;text-align:left;"><div style="font-size:.72rem;font-weight:700;color:#a6455a;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;">Observaciones</div>${advertencias.map(item => `<div style="display:flex;gap:8px;margin:6px 0;color:#655f62;font-size:.76rem;line-height:1.4;"><i class="fas fa-circle-exclamation" style="color:#c2a468;margin-top:2px;"></i><span>${safe(item)}</span></div>`).join('')}</div>`
+                : '';
+
+            return `
+                <div style="text-align:left;">
+                    <div style="padding:13px 15px;border-radius:14px;background:${colores.fondo};border-left:5px solid ${colores.borde};color:${colores.texto};font-size:.82rem;line-height:1.5;font-weight:650;">
+                        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Riesgo ${safe(diag.nivel)}</div>
+                        ${safe(diag.mensaje)}
+                    </div>
+                    <div style="margin-top:14px;">${resumen}</div>
+                    ${financiero}
+                    ${relacionesHtml}
+                    ${advertenciasHtml}
+                    ${construirEstadoEjecucionAnulacion(resultado)}
+                    <div style="margin-top:12px;padding:10px 12px;border-radius:12px;background:#f1faf3;color:#27763b;font-size:.73rem;font-weight:650;text-align:center;">
+                        <i class="fas fa-lock me-1"></i> Revisión terminada: no se modificaron datos, saldos ni archivos.
+                    </div>
+                </div>`;
+        }
+
+        function construirEstadoEjecucionAnulacion(resultado) {
+            const ejecucion = resultado.ejecucion || {};
+            const safe = value => HomeEasyCore.escapeHtml(value === undefined || value === null ? '' : String(value));
+            if (ejecucion.permitida) {
+                const eventos = Number(ejecucion.eventosPendientes || 0);
+                const requiereTratamiento = Boolean(ejecucion.requiereTratamiento);
+                return `
+                    <div style="margin-top:14px;padding:12px 14px;border-radius:13px;background:${requiereTratamiento ? '#fff7ea' : '#eefaf1'};border:1px solid ${requiereTratamiento ? '#f5dfb9' : '#d6f1dc'};color:${requiereTratamiento ? '#8d5c08' : '#27763b'};font-size:.77rem;line-height:1.5;">
+                        <b><i class="fas ${requiereTratamiento ? 'fa-scale-balanced' : 'fa-circle-check'} me-1"></i> ${requiereTratamiento ? 'Anulación disponible con tratamiento financiero' : 'Anulación segura disponible'}</b><br>
+                        ${safe(ejecucion.mensaje || 'El documento puede anularse de forma controlada.')}
+                        ${eventos ? `<br><span>Hay ${eventos} evento${eventos === 1 ? '' : 's'} pendiente${eventos === 1 ? '' : 's'} que podrás cancelar en la confirmación final.</span>` : ''}
+                        ${ejecucion.requiereConfirmacionCaja ? '<br><span><b>Importante:</b> deberás confirmar que revisaste las referencias manuales encontradas en Caja.</span>' : ''}
+                    </div>`;
+            }
+            const codigo = safe(ejecucion.codigo || 'BLOQUEADA');
+            return `
+                <div style="margin-top:14px;padding:12px 14px;border-radius:13px;background:#fff7ea;border:1px solid #f5dfb9;color:#8d5c08;font-size:.77rem;line-height:1.5;">
+                    <b><i class="fas fa-shield-halved me-1"></i> Ejecución bloqueada</b><br>
+                    ${safe(ejecucion.mensaje || 'El documento requiere una revisión adicional antes de anular.')}
+                    <div style="margin-top:5px;font-size:.65rem;color:#a47a35;">Control: ${codigo}</div>
+                </div>`;
+        }
+
+
+        function etiquetaTratamientoAnulacion(codigo) {
+            const labels = {
+                'NO_APLICA_SIN_PAGOS': 'Sin movimiento financiero',
+                'REEMBOLSO_TOTAL': 'Reembolso total al cliente',
+                'TRASLADO_TOTAL_A_OP': 'Traslado total a otra OP',
+                'RETENCION_POR_ACUERDO': 'Dinero retenido por acuerdo',
+                'CORRECCION_ADMINISTRATIVA': 'Corrección administrativa'
+            };
+            return labels[codigo] || codigo;
+        }
+
+        function descripcionTratamientoAnulacion(codigo, monto) {
+            const money = '$' + Number(monto || 0).toLocaleString('es-CO');
+            if (codigo === 'REEMBOLSO_TOTAL') return `HomeEasy registrará una salida en Caja por ${money}. Los recibos originales se conservarán marcados como reembolsados.`;
+            if (codigo === 'TRASLADO_TOTAL_A_OP') return `HomeEasy aplicará ${money} como crédito interno a otra OP del mismo cliente. No crea una entrada ni salida nueva en Caja.`;
+            if (codigo === 'RETENCION_POR_ACUERDO') return `Los ${money} permanecerán en HomeEasy conforme al acuerdo comercial. No se crea una salida en Caja.`;
+            if (codigo === 'CORRECCION_ADMINISTRATIVA') return `Se declarará que los ${money} fueron registrados por error y que no existió dinero real. Esos registros dejarán de afectar Caja y saldos.`;
+            return 'No se realizará ningún movimiento financiero.';
+        }
+
+        function opcionesTratamientoHtml(resultado) {
+            const ejecucion = resultado.ejecucion || {};
+            const tratamientos = Array.isArray(ejecucion.tratamientos) ? ejecucion.tratamientos : [];
+            return tratamientos.map(codigo => `<option value="${HomeEasyCore.escapeHtml(codigo)}">${HomeEasyCore.escapeHtml(etiquetaTratamientoAnulacion(codigo))}</option>`).join('');
+        }
+
+        function renderDetalleTratamientoAnulacion(resultado) {
+            const container = document.getElementById('anulacion-tratamiento-detalle');
+            const select = document.getElementById('anulacion-tratamiento');
+            if (!container || !select) return;
+            const codigo = select.value;
+            const dep = resultado.dependencias || {};
+            const total = Number(dep.totalPagado || 0);
+            const opciones = (resultado.ejecucion && resultado.ejecucion.opcionesTraslado) || dep.opcionesTraslado || [];
+            let campos = '';
+            if (codigo === 'REEMBOLSO_TOTAL') {
+                campos = `
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Medio del reembolso</label>
+                    <select id="anulacion-medio-reembolso" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;">
+                        <option value="">Seleccionar…</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="OTRO">Otro</option>
+                    </select>`;
+            } else if (codigo === 'TRASLADO_TOTAL_A_OP') {
+                const disponibles = opciones.filter(item => item.disponible);
+                campos = `
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">OP de destino</label>
+                    <select id="anulacion-op-destino" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;">
+                        <option value="">Seleccionar…</option>
+                        ${disponibles.map(item => `<option value="${HomeEasyCore.escapeHtml(item.numero)}">OP-${HomeEasyCore.escapeHtml(item.numero)} · saldo $${Number(item.saldo || 0).toLocaleString('es-CO')}</option>`).join('')}
+                    </select>
+                    ${disponibles.length ? '' : '<div style="margin-top:7px;color:#b34b56;font-size:.72rem;font-weight:700;">No hay otra OP del mismo cliente con saldo y cupo suficiente.</div>'}`;
+            } else if (codigo === 'RETENCION_POR_ACUERDO') {
+                campos = `
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Confirmación especial</label>
+                    <input id="anulacion-confirmacion-especial" type="text" placeholder="DINERO RETENIDO" autocomplete="off" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 12px;text-align:center;font-weight:700;text-transform:uppercase;outline:none;">`;
+            } else if (codigo === 'CORRECCION_ADMINISTRATIVA') {
+                campos = `
+                    <label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Confirmación especial</label>
+                    <input id="anulacion-confirmacion-especial" type="text" placeholder="NO HUBO DINERO" autocomplete="off" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 12px;text-align:center;font-weight:700;text-transform:uppercase;outline:none;">`;
+            }
+            container.innerHTML = `
+                <div style="margin-top:10px;padding:10px 12px;border-radius:11px;background:#fff8ed;color:#80570f;font-size:.74rem;line-height:1.45;">${HomeEasyCore.escapeHtml(descripcionTratamientoAnulacion(codigo, total))}</div>
+                ${campos}
+                ${codigo !== 'NO_APLICA_SIN_PAGOS' ? `<label style="display:block;margin:12px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Detalle del tratamiento (opcional)</label><textarea id="anulacion-detalle-tratamiento" maxlength="300" rows="2" placeholder="Ej: comprobante de transferencia, acuerdo firmado, observación interna…" style="width:100%;border:1px solid #e5e5ea;border-radius:11px;padding:9px 11px;resize:none;outline:none;font:inherit;font-size:.78rem;"></textarea>` : ''}`;
+        }
+
+        async function solicitarConfirmacionFinalAnulacion(resultado, pin) {
+            const doc = resultado.documento || {};
+            const dep = resultado.dependencias || {};
+            const ejecucion = resultado.ejecucion || {};
+            const codigo = (doc.tipo === 'OP' ? 'OP-' : 'COT-') + doc.numero;
+            const eventos = Number(ejecucion.eventosPendientes || 0);
+            const requiereTratamiento = Boolean(ejecucion.requiereTratamiento);
+            const cotizacionesOrigen = Array.isArray(dep.cotizacionesOrigen) ? dep.cotizacionesOrigen : [];
+            const referenciasCaja = Array.isArray(dep.movimientosCajaPosibles) ? dep.movimientosCajaPosibles.length : 0;
+            const eventosHtml = eventos > 0
+                ? `<label style="display:flex;align-items:flex-start;gap:9px;margin:14px 0 4px;padding:10px 11px;border-radius:11px;background:#f8f9fa;color:#5f5a5d;font-size:.76rem;line-height:1.4;cursor:pointer;"><input id="anulacion-cancelar-eventos" type="checkbox" checked style="margin-top:2px;width:17px;height:17px;accent-color:#a6455a;"><span>Cancelar también ${eventos} evento${eventos === 1 ? '' : 's'} pendiente${eventos === 1 ? '' : 's'} de Agenda.</span></label>`
+                : '';
+            const origenHtml = doc.tipo === 'OP' && cotizacionesOrigen.length
+                ? `<label style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Cotización de origen</label><select id="anulacion-cotizacion-origen" style="width:100%;height:44px;border:1px solid #e5e5ea;border-radius:11px;padding:0 10px;background:white;outline:none;"><option value="ARCHIVAR">Archivar cotización de origen</option><option value="REACTIVAR">Reactivar como cotización</option></select>`
+                : '';
+            const cajaHtml = referenciasCaja
+                ? `<label style="display:flex;align-items:flex-start;gap:9px;margin:14px 0 4px;padding:10px 11px;border-radius:11px;background:#fff6e8;color:#80570f;font-size:.75rem;line-height:1.4;cursor:pointer;"><input id="anulacion-confirmar-caja" type="checkbox" style="margin-top:2px;width:17px;height:17px;accent-color:#a6455a;"><span>Revisé las ${referenciasCaja} posible${referenciasCaja === 1 ? '' : 's'} referencia${referenciasCaja === 1 ? '' : 's'} manual${referenciasCaja === 1 ? '' : 'es'} encontradas en Caja y confirmo continuar.</span></label>`
+                : '';
+            const tratamientoHtml = requiereTratamiento
+                ? `<label style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">¿Qué ocurrió con $${Number(dep.totalPagado || 0).toLocaleString('es-CO')}?</label><select id="anulacion-tratamiento" style="width:100%;height:46px;border:1px solid #e5e5ea;border-radius:12px;padding:0 11px;background:white;font-weight:700;outline:none;">${opcionesTratamientoHtml(resultado)}</select><div id="anulacion-tratamiento-detalle"></div>`
+                : `<input id="anulacion-tratamiento" type="hidden" value="NO_APLICA_SIN_PAGOS">`;
+
+            const confirmacion = await Swal.fire({
+                icon: 'warning',
+                title: 'Confirmación final',
+                width: 650,
+                html: `
+                    <div style="text-align:left;color:#5f5a5d;font-size:.82rem;line-height:1.5;max-height:62vh;overflow-y:auto;padding-right:4px;">
+                        Esta acción marcará <b>${codigo}</b> como <b>ANULADA</b>. Los PDF y recibos originales se conservarán.
+                        ${tratamientoHtml}
+                        ${cajaHtml}
+                        ${origenHtml}
+                        ${eventosHtml}
+                        <label for="anulacion-motivo" style="display:block;margin:15px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Motivo</label>
+                        <textarea id="anulacion-motivo" maxlength="300" rows="3" placeholder="Explica por qué se anula este documento…" style="width:100%;border:1px solid #e5e5ea;border-radius:12px;padding:11px 12px;resize:none;outline:none;font:inherit;font-size:.82rem;"></textarea>
+                        <label for="anulacion-confirmacion" style="display:block;margin:14px 0 6px;font-size:.68rem;font-weight:700;color:#8e8e93;text-transform:uppercase;">Escribe ${codigo}</label>
+                        <input id="anulacion-confirmacion" type="text" autocomplete="off" placeholder="${codigo}" style="width:100%;height:46px;border:1px solid #e5e5ea;border-radius:12px;padding:0 13px;text-align:center;font-weight:700;letter-spacing:1px;outline:none;text-transform:uppercase;">
+                    </div>`,
+                showCancelButton: true,
+                confirmButtonText: 'Anular documento',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#d14a55',
+                cancelButtonColor: '#aaa',
+                focusConfirm: false,
+                reverseButtons: true,
+                customClass: { popup: 'swal2-premium' },
+                didOpen: () => {
+                    const select = document.getElementById('anulacion-tratamiento');
+                    if (select && requiereTratamiento) {
+                        select.addEventListener('change', () => renderDetalleTratamientoAnulacion(resultado));
+                        renderDetalleTratamientoAnulacion(resultado);
+                    }
+                    const motivo = document.getElementById('anulacion-motivo');
+                    if (motivo) motivo.focus();
+                },
+                preConfirm: () => {
+                    const motivo = String(document.getElementById('anulacion-motivo').value || '').trim();
+                    const escrito = String(document.getElementById('anulacion-confirmacion').value || '').trim().toUpperCase();
+                    const tratamiento = String(document.getElementById('anulacion-tratamiento').value || 'NO_APLICA_SIN_PAGOS');
+                    if (motivo.length < 10) { Swal.showValidationMessage('Explica el motivo con al menos 10 caracteres.'); return false; }
+                    if (escrito !== codigo.toUpperCase()) { Swal.showValidationMessage('Escribe exactamente ' + codigo + '.'); return false; }
+                    const cajaCheck = document.getElementById('anulacion-confirmar-caja');
+                    if (cajaCheck && !cajaCheck.checked) { Swal.showValidationMessage('Confirma que revisaste las referencias manuales de Caja.'); return false; }
+                    let medioReembolso = '';
+                    let opDestino = '';
+                    let confirmacionEspecial = '';
+                    if (tratamiento === 'REEMBOLSO_TOTAL') {
+                        medioReembolso = String(document.getElementById('anulacion-medio-reembolso')?.value || '');
+                        if (!medioReembolso) { Swal.showValidationMessage('Selecciona el medio del reembolso.'); return false; }
+                    }
+                    if (tratamiento === 'TRASLADO_TOTAL_A_OP') {
+                        opDestino = String(document.getElementById('anulacion-op-destino')?.value || '');
+                        if (!opDestino) { Swal.showValidationMessage('Selecciona la OP de destino.'); return false; }
+                    }
+                    if (tratamiento === 'RETENCION_POR_ACUERDO' || tratamiento === 'CORRECCION_ADMINISTRATIVA') {
+                        confirmacionEspecial = String(document.getElementById('anulacion-confirmacion-especial')?.value || '').trim().toUpperCase();
+                        const requerida = tratamiento === 'RETENCION_POR_ACUERDO' ? 'DINERO RETENIDO' : 'NO HUBO DINERO';
+                        if (confirmacionEspecial !== requerida) { Swal.showValidationMessage('Escribe exactamente ' + requerida + '.'); return false; }
+                    }
+                    const checkbox = document.getElementById('anulacion-cancelar-eventos');
+                    const origen = document.getElementById('anulacion-cotizacion-origen');
+                    return {
+                        motivo,
+                        confirmacion: escrito,
+                        cancelarEventos: checkbox ? checkbox.checked : false,
+                        tratamientoFinanciero: tratamiento,
+                        medioReembolso,
+                        opDestino,
+                        confirmacionEspecial,
+                        detalleTratamiento: String(document.getElementById('anulacion-detalle-tratamiento')?.value || '').trim(),
+                        confirmarCajaManual: cajaCheck ? cajaCheck.checked : false,
+                        reactivarCotizacionOrigen: origen ? origen.value === 'REACTIVAR' : false
+                    };
+                }
+            });
+            if (!confirmacion.isConfirmed) return;
+            await ejecutarAnulacionSegura(resultado, pin, confirmacion.value);
+        }
+
+
+        async function ejecutarAnulacionSegura(resultado, pin, datosConfirmacion) {
+            const doc = resultado.documento || {};
+            const ejecucion = resultado.ejecucion || {};
+            Swal.fire({
+                title: 'Aplicando anulación segura…',
+                html: '<span style="font-size:.82rem;color:#8e8e93;">HomeEasy revalidará el documento, el dinero, Caja y las relaciones antes de guardar.</span>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => Swal.showLoading(),
+                customClass: { popup: 'swal2-premium' }
+            });
+
+            try {
+                const response = await HomeEasyCore.post({
+                    tipo: 'EJECUTAR_ANULACION_SEGURA',
+                    docType: doc.tipo,
+                    numero: doc.numero,
+                    pin: pin,
+                    token: ejecucion.token,
+                    motivo: datosConfirmacion.motivo,
+                    confirmacion: datosConfirmacion.confirmacion,
+                    cancelarEventos: Boolean(datosConfirmacion.cancelarEventos),
+                    tratamientoFinanciero: datosConfirmacion.tratamientoFinanciero,
+                    medioReembolso: datosConfirmacion.medioReembolso,
+                    opDestino: datosConfirmacion.opDestino,
+                    confirmacionEspecial: datosConfirmacion.confirmacionEspecial,
+                    detalleTratamiento: datosConfirmacion.detalleTratamiento,
+                    confirmarCajaManual: Boolean(datosConfirmacion.confirmarCajaManual),
+                    reactivarCotizacionOrigen: Boolean(datosConfirmacion.reactivarCotizacionOrigen)
+                }, { timeoutMs: 120000 });
+
+                if (!response || response.status !== 'success') {
+                    throw new Error(response && response.msg ? response.msg : 'No se pudo completar la anulación.');
+                }
+
+                const extras = [];
+                if (Number(response.montoReembolsado || 0)) extras.push('Reembolso registrado: $' + Number(response.montoReembolsado).toLocaleString('es-CO'));
+                if (response.opDestino) extras.push('Crédito trasladado a OP-' + response.opDestino);
+                if (Number(response.recibosMarcados || 0)) extras.push(response.recibosMarcados + ' recibo(s) conservados y marcados');
+                if (Number(response.eventosCancelados || 0)) extras.push(response.eventosCancelados + ' evento(s) de Agenda cancelados');
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Anulación completada',
+                    html: `
+                        <div style="font-size:.84rem;color:#5f5a5d;line-height:1.6;">
+                            <b>${doc.tipo === 'OP' ? 'OP-' : 'COT-'}${doc.numero}</b> quedó en estado <b>ANULADA</b>.<br>
+                            <span style="color:#a6455a;font-weight:650;">${HomeEasyCore.escapeHtml(etiquetaTratamientoAnulacion(response.tratamientoFinanciero || 'NO_APLICA_SIN_PAGOS'))}</span>
+                            ${extras.length ? '<div style="margin-top:10px;padding:10px;border-radius:10px;background:#f8f9fa;text-align:left;">' + extras.map(item => '• ' + HomeEasyCore.escapeHtml(item)).join('<br>') + '</div>' : ''}
+                            <span style="display:block;margin-top:10px;font-size:.72rem;color:#8e8e93;">Registro: ${HomeEasyCore.escapeHtml(response.idAnulacion || 'creado')}</span>
+                        </div>`,
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
+                await buscarHistorial();
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No se completó la anulación',
+                    text: error.message || 'El documento se mantuvo sin cambios.',
+                    confirmButtonColor: '#a6455a',
+                    customClass: { popup: 'swal2-premium' }
+                });
+            }
+        }
+
+
+        // ===============================================
+        // BUSCADOR CON AUTOCOMPLETADO
+        // ===============================================
+        const inputBusqueda = document.getElementById("cedula_busqueda");
+        const sugerenciasDiv = document.getElementById("sugerencias");
+
+        document.getElementById('cedula_busqueda').addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') buscarHistorial(); 
+        });
+
+        function normalizarTexto(texto) { 
+            return String(texto).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
+        }
+
+        inputBusqueda.addEventListener("input", function () {
+            const valorOriginal = inputBusqueda.value.trim(); 
+            const valor = normalizarTexto(valorOriginal);
+            
+            if (valor.length < 2) { 
+                sugerenciasDiv.innerHTML = ""; 
+                return; 
+            }
+            sugerenciasDiv.innerHTML = "";
+
+            const resultados = CLIENTES_CACHE.filter(cliente => {
+                const nombre = normalizarTexto(cliente.nombre || ""); 
+                const cedula = normalizarTexto(cliente.cedula || ""); 
+                const telefono = normalizarTexto(cliente.telefono || "");
+                return (nombre.includes(valor) || cedula.includes(valor) || telefono.includes(valor));
+            }).slice(0, 8);
+
+            resultados.forEach(cliente => {
+                const item = document.createElement("div");
+                item.style.padding = "15px 20px"; 
+                item.style.cursor = "pointer"; 
+                item.style.borderBottom = "1px solid #eee"; 
+                item.style.fontSize = "0.9rem"; 
+                item.style.color = "#444";
+                
+                const nombreNormalizado = normalizarTexto(cliente.nombre); 
+                const index = nombreNormalizado.indexOf(valor);
+                
+                if (index !== -1) {
+                    const antes = cliente.nombre.substring(0, index); 
+                    const match = cliente.nombre.substring(index, index + valor.length); 
+                    const despues = cliente.nombre.substring(index + valor.length);
+                    item.innerHTML = `${antes}<strong style="color:var(--brand-wine);">${match}</strong>${despues} <br><small style="color:#999">${cliente.cedula}</small>`;
+                } else { 
+                    item.innerText = `${cliente.nombre} - ${cliente.cedula}`; 
+                }
+                
+                item.onclick = () => { 
+                    inputBusqueda.value = cliente.cedula; 
+                    sugerenciasDiv.innerHTML = ""; 
+                    buscarHistorial(); 
+                };
+                
+                sugerenciasDiv.appendChild(item);
+            });
+        });
+
+        document.addEventListener("click", function(e) { 
+            if (!inputBusqueda.contains(e.target) && !sugerenciasDiv.contains(e.target)) { 
+                sugerenciasDiv.innerHTML = ""; 
+            } 
+        });
+    </script>
+
+<script id="clientes-standalone-v3-script">
+(function ClientesV2Preview(){
+  'use strict';
+
+  document.body.classList.add('clientes-v2-preview');
+  const state={OP:[],COT:[]};
+  let toastTimer=null;
+
+  const $=id=>document.getElementById(id);
+  const clean=value=>String(value??'').trim();
+  const numeric=value=>{
+    const parsed=Number(String(value??'').replace(/[^0-9.-]/g,''));
+    return Number.isFinite(parsed)?parsed:0;
+  };
+  const money=value=>'$'+Math.round(numeric(value)).toLocaleString('es-CO');
+  const initials=name=>clean(name).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'C';
+
+  function phoneDigits(raw){
+    let digits=clean(raw).replace(/\D/g,'');
+    if(digits.length===10&&digits.startsWith('3')) digits='57'+digits;
+    return digits;
+  }
+
+  function contactText(){
+    const email=clean($('c_email')?.textContent);
+    return [
+      clean($('c_nombre')?.textContent),
+      'Cédula: '+clean($('c_cedula')?.textContent),
+      'Teléfono: '+clean($('c_tel')?.textContent),
+      'Correo: '+(email||'Sin correo registrado'),
+      'Dirección: '+clean($('c_dir')?.textContent)
+    ].join('\n');
+  }
+
+  function toast(message){
+    let node=document.querySelector('.v2-toast');
+    if(!node){node=document.createElement('div');node.className='v2-toast';document.body.appendChild(node)}
+    node.textContent=message;
+    requestAnimationFrame(()=>node.classList.add('is-visible'));
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>node.classList.remove('is-visible'),1500);
+  }
+
+  async function copy(value){
+    try{
+      if(navigator.clipboard&&window.isSecureContext) await navigator.clipboard.writeText(value);
+      else{
+        const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();
+      }
+      toast('Datos copiados');
+    }catch(error){toast('No se pudo copiar')}
+  }
+
+  function el(tag,className,text){
+    const node=document.createElement(tag);
+    if(className) node.className=className;
+    if(text!==undefined) node.textContent=text;
+    return node;
+  }
+
+  function iconButton(icon,label,handler){
+    const button=el('button','v2-action');button.type='button';button.setAttribute('aria-label',label);
+    const i=el('i',icon);i.setAttribute('aria-hidden','true');
+    button.append(i,el('span','',label));button.addEventListener('click',handler);return button;
+  }
+
+  function contactRow(icon,label,value){
+    const row=el('div','v2-contact-row');
+    const ico=el('div','v2-contact-icon');ico.append(el('i',icon));
+    row.append(ico,el('div','v2-contact-label',label),el('div','v2-contact-value',value||'No registrado'));
+    return row;
+  }
+
+  function metric(label,value,extra){
+    const box=el('div','v2-metric'+(extra?' '+extra:''));
+    box.append(el('div','v2-metric-label',label),el('div','v2-metric-value',value));
+    return box;
+  }
+
+  function financeCell(label,value,extra){
+    const box=el('div','v2-finance-cell'+(extra?' '+extra:''));
+    box.append(el('div','v2-finance-label',label),el('div','v2-finance-value',value));
+    return box;
+  }
+
+  function normalizeEmail(value){
+    return /sincorreo|no registrado/i.test(clean(value))?'Sin correo registrado':clean(value)||'Sin correo registrado';
+  }
+
+  function prepareHeader(){
+    const brand=document.querySelector('.header-mini .mini-brand');
+    if(brand){brand.textContent='Clientes';brand.setAttribute('aria-label','Volver a HomeEasy')}
+    const button=document.querySelector('.header-mini > button');
+    if(button) button.textContent='Buscar otro';
+  }
+
+  function updateTab(tabId,label,count){
+    const tab=$(tabId);if(!tab)return;
+    tab.replaceChildren();
+    tab.append(el('span','',label),el('span','v2-tab-count',String(count||0)));
+  }
+
+  function buildProfile(){
+    const result=$('resultado_cliente');
+    const source=result?.querySelector('.client-card');
+    const tabContent=result?.querySelector('.tab-content');
+    const tabs=source?.querySelector('.nav-tabs-custom')||result?.querySelector('.v2-history-shell .nav-tabs-custom');
+    if(!result||!source||!tabContent||!tabs)return;
+
+    source.classList.add('v2-source-card');
+    result.querySelectorAll('.v2-profile-card,.v2-summary-card').forEach(node=>node.remove());
+
+    const name=clean($('c_nombre')?.textContent);
+    const id=clean($('c_cedula')?.textContent);
+    const phone=clean($('c_tel')?.textContent);
+    const email=normalizeEmail($('c_email')?.textContent);
+    const address=clean($('c_dir')?.textContent)||'Sin dirección registrada';
+
+    if($('c_email')) $('c_email').textContent=email;
+
+    const profile=el('section','v2-profile-card');
+    profile.append(el('div','v2-eyebrow','Cliente HomeEasy'));
+    const head=el('div','v2-profile-head');
+    head.append(el('div','v2-avatar',initials(name)));
+    const identity=el('div','');identity.append(el('h2','v2-profile-name',name||'Cliente'),el('div','v2-profile-id','C.C. '+(id||'Sin identificación')));
+    const edit=el('button','v2-edit-button');edit.type='button';edit.setAttribute('aria-label','Editar cliente');edit.append(el('i','fas fa-pen'));edit.addEventListener('click',()=>typeof abrirModalEditar==='function'&&abrirModalEditar());
+    head.append(identity,edit);profile.append(head);
+
+    const contacts=el('div','v2-contact-list');
+    contacts.append(
+      contactRow('fas fa-phone','Teléfono',phone||'No registrado'),
+      contactRow('fas fa-envelope','Correo',email),
+      contactRow('fas fa-location-dot','Dirección',address)
+    );
+    profile.append(contacts);
+
+    const actions=el('div','v2-actions');
+    actions.append(
+      iconButton('fab fa-whatsapp','WhatsApp',()=>{const digits=phoneDigits(phone);if(digits)window.open('https://wa.me/'+digits,'_blank','noopener,noreferrer');else toast('Sin teléfono válido')}),
+      iconButton('fas fa-phone','Llamar',()=>{const digits=phoneDigits(phone);if(digits)window.location.href='tel:+'+digits;else toast('Sin teléfono válido')}),
+      iconButton('fas fa-copy','Copiar',()=>copy(contactText())),
+      iconButton('fas fa-share-nodes','Compartir',async()=>{const value=contactText();if(navigator.share){try{await navigator.share({title:'Cliente HomeEasy',text:value});return}catch(error){if(error?.name==='AbortError')return}}await copy(value)})
+    );
+    profile.append(actions);
+
+    const validOps=state.OP.filter(item=>!clean(item?.estado).toUpperCase().includes('ANUL'));
+    const validQuotes=state.COT.filter(item=>!clean(item?.estado).toUpperCase().includes('ANUL'));
+    const total=validOps.reduce((sum,item)=>sum+numeric(item?.total),0);
+    const saldo=validOps.reduce((sum,item)=>sum+Math.max(0,numeric(item?.saldo)),0);
+
+    const summary=el('section','v2-summary-card');
+    const sectionHead=el('div','v2-section-head');
+    const titles=el('div','');titles.append(el('div','v2-section-title','Resumen comercial'),el('div','v2-section-subtitle','Lectura rápida del historial del cliente'));
+    sectionHead.append(titles,el('div','v2-live-pill','Datos actuales'));summary.append(sectionHead);
+    const metrics=el('div','v2-metrics');
+    metrics.append(metric('Compras',money(total)),metric('Saldo',money(saldo),'is-balance'),metric('Órdenes',String(validOps.length)));
+    summary.append(metrics);
+
+    result.insertBefore(profile,source);
+    result.insertBefore(summary,source);
+
+    let history=result.querySelector('.v2-history-shell');
+    if(!history){
+      history=el('section','v2-history-shell');
+      const historyHead=el('div','v2-history-head');historyHead.append(el('div','v2-history-title','Actividad'),el('div','v2-history-subtitle','Órdenes, pagos y cotizaciones del cliente'));
+      history.append(historyHead,tabs);
+      result.insertBefore(history,tabContent);
+    }
+    updateTab('ordenes-tab','Órdenes',validOps.length);
+    updateTab('cotizaciones-tab','Cotizaciones',validQuotes.length);
+    prepareHeader();
+  }
+
+  function decorateCards(prefix){
+    const container=$(prefix==='OP'?'lista_ordenes':'lista_cotizaciones');
+    const items=state[prefix]||[];
+    if(!container)return;
+    container.querySelectorAll('.item-card').forEach((card,index)=>{
+      card.querySelectorAll('.v2-finance,.v2-payments-toggle').forEach(node=>node.remove());
+      const item=items[index]||{};
+      const total=Math.max(0,numeric(item.total));
+      const saldo=Math.max(0,numeric(item.saldo));
+      const annulled=clean(item.estado).toUpperCase().includes('ANUL');
+      const footer=card.querySelector('.item-footer');
+      if(!footer)return;
+
+      const finance=el('div','v2-finance');
+      if(prefix==='OP'){
+        const paid=annulled?0:Math.max(0,total-saldo);
+        finance.append(financeCell('Total',money(total)),financeCell('Abonado',money(paid)),financeCell('Saldo',annulled?'Anulada':money(saldo),'is-balance'));
+      }else{
+        finance.style.gridTemplateColumns='1fr 1fr';
+        finance.append(financeCell('Valor',money(total)),financeCell('Estado',clean(item.estado)||'Registrada'));
+      }
+      footer.before(finance);
+
+      if(prefix==='OP'){
+        const history=card.querySelector('.payment-history');
+        if(history){
+          const count=history.querySelectorAll('.payment-item').length;
+          const toggle=el('button','v2-payments-toggle');toggle.type='button';
+          toggle.append(el('span','',count?`Ver pagos · ${count}`:'Ver pagos'),el('i','fas fa-chevron-down'));
+          toggle.addEventListener('click',event=>{
+            event.stopPropagation();
+            if(typeof togglePagos==='function') togglePagos(history.id);
+            const icon=toggle.querySelector('i');if(icon)icon.className=history.style.display==='block'?'fas fa-chevron-up':'fas fa-chevron-down';
+          });
+          finance.after(toggle);
+        }
+      }
+    });
+  }
+
+  function refresh(){
+    buildProfile();decorateCards('OP');decorateCards('COT');
+  }
+
+  if(typeof renderLista==='function'){
+    const original=renderLista;
+    window.renderLista=function(items,containerId,prefix){
+      state[prefix]=Array.isArray(items)?items:[];
+      const value=original.apply(this,arguments);
+      queueMicrotask(refresh);
+      return value;
+    };
+  }
+
+  if(typeof buscarHistorial==='function'){
+    const originalSearch=buscarHistorial;
+    window.buscarHistorial=async function(){
+      const value=await originalSearch.apply(this,arguments);
+      requestAnimationFrame(refresh);
+      return value;
+    };
+  }
+
+  window.addEventListener('DOMContentLoaded',()=>{
+    document.body.classList.add('clientes-v2-preview');
+    prepareHeader();
+  },{once:true});
+})();
+
+
+(function ClientesStandaloneV3Contract(){
+  'use strict';
+  document.documentElement.dataset.clientesBuild = 'standalone-v3-root';
+  window.addEventListener('DOMContentLoaded', function(){
+    var result = document.getElementById('pantalla-resultados');
+    if (result) result.dataset.clientesView = 'v2-root';
+  }, { once:true });
+})();
+
+</script>
+</body>
+</html>
+
