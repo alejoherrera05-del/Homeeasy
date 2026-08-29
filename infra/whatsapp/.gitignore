@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+
+data/
+backups/
+*.log
+*.pid
+
+bridge/node_modules/
+bridge/.npm/
