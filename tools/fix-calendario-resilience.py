@@ -82,6 +82,44 @@ extra_css = '''
         .month-nav { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; }
         .month-nav:active { background: rgba(194,164,104,.10); transform: scale(.94); }
         .fab i, .month-nav, .header-action-icon { line-height: 1; }
+
+        /* Evita que la marca central choque con las acciones en iPhone */
+        @media (max-width: 760px) {
+            header {
+                display: grid;
+                grid-template-columns: 76px minmax(0, 1fr) 76px;
+                gap: 8px;
+                justify-content: initial;
+            }
+            .header-left { justify-self: start; }
+            .header-center {
+                position: static;
+                left: auto;
+                transform: none;
+                width: auto;
+                min-width: 0;
+                justify-self: stretch;
+            }
+            .header-brand {
+                min-width: 0;
+                justify-content: center;
+                gap: 6px;
+            }
+            .header-brand h1 {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .header-icons {
+                justify-self: end;
+                gap: 4px;
+            }
+            .header-icons .header-action-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+        }
 '''
 marker = '        /* Enlace directo desde la campana del inicio */'
 if marker not in s:
