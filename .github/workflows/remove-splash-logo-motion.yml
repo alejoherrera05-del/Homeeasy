@@ -1,0 +1,37 @@
+name: remove splash logo motion
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/remove-splash-logo-motion.py'
+      - '.github/workflows/remove-splash-logo-motion.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove only splash logo motion
+        run: |
+          python3 tools/remove-splash-logo-motion.py
+          grep -q 'class="intro-logo-float"' index.html
+          grep -q 'Sistema Hommy 3.0' index.html
+          grep -q 'drop-shadow(0 11px 15px' index.html
+          grep -q 'id="status-message"' index.html
+          grep -q 'id="progress-bar"' index.html
+          ! grep -q 'introLogoFloat' index.html
+
+      - name: Commit index change
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Keep HomeEasy splash logo static'
+          git push
