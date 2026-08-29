@@ -5,7 +5,7 @@ on:
     branches:
       - build/clientes-standalone-v2
     paths:
-      - 'scripts/build_clientes_standalone_v2.py'
+      - 'scripts/build_clientes_standalone_v3.py'
       - '.github/workflows/build-clientes-standalone-v2.yml'
 
 permissions:
@@ -19,54 +19,56 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build complete standalone HTML
-        run: python scripts/build_clientes_standalone_v2.py
+      - name: Build root-level standalone HTML
+        run: python scripts/build_clientes_standalone_v3.py
 
       - name: Validate generated document
         shell: bash
         run: |
           set -euo pipefail
-          test -s clientes-prueba/clientes.html
-          grep -q '<base href="../">' clientes-prueba/clientes.html
-          grep -q 'clientes-standalone-v2-style' clientes-prueba/clientes.html
-          grep -q 'clientes-standalone-v2-script' clientes-prueba/clientes.html
-          grep -q 'v2-profile-card' clientes-prueba/clientes.html
-          grep -q 'Resumen comercial' clientes-prueba/clientes.html
-          ! grep -q 'document.write(' clientes-prueba/clientes.html
-          ! grep -q "fetch('./clientes.html" clientes-prueba/clientes.html
+          test -s clientes-prueba-v2.html
+          grep -q 'clientes-standalone-v3-style' clientes-prueba-v2.html
+          grep -q 'clientes-standalone-v3-script' clientes-prueba-v2.html
+          grep -q 'clientes-v2-inline-guard' clientes-prueba-v2.html
+          grep -q "const currentPage = 'clientes.html';" clientes-prueba-v2.html
+          grep -q "'clientes.html': 'clientes.read'" clientes-prueba-v2.html
+          grep -q 'v2-profile-card' clientes-prueba-v2.html
+          grep -q 'Resumen comercial' clientes-prueba-v2.html
+          ! grep -q 'document.write(' clientes-prueba-v2.html
+          ! grep -q "fetch('./clientes.html" clientes-prueba-v2.html
+          ! grep -q '<base ' clientes-prueba-v2.html
           python - <<'PY'
           from pathlib import Path
           import re, subprocess, tempfile
-          html = Path('clientes-prueba/clientes.html').read_text(encoding='utf-8')
-          scripts = re.findall(r'<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)</script>', html, re.I)
-          if not scripts:
-              raise SystemExit('No inline scripts found')
+          html = Path('clientes-prueba-v2.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', html, re.I)
+          if len(scripts) < 4:
+              raise SystemExit(f'Expected at least 4 inline scripts, got {len(scripts)}')
           for i, script in enumerate(scripts):
-              p = Path(tempfile.gettempdir()) / f'clientes-inline-{i}.js'
+              p = Path(tempfile.gettempdir()) / f'clientes-v3-inline-{i}.js'
               p.write_text(script, encoding='utf-8')
               subprocess.run(['node', '--check', str(p)], check=True)
           print(f'Validated {len(scripts)} inline scripts')
           PY
 
-      - name: Publish only the independent test HTML to main
+      - name: Publish only root-level independent HTML to main
         shell: bash
         run: |
           set -euo pipefail
-          cp clientes-prueba/clientes.html /tmp/clientes-standalone.html
+          cp clientes-prueba-v2.html /tmp/clientes-prueba-v2.html
           git fetch origin main
           git checkout -B publish-clientes origin/main
-          mkdir -p clientes-prueba
-          cp /tmp/clientes-standalone.html clientes-prueba/clientes.html
+          cp /tmp/clientes-prueba-v2.html clientes-prueba-v2.html
           git config user.name 'HomeEasy Clientes Builder'
           git config user.email 'actions@users.noreply.github.com'
-          git add clientes-prueba/clientes.html
+          git add clientes-prueba-v2.html
           if git diff --cached --quiet; then
-            echo 'Standalone Clientes HTML already current.'
+            echo 'Root-level standalone Clientes HTML already current.'
             exit 0
           fi
-          if git diff --cached --name-only | grep -v '^clientes-prueba/clientes.html$'; then
+          if git diff --cached --name-only | grep -v '^clientes-prueba-v2.html$'; then
             echo 'Unexpected staged files.' >&2
             exit 1
           fi
-          git commit -m 'Add standalone Clientes 2.0 test'
+          git commit -m 'Add root-level standalone Clientes 2.0 test'
           git push origin HEAD:main
