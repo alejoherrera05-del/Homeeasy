@@ -25,7 +25,7 @@ jobs:
           sleep 2
       - name: Test desktop and mobile
         run: |
-          cat > /tmp/qa.js <<'NODE'
+          cat > qa-seguimiento.js <<'NODE'
           const { chromium } = require('playwright');
 
           const daysAgo = n => {
@@ -128,7 +128,7 @@ jobs:
             process.exit(1);
           });
           NODE
-          node /tmp/qa.js
+          node qa-seguimiento.js
       - uses: actions/upload-artifact@v4
         if: always()
         with:
