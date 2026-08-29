@@ -1,4 +1,4 @@
-name: Build connected Clientes 3.1 preview
+name: Final audit and publish Clientes
 
 on:
   push:
@@ -7,73 +7,100 @@ on:
     paths:
       - 'scripts/build_clientes_connected_v32.py'
       - 'scripts/refine_clientes_v33.py'
+      - 'scripts/finalize_clientes_production.py'
       - '.github/workflows/build-clientes-connected-v31.yml'
 
 permissions:
   contents: write
 
 jobs:
-  build-and-publish:
+  audit-and-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Build connected preview
+      - name: Build connected Clientes
         run: python scripts/build_clientes_connected_v32.py
 
-      - name: Refine audited product UI
+      - name: Apply approved product refinements
         run: python scripts/refine_clientes_v33.py
 
-      - name: Validate generated HTML and legacy parity
+      - name: Finalize canonical production route
+        run: python scripts/finalize_clientes_production.py
+
+      - name: Audit UI, JS, auth and legacy parity
         shell: bash
         run: |
           set -euo pipefail
-          test -s clientes-conectado-v31.html
-          grep -q "clientes-conectado-v31.html': 'clientes.read'" clientes-conectado-v31.html
-          grep -q '#B2566C' clientes-conectado-v31.html
-          grep -q 'Historial de abonos' clientes-conectado-v31.html
-          grep -q 'Historial de pagos' clientes-conectado-v31.html
-          grep -q 'Ver recibos y movimientos' clientes-conectado-v31.html
-          grep -q 'fa-regular fa-eye' clientes-conectado-v31.html
-          grep -q 'v31-doc-popover' clientes-conectado-v31.html
-          grep -q 'confirmarEdicion' clientes-conectado-v31.html
-          grep -q 'confirmarAnulacion' clientes-conectado-v31.html
-          grep -q 'abrirVisorPDF' clientes-conectado-v31.html
-          grep -q 'ANALIZAR_ANULACION_DOCUMENTO' clientes-conectado-v31.html
-          grep -q 'EJECUTAR_ANULACION_SEGURA' clientes-conectado-v31.html
-          grep -q 'guardarEdicionCliente' clientes-conectado-v31.html
-          grep -q 'pedido.html?cotizacion=' clientes-conectado-v31.html
-          grep -q '.v31-new-search:hover' clientes-conectado-v31.html
-          grep -q '.v31-shell{width:calc(100% - 40px)' clientes-conectado-v31.html
-          grep -q 'triangulo.png' clientes-conectado-v31.html
-          grep -q 'triangulogold.png' clientes-conectado-v31.html
-          grep -q 'abonos_detalle' clientes-conectado-v31.html
-          grep -q 'HISTORIAL_CLIENTE' clientes-conectado-v31.html
-          grep -q 'shell.append(buildContact(client));' clientes-conectado-v31.html
-          grep -q 'actions.append(wa);card.append(actions)' clientes-conectado-v31.html
-          if grep -q 'shell.append(buildContact(client),buildSummary(orders));' clientes-conectado-v31.html; then
-            echo 'Commercial summary is still rendered.' >&2
+          test -s clientes-production-final.html
+          grep -q '#B2566C' clientes-production-final.html
+          grep -q 'Base de datos clientes' clientes-production-final.html
+          grep -q 'Historial de abonos' clientes-production-final.html
+          grep -q 'Historial de pagos' clientes-production-final.html
+          grep -q 'Ver recibos y movimientos' clientes-production-final.html
+          grep -q 'fa-regular fa-eye' clientes-production-final.html
+          grep -q 'v31-doc-popover' clientes-production-final.html
+          grep -q 'confirmarEdicion' clientes-production-final.html
+          grep -q 'confirmarAnulacion' clientes-production-final.html
+          grep -q 'abrirVisorPDF' clientes-production-final.html
+          grep -q 'ANALIZAR_ANULACION_DOCUMENTO' clientes-production-final.html
+          grep -q 'EJECUTAR_ANULACION_SEGURA' clientes-production-final.html
+          grep -q 'guardarEdicionCliente' clientes-production-final.html
+          grep -q 'pedido.html?cotizacion=' clientes-production-final.html
+          grep -q '.v31-new-search:hover' clientes-production-final.html
+          grep -q '.v31-shell{width:calc(100% - 40px)' clientes-production-final.html
+          grep -q 'triangulo.png' clientes-production-final.html
+          grep -q 'triangulogold.png' clientes-production-final.html
+          grep -q 'abonos_detalle' clientes-production-final.html
+          grep -q 'HISTORIAL_CLIENTE' clientes-production-final.html
+          grep -q 'shell.append(buildContact(client));' clientes-production-final.html
+          grep -q 'actions.append(wa);card.append(actions)' clientes-production-final.html
+          grep -q '<script src="homeeasy-page-guard.js?v=3.6"></script>' clientes-production-final.html
+
+          if grep -q 'clientes-v31-inline-guard' clientes-production-final.html; then
+            echo 'Preview guard still embedded in production.' >&2
             exit 1
           fi
-          if grep -q 'actions.append(wa,bottomMore)' clientes-conectado-v31.html; then
+          if grep -q "clientes-conectado-v31.html': 'clientes.read'" clientes-production-final.html; then
+            echo 'Preview-only permission mapping still embedded.' >&2
+            exit 1
+          fi
+          if grep -q 'shell.append(buildContact(client),buildSummary(orders));' clientes-production-final.html; then
+            echo 'Removed commercial summary is still rendered.' >&2
+            exit 1
+          fi
+          if grep -q 'actions.append(wa,bottomMore)' clientes-production-final.html; then
             echo 'Duplicate client overflow menu is still rendered.' >&2
             exit 1
           fi
+          if grep -q 'function buildSummary(orders)' clientes-production-final.html; then
+            echo 'Dead summary JS remains.' >&2
+            exit 1
+          fi
+          if grep -q 'const bottomMore=' clientes-production-final.html; then
+            echo 'Dead duplicate menu JS remains.' >&2
+            exit 1
+          fi
+
+          git fetch origin main
+          git show origin/main:homeeasy-page-guard.js | grep -q "'clientes.html': 'clientes.read'"
+          git show origin/main:homeeasy-core.js | grep -q 'API_URL'
+
           python - <<'PY'
           from pathlib import Path
           import re, subprocess, tempfile
 
           source = Path('clientes.html').read_text(encoding='utf-8')
-          html = Path('clientes-conectado-v31.html').read_text(encoding='utf-8')
+          html = Path('clientes-production-final.html').read_text(encoding='utf-8')
 
           fn = re.compile(r'\bfunction\s+([A-Za-z_$][\w$]*)\s*\(')
           source_functions = set(fn.findall(source))
           generated_functions = set(fn.findall(html))
           missing = sorted(source_functions - generated_functions)
           if missing:
-              raise SystemExit('Legacy functions missing from generated Clientes: ' + ', '.join(missing))
+              raise SystemExit('Legacy functions missing from final Clientes: ' + ', '.join(missing))
 
           required_flows = [
               'listaClientes=1', 'HISTORIAL_CLIENTE', 'abrirVisorPDF', 'cerrarVisorPDF',
@@ -87,36 +114,42 @@ jobs:
           if absent:
               raise SystemExit('Critical Clientes flows missing: ' + ', '.join(absent))
 
+          # No duplicate ids in static HTML. Dynamic repeated rows do not use ids.
+          ids = re.findall(r'\bid=["\']([^"\']+)["\']', html, re.I)
+          duplicate_ids = sorted({x for x in ids if ids.count(x) > 1})
+          if duplicate_ids:
+              raise SystemExit('Duplicate static ids: ' + ', '.join(duplicate_ids))
+
           scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', html, re.I)
-          if len(scripts) < 3:
-              raise SystemExit(f'Expected at least 3 inline scripts, got {len(scripts)}')
+          if len(scripts) < 2:
+              raise SystemExit(f'Expected at least 2 inline scripts, got {len(scripts)}')
           for i, script in enumerate(scripts):
-              p = Path(tempfile.gettempdir()) / f'clientes-connected-{i}.js'
+              p = Path(tempfile.gettempdir()) / f'clientes-final-{i}.js'
               p.write_text(script, encoding='utf-8')
               subprocess.run(['node','--check',str(p)], check=True)
 
-          print(f'Audit OK: {len(source_functions)} legacy functions retained; {len(scripts)} inline scripts valid')
+          print(f'FINAL AUDIT OK: {len(source_functions)} legacy functions retained; {len(scripts)} inline scripts valid; {len(ids)} static ids unique')
           PY
 
-      - name: Publish preview only
+      - name: Publish canonical clientes.html only
         shell: bash
         run: |
           set -euo pipefail
-          cp clientes-conectado-v31.html /tmp/clientes-conectado-v31.html
-          rm -f clientes-conectado-v31.html
+          cp clientes-production-final.html /tmp/clientes.html
+          rm -f clientes-conectado-v31.html clientes-production-final.html
           git fetch origin main
-          git checkout -B publish-connected origin/main
-          cp /tmp/clientes-conectado-v31.html clientes-conectado-v31.html
-          git config user.name 'HomeEasy Clientes Builder'
+          git checkout -B publish-clientes-final origin/main
+          cp /tmp/clientes.html clientes.html
+          git config user.name 'HomeEasy Clientes Auditor'
           git config user.email 'actions@users.noreply.github.com'
-          git add clientes-conectado-v31.html
+          git add clientes.html
           if git diff --cached --quiet; then
-            echo 'Connected preview already current.'
+            echo 'clientes.html already matches audited final.'
             exit 0
           fi
-          if git diff --cached --name-only | grep -v '^clientes-conectado-v31.html$'; then
+          if git diff --cached --name-only | grep -v '^clientes.html$'; then
             echo 'Unexpected staged files.' >&2
             exit 1
           fi
-          git commit -m 'Audit Clientes 3.1 UI and legacy parity'
+          git commit -m 'Finalize audited Clientes module'
           git push origin HEAD:main
