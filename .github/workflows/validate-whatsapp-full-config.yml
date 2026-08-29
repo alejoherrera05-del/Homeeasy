@@ -1,0 +1,53 @@
+name: validate full Configuracion WhatsApp isolation
+
+on:
+  push:
+    branches:
+      - fix/whatsapp-config-isolated
+    paths:
+      - 'homeeasy-whatsapp-client.js'
+      - 'homeeasy-whatsapp-settings.js'
+      - 'configuracion.html'
+      - 'tools/qa-whatsapp-full-config.js'
+      - '.github/workflows/validate-whatsapp-full-config.yml'
+
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject isolated WhatsApp loaders into Configuracion workspace only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('configuracion.html')
+          s=p.read_text(encoding='utf-8')
+          marker='    <script src="homeeasy-account-template.js?v=3.2"></script>\n'
+          inject=marker+'    <script src="homeeasy-whatsapp-client.js?v=0.2"></script>\n    <script src="homeeasy-whatsapp-settings.js?v=0.2"></script>\n'
+          if 'homeeasy-whatsapp-client.js' not in s:
+              if marker not in s: raise SystemExit('loader marker missing')
+              s=s.replace(marker, inject, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+          grep -q 'homeeasy-whatsapp-client.js?v=0.2' configuracion.html
+          grep -q 'homeeasy-whatsapp-settings.js?v=0.2' configuracion.html
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright browsers
+        run: |
+          npm install --no-save playwright@1.58.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium webkit
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/homeeasy-static.log 2>&1 &
+          echo $! >/tmp/homeeasy-static.pid
+          for i in {1..20}; do curl -fsS http://127.0.0.1:4173/configuracion.html >/dev/null && break || sleep 1; done
+
+      - name: Run full Configuracion browser isolation QA
+        run: node tools/qa-whatsapp-full-config.js
