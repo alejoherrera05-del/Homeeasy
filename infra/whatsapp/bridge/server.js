@@ -14,6 +14,7 @@ const MAX_BODY_MB = Math.max(2, Number(process.env.MAX_BODY_MB || 18));
 const MAX_BODY_BYTES = MAX_BODY_MB * 1024 * 1024;
 const DATA_DIR = String(process.env.DATA_DIR || '/app/data');
 const IDEMPOTENCY_FILE = path.join(DATA_DIR, 'idempotency.json');
+const AMBIGUOUS_LOCK_MS = 15 * 60 * 1000;
 
 if (!WAHA_API_KEY || !BRIDGE_TOKEN) {
   console.error('Missing WAHA_API_KEY or BRIDGE_TOKEN. Refusing to start.');
@@ -77,7 +78,7 @@ async function wahaRequest(method, route, body, accept = 'application/json') {
       ...(body ? { 'Content-Type': 'application/json' } : {})
     },
     body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(30000)
+    signal: AbortSignal.timeout(90000)
   });
 
   const contentType = response.headers.get('content-type') || '';
@@ -130,7 +131,7 @@ async function ensureSessionStarted() {
     });
     return session;
   }
-  if (session.status === 'STOPPED') {
+  if (session.status === 'STOPPED' || session.status === 'FAILED') {
     return await wahaRequest('POST', `/api/sessions/${encodeURIComponent(WAHA_SESSION)}/start`, {});
   }
   return session;
@@ -183,6 +184,28 @@ function persistIdempotency() {
   fs.renameSync(temp, IDEMPOTENCY_FILE);
 }
 
+function isAmbiguousSendError(error) {
+  const code = Number(error && error.statusCode || 0);
+  return code >= 500 || error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+}
+
+function publicDeliveryRecord(record, duplicate) {
+  return {
+    ok: record.state === 'SENT',
+    accepted: record.state === 'SENT' || record.state === 'UNKNOWN' || record.state === 'SENDING',
+    duplicate: Boolean(duplicate),
+    delivery: record.state,
+    phone: record.phone,
+    filename: record.filename,
+    messageId: record.messageId || null,
+    sentAt: record.sentAt || null,
+    startedAt: record.startedAt || null,
+    note: record.state === 'UNKNOWN'
+      ? 'WAHA returned an ambiguous error after the send attempt. HomeEasy will not resend automatically to avoid duplicates.'
+      : undefined
+  };
+}
+
 async function sendDocument(payload) {
   const session = await getSession();
   if (!session || session.status !== 'WORKING') {
@@ -199,41 +222,76 @@ async function sendDocument(payload) {
   const idempotencyKey = String(payload.idempotencyKey || '').trim().slice(0, 180);
 
   if (idempotencyKey && idempotency[idempotencyKey]) {
-    return Object.assign({ duplicate: true }, idempotency[idempotencyKey]);
+    const previous = idempotency[idempotencyKey];
+    const age = Date.now() - Date.parse(previous.startedAt || previous.sentAt || 0);
+    if (previous.state === 'SENT' || previous.state === 'UNKNOWN' || (previous.state === 'SENDING' && age < AMBIGUOUS_LOCK_MS)) {
+      return publicDeliveryRecord(previous, true);
+    }
   }
 
-  const result = await wahaRequest('POST', '/api/sendFile', {
-    session: WAHA_SESSION,
-    chatId: `${phone}@c.us`,
-    caption,
-    file: {
-      mimetype: 'application/pdf',
-      filename,
-      data: pdfBase64
-    }
-  });
-
-  const compact = {
-    ok: true,
-    duplicate: false,
+  const record = {
+    state: 'SENDING',
     phone,
     filename,
-    messageId: result && (result.id || result.key || result.messageId) || null,
-    sentAt: new Date().toISOString()
+    startedAt: new Date().toISOString(),
+    messageId: null,
+    sentAt: null
   };
-
   if (idempotencyKey) {
-    idempotency[idempotencyKey] = compact;
+    idempotency[idempotencyKey] = record;
     persistIdempotency();
   }
-  return compact;
+
+  try {
+    const result = await wahaRequest('POST', '/api/sendFile', {
+      session: WAHA_SESSION,
+      chatId: `${phone}@c.us`,
+      caption,
+      file: {
+        mimetype: 'application/pdf',
+        filename,
+        data: pdfBase64
+      }
+    });
+
+    record.state = 'SENT';
+    record.messageId = result && (result.id || result.key || result.messageId) || null;
+    record.sentAt = new Date().toISOString();
+    if (idempotencyKey) {
+      idempotency[idempotencyKey] = record;
+      persistIdempotency();
+    }
+    return publicDeliveryRecord(record, false);
+  } catch (error) {
+    if (isAmbiguousSendError(error)) {
+      record.state = 'UNKNOWN';
+      record.error = String(error.message || 'Ambiguous WAHA send error');
+      record.errorAt = new Date().toISOString();
+      if (idempotencyKey) {
+        idempotency[idempotencyKey] = record;
+        persistIdempotency();
+      }
+      console.warn(new Date().toISOString(), 'Ambiguous WhatsApp send; automatic retry locked', {
+        phone,
+        filename,
+        idempotencyKey,
+        error: error.message
+      });
+      return publicDeliveryRecord(record, false);
+    }
+    if (idempotencyKey) {
+      delete idempotency[idempotencyKey];
+      persistIdempotency();
+    }
+    throw error;
+  }
 }
 
 async function handle(req, res) {
   const url = new URL(req.url, 'http://bridge.local');
 
   if (req.method === 'GET' && url.pathname === '/health') {
-    return json(res, 200, { ok: true, service: 'homeeasy-whatsapp-bridge', version: '0.1.0' });
+    return json(res, 200, { ok: true, service: 'homeeasy-whatsapp-bridge', version: '0.2.0' });
   }
 
   if (!authorized(req)) return json(res, 401, { ok: false, error: 'Unauthorized' });
@@ -273,7 +331,8 @@ async function handle(req, res) {
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/send-document') {
     const payload = await readJsonBody(req);
     const result = await sendDocument(payload);
-    return json(res, 200, result);
+    const status = result.delivery === 'UNKNOWN' || result.delivery === 'SENDING' ? 202 : 200;
+    return json(res, status, result);
   }
 
   return json(res, 404, { ok: false, error: 'Not found' });
@@ -292,5 +351,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`HomeEasy WhatsApp Bridge listening on :${PORT}`);
+  console.log(`HomeEasy WhatsApp Bridge v0.2.0 listening on :${PORT}`);
 });
