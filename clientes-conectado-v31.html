@@ -564,6 +564,9 @@ body.clientes-connected-v31 #pantalla-resultados>.header-mini,body.clientes-conn
 
 /* --- Auditoría de producto v3.3: menos ruido, acciones inequívocas --- */
 .v31-summary{display:none!important}
+.v31-contact{position:relative!important}
+.v31-identity{grid-template-columns:76px minmax(0,1fr)!important;padding-right:54px!important}
+.v31-more{position:absolute!important;right:22px!important;top:22px!important;z-index:2}
 .v31-contact-actions{grid-template-columns:minmax(0,1fr)!important}
 .v31-more-bottom{display:none!important}
 .v31-order-actions{grid-template-columns:minmax(280px,420px) 150px!important;justify-content:start!important;align-items:stretch!important;gap:10px!important}
@@ -582,6 +585,11 @@ body.clientes-connected-v31 #pantalla-resultados>.header-mini,body.clientes-conn
   .v31-history-toggle{height:58px!important;padding:0 13px!important;gap:9px!important}
   .v31-view-op{height:58px!important}
   .v31-history-toggle>span:not(.v31-history-count)::after{font-size:10.5px}
+}
+@media(max-width:520px){
+  .v31-identity{grid-template-columns:70px minmax(0,1fr)!important;padding-right:48px!important}
+  .v31-more{right:18px!important;top:20px!important}
+  .v31-title{font-size:16.5px!important;letter-spacing:-.02em!important}
 }
 @media(max-width:390px){
   .v31-order-actions{grid-template-columns:1fr!important}
@@ -603,7 +611,7 @@ const orderNumber=i=>clean(i?.numero_op||i?.numero||i?.numero_orden||'S/N'),quot
 function safeCall(name,...args){const fn=window[name];if(typeof fn!=='function'){console.warn('Clientes 3.1: función heredada no disponible',name);return}try{return fn(...args)}catch(error){console.error('Clientes 3.1:',name,error);toast('No se pudo completar la acción')}}
 function toast(message){let node=document.querySelector('.v31-toast');if(!node){node=el('div','v31-toast');document.body.appendChild(node)}node.textContent=message;node.classList.add('is-showing');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.remove('is-showing'),1600)}
 function closeDocumentMenus(except){document.querySelectorAll('.v31-doc-popover.is-open').forEach(menu=>{if(menu!==except)menu.classList.remove('is-open')})}document.addEventListener('click',()=>closeDocumentMenus());
-function buildHeader(){const header=el('header','v31-header'),inner=el('div','v31-header-inner'),back=el('button','v31-back');back.type='button';back.setAttribute('aria-label','Volver a HomeEasy');back.append(icon('fa-solid fa-chevron-left'));back.onclick=()=>location.href='index.html';const title=el('div','v31-title'),logo=document.createElement('img');logo.src='triangulo.png';logo.alt='HomeEasy';title.append(logo,el('span','', 'Clientes'));const search=el('button','v31-new-search','Nueva búsqueda');search.type='button';search.onclick=()=>{safeCall('reiniciarBusqueda');const r=root();if(r){r.className='';r.replaceChildren()}};inner.append(back,title,search);header.append(inner);return header}
+function buildHeader(){const header=el('header','v31-header'),inner=el('div','v31-header-inner'),back=el('button','v31-back');back.type='button';back.setAttribute('aria-label','Volver a HomeEasy');back.append(icon('fa-solid fa-chevron-left'));back.onclick=()=>location.href='index.html';const title=el('div','v31-title'),logo=document.createElement('img');logo.src='triangulo.png';logo.alt='HomeEasy';title.append(logo,el('span','', 'Base de datos clientes'));const search=el('button','v31-new-search','Nueva búsqueda');search.type='button';search.onclick=()=>{safeCall('reiniciarBusqueda');const r=root();if(r){r.className='';r.replaceChildren()}};inner.append(back,title,search);header.append(inner);return header}
 function showLoading(){const r=root();if(!r)return;r.className='is-visible';r.replaceChildren();const shell=el('main','v31-shell'),box=el('div','v31-loading');box.append(icon('fa-solid fa-circle-notch fa-spin'),el('div','', 'Consultando cliente…'));shell.append(box);r.append(buildHeader(),shell)}
 function showError(message){const r=root();if(!r)return;r.className='is-visible';r.replaceChildren();const shell=el('main','v31-shell');shell.append(el('div','v31-card v31-empty',message||'No fue posible cargar el cliente.'));r.append(buildHeader(),shell)}
 function contactText(c){return[clean(c?.nombre),`Cédula: ${clean(c?.cedula)}`,`Teléfono: ${clean(c?.telefono)}`,`Correo: ${validEmail(c?.email)}`,`Dirección: ${clean(c?.direccion)||'Sin dirección registrada'}`].join('\n')}
