@@ -17,6 +17,7 @@
         'documentos.html': 'documentos.read',
         'calendario.html': 'agenda.read',
         'reportes.html': 'reportes.read',
+        'reportes-diseno-v4.html': 'reportes.read',
         'configuracion.html': 'config.read',
         'perfil.html': 'perfil.read',
         'Hommychat.html': 'app.access'
