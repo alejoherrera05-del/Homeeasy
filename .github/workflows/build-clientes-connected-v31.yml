@@ -51,9 +51,9 @@ jobs:
           grep -q 'triangulogold.png' clientes-conectado-v31.html
           grep -q 'abonos_detalle' clientes-conectado-v31.html
           grep -q 'HISTORIAL_CLIENTE' clientes-conectado-v31.html
-          grep -q 'shell.append(buildContact(c));' clientes-conectado-v31.html
+          grep -q 'shell.append(buildContact(client));' clientes-conectado-v31.html
           grep -q 'actions.append(wa);card.append(actions)' clientes-conectado-v31.html
-          if grep -q 'shell.append(buildContact(c),buildSummary(orders));' clientes-conectado-v31.html; then
+          if grep -q 'shell.append(buildContact(client),buildSummary(orders));' clientes-conectado-v31.html; then
             echo 'Commercial summary is still rendered.' >&2
             exit 1
           fi
@@ -68,7 +68,6 @@ jobs:
           source = Path('clientes.html').read_text(encoding='utf-8')
           html = Path('clientes-conectado-v31.html').read_text(encoding='utf-8')
 
-          # Every named function from the proven pre-redesign Clientes source must survive.
           fn = re.compile(r'\bfunction\s+([A-Za-z_$][\w$]*)\s*\(')
           source_functions = set(fn.findall(source))
           generated_functions = set(fn.findall(html))
