@@ -39,7 +39,7 @@ jobs:
             -e WAHA_API_KEY=test-waha-key \
             -e BRIDGE_TOKEN=test-bridge-token \
             -p 127.0.0.1:18080:8080 \
-            homeeasy-whatsapp-bridge-bridge
+            homeeasy-whatsapp-bridge:local
           for i in {1..20}; do
             if curl -fsS http://127.0.0.1:18080/health; then break; fi
             sleep 1
