@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'reportes-diseno-v4.html'
+      - 'ventas.html'
       - 'homeeasy-page-guard.js'
       - '.github/workflows/reportes-v4-diagnostic.yml'
   workflow_dispatch:
@@ -15,59 +16,44 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-
-      - name: Confirm backend requires session
-        shell: bash
-        run: |
-          set -euo pipefail
-          API='https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec'
-          curl -L --fail --silent --show-error "$API?tipo=GET_REPORTES" -o /tmp/reportes.json
-          node <<'NODE'
-          const data=require('/tmp/reportes.json');
-          console.log('UNAUTH_BACKEND', data);
-          if(data.code!=='INVALID_APP_SESSION' || data.requiresLogin!==true){
-            throw new Error('Backend no está aplicando la sesión esperada');
-          }
-          NODE
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
       - name: Install Playwright
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-
       - name: Serve repository
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/reportes-http.log 2>&1 &
           sleep 2
-
-      - name: Authenticated browser integration test
+      - name: Report to sales drilldown integration test
         run: |
           node <<'NODE'
           const { chromium } = require('playwright');
           const API='https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
-          const fixture={
+          const reportData={
             ordenes:[
-              {numero:24,fecha:'2026-08-16T12:00:00',total:18450000,abonoInicial:5000000,estado:'ACTIVA'},
-              {numero:19,fecha:'2026-07-22T12:00:00',total:16100000,abonoInicial:0,estado:'ACTIVA'}
+              {numero:37,fecha:'2026-08-08T12:00:00',total:1800000,abonoInicial:1000000,estado:'ACTIVO'},
+              {numero:38,fecha:'2026-08-14T12:00:00',total:2900000,abonoInicial:1450000,estado:'ACTIVO'},
+              {numero:39,fecha:'2026-08-19T12:00:00',total:1350000,abonoInicial:675000,estado:'ACTIVO'},
+              {numero:36,fecha:'2026-08-03T12:00:00',total:1149000,abonoInicial:1149000,estado:'COMPLETADO'},
+              {numero:20,fecha:'2026-07-10T12:00:00',total:22567000,abonoInicial:10000000,estado:'ACTIVO'}
             ],
-            abonos:[
-              {fecha:'2026-08-20T12:00:00',valor:7900000,medio:'TRANSFERENCIA'}
-            ]
+            abonos:[{fecha:'2026-08-21T12:00:00',valor:2390000,medio:'TRANSFERENCIA'}]
           };
+          const headers=['Fecha','Numero_OP','Cedula','Nombre_Cliente','Descripcion_Detallada','Valor_Total','Abono_Inicial','Abono_2','Abono_3','Abono_4','Abono_5','Abono_6','Abono_7','Abono_8','Abono_9','Abono_10','Saldo_Pendiente','Estado','URL_PDF_OP','Observaciones'];
+          const row=(fecha,op,ced,nombre,desc,total,pagado,saldo,estado)=>[fecha,op,ced,nombre,desc,total,pagado,0,0,0,0,0,0,0,0,0,saldo,estado,'',''];
+          const sheet={status:'ok',ordenes:[headers,
+            row('2026-08-08T12:00:00',37,'76324080','EDUARDO ANDRES MERA GUTIERREZ','Combo',1800000,1000000,800000,'ACTIVO'),
+            row('2026-08-14T12:00:00',38,'1061763473','CRISTHIAN GUZMAN MELIZO','Combo Portobello',2900000,1450000,1450000,'ACTIVO'),
+            row('2026-08-19T12:00:00',39,'34535683','RUBIELA DAGUA FERNANDEZ','Blackout',1350000,675000,675000,'ACTIVO'),
+            row('2026-08-03T12:00:00',36,'111','CLIENTE COMPLETADO','Venta cerrada',1149000,1149000,0,'COMPLETADO'),
+            row('2026-07-10T12:00:00',20,'222','CLIENTE JULIO','Venta julio',22567000,10000000,12567000,'ACTIVO')
+          ]};
           const b64url=o=>Buffer.from(JSON.stringify(o)).toString('base64url');
           const idToken=`x.${b64url({aud:'homeeasy-auth',iss:'https://securetoken.google.com/homeeasy-auth',sub:'ci-user',user_id:'ci-user',email:'ci@homeeasy.test'})}.x`;
-          const session={
-            version:2,persistence:'session',localId:'ci-user',email:'ci@homeeasy.test',displayName:'CI',
-            idToken,refreshToken:'ci-refresh',expiresAt:Date.now()+3600000,
-            appSessionToken:'CI_APP_SESSION',appSessionExpiresAt:new Date(Date.now()+3600000).toISOString(),appSessionValidatedAt:Date.now(),
-            profile:{uid:'ci-user',nombre:'CI',email:'ci@homeeasy.test',rol:'ADMIN',estado:'ACTIVO',emailVerificado:true},
-            permissions:['reportes.read']
-          };
+          const session={version:2,persistence:'session',localId:'ci-user',email:'ci@homeeasy.test',displayName:'CI',idToken,refreshToken:'ci-refresh',expiresAt:Date.now()+3600000,appSessionToken:'CI_APP_SESSION',appSessionExpiresAt:new Date(Date.now()+3600000).toISOString(),appSessionValidatedAt:Date.now(),profile:{uid:'ci-user',nombre:'CI',email:'ci@homeeasy.test',rol:'ADMIN',estado:'ACTIVO',emailVerificado:true},permissions:['reportes.read','ventas.read']};
           (async()=>{
             const browser=await chromium.launch({headless:true});
             const page=await browser.newPage({viewport:{width:1440,height:1000},locale:'es-CO'});
@@ -76,56 +62,72 @@ jobs:
             await page.route('**/exec?**',async route=>{
               const url=new URL(route.request().url());
               if(!url.href.startsWith(API)) return route.continue();
-              const tipo=url.searchParams.get('tipo');
               const token=url.searchParams.get('appSessionToken');
               const pagina=url.searchParams.get('pagina');
-              seen.push({tipo,token,pagina,url:url.href});
+              const tipo=url.searchParams.get('tipo');
+              const init=url.searchParams.get('init');
+              seen.push({tipo,init,token,pagina});
               if(token!=='CI_APP_SESSION') return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({status:'error',requiresLogin:true,code:'INVALID_APP_SESSION'})});
-              if(pagina!=='reportes-diseno-v4.html') return route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({status:'error',msg:'pagina incorrecta'})});
-              if(tipo==='GET_META') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({meta:25000000})});
-              if(tipo==='GET_REPORTES') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fixture)});
+              if(tipo==='GET_META') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({meta:10000000})});
+              if(tipo==='GET_REPORTES') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(reportData)});
+              if(init==='LOAD') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(sheet)});
               return route.continue();
             });
-            page.on('console',m=>console.log('BROWSER',m.type(),m.text()));
-            page.on('pageerror',e=>console.log('PAGEERROR',e.message));
-            await page.goto('http://127.0.0.1:4173/reportes-diseno-v4.html?ci=auth',{waitUntil:'domcontentloaded',timeout:60000});
-            await page.waitForFunction(()=>document.querySelector('#goalTotal')?.textContent?.trim()==='$25.000.000',{timeout:20000});
-            const state=await page.evaluate(()=>({
-              url:location.pathname,
-              guard:window.HomeEasyPageGuard?{page:HomeEasyPageGuard.currentPage,permission:HomeEasyPageGuard.requiredPermission,status:HomeEasyPageGuard.getStatus()}:null,
-              date:document.querySelector('#dateDisplay')?.textContent?.trim(),
-              goal:document.querySelector('#goalTotal')?.textContent?.trim(),
-              achieved:document.querySelector('#goalAchieved')?.textContent?.trim(),
-              collected:document.querySelector('#collected')?.textContent?.trim(),
-              portfolio:document.querySelector('#portfolio')?.textContent?.trim(),
-              growth:document.querySelector('#growth')?.textContent?.trim(),
-              index:document.querySelector('#goalIndex')?.textContent?.trim(),
-              errorVisible:document.querySelector('#errorBanner')?.classList.contains('show'),
-              titleLeft:document.querySelector('.heading h1')?.getBoundingClientRect().left,
-              subtitleLeft:document.querySelector('.heading p')?.getBoundingClientRect().left,
-              titleTop:document.querySelector('.heading h1')?.getBoundingClientRect().top,
-              subtitleTop:document.querySelector('.heading p')?.getBoundingClientRect().top
+
+            await page.goto('http://127.0.0.1:4173/reportes-diseno-v4.html?periodo=este_mes',{waitUntil:'domcontentloaded'});
+            await page.waitForFunction(()=>document.querySelector('#portfolio')?.textContent?.trim()==='$2.925.000',{timeout:20000});
+            let s=await page.evaluate(()=>({
+              goal:goalTotal.textContent.trim(),
+              achieved:goalAchieved.textContent.trim(),
+              portfolio:portfolio.textContent.trim(),
+              portfolioNote:portfolioNote.textContent.trim(),
+              winner:winnerDetail.textContent.trim(),
+              error:errorBanner.classList.contains('show')
             }));
-            console.log('AUTHORIZED_REQUESTS',JSON.stringify(seen,null,2));
-            console.log('UI_STATE',JSON.stringify(state,null,2));
-            await page.screenshot({path:'reportes-v4-authenticated.png',fullPage:true});
-            if(state.guard?.permission!=='reportes.read' || state.guard?.status!=='authorized') throw new Error('Page guard no autorizó la v4');
-            if(state.errorVisible) throw new Error('Error banner visible');
-            if(state.goal!=='$25.000.000') throw new Error('Meta incorrecta: '+state.goal);
-            if(state.achieved!=='$18.450.000') throw new Error('Vendido incorrecto: '+state.achieved);
-            if(state.collected!=='$12.900.000') throw new Error('Recaudado incorrecto: '+state.collected);
-            if(state.growth!=='+14,6%') throw new Error('Variación incorrecta: '+state.growth);
-            if(state.index!=='74 de cada 100') throw new Error('Índice incorrecto: '+state.index);
-            if(!seen.some(x=>x.tipo==='GET_META'&&x.token==='CI_APP_SESSION')) throw new Error('GET_META no llevó sesión');
-            if(!seen.some(x=>x.tipo==='GET_REPORTES'&&x.token==='CI_APP_SESSION')) throw new Error('GET_REPORTES no llevó sesión');
+            console.log('REPORT_STATE',s);
+            if(s.error) throw new Error('Reporte muestra error');
+            if(s.portfolio!=='$2.925.000') throw new Error('Cartera no usa saldos reales: '+s.portfolio);
+            if(!s.portfolioNote.includes('3 OP activas')) throw new Error('Conteo activo incorrecto: '+s.portfolioNote);
+            if(!s.winner.includes('CRISTHIAN GUZMAN MELIZO')||!s.winner.includes('OP #38')) throw new Error('Ganadora sin cliente: '+s.winner);
+
+            await page.click('#portfolioCard');
+            await page.waitForURL(/ventas\.html/,{timeout:10000});
+            await page.waitForFunction(()=>document.querySelector('#statBalance')?.textContent?.trim()==='$2.925.000',{timeout:20000});
+            s=await page.evaluate(()=>({
+              year:yearFilter.value,
+              month:monthFilter.value,
+              status:statusFilter.value,
+              sort:sortFilter.value,
+              balance:statBalance.textContent.trim(),
+              count:filterResult.textContent.trim(),
+              back:backBtn.getAttribute('href'),
+              context:reportContext.classList.contains('show'),
+              contextTitle:reportContextTitle.textContent.trim()
+            }));
+            console.log('VENTAS_STATE',s);
+            if(s.year!=='2026'||s.month!=='7'||s.status!=='ACTIVO'||s.sort!=='BALANCE_DESC') throw new Error('Filtros URL no aplicados: '+JSON.stringify(s));
+            if(s.balance!=='$2.925.000'||!s.count.startsWith('3')) throw new Error('Ventas no coincide con cartera: '+JSON.stringify(s));
+            if(!s.back.includes('reportes-diseno-v4.html')||!s.back.includes('periodo=este_mes')) throw new Error('Retorno incorrecto: '+s.back);
+            if(!s.context||s.contextTitle!=='Cartera del reporte') throw new Error('Contexto de navegación no visible');
+
+            await page.click('#backBtn');
+            await page.waitForURL(/reportes-diseno-v4\.html/,{timeout:10000});
+            await page.waitForFunction(()=>document.querySelector('#portfolio')?.textContent?.trim()==='$2.925.000',{timeout:20000});
+            await page.click('#winnerCard');
+            await page.waitForURL(/ventas\.html/,{timeout:10000});
+            await page.waitForFunction(()=>document.querySelector('#detailDrawer')?.classList.contains('open'),{timeout:20000});
+            const detail=await page.evaluate(()=>({title:drawerTitle.textContent.trim(),body:drawerBody.textContent}));
+            console.log('WINNER_DETAIL',detail.title,detail.body.slice(0,180));
+            if(detail.title!=='OP-38'||!detail.body.includes('CRISTHIAN GUZMAN MELIZO')) throw new Error('No abrió OP ganadora correcta');
+            if(!seen.some(x=>x.init==='LOAD'&&x.token==='CI_APP_SESSION')) throw new Error('LOAD no llevó sesión');
+            await page.screenshot({path:'reportes-sales-drilldown.png',fullPage:true});
             await browser.close();
           })().catch(err=>{console.error(err);process.exit(1)});
           NODE
-
-      - name: Upload verified screenshot
+      - name: Upload screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reportes-v4-authenticated
-          path: reportes-v4-authenticated.png
+          name: reportes-sales-drilldown
+          path: reportes-sales-drilldown.png
           if-no-files-found: ignore
