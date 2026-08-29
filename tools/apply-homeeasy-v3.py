@@ -2,12 +2,12 @@ from pathlib import Path
 import re
 
 patterns = [
-    (re.compile(r'VERSIÓN\s+2\.0\b'), 'VERSIÓN 3.0'),
-    (re.compile(r'VERSION\s+2\.0\b'), 'VERSION 3.0'),
-    (re.compile(r'Versión\s+2\.0\b'), 'Versión 3.0'),
-    (re.compile(r'Version\s+2\.0\b'), 'Version 3.0'),
-    (re.compile(r'versión\s+2\.0\b'), 'versión 3.0'),
-    (re.compile(r'version\s+2\.0\b'), 'version 3.0'),
+    (re.compile(r'VERSIÓN\s*2\.0\b'), 'VERSIÓN 3.0'),
+    (re.compile(r'VERSION\s*2\.0\b'), 'VERSION 3.0'),
+    (re.compile(r'Versión\s*2\.0\b'), 'Versión 3.0'),
+    (re.compile(r'Version\s*2\.0\b'), 'Version 3.0'),
+    (re.compile(r'versión\s*2\.0\b'), 'versión 3.0'),
+    (re.compile(r'version\s*2\.0\b'), 'version 3.0'),
 ]
 changed=[]
 for p in sorted(Path('.').rglob('*.html')):
