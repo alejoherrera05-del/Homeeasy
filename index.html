@@ -112,12 +112,6 @@ body {
     height: auto;
     margin: 0;
     filter: drop-shadow(0 11px 15px rgba(91,28,44,.22)) drop-shadow(0 2px 5px rgba(226,190,111,.18));
-    animation: introLogoFloat 3.8s ease-in-out infinite;
-    will-change: transform;
-}
-@keyframes introLogoFloat {
-    0%, 100% { transform: translateY(2px); }
-    50% { transform: translateY(-6px); }
 }
 .intro-brand {
     margin: 2px 0 4px;
@@ -141,9 +135,6 @@ body {
 }
 .hommy-static { width:260px; margin-bottom:40px; }
 
-@media (prefers-reduced-motion: reduce) {
-    .logo-triangulo { animation: none !important; transform: none !important; }
-}
 
 .glass-loader {
     background: var(--glass-bg);
