@@ -5,7 +5,7 @@ TARGET = ROOT / "clientes-conectado-v31.html"
 html = TARGET.read_text(encoding="utf-8")
 
 replacements = {
-    "shell.append(buildContact(c),buildSummary(orders));": "shell.append(buildContact(c));",
+    "shell.append(buildContact(client),buildSummary(orders));": "shell.append(buildContact(client));",
     "actions.append(wa,bottomMore);card.append(actions);return card}": "actions.append(wa);card.append(actions);return card}",
 }
 for old, new in replacements.items():
@@ -47,8 +47,8 @@ refinement_css = r'''
 html = html.replace(style_marker, refinement_css + '\n' + style_marker, 1)
 
 # Safety assertions for the visible product surface.
-assert "shell.append(buildContact(c));" in html
-assert "shell.append(buildContact(c),buildSummary(orders));" not in html
+assert "shell.append(buildContact(client));" in html
+assert "shell.append(buildContact(client),buildSummary(orders));" not in html
 assert "actions.append(wa);card.append(actions);return card}" in html
 assert "actions.append(wa,bottomMore)" not in html
 assert ".v31-summary{display:none!important}" in html
