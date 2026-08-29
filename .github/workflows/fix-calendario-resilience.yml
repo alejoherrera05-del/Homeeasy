@@ -54,7 +54,7 @@ jobs:
               const y = now.getFullYear();
               const m = String(now.getMonth()+1).padStart(2,'0');
               const d = String(now.getDate()).padStart(2,'0');
-              return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({eventos:[{id:'qa-1',fecha:`${y}-${m}-${d}`,hora:'04:00 PM',titulo:'Prueba agenda',categoria:'Visitas técnicas',cliente:'QA',referencia:'N/A',estado:'PENDIENTE'}]})});
+              return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({eventos:[{id:'qa-1',fecha:`${y}-${m}-${d}`,hora:'11:59 PM',titulo:'Prueba agenda',categoria:'Visitas técnicas',cliente:'QA',referencia:'N/A',estado:'PENDIENTE'}]})});
             });
           }
 
