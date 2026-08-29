@@ -1,0 +1,49 @@
+name: finalize executive report PDF
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/finalize-report-pdf.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Trim residual PDF page and refine goal summary
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('reportes-diseno-v4.html')
+          s=p.read_text(encoding='utf-8')
+
+          old_goal='${pdfGoalHtml(m.pct)}<div class="board-pdf-goal-copy"><div class="board-pdf-eyebrow">Cumplimiento de meta</div><strong>${Math.round(m.pct)}%</strong><span>${pdfEsc(goalMessage)}</span></div>'
+          new_goal='${pdfGoalHtml(m.pct)}<div class="board-pdf-goal-copy"><div class="board-pdf-eyebrow">Distancia a la meta</div><strong>${m.rem>0?pdfEsc(money(m.rem)):"$0"}</strong><span>${m.rem>0?"Pendientes para alcanzar el objetivo comercial.":"Objetivo comercial alcanzado."}</span></div>'
+          if old_goal not in s:
+              raise SystemExit('goal summary marker missing')
+          s=s.replace(old_goal,new_goal,1)
+
+          old="await html2pdf().set({margin:0,filename:pdfFilename(),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(report).save()"
+          new="await html2pdf().set({margin:0,filename:pdfFilename(),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(report).toPdf().get('pdf').then(pdf=>{while(pdf.internal.getNumberOfPages()>2)pdf.deletePage(pdf.internal.getNumberOfPages())}).save()"
+          if old not in s:
+              raise SystemExit('html2pdf save marker missing')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+          grep -q "while(pdf.internal.getNumberOfPages()>2)pdf.deletePage" reportes-diseno-v4.html
+          grep -q 'Distancia a la meta' reportes-diseno-v4.html
+          git diff --check
+      - name: Commit product fix and remove temporary workflow
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git rm .github/workflows/finalize-report-pdf.yml
+          git add reportes-diseno-v4.html
+          git commit -m 'Finalize two-page executive sales report PDF'
+          git push
