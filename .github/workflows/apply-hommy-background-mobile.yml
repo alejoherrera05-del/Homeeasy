@@ -22,97 +22,44 @@ jobs:
         run: |
           python3 <<'PY'
           from pathlib import Path
-          p=Path('reportes.html')
-          s=p.read_text(encoding='utf-8')
+          p = Path('reportes.html')
+          s = p.read_text(encoding='utf-8')
           if 'reportes-mobile-goal-v4' in s:
               raise SystemExit('mobile goal v4 already present')
-          marker='<script src="homeeasy-core.js?v=3.5"></script>'
+          marker = '<script src="homeeasy-core.js?v=3.5"></script>'
           if marker not in s:
               raise SystemExit('script marker missing')
-          css='''
-<style id="reportes-mobile-goal-v4">
-@media (max-width:620px){
-  .goal-hero{
-    display:block!important;
-    min-height:0!important;
-    padding:21px 18px 18px!important;
-    isolation:isolate;
-  }
-  .goal-hero::after{
-    content:"";
-    position:absolute;
-    z-index:0;
-    width:275px;
-    height:275px;
-    right:-56px;
-    top:82px;
-    background:url('assets/hommy-dinero-mobile.svg') center/contain no-repeat;
-    opacity:.17;
-    filter:saturate(.92) contrast(.96);
-    pointer-events:none;
-    -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 19%,#000 52%,#000 100%);
-    mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 19%,#000 52%,#000 100%);
-  }
-  .goal-copy{
-    position:relative;
-    z-index:2;
-    grid-column:auto!important;
-    grid-row:auto!important;
-    max-width:none!important;
-    width:100%!important;
-  }
-  .goal-copy:after{
-    content:"";
-    display:block;
-    height:1px;
-    margin-top:17px;
-    background:linear-gradient(90deg,rgba(60,60,67,.09),rgba(60,60,67,.025),transparent);
-  }
-  .goal-kicker{gap:8px;font-size:15px}
-  .goal-kicker i{width:32px;height:32px;border-radius:10px}
-  .goal-label{margin-top:17px;font-size:14px}
-  .goal-total-row{gap:9px;margin-top:5px;align-items:center}
-  .goal-total{font-size:40px;line-height:1;white-space:nowrap}
-  .edit-goal{width:36px;height:36px;border-radius:11px;font-size:14px;flex:0 0 auto}
-  .goal-progress-copy{margin-top:18px;display:flex;align-items:baseline;gap:8px;flex-wrap:nowrap}
-  .goal-progress-copy span{font-size:14.5px}
-  .goal-achieved{font-size:29px;white-space:nowrap}
-  .goal-remaining{margin-top:8px;font-size:13.5px;line-height:1.4;max-width:88%}
-  .ring-wrap{
-    position:relative;
-    z-index:2;
-    grid-column:auto!important;
-    grid-row:auto!important;
-    width:100%!important;
-    padding-top:17px!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-  }
-  .ring{width:132px;height:132px;box-shadow:0 8px 22px rgba(178,86,108,.05)}
-  .ring:after{inset:14px}
-  .ring-center strong{font-size:32px}
-  .ring-center span{margin-top:6px;font-size:12.5px}
-  .ring-note{display:none!important}
-  .hommy-stage{display:none!important}
-}
-@media (max-width:380px){
-  .goal-hero{padding:19px 15px 16px!important}
-  .goal-hero::after{width:238px;height:238px;right:-52px;top:88px;opacity:.15}
-  .goal-total{font-size:35px}
-  .goal-achieved{font-size:26px}
-  .goal-progress-copy span{font-size:13.5px}
-  .goal-remaining{font-size:13px;max-width:92%}
-  .ring{width:120px;height:120px}.ring:after{inset:13px}.ring-center strong{font-size:29px}.ring-center span{font-size:11.5px}
-}
-</style>
-'''
-          s=s.replace(marker,css+marker,1)
-          p.write_text(s,encoding='utf-8')
+          lines = [
+              '<style id="reportes-mobile-goal-v4">',
+              '@media (max-width:620px){',
+              '.goal-hero{display:block!important;min-height:0!important;padding:21px 18px 18px!important;isolation:isolate}',
+              '.goal-hero::after{content:"";position:absolute;z-index:0;width:275px;height:275px;right:-56px;top:82px;background:url("assets/hommy-dinero-mobile.svg") center/contain no-repeat;opacity:.17;filter:saturate(.92) contrast(.96);pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 19%,#000 52%,#000 100%);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 19%,#000 52%,#000 100%)}',
+              '.goal-copy{position:relative;z-index:2;grid-column:auto!important;grid-row:auto!important;max-width:none!important;width:100%!important}',
+              '.goal-copy:after{content:"";display:block;height:1px;margin-top:17px;background:linear-gradient(90deg,rgba(60,60,67,.09),rgba(60,60,67,.025),transparent)}',
+              '.goal-kicker{gap:8px;font-size:15px}.goal-kicker i{width:32px;height:32px;border-radius:10px}',
+              '.goal-label{margin-top:17px;font-size:14px}',
+              '.goal-total-row{gap:9px;margin-top:5px;align-items:center}.goal-total{font-size:40px;line-height:1;white-space:nowrap}.edit-goal{width:36px;height:36px;border-radius:11px;font-size:14px;flex:0 0 auto}',
+              '.goal-progress-copy{margin-top:18px;display:flex;align-items:baseline;gap:8px;flex-wrap:nowrap}.goal-progress-copy span{font-size:14.5px}.goal-achieved{font-size:29px;white-space:nowrap}',
+              '.goal-remaining{margin-top:8px;font-size:13.5px;line-height:1.4;max-width:88%}',
+              '.ring-wrap{position:relative;z-index:2;grid-column:auto!important;grid-row:auto!important;width:100%!important;padding-top:17px!important;display:flex!important;align-items:center!important;justify-content:center!important}',
+              '.ring{width:132px;height:132px;box-shadow:0 8px 22px rgba(178,86,108,.05)}.ring:after{inset:14px}.ring-center strong{font-size:32px}.ring-center span{margin-top:6px;font-size:12.5px}',
+              '.ring-note{display:none!important}.hommy-stage{display:none!important}',
+              '}',
+              '@media (max-width:380px){',
+              '.goal-hero{padding:19px 15px 16px!important}.goal-hero::after{width:238px;height:238px;right:-52px;top:88px;opacity:.15}',
+              '.goal-total{font-size:35px}.goal-achieved{font-size:26px}.goal-progress-copy span{font-size:13.5px}.goal-remaining{font-size:13px;max-width:92%}',
+              '.ring{width:120px;height:120px}.ring:after{inset:13px}.ring-center strong{font-size:29px}.ring-center span{font-size:11.5px}',
+              '}',
+              '</style>',
+              ''
+          ]
+          css = '\n'.join(lines)
+          s = s.replace(marker, css + marker, 1)
+          p.write_text(s, encoding='utf-8')
           PY
           test -f assets/hommy-dinero-mobile.svg
           grep -q 'reportes-mobile-goal-v4' reportes.html
-          grep -q "assets/hommy-dinero-mobile.svg" reportes.html
+          grep -q 'assets/hommy-dinero-mobile.svg' reportes.html
           git diff --check
 
       - uses: actions/setup-node@v4
@@ -129,21 +76,26 @@ jobs:
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/he-hommy.log 2>&1 &
           sleep 2
           node <<'NODE'
-          const {chromium}=require('playwright');
+          const { chromium } = require('playwright');
           (async()=>{
-            const browser=await chromium.launch({headless:true});
-            const page=await browser.newPage({viewport:{width:430,height:932},deviceScaleFactor:3,locale:'es-CO'});
-            await page.route('**/homeeasy-page-guard.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.HomeEasyPageGuard={ready:Promise.resolve(true)};'}));
-            await page.route('**/homeeasy-core.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.HomeEasyCore={get:async()=>({}),post:async()=>({status:"ok"})};'}));
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage({viewport:{width:430,height:932},deviceScaleFactor:3,locale:'es-CO'});
+            await page.route('**/homeeasy-page-guard.js*', route => route.fulfill({status:200,contentType:'application/javascript',body:'window.HomeEasyPageGuard={ready:Promise.resolve(true)};'}));
+            await page.route('**/homeeasy-core.js*', route => route.fulfill({status:200,contentType:'application/javascript',body:'window.HomeEasyCore={get:async()=>({}),post:async()=>({status:"ok"})};'}));
             await page.goto('http://127.0.0.1:4173/reportes.html?periodo=este_mes',{waitUntil:'domcontentloaded'});
             await page.waitForTimeout(500);
             await page.evaluate(()=>{
               const t=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
               const l=document.getElementById('loaderFinance');if(l)l.style.display='none';
               t('dateDisplay','Mostrando: 1/8/2026 - 31/8/2026');
-              t('goalKicker','Meta de ventas · Agosto');t('goalTotal','$10.000.000');t('goalAchieved','$7.199.000');t('goalPct','72%');
-              const rem=document.getElementById('goalRemaining');if(rem)rem.innerHTML='Nos faltan <strong>$2.801.000</strong> para cumplir la meta.';
-              const ring=document.getElementById('ring');if(ring)ring.style.background='conic-gradient(#B2566C 0 72%,#E9E6E7 72% 100%)';
+              t('goalKicker','Meta de ventas · Agosto');
+              t('goalTotal','$10.000.000');
+              t('goalAchieved','$7.199.000');
+              t('goalPct','72%');
+              const rem=document.getElementById('goalRemaining');
+              if(rem)rem.innerHTML='Nos faltan <strong>$2.801.000</strong> para cumplir la meta.';
+              const ring=document.getElementById('ring');
+              if(ring)ring.style.background='conic-gradient(#B2566C 0 72%,#E9E6E7 72% 100%)';
             });
             const g=await page.evaluate(()=>{
               const box=s=>{const e=document.querySelector(s),r=e.getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height,display:getComputedStyle(e).display}};
