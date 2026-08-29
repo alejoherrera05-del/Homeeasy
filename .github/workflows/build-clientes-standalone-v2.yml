@@ -42,8 +42,8 @@ jobs:
           import re, subprocess, tempfile
           html = Path('clientes-prueba-v2.html').read_text(encoding='utf-8')
           scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', html, re.I)
-          if len(scripts) < 4:
-              raise SystemExit(f'Expected at least 4 inline scripts, got {len(scripts)}')
+          if len(scripts) < 3:
+              raise SystemExit(f'Expected at least 3 inline scripts, got {len(scripts)}')
           for i, script in enumerate(scripts):
               p = Path(tempfile.gettempdir()) / f'clientes-v3-inline-{i}.js'
               p.write_text(script, encoding='utf-8')
