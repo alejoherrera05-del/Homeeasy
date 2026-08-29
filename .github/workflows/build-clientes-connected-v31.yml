@@ -114,8 +114,9 @@ jobs:
           if absent:
               raise SystemExit('Critical Clientes flows missing: ' + ', '.join(absent))
 
-          # No duplicate ids in static HTML. Dynamic repeated rows do not use ids.
-          ids = re.findall(r'\bid=["\']([^"\']+)["\']', html, re.I)
+          # Duplicate-id audit must only inspect real static markup, not strings/templates inside JS.
+          markup_only = re.sub(r'<script\b[^>]*>[\s\S]*?</script>', '', html, flags=re.I)
+          ids = re.findall(r'\bid=["\']([^"\']+)["\']', markup_only, re.I)
           duplicate_ids = sorted({x for x in ids if ids.count(x) > 1})
           if duplicate_ids:
               raise SystemExit('Duplicate static ids: ' + ', '.join(duplicate_ids))
