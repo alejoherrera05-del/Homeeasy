@@ -1,0 +1,105 @@
+name: patch HomeEasy 3.0 splash
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/patch-index-splash-v3.py'
+      - '.github/workflows/patch-index-splash-v3.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply isolated splash patch
+        run: |
+          python3 tools/patch-index-splash-v3.py
+          grep -q 'Sistema Hommy 3.0' index.html
+          grep -q 'class="intro-brand"' index.html
+          grep -q 'id="status-message"' index.html
+          grep -q 'id="progress-bar"' index.html
+          ! grep -A12 -B12 'class="intro-brand"' index.html | grep -q 'Sistema Hommy 2.0'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Serve patched index
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/splash-v3.log 2>&1 &
+          sleep 2
+
+      - name: Validate mobile splash
+        run: |
+          cat > qa-splash-v3.js <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage({viewport:{width:430,height:932}, deviceScaleFactor:2});
+            const errors=[];
+            page.on('pageerror',e=>errors.push(e.message));
+            await page.goto('http://127.0.0.1:4173/index.html?qa=splash-v3',{waitUntil:'domcontentloaded'});
+            await page.waitForSelector('#intro-curtain');
+            const result = await page.evaluate(()=>{
+              const brand=document.querySelector('.intro-brand');
+              const home=document.querySelector('.intro-home');
+              const easy=document.querySelector('.intro-easy');
+              const logo=document.querySelector('.logo-triangulo');
+              const curtain=document.getElementById('intro-curtain');
+              const version=document.querySelector('.version-tag');
+              return {
+                brand:brand?.textContent?.trim()||'',
+                version:version?.textContent?.trim()||'',
+                homeColor:getComputedStyle(home).color,
+                easyColor:getComputedStyle(easy).color,
+                weight:getComputedStyle(brand).fontWeight,
+                animation:getComputedStyle(logo).animationName,
+                filter:getComputedStyle(logo).filter,
+                overflow:document.documentElement.scrollWidth > 430,
+                status:!!document.getElementById('status-message'),
+                progress:!!document.getElementById('progress-bar'),
+                curtainDisplay:getComputedStyle(curtain).display
+              };
+            });
+            console.log('SPLASH_V3', result);
+            if(result.brand!=='HomeEasy') throw new Error('Brand text changed');
+            if(result.version!=='Sistema Hommy 3.0') throw new Error('Version not 3.0');
+            if(!result.homeColor.includes('255, 255, 255')) throw new Error('Home is not white');
+            if(result.homeColor===result.easyColor) throw new Error('Home/Easy colors are not split');
+            if(result.animation!=='introLogoFloat') throw new Error('Logo float animation missing');
+            if(!String(result.filter).includes('drop-shadow')) throw new Error('Logo depth missing');
+            if(result.overflow) throw new Error('Horizontal overflow in splash');
+            if(!result.status || !result.progress) throw new Error('Loader functional IDs changed');
+            if(result.curtainDisplay==='none') throw new Error('Curtain hidden unexpectedly');
+            if(errors.length) throw new Error('JS errors: '+errors.join(' | '));
+            await page.locator('#intro-curtain').screenshot({path:'splash-v3-mobile.png'});
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          node qa-splash-v3.js
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: splash-v3-mobile-preview
+          path: splash-v3-mobile.png
+
+      - name: Commit splash update
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Refine HomeEasy 3.0 loading screen'
+          git push
