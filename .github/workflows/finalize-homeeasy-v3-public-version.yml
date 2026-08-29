@@ -73,13 +73,20 @@ jobs:
               if(errs.length) throw new Error(file+' JS errors: '+errs.join(' | '));
               await page.close();
             }
+
             const cfg=await browser.newPage({viewport:{width:430,height:932}}); await prep(cfg);
             const errs=[]; cfg.on('pageerror',e=>errs.push(e.message));
             await cfg.goto('http://127.0.0.1:4173/configuracion.html?qa=v3',{waitUntil:'domcontentloaded'});
-            await cfg.waitForTimeout(650);
-            const state=await cfg.evaluate(()=>({footer:document.getElementById('footerSystem')?.value||'', appVersion:document.getElementById('appVersion')?.textContent||''}));
+            await cfg.waitForFunction(()=>typeof window.applyConfiguration==='function',{timeout:5000});
+            const state=await cfg.evaluate((payload)=>{
+              window.applyConfiguration(payload);
+              return {
+                footer:document.getElementById('footerSystem')?.value||'',
+                appVersion:document.getElementById('appVersion')?.textContent||''
+              };
+            },OLD_CONFIG);
             console.log('CONFIG_V3',state);
-            if(/2\.0/.test(state.footer) || !/3\.0/.test(state.footer)) throw new Error('config footer did not normalize');
+            if(/2\.0/.test(state.footer) || !/3\.0/.test(state.footer)) throw new Error('config footer did not normalize: '+state.footer);
             if(state.appVersion.trim()!=='3.0') throw new Error('config app version not 3.0: '+state.appVersion);
             if(errs.length) throw new Error('config JS errors: '+errs.join(' | '));
             await browser.close();
