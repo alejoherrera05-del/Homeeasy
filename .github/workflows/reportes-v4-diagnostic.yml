@@ -13,21 +13,23 @@ on:
 jobs:
   diagnostic:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install Playwright
+      - name: Install browser and PDF tools
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
       - name: Serve repository
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/reportes-http.log 2>&1 &
           sleep 2
-      - name: Report to sales drilldown integration test
+      - name: Report navigation and PDF integration test
         run: |
           node <<'NODE'
           const { chromium } = require('playwright');
@@ -56,7 +58,7 @@ jobs:
           const session={version:2,persistence:'session',localId:'ci-user',email:'ci@homeeasy.test',displayName:'CI',idToken,refreshToken:'ci-refresh',expiresAt:Date.now()+3600000,appSessionToken:'CI_APP_SESSION',appSessionExpiresAt:new Date(Date.now()+3600000).toISOString(),appSessionValidatedAt:Date.now(),profile:{uid:'ci-user',nombre:'CI',email:'ci@homeeasy.test',rol:'ADMIN',estado:'ACTIVO',emailVerificado:true},permissions:['reportes.read','ventas.read']};
           (async()=>{
             const browser=await chromium.launch({headless:true});
-            const page=await browser.newPage({viewport:{width:1440,height:1000},locale:'es-CO'});
+            const page=await browser.newPage({viewport:{width:1440,height:1000},locale:'es-CO',acceptDownloads:true});
             await page.addInitScript(s=>sessionStorage.setItem('HOMEEASY_AUTH_SESSION_V1',JSON.stringify(s)),session);
             const seen=[];
             await page.route('**/exec?**',async route=>{
@@ -87,23 +89,22 @@ jobs:
             console.log('REPORT_STATE',s);
             if(s.error) throw new Error('Reporte muestra error');
             if(s.portfolio!=='$2.925.000') throw new Error('Cartera no usa saldos reales: '+s.portfolio);
-            if(!s.portfolioNote.includes('3 OP activas')) throw new Error('Conteo activo incorrecto: '+s.portfolioNote);
+            if(s.portfolioNote!=='3 OP activas · saldo pendiente del periodo.') throw new Error('Texto de cartera inesperado: '+s.portfolioNote);
+            if(s.portfolioNote.includes('Haz clic')) throw new Error('La tarjeta conserva instrucción de clic innecesaria');
             if(!s.winner.includes('CRISTHIAN GUZMAN MELIZO')||!s.winner.includes('OP #38')) throw new Error('Ganadora sin cliente: '+s.winner);
 
+            const downloadPromise=page.waitForEvent('download',{timeout:30000});
+            await page.click('#exportBtn');
+            const download=await downloadPromise;
+            await download.saveAs('HomeEasy-board-report.pdf');
+            await page.waitForFunction(()=>!document.querySelector('#exportBtn').disabled,{timeout:30000});
+
+            const reportCalls=()=>seen.filter(x=>x.pagina==='reportes-diseno-v4.html'&&(x.tipo==='GET_META'||x.tipo==='GET_REPORTES'||x.init==='LOAD')).length;
+            const beforePortfolio=reportCalls();
             await page.click('#portfolioCard');
             await page.waitForURL(/ventas\.html/,{timeout:10000});
             await page.waitForFunction(()=>document.querySelector('#statBalance')?.textContent?.trim()==='$2.925.000',{timeout:20000});
-            s=await page.evaluate(()=>({
-              year:yearFilter.value,
-              month:monthFilter.value,
-              status:statusFilter.value,
-              sort:sortFilter.value,
-              balance:statBalance.textContent.trim(),
-              count:filterResult.textContent.trim(),
-              back:backBtn.getAttribute('href'),
-              context:reportContext.classList.contains('show'),
-              contextTitle:reportContextTitle.textContent.trim()
-            }));
+            s=await page.evaluate(()=>({year:yearFilter.value,month:monthFilter.value,status:statusFilter.value,sort:sortFilter.value,balance:statBalance.textContent.trim(),count:filterResult.textContent.trim(),back:backBtn.getAttribute('href'),context:reportContext.classList.contains('show'),contextTitle:reportContextTitle.textContent.trim()}));
             console.log('VENTAS_STATE',s);
             if(s.year!=='2026'||s.month!=='7'||s.status!=='ACTIVO'||s.sort!=='BALANCE_DESC') throw new Error('Filtros URL no aplicados: '+JSON.stringify(s));
             if(s.balance!=='$2.925.000'||!s.count.startsWith('3')) throw new Error('Ventas no coincide con cartera: '+JSON.stringify(s));
@@ -112,22 +113,55 @@ jobs:
 
             await page.click('#backBtn');
             await page.waitForURL(/reportes-diseno-v4\.html/,{timeout:10000});
-            await page.waitForFunction(()=>document.querySelector('#portfolio')?.textContent?.trim()==='$2.925.000',{timeout:20000});
+            await page.waitForFunction(()=>document.querySelector('#portfolio')?.textContent?.trim()==='$2.925.000',{timeout:10000});
+            await page.waitForTimeout(600);
+            const afterPortfolio=reportCalls();
+            const returnState=await page.evaluate(()=>({display:getComputedStyle(loaderFinance).display,opacity:getComputedStyle(loaderFinance).opacity,portfolio:portfolio.textContent.trim()}));
+            console.log('RETURN_STATE',returnState,'calls',beforePortfolio,afterPortfolio);
+            if(afterPortfolio!==beforePortfolio) throw new Error(`El reporte consultó el backend otra vez al volver: ${beforePortfolio} -> ${afterPortfolio}`);
+            if(returnState.display!=='none'&&Number(returnState.opacity)>0.05) throw new Error('El loader volvió a mostrarse al regresar desde Ventas');
+
+            const beforeWinner=reportCalls();
             await page.click('#winnerCard');
             await page.waitForURL(/ventas\.html/,{timeout:10000});
             await page.waitForFunction(()=>document.querySelector('#detailDrawer')?.classList.contains('open'),{timeout:20000});
             const detail=await page.evaluate(()=>({title:drawerTitle.textContent.trim(),body:drawerBody.textContent}));
-            console.log('WINNER_DETAIL',detail.title,detail.body.slice(0,180));
             if(detail.title!=='OP-38'||!detail.body.includes('CRISTHIAN GUZMAN MELIZO')) throw new Error('No abrió OP ganadora correcta');
+            await page.click('#backBtn');
+            await page.waitForURL(/reportes-diseno-v4\.html/,{timeout:10000});
+            await page.waitForTimeout(600);
+            if(reportCalls()!==beforeWinner) throw new Error('La vuelta desde OP ganadora recargó datos del reporte');
             if(!seen.some(x=>x.init==='LOAD'&&x.token==='CI_APP_SESSION')) throw new Error('LOAD no llevó sesión');
-            await page.screenshot({path:'reportes-sales-drilldown.png',fullPage:true});
+            await page.screenshot({path:'reportes-final-screen.png',fullPage:true});
             await browser.close();
           })().catch(err=>{console.error(err);process.exit(1)});
           NODE
-      - name: Upload screenshot
+      - name: Validate and render exported PDF
+        run: |
+          test -s HomeEasy-board-report.pdf
+          pdfinfo HomeEasy-board-report.pdf | tee board-report-pdfinfo.txt
+          pages="$(pdfinfo HomeEasy-board-report.pdf | awk '/^Pages:/ {print $2}')"
+          test "$pages" = "2"
+          pdftotext -layout HomeEasy-board-report.pdf board-report.txt
+          grep -q 'Resumen ejecutivo' board-report.txt
+          grep -q 'Cumplimiento de meta' board-report.txt
+          grep -q 'Cartera activa del periodo' board-report.txt
+          grep -q 'CRISTHIAN GUZMAN MELIZO' board-report.txt
+          grep -q 'Metodología del reporte' board-report.txt
+          grep -q 'Página 2 de 2' board-report.txt
+          pdftoppm -png -f 1 -l 2 -r 140 HomeEasy-board-report.pdf board-report-page
+          test -s board-report-page-1.png
+          test -s board-report-page-2.png
+      - name: Upload regression artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reportes-sales-drilldown
-          path: reportes-sales-drilldown.png
+          name: reportes-v4-regression
+          path: |
+            HomeEasy-board-report.pdf
+            board-report-pdfinfo.txt
+            board-report.txt
+            board-report-page-1.png
+            board-report-page-2.png
+            reportes-final-screen.png
           if-no-files-found: ignore
