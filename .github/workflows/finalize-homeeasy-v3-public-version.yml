@@ -1,0 +1,96 @@
+name: finalize HomeEasy 3.0 public version
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/finalize-homeeasy-v3-public-version.py'
+      - '.github/workflows/finalize-homeeasy-v3-public-version.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply final public version patch
+        run: |
+          python3 tools/finalize-homeeasy-v3-public-version.py
+          node --check homeeasy-docs.js
+          grep -q 'Sistema Hommy V3.0' homeeasy-docs.js
+          ! grep -q 'Sistema Hommy V2.0' homeeasy-docs.js
+          for f in configuracion.html abono.html cotizacion.html pedido.html; do grep -q 'homeeasy-docs.js?v=4.2' "$f"; done
+          ! grep -RIn --include='*.html' -E 'VERSI(Ó|O)N[[:space:]]*2\.0|\bV2\.0\b' .
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Serve patched app
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/v3-final.log 2>&1 &
+          sleep 2
+
+      - name: Test old backend version normalizes to 3.0
+        run: |
+          cat > qa-v3-final.js <<'NODE'
+          const { chromium } = require('playwright');
+          const OLD_CONFIG = {
+            status:'ok', version:7, actualizadoEn:'2026-08-29T12:00:00-05:00', configuracion:{
+              sistema:{version_app:'2.0',version_configuracion:7},
+              empresa:{nombre_comercial:'HOMEEASY POPAYÁN'},
+              documentos:{
+                pie_principal:'HomeEasy - Viste tu hogar con estilo',
+                pie_sistema:'Documento generado automáticamente • Sistema Hommy V2.0',
+                cotizacion:{titulo:'COTIZACIÓN'}, pedido:{titulo:'ORDEN DE PEDIDO'}, recibo:{titulo:'RECIBO DE ABONO'}
+              }
+            }
+          };
+          async function prep(page){
+            await page.route('**/homeeasy-page-guard.js*',r=>r.fulfill({status:200,contentType:'application/javascript',body:''}));
+            await page.route('**/script.google.com/**',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(OLD_CONFIG)}));
+          }
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            for(const file of ['cotizacion.html','pedido.html','abono.html']){
+              const page=await browser.newPage({viewport:{width:430,height:932}}); await prep(page);
+              const errs=[]; page.on('pageerror',e=>errs.push(e.message));
+              await page.goto('http://127.0.0.1:4173/'+file+'?qa=v3',{waitUntil:'domcontentloaded'});
+              await page.waitForTimeout(450);
+              const footer=await page.locator('#footer-system-line').textContent();
+              if(!/V3\.0/.test(footer||'') || /V2\.0/.test(footer||'')) throw new Error(file+' footer not normalized: '+footer);
+              if(errs.length) throw new Error(file+' JS errors: '+errs.join(' | '));
+              await page.close();
+            }
+            const cfg=await browser.newPage({viewport:{width:430,height:932}}); await prep(cfg);
+            const errs=[]; cfg.on('pageerror',e=>errs.push(e.message));
+            await cfg.goto('http://127.0.0.1:4173/configuracion.html?qa=v3',{waitUntil:'domcontentloaded'});
+            await cfg.waitForTimeout(650);
+            const state=await cfg.evaluate(()=>({footer:document.getElementById('footerSystem')?.value||'', appVersion:document.getElementById('appVersion')?.textContent||''}));
+            console.log('CONFIG_V3',state);
+            if(/2\.0/.test(state.footer) || !/3\.0/.test(state.footer)) throw new Error('config footer did not normalize');
+            if(state.appVersion.trim()!=='3.0') throw new Error('config app version not 3.0: '+state.appVersion);
+            if(errs.length) throw new Error('config JS errors: '+errs.join(' | '));
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          node qa-v3-final.js
+
+      - name: Commit final public version patch
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git add homeeasy-docs.js configuracion.html abono.html cotizacion.html pedido.html
+          git commit -m 'Finalize HomeEasy 3.0 public version'
+          git push
