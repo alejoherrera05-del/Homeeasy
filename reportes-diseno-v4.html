@@ -31,19 +31,22 @@
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
       -webkit-font-smoothing:antialiased;
     }
-    button,select{font:inherit}
+    button,input,select{font:inherit}
     button{cursor:pointer}
-    button:focus-visible,select:focus-visible{outline:3px solid rgba(178,86,108,.2);outline-offset:3px}
+    button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(178,86,108,.2);outline-offset:3px}
 
-    .app{min-height:100dvh;padding:22px 0 44px}
+    .app{min-height:100dvh;padding:18px 0 44px}
 
-    /* CABECERA NUEVA: título + selector + periodo visible, todo en un mismo bloque */
+    /* CABECERA: título central + periodo claramente anclado debajo */
     .report-header{
       width:min(1560px,calc(100% - 48px));
       margin:0 auto;
+    }
+    .header-main{
+      position:relative;
+      min-height:92px;
       display:grid;
-      grid-template-columns:48px minmax(0,1fr) minmax(330px,410px);
-      gap:16px;
+      grid-template-columns:52px minmax(0,1fr) 52px;
       align-items:center;
     }
     .back{
@@ -58,46 +61,64 @@
     }
     .back:hover{background:var(--brand-soft);transform:translateY(-1px)}
 
-    .heading{min-width:0}
+    .heading{text-align:center;min-width:0}
+    .heading-title{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:11px;
+    }
+    .heading-title img{width:28px;height:auto;display:block}
     .heading h1{
       margin:0;
-      color:var(--brand-dark);
-      font-size:clamp(30px,2.4vw,40px);
-      line-height:1.02;
-      font-weight:730;
-      letter-spacing:-.045em;
+      color:var(--ink);
+      font-size:clamp(30px,2.35vw,38px);
+      line-height:1.05;
+      font-weight:735;
+      letter-spacing:-.043em;
     }
     .heading p{
       margin:7px 0 0;
       color:var(--muted);
-      font-size:18px;
+      font-size:17px;
       line-height:1.25;
-      font-weight:450;
+      font-weight:460;
     }
 
-    .period-panel{
-      background:#fff;
-      border:1px solid rgba(60,60,67,.075);
-      border-radius:22px;
-      padding:13px 15px 12px;
-      box-shadow:0 8px 25px rgba(47,34,39,.035);
+    .period-row{
+      min-height:58px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      padding:2px 4px 0;
     }
-    .period-top{display:flex;align-items:center;justify-content:space-between;gap:14px}
-    .period-label{font-size:14px;font-weight:680;color:#858188;letter-spacing:.01em}
-    .period{position:relative;min-width:168px}
+    .date-display{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:#59575E;
+      font-size:16px;
+      font-weight:620;
+    }
+    .date-display i{color:var(--brand);font-size:17px}
+    .period-control{display:flex;align-items:center;gap:10px}
+    .period-label{font-size:14px;font-weight:650;color:#858188}
+    .period{position:relative;min-width:170px}
     .period select{
       appearance:none;
       -webkit-appearance:none;
       width:100%;
-      height:44px;
-      border:1.2px solid rgba(178,86,108,.72);
-      border-radius:14px;
-      background:var(--brand-pale);
+      height:46px;
+      border:1.25px solid rgba(178,86,108,.78);
+      border-radius:15px;
+      background:#fff;
       color:var(--brand-dark);
-      padding:0 41px 0 15px;
-      font-size:15px;
+      padding:0 42px 0 16px;
+      font-size:15.5px;
       font-weight:660;
       outline:none;
+      box-shadow:0 6px 18px rgba(47,34,39,.025);
     }
     .period:after{
       content:"\f078";
@@ -110,101 +131,94 @@
       font-size:11px;
       pointer-events:none;
     }
-    .date-display{
-      margin-top:9px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      color:#656269;
-      font-size:14.5px;
-      font-weight:560;
-      white-space:nowrap;
-    }
-    .date-display i{color:var(--brand);font-size:14px}
 
     .page{
       width:min(1560px,calc(100% - 48px));
-      margin:18px auto 0;
+      margin:10px auto 0;
       display:flex;
       flex-direction:column;
       gap:18px;
     }
 
-    /* HERO DE META: protagonista, pero ya no gigante */
+    /* HERO META */
     .goal-hero{
       position:relative;
       overflow:hidden;
-      min-height:330px;
+      min-height:334px;
       border-radius:30px;
       background:
-        radial-gradient(circle at 80% 18%,rgba(194,164,104,.16),transparent 25%),
-        radial-gradient(circle at 93% 84%,rgba(178,86,108,.10),transparent 30%),
+        radial-gradient(circle at 82% 18%,rgba(194,164,104,.16),transparent 25%),
+        radial-gradient(circle at 94% 84%,rgba(178,86,108,.10),transparent 30%),
         linear-gradient(135deg,#fff 0%,#fff 52%,#FDF6F8 100%);
       border:1px solid rgba(60,60,67,.07);
       box-shadow:var(--shadow);
       display:grid;
-      grid-template-columns:minmax(0,1.15fr) 210px 300px;
+      grid-template-columns:minmax(0,1fr) 205px 440px;
       align-items:center;
-      gap:16px;
+      gap:18px;
       padding:30px 30px 27px;
     }
     .goal-copy{position:relative;z-index:3;min-width:0}
     .goal-kicker{display:flex;align-items:center;gap:9px;font-size:16px;color:var(--brand);font-weight:700}
     .goal-kicker i{width:34px;height:34px;border-radius:11px;background:var(--brand-soft);display:grid;place-items:center}
     .goal-label{margin-top:19px;font-size:16px;color:var(--muted);font-weight:560}
+    .goal-total-row{display:flex;align-items:center;gap:12px;margin-top:4px;min-width:0}
     .goal-total{
-      margin-top:4px;
-      font-size:clamp(46px,4.25vw,66px);
+      min-width:0;
+      font-size:clamp(45px,4.05vw,63px);
       font-weight:720;
       letter-spacing:-.055em;
       line-height:.98;
     }
-    .goal-progress-copy{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-top:22px}
+    .edit-goal{
+      flex:0 0 auto;
+      width:38px;height:38px;
+      border:0;
+      border-radius:12px;
+      background:var(--brand-soft);
+      color:var(--brand);
+      display:grid;place-items:center;
+      font-size:15px;
+      transition:.18s;
+      margin-top:6px;
+    }
+    .edit-goal:hover{background:#F3E3E8;transform:translateY(-1px)}
+    .goal-progress-copy{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-top:21px}
     .goal-progress-copy span{font-size:16px;color:var(--muted);font-weight:560}
-    .goal-achieved{font-size:clamp(31px,2.8vw,40px);font-weight:700;color:var(--brand);letter-spacing:-.042em}
+    .goal-achieved{font-size:clamp(30px,2.65vw,39px);font-weight:700;color:var(--brand);letter-spacing:-.042em}
     .goal-remaining{margin-top:9px;font-size:15.5px;color:#626168}
     .goal-remaining strong{color:var(--gold-dark);font-weight:690}
 
     .ring-wrap{position:relative;z-index:3;display:grid;place-items:center}
     .ring{
-      width:168px;height:168px;border-radius:50%;
+      width:166px;height:166px;border-radius:50%;
       background:conic-gradient(var(--brand) 0 74%,#E9E6E7 74% 100%);
       position:relative;
       box-shadow:0 10px 28px rgba(178,86,108,.08);
     }
     .ring:after{content:"";position:absolute;inset:17px;background:#fff;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(60,60,67,.05)}
     .ring-center{position:absolute;z-index:2;display:grid;place-content:center;text-align:center}
-    .ring-center strong{font-size:43px;line-height:1;font-weight:720;letter-spacing:-.05em;color:var(--brand)}
+    .ring-center strong{font-size:42px;line-height:1;font-weight:720;letter-spacing:-.05em;color:var(--brand)}
     .ring-center span{margin-top:6px;font-size:14px;color:var(--muted);font-weight:600}
     .ring-note{margin-top:12px;text-align:center;font-size:14px;color:var(--muted);line-height:1.4}
     .ring-note strong{color:var(--gold-dark);font-size:15px}
 
-    .hommy-stage{position:relative;align-self:stretch;min-height:275px}
-    .hommy-stage:before{
-      content:"";
-      position:absolute;
-      right:2%;bottom:8%;
-      width:222px;height:222px;
-      border-radius:50%;
-      background:rgba(255,255,255,.55);
-      box-shadow:0 20px 58px rgba(178,86,108,.07);
-    }
-    .hommy-stage img{
-      position:absolute;
-      right:0;bottom:-24px;
-      width:280px;
-      max-height:325px;
-      object-fit:contain;
-      object-position:bottom;
-      filter:drop-shadow(0 17px 27px rgba(48,35,40,.12));
-      z-index:2;
+    /* Hommy: mensaje separado de la ilustración para no taparle la cara */
+    .hommy-stage{
+      position:relative;
+      align-self:stretch;
+      min-height:280px;
+      display:grid;
+      grid-template-columns:170px minmax(0,270px);
+      align-items:center;
+      justify-content:end;
+      gap:0;
     }
     .hommy-bubble{
-      position:absolute;
+      position:relative;
       z-index:4;
-      right:8px;top:15px;
-      width:190px;
-      padding:13px 15px;
+      width:168px;
+      padding:13px 14px;
       border-radius:17px 17px 6px 17px;
       background:#fff;
       border:1px solid rgba(60,60,67,.06);
@@ -212,27 +226,73 @@
       font-size:14px;
       line-height:1.38;
       color:#5D595C;
+      align-self:start;
+      margin-top:42px;
     }
     .hommy-bubble strong{color:var(--brand)}
+    .hommy-art{position:relative;min-height:280px}
+    .hommy-art:before{
+      content:"";
+      position:absolute;
+      right:2%;bottom:7%;
+      width:224px;height:224px;
+      border-radius:50%;
+      background:rgba(255,255,255,.55);
+      box-shadow:0 20px 58px rgba(178,86,108,.07);
+    }
+    .hommy-art img{
+      position:absolute;
+      right:-3px;bottom:-24px;
+      width:270px;
+      max-height:320px;
+      object-fit:contain;
+      object-position:bottom;
+      filter:drop-shadow(0 17px 27px rgba(48,35,40,.12));
+      z-index:2;
+    }
 
-    /* KPIs */
+    /* KPIs: tarjetas separadas, icono grande a la izquierda y lectura clara */
     .period-strip{
       display:grid;
-      grid-template-columns:repeat(3,1fr);
-      border-radius:24px;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+    .strip-item{
+      position:relative;
+      min-height:150px;
+      padding:22px 20px;
       background:#fff;
       border:1px solid rgba(60,60,67,.07);
+      border-radius:23px;
       box-shadow:var(--shadow);
-      overflow:hidden;
+      display:grid;
+      grid-template-columns:58px minmax(0,1fr) 34px;
+      align-items:center;
+      gap:14px;
     }
-    .strip-item{padding:21px 24px;position:relative}
-    .strip-item+.strip-item{border-left:1px solid var(--line)}
-    .strip-label{display:flex;align-items:center;gap:9px;font-size:15px;color:var(--muted);font-weight:590}
-    .strip-label i{width:34px;height:34px;border-radius:11px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center}
-    .strip-value{margin-top:12px;font-size:clamp(28px,2.5vw,36px);font-weight:700;letter-spacing:-.04em}
-    .strip-note{margin-top:5px;font-size:14px;color:var(--muted);line-height:1.35}
+    .strip-icon{
+      width:56px;height:56px;
+      border-radius:50%;
+      background:var(--brand-soft);
+      color:var(--brand);
+      display:grid;place-items:center;
+      font-size:21px;
+    }
+    .strip-item.portfolio .strip-icon{background:var(--gold-soft);color:var(--gold-dark)}
+    .strip-label{font-size:15px;color:var(--brand-dark);font-weight:650;line-height:1.25}
+    .strip-item.portfolio .strip-label{color:var(--gold-dark)}
+    .strip-value{margin-top:8px;font-size:clamp(27px,2.25vw,35px);font-weight:705;letter-spacing:-.04em;line-height:1}
+    .strip-note{margin-top:7px;font-size:14px;color:var(--muted);line-height:1.35}
     .strip-item.growth .strip-value{color:var(--green)}
-    .strip-item.portfolio .strip-label i{background:var(--gold-soft);color:var(--gold-dark)}
+    .strip-arrow{
+      width:34px;height:34px;
+      border-radius:50%;
+      background:var(--brand-soft);
+      color:var(--brand);
+      display:grid;place-items:center;
+      font-size:12px;
+    }
+    .strip-item.portfolio .strip-arrow{background:var(--gold-soft);color:var(--gold-dark)}
 
     /* Venta ganadora */
     .winner{
@@ -256,7 +316,7 @@
     .winner-action{height:48px;padding:0 18px;border:1px solid var(--gold);background:#fff;color:#7F6836;border-radius:15px;display:flex;align-items:center;gap:9px;font-size:14px;font-weight:660;transition:.18s}
     .winner-action:hover{background:#FFF7E4;transform:translateY(-1px)}
 
-    /* Gráficas: se conserva la dirección visual que sí funcionaba */
+    /* Gráficas */
     .trend{
       border-radius:28px;
       background:#fff;
@@ -316,29 +376,55 @@
     .export{height:48px;padding:0 18px;border:0;border-radius:15px;background:var(--brand);color:#fff;font-size:14.5px;font-weight:660;display:flex;align-items:center;gap:9px;transition:.18s;box-shadow:0 9px 22px rgba(178,86,108,.16)}
     .export:hover{background:var(--brand-dark);transform:translateY(-1px)}
 
-    @media(max-width:1150px){
-      .goal-hero{grid-template-columns:minmax(0,1fr) 185px 245px}
-      .hommy-stage img{width:245px}
-      .hommy-bubble{width:168px}
+    /* Modal edición de meta */
+    .goal-dialog{
+      width:min(430px,calc(100% - 30px));
+      border:0;
+      border-radius:24px;
+      padding:0;
+      color:var(--ink);
+      box-shadow:0 28px 80px rgba(40,29,33,.22);
+    }
+    .goal-dialog::backdrop{background:rgba(28,24,26,.25);backdrop-filter:blur(4px)}
+    .dialog-body{padding:25px}
+    .dialog-icon{width:44px;height:44px;border-radius:14px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;margin-bottom:14px}
+    .dialog-title{font-size:23px;font-weight:720;letter-spacing:-.03em}
+    .dialog-sub{margin-top:5px;color:var(--muted);font-size:14.5px;line-height:1.4}
+    .goal-input-wrap{margin-top:19px;position:relative}
+    .goal-input-wrap span{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:650}
+    .goal-input{width:100%;height:54px;border:1px solid var(--line);border-radius:15px;padding:0 15px 0 34px;background:#FAFAFB;font-size:18px;font-weight:660;color:var(--ink)}
+    .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+    .dialog-btn{height:44px;border-radius:13px;padding:0 16px;font-size:14.5px;font-weight:660}
+    .dialog-btn.secondary{background:#fff;border:1px solid var(--line);color:#656269}
+    .dialog-btn.primary{background:var(--brand);border:1px solid var(--brand);color:#fff}
+    .dialog-reset{margin-top:13px;border:0;background:transparent;color:var(--brand);font-size:13.5px;font-weight:640;padding:0}
+
+    @media(max-width:1250px){
+      .goal-hero{grid-template-columns:minmax(0,1fr) 185px 330px}
+      .hommy-stage{grid-template-columns:1fr}
+      .hommy-bubble{display:none}
+      .hommy-art img{width:250px}
       .trend{grid-template-columns:1fr}
       .reading{border-left:0;border-top:1px solid var(--line);padding:22px 0 0}
     }
 
-    @media(max-width:850px){
-      .app{padding-top:14px}
+    @media(max-width:900px){
+      .app{padding-top:12px}
       .report-header,.page{width:calc(100% - 24px)}
-      .report-header{grid-template-columns:46px 1fr;align-items:start}
-      .heading h1{font-size:32px}
-      .heading p{font-size:16px;margin-top:5px}
-      .period-panel{grid-column:1/-1;margin-top:1px}
+      .header-main{grid-template-columns:46px minmax(0,1fr) 46px;min-height:80px}
+      .heading h1{font-size:31px}
+      .heading p{font-size:15.5px;margin-top:5px}
+      .heading-title img{width:25px}
+      .period-row{padding-top:4px}
       .goal-hero{grid-template-columns:1fr 170px;min-height:auto;padding:25px 21px 0}
       .goal-copy{grid-column:1/-1}
       .ring-wrap{grid-column:1}
-      .hommy-stage{grid-column:2;min-height:230px}
-      .hommy-stage img{width:218px;right:-8px;bottom:-18px}
-      .hommy-bubble{display:none}
+      .hommy-stage{grid-column:2;min-height:230px;display:block}
+      .hommy-art{min-height:230px}
+      .hommy-art img{width:218px;right:-8px;bottom:-18px}
+      .hommy-art:before{width:185px;height:185px}
       .period-strip{grid-template-columns:1fr}
-      .strip-item+.strip-item{border-left:0;border-top:1px solid var(--line)}
+      .strip-item{min-height:132px}
       .winner{grid-template-columns:1fr;padding:24px 21px}
       .winner-action{margin-top:20px;width:max-content}
       .trend,.payments{padding:24px 21px}
@@ -346,39 +432,47 @@
       .donut-box{justify-content:center}
     }
 
-    @media(max-width:560px){
-      .report-header{gap:11px}
-      .back{width:42px;height:42px}
-      .heading h1{font-size:28px}
-      .heading p{font-size:15px}
-      .period-panel{padding:12px 13px;border-radius:19px}
-      .period-top{gap:10px}
-      .period{min-width:150px}
+    @media(max-width:620px){
+      .app{padding-top:8px}
+      .header-main{grid-template-columns:42px minmax(0,1fr) 42px;min-height:74px}
+      .back{width:40px;height:40px}
+      .heading h1{font-size:27px}
+      .heading p{font-size:14.5px}
+      .heading-title{gap:7px}
+      .heading-title img{width:22px}
+      .period-row{align-items:stretch;flex-direction:column;gap:10px;margin-top:4px}
+      .date-display{font-size:14px;line-height:1.3}
+      .period-control{justify-content:space-between}
+      .period{min-width:154px}
       .period select{height:42px;font-size:14px}
-      .date-display{font-size:13.5px;white-space:normal;line-height:1.3}
 
       .page{margin-top:14px;gap:14px}
       .goal-hero{border-radius:25px;padding:22px 17px 0;grid-template-columns:1fr 140px;gap:4px}
       .goal-kicker{font-size:15px}
       .goal-label{font-size:14.5px;margin-top:17px}
-      .goal-total{font-size:45px}
+      .goal-total{font-size:43px}
+      .edit-goal{width:34px;height:34px;border-radius:10px;font-size:13px}
       .goal-progress-copy{margin-top:18px;display:block}
       .goal-progress-copy span{font-size:14.5px}
-      .goal-achieved{font-size:31px;margin-top:3px}
+      .goal-achieved{font-size:30px;margin-top:3px}
       .goal-remaining{font-size:14.5px}
-      .ring{width:138px;height:138px}
+      .ring{width:136px;height:136px}
       .ring:after{inset:14px}
-      .ring-center strong{font-size:35px}
+      .ring-center strong{font-size:34px}
       .ring-center span{font-size:13px}
       .ring-note{font-size:13px}
       .ring-note strong{font-size:13.5px}
       .hommy-stage{min-height:188px}
-      .hommy-stage img{width:174px;right:-12px;bottom:-14px}
+      .hommy-art{min-height:188px}
+      .hommy-art img{width:174px;right:-12px;bottom:-14px}
+      .hommy-art:before{width:145px;height:145px}
 
-      .strip-item{padding:19px}
+      .strip-item{grid-template-columns:52px minmax(0,1fr) 30px;gap:12px;padding:18px 16px;min-height:122px}
+      .strip-icon{width:50px;height:50px;font-size:18px}
       .strip-label{font-size:14px}
-      .strip-value{font-size:30px}
+      .strip-value{font-size:28px}
       .strip-note{font-size:13.5px}
+      .strip-arrow{width:30px;height:30px}
 
       .winner{border-radius:25px;padding:22px 18px}
       .winner-kicker{font-size:13px}
@@ -408,24 +502,27 @@
     }
 
     @media print{
-      .report-header .back,.period-panel,.footer{display:none!important}
+      .back,.period-control,.footer,.edit-goal{display:none!important}
       .report-header,.page{width:100%;margin-left:0;margin-right:0}
-      .goal-hero,.period-strip,.winner,.trend,.payments{box-shadow:none;break-inside:avoid}
+      .goal-hero,.strip-item,.winner,.trend,.payments{box-shadow:none;break-inside:avoid}
     }
   </style>
 </head>
 <body>
 <div class="app">
   <header class="report-header">
-    <button class="back" type="button" aria-label="Volver"><i class="fa-solid fa-chevron-left"></i></button>
-
-    <div class="heading">
-      <h1>Reporte de ventas</h1>
-      <p>Resumen comercial de Hommy</p>
+    <div class="header-main">
+      <button class="back" type="button" aria-label="Volver"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="heading">
+        <div class="heading-title"><img src="triangulo.png" alt=""><h1>Reporte de ventas</h1></div>
+        <p>Resumen comercial de Hommy</p>
+      </div>
+      <div aria-hidden="true"></div>
     </div>
 
-    <div class="period-panel">
-      <div class="period-top">
+    <div class="period-row">
+      <div class="date-display"><i class="fa-regular fa-calendar"></i><span id="dateDisplay">Mostrando: 1/8/2026 - 31/8/2026</span></div>
+      <div class="period-control">
         <span class="period-label">Periodo</span>
         <div class="period">
           <select id="periodo" aria-label="Periodo del reporte">
@@ -436,7 +533,6 @@
           </select>
         </div>
       </div>
-      <div class="date-display"><i class="fa-regular fa-calendar"></i><span id="dateDisplay">Mostrando: 1/8/2026 - 31/8/2026</span></div>
     </div>
   </header>
 
@@ -445,40 +541,53 @@
       <div class="goal-copy">
         <div class="goal-kicker"><i class="fa-solid fa-bullseye"></i><span id="goalKicker">Meta de ventas · Agosto</span></div>
         <div class="goal-label">Objetivo del periodo</div>
-        <div class="goal-total" id="goalTotal">$25.000.000</div>
+        <div class="goal-total-row">
+          <div class="goal-total" id="goalTotal">$25.000.000</div>
+          <button class="edit-goal" id="editGoalBtn" type="button" aria-label="Editar meta" title="Editar meta"><i class="fa-solid fa-pen"></i></button>
+        </div>
         <div class="goal-progress-copy"><span>Llevamos</span><div class="goal-achieved" id="goalAchieved">$18.450.000</div></div>
         <div class="goal-remaining" id="goalRemaining">Nos faltan <strong>$6.550.000</strong> para cumplir la meta.</div>
       </div>
 
       <div class="ring-wrap">
-        <div class="ring" id="ring">
-          <div class="ring-center"><strong id="goalPct">74%</strong><span>cumplido</span></div>
-        </div>
+        <div class="ring" id="ring"><div class="ring-center"><strong id="goalPct">74%</strong><span>cumplido</span></div></div>
         <div class="ring-note"><strong id="goalIndex">74 de cada 100</strong><br>pesos de la meta</div>
       </div>
 
       <div class="hommy-stage">
         <div class="hommy-bubble" id="hommyBubble">¡Vamos bien! Ya superamos <strong>tres cuartas partes</strong> de la meta.</div>
-        <img src="Hommydinero.png" alt="Hommy con dinero">
+        <div class="hommy-art"><img src="Hommydinero.png" alt="Hommy con dinero"></div>
       </div>
     </section>
 
     <section class="period-strip">
-      <div class="strip-item">
-        <div class="strip-label"><i class="fa-solid fa-wallet"></i><span>Recaudado en el periodo</span></div>
-        <div class="strip-value" id="collected">$12.900.000</div>
-        <div class="strip-note">Dinero efectivamente recibido.</div>
-      </div>
-      <div class="strip-item portfolio">
-        <div class="strip-label"><i class="fa-solid fa-hand-holding-dollar"></i><span>Cartera actual</span></div>
-        <div class="strip-value" id="portfolio">$8.600.000</div>
-        <div class="strip-note">Saldo pendiente global de órdenes activas.</div>
-      </div>
-      <div class="strip-item growth">
-        <div class="strip-label"><i class="fa-solid fa-arrow-trend-up"></i><span>Variación comercial</span></div>
-        <div class="strip-value" id="growth">+14,6%</div>
-        <div class="strip-note">Frente al periodo inmediatamente anterior.</div>
-      </div>
+      <article class="strip-item">
+        <div class="strip-icon"><i class="fa-solid fa-wallet"></i></div>
+        <div>
+          <div class="strip-label">Recaudado en el periodo</div>
+          <div class="strip-value" id="collected">$12.900.000</div>
+          <div class="strip-note">Dinero efectivamente recibido.</div>
+        </div>
+        <div class="strip-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </article>
+      <article class="strip-item portfolio">
+        <div class="strip-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <div>
+          <div class="strip-label">Cartera actual</div>
+          <div class="strip-value" id="portfolio">$8.600.000</div>
+          <div class="strip-note">Saldo pendiente global de órdenes activas.</div>
+        </div>
+        <div class="strip-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </article>
+      <article class="strip-item growth">
+        <div class="strip-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div>
+          <div class="strip-label">Variación comercial</div>
+          <div class="strip-value" id="growth">+14,6%</div>
+          <div class="strip-note">Frente al periodo inmediatamente anterior.</div>
+        </div>
+        <div class="strip-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </article>
     </section>
 
     <section class="winner">
@@ -522,9 +631,7 @@
     </section>
 
     <section class="payments">
-      <div class="donut-box">
-        <div class="donut"><div class="donut-center"><span>Recaudado</span><strong id="donutTotal">$12,9 M</strong></div></div>
-      </div>
+      <div class="donut-box"><div class="donut"><div class="donut-center"><span>Recaudado</span><strong id="donutTotal">$12,9 M</strong></div></div></div>
       <div>
         <div class="section-kicker">Composición</div>
         <div class="section-title">Cómo están pagando</div>
@@ -541,6 +648,20 @@
     <div class="footer"><button class="export" type="button" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i><span>Exportar reporte</span></button></div>
   </main>
 </div>
+
+<dialog class="goal-dialog" id="goalDialog">
+  <form method="dialog" id="goalForm" class="dialog-body">
+    <div class="dialog-icon"><i class="fa-solid fa-bullseye"></i></div>
+    <div class="dialog-title">Editar meta de ventas</div>
+    <div class="dialog-sub" id="goalDialogSub">Define el objetivo para este periodo. El índice y el valor faltante se recalculan automáticamente.</div>
+    <div class="goal-input-wrap"><span>$</span><input class="goal-input" id="goalInput" type="number" min="1" step="1000" inputmode="numeric" aria-label="Nueva meta"></div>
+    <button class="dialog-reset" id="resetGoalBtn" type="button">Restablecer valor original</button>
+    <div class="dialog-actions">
+      <button class="dialog-btn secondary" type="button" id="cancelGoalBtn">Cancelar</button>
+      <button class="dialog-btn primary" type="submit">Guardar meta</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
   const months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -564,30 +685,24 @@
   }
 
   const data={
-    mes:{
-      k:'Meta de ventas · Agosto',dates:'Mostrando: 1/8/2026 - 31/8/2026',
-      goal:25000000,ach:18450000,collect:12900000,portfolio:8600000,growth:'+14,6%',
-      winner:4500000,detail:'OP 24 · Katherin Diaz · 16 ago 2026',bars:baseBars
-    },
-    mes_pasado:{
-      k:'Meta de ventas · Julio',dates:'Mostrando: 1/7/2026 - 31/7/2026',
-      goal:25000000,ach:16100000,collect:11700000,portfolio:9200000,growth:'+7,8%',
-      winner:3900000,detail:'OP 19 · Cliente del periodo · 22 jul 2026',bars:[24,36,33,53,43,57,95,4,4,4,4,4]
-    },
-    semana:{
-      k:'Meta de ventas · Semana actual',dates:'Mostrando: 24/8/2026 - 30/8/2026',
-      goal:6250000,ach:4320000,collect:3100000,portfolio:8600000,growth:'+9,1%',
-      winner:2800000,detail:'OP 27 · Cliente del periodo · 27 ago 2026',bars:[24,36,33,53,43,57,95,100,4,4,4,4]
-    },
-    anio:{
-      k:'Meta de ventas · Año 2026',dates:'Mostrando: 1/1/2026 - 31/12/2026',
-      goal:300000000,ach:126800000,collect:94700000,portfolio:8600000,growth:'+18,4%',
-      winner:12500000,detail:'OP 08 · Cliente del periodo · 10 mar 2026',bars:[24,36,33,53,43,57,95,100,4,4,4,4]
-    }
+    mes:{k:'Meta de ventas · Agosto',dates:'Mostrando: 1/8/2026 - 31/8/2026',goal:25000000,ach:18450000,collect:12900000,portfolio:8600000,growth:'+14,6%',winner:4500000,detail:'OP 24 · Katherin Diaz · 16 ago 2026',bars:baseBars},
+    mes_pasado:{k:'Meta de ventas · Julio',dates:'Mostrando: 1/7/2026 - 31/7/2026',goal:25000000,ach:16100000,collect:11700000,portfolio:9200000,growth:'+7,8%',winner:3900000,detail:'OP 19 · Cliente del periodo · 22 jul 2026',bars:[24,36,33,53,43,57,95,4,4,4,4,4]},
+    semana:{k:'Meta de ventas · Semana actual',dates:'Mostrando: 24/8/2026 - 30/8/2026',goal:6250000,ach:4320000,collect:3100000,portfolio:8600000,growth:'+9,1%',winner:2800000,detail:'OP 27 · Cliente del periodo · 27 ago 2026',bars:[24,36,33,53,43,57,95,100,4,4,4,4]},
+    anio:{k:'Meta de ventas · Año 2026',dates:'Mostrando: 1/1/2026 - 31/12/2026',goal:300000000,ach:126800000,collect:94700000,portfolio:8600000,growth:'+18,4%',winner:12500000,detail:'OP 08 · Cliente del periodo · 10 mar 2026',bars:[24,36,33,53,43,57,95,100,4,4,4,4]}
   };
 
   const money=n=>'$'+Math.round(n).toLocaleString('es-CO');
-  function compact(n){return '$'+(n/1000000).toLocaleString('es-CO',{maximumFractionDigits:1})+' M'}
+  const compact=n=>'$'+(n/1000000).toLocaleString('es-CO',{maximumFractionDigits:1})+' M';
+  const customGoalsKey='homeeasy-report-goals-v4';
+  let customGoals={};
+  let currentPeriod='mes';
+
+  try{customGoals=JSON.parse(localStorage.getItem(customGoalsKey)||'{}')||{}}catch(e){customGoals={}}
+
+  function effectiveGoal(key){
+    const custom=Number(customGoals[key]);
+    return Number.isFinite(custom)&&custom>0?custom:data[key].goal;
+  }
 
   function bubbleFor(pct){
     if(pct>=100) return '¡Meta cumplida! <strong>Superamos el objetivo</strong> del periodo.';
@@ -597,15 +712,17 @@
   }
 
   function apply(key){
+    currentPeriod=key;
     const d=data[key];
-    const pct=Math.min(100,Math.round(d.ach/d.goal*100));
-    const rem=Math.max(0,d.goal-d.ach);
+    const goal=effectiveGoal(key);
+    const pct=Math.min(100,Math.round(d.ach/goal*100));
+    const rem=Math.max(0,goal-d.ach);
 
     document.getElementById('dateDisplay').textContent=d.dates;
     document.getElementById('goalKicker').textContent=d.k;
-    document.getElementById('goalTotal').textContent=money(d.goal);
+    document.getElementById('goalTotal').textContent=money(goal);
     document.getElementById('goalAchieved').textContent=money(d.ach);
-    document.getElementById('goalRemaining').innerHTML='Nos faltan <strong>'+money(rem)+'</strong> para cumplir la meta.';
+    document.getElementById('goalRemaining').innerHTML=rem===0?'¡Meta cumplida! <strong>Superamos el objetivo del periodo.</strong>':'Nos faltan <strong>'+money(rem)+'</strong> para cumplir la meta.';
     document.getElementById('goalPct').textContent=pct+'%';
     document.getElementById('goalIndex').textContent=pct+' de cada 100';
     document.getElementById('ring').style.background=`conic-gradient(var(--brand) 0 ${pct}%,#E9E6E7 ${pct}% 100%)`;
@@ -617,14 +734,43 @@
     document.getElementById('winnerDetail').textContent=d.detail;
     document.getElementById('readGrowth').textContent=d.growth;
     document.getElementById('readGoal').textContent=pct+'%';
-    document.getElementById('readGoalText').textContent='Quedan '+compact(rem)+' para llegar a la meta del periodo.';
+    document.getElementById('readGoalText').textContent=rem===0?'La meta del periodo ya fue alcanzada.':'Quedan '+compact(rem)+' para llegar a la meta del periodo.';
     document.getElementById('donutTotal').textContent=compact(d.collect);
     renderBars(d.bars);
   }
 
+  const goalDialog=document.getElementById('goalDialog');
+  const goalInput=document.getElementById('goalInput');
+
+  document.getElementById('editGoalBtn').addEventListener('click',()=>{
+    goalInput.value=effectiveGoal(currentPeriod);
+    document.getElementById('goalDialogSub').textContent='Define el objetivo para '+document.getElementById('goalKicker').textContent.replace('Meta de ventas · ','')+'. El índice y el valor faltante se recalculan automáticamente.';
+    goalDialog.showModal();
+    setTimeout(()=>goalInput.select(),60);
+  });
+
+  document.getElementById('goalForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const value=Number(goalInput.value);
+    if(!Number.isFinite(value)||value<=0){goalInput.focus();return}
+    customGoals[currentPeriod]=Math.round(value);
+    localStorage.setItem(customGoalsKey,JSON.stringify(customGoals));
+    goalDialog.close();
+    apply(currentPeriod);
+  });
+
+  document.getElementById('resetGoalBtn').addEventListener('click',()=>{
+    delete customGoals[currentPeriod];
+    localStorage.setItem(customGoalsKey,JSON.stringify(customGoals));
+    goalInput.value=data[currentPeriod].goal;
+    goalDialog.close();
+    apply(currentPeriod);
+  });
+
+  document.getElementById('cancelGoalBtn').addEventListener('click',()=>goalDialog.close());
   document.getElementById('periodo').addEventListener('change',e=>apply(e.target.value));
   document.querySelector('.back').addEventListener('click',()=>history.back());
-  renderBars();
+  apply('mes');
 </script>
 </body>
 </html>
