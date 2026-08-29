@@ -1,0 +1,198 @@
+name: build tested Seguimiento v2 preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-seguimiento-v2-fixed.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build preview from Seguimiento production logic
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          s = Path('seguimiento.html').read_text(encoding='utf-8')
+          s = s.replace('<title>HomeEasy | Radar Comercial</title>', '<title>HomeEasy | Seguimiento comercial · Diseño v2</title>')
+          viewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">'
+          s = s.replace(viewport, viewport + '\n    <meta name="theme-color" content="#f6f6f7">\n    <meta name="apple-mobile-web-app-capable" content="yes">\n    <meta name="apple-mobile-web-app-status-bar-style" content="default">', 1)
+
+          css = r'''<style>
+          :root{--brand:#B2566C;--brand-dark:#97475A;--brand-soft:#F8EEF1;--gold:#C2A468;--gold-dark:#967536;--gold-soft:#FBF5E8;--ink:#242126;--muted:#767178;--line:#E8E5E7;--bg:#F6F6F7;--green:#2B765F;--green-soft:#EEF8F3;--amber:#A87820;--amber-soft:#FFF8E8;--red:#B84E5C;--red-soft:#FFF1F3;--shadow:0 14px 40px rgba(48,35,40,.055)}
+          *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{background:var(--bg)}body{margin:0;min-height:100%;padding:0 0 calc(34px + env(safe-area-inset-bottom));background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI Variable","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-synthesis:none}button,input,select,textarea{font:inherit;font-synthesis:none}button{cursor:pointer}a{color:inherit}
+          .app-header{position:sticky;top:0;z-index:1200;background:rgba(246,246,247,.90);backdrop-filter:blur(22px) saturate(155%);-webkit-backdrop-filter:blur(22px) saturate(155%);border-bottom:1px solid rgba(35,28,31,.045)}
+          .header-inner{width:min(1480px,calc(100% - 44px));margin:0 auto;min-height:76px;padding:calc(10px + env(safe-area-inset-top)) 0 10px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:12px}.btn-back,.btn-refresh{width:44px;height:44px;border-radius:50%;border:1px solid rgba(178,86,108,.09);background:#fff;color:var(--brand);display:grid;place-items:center;text-decoration:none;box-shadow:0 7px 22px rgba(45,34,39,.065);transition:transform .16s ease}.btn-back:active,.btn-refresh:active{transform:scale(.93)}.btn-refresh{justify-self:end}.brand{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0}.brand img{width:28px;height:33px;object-fit:contain}.brand-copy{text-align:left;min-width:0}.brand-copy strong{display:block;font-size:17px;line-height:1.05;font-weight:720;letter-spacing:-.45px;white-space:nowrap}.brand-copy span{display:block;margin-top:4px;font-size:13px;line-height:1;color:var(--muted);font-weight:560;white-space:nowrap}
+          .page-shell{width:min(1480px,calc(100% - 44px));margin:0 auto;padding:28px 0 38px}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:20px}.hero-copy{max-width:720px}.hero-eyebrow{display:flex;align-items:center;gap:9px;color:var(--brand);font-size:14px;font-weight:700}.hero-eyebrow i{width:32px;height:32px;border-radius:10px;background:var(--brand-soft);display:grid;place-items:center}.hero h1{margin:12px 0 0;font-size:clamp(32px,3vw,46px);line-height:1.02;font-weight:730;letter-spacing:-1.7px}.hero p{margin:9px 0 0;color:var(--muted);font-size:16px;line-height:1.5;font-weight:500}.age-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.legend-pill{display:flex;align-items:center;gap:7px;height:38px;padding:0 12px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#716c72;font-size:13px;font-weight:650;box-shadow:0 7px 20px rgba(45,34,39,.035)}.legend-pill::before{content:"";width:8px;height:8px;border-radius:50%}.legend-pill.new::before{background:var(--green)}.legend-pill.mid::before{background:#D29E31}.legend-pill.old::before{background:var(--red)}
+          .summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}.summary-card{position:relative;overflow:hidden;min-height:132px;padding:21px 22px;background:#fff;border:1px solid rgba(60,60,67,.065);border-radius:24px;box-shadow:var(--shadow);display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;gap:17px}.summary-card::after{content:"";position:absolute;right:-34px;bottom:-48px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(178,86,108,.09),transparent 68%);pointer-events:none}.summary-card.amount-card::after{background:radial-gradient(circle,rgba(194,164,104,.14),transparent 68%)}.summary-icon{width:56px;height:56px;border-radius:18px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:21px}.amount-card .summary-icon{background:var(--gold-soft);color:var(--gold-dark)}.summary-label{font-size:14px;color:var(--muted);font-weight:620}.summary-value{margin-top:7px;font-size:clamp(31px,3.1vw,43px);line-height:.98;font-weight:720;letter-spacing:-1.35px;font-variant-numeric:tabular-nums}.amount-card .summary-value{color:var(--gold-dark)}.summary-note{margin-top:7px;color:#918b90;font-size:13px;line-height:1.35;font-weight:520}
+          .filters-card{background:#fff;border:1px solid rgba(60,60,67,.065);border-radius:24px;padding:18px;box-shadow:var(--shadow);margin-bottom:18px}.filters-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:14px}.filters-title{display:flex;align-items:center;gap:10px}.filters-title i{color:var(--brand)}.filters-title strong{display:block;font-size:16px;font-weight:700;color:#4D484C}.filters-title span{display:block;margin-top:3px;font-size:13px;color:var(--muted);font-weight:520}.btn-reset{height:38px;padding:0 13px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--brand);font-size:13px;font-weight:680;display:flex;align-items:center;gap:7px}.filters-grid{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr)) minmax(150px,.55fr);gap:11px;align-items:end}.filter-group label{display:block;margin:0 0 7px 2px;color:#827D82;font-size:13px;font-weight:650}.filter-input{width:100%;height:48px;border:1px solid var(--line);border-radius:14px;background:#FAFAFA;color:#393539;padding:0 14px;font-size:15px;font-weight:590;outline:none;transition:.16s ease}.filter-input:focus{border-color:rgba(194,164,104,.9);background:#fff;box-shadow:0 0 0 3px rgba(194,164,104,.11)}.btn-filter{width:100%;height:48px;border:0;border-radius:14px;background:var(--brand);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 9px 22px rgba(178,86,108,.17)}.btn-filter:active{transform:scale(.98)}
+          .cards-container{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}.crm-card{position:relative;overflow:hidden;background:#fff;border:1px solid rgba(60,60,67,.065);border-radius:24px;box-shadow:0 11px 34px rgba(48,35,40,.045);min-width:0;transition:transform .18s ease,box-shadow .18s ease}.crm-card:hover{transform:translateY(-2px);box-shadow:0 17px 42px rgba(48,35,40,.075)}.crm-card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:#D4D0D2}.crm-card.age-new::before{background:var(--green)}.crm-card.age-mid::before{background:#D7A53B}.crm-card.age-old::before{background:var(--red)}.card-header-crm{padding:21px 20px 7px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.doc-number{display:inline-flex;align-items:center;height:27px;padding:0 9px;border-radius:9px;background:var(--brand-soft);color:var(--brand);font-size:12px;font-weight:720;letter-spacing:.15px;margin-bottom:9px}.client-name{margin:0;color:var(--ink);font-size:20px;line-height:1.18;font-weight:710;letter-spacing:-.55px;overflow-wrap:anywhere}.time-badge{flex:0 0 auto;min-height:31px;padding:0 10px;border-radius:999px;background:#F4F3F4;color:#7E797D;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:680;white-space:nowrap}.age-new .time-badge{background:var(--green-soft);color:var(--green)}.age-mid .time-badge{background:var(--amber-soft);color:var(--amber)}.age-old .time-badge{background:var(--red-soft);color:var(--red)}.time-badge i{color:currentColor!important}.card-body-crm{padding:10px 20px 19px}.amount-label{font-size:13px;color:var(--muted);font-weight:580}.amount{margin-top:5px;color:var(--brand);font-size:29px;line-height:1;font-weight:720;letter-spacing:-1px;font-variant-numeric:tabular-nums}.note-box{margin-top:18px;min-height:96px;padding:13px 14px;border:1px solid #ECE9EB;border-radius:15px;background:#FBFAFB;color:#5E595D;font-size:14px;line-height:1.45;font-weight:520}.note-box.has-note{background:linear-gradient(135deg,#FFFDFC,#FBF8F3);border-color:rgba(194,164,104,.25)}.note-kicker{display:flex;align-items:center;gap:7px;margin-bottom:7px;color:var(--gold-dark);font-size:12px;font-weight:720;text-transform:uppercase;letter-spacing:.45px}.note-copy{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.note-box.empty-note{color:#969095}.note-box.empty-note .note-kicker{color:#9E989C}.card-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px 14px 14px;border-top:1px solid #F0EDEF;background:#FDFCFC}.btn-crm{min-width:0;height:44px;border-radius:12px;border:0;padding:0 10px;font-size:13px;font-weight:680;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform .16s ease}.btn-crm:active{transform:scale(.96)}.btn-note{background:var(--gold-soft);color:var(--gold-dark)}.btn-archive{background:var(--red-soft);color:var(--red)}.btn-view{background:var(--brand);color:#fff;box-shadow:0 7px 17px rgba(178,86,108,.14)}
+          .loader-overlay{position:fixed;inset:0;z-index:9999;background:rgba(246,246,247,.96);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px}.loader-overlay .spinner-border{width:38px;height:38px;border-width:3px}.loader-overlay h6{margin:0!important;font-size:14px!important;color:var(--brand)!important;font-weight:680!important}.empty-state{grid-column:1/-1;text-align:center;padding:74px 20px;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}.empty-state i{font-size:34px;color:var(--gold);margin-bottom:14px}.empty-state h3{margin:0;color:#4C474B;font-size:20px;font-weight:700}.empty-state p{margin:7px 0 0;color:var(--muted);font-size:14px}.swal2-premium{border-radius:24px!important;font-family:inherit!important}
+          #pdf-viewer-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(27,22,25,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);flex-direction:column;animation:fadeIn .22s ease}@keyframes fadeIn{from{opacity:0}to{opacity:1}}.pdf-viewer-header{padding:calc(env(safe-area-inset-top) + 13px) 18px 13px;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,255,255,.94);color:var(--ink);border-bottom:1px solid rgba(0,0,0,.06);backdrop-filter:blur(18px)}.pdf-viewer-title{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700}.pdf-viewer-title i{color:var(--brand)!important}.btn-close-pdf{width:40px;height:40px;border-radius:50%;border:0;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center}.btn-close-pdf:active{transform:scale(.94)}#pdf-iframe{flex:1;width:100%;border:0;background:#ECEAEC}
+          @media(max-width:1120px){.cards-container{grid-template-columns:repeat(2,minmax(0,1fr))}}
+          @media(max-width:760px){.header-inner,.page-shell{width:calc(100% - 32px)}.header-inner{min-height:70px;padding-top:calc(9px + env(safe-area-inset-top));grid-template-columns:46px 1fr 46px}.brand img{width:25px;height:30px}.brand-copy strong{font-size:16px}.brand-copy span{font-size:12px}.page-shell{padding-top:20px}.hero{display:block;margin-bottom:16px}.hero h1{font-size:32px;letter-spacing:-1.2px}.hero p{font-size:15px;max-width:36ch}.age-legend{justify-content:flex-start;margin-top:15px}.legend-pill{height:34px;padding:0 10px;font-size:12px}.summary-grid{gap:10px}.summary-card{min-height:118px;padding:17px 15px;grid-template-columns:48px minmax(0,1fr);gap:12px;border-radius:20px}.summary-icon{width:48px;height:48px;border-radius:15px;font-size:18px}.summary-label{font-size:13px}.summary-value{font-size:27px;letter-spacing:-.8px}.summary-note{font-size:12px}.filters-card{padding:15px;border-radius:20px}.filters-head{margin-bottom:13px}.filters-title strong{font-size:15px}.filters-title span{font-size:12px}.btn-reset{height:36px;font-size:12px}.filters-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.filter-group label{font-size:12px}.filter-input{height:46px;padding:0 11px;font-size:14px}.btn-filter{grid-column:1/-1;height:46px}.cards-container{grid-template-columns:1fr;gap:12px}.crm-card{border-radius:21px}.crm-card:hover{transform:none}.card-header-crm{padding:19px 17px 6px}.client-name{font-size:19px}.card-body-crm{padding:9px 17px 16px}.amount{font-size:28px}.note-box{min-height:0;margin-top:16px;font-size:13.5px}.card-actions{padding:11px 12px 12px;gap:7px}.btn-crm{height:45px;font-size:12.5px}}
+          @media(max-width:380px){.header-inner,.page-shell{width:calc(100% - 26px)}.brand-copy span{display:none}.brand-copy strong{font-size:15px}.hero h1{font-size:29px}.age-legend{gap:6px}.legend-pill{font-size:11.5px;padding:0 9px}.summary-card{grid-template-columns:42px minmax(0,1fr);padding:15px 12px;gap:9px}.summary-icon{width:42px;height:42px}.summary-value{font-size:24px}.summary-note{display:none}.filters-grid{grid-template-columns:1fr}.btn-filter{grid-column:auto}.btn-crm{font-size:12px;gap:5px;padding:0 6px}}
+          </style>'''
+          s = re.sub(r'<style>.*?</style>', css, s, count=1, flags=re.S)
+
+          loader_old = '''    <div class="loader-overlay" id="loader">\n        <div class="spinner-border mb-3" role="status" style="color: var(--home-wine) !important;"></div>\n        <h6 style="color: var(--home-wine); font-weight: 600; letter-spacing: -0.3px;">Actualizando Radar...</h6>\n    </div>'''
+          loader_new = '''    <div class="loader-overlay" id="loader">\n        <div class="spinner-border" role="status" style="color: var(--brand) !important;"></div>\n        <h6>Actualizando radar...</h6>\n    </div>'''
+          s = s.replace(loader_old, loader_new, 1)
+
+          body_block = '''    <header class="app-header">\n        <div class="header-inner">\n            <a href="index.html" class="btn-back" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>\n            <div class="brand"><img src="triangulo.png" alt="HomeEasy"><div class="brand-copy"><strong>HomeEasy</strong><span>Seguimiento comercial</span></div></div>\n            <button type="button" class="btn-refresh" onclick="obtenerDatosFrescos()" aria-label="Actualizar radar"><i class="fas fa-rotate"></i></button>\n        </div>\n    </header>\n\n    <main class="page-shell">\n        <section class="hero">\n            <div class="hero-copy"><div class="hero-eyebrow"><i class="fas fa-satellite-dish"></i><span>Radar comercial</span></div><h1>Cotizaciones en seguimiento</h1><p>Una vista clara de las oportunidades que siguen abiertas y necesitan una próxima acción.</p></div>\n            <div class="age-legend" aria-label="Antigüedad de cotizaciones"><span class="legend-pill new">0–7 días</span><span class="legend-pill mid">8–15 días</span><span class="legend-pill old">+15 días</span></div>\n        </section>\n        <section class="summary-grid">\n            <article class="summary-card"><div class="summary-icon"><i class="fas fa-file-signature"></i></div><div><div class="summary-label">Cotizaciones activas</div><div class="summary-value" id="kpi-count">0</div><div class="summary-note">Dentro del periodo seleccionado.</div></div></article>\n            <article class="summary-card amount-card"><div class="summary-icon"><i class="fas fa-hand-holding-dollar"></i></div><div><div class="summary-label">Monto en mesa</div><div class="summary-value" id="kpi-total">$0</div><div class="summary-note">Valor potencial de las oportunidades visibles.</div></div></article>\n        </section>\n        <section class="filters-card">\n            <div class="filters-head"><div class="filters-title"><i class="far fa-calendar"></i><div><strong>Periodo</strong><span>Acota el radar por fecha de cotización.</span></div></div><button type="button" class="btn-reset" onclick="restablecerFiltros()"><i class="fas fa-arrow-rotate-left"></i> Este mes</button></div>\n            <div class="filters-grid"><div class="filter-group"><label for="fecha-desde">Desde</label><input type="date" id="fecha-desde" class="filter-input"></div><div class="filter-group"><label for="fecha-hasta">Hasta</label><input type="date" id="fecha-hasta" class="filter-input"></div><button type="button" class="btn-filter" onclick="aplicarFiltros()"><i class="fas fa-filter"></i><span>Aplicar filtro</span></button></div>\n        </section>\n        <section class="cards-container" id="tarjetas-container"></section>\n    </main>'''
+          s, n_body = re.subn(r'    <header class="crm-header">.*?    <div class="cards-container" id="tarjetas-container">\s*</div>', body_block, s, count=1, flags=re.S)
+          if n_body != 1: raise SystemExit('static CRM body block not found')
+
+          render_func = r'''        function renderizarTarjetas(lista) {
+            const container = document.getElementById('tarjetas-container');
+            container.innerHTML = '';
+
+            if (lista.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-check"></i>
+                        <h3>Radar limpio</h3>
+                        <p>No hay cotizaciones pendientes en este periodo.</p>
+                    </div>`;
+                return;
+            }
+
+            lista.forEach(cot => {
+                const dias = calcularDiasPasados(cot.fecha);
+                let ageClass = 'age-new';
+                let iconClock = '<i class="fas fa-clock"></i>';
+                let textoDias = dias === 0 ? 'Hoy' : `Hace ${dias} d`;
+
+                if (dias > 7 && dias <= 15) {
+                    ageClass = 'age-mid';
+                    iconClock = '<i class="fas fa-circle-exclamation"></i>';
+                } else if (dias > 15) {
+                    ageClass = 'age-old';
+                    iconClock = '<i class="fas fa-fire"></i>';
+                }
+
+                let notaHtml = '';
+                if (cot.notas_seguimiento && cot.notas_seguimiento.trim() !== '') {
+                    notaHtml = `<div class="note-box has-note"><div class="note-kicker"><i class="fas fa-comment-dots"></i><span>Seguimiento</span></div><div class="note-copy">${cot.notas_seguimiento}</div></div>`;
+                } else {
+                    notaHtml = `<div class="note-box empty-note"><div class="note-kicker"><i class="fas fa-pen"></i><span>Seguimiento</span></div><div class="note-copy">Sin notas de seguimiento.</div></div>`;
+                }
+
+                const totalFormatted = (parseFloat(cot.total) || 0).toLocaleString('es-CO');
+                const urlSegura = cot.url ? cot.url : '';
+
+                container.innerHTML += `
+                <article class="crm-card ${ageClass}" id="card-${cot.numero}">
+                    <div class="card-header-crm">
+                        <div><div class="doc-number">COT #${cot.numero}</div><h3 class="client-name">${cot.nombre}</h3></div>
+                        <div class="time-badge">${iconClock}<span>${textoDias}</span></div>
+                    </div>
+                    <div class="card-body-crm">
+                        <div class="amount-label">Valor cotizado</div>
+                        <div class="amount">$${totalFormatted}</div>
+                        ${notaHtml}
+                    </div>
+                    <div class="card-actions">
+                        <button type="button" class="btn-crm btn-note" onclick="abrirModalNota('${cot.numero}', \`${cot.notas_seguimiento || ''}\`)"><i class="fas fa-note-sticky"></i><span>Nota</span></button>
+                        <button type="button" class="btn-crm btn-archive" onclick="archivarCotizacion('${cot.numero}', '${cot.nombre}')"><i class="fas fa-box-archive"></i><span>Archivar</span></button>
+                        <button type="button" class="btn-crm btn-view" onclick="abrirVisorPDF('${urlSegura}')"><i class="fas fa-eye"></i><span>Ver</span></button>
+                    </div>
+                </article>`;
+            });
+        }
+
+        // =========================================='''
+          s, n_render = re.subn(r'        function renderizarTarjetas\(lista\) \{.*?\n        \}\n\n        // ==========================================', render_func, s, count=1, flags=re.S)
+          if n_render != 1: raise SystemExit('renderizarTarjetas block not found')
+
+          s = s.replace('        function aplicarFiltros() {', '        function restablecerFiltros() {\n            establecerFechasPorDefecto();\n            aplicarFiltros();\n        }\n\n        function aplicarFiltros() {', 1)
+          Path('seguimiento-diseno-v2.html').write_text(s, encoding='utf-8')
+
+          guard = Path('homeeasy-page-guard.js')
+          g = guard.read_text(encoding='utf-8')
+          if "'seguimiento-diseno-v2.html': 'cotizaciones.read'" not in g:
+              g = g.replace("        'seguimiento.html': 'cotizaciones.read',", "        'seguimiento.html': 'cotizaciones.read',\n        'seguimiento-diseno-v2.html': 'cotizaciones.read',", 1)
+              guard.write_text(g, encoding='utf-8')
+          PY
+          grep -q 'Cotizaciones en seguimiento' seguimiento-diseno-v2.html
+          grep -q "seguimiento-diseno-v2.html': 'cotizaciones.read'" homeeasy-page-guard.js
+          git diff --check
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: QA desktop mobile filters and PDF
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/he-seguimiento.log 2>&1 &
+          sleep 2
+          node <<'NODE'
+          const {chromium}=require('playwright');
+          const base=[
+            {numero:'101',nombre:'Laura Gómez',estado:'COTIZACION',total:2450000,notas_seguimiento:'Confirmar tela y programar llamada de cierre.',url:'https://drive.google.com/file/d/abc/view?usp=drivesdk',age:2},
+            {numero:'102',nombre:'Carlos Pérez',estado:'COTIZACION',total:1800000,notas_seguimiento:'',url:'https://drive.google.com/file/d/def/view',age:10},
+            {numero:'103',nombre:'Ana Martínez',estado:'COTIZACION',total:3250000,notas_seguimiento:'Cliente pidió unos días para revisar la propuesta con su familia.',url:'',age:20},
+            {numero:'104',nombre:'Archivada',estado:'ARCHIVADA',total:900000,notas_seguimiento:'',url:'',age:1}
+          ];
+          const iso=n=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-n);return d.toISOString()};
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({locale:'es-CO'});
+            await page.route('**/homeeasy-page-guard.js*',r=>r.fulfill({status:200,contentType:'application/javascript',body:'window.HomeEasyPageGuard={ready:Promise.resolve(true)};'}));
+            await page.route('**/homeeasy-core.js*',r=>r.fulfill({status:200,contentType:'application/javascript',body:'window.HomeEasyCore={};'}));
+            await page.route('**/exec*',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'ok',cotizaciones:base.map(x=>({...x,fecha:iso(x.age)}))})}));
+            async function inspect(width,height,name){
+              await page.setViewportSize({width,height});
+              await page.goto('http://127.0.0.1:4173/seguimiento-diseno-v2.html',{waitUntil:'domcontentloaded'});
+              await page.waitForFunction(()=>document.getElementById('loader')?.style.display==='none',{timeout:10000});
+              await page.waitForTimeout(220);
+              const m=await page.evaluate(()=>({count:document.getElementById('kpi-count').textContent.trim(),cards:document.querySelectorAll('.crm-card').length,overflow:document.documentElement.scrollWidth>innerWidth+1,buttonH:document.querySelector('.btn-crm')?.getBoundingClientRect().height||0,ages:[...document.querySelectorAll('.crm-card')].map(x=>x.className)}));
+              console.log(name,m);
+              if(m.count!=='3'||m.cards!==3)throw new Error(name+' render count failed');
+              if(m.overflow)throw new Error(name+' horizontal overflow');
+              if(m.buttonH<43)throw new Error(name+' tap targets too small');
+              if(!m.ages.some(x=>x.includes('age-new'))||!m.ages.some(x=>x.includes('age-mid'))||!m.ages.some(x=>x.includes('age-old')))throw new Error(name+' age states failed');
+              await page.screenshot({path:`seguimiento-v2-${name}.png`,fullPage:true});
+            }
+            await inspect(1440,950,'desktop');
+            const filtered=await page.evaluate(()=>{const d=new Date();d.setDate(d.getDate()-12);document.getElementById('fecha-desde').value=d.toISOString().slice(0,10);document.getElementById('fecha-hasta').value=new Date().toISOString().slice(0,10);aplicarFiltros();return document.querySelectorAll('.crm-card').length});
+            if(filtered!==2)throw new Error('date filter regression');
+            await page.evaluate(()=>restablecerFiltros());
+            if(await page.locator('.crm-card').count()!==3)throw new Error('reset regression');
+            await page.locator('.btn-view').first().click();
+            await page.waitForTimeout(100);
+            const pdf=await page.evaluate(()=>({d:getComputedStyle(document.getElementById('pdf-viewer-overlay')).display,s:document.getElementById('pdf-iframe').src}));
+            if(pdf.d!=='flex'||!pdf.s.includes('/preview'))throw new Error('PDF viewer regression');
+            await page.evaluate(()=>cerrarVisorPDF());
+            await inspect(430,932,'mobile');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: seguimiento-v2-preview
+          path: seguimiento-v2-*.png
+          if-no-files-found: ignore
+      - name: Commit tested preview
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git rm .github/workflows/build-seguimiento-v2-fixed.yml
+          git add seguimiento-diseno-v2.html homeeasy-page-guard.js
+          git commit -m 'Create Seguimiento commercial visual v2 preview'
+          git push
