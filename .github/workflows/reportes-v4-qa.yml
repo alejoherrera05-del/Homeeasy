@@ -1,0 +1,155 @@
+name: reportes v4 QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'reportes-diseno-v4.html'
+      - 'ventas.html'
+      - 'homeeasy-page-guard.js'
+      - '.github/workflows/reportes-v4-qa.yml'
+  workflow_dispatch:
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install QA tools
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils python3-pil
+      - name: Serve repository
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/reportes-http.log 2>&1 &
+          sleep 2
+      - name: Browser integration and export QA
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const API='https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
+          const reportData={ordenes:[
+            {numero:37,fecha:'2026-08-08T12:00:00',total:1800000,abonoInicial:1000000,estado:'ACTIVO'},
+            {numero:38,fecha:'2026-08-14T12:00:00',total:2900000,abonoInicial:1450000,estado:'ACTIVO'},
+            {numero:39,fecha:'2026-08-19T12:00:00',total:1350000,abonoInicial:675000,estado:'ACTIVO'},
+            {numero:36,fecha:'2026-08-03T12:00:00',total:1149000,abonoInicial:1149000,estado:'COMPLETADO'},
+            {numero:20,fecha:'2026-07-10T12:00:00',total:22567000,abonoInicial:10000000,estado:'ACTIVO'}],abonos:[{fecha:'2026-08-21T12:00:00',valor:2390000,medio:'TRANSFERENCIA'}]};
+          const headers=['Fecha','Numero_OP','Cedula','Nombre_Cliente','Descripcion_Detallada','Valor_Total','Abono_Inicial','Abono_2','Abono_3','Abono_4','Abono_5','Abono_6','Abono_7','Abono_8','Abono_9','Abono_10','Saldo_Pendiente','Estado','URL_PDF_OP','Observaciones'];
+          const row=(fecha,op,ced,nombre,desc,total,pagado,saldo,estado)=>[fecha,op,ced,nombre,desc,total,pagado,0,0,0,0,0,0,0,0,0,saldo,estado,'',''];
+          const sheet={status:'ok',ordenes:[headers,
+            row('2026-08-08T12:00:00',37,'76324080','EDUARDO ANDRES MERA GUTIERREZ','Combo',1800000,1000000,800000,'ACTIVO'),
+            row('2026-08-14T12:00:00',38,'1061763473','CRISTHIAN GUZMAN MELIZO','Combo Portobello',2900000,1450000,1450000,'ACTIVO'),
+            row('2026-08-19T12:00:00',39,'34535683','RUBIELA DAGUA FERNANDEZ','Blackout',1350000,675000,675000,'ACTIVO'),
+            row('2026-08-03T12:00:00',36,'111','CLIENTE COMPLETADO','Venta cerrada',1149000,1149000,0,'COMPLETADO'),
+            row('2026-07-10T12:00:00',20,'222','CLIENTE JULIO','Venta julio',22567000,10000000,12567000,'ACTIVO')
+          ]};
+          const b64url=o=>Buffer.from(JSON.stringify(o)).toString('base64url');
+          const idToken=`x.${b64url({aud:'homeeasy-auth',iss:'https://securetoken.google.com/homeeasy-auth',sub:'qa',user_id:'qa',email:'qa@homeeasy.test'})}.x`;
+          const session={version:2,persistence:'session',localId:'qa',email:'qa@homeeasy.test',displayName:'QA',idToken,refreshToken:'qa-refresh',expiresAt:Date.now()+3600000,appSessionToken:'QA_APP_SESSION',appSessionExpiresAt:new Date(Date.now()+3600000).toISOString(),appSessionValidatedAt:Date.now(),profile:{uid:'qa',nombre:'QA',email:'qa@homeeasy.test',rol:'ADMIN',estado:'ACTIVO',emailVerificado:true},permissions:['reportes.read','ventas.read']};
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1440,height:1000},locale:'es-CO',acceptDownloads:true});
+            await page.addInitScript(s=>sessionStorage.setItem('HOMEEASY_AUTH_SESSION_V1',JSON.stringify(s)),session);
+            const seen=[];
+            await page.route('**/exec?**',async route=>{
+              const url=new URL(route.request().url());
+              if(!url.href.startsWith(API)) return route.continue();
+              const token=url.searchParams.get('appSessionToken'),pagina=url.searchParams.get('pagina'),tipo=url.searchParams.get('tipo'),init=url.searchParams.get('init');
+              seen.push({token,pagina,tipo,init});
+              if(token!=='QA_APP_SESSION') return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({status:'error',requiresLogin:true})});
+              if(tipo==='GET_META') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({meta:10000000})});
+              if(tipo==='GET_REPORTES') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(reportData)});
+              if(init==='LOAD') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(sheet)});
+              return route.continue();
+            });
+
+            await page.goto('http://127.0.0.1:4173/reportes-diseno-v4.html?periodo=este_mes',{waitUntil:'domcontentloaded'});
+            await page.waitForFunction(()=>document.querySelector('#portfolio')?.textContent?.trim()==='$2.925.000',{timeout:20000});
+            const reportState=await page.evaluate(()=>({portfolio:portfolio.textContent.trim(),note:portfolioNote.textContent.trim(),winner:winnerDetail.textContent.trim(),loader:getComputedStyle(loaderFinance).display,error:errorBanner.classList.contains('show')}));
+            if(reportState.error||reportState.portfolio!=='$2.925.000') throw new Error('Datos del reporte incorrectos: '+JSON.stringify(reportState));
+            if(reportState.note!=='3 OP activas · saldo pendiente del periodo.'||reportState.note.includes('Haz clic')) throw new Error('Copy de cartera incorrecto: '+reportState.note);
+            if(!reportState.winner.includes('CRISTHIAN GUZMAN MELIZO')||!reportState.winner.includes('OP #38')) throw new Error('OP ganadora incorrecta');
+
+            const board=await page.evaluate(()=>{
+              const root=buildBoardReport();
+              const result={pages:root.querySelectorAll('.board-pdf-page').length,text:root.innerText,goal:root.querySelector('.board-pdf-progress>i')?.style.width||'',bars:root.querySelectorAll('.board-pdf-bar-fill').length,paySegments:root.querySelectorAll('.board-pdf-payment-stack i').length};
+              root.remove();
+              return result;
+            });
+            console.log('BOARD_DOM',board);
+            if(board.pages!==2||board.goal!=='72%'||board.bars!==12||board.paySegments<2) throw new Error('Estructura gráfica del PDF incompleta: '+JSON.stringify(board));
+            for(const text of ['Resumen ejecutivo','Cumplimiento de meta','Cartera activa del periodo','CRISTHIAN GUZMAN MELIZO','Metodología del reporte']) if(!board.text.includes(text)) throw new Error('Falta texto en PDF DOM: '+text);
+
+            const downloadPromise=page.waitForEvent('download',{timeout:30000});
+            await page.click('#exportBtn');
+            const download=await downloadPromise;
+            await download.saveAs('HomeEasy-board-report.pdf');
+            await page.waitForFunction(()=>!document.querySelector('#exportBtn').disabled,{timeout:30000});
+
+            const reportCalls=()=>seen.filter(x=>x.pagina==='reportes-diseno-v4.html'&&(x.tipo==='GET_META'||x.tipo==='GET_REPORTES'||x.init==='LOAD')).length;
+            const before=reportCalls();
+            await page.click('#portfolioCard');
+            await page.waitForURL(/ventas\.html/,{timeout:10000});
+            await page.waitForFunction(()=>document.querySelector('#statBalance')?.textContent?.trim()==='$2.925.000',{timeout:20000});
+            const sales=await page.evaluate(()=>({year:yearFilter.value,month:monthFilter.value,status:statusFilter.value,sort:sortFilter.value,balance:statBalance.textContent.trim()}));
+            if(JSON.stringify(sales)!==JSON.stringify({year:'2026',month:'7',status:'ACTIVO',sort:'BALANCE_DESC',balance:'$2.925.000'})) throw new Error('Filtros de Ventas incorrectos: '+JSON.stringify(sales));
+            await page.click('#backBtn');
+            await page.waitForURL(/reportes-diseno-v4\.html/,{timeout:10000});
+            await page.waitForTimeout(500);
+            const returned=await page.evaluate(()=>({display:getComputedStyle(loaderFinance).display,opacity:getComputedStyle(loaderFinance).opacity,portfolio:portfolio.textContent.trim()}));
+            if(reportCalls()!==before||returned.portfolio!=='$2.925.000'||(returned.display!=='none'&&Number(returned.opacity)>.05)) throw new Error('El regreso desde Ventas recargó el reporte: '+JSON.stringify(returned));
+
+            const beforeWinner=reportCalls();
+            await page.click('#winnerCard');
+            await page.waitForURL(/ventas\.html/,{timeout:10000});
+            await page.waitForFunction(()=>document.querySelector('#detailDrawer')?.classList.contains('open'),{timeout:10000});
+            const winner=await page.evaluate(()=>({title:drawerTitle.textContent.trim(),body:drawerBody.textContent}));
+            if(winner.title!=='OP-38'||!winner.body.includes('CRISTHIAN GUZMAN MELIZO')) throw new Error('Detalle ganador incorrecto');
+            await page.click('#drawerClose');
+            await page.waitForFunction(()=>!document.querySelector('#detailDrawer').classList.contains('open'));
+            await page.click('#backBtn');
+            await page.waitForURL(/reportes-diseno-v4\.html/,{timeout:10000});
+            await page.waitForTimeout(500);
+            if(reportCalls()!==beforeWinner) throw new Error('El regreso desde OP ganadora recargó el reporte');
+            await page.screenshot({path:'reportes-final-screen.png',fullPage:true});
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - name: Validate exported PDF pages
+        run: |
+          test -s HomeEasy-board-report.pdf
+          pdfinfo HomeEasy-board-report.pdf | tee board-report-pdfinfo.txt
+          pages="$(pdfinfo HomeEasy-board-report.pdf | awk '/^Pages:/ {print $2}')"
+          test "$pages" = "2"
+          pdftoppm -png -f 1 -l 2 -r 140 HomeEasy-board-report.pdf board-report-page
+          test -s board-report-page-1.png
+          test -s board-report-page-2.png
+          python3 <<'PY'
+          from PIL import Image
+          for path in ['board-report-page-1.png','board-report-page-2.png']:
+              im=Image.open(path).convert('RGB')
+              pixels=list(im.getdata())
+              nonwhite=sum(1 for r,g,b in pixels if min(r,g,b)<245)
+              ratio=nonwhite/len(pixels)
+              print(path,'nonwhite_ratio=',round(ratio,4))
+              if ratio < .055:
+                  raise SystemExit(f'{path} parece vacía: {ratio:.4f}')
+          PY
+      - name: Upload QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-v4-qa
+          path: |
+            HomeEasy-board-report.pdf
+            board-report-pdfinfo.txt
+            board-report-page-1.png
+            board-report-page-2.png
+            reportes-final-screen.png
+          if-no-files-found: ignore
