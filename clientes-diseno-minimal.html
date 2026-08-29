@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HomeEasy · Clientes — propuesta minimal</title>
+<style>
+:root{
+  --wine:#a6455a;
+  --wine-soft:#f7ecef;
+  --gold:#c2a468;
+  --ink:#1d1d1f;
+  --muted:#7c7c82;
+  --line:#e8e8ec;
+  --bg:#f5f5f7;
+  --card:#fff;
+  --gold-bg:#fff7e6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+body{padding-bottom:40px}
+.topbar{position:sticky;top:0;z-index:10;padding:14px 16px 12px;background:rgba(245,245,247,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(60,60,67,.08)}
+.toprow{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;max-width:720px;margin:0 auto}
+.back{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:28px;line-height:1;color:var(--ink);display:grid;place-items:center;padding-bottom:3px}
+.title{font-size:20px;font-weight:760;letter-spacing:-.03em}
+.search-again{border:0;background:transparent;color:var(--wine);font-size:14px;font-weight:700;padding:10px 4px}
+.wrap{width:min(calc(100% - 24px),720px);margin:18px auto 0}
+.profile{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:22px 20px 18px;box-shadow:0 10px 28px rgba(30,30,35,.035)}
+.profile-head{display:grid;grid-template-columns:1fr 42px;gap:14px;align-items:start}
+.name{font-size:26px;line-height:1.08;font-weight:800;letter-spacing:-.04em;margin:0}
+.id{margin-top:7px;font-size:14px;color:var(--muted);font-weight:560}
+.more{width:40px;height:40px;border:0;border-radius:50%;background:#f2f2f4;color:var(--wine);font-size:22px;display:grid;place-items:center}
+.contact{margin-top:20px;border-top:1px solid var(--line)}
+.contact-row{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;min-height:56px;border-bottom:1px solid var(--line)}
+.contact-row:last-child{border-bottom:0}
+.icon{width:32px;height:32px;border-radius:10px;background:var(--wine-soft);color:var(--wine);display:grid;place-items:center;font-size:14px}
+.contact-main{font-size:16px;font-weight:650;line-height:1.25}
+.contact-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.primary-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.action{height:48px;border-radius:15px;border:0;font:inherit;font-size:15px;font-weight:720;display:flex;align-items:center;justify-content:center;gap:8px}
+.action.whatsapp{background:var(--wine);color:#fff}
+.action.call{background:#f1f1f4;color:var(--ink)}
+.summary{display:grid;grid-template-columns:1fr 1fr 1fr;margin-top:18px;padding:0 4px}
+.metric{padding:2px 10px 2px 12px;border-left:1px solid var(--line)}
+.metric:first-child{border-left:0;padding-left:0}
+.metric-label{font-size:11px;color:var(--muted);font-weight:680;line-height:1.2}
+.metric-value{margin-top:5px;font-size:17px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.metric-value.balance{color:var(--wine)}
+.section{margin-top:26px}
+.section-head{display:flex;align-items:end;justify-content:space-between;margin:0 2px 12px}
+.section-title{font-size:21px;font-weight:790;letter-spacing:-.035em}
+.section-note{font-size:12px;color:var(--muted)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:#e9e9ed;border-radius:14px;padding:3px;margin-bottom:12px}
+.tab{height:41px;border-radius:11px;display:flex;align-items:center;justify-content:center;gap:7px;color:#76767b;font-size:14px;font-weight:700}
+.tab.active{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.count{min-width:20px;height:20px;border-radius:10px;background:#ececf0;display:grid;place-items:center;font-size:11px;color:var(--muted)}
+.tab.active .count{background:var(--wine-soft);color:var(--wine)}
+.order{background:#fff;border:1px solid var(--line);border-radius:24px;padding:19px 18px 16px;box-shadow:0 8px 24px rgba(30,30,35,.03)}
+.order-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.order-id{font-size:16px;font-weight:790}
+.status{padding:6px 10px;border-radius:999px;background:var(--gold-bg);color:#87661e;font-size:11px;font-weight:800;letter-spacing:.03em}
+.desc{margin-top:14px;font-size:17px;line-height:1.42;font-weight:650;letter-spacing:-.01em}
+.date{margin-top:8px;font-size:13px;color:var(--muted)}
+.money-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;padding-top:17px;border-top:1px solid var(--line)}
+.money-label{font-size:11px;color:var(--muted);font-weight:700}
+.money-value{margin-top:4px;font-size:20px;font-weight:820;letter-spacing:-.035em}
+.money-value.balance{color:var(--wine)}
+.order-actions{display:flex;justify-content:space-between;align-items:center;margin-top:17px}
+.details{border:0;background:transparent;color:#55555b;font-size:14px;font-weight:700;padding:8px 0}
+.view{border:0;background:var(--wine-soft);color:var(--wine);border-radius:13px;padding:10px 14px;font-size:14px;font-weight:750}
+.helper{margin:20px 2px 0;color:var(--muted);font-size:12px;line-height:1.45}
+@media(max-width:360px){.name{font-size:23px}.metric-value{font-size:15px}.metric{padding-left:8px}.desc{font-size:16px}.money-value{font-size:18px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="toprow">
+    <button class="back" aria-label="Volver">‹</button>
+    <div class="title">Clientes</div>
+    <button class="search-again">Buscar otro</button>
+  </div>
+</header>
+<main class="wrap">
+  <section class="profile">
+    <div class="profile-head">
+      <div>
+        <h1 class="name">Katherin Diaz</h1>
+        <div class="id">C.C. 1.061.•••.•••</div>
+      </div>
+      <button class="more" aria-label="Más opciones">•••</button>
+    </div>
+    <div class="contact">
+      <div class="contact-row"><div class="icon">☎</div><div><div class="contact-main">323 ••• •235</div><div class="contact-sub">Teléfono</div></div></div>
+      <div class="contact-row"><div class="icon">⌖</div><div><div class="contact-main">Calatrava · Popayán</div><div class="contact-sub">Dirección</div></div></div>
+    </div>
+    <div class="primary-actions">
+      <button class="action whatsapp">◉ WhatsApp</button>
+      <button class="action call">☎ Llamar</button>
+    </div>
+    <div class="summary">
+      <div class="metric"><div class="metric-label">Compras</div><div class="metric-value">$4.500.000</div></div>
+      <div class="metric"><div class="metric-label">Pendiente</div><div class="metric-value balance">$2.800.000</div></div>
+      <div class="metric"><div class="metric-label">Órdenes</div><div class="metric-value">1</div></div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="section-head"><div class="section-title">Historial</div><div class="section-note">1 registro activo</div></div>
+    <div class="tabs"><div class="tab active">Órdenes <span class="count">1</span></div><div class="tab">Cotizaciones <span class="count">0</span></div></div>
+    <article class="order">
+      <div class="order-top"><div class="order-id">OP 24</div><div class="status">ACTIVO</div></div>
+      <div class="desc">1 × Sala / 1 × Vestier / 1 × Hab. Auxiliar / 1 × Hab. Principal</div>
+      <div class="date">16 jun 2026</div>
+      <div class="money-row"><div><div class="money-label">Total</div><div class="money-value">$4.500.000</div></div><div><div class="money-label">Saldo</div><div class="money-value balance">$2.800.000</div></div></div>
+      <div class="order-actions"><button class="details">Ver detalles</button><button class="view">Ver OP</button></div>
+    </article>
+  </section>
+  <div class="helper">Los pagos, recibos y acciones secundarias aparecen solo cuando los necesitas, no en la vista principal.</div>
+</main>
+</body>
+</html>
