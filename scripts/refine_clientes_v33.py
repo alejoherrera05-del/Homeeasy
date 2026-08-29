@@ -13,8 +13,12 @@ for old, new in replacements.items():
         raise SystemExit(f"No se encontró el patrón esperado: {old}")
     html = html.replace(old, new, 1)
 
-style_marker = '</style>\n\n<script id="clientes-connected-v31-script">'
-if style_marker not in html:
+script_marker = '<script id="clientes-connected-v31-script">'
+script_pos = html.find(script_marker)
+if script_pos < 0:
+    raise SystemExit("No se encontró el script visual de Clientes 3.1")
+style_pos = html.rfind('</style>', 0, script_pos)
+if style_pos < 0:
     raise SystemExit("No se encontró el cierre del estilo de Clientes 3.1")
 
 refinement_css = r'''
@@ -44,7 +48,7 @@ refinement_css = r'''
   .v31-view-op{height:50px!important}
 }
 '''
-html = html.replace(style_marker, refinement_css + '\n' + style_marker, 1)
+html = html[:style_pos] + refinement_css + '\n' + html[style_pos:]
 
 # Safety assertions for the visible product surface.
 assert "shell.append(buildContact(client));" in html
