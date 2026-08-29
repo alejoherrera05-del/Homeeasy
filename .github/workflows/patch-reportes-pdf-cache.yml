@@ -1,0 +1,39 @@
+name: patch reportes pdf cache
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/patch_reportes_pdf_cache.py'
+      - '.github/workflows/patch-reportes-pdf-cache.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply report patch
+        run: python3 tools/patch_reportes_pdf_cache.py
+      - name: Validate patched files
+        run: |
+          grep -q 'HOMEEASY_REPORT_VIEW_CACHE_V2' reportes-diseno-v4.html
+          grep -q 'buildBoardReport' reportes-diseno-v4.html
+          grep -q 'Metodología del reporte' reportes-diseno-v4.html
+          grep -q 'smartReportBack' ventas.html
+          ! grep -q 'Haz clic para ver las órdenes' reportes-diseno-v4.html
+          git diff --check
+      - name: Commit product changes and remove patch scaffolding
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git rm -f tools/patch_reportes_pdf_cache.py .github/workflows/patch-reportes-pdf-cache.yml
+          git rm -f tools/patch_reportes_sales.py .github/workflows/patch-reportes-sales-drilldown-v2.yml .github/workflows/patch-reportes-v4-guard.yml || true
+          git add reportes-diseno-v4.html ventas.html
+          git commit -m 'Polish report return flow and build board-ready PDF export'
+          git push
