@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>HomeEasy · Reporte de ventas — Propuesta visual v4</title>
+  <title>HomeEasy · Reporte de ventas</title>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
     :root{
       --brand:#B2566C;
@@ -19,6 +22,7 @@
       --line:#E8E6E7;
       --bg:#F6F6F7;
       --green:#2B765F;
+      --red:#B44D5E;
       --shadow:0 14px 38px rgba(47,34,39,.045);
     }
 
@@ -30,63 +34,84 @@
       color:var(--ink);
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
       -webkit-font-smoothing:antialiased;
+      font-synthesis:none;
     }
-    button,input,select{font:inherit}
+    button,input,select{font:inherit;font-synthesis:none}
     button{cursor:pointer}
-    button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(178,86,108,.2);outline-offset:3px}
+    button:focus-visible,input:focus-visible,select:focus-visible{
+      outline:3px solid rgba(178,86,108,.2);
+      outline-offset:3px;
+    }
 
     .app{min-height:100dvh;padding:18px 0 44px}
+    .shell{width:min(1560px,calc(100% - 48px));margin-inline:auto}
 
-    /* CABECERA: título central + periodo claramente anclado debajo */
-    .report-header{
-      width:min(1560px,calc(100% - 48px));
-      margin:0 auto;
-    }
+    .report-header{position:relative}
     .header-main{
       position:relative;
-      min-height:92px;
-      display:grid;
-      grid-template-columns:52px minmax(0,1fr) 52px;
+      min-height:96px;
+      display:flex;
       align-items:center;
+      justify-content:center;
     }
     .back{
+      position:absolute;
+      left:0;
+      top:50%;
+      transform:translateY(-50%);
       width:46px;height:46px;
       border:1px solid rgba(60,60,67,.08);
       border-radius:50%;
       background:#fff;
       color:var(--brand);
-      display:grid;place-items:center;
+      display:grid;
+      place-items:center;
       box-shadow:0 6px 18px rgba(0,0,0,.04);
       transition:.18s;
+      text-decoration:none;
     }
-    .back:hover{background:var(--brand-soft);transform:translateY(-1px)}
-
-    .heading{text-align:center;min-width:0}
+    .back:hover{background:var(--brand-soft);transform:translateY(calc(-50% - 1px))}
+    .heading{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-width:0;
+      text-align:center;
+    }
     .heading-title{
       display:flex;
-      justify-content:center;
       align-items:center;
+      justify-content:center;
       gap:11px;
+      line-height:1;
     }
-    .heading-title img{width:28px;height:auto;display:block}
+    .heading-title img{
+      width:29px;
+      height:34px;
+      object-fit:contain;
+      display:block;
+      flex:0 0 auto;
+    }
     .heading h1{
       margin:0;
       color:var(--ink);
       font-size:clamp(30px,2.35vw,38px);
-      line-height:1.05;
+      line-height:1;
       font-weight:735;
       letter-spacing:-.043em;
     }
     .heading p{
-      margin:7px 0 0;
+      margin:8px 0 0;
       color:var(--muted);
       font-size:17px;
-      line-height:1.25;
+      line-height:1.2;
       font-weight:460;
+      text-align:center;
     }
 
     .period-row{
-      min-height:58px;
+      min-height:60px;
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -100,11 +125,13 @@
       color:#59575E;
       font-size:16px;
       font-weight:620;
+      min-width:0;
     }
-    .date-display i{color:var(--brand);font-size:17px}
-    .period-control{display:flex;align-items:center;gap:10px}
+    .date-display i{color:var(--brand);font-size:17px;flex:0 0 auto}
+    .date-display span{min-width:0}
+    .period-control{display:flex;align-items:center;gap:10px;flex:0 0 auto}
     .period-label{font-size:14px;font-weight:650;color:#858188}
-    .period{position:relative;min-width:170px}
+    .period{position:relative;min-width:178px}
     .period select{
       appearance:none;
       -webkit-appearance:none;
@@ -125,7 +152,8 @@
       font-family:"Font Awesome 6 Free";
       font-weight:900;
       position:absolute;
-      right:15px;top:50%;
+      right:15px;
+      top:50%;
       transform:translateY(-50%);
       color:var(--brand);
       font-size:11px;
@@ -133,18 +161,16 @@
     }
 
     .page{
-      width:min(1560px,calc(100% - 48px));
-      margin:10px auto 0;
+      margin-top:10px;
       display:flex;
       flex-direction:column;
       gap:18px;
     }
 
-    /* HERO META */
     .goal-hero{
       position:relative;
       overflow:hidden;
-      min-height:334px;
+      min-height:342px;
       border-radius:30px;
       background:
         radial-gradient(circle at 82% 18%,rgba(194,164,104,.16),transparent 25%),
@@ -153,14 +179,35 @@
       border:1px solid rgba(60,60,67,.07);
       box-shadow:var(--shadow);
       display:grid;
-      grid-template-columns:minmax(0,1fr) 205px 440px;
+      grid-template-columns:minmax(0,1fr) 220px minmax(0,1fr);
       align-items:center;
-      gap:18px;
+      gap:20px;
       padding:30px 30px 27px;
     }
-    .goal-copy{position:relative;z-index:3;min-width:0}
-    .goal-kicker{display:flex;align-items:center;gap:9px;font-size:16px;color:var(--brand);font-weight:700}
-    .goal-kicker i{width:34px;height:34px;border-radius:11px;background:var(--brand-soft);display:grid;place-items:center}
+    .goal-copy{
+      position:relative;
+      z-index:3;
+      min-width:0;
+      max-width:610px;
+      justify-self:start;
+      width:100%;
+    }
+    .goal-kicker{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      font-size:16px;
+      color:var(--brand);
+      font-weight:700;
+    }
+    .goal-kicker i{
+      width:34px;height:34px;
+      border-radius:11px;
+      background:var(--brand-soft);
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+    }
     .goal-label{margin-top:19px;font-size:16px;color:var(--muted);font-weight:560}
     .goal-total-row{display:flex;align-items:center;gap:12px;margin-top:4px;min-width:0}
     .goal-total{
@@ -177,47 +224,107 @@
       border-radius:12px;
       background:var(--brand-soft);
       color:var(--brand);
-      display:grid;place-items:center;
+      display:grid;
+      place-items:center;
       font-size:15px;
       transition:.18s;
       margin-top:6px;
     }
     .edit-goal:hover{background:#F3E3E8;transform:translateY(-1px)}
-    .goal-progress-copy{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-top:21px}
+    .goal-progress-copy{
+      display:flex;
+      align-items:baseline;
+      gap:11px;
+      flex-wrap:wrap;
+      margin-top:21px;
+    }
     .goal-progress-copy span{font-size:16px;color:var(--muted);font-weight:560}
-    .goal-achieved{font-size:clamp(30px,2.65vw,39px);font-weight:700;color:var(--brand);letter-spacing:-.042em}
+    .goal-achieved{
+      font-size:clamp(30px,2.65vw,39px);
+      font-weight:700;
+      color:var(--brand);
+      letter-spacing:-.042em;
+    }
     .goal-remaining{margin-top:9px;font-size:15.5px;color:#626168}
     .goal-remaining strong{color:var(--gold-dark);font-weight:690}
 
-    .ring-wrap{position:relative;z-index:3;display:grid;place-items:center}
+    .ring-wrap{
+      position:relative;
+      z-index:3;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      justify-self:center;
+      width:220px;
+    }
     .ring{
-      width:166px;height:166px;border-radius:50%;
-      background:conic-gradient(var(--brand) 0 74%,#E9E6E7 74% 100%);
+      width:166px;height:166px;
+      border-radius:50%;
+      background:conic-gradient(var(--brand) 0 0%,#E9E6E7 0% 100%);
       position:relative;
       box-shadow:0 10px 28px rgba(178,86,108,.08);
+      flex:0 0 auto;
     }
-    .ring:after{content:"";position:absolute;inset:17px;background:#fff;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(60,60,67,.05)}
-    .ring-center{position:absolute;z-index:2;display:grid;place-content:center;text-align:center}
-    .ring-center strong{font-size:42px;line-height:1;font-weight:720;letter-spacing:-.05em;color:var(--brand)}
-    .ring-center span{margin-top:6px;font-size:14px;color:var(--muted);font-weight:600}
-    .ring-note{margin-top:12px;text-align:center;font-size:14px;color:var(--muted);line-height:1.4}
+    .ring:after{
+      content:"";
+      position:absolute;
+      inset:17px;
+      background:#fff;
+      border-radius:50%;
+      box-shadow:inset 0 0 0 1px rgba(60,60,67,.05);
+    }
+    .ring-center{
+      position:absolute;
+      inset:0;
+      z-index:2;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+    }
+    .ring-center strong{
+      display:block;
+      font-size:42px;
+      line-height:.95;
+      font-weight:720;
+      letter-spacing:-.05em;
+      color:var(--brand);
+    }
+    .ring-center span{
+      display:block;
+      margin-top:8px;
+      font-size:14px;
+      line-height:1;
+      color:var(--muted);
+      font-weight:600;
+    }
+    .ring-note{
+      margin-top:12px;
+      text-align:center;
+      font-size:14px;
+      color:var(--muted);
+      line-height:1.4;
+    }
     .ring-note strong{color:var(--gold-dark);font-size:15px}
 
-    /* Hommy: mensaje separado de la ilustración para no taparle la cara */
     .hommy-stage{
       position:relative;
       align-self:stretch;
-      min-height:280px;
+      min-height:286px;
       display:grid;
-      grid-template-columns:170px minmax(0,270px);
+      grid-template-columns:minmax(135px,165px) minmax(220px,270px);
       align-items:center;
       justify-content:end;
-      gap:0;
+      gap:4px;
+      min-width:0;
     }
     .hommy-bubble{
       position:relative;
       z-index:4;
-      width:168px;
+      width:100%;
+      max-width:165px;
       padding:13px 14px;
       border-radius:17px 17px 6px 17px;
       background:#fff;
@@ -227,14 +334,15 @@
       line-height:1.38;
       color:#5D595C;
       align-self:start;
-      margin-top:42px;
+      margin-top:44px;
     }
     .hommy-bubble strong{color:var(--brand)}
-    .hommy-art{position:relative;min-height:280px}
+    .hommy-art{position:relative;min-height:286px;min-width:0}
     .hommy-art:before{
       content:"";
       position:absolute;
-      right:2%;bottom:7%;
+      right:2%;
+      bottom:7%;
       width:224px;height:224px;
       border-radius:50%;
       background:rgba(255,255,255,.55);
@@ -242,16 +350,16 @@
     }
     .hommy-art img{
       position:absolute;
-      right:-3px;bottom:-24px;
+      right:-3px;
+      bottom:-24px;
       width:270px;
-      max-height:320px;
+      max-height:326px;
       object-fit:contain;
       object-position:bottom;
       filter:drop-shadow(0 17px 27px rgba(48,35,40,.12));
       z-index:2;
     }
 
-    /* KPIs: tarjetas separadas, icono grande a la izquierda y lectura clara */
     .period-strip{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
@@ -259,64 +367,86 @@
     }
     .strip-item{
       position:relative;
-      min-height:150px;
-      padding:22px 20px;
+      min-height:146px;
+      padding:22px 22px;
       background:#fff;
       border:1px solid rgba(60,60,67,.07);
       border-radius:23px;
       box-shadow:var(--shadow);
       display:grid;
-      grid-template-columns:58px minmax(0,1fr) 34px;
+      grid-template-columns:58px minmax(0,1fr);
       align-items:center;
-      gap:14px;
+      gap:16px;
     }
     .strip-icon{
       width:56px;height:56px;
       border-radius:50%;
       background:var(--brand-soft);
       color:var(--brand);
-      display:grid;place-items:center;
+      display:grid;
+      place-items:center;
       font-size:21px;
+      justify-self:center;
+      align-self:center;
+    }
+    .strip-content{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      min-width:0;
     }
     .strip-item.portfolio .strip-icon{background:var(--gold-soft);color:var(--gold-dark)}
     .strip-label{font-size:15px;color:var(--brand-dark);font-weight:650;line-height:1.25}
     .strip-item.portfolio .strip-label{color:var(--gold-dark)}
-    .strip-value{margin-top:8px;font-size:clamp(27px,2.25vw,35px);font-weight:705;letter-spacing:-.04em;line-height:1}
+    .strip-value{
+      margin-top:8px;
+      font-size:clamp(27px,2.25vw,35px);
+      font-weight:705;
+      letter-spacing:-.04em;
+      line-height:1;
+    }
     .strip-note{margin-top:7px;font-size:14px;color:var(--muted);line-height:1.35}
     .strip-item.growth .strip-value{color:var(--green)}
-    .strip-arrow{
-      width:34px;height:34px;
-      border-radius:50%;
-      background:var(--brand-soft);
-      color:var(--brand);
-      display:grid;place-items:center;
-      font-size:12px;
-    }
-    .strip-item.portfolio .strip-arrow{background:var(--gold-soft);color:var(--gold-dark)}
+    .strip-item.growth.negative .strip-value{color:var(--red)}
 
-    /* Venta ganadora */
     .winner{
       position:relative;
       overflow:hidden;
       border-radius:28px;
-      background:radial-gradient(circle at 92% 18%,rgba(194,164,104,.21),transparent 26%),linear-gradient(120deg,#FFFDF8 0%,#FFF8EA 50%,#FDF6E4 100%);
+      background:
+        radial-gradient(circle at 92% 18%,rgba(194,164,104,.21),transparent 26%),
+        linear-gradient(120deg,#FFFDF8 0%,#FFF8EA 50%,#FDF6E4 100%);
       border:1px solid rgba(194,164,104,.29);
       padding:27px 29px;
-      display:grid;
-      grid-template-columns:minmax(0,1fr) auto;
-      align-items:center;
       box-shadow:0 13px 35px rgba(194,164,104,.075);
     }
-    .winner-kicker{display:flex;align-items:center;gap:11px;color:#8A7139;font-size:14px;font-weight:730;letter-spacing:.03em;text-transform:uppercase}
-    .crown{width:48px;height:48px;border-radius:15px;background:#fff7df;border:1px solid rgba(194,164,104,.26);display:grid;place-items:center;color:#D0A840;font-size:21px;box-shadow:0 8px 18px rgba(194,164,104,.12);animation:float 2.8s ease-in-out infinite}
+    .winner-kicker{
+      display:flex;
+      align-items:center;
+      gap:11px;
+      color:#8A7139;
+      font-size:14px;
+      font-weight:730;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+    .crown{
+      width:48px;height:48px;
+      border-radius:15px;
+      background:#fff7df;
+      border:1px solid rgba(194,164,104,.26);
+      display:grid;
+      place-items:center;
+      color:#D0A840;
+      font-size:21px;
+      box-shadow:0 8px 18px rgba(194,164,104,.12);
+      animation:float 2.8s ease-in-out infinite;
+    }
     @keyframes float{50%{transform:translateY(-3px)}}
     .winner-amount{margin-top:15px;font-size:clamp(37px,3.6vw,52px);font-weight:710;letter-spacing:-.05em}
     .winner-detail{margin-top:7px;font-size:15px;color:#65615A}
     .winner-note{margin-top:13px;font-size:14px;color:#8B743F;font-weight:580}
-    .winner-action{height:48px;padding:0 18px;border:1px solid var(--gold);background:#fff;color:#7F6836;border-radius:15px;display:flex;align-items:center;gap:9px;font-size:14px;font-weight:660;transition:.18s}
-    .winner-action:hover{background:#FFF7E4;transform:translateY(-1px)}
 
-    /* Gráficas */
     .trend{
       border-radius:28px;
       background:#fff;
@@ -327,14 +457,45 @@
       gap:34px;
       box-shadow:var(--shadow);
     }
-    .section-kicker{font-size:13.5px;text-transform:uppercase;letter-spacing:.055em;font-weight:720;color:#9A969C}
+    .section-kicker{
+      font-size:13.5px;
+      text-transform:uppercase;
+      letter-spacing:.055em;
+      font-weight:720;
+      color:#9A969C;
+    }
     .section-title{margin-top:6px;font-size:28px;font-weight:710;letter-spacing:-.033em}
     .section-sub{margin-top:5px;font-size:15px;color:var(--muted)}
     .trend-year{font-size:16px;color:var(--gold-dark);font-weight:690}
-    .bars{height:270px;margin-top:25px;display:grid;grid-template-columns:repeat(12,1fr);gap:10px;align-items:end;border-bottom:1px solid #EAE8E9;padding:0 3px 14px}
-    .bar-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px}
-    .bar{width:min(36px,72%);border-radius:9px 9px 3px 3px;background:linear-gradient(180deg,#C9788B,var(--brand));min-height:7px}
-    .bar-col.active .bar{background:linear-gradient(180deg,#DFC478,var(--gold));box-shadow:0 6px 16px rgba(194,164,104,.22)}
+    .bars{
+      height:270px;
+      margin-top:25px;
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:10px;
+      align-items:end;
+      border-bottom:1px solid #EAE8E9;
+      padding:0 3px 14px;
+    }
+    .bar-col{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      align-items:center;
+      gap:8px;
+    }
+    .bar{
+      width:min(36px,72%);
+      border-radius:9px 9px 3px 3px;
+      background:linear-gradient(180deg,#C9788B,var(--brand));
+      min-height:4px;
+      transition:height .3s ease;
+    }
+    .bar-col.active .bar{
+      background:linear-gradient(180deg,#DFC478,var(--gold));
+      box-shadow:0 6px 16px rgba(194,164,104,.22);
+    }
     .bar-label{font-size:12.5px;color:#8E8D94}
     .reading{border-left:1px solid var(--line);padding-left:28px}
     .reading-title{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}
@@ -346,6 +507,7 @@
     .reading-value{font-size:17px;font-weight:690}
     .reading-text{margin-top:6px;color:#65646A;font-size:13.5px;line-height:1.45}
     .up{color:var(--green)}
+    .down{color:var(--red)}
 
     .payments{
       border-radius:28px;
@@ -358,49 +520,159 @@
       align-items:center;
     }
     .donut-box{display:grid;place-items:center}
-    .donut{width:198px;height:198px;border-radius:50%;background:conic-gradient(var(--brand) 0 48%,var(--gold) 48% 76%,#938B9A 76% 90%,#D9D4D7 90% 100%);position:relative}
+    .donut{
+      width:198px;height:198px;
+      border-radius:50%;
+      background:conic-gradient(#D9D4D7 0 100%);
+      position:relative;
+      transition:background .25s ease;
+    }
     .donut:after{content:"";position:absolute;inset:36px;background:#FCF7F7;border-radius:50%}
     .donut-center{position:absolute;inset:0;z-index:2;display:grid;place-content:center;text-align:center}
     .donut-center span{font-size:13.5px;color:var(--muted)}
     .donut-center strong{margin-top:4px;font-size:24px}
     .payments .section-kicker{color:#9B7580}
     .pay-list{margin-top:21px}
-    .pay-row{display:grid;grid-template-columns:13px minmax(0,1fr) auto auto;gap:13px;align-items:center;padding:13px 0;border-bottom:1px solid rgba(60,60,67,.08)}
+    .pay-row{
+      display:grid;
+      grid-template-columns:13px minmax(0,1fr) auto auto;
+      gap:13px;
+      align-items:center;
+      padding:13px 0;
+      border-bottom:1px solid rgba(60,60,67,.08);
+    }
     .pay-row:last-child{border-bottom:0}
     .dot{width:10px;height:10px;border-radius:50%}
-    .pay-name{font-size:15px;font-weight:610}
+    .pay-name{font-size:15px;font-weight:610;min-width:0}
     .pay-amount{font-size:15px;font-weight:690}
     .pay-pct{min-width:44px;text-align:right;font-size:13.5px;color:var(--muted)}
+    .pay-empty{padding:18px 0;color:var(--muted);font-size:14.5px}
 
     .footer{display:flex;justify-content:flex-end}
-    .export{height:48px;padding:0 18px;border:0;border-radius:15px;background:var(--brand);color:#fff;font-size:14.5px;font-weight:660;display:flex;align-items:center;gap:9px;transition:.18s;box-shadow:0 9px 22px rgba(178,86,108,.16)}
+    .export{
+      height:48px;
+      padding:0 18px;
+      border:0;
+      border-radius:15px;
+      background:var(--brand);
+      color:#fff;
+      font-size:14.5px;
+      font-weight:660;
+      display:flex;
+      align-items:center;
+      gap:9px;
+      transition:.18s;
+      box-shadow:0 9px 22px rgba(178,86,108,.16);
+    }
     .export:hover{background:var(--brand-dark);transform:translateY(-1px)}
 
-    /* Modal edición de meta */
-    .goal-dialog{
-      width:min(430px,calc(100% - 30px));
+    .loader-overlay{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      background:rgba(246,246,247,.96);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      transition:opacity .2s ease;
+    }
+    .loader-ring{
+      width:40px;height:40px;
+      border-radius:50%;
+      border:3px solid var(--brand-soft);
+      border-top-color:var(--brand);
+      animation:spin .8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loader-text{color:var(--brand-dark);font-weight:650}
+    .error-banner{
+      display:none;
+      border:1px solid rgba(180,77,94,.18);
+      background:#FFF7F8;
+      color:#7D3C49;
+      border-radius:18px;
+      padding:14px 16px;
+      align-items:center;
+      justify-content:space-between;
+      gap:15px;
+      font-size:14.5px;
+    }
+    .error-banner.show{display:flex}
+    .retry{
+      border:0;
+      border-radius:12px;
+      height:38px;
+      padding:0 14px;
+      background:var(--brand);
+      color:#fff;
+      font-weight:650;
+      flex:0 0 auto;
+    }
+
+    dialog{
+      width:min(450px,calc(100% - 30px));
       border:0;
       border-radius:24px;
       padding:0;
       color:var(--ink);
       box-shadow:0 28px 80px rgba(40,29,33,.22);
     }
-    .goal-dialog::backdrop{background:rgba(28,24,26,.25);backdrop-filter:blur(4px)}
+    dialog::backdrop{background:rgba(28,24,26,.25);backdrop-filter:blur(4px)}
     .dialog-body{padding:25px}
-    .dialog-icon{width:44px;height:44px;border-radius:14px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;margin-bottom:14px}
+    .dialog-icon{
+      width:44px;height:44px;
+      border-radius:14px;
+      background:var(--brand-soft);
+      color:var(--brand);
+      display:grid;
+      place-items:center;
+      margin-bottom:14px;
+    }
     .dialog-title{font-size:23px;font-weight:720;letter-spacing:-.03em}
     .dialog-sub{margin-top:5px;color:var(--muted);font-size:14.5px;line-height:1.4}
-    .goal-input-wrap{margin-top:19px;position:relative}
-    .goal-input-wrap span{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:650}
-    .goal-input{width:100%;height:54px;border:1px solid var(--line);border-radius:15px;padding:0 15px 0 34px;background:#FAFAFB;font-size:18px;font-weight:660;color:var(--ink)}
+    .field{margin-top:18px}
+    .field label{display:block;font-size:13.5px;font-weight:650;color:#68656B;margin-bottom:7px}
+    .goal-input-wrap{position:relative}
+    .goal-input-wrap span{
+      position:absolute;
+      left:15px;
+      top:50%;
+      transform:translateY(-50%);
+      color:var(--muted);
+      font-weight:650;
+    }
+    .dialog-input{
+      width:100%;
+      height:52px;
+      border:1px solid var(--line);
+      border-radius:15px;
+      padding:0 14px;
+      background:#FAFAFB;
+      font-size:16px;
+      font-weight:620;
+      color:var(--ink);
+    }
+    .goal-input{padding-left:34px;font-size:18px}
+    .date-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .dialog-error{
+      display:none;
+      margin-top:11px;
+      color:var(--red);
+      font-size:13.5px;
+      font-weight:570;
+    }
+    .dialog-error.show{display:block}
     .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
     .dialog-btn{height:44px;border-radius:13px;padding:0 16px;font-size:14.5px;font-weight:660}
     .dialog-btn.secondary{background:#fff;border:1px solid var(--line);color:#656269}
     .dialog-btn.primary{background:var(--brand);border:1px solid var(--brand);color:#fff}
-    .dialog-reset{margin-top:13px;border:0;background:transparent;color:var(--brand);font-size:13.5px;font-weight:640;padding:0}
+    .dialog-btn:disabled{opacity:.55;cursor:wait}
 
-    @media(max-width:1250px){
-      .goal-hero{grid-template-columns:minmax(0,1fr) 185px 330px}
+    @media(max-width:1260px){
+      .goal-hero{grid-template-columns:minmax(0,1fr) 190px minmax(0,1fr)}
+      .ring-wrap{width:190px}
       .hommy-stage{grid-template-columns:1fr}
       .hommy-bubble{display:none}
       .hommy-art img{width:250px}
@@ -410,23 +682,25 @@
 
     @media(max-width:900px){
       .app{padding-top:12px}
-      .report-header,.page{width:calc(100% - 24px)}
-      .header-main{grid-template-columns:46px minmax(0,1fr) 46px;min-height:80px}
+      .shell{width:calc(100% - 24px)}
+      .header-main{min-height:82px}
       .heading h1{font-size:31px}
-      .heading p{font-size:15.5px;margin-top:5px}
-      .heading-title img{width:25px}
+      .heading p{font-size:15.5px;margin-top:6px}
+      .heading-title img{width:25px;height:29px}
       .period-row{padding-top:4px}
-      .goal-hero{grid-template-columns:1fr 170px;min-height:auto;padding:25px 21px 0}
+      .goal-hero{
+        grid-template-columns:1fr 170px;
+        min-height:auto;
+        padding:25px 21px 0;
+      }
       .goal-copy{grid-column:1/-1}
-      .ring-wrap{grid-column:1}
+      .ring-wrap{grid-column:1;width:170px}
       .hommy-stage{grid-column:2;min-height:230px;display:block}
       .hommy-art{min-height:230px}
       .hommy-art img{width:218px;right:-8px;bottom:-18px}
       .hommy-art:before{width:185px;height:185px}
       .period-strip{grid-template-columns:1fr}
-      .strip-item{min-height:132px}
-      .winner{grid-template-columns:1fr;padding:24px 21px}
-      .winner-action{margin-top:20px;width:max-content}
+      .strip-item{min-height:126px}
       .trend,.payments{padding:24px 21px}
       .payments{grid-template-columns:1fr}
       .donut-box{justify-content:center}
@@ -434,20 +708,25 @@
 
     @media(max-width:620px){
       .app{padding-top:8px}
-      .header-main{grid-template-columns:42px minmax(0,1fr) 42px;min-height:74px}
+      .header-main{min-height:76px}
       .back{width:40px;height:40px}
       .heading h1{font-size:27px}
       .heading p{font-size:14.5px}
       .heading-title{gap:7px}
-      .heading-title img{width:22px}
-      .period-row{align-items:stretch;flex-direction:column;gap:10px;margin-top:4px}
+      .heading-title img{width:22px;height:26px}
+      .period-row{align-items:stretch;flex-direction:column;gap:10px;margin-top:5px}
       .date-display{font-size:14px;line-height:1.3}
       .period-control{justify-content:space-between}
-      .period{min-width:154px}
+      .period{min-width:170px}
       .period select{height:42px;font-size:14px}
 
       .page{margin-top:14px;gap:14px}
-      .goal-hero{border-radius:25px;padding:22px 17px 0;grid-template-columns:1fr 140px;gap:4px}
+      .goal-hero{
+        border-radius:25px;
+        padding:22px 17px 0;
+        grid-template-columns:1fr 140px;
+        gap:4px;
+      }
       .goal-kicker{font-size:15px}
       .goal-label{font-size:14.5px;margin-top:17px}
       .goal-total{font-size:43px}
@@ -456,10 +735,11 @@
       .goal-progress-copy span{font-size:14.5px}
       .goal-achieved{font-size:30px;margin-top:3px}
       .goal-remaining{font-size:14.5px}
+      .ring-wrap{width:140px}
       .ring{width:136px;height:136px}
       .ring:after{inset:14px}
       .ring-center strong{font-size:34px}
-      .ring-center span{font-size:13px}
+      .ring-center span{font-size:13px;margin-top:6px}
       .ring-note{font-size:13px}
       .ring-note strong{font-size:13.5px}
       .hommy-stage{min-height:188px}
@@ -467,12 +747,11 @@
       .hommy-art img{width:174px;right:-12px;bottom:-14px}
       .hommy-art:before{width:145px;height:145px}
 
-      .strip-item{grid-template-columns:52px minmax(0,1fr) 30px;gap:12px;padding:18px 16px;min-height:122px}
+      .strip-item{grid-template-columns:52px minmax(0,1fr);gap:12px;padding:18px 16px;min-height:118px}
       .strip-icon{width:50px;height:50px;font-size:18px}
       .strip-label{font-size:14px}
       .strip-value{font-size:28px}
       .strip-note{font-size:13.5px}
-      .strip-arrow{width:30px;height:30px}
 
       .winner{border-radius:25px;padding:22px 18px}
       .winner-kicker{font-size:13px}
@@ -499,278 +778,799 @@
       .pay-pct{display:none}
       .footer{justify-content:stretch}
       .export{width:100%;justify-content:center}
+      .date-fields{grid-template-columns:1fr}
     }
 
+    .pdf-mode{
+      width:1200px!important;
+      max-width:1200px!important;
+      padding:18px!important;
+      background:#fff!important;
+      margin:0!important;
+    }
+    .pdf-mode .shell{width:100%!important}
+    .pdf-mode .goal-hero,
+    .pdf-mode .strip-item,
+    .pdf-mode .winner,
+    .pdf-mode .trend,
+    .pdf-mode .payments{box-shadow:none!important}
     @media print{
-      .back,.period-control,.footer,.edit-goal{display:none!important}
-      .report-header,.page{width:100%;margin-left:0;margin-right:0}
+      .no-export,.loader-overlay{display:none!important}
+      body,.app{background:#fff}
+      .shell{width:100%}
       .goal-hero,.strip-item,.winner,.trend,.payments{box-shadow:none;break-inside:avoid}
     }
   </style>
+
+  <script src="homeeasy-core.js?v=3.5"></script>
+  <script src="homeeasy-page-guard.js?v=3.6"></script>
 </head>
 <body>
-<div class="app">
-  <header class="report-header">
-    <div class="header-main">
-      <button class="back" type="button" aria-label="Volver"><i class="fa-solid fa-chevron-left"></i></button>
-      <div class="heading">
-        <div class="heading-title"><img src="triangulo.png" alt=""><h1>Reporte de ventas</h1></div>
-        <p>Resumen comercial de Hommy</p>
-      </div>
-      <div aria-hidden="true"></div>
-    </div>
+  <div class="loader-overlay" id="loaderFinance">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Analizando Finanzas...</div>
+  </div>
 
-    <div class="period-row">
-      <div class="date-display"><i class="fa-regular fa-calendar"></i><span id="dateDisplay">Mostrando: 1/8/2026 - 31/8/2026</span></div>
-      <div class="period-control">
-        <span class="period-label">Periodo</span>
-        <div class="period">
-          <select id="periodo" aria-label="Periodo del reporte">
-            <option value="mes">Este mes</option>
-            <option value="mes_pasado">Mes pasado</option>
-            <option value="semana">Esta semana</option>
-            <option value="anio">Este año</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </header>
+  <div class="app" id="informe-exportar">
+    <header class="report-header shell">
+      <div class="header-main">
+        <a class="back no-export" href="index.html" aria-label="Volver"><i class="fa-solid fa-chevron-left"></i></a>
 
-  <main class="page">
-    <section class="goal-hero">
-      <div class="goal-copy">
-        <div class="goal-kicker"><i class="fa-solid fa-bullseye"></i><span id="goalKicker">Meta de ventas · Agosto</span></div>
-        <div class="goal-label">Objetivo del periodo</div>
-        <div class="goal-total-row">
-          <div class="goal-total" id="goalTotal">$25.000.000</div>
-          <button class="edit-goal" id="editGoalBtn" type="button" aria-label="Editar meta" title="Editar meta"><i class="fa-solid fa-pen"></i></button>
-        </div>
-        <div class="goal-progress-copy"><span>Llevamos</span><div class="goal-achieved" id="goalAchieved">$18.450.000</div></div>
-        <div class="goal-remaining" id="goalRemaining">Nos faltan <strong>$6.550.000</strong> para cumplir la meta.</div>
-      </div>
-
-      <div class="ring-wrap">
-        <div class="ring" id="ring"><div class="ring-center"><strong id="goalPct">74%</strong><span>cumplido</span></div></div>
-        <div class="ring-note"><strong id="goalIndex">74 de cada 100</strong><br>pesos de la meta</div>
-      </div>
-
-      <div class="hommy-stage">
-        <div class="hommy-bubble" id="hommyBubble">¡Vamos bien! Ya superamos <strong>tres cuartas partes</strong> de la meta.</div>
-        <div class="hommy-art"><img src="Hommydinero.png" alt="Hommy con dinero"></div>
-      </div>
-    </section>
-
-    <section class="period-strip">
-      <article class="strip-item">
-        <div class="strip-icon"><i class="fa-solid fa-wallet"></i></div>
-        <div>
-          <div class="strip-label">Recaudado en el periodo</div>
-          <div class="strip-value" id="collected">$12.900.000</div>
-          <div class="strip-note">Dinero efectivamente recibido.</div>
-        </div>
-        <div class="strip-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-      </article>
-      <article class="strip-item portfolio">
-        <div class="strip-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-        <div>
-          <div class="strip-label">Cartera actual</div>
-          <div class="strip-value" id="portfolio">$8.600.000</div>
-          <div class="strip-note">Saldo pendiente global de órdenes activas.</div>
-        </div>
-        <div class="strip-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-      </article>
-      <article class="strip-item growth">
-        <div class="strip-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
-        <div>
-          <div class="strip-label">Variación comercial</div>
-          <div class="strip-value" id="growth">+14,6%</div>
-          <div class="strip-note">Frente al periodo inmediatamente anterior.</div>
-        </div>
-        <div class="strip-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-      </article>
-    </section>
-
-    <section class="winner">
-      <div class="winner-copy">
-        <div class="winner-kicker"><span class="crown"><i class="fa-solid fa-crown"></i></span><span>OP ganadora del periodo</span></div>
-        <div class="winner-amount" id="winnerAmount">$4.500.000</div>
-        <div class="winner-detail" id="winnerDetail">OP 24 · Katherin Diaz · 16 ago 2026</div>
-        <div class="winner-note">La venta individual más alta del periodo.</div>
-      </div>
-      <button class="winner-action" type="button"><i class="fa-regular fa-eye"></i><span>Ver OP</span></button>
-    </section>
-
-    <section class="trend">
-      <div>
-        <div class="section-kicker">Comportamiento</div>
-        <div style="display:flex;justify-content:space-between;align-items:end;gap:12px">
-          <div>
-            <div class="section-title">Tendencia de ventas</div>
-            <div class="section-sub">Vista anual para entender el ritmo del negocio.</div>
+        <div class="heading">
+          <div class="heading-title">
+            <img src="triangulo.png" alt="HomeEasy">
+            <h1>Reporte de ventas</h1>
           </div>
-          <div class="trend-year">2026</div>
-        </div>
-        <div class="bars" id="bars"></div>
-      </div>
-
-      <aside class="reading">
-        <div class="reading-title"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Lectura rápida</span></div>
-        <div class="reading-row">
-          <div class="reading-top"><span class="reading-name">Mejor mes</span><span class="reading-value">Agosto</span></div>
-          <div class="reading-text">El mes actual lidera el año con el mayor volumen de OP.</div>
-        </div>
-        <div class="reading-row">
-          <div class="reading-top"><span class="reading-name">Variación</span><span class="reading-value up" id="readGrowth">+14,6%</span></div>
-          <div class="reading-text">Comparado con el periodo inmediatamente anterior.</div>
-        </div>
-        <div class="reading-row">
-          <div class="reading-top"><span class="reading-name">Índice de meta</span><span class="reading-value" id="readGoal">74%</span></div>
-          <div class="reading-text" id="readGoalText">Quedan $6,55 M para llegar a la meta mensual.</div>
-        </div>
-      </aside>
-    </section>
-
-    <section class="payments">
-      <div class="donut-box"><div class="donut"><div class="donut-center"><span>Recaudado</span><strong id="donutTotal">$12,9 M</strong></div></div></div>
-      <div>
-        <div class="section-kicker">Composición</div>
-        <div class="section-title">Cómo están pagando</div>
-        <div class="section-sub">Distribución de los medios de pago del periodo.</div>
-        <div class="pay-list">
-          <div class="pay-row"><span class="dot" style="background:#B2566C"></span><span class="pay-name">Transferencia</span><span class="pay-amount">$6.192.000</span><span class="pay-pct">48%</span></div>
-          <div class="pay-row"><span class="dot" style="background:#C2A468"></span><span class="pay-name">Efectivo</span><span class="pay-amount">$3.612.000</span><span class="pay-pct">28%</span></div>
-          <div class="pay-row"><span class="dot" style="background:#938B9A"></span><span class="pay-name">Tarjeta / datáfono</span><span class="pay-amount">$1.806.000</span><span class="pay-pct">14%</span></div>
-          <div class="pay-row"><span class="dot" style="background:#D9D4D7"></span><span class="pay-name">Otros</span><span class="pay-amount">$1.290.000</span><span class="pay-pct">10%</span></div>
+          <p>Resumen comercial de Hommy</p>
         </div>
       </div>
-    </section>
 
-    <div class="footer"><button class="export" type="button" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i><span>Exportar reporte</span></button></div>
-  </main>
-</div>
+      <div class="period-row">
+        <div class="date-display">
+          <i class="fa-regular fa-calendar"></i>
+          <span id="dateDisplay">Calculando fechas...</span>
+        </div>
 
-<dialog class="goal-dialog" id="goalDialog">
-  <form method="dialog" id="goalForm" class="dialog-body">
-    <div class="dialog-icon"><i class="fa-solid fa-bullseye"></i></div>
-    <div class="dialog-title">Editar meta de ventas</div>
-    <div class="dialog-sub" id="goalDialogSub">Define el objetivo para este periodo. El índice y el valor faltante se recalculan automáticamente.</div>
-    <div class="goal-input-wrap"><span>$</span><input class="goal-input" id="goalInput" type="number" min="1" step="1000" inputmode="numeric" aria-label="Nueva meta"></div>
-    <button class="dialog-reset" id="resetGoalBtn" type="button">Restablecer valor original</button>
-    <div class="dialog-actions">
-      <button class="dialog-btn secondary" type="button" id="cancelGoalBtn">Cancelar</button>
-      <button class="dialog-btn primary" type="submit">Guardar meta</button>
-    </div>
-  </form>
-</dialog>
+        <div class="period-control no-export">
+          <span class="period-label">Periodo</span>
+          <div class="period">
+            <select id="periodo" aria-label="Periodo del reporte">
+              <option value="este_mes" selected>Este mes</option>
+              <option value="mes_pasado">Mes pasado</option>
+              <option value="esta_semana">Esta semana</option>
+              <option value="semana_pasada">Semana pasada</option>
+              <option value="este_anio">Todo el año</option>
+              <option value="personalizado">Personalizado...</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </header>
 
-<script>
-  const months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  const baseBars=[24,36,33,53,43,57,95,100,4,4,4,4];
+    <main class="page shell">
+      <div class="error-banner" id="errorBanner">
+        <span>No se pudieron cargar los datos del reporte.</span>
+        <button class="retry" id="retryBtn" type="button">Reintentar</button>
+      </div>
 
-  function renderBars(values=baseBars){
-    const bars=document.getElementById('bars');
-    bars.replaceChildren();
-    values.forEach((h,i)=>{
-      const c=document.createElement('div');
-      c.className='bar-col'+(i===7?' active':'');
-      const b=document.createElement('div');
-      b.className='bar';
-      b.style.height=h+'%';
-      const l=document.createElement('span');
-      l.className='bar-label';
-      l.textContent=months[i];
-      c.append(b,l);
-      bars.append(c);
+      <section class="goal-hero">
+        <div class="goal-copy">
+          <div class="goal-kicker">
+            <i class="fa-solid fa-bullseye"></i>
+            <span id="goalKicker">Meta de ventas</span>
+          </div>
+
+          <div class="goal-label">Objetivo del periodo</div>
+
+          <div class="goal-total-row">
+            <div class="goal-total" id="goalTotal">$0</div>
+            <button class="edit-goal no-export" id="editGoalBtn" type="button" aria-label="Editar meta" title="Editar meta">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+
+          <div class="goal-progress-copy">
+            <span>Llevamos</span>
+            <div class="goal-achieved" id="goalAchieved">$0</div>
+          </div>
+
+          <div class="goal-remaining" id="goalRemaining">Calculando avance...</div>
+        </div>
+
+        <div class="ring-wrap">
+          <div class="ring" id="ring">
+            <div class="ring-center">
+              <strong id="goalPct">0%</strong>
+              <span>cumplido</span>
+            </div>
+          </div>
+          <div class="ring-note"><strong id="goalIndex">0 de cada 100</strong><br>pesos de la meta</div>
+        </div>
+
+        <div class="hommy-stage">
+          <div class="hommy-bubble" id="hommyBubble">Vamos construyendo la meta paso a paso.</div>
+          <div class="hommy-art">
+            <img src="Hommydinero.png" alt="Hommy con dinero" onerror="this.src='hommy.png'">
+          </div>
+        </div>
+      </section>
+
+      <section class="period-strip" aria-label="Indicadores comerciales">
+        <article class="strip-item">
+          <div class="strip-icon"><i class="fa-solid fa-wallet"></i></div>
+          <div class="strip-content">
+            <div class="strip-label">Recaudado en el periodo</div>
+            <div class="strip-value" id="collected">$0</div>
+            <div class="strip-note">Dinero efectivamente recibido.</div>
+          </div>
+        </article>
+
+        <article class="strip-item portfolio">
+          <div class="strip-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+          <div class="strip-content">
+            <div class="strip-label">Cartera actual</div>
+            <div class="strip-value" id="portfolio">$0</div>
+            <div class="strip-note">Saldo pendiente global de órdenes activas.</div>
+          </div>
+        </article>
+
+        <article class="strip-item growth" id="growthCard">
+          <div class="strip-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+          <div class="strip-content">
+            <div class="strip-label">Variación comercial</div>
+            <div class="strip-value" id="growth">0%</div>
+            <div class="strip-note">Frente al periodo inmediatamente anterior.</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="winner">
+        <div class="winner-kicker">
+          <span class="crown"><i class="fa-solid fa-crown"></i></span>
+          <span>OP ganadora del periodo</span>
+        </div>
+        <div class="winner-amount" id="winnerAmount">$0</div>
+        <div class="winner-detail" id="winnerDetail">Sin ventas registradas en este periodo</div>
+        <div class="winner-note">La venta individual más alta del periodo.</div>
+      </section>
+
+      <section class="trend">
+        <div>
+          <div class="section-kicker">Comportamiento</div>
+          <div style="display:flex;justify-content:space-between;align-items:end;gap:12px">
+            <div>
+              <div class="section-title">Tendencia de ventas</div>
+              <div class="section-sub">Vista anual para entender el ritmo del negocio.</div>
+            </div>
+            <div class="trend-year" id="trendYear"></div>
+          </div>
+          <div class="bars" id="bars"></div>
+        </div>
+
+        <aside class="reading">
+          <div class="reading-title"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Lectura rápida</span></div>
+
+          <div class="reading-row">
+            <div class="reading-top">
+              <span class="reading-name">Mejor mes</span>
+              <span class="reading-value" id="bestMonth">—</span>
+            </div>
+            <div class="reading-text" id="bestMonthText">Calculando el mes con mayor volumen de OP.</div>
+          </div>
+
+          <div class="reading-row">
+            <div class="reading-top">
+              <span class="reading-name">Variación</span>
+              <span class="reading-value" id="readGrowth">0%</span>
+            </div>
+            <div class="reading-text">Comparado con el periodo inmediatamente anterior.</div>
+          </div>
+
+          <div class="reading-row">
+            <div class="reading-top">
+              <span class="reading-name">Índice de meta</span>
+              <span class="reading-value" id="readGoal">0%</span>
+            </div>
+            <div class="reading-text" id="readGoalText">Calculando distancia a la meta.</div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="payments">
+        <div class="donut-box">
+          <div class="donut" id="paymentDonut">
+            <div class="donut-center">
+              <span>Recaudado</span>
+              <strong id="donutTotal">$0</strong>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-kicker">Composición</div>
+          <div class="section-title">Cómo están pagando</div>
+          <div class="section-sub">Distribución de los medios de pago del periodo.</div>
+          <div class="pay-list" id="payList"></div>
+        </div>
+      </section>
+
+      <div class="footer no-export">
+        <button class="export" id="exportBtn" type="button">
+          <i class="fa-solid fa-file-pdf"></i>
+          <span>Exportar reporte</span>
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="goalDialog">
+    <form class="dialog-body" id="goalForm">
+      <div class="dialog-icon"><i class="fa-solid fa-bullseye"></i></div>
+      <div class="dialog-title">Editar meta de ventas</div>
+      <div class="dialog-sub">Este valor se guarda en HomeEasy y actualiza el índice de cumplimiento.</div>
+
+      <div class="field">
+        <label for="goalInput">Nueva meta</label>
+        <div class="goal-input-wrap">
+          <span>$</span>
+          <input class="dialog-input goal-input" id="goalInput" type="number" min="1" step="1000" inputmode="numeric" required>
+        </div>
+      </div>
+
+      <div class="dialog-error" id="goalError">Ingresa una meta válida.</div>
+
+      <div class="dialog-actions">
+        <button class="dialog-btn secondary" type="button" id="cancelGoalBtn">Cancelar</button>
+        <button class="dialog-btn primary" type="submit" id="saveGoalBtn">Guardar meta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dateDialog">
+    <form class="dialog-body" id="dateForm">
+      <div class="dialog-icon"><i class="fa-regular fa-calendar"></i></div>
+      <div class="dialog-title">Rango personalizado</div>
+      <div class="dialog-sub">Selecciona una fecha inicial y una fecha final para recalcular todo el reporte.</div>
+
+      <div class="date-fields">
+        <div class="field">
+          <label for="customStartInput">Desde</label>
+          <input class="dialog-input" id="customStartInput" type="date" required>
+        </div>
+        <div class="field">
+          <label for="customEndInput">Hasta</label>
+          <input class="dialog-input" id="customEndInput" type="date" required>
+        </div>
+      </div>
+
+      <div class="dialog-error" id="dateError">Revisa el rango: la fecha final debe ser igual o posterior a la inicial.</div>
+
+      <div class="dialog-actions">
+        <button class="dialog-btn secondary" type="button" id="cancelDateBtn">Cancelar</button>
+        <button class="dialog-btn primary" type="submit">Aplicar rango</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const URL_G = "https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec";
+
+    const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const monthShort = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const paymentColors = ['#B2566C','#C2A468','#8D8792','#D7C5CA','#6E917F','#D1AC7A','#A99DA2','#BFD2CA'];
+
+    let metaVentas = 0;
+    let dataFinanzas = null;
+    let customStart = null;
+    let customEnd = null;
+    let previousPeriod = 'este_mes';
+    let lastMetrics = null;
+
+    const $ = id => document.getElementById(id);
+    const money = n => '$' + Math.round(Number(n)||0).toLocaleString('es-CO');
+    const compact = n => '$' + ((Number(n)||0)/1000000).toLocaleString('es-CO',{maximumFractionDigits:1}) + ' M';
+
+    function formatPct(value){
+      const n = Number(value)||0;
+      const rounded = Math.round(n * 10) / 10;
+      return rounded.toLocaleString('es-CO',{maximumFractionDigits:1}) + '%';
+    }
+
+    function dateText(date){
+      return date.toLocaleDateString('es-CO');
+    }
+
+    function parseDate(value){
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    function setLoading(show){
+      const loader = $('loaderFinance');
+      if(show){
+        loader.style.display = 'flex';
+        loader.style.opacity = '1';
+      }else{
+        loader.style.opacity = '0';
+        setTimeout(()=>loader.style.display='none',200);
+      }
+    }
+
+    function showError(show){
+      $('errorBanner').classList.toggle('show',!!show);
+    }
+
+    async function cargarMeta(){
+      try{
+        const res = await fetch(`${URL_G}?tipo=GET_META`);
+        const data = await res.json();
+        metaVentas = parseFloat(data.meta) || 10000000;
+      }catch(e){
+        console.error('Error GET_META',e);
+        metaVentas = 10000000;
+      }
+    }
+
+    async function cargarFinanzas(){
+      const res = await fetch(`${URL_G}?tipo=GET_REPORTES`);
+      if(!res.ok) throw new Error('GET_REPORTES ' + res.status);
+      dataFinanzas = await res.json();
+      if(!dataFinanzas || !Array.isArray(dataFinanzas.ordenes) || !Array.isArray(dataFinanzas.abonos)){
+        throw new Error('Respuesta de reportes inválida');
+      }
+    }
+
+    function obtenerRangosDeFechas(periodo){
+      const hoy = new Date();
+      let inicio, fin, prevInicio, prevFin, texto, activeMonth;
+
+      if(periodo === 'este_mes'){
+        inicio = new Date(hoy.getFullYear(),hoy.getMonth(),1);
+        fin = new Date(hoy.getFullYear(),hoy.getMonth()+1,0,23,59,59);
+        prevInicio = new Date(hoy.getFullYear(),hoy.getMonth()-1,1);
+        prevFin = new Date(hoy.getFullYear(),hoy.getMonth(),0,23,59,59);
+        texto = monthNames[hoy.getMonth()];
+        activeMonth = hoy.getMonth();
+      }else if(periodo === 'mes_pasado'){
+        inicio = new Date(hoy.getFullYear(),hoy.getMonth()-1,1);
+        fin = new Date(hoy.getFullYear(),hoy.getMonth(),0,23,59,59);
+        prevInicio = new Date(hoy.getFullYear(),hoy.getMonth()-2,1);
+        prevFin = new Date(hoy.getFullYear(),hoy.getMonth()-1,0,23,59,59);
+        texto = monthNames[inicio.getMonth()];
+        activeMonth = inicio.getMonth();
+      }else if(periodo === 'esta_semana'){
+        const dia = hoy.getDay() || 7;
+        inicio = new Date(hoy);
+        inicio.setDate(hoy.getDate()-dia+1);
+        inicio.setHours(0,0,0,0);
+        fin = new Date(inicio);
+        fin.setDate(inicio.getDate()+6);
+        fin.setHours(23,59,59,999);
+        prevInicio = new Date(inicio);
+        prevInicio.setDate(inicio.getDate()-7);
+        prevFin = new Date(fin);
+        prevFin.setDate(fin.getDate()-7);
+        texto = 'Esta semana';
+        activeMonth = inicio.getMonth();
+      }else if(periodo === 'semana_pasada'){
+        const dia = hoy.getDay() || 7;
+        const lunesActual = new Date(hoy);
+        lunesActual.setDate(hoy.getDate()-dia+1);
+        lunesActual.setHours(0,0,0,0);
+        inicio = new Date(lunesActual);
+        inicio.setDate(lunesActual.getDate()-7);
+        fin = new Date(inicio);
+        fin.setDate(inicio.getDate()+6);
+        fin.setHours(23,59,59,999);
+        prevInicio = new Date(inicio);
+        prevInicio.setDate(inicio.getDate()-7);
+        prevFin = new Date(fin);
+        prevFin.setDate(fin.getDate()-7);
+        texto = 'Semana pasada';
+        activeMonth = inicio.getMonth();
+      }else if(periodo === 'este_anio'){
+        inicio = new Date(hoy.getFullYear(),0,1);
+        fin = new Date(hoy.getFullYear(),11,31,23,59,59,999);
+        prevInicio = new Date(hoy.getFullYear()-1,0,1);
+        prevFin = new Date(hoy.getFullYear()-1,11,31,23,59,59,999);
+        texto = 'Año ' + hoy.getFullYear();
+        activeMonth = hoy.getMonth();
+      }else if(periodo === 'personalizado'){
+        inicio = customStart;
+        fin = customEnd;
+        const diffTime = Math.abs(fin - inicio);
+        prevFin = new Date(inicio.getTime()-1);
+        prevInicio = new Date(prevFin.getTime()-diffTime);
+        texto = `${dateText(inicio)} al ${dateText(fin)}`;
+        activeMonth = inicio.getMonth();
+      }else{
+        return obtenerRangosDeFechas('este_mes');
+      }
+
+      return {inicio,fin,prevInicio,prevFin,texto,activeMonth};
+    }
+
+    function growthData(current,previous){
+      if(previous === 0 && current > 0){
+        return {value:100,text:'+100%',className:'up'};
+      }
+      if(previous > 0){
+        const value = ((current-previous)/previous)*100;
+        const prefix = value > 0 ? '+' : value < 0 ? '−' : '';
+        return {
+          value,
+          text: prefix + Math.abs(value).toLocaleString('es-CO',{maximumFractionDigits:1}) + '%',
+          className:value>0?'up':value<0?'down':''
+        };
+      }
+      return {value:0,text:'0%',className:''};
+    }
+
+    function bubbleFor(pct){
+      if(pct >= 100) return '¡Meta cumplida! <strong>Superamos el objetivo</strong> del periodo.';
+      if(pct >= 75) return '¡Vamos muy bien! Ya alcanzamos <strong>tres cuartas partes</strong> de la meta.';
+      if(pct >= 50) return '¡Buen ritmo! Ya superamos <strong>la mitad</strong> de la meta.';
+      if(pct >= 25) return 'Vamos avanzando. Ya recorrimos <strong>una cuarta parte</strong> de la meta.';
+      return 'Seguimos avanzando. Cada venta nos acerca <strong>más a la meta</strong>.';
+    }
+
+    function renderBars(values,activeMonth){
+      const bars = $('bars');
+      bars.replaceChildren();
+      const max = Math.max(...values,1);
+
+      values.forEach((value,i)=>{
+        const col = document.createElement('div');
+        col.className = 'bar-col' + (i===activeMonth?' active':'');
+
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        const pct = value <= 0 ? 2 : Math.max(5,(value/max)*100);
+        bar.style.height = pct + '%';
+        bar.title = `${monthNames[i]}: ${money(value)}`;
+
+        const label = document.createElement('span');
+        label.className = 'bar-label';
+        label.textContent = monthShort[i];
+
+        col.append(bar,label);
+        bars.append(col);
+      });
+    }
+
+    function renderPayments(pagos,total){
+      const list = $('payList');
+      list.replaceChildren();
+
+      const entries = Object.entries(pagos)
+        .filter(([,value])=>Number(value)>0)
+        .sort((a,b)=>b[1]-a[1]);
+
+      if(!entries.length || total <= 0){
+        $('paymentDonut').style.background = 'conic-gradient(#D9D4D7 0 100%)';
+        $('donutTotal').textContent = money(0);
+        const empty = document.createElement('div');
+        empty.className = 'pay-empty';
+        empty.textContent = 'No hay pagos registrados en este periodo.';
+        list.append(empty);
+        return;
+      }
+
+      let start = 0;
+      const stops = [];
+
+      entries.forEach(([name,value],index)=>{
+        const pct = (value/total)*100;
+        const end = start + pct;
+        const color = paymentColors[index % paymentColors.length];
+        stops.push(`${color} ${start}% ${end}%`);
+
+        const row = document.createElement('div');
+        row.className = 'pay-row';
+
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = color;
+
+        const label = document.createElement('span');
+        label.className = 'pay-name';
+        label.textContent = name;
+
+        const amount = document.createElement('span');
+        amount.className = 'pay-amount';
+        amount.textContent = money(value);
+
+        const percent = document.createElement('span');
+        percent.className = 'pay-pct';
+        percent.textContent = pct.toLocaleString('es-CO',{maximumFractionDigits:1}) + '%';
+
+        row.append(dot,label,amount,percent);
+        list.append(row);
+        start = end;
+      });
+
+      $('paymentDonut').style.background = `conic-gradient(${stops.join(',')})`;
+      $('donutTotal').textContent = compact(total);
+    }
+
+    function procesarDatos(){
+      if(!dataFinanzas) return;
+
+      const periodoSel = $('periodo').value;
+      const rangos = obtenerRangosDeFechas(periodoSel);
+
+      let totalVendidoActual = 0;
+      let totalVendidoAnterior = 0;
+      let totalRecaudadoActual = 0;
+      let totalVendidoHistorico = 0;
+      let totalRecaudadoHistorico = 0;
+      let maxVentaOP = null;
+
+      const pagos = {};
+      const ventasPorMes = Array(12).fill(0);
+      const anioActual = new Date().getFullYear();
+
+      dataFinanzas.ordenes.forEach(op=>{
+        if(op.estado === 'ANULADA') return;
+
+        const f = parseDate(op.fecha);
+        if(!f) return;
+
+        const total = parseFloat(op.total) || 0;
+        const abonoIni = parseFloat(op.abonoInicial) || 0;
+
+        totalVendidoHistorico += total;
+        totalRecaudadoHistorico += abonoIni;
+
+        if(f.getFullYear() === anioActual){
+          ventasPorMes[f.getMonth()] += total;
+        }
+
+        if(f >= rangos.inicio && f <= rangos.fin){
+          totalVendidoActual += total;
+          totalRecaudadoActual += abonoIni;
+
+          if(abonoIni > 0){
+            pagos['PAGO INICIAL (OP)'] = (pagos['PAGO INICIAL (OP)'] || 0) + abonoIni;
+          }
+
+          if(!maxVentaOP || total > (parseFloat(maxVentaOP.total)||0)){
+            maxVentaOP = op;
+          }
+        }
+
+        if(f >= rangos.prevInicio && f <= rangos.prevFin){
+          totalVendidoAnterior += total;
+        }
+      });
+
+      dataFinanzas.abonos.forEach(ab=>{
+        const f = parseDate(ab.fecha);
+        if(!f) return;
+
+        const valor = parseFloat(ab.valor) || 0;
+        totalRecaudadoHistorico += valor;
+
+        if(f >= rangos.inicio && f <= rangos.fin){
+          totalRecaudadoActual += valor;
+          const medio = ab.medio ? String(ab.medio).toUpperCase().trim() : 'OTRO';
+          pagos[medio] = (pagos[medio] || 0) + valor;
+        }
+      });
+
+      const portfolio = Math.max(0,totalVendidoHistorico-totalRecaudadoHistorico);
+      const rawPct = metaVentas > 0 ? (totalVendidoActual/metaVentas)*100 : 0;
+      const pct = Math.min(rawPct,100);
+      const rem = Math.max(metaVentas-totalVendidoActual,0);
+      const growth = growthData(totalVendidoActual,totalVendidoAnterior);
+
+      const bestValue = Math.max(...ventasPorMes,0);
+      const bestIndex = bestValue > 0 ? ventasPorMes.indexOf(bestValue) : -1;
+
+      $('dateDisplay').textContent = `Mostrando: ${dateText(rangos.inicio)} - ${dateText(rangos.fin)}`;
+      $('goalKicker').textContent = `Meta de ventas · ${rangos.texto}`;
+      $('goalTotal').textContent = money(metaVentas);
+      $('goalAchieved').textContent = money(totalVendidoActual);
+      $('goalRemaining').innerHTML = rem === 0
+        ? '¡Meta cumplida! <strong>Superamos el objetivo del periodo.</strong>'
+        : `Nos faltan <strong>${money(rem)}</strong> para cumplir la meta.`;
+
+      $('goalPct').textContent = formatPct(pct);
+      $('goalIndex').textContent = `${Math.round(pct)} de cada 100`;
+      $('ring').style.background = `conic-gradient(var(--brand) 0 ${pct}%,#E9E6E7 ${pct}% 100%)`;
+      $('hommyBubble').innerHTML = bubbleFor(pct);
+
+      $('collected').textContent = money(totalRecaudadoActual);
+      $('portfolio').textContent = money(portfolio);
+      $('growth').textContent = growth.text;
+      $('growthCard').classList.toggle('negative',growth.value<0);
+
+      $('winnerAmount').textContent = maxVentaOP ? money(parseFloat(maxVentaOP.total)||0) : '$0';
+      $('winnerDetail').textContent = maxVentaOP
+        ? `OP #${maxVentaOP.numero ?? '—'} · ${dateText(parseDate(maxVentaOP.fecha))}`
+        : 'Sin ventas registradas en este periodo';
+
+      $('readGrowth').textContent = growth.text;
+      $('readGrowth').className = `reading-value ${growth.className}`;
+      $('readGoal').textContent = formatPct(pct);
+      $('readGoalText').textContent = rem === 0
+        ? 'La meta del periodo ya fue alcanzada.'
+        : `Quedan ${compact(rem)} para llegar a la meta del periodo.`;
+
+      $('bestMonth').textContent = bestIndex >= 0 ? monthNames[bestIndex] : '—';
+      $('bestMonthText').textContent = bestIndex >= 0
+        ? `${monthNames[bestIndex]} lidera el año con ${compact(bestValue)} en OP.`
+        : 'Todavía no hay ventas registradas en el año.';
+      $('trendYear').textContent = anioActual;
+
+      renderBars(ventasPorMes,rangos.activeMonth);
+      renderPayments(pagos,totalRecaudadoActual);
+
+      lastMetrics = {
+        rangos,totalVendidoActual,totalVendidoAnterior,totalRecaudadoActual,
+        totalVendidoHistorico,totalRecaudadoHistorico,portfolio,pct,rem,growth,
+        pagos,ventasPorMes,maxVentaOP
+      };
+    }
+
+    async function init(){
+      setLoading(true);
+      showError(false);
+      try{
+        await cargarMeta();
+        await cargarFinanzas();
+        procesarDatos();
+      }catch(e){
+        console.error(e);
+        showError(true);
+      }finally{
+        setLoading(false);
+      }
+    }
+
+    const dateDialog = $('dateDialog');
+    const dateForm = $('dateForm');
+
+    $('periodo').addEventListener('change',()=>{
+      const selected = $('periodo').value;
+
+      if(selected === 'personalizado'){
+        const today = new Date();
+        const start = customStart || new Date(today.getFullYear(),today.getMonth(),1);
+        const end = customEnd || today;
+
+        $('customStartInput').value = start.toISOString().slice(0,10);
+        $('customEndInput').value = end.toISOString().slice(0,10);
+        $('dateError').classList.remove('show');
+        dateDialog.showModal();
+        return;
+      }
+
+      previousPeriod = selected;
+      procesarDatos();
     });
-  }
 
-  const data={
-    mes:{k:'Meta de ventas · Agosto',dates:'Mostrando: 1/8/2026 - 31/8/2026',goal:25000000,ach:18450000,collect:12900000,portfolio:8600000,growth:'+14,6%',winner:4500000,detail:'OP 24 · Katherin Diaz · 16 ago 2026',bars:baseBars},
-    mes_pasado:{k:'Meta de ventas · Julio',dates:'Mostrando: 1/7/2026 - 31/7/2026',goal:25000000,ach:16100000,collect:11700000,portfolio:9200000,growth:'+7,8%',winner:3900000,detail:'OP 19 · Cliente del periodo · 22 jul 2026',bars:[24,36,33,53,43,57,95,4,4,4,4,4]},
-    semana:{k:'Meta de ventas · Semana actual',dates:'Mostrando: 24/8/2026 - 30/8/2026',goal:6250000,ach:4320000,collect:3100000,portfolio:8600000,growth:'+9,1%',winner:2800000,detail:'OP 27 · Cliente del periodo · 27 ago 2026',bars:[24,36,33,53,43,57,95,100,4,4,4,4]},
-    anio:{k:'Meta de ventas · Año 2026',dates:'Mostrando: 1/1/2026 - 31/12/2026',goal:300000000,ach:126800000,collect:94700000,portfolio:8600000,growth:'+18,4%',winner:12500000,detail:'OP 08 · Cliente del periodo · 10 mar 2026',bars:[24,36,33,53,43,57,95,100,4,4,4,4]}
-  };
+    dateForm.addEventListener('submit',e=>{
+      e.preventDefault();
 
-  const money=n=>'$'+Math.round(n).toLocaleString('es-CO');
-  const compact=n=>'$'+(n/1000000).toLocaleString('es-CO',{maximumFractionDigits:1})+' M';
-  const customGoalsKey='homeeasy-report-goals-v4';
-  let customGoals={};
-  let currentPeriod='mes';
+      const startValue = $('customStartInput').value;
+      const endValue = $('customEndInput').value;
+      const start = startValue ? new Date(startValue + 'T00:00:00') : null;
+      const end = endValue ? new Date(endValue + 'T23:59:59') : null;
 
-  try{customGoals=JSON.parse(localStorage.getItem(customGoalsKey)||'{}')||{}}catch(e){customGoals={}}
+      if(!start || !end || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start){
+        $('dateError').classList.add('show');
+        return;
+      }
 
-  function effectiveGoal(key){
-    const custom=Number(customGoals[key]);
-    return Number.isFinite(custom)&&custom>0?custom:data[key].goal;
-  }
+      customStart = start;
+      customEnd = end;
+      previousPeriod = 'personalizado';
+      $('dateError').classList.remove('show');
+      dateDialog.close();
+      procesarDatos();
+    });
 
-  function bubbleFor(pct){
-    if(pct>=100) return '¡Meta cumplida! <strong>Superamos el objetivo</strong> del periodo.';
-    if(pct>=75) return '¡Vamos muy bien! Ya alcanzamos <strong>tres cuartas partes</strong> de la meta.';
-    if(pct>=50) return '¡Buen ritmo! Ya superamos <strong>la mitad</strong> de la meta.';
-    return 'Seguimos avanzando. Cada venta nos acerca <strong>más a la meta</strong>.';
-  }
+    $('cancelDateBtn').addEventListener('click',()=>{
+      dateDialog.close();
+      $('periodo').value = previousPeriod;
+    });
 
-  function apply(key){
-    currentPeriod=key;
-    const d=data[key];
-    const goal=effectiveGoal(key);
-    const pct=Math.min(100,Math.round(d.ach/goal*100));
-    const rem=Math.max(0,goal-d.ach);
+    dateDialog.addEventListener('cancel',e=>{
+      e.preventDefault();
+      dateDialog.close();
+      $('periodo').value = previousPeriod;
+    });
 
-    document.getElementById('dateDisplay').textContent=d.dates;
-    document.getElementById('goalKicker').textContent=d.k;
-    document.getElementById('goalTotal').textContent=money(goal);
-    document.getElementById('goalAchieved').textContent=money(d.ach);
-    document.getElementById('goalRemaining').innerHTML=rem===0?'¡Meta cumplida! <strong>Superamos el objetivo del periodo.</strong>':'Nos faltan <strong>'+money(rem)+'</strong> para cumplir la meta.';
-    document.getElementById('goalPct').textContent=pct+'%';
-    document.getElementById('goalIndex').textContent=pct+' de cada 100';
-    document.getElementById('ring').style.background=`conic-gradient(var(--brand) 0 ${pct}%,#E9E6E7 ${pct}% 100%)`;
-    document.getElementById('hommyBubble').innerHTML=bubbleFor(pct);
-    document.getElementById('collected').textContent=money(d.collect);
-    document.getElementById('portfolio').textContent=money(d.portfolio);
-    document.getElementById('growth').textContent=d.growth;
-    document.getElementById('winnerAmount').textContent=money(d.winner);
-    document.getElementById('winnerDetail').textContent=d.detail;
-    document.getElementById('readGrowth').textContent=d.growth;
-    document.getElementById('readGoal').textContent=pct+'%';
-    document.getElementById('readGoalText').textContent=rem===0?'La meta del periodo ya fue alcanzada.':'Quedan '+compact(rem)+' para llegar a la meta del periodo.';
-    document.getElementById('donutTotal').textContent=compact(d.collect);
-    renderBars(d.bars);
-  }
+    const goalDialog = $('goalDialog');
 
-  const goalDialog=document.getElementById('goalDialog');
-  const goalInput=document.getElementById('goalInput');
+    $('editGoalBtn').addEventListener('click',()=>{
+      $('goalInput').value = Math.round(metaVentas || 0);
+      $('goalError').textContent = 'Ingresa una meta válida.';
+      $('goalError').classList.remove('show');
+      goalDialog.showModal();
+      setTimeout(()=>$('goalInput').select(),60);
+    });
 
-  document.getElementById('editGoalBtn').addEventListener('click',()=>{
-    goalInput.value=effectiveGoal(currentPeriod);
-    document.getElementById('goalDialogSub').textContent='Define el objetivo para '+document.getElementById('goalKicker').textContent.replace('Meta de ventas · ','')+'. El índice y el valor faltante se recalculan automáticamente.';
-    goalDialog.showModal();
-    setTimeout(()=>goalInput.select(),60);
-  });
+    $('goalForm').addEventListener('submit',async e=>{
+      e.preventDefault();
 
-  document.getElementById('goalForm').addEventListener('submit',e=>{
-    e.preventDefault();
-    const value=Number(goalInput.value);
-    if(!Number.isFinite(value)||value<=0){goalInput.focus();return}
-    customGoals[currentPeriod]=Math.round(value);
-    localStorage.setItem(customGoalsKey,JSON.stringify(customGoals));
-    goalDialog.close();
-    apply(currentPeriod);
-  });
+      const nuevaMeta = Number($('goalInput').value);
+      if(!Number.isFinite(nuevaMeta) || nuevaMeta <= 0){
+        $('goalError').classList.add('show');
+        $('goalInput').focus();
+        return;
+      }
 
-  document.getElementById('resetGoalBtn').addEventListener('click',()=>{
-    delete customGoals[currentPeriod];
-    localStorage.setItem(customGoalsKey,JSON.stringify(customGoals));
-    goalInput.value=data[currentPeriod].goal;
-    goalDialog.close();
-    apply(currentPeriod);
-  });
+      const saveBtn = $('saveGoalBtn');
+      const oldText = saveBtn.textContent;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando…';
 
-  document.getElementById('cancelGoalBtn').addEventListener('click',()=>goalDialog.close());
-  document.getElementById('periodo').addEventListener('change',e=>apply(e.target.value));
-  document.querySelector('.back').addEventListener('click',()=>history.back());
-  apply('mes');
-</script>
+      try{
+        const res = await fetch(URL_G,{
+          method:'POST',
+          body:JSON.stringify({tipo:'SET_META',valor:nuevaMeta})
+        });
+        if(!res.ok) throw new Error('SET_META ' + res.status);
+
+        metaVentas = nuevaMeta;
+        goalDialog.close();
+        procesarDatos();
+      }catch(e){
+        console.error(e);
+        $('goalError').textContent = 'No se pudo guardar la meta. Inténtalo nuevamente.';
+        $('goalError').classList.add('show');
+      }finally{
+        saveBtn.disabled = false;
+        saveBtn.textContent = oldText;
+      }
+    });
+
+    $('cancelGoalBtn').addEventListener('click',()=>goalDialog.close());
+
+    goalDialog.addEventListener('cancel',e=>{
+      e.preventDefault();
+      goalDialog.close();
+    });
+
+    async function exportarAPDF(){
+      const element = $('informe-exportar');
+      const hidden = [...document.querySelectorAll('.no-export')];
+
+      hidden.forEach(el=>{
+        el.dataset.oldDisplay = el.style.display || '';
+        el.style.display = 'none';
+      });
+      element.classList.add('pdf-mode');
+
+      const opt = {
+        margin:10,
+        filename:`Dashboard_Hommy_${new Date().toLocaleDateString('es-CO').replace(/\//g,'-')}.pdf`,
+        image:{type:'jpeg',quality:.98},
+        html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+      };
+
+      try{
+        await new Promise(resolve=>setTimeout(resolve,350));
+        await html2pdf().set(opt).from(element).save();
+      }catch(err){
+        console.error('Error PDF',err);
+        window.print();
+      }finally{
+        element.classList.remove('pdf-mode');
+        hidden.forEach(el=>{
+          el.style.display = el.dataset.oldDisplay || '';
+          delete el.dataset.oldDisplay;
+        });
+      }
+    }
+
+    $('exportBtn').addEventListener('click',exportarAPDF);
+    $('retryBtn').addEventListener('click',init);
+
+    init();
+  </script>
 </body>
 </html>
