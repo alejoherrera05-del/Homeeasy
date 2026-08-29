@@ -26,7 +26,7 @@
     "documentos.pedido.instalacion": "Incluida en el valor total pactado.",
     "documentos.recibo.titulo": "RECIBO DE ABONO",
     "documentos.pie_principal": "HomeEasy - Viste tu hogar con estilo",
-    "documentos.pie_sistema": "Documento generado automáticamente • Sistema Hommy V2.0",
+    "documentos.pie_sistema": "Documento generado automáticamente • Sistema Hommy V3.0",
     "documentos.mostrar_email": true,
     "documentos.mostrar_web": false,
     "documentos.mostrar_whatsapp": false,
@@ -63,6 +63,12 @@
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
+  }
+
+  function normalizePublicVersion(value) {
+    return clean(value)
+      .replace(/\bV2\.0\b/gi, "V3.0")
+      .replace(/\b2\.0\b/g, "3.0");
   }
 
   function escapeHtml(value) {
@@ -165,7 +171,7 @@
     const title = String(key(cfg, titleKey)).toUpperCase();
     setText("document-type", title);
     setText("footer-creds", key(cfg, "documentos.pie_principal"));
-    setText("footer-system-line", key(cfg, "documentos.pie_sistema"));
+    setText("footer-system-line", normalizePublicVersion(key(cfg, "documentos.pie_sistema")));
     document.title = "HomeEasy | " + title;
   }
 

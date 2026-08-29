@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="homeeasy-core.js?v=3.5"></script>
     <script src="homeeasy-page-guard.js?v=3.6"></script>
-    <script src="homeeasy-docs.js?v=4.1"></script>
+    <script src="homeeasy-docs.js?v=4.2"></script>
     <script src="homeeasy-account-template.js?v=3.2"></script>
 
     <style>
@@ -2411,6 +2411,12 @@ async function initializeSettings() {
             }
         }
 
+        function normalizePublicVersionLabel(value) {
+            return String(value == null ? "" : value)
+                .replace(/\bV2\.0\b/gi, "V3.0")
+                .replace(/\b2\.0\b/g, "3.0");
+        }
+
         function applyConfiguration(response) {
             const configuration = response && response.configuracion ? response.configuracion : {};
             const flat = HomeEasyCore.flattenObject(configuration);
@@ -2418,7 +2424,8 @@ async function initializeSettings() {
             document.querySelectorAll('[data-config-key]').forEach(element => {
                 const key = element.dataset.configKey;
                 const type = element.dataset.configType || 'text';
-                const value = flat[key];
+                const rawValue = flat[key];
+                const value = key === "documentos.pie_sistema" ? normalizePublicVersionLabel(rawValue) : rawValue;
 
                 if (type === 'boolean') {
                     element.checked = Boolean(value);
@@ -2440,7 +2447,7 @@ async function initializeSettings() {
 
             document.getElementById('configVersion').textContent = state.version || '—';
             document.getElementById('configUpdated').textContent = state.updatedAt ? HomeEasyCore.formatDateTime(state.updatedAt) : '—';
-            document.getElementById('appVersion').textContent = HomeEasyCore.getByPath(configuration, 'sistema.version_app', '—');
+            document.getElementById('appVersion').textContent = '3.0';
             updatePreview();
         }
 
@@ -2454,7 +2461,8 @@ async function initializeSettings() {
                 } else if (type === 'number') {
                     values[key] = element.value === '' ? '' : Number(element.value);
                 } else {
-                    values[key] = String(element.value || '').trim();
+                    const textValue = String(element.value || '').trim();
+                    values[key] = key === 'documentos.pie_sistema' ? normalizePublicVersionLabel(textValue) : textValue;
                 }
             });
             return values;
