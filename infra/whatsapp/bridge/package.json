@@ -1,0 +1,13 @@
+{
+  "name": "homeeasy-whatsapp-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  }
+}
