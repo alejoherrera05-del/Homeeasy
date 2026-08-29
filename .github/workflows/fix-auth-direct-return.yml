@@ -61,11 +61,11 @@ jobs:
             await page.goto('http://127.0.0.1:4173/login.html?return=seguimiento.html%3Frev%3Dreturn-test',{waitUntil:'domcontentloaded'});
             const loginResult = await page.evaluate(()=>({
               target: HomeEasyAuth.safeReturnUrl(new URLSearchParams(location.search).get('return'),'index.html'),
-              self: HomeEasyAuth.safeReturnUrl('login.html?return=x','index.html')
+              exactSelf: HomeEasyAuth.safeReturnUrl(location.pathname.split('/').pop() + location.search,'index.html')
             }));
             console.log('LOGIN_RETURN', loginResult);
             if(loginResult.target !== 'seguimiento.html?rev=return-test') throw new Error('login rejected valid module return');
-            if(loginResult.self !== 'index.html') throw new Error('login self-loop protection regressed');
+            if(loginResult.exactSelf !== 'index.html') throw new Error('exact login self-loop protection regressed');
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
