@@ -57,7 +57,7 @@ a{color:inherit}
 .summary-label i{color:var(--gold)}
 .summary-value{margin-top:8px;font-size:1.28rem;font-weight:700;color:#302b2f;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .summary-note{margin-top:4px;color:#aaa3a7;font-size:.54rem;font-weight:600}
-.filters-card{background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.8);border-radius:22px;padding:14px;box-shadow:var(--shadow);margin-bottom:16px}
+.filters-card{background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.8);border-radius:22px;padding:14px;box-shadow:var(--shadow);margin-bottom:16px}.report-context{display:none;margin:-4px 0 16px;padding:12px 15px;border:1px solid rgba(178,86,108,.12);border-radius:16px;background:#fff;color:#6f686c;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 8px 24px rgba(52,36,42,.035)}.report-context.show{display:flex}.report-context-main{display:flex;align-items:center;gap:10px;min-width:0}.report-context-main i{color:var(--wine)}.report-context-copy{min-width:0}.report-context-copy strong{display:block;color:#51494e;font-size:.78rem}.report-context-copy span{display:block;margin-top:3px;color:#938c90;font-size:.68rem}.report-context-tag{flex:0 0 auto;color:var(--wine);font-size:.68rem;font-weight:700}
 .filters-grid{display:grid;grid-template-columns:minmax(220px,1.9fr) repeat(3,minmax(130px,.8fr)) minmax(160px,.9fr);gap:10px}
 .control-wrap{position:relative;min-width:0}
 .control-wrap>i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#a39ca0;font-size:.75rem;pointer-events:none}
@@ -137,7 +137,7 @@ thead .cell-op{z-index:30;background:#f7f5f6!important}
 <body>
 <header class="app-header">
   <div class="header-inner">
-    <a class="back-btn" href="index.html" aria-label="Volver"><i class="fa-solid fa-chevron-left"></i></a>
+    <a class="back-btn" id="backBtn" href="index.html" aria-label="Volver"><i class="fa-solid fa-chevron-left"></i></a>
     <div class="brand">
       <img src="triangulo.png" alt="HomeEasy">
       <div class="brand-copy"><strong>HomeEasy</strong><span>Control comercial</span></div>
@@ -153,6 +153,8 @@ thead .cell-op{z-index:30;background:#f7f5f6!important}
     </div>
     <div class="readonly-pill"><i class="fa-solid fa-shield-halved"></i> Solo lectura</div>
   </section>
+
+  <div class="report-context" id="reportContext"><div class="report-context-main"><i class="fa-solid fa-chart-pie"></i><div class="report-context-copy"><strong id="reportContextTitle">Vista desde Reportes</strong><span id="reportContextRange"></span></div></div><span class="report-context-tag">Filtros aplicados</span></div>
 
   <section class="summary-grid" aria-label="Resumen filtrado">
     <article class="summary-card"><div class="summary-label"><i class="fa-solid fa-table-list"></i> Registros</div><div class="summary-value" id="statCount">—</div><div class="summary-note">OP según filtros</div></article>
@@ -200,8 +202,12 @@ thead .cell-op{z-index:30;background:#f7f5f6!important}
 'use strict';
 const PAGE_SIZE = 25;
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const state = { rows: [], filtered: [], page: 1, headerIndex: {}, loaded: false };
+const state = { rows: [], filtered: [], page: 1, headerIndex: {}, loaded: false, urlStateApplied:false, rangeStart:null, rangeEnd:null, returnUrl:'' };
 const $ = id => document.getElementById(id);
+
+
+const incomingParams=new URLSearchParams(location.search);
+function safeLocalReturn(raw){if(!raw)return'';try{const u=new URL(raw,location.href);if(u.origin!==location.origin)return'';return u.pathname.split('/').pop()+u.search+u.hash}catch{return''}}function incomingDate(raw,end=false){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(raw||'')))return null;const d=new Date(raw+(end?'T23:59:59.999':'T00:00:00'));return Number.isNaN(d.getTime())?null:d}function incomingDateLabel(d){return d?d.toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):''}function setupIncomingNavigation(){state.returnUrl=safeLocalReturn(incomingParams.get('return'));if(state.returnUrl){$('backBtn').href=state.returnUrl;$('backBtn').setAttribute('aria-label','Volver al reporte')}const context=incomingParams.get('context');if(context){const from=incomingDate(incomingParams.get('from')),to=incomingDate(incomingParams.get('to'),true),box=$('reportContext');box.classList.add('show');$('reportContextTitle').textContent=context==='cartera'?'Cartera del reporte':context==='winner'?'OP ganadora del reporte':'Vista desde Reportes';$('reportContextRange').textContent=[from&&incomingDateLabel(from),to&&incomingDateLabel(to)].filter(Boolean).join(' – ')+(context==='cartera'?' · Órdenes activas':'')}}function hasOption(id,value){return [...$(id).options].some(o=>o.value===String(value))}function applyIncomingFilters(){if(state.urlStateApplied)return;const search=incomingParams.get('search'),year=incomingParams.get('year'),month=incomingParams.get('month'),statusParam=incomingParams.get('status'),sort=incomingParams.get('sort');if(search!==null)$('searchInput').value=search;if(year&&hasOption('yearFilter',year))$('yearFilter').value=year;if(month!==null&&hasOption('monthFilter',month))$('monthFilter').value=month;if(statusParam&&hasOption('statusFilter',statusParam))$('statusFilter').value=statusParam;if(sort&&hasOption('sortFilter',sort))$('sortFilter').value=sort;state.rangeStart=incomingDate(incomingParams.get('from'));state.rangeEnd=incomingDate(incomingParams.get('to'),true);state.urlStateApplied=true;state.page=1;applyFilters();const openOp=incomingParams.get('op');if(openOp)setTimeout(()=>openDetail(openOp),0)}
 
 function normalize(value){ return String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 function number(value){ if(typeof value === 'number') return Number.isFinite(value) ? value : 0; const raw=String(value ?? '').replace(/[^0-9.-]/g,''); const n=Number(raw); return Number.isFinite(n)?n:0; }
@@ -233,7 +239,7 @@ async function loadData(force=false){
     state.rows=data.ordenes.slice(1).filter(row=>String(get(row,'Numero_OP') ?? '').trim()!=='');
     state.loaded=true;
     populateYears(); populateMonths();
-    state.page=1; applyFilters();
+    if(!state.urlStateApplied) applyIncomingFilters(); else { state.page=1; applyFilters(); }
     $('lastUpdated').textContent='Actualizado ' + new Date().toLocaleString('es-CO',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
   }catch(error){
     state.rows=[]; state.filtered=[]; render();
@@ -252,6 +258,8 @@ function applyFilters(){
   const q=normalize($('searchInput').value), year=$('yearFilter').value, month=$('monthFilter').value, stat=$('statusFilter').value, sort=$('sortFilter').value;
   let rows=state.rows.filter(row=>{
     const d=parseDate(get(row,'Fecha'));
+    if(state.rangeStart && (!d || d<state.rangeStart)) return false;
+    if(state.rangeEnd && (!d || d>state.rangeEnd)) return false;
     if(year!=='ALL' && (!d || String(d.getFullYear())!==year)) return false;
     if(month!=='ALL' && (!d || String(d.getMonth())!==month)) return false;
     if(stat!=='ALL' && status(row)!==stat) return false;
@@ -326,9 +334,10 @@ function exportCsv(){
   const lines=[cols.map(esc).join(';')].concat(state.filtered.map(r=>[op(r),dateLabel(get(r,'Fecha')),get(r,'Cedula'),get(r,'Nombre_Cliente'),get(r,'Descripcion_Detallada'),number(get(r,'Valor_Total')),paid(r),number(get(r,'Saldo_Pendiente')),status(r)].map(esc).join(';')));
   const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='HomeEasy_Historial_Ventas_'+new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
-function resetFilters(){ $('searchInput').value=''; $('monthFilter').value='ALL'; $('statusFilter').value='ALL'; $('sortFilter').value='DATE_DESC'; const current=String(new Date().getFullYear()); $('yearFilter').value=[...$('yearFilter').options].some(o=>o.value===current)?current:'ALL'; state.page=1; applyFilters(); }
+function resetFilters(){ $('searchInput').value=''; $('monthFilter').value='ALL'; $('statusFilter').value='ALL'; $('sortFilter').value='DATE_DESC'; state.rangeStart=null; state.rangeEnd=null; const current=String(new Date().getFullYear()); $('yearFilter').value=[...$('yearFilter').options].some(o=>o.value===current)?current:'ALL'; state.page=1; applyFilters(); }
 ['searchInput','yearFilter','monthFilter','statusFilter','sortFilter'].forEach(id=>$(id).addEventListener(id==='searchInput'?'input':'change',()=>{state.page=1;applyFilters();}));
 $('refreshBtn').addEventListener('click',()=>loadData(true)); $('clearBtn').addEventListener('click',resetFilters); $('exportBtn').addEventListener('click',exportCsv); $('drawerClose').addEventListener('click',closeDetail); $('drawerBackdrop').addEventListener('click',closeDetail); document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
+setupIncomingNavigation();
 loadData();
 })();
 </script>
