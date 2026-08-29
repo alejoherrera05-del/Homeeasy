@@ -106,7 +106,7 @@ jobs:
       - name: Validate settings UI mount
         run: |
           npm install --no-save jsdom@24 >/dev/null 2>&1
-          cat > /tmp/test-wa-ui.js <<'NODE'
+          cat > test-wa-ui.js <<'NODE'
           const fs=require('fs');
           const {JSDOM}=require('jsdom');
           const dom=new JSDOM(`<!doctype html><html><body><main id="settingsApp"><header><nav class="mobile-tabs"><button class="mobile-tab" data-section="empresa">Empresa</button><button class="mobile-tab" data-section="restauraciones">Restauraciones</button></nav></header><div class="layout"><aside><nav class="side-nav"><button class="nav-button" data-section="empresa">Empresa</button><button class="nav-button" data-section="restauraciones">Restauraciones</button></nav></aside><section class="content"><div class="panel active" data-panel="empresa"></div><div class="panel" id="panel-restauraciones" data-panel="restauraciones"></div></section></div></main></body></html>`,{url:'https://alejoherrera05-del.github.io/Homeeasy/configuracion.html',runScripts:'dangerously'});
@@ -127,7 +127,8 @@ jobs:
           },1000);
           setTimeout(()=>process.exit(0),1200);
           NODE
-          node /tmp/test-wa-ui.js
+          node test-wa-ui.js
+          rm -f test-wa-ui.js
 
       - name: Commit tested Configuracion loader
         run: |
