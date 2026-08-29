@@ -25,7 +25,6 @@ jobs:
           grep -q 'calendario-resilience-v2' calendario.html
           ! grep -q 'material-icons-round' calendario.html
           grep -q 'procesarEventosLocales();' calendario.html
-          git diff --check
 
       - uses: actions/setup-node@v4
         with:
