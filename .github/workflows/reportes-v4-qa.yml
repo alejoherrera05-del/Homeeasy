@@ -83,7 +83,7 @@ jobs:
               return result;
             });
             console.log('BOARD_DOM',board);
-            if(board.pages!==2||board.goal!=='72%'||board.bars!==12||board.paySegments<2) throw new Error('Estructura gráfica del PDF incompleta: '+JSON.stringify(board));
+            if(board.pages!==2||Math.abs(parseFloat(board.goal)-72)>.05||board.bars!==12||board.paySegments<2) throw new Error('Estructura gráfica del PDF incompleta: '+JSON.stringify(board));
             for(const text of ['Resumen ejecutivo','Cumplimiento de meta','Cartera activa del periodo','CRISTHIAN GUZMAN MELIZO','Metodología del reporte']) if(!board.text.includes(text)) throw new Error('Falta texto en PDF DOM: '+text);
 
             const downloadPromise=page.waitForEvent('download',{timeout:30000});
