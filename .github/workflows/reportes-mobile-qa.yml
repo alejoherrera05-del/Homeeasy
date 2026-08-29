@@ -1,0 +1,62 @@
+name: reportes mobile QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/reportes-mobile-qa.yml'
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Serve
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/he-mobile.log 2>&1 &
+          sleep 2
+      - name: Validate mobile geometry
+        run: |
+          node <<'NODE'
+          const {chromium}=require('playwright');
+          const API='https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
+          const b64=o=>Buffer.from(JSON.stringify(o)).toString('base64url');
+          const idToken=`x.${b64({aud:'homeeasy-auth',iss:'https://securetoken.google.com/homeeasy-auth',sub:'qa',user_id:'qa',email:'qa@homeeasy.test'})}.x`;
+          const session={version:2,persistence:'session',localId:'qa',email:'qa@homeeasy.test',displayName:'QA',idToken,refreshToken:'qa',expiresAt:Date.now()+3600000,appSessionToken:'QA_APP_SESSION',appSessionExpiresAt:new Date(Date.now()+3600000).toISOString(),appSessionValidatedAt:Date.now(),profile:{uid:'qa',nombre:'QA',email:'qa@homeeasy.test',rol:'ADMIN',estado:'ACTIVO',emailVerificado:true},permissions:['reportes.read','ventas.read']};
+          const report={ordenes:[{numero:37,fecha:'2026-08-08T12:00:00',total:1800000,abonoInicial:1000000,estado:'ACTIVO'},{numero:38,fecha:'2026-08-14T12:00:00',total:2900000,abonoInicial:1450000,estado:'ACTIVO'},{numero:39,fecha:'2026-08-19T12:00:00',total:1350000,abonoInicial:675000,estado:'ACTIVO'},{numero:36,fecha:'2026-08-03T12:00:00',total:1149000,abonoInicial:1149000,estado:'COMPLETADO'}],abonos:[{fecha:'2026-08-21T12:00:00',valor:2390000,medio:'TRANSFERENCIA'}]};
+          const H=['Fecha','Numero_OP','Cedula','Nombre_Cliente','Descripcion_Detallada','Valor_Total','Abono_Inicial','Abono_2','Abono_3','Abono_4','Abono_5','Abono_6','Abono_7','Abono_8','Abono_9','Abono_10','Saldo_Pendiente','Estado','URL_PDF_OP','Observaciones'];
+          const R=(f,o,c,n,d,t,p,s,e)=>[f,o,c,n,d,t,p,0,0,0,0,0,0,0,0,0,s,e,'',''];
+          const sheet={status:'ok',ordenes:[H,R('2026-08-08T12:00:00',37,'76324080','EDUARDO ANDRES MERA GUTIERREZ','Combo',1800000,1000000,800000,'ACTIVO'),R('2026-08-14T12:00:00',38,'1061763473','CRISTHIAN GUZMAN MELIZO','Combo Portobello',2900000,1450000,1450000,'ACTIVO'),R('2026-08-19T12:00:00',39,'34535683','RUBIELA DAGUA FERNANDEZ','Blackout',1350000,675000,675000,'ACTIVO'),R('2026-08-03T12:00:00',36,'111','CLIENTE COMPLETADO','Venta cerrada',1149000,1149000,0,'COMPLETADO')]};
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:430,height:932},deviceScaleFactor:3,locale:'es-CO'});
+            await page.addInitScript(s=>sessionStorage.setItem('HOMEEASY_AUTH_SESSION_V1',JSON.stringify(s)),session);
+            await page.route('**/exec?**',async route=>{const u=new URL(route.request().url());if(!u.href.startsWith(API))return route.continue();const tipo=u.searchParams.get('tipo'),init=u.searchParams.get('init');if(tipo==='GET_META')return route.fulfill({status:200,contentType:'application/json',body:'{"meta":10000000}'});if(tipo==='GET_REPORTES')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(report)});if(init==='LOAD')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(sheet)});return route.continue()});
+            await page.goto('http://127.0.0.1:4173/reportes.html?periodo=este_mes',{waitUntil:'domcontentloaded'});
+            await page.waitForFunction(()=>document.querySelector('#soldPeriod')?.textContent?.includes('$7.199.000'),{timeout:20000});
+            const g=await page.evaluate(()=>{const h=document.querySelector('.heading h1'),head=document.querySelector('.report-header'),hm=document.querySelector('.header-main'),date=document.querySelector('.date-display'),period=document.querySelector('.period select'),hero=document.querySelector('.goal-hero'),back=document.querySelector('.back');const r=e=>e.getBoundingClientRect();return{vw:innerWidth,scrollWidth:document.documentElement.scrollWidth,headerTop:r(head).top,headerPadding:parseFloat(getComputedStyle(head).paddingTop),headerMain:r(hm),title:r(h),titleFont:parseFloat(getComputedStyle(h).fontSize),back:r(back),date:r(date),period:r(period),hero:r(hero)};});
+            console.log('MOBILE_GEOMETRY',JSON.stringify(g,null,2));
+            if(g.scrollWidth>g.vw+1)throw new Error('Horizontal overflow '+g.scrollWidth+'>'+g.vw);
+            if(g.headerPadding<23)throw new Error('Safe top insufficient '+g.headerPadding);
+            if(g.title.top<g.headerPadding+5)throw new Error('Title enters system-safe zone');
+            if(g.titleFont>24)throw new Error('Mobile title too large '+g.titleFont);
+            if(g.back.width<43||g.back.height<43)throw new Error('Back target too small');
+            if(g.hero.top<=g.period.bottom+8)throw new Error('Hero spacing too tight');
+            await page.screenshot({path:'reportes-mobile.png',fullPage:true});
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reportes-mobile-qa
+          path: reportes-mobile.png
+          if-no-files-found: ignore
