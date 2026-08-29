@@ -7,6 +7,7 @@ html = TARGET.read_text(encoding="utf-8")
 replacements = {
     "shell.append(buildContact(client),buildSummary(orders));": "shell.append(buildContact(client));",
     "actions.append(wa,bottomMore);card.append(actions);return card}": "actions.append(wa);card.append(actions);return card}",
+    "title.append(logo,el('span','', 'Clientes'));": "title.append(logo,el('span','', 'Base de datos clientes'));",
 }
 for old, new in replacements.items():
     if old not in html:
@@ -24,6 +25,9 @@ if style_pos < 0:
 refinement_css = r'''
 /* --- Auditoría de producto v3.3: menos ruido, acciones inequívocas --- */
 .v31-summary{display:none!important}
+.v31-contact{position:relative!important}
+.v31-identity{grid-template-columns:76px minmax(0,1fr)!important;padding-right:54px!important}
+.v31-more{position:absolute!important;right:22px!important;top:22px!important;z-index:2}
 .v31-contact-actions{grid-template-columns:minmax(0,1fr)!important}
 .v31-more-bottom{display:none!important}
 .v31-order-actions{grid-template-columns:minmax(280px,420px) 150px!important;justify-content:start!important;align-items:stretch!important;gap:10px!important}
@@ -43,6 +47,11 @@ refinement_css = r'''
   .v31-view-op{height:58px!important}
   .v31-history-toggle>span:not(.v31-history-count)::after{font-size:10.5px}
 }
+@media(max-width:520px){
+  .v31-identity{grid-template-columns:70px minmax(0,1fr)!important;padding-right:48px!important}
+  .v31-more{right:18px!important;top:20px!important}
+  .v31-title{font-size:16.5px!important;letter-spacing:-.02em!important}
+}
 @media(max-width:390px){
   .v31-order-actions{grid-template-columns:1fr!important}
   .v31-view-op{height:50px!important}
@@ -57,6 +66,8 @@ assert "actions.append(wa);card.append(actions);return card}" in html
 assert "actions.append(wa,bottomMore)" not in html
 assert ".v31-summary{display:none!important}" in html
 assert "Ver recibos y movimientos" in html
+assert "Base de datos clientes" in html
+assert ".v31-more{position:absolute!important;right:22px!important;top:22px!important" in html
 
 TARGET.write_text(html, encoding="utf-8")
 print(f"Refined {TARGET.name}: {TARGET.stat().st_size} bytes")
