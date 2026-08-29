@@ -27,6 +27,7 @@ services:
       - homeeasy-whatsapp
 
   bridge:
+    image: homeeasy-whatsapp-bridge:local
     build:
       context: ./bridge
     container_name: homeeasy-whatsapp-bridge
