@@ -3,7 +3,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
+const auth = require('./auth');
 
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
@@ -15,6 +15,11 @@ const MAX_BODY_BYTES = MAX_BODY_MB * 1024 * 1024;
 const DATA_DIR = String(process.env.DATA_DIR || '/app/data');
 const IDEMPOTENCY_FILE = path.join(DATA_DIR, 'idempotency.json');
 const AMBIGUOUS_LOCK_MS = 15 * 60 * 1000;
+const DOCUMENT_PERMISSIONS = Object.freeze({
+  cotizacion: 'cotizaciones.write',
+  pedido: 'pedidos.write',
+  abono: 'abonos.write'
+});
 
 if (!WAHA_API_KEY || !BRIDGE_TOKEN) {
   console.error('Missing WAHA_API_KEY or BRIDGE_TOKEN. Refusing to start.');
@@ -32,16 +37,6 @@ function json(res, statusCode, payload) {
     'X-Content-Type-Options': 'nosniff'
   });
   res.end(body);
-}
-
-function timingSafeTextEqual(a, b) {
-  const left = Buffer.from(String(a || ''));
-  const right = Buffer.from(String(b || ''));
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
-function authorized(req) {
-  return timingSafeTextEqual(req.headers['x-homeeasy-token'], BRIDGE_TOKEN);
 }
 
 async function readJsonBody(req) {
@@ -206,6 +201,31 @@ function publicDeliveryRecord(record, duplicate) {
   };
 }
 
+async function sendText(phoneValue, textValue) {
+  const session = await getSession();
+  if (!session || session.status !== 'WORKING') {
+    const error = new Error(`WhatsApp is not ready (${session ? session.status : 'MISSING'})`);
+    error.statusCode = 503;
+    error.details = publicSession(session);
+    throw error;
+  }
+  let phone = String(phoneValue || '').trim();
+  if (!phone && session.me && session.me.id) phone = String(session.me.id).replace(/@c\.us$/i, '');
+  phone = normalizePhone(phone);
+  const text = String(textValue || 'Prueba HomeEasy ✅ Integración de WhatsApp operativa.').trim().slice(0, 1200);
+  const result = await wahaRequest('POST', '/api/sendText', {
+    session: WAHA_SESSION,
+    chatId: `${phone}@c.us`,
+    text
+  });
+  return {
+    ok: true,
+    phone,
+    messageId: result && (result.id || result.key || result.messageId) || null,
+    sentAt: new Date().toISOString()
+  };
+}
+
 async function sendDocument(payload) {
   const session = await getSession();
   if (!session || session.status !== 'WORKING') {
@@ -290,46 +310,71 @@ async function sendDocument(payload) {
 async function handle(req, res) {
   const url = new URL(req.url, 'http://bridge.local');
 
-  if (req.method === 'GET' && url.pathname === '/health') {
-    return json(res, 200, { ok: true, service: 'homeeasy-whatsapp-bridge', version: '0.2.0' });
+  if (!auth.applyCors(req, res)) {
+    return json(res, 403, { ok: false, error: 'Origin not allowed' });
   }
 
-  if (!authorized(req)) return json(res, 401, { ok: false, error: 'Unauthorized' });
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, { 'Cache-Control': 'no-store' });
+    return res.end();
+  }
+
+  if (req.method === 'GET' && url.pathname === '/health') {
+    return json(res, 200, { ok: true, service: 'homeeasy-whatsapp-bridge', version: '0.3.0' });
+  }
 
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/status') {
+    const actor = await auth.authorize(req, 'config.read');
     const session = await getSession();
-    return json(res, 200, { ok: true, whatsapp: publicSession(session) });
+    return json(res, 200, { ok: true, whatsapp: publicSession(session), actor: auth.publicActor(actor) });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/bootstrap') {
+    const actor = await auth.authorize(req, 'config.read');
     const session = await ensureSessionStarted();
-    return json(res, 200, { ok: true, whatsapp: publicSession(session) });
+    return json(res, 200, { ok: true, whatsapp: publicSession(session), actor: auth.publicActor(actor) });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/restart') {
+    const actor = await auth.authorize(req, 'config.read');
     const session = await getSession();
     if (!session) {
       const created = await ensureSessionStarted();
-      return json(res, 200, { ok: true, whatsapp: publicSession(created) });
+      return json(res, 200, { ok: true, whatsapp: publicSession(created), actor: auth.publicActor(actor) });
     }
     const restarted = await wahaRequest('POST', `/api/sessions/${encodeURIComponent(WAHA_SESSION)}/restart`, {});
-    return json(res, 200, { ok: true, whatsapp: publicSession(restarted) });
+    return json(res, 200, { ok: true, whatsapp: publicSession(restarted), actor: auth.publicActor(actor) });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/qr') {
+    const actor = await auth.authorize(req, 'config.read');
     const session = await ensureSessionStarted();
-    if (session.status === 'WORKING') return json(res, 409, { ok: false, error: 'WhatsApp is already connected', whatsapp: publicSession(session) });
+    if (session.status === 'WORKING') return json(res, 409, { ok: false, error: 'WhatsApp is already connected', whatsapp: publicSession(session), actor: auth.publicActor(actor) });
     try {
       const qr = await wahaRequest('GET', `/api/${encodeURIComponent(WAHA_SESSION)}/auth/qr`, null, 'application/json');
-      return json(res, 200, { ok: true, qr });
+      return json(res, 200, { ok: true, qr, actor: auth.publicActor(actor) });
     } catch (error) {
-      if (error.statusCode === 422) return json(res, 409, { ok: false, error: 'QR is not available in the current session state', whatsapp: publicSession(await getSession()) });
+      if (error.statusCode === 422) return json(res, 409, { ok: false, error: 'QR is not available in the current session state', whatsapp: publicSession(await getSession()), actor: auth.publicActor(actor) });
       throw error;
     }
   }
 
-  if (req.method === 'POST' && url.pathname === '/api/whatsapp/send-document') {
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/test-message') {
+    await auth.authorize(req, 'config.read');
     const payload = await readJsonBody(req);
+    const result = await sendText(payload.phone, payload.text);
+    return json(res, 200, result);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/send-document') {
+    const actor = await auth.authorize(req);
+    const payload = await readJsonBody(req);
+    const documentType = String(payload.documentType || '').trim().toLowerCase();
+    const requiredPermission = DOCUMENT_PERMISSIONS[documentType];
+    if (!requiredPermission && !actor.internal) {
+      return json(res, 400, { ok: false, error: 'Invalid documentType' });
+    }
+    auth.assertPermission(actor, requiredPermission);
     const result = await sendDocument(payload);
     const status = result.delivery === 'UNKNOWN' || result.delivery === 'SENDING' ? 202 : 200;
     return json(res, status, result);
@@ -351,5 +396,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`HomeEasy WhatsApp Bridge v0.2.0 listening on :${PORT}`);
+  console.log(`HomeEasy WhatsApp Bridge v0.3.0 listening on :${PORT}`);
 });
