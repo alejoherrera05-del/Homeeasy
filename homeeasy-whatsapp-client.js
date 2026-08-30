@@ -1,5 +1,5 @@
 /**
- * HomeEasy WhatsApp Client v0.2.0
+ * HomeEasy WhatsApp Client v0.2.1
  * Cliente seguro para api.homeeasy.com.co.
  *
  * REGLA CRÍTICA:
@@ -12,7 +12,7 @@
 
     if (global.HomeEasyWhatsApp) return;
 
-    const VERSION = '0.2.0';
+    const VERSION = '0.2.1';
     const BASE_URL = 'https://api.homeeasy.com.co';
     const REQUEST_TIMEOUT_MS = 25000;
 
@@ -35,6 +35,33 @@
         return auth && typeof auth.getAppSessionToken === 'function'
             ? String(auth.getAppSessionToken() || '').trim()
             : '';
+    }
+
+    function deviceHeaders() {
+        const auth = authApi();
+        if (!auth || typeof auth.buildMeta !== 'function') return {};
+
+        let meta = null;
+        try {
+            meta = auth.buildMeta({ pagina: 'whatsapp-bridge-client' });
+        } catch (error) {
+            meta = null;
+        }
+
+        if (!meta || typeof meta !== 'object') return {};
+
+        const headers = {};
+        const deviceId = String(meta.dispositivoId || '').trim();
+        const deviceName = String(meta.dispositivoNombre || '').trim();
+        const platform = String(meta.plataforma || '').trim();
+        const browser = String(meta.navegador || '').trim();
+
+        if (deviceId) headers['X-HomeEasy-Device-Id'] = encodeURIComponent(deviceId);
+        if (deviceName) headers['X-HomeEasy-Device-Name'] = encodeURIComponent(deviceName);
+        if (platform) headers['X-HomeEasy-Platform'] = encodeURIComponent(platform);
+        if (browser) headers['X-HomeEasy-Browser'] = encodeURIComponent(browser);
+
+        return headers;
     }
 
     function friendlyMessage(status, payload) {
@@ -72,6 +99,7 @@
                 headers: {
                     'Accept': 'application/json',
                     'X-HomeEasy-Session': token,
+                    ...deviceHeaders(),
                     ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
                     ...(opts.headers || {})
                 },
