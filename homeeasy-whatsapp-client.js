@@ -1,10 +1,10 @@
 /**
- * HomeEasy WhatsApp Client v0.2.0
+ * HomeEasy WhatsApp Client v0.2.1
  * Cliente seguro para api.homeeasy.com.co.
  *
  * REGLA CRÍTICA:
  * Este módulo NUNCA renueva, reabre, cierra, borra ni modifica la sesión de HomeEasy.
- * Solo lee el appSessionToken que HomeEasy ya tenga validado y lo presenta al Bridge.
+ * Solo lee el appSessionToken y el contexto de dispositivo que HomeEasy ya tiene validado.
  * Un fallo de WhatsApp jamás debe afectar el login ni el ciclo de autorización principal.
  */
 (function (global) {
@@ -12,7 +12,7 @@
 
     if (global.HomeEasyWhatsApp) return;
 
-    const VERSION = '0.2.0';
+    const VERSION = '0.2.1';
     const BASE_URL = 'https://api.homeeasy.com.co';
     const REQUEST_TIMEOUT_MS = 25000;
 
@@ -35,6 +35,35 @@
         return auth && typeof auth.getAppSessionToken === 'function'
             ? String(auth.getAppSessionToken() || '').trim()
             : '';
+    }
+
+    function cleanHeader(value, maxLength) {
+        return encodeURIComponent(String(value || '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, maxLength || 180));
+    }
+
+    function deviceHeaders() {
+        const core = global.HomeEasyCore || null;
+        let device = null;
+        try {
+            if (core && typeof core.getDeviceInfo === 'function') device = core.getDeviceInfo();
+        } catch (error) {}
+
+        const id = device && device.id ? String(device.id).trim() : '';
+        if (!id) {
+            throw new HomeEasyWhatsAppError(
+                'WHATSAPP_DEVICE_CONTEXT_UNAVAILABLE',
+                'WhatsApp todavía no puede identificar este dispositivo. HomeEasy seguirá abierto.',
+                null,
+                401
+            );
+        }
+
+        return {
+            'X-HomeEasy-Device-Id': cleanHeader(id, 180),
+            'X-HomeEasy-Device-Name': cleanHeader(device && device.name, 120),
+            'X-HomeEasy-Platform': cleanHeader(device && device.platform, 80),
+            'X-HomeEasy-Browser': cleanHeader(device && device.browser, 80)
+        };
     }
 
     function friendlyMessage(status, payload) {
@@ -72,6 +101,7 @@
                 headers: {
                     'Accept': 'application/json',
                     'X-HomeEasy-Session': token,
+                    ...deviceHeaders(),
                     ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
                     ...(opts.headers || {})
                 },
@@ -79,6 +109,7 @@
                 signal: controller.signal
             });
         } catch (error) {
+            if (error instanceof HomeEasyWhatsAppError) throw error;
             if (error && error.name === 'AbortError') {
                 throw new HomeEasyWhatsAppError('WHATSAPP_TIMEOUT', 'WhatsApp tardó demasiado en responder. HomeEasy sigue funcionando.', null, 0);
             }
