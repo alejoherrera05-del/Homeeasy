@@ -40,10 +40,10 @@ done
 
 cat /tmp/homeeasy-bridge-health.json | jq .
 VERSION="$(jq -r '.version // empty' /tmp/homeeasy-bridge-health.json)"
-if [[ "$VERSION" != "0.3.0" ]]; then
-  echo "El Bridge no quedó en v0.3.0. Revisa: cd $INSTALL_DIR && docker compose logs bridge"
+if [[ "$VERSION" != "0.4.0" ]]; then
+  echo "El Bridge no quedó en v0.4.0. Revisa: cd $INSTALL_DIR && docker compose logs bridge"
   exit 1
 fi
 
 echo
-echo "Bridge actualizado correctamente a v0.3.0. La sesión de WhatsApp permanece intacta."
+echo "Bridge actualizado correctamente a v0.4.0. La sesión de WhatsApp permanece intacta."
