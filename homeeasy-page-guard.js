@@ -1,5 +1,5 @@
 /**
- * HomeEasy Page Guard v3.6
+ * HomeEasy Page Guard v3.7
  * Navegación cache-first: usa la sesión ya validada para abrir módulos al instante
  * y revalida silenciosamente en segundo plano. AR permanece fuera de este mapa.
  */
@@ -21,6 +21,14 @@
         'perfil.html': 'perfil.read',
         'Hommychat.html': 'app.access'
     });
+
+    const WHATSAPP_DOCUMENT_PAGES = new Set([
+        'clientes.html',
+        'ventas.html',
+        'cotizacion.html',
+        'pedido.html',
+        'abono.html'
+    ]);
 
     const API_URL = global.HomeEasyCore && global.HomeEasyCore.API_URL
         ? global.HomeEasyCore.API_URL
@@ -83,6 +91,22 @@
             script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
             script.addEventListener('error', reject, { once: true });
             (global.document.head || global.document.documentElement).appendChild(script);
+        });
+    }
+
+    function loadWhatsappDocumentActions() {
+        if (!WHATSAPP_DOCUMENT_PAGES.has(currentPage)) return Promise.resolve();
+        return loadScriptOnce(
+            'homeeasy-whatsapp-client.js?v=0.3.0',
+            'homeeasyWhatsappClientScript',
+            () => Boolean(global.HomeEasyWhatsApp)
+        ).then(() => loadScriptOnce(
+            'homeeasy-whatsapp-doc-actions.js?v=0.1.0',
+            'homeeasyWhatsappDocumentActionsScript',
+            () => Boolean(global.HomeEasyWhatsAppDocumentActions)
+        )).catch(error => {
+            // WhatsApp es una integración secundaria: jamás bloquear la apertura del módulo.
+            console.warn('HomeEasy WhatsApp: no se pudo cargar la capa de documentos.', error);
         });
     }
 
@@ -285,6 +309,7 @@
         reveal();
         try { global.dispatchEvent(new CustomEvent('homeeasy:page-auth-ready', { detail: { page: currentPage, permission: requiredPermission, profile, timestamp: Date.now() } })); } catch (error) {}
         if (currentPage === 'configuracion.html') loadScriptOnce('homeeasy-settings-auth-ui.js?v=3.2', 'homeeasySettingsAuthUiScript', () => false).catch(() => {});
+        loadWhatsappDocumentActions();
         return true;
     }
 
