@@ -1,5 +1,5 @@
 /**
- * HomeEasy WhatsApp Client v0.2.1
+ * HomeEasy WhatsApp Client v0.3.0
  * Cliente seguro para api.homeeasy.com.co.
  *
  * REGLA CRÍTICA:
@@ -12,7 +12,7 @@
 
     if (global.HomeEasyWhatsApp) return;
 
-    const VERSION = '0.2.1';
+    const VERSION = '0.3.0';
     const BASE_URL = 'https://api.homeeasy.com.co';
     const REQUEST_TIMEOUT_MS = 25000;
 
@@ -65,12 +65,16 @@
     }
 
     function friendlyMessage(status, payload) {
+        const serverError = payload && payload.error ? String(payload.error) : '';
+        if (status === 400 && /stored pdf|google drive|pdf link/i.test(serverError)) return 'El PDF guardado no tiene un enlace compatible para reenviarlo.';
         if (status === 401) return 'WhatsApp no pudo autorizar esta sesión. HomeEasy seguirá abierto; vuelve a intentar desde Integraciones.';
         if (status === 403) return 'Tu usuario no tiene permiso para usar esta función de WhatsApp.';
-        if (status === 409) return payload && payload.error ? String(payload.error) : 'WhatsApp ya está conectado o el QR no está disponible.';
+        if (status === 409) return serverError || 'WhatsApp ya está conectado o el QR no está disponible.';
+        if (status === 413) return 'El PDF es demasiado pesado para enviarlo por WhatsApp desde HomeEasy.';
+        if (status === 422) return 'El PDF guardado no pudo descargarse. Puedes abrirlo para comprobar que siga disponible.';
         if (status === 503) return 'WhatsApp está reconectando. Intenta nuevamente en unos segundos.';
         if (status >= 500) return 'El servicio de WhatsApp no respondió correctamente.';
-        return payload && payload.error ? String(payload.error) : 'No fue posible completar la operación de WhatsApp.';
+        return serverError || 'No fue posible completar la operación de WhatsApp.';
     }
 
     async function request(path, options) {
@@ -171,6 +175,22 @@
         });
     }
 
+    function sendDocumentUrl(options) {
+        const opts = options || {};
+        return request('/api/whatsapp/send-document-url', {
+            method: 'POST',
+            timeoutMs: 105000,
+            body: {
+                documentType: String(opts.documentType || '').trim().toLowerCase(),
+                phone: String(opts.phone || '').trim(),
+                pdfUrl: String(opts.pdfUrl || '').trim(),
+                filename: String(opts.filename || 'HomeEasy.pdf'),
+                caption: String(opts.caption || ''),
+                idempotencyKey: String(opts.idempotencyKey || '')
+            }
+        });
+    }
+
     function connectedPhone(statusPayload) {
         const raw = statusPayload && statusPayload.whatsapp && statusPayload.whatsapp.me
             ? String(statusPayload.whatsapp.me.id || '')
@@ -188,6 +208,7 @@
         qr,
         testMessage,
         sendDocument,
+        sendDocumentUrl,
         connectedPhone
     });
 })(window);
