@@ -11,26 +11,21 @@ on:
       - 'tools/qa-whatsapp-full-config.js'
       - '.github/workflows/validate-whatsapp-full-config.yml'
 
+permissions:
+  contents: write
+
 jobs:
   browser-qa:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Inject isolated WhatsApp loaders into Configuracion workspace only
+      - name: Apply isolated WhatsApp loaders to Configuracion workspace
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('configuracion.html')
-          s=p.read_text(encoding='utf-8')
-          marker='    <script src="homeeasy-account-template.js?v=3.2"></script>\n'
-          inject=marker+'    <script src="homeeasy-whatsapp-client.js?v=0.2"></script>\n    <script src="homeeasy-whatsapp-settings.js?v=0.2"></script>\n'
-          if 'homeeasy-whatsapp-client.js' not in s:
-              if marker not in s: raise SystemExit('loader marker missing')
-              s=s.replace(marker, inject, 1)
-          p.write_text(s, encoding='utf-8')
-          PY
+          python3 tools/patch-whatsapp-config-branch.py
           grep -q 'homeeasy-whatsapp-client.js?v=0.2' configuracion.html
           grep -q 'homeeasy-whatsapp-settings.js?v=0.2' configuracion.html
 
@@ -51,3 +46,15 @@ jobs:
 
       - name: Run full Configuracion browser isolation QA
         run: node tools/qa-whatsapp-full-config.js
+
+      - name: Commit the exact tested Configuracion to isolated branch
+        run: |
+          git config user.name 'homeeasy-ci'
+          git config user.email 'homeeasy-ci@users.noreply.github.com'
+          git add configuracion.html
+          if git diff --cached --quiet; then
+            echo 'Configuracion already contains tested WhatsApp v0.2 loaders.'
+          else
+            git commit -m 'Load isolated WhatsApp v0.2 in Configuracion'
+            git push origin HEAD:fix/whatsapp-config-isolated
+          fi
