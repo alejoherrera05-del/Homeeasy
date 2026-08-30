@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const auth = require('./auth');
 
+const BRIDGE_VERSION = '0.4.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -12,6 +13,7 @@ const WAHA_SESSION = String(process.env.WAHA_SESSION || 'homeeasy');
 const BRIDGE_TOKEN = String(process.env.BRIDGE_TOKEN || '');
 const MAX_BODY_MB = Math.max(2, Number(process.env.MAX_BODY_MB || 18));
 const MAX_BODY_BYTES = MAX_BODY_MB * 1024 * 1024;
+const REMOTE_PDF_MAX_BYTES = Math.min(MAX_BODY_BYTES, 18 * 1024 * 1024);
 const DATA_DIR = String(process.env.DATA_DIR || '/app/data');
 const IDEMPOTENCY_FILE = path.join(DATA_DIR, 'idempotency.json');
 const AMBIGUOUS_LOCK_MS = 15 * 60 * 1000;
@@ -158,6 +160,107 @@ function safeFilename(value) {
     .trim();
   const name = cleaned || 'HomeEasy.pdf';
   return name.toLowerCase().endsWith('.pdf') ? name : `${name}.pdf`;
+}
+
+function trustedRemotePdfHost(hostname) {
+  const host = String(hostname || '').toLowerCase();
+  return host === 'drive.google.com' ||
+    host === 'docs.google.com' ||
+    host === 'drive.usercontent.google.com' ||
+    host.endsWith('.googleusercontent.com');
+}
+
+function driveFileId(url) {
+  const pathMatch = String(url.pathname || '').match(/\/file\/d\/([A-Za-z0-9_-]{10,})/i);
+  if (pathMatch) return pathMatch[1];
+  const id = String(url.searchParams.get('id') || '').trim();
+  return /^[A-Za-z0-9_-]{10,}$/.test(id) ? id : '';
+}
+
+function normalizeRemotePdfUrl(value) {
+  let parsed;
+  try {
+    parsed = new URL(String(value || '').trim());
+  } catch (_) {
+    throw Object.assign(new Error('Invalid stored PDF URL'), { statusCode: 400 });
+  }
+  if (parsed.protocol !== 'https:' || !trustedRemotePdfHost(parsed.hostname)) {
+    throw Object.assign(new Error('Stored PDF host is not allowed'), { statusCode: 400 });
+  }
+
+  const host = parsed.hostname.toLowerCase();
+  if (host === 'drive.google.com' || host === 'docs.google.com') {
+    const fileId = driveFileId(parsed);
+    if (!fileId) {
+      throw Object.assign(new Error('Google Drive PDF link is not supported'), { statusCode: 400 });
+    }
+    return new URL(`https://drive.usercontent.google.com/download?id=${encodeURIComponent(fileId)}&export=download&confirm=t`);
+  }
+  return parsed;
+}
+
+async function readRemoteBody(response) {
+  const announced = Number(response.headers.get('content-length') || 0);
+  if (announced > REMOTE_PDF_MAX_BYTES) {
+    throw Object.assign(new Error('Stored PDF is too large'), { statusCode: 413 });
+  }
+  if (!response.body || typeof response.body.getReader !== 'function') {
+    throw Object.assign(new Error('Stored PDF response could not be read'), { statusCode: 502 });
+  }
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!value || !value.length) continue;
+      size += value.length;
+      if (size > REMOTE_PDF_MAX_BYTES) {
+        try { await reader.cancel(); } catch (_) {}
+        throw Object.assign(new Error('Stored PDF is too large'), { statusCode: 413 });
+      }
+      chunks.push(Buffer.from(value));
+    }
+  } finally {
+    try { reader.releaseLock(); } catch (_) {}
+  }
+  return Buffer.concat(chunks);
+}
+
+async function fetchStoredPdfBase64(value) {
+  const target = normalizeRemotePdfUrl(value);
+  let response;
+  try {
+    response = await fetch(target, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: {
+        'Accept': 'application/pdf,application/octet-stream;q=0.9,*/*;q=0.2',
+        'User-Agent': 'HomeEasy-WhatsApp-Bridge/0.4'
+      },
+      signal: AbortSignal.timeout(35000)
+    });
+  } catch (error) {
+    throw Object.assign(new Error('Stored PDF could not be downloaded'), { statusCode: 502 });
+  }
+
+  if (!response.ok) {
+    throw Object.assign(new Error('Stored PDF could not be downloaded'), { statusCode: 502 });
+  }
+
+  let finalUrl;
+  try { finalUrl = new URL(response.url); } catch (_) { finalUrl = target; }
+  if (!trustedRemotePdfHost(finalUrl.hostname)) {
+    throw Object.assign(new Error('Stored PDF redirected to an untrusted host'), { statusCode: 502 });
+  }
+
+  const bytes = await readRemoteBody(response);
+  if (bytes.length < 5 || bytes.subarray(0, 5).toString('ascii') !== '%PDF-') {
+    throw Object.assign(new Error('Stored file is not an accessible PDF'), { statusCode: 422 });
+  }
+  return bytes.toString('base64');
 }
 
 function loadIdempotency() {
@@ -307,6 +410,25 @@ async function sendDocument(payload) {
   }
 }
 
+async function sendStoredDocument(payload) {
+  const pdfBase64 = await fetchStoredPdfBase64(payload.pdfUrl);
+  return sendDocument({
+    ...payload,
+    pdfBase64,
+    filename: safeFilename(payload.filename)
+  });
+}
+
+function documentPermission(payload, actor) {
+  const documentType = String(payload && payload.documentType || '').trim().toLowerCase();
+  const requiredPermission = DOCUMENT_PERMISSIONS[documentType];
+  if (!requiredPermission && !actor.internal) {
+    throw Object.assign(new Error('Invalid documentType'), { statusCode: 400 });
+  }
+  auth.assertPermission(actor, requiredPermission);
+  return documentType;
+}
+
 async function handle(req, res) {
   const url = new URL(req.url, 'http://bridge.local');
 
@@ -320,7 +442,7 @@ async function handle(req, res) {
   }
 
   if (req.method === 'GET' && url.pathname === '/health') {
-    return json(res, 200, { ok: true, service: 'homeeasy-whatsapp-bridge', version: '0.3.0' });
+    return json(res, 200, { ok: true, service: 'homeeasy-whatsapp-bridge', version: BRIDGE_VERSION });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/status') {
@@ -369,13 +491,17 @@ async function handle(req, res) {
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/send-document') {
     const actor = await auth.authorize(req);
     const payload = await readJsonBody(req);
-    const documentType = String(payload.documentType || '').trim().toLowerCase();
-    const requiredPermission = DOCUMENT_PERMISSIONS[documentType];
-    if (!requiredPermission && !actor.internal) {
-      return json(res, 400, { ok: false, error: 'Invalid documentType' });
-    }
-    auth.assertPermission(actor, requiredPermission);
+    documentPermission(payload, actor);
     const result = await sendDocument(payload);
+    const status = result.delivery === 'UNKNOWN' || result.delivery === 'SENDING' ? 202 : 200;
+    return json(res, status, result);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/send-document-url') {
+    const actor = await auth.authorize(req);
+    const payload = await readJsonBody(req);
+    documentPermission(payload, actor);
+    const result = await sendStoredDocument(payload);
     const status = result.delivery === 'UNKNOWN' || result.delivery === 'SENDING' ? 202 : 200;
     return json(res, status, result);
   }
@@ -396,5 +522,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`HomeEasy WhatsApp Bridge v0.3.0 listening on :${PORT}`);
+  console.log(`HomeEasy WhatsApp Bridge v${BRIDGE_VERSION} listening on :${PORT}`);
 });
