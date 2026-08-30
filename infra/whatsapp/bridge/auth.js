@@ -37,7 +37,10 @@ function applyCors(req, res) {
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-HomeEasy-Session, X-HomeEasy-Token');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, X-HomeEasy-Session, X-HomeEasy-Token, X-HomeEasy-Device-Id, X-HomeEasy-Device-Name, X-HomeEasy-Platform, X-HomeEasy-Browser'
+  );
   res.setHeader('Access-Control-Max-Age', '600');
   return true;
 }
@@ -62,12 +65,34 @@ function profileObject(value) {
   };
 }
 
-function cacheKey(token) {
-  return crypto.createHash('sha256').update(String(token || '')).digest('hex');
+function decodeHeaderValue(value, maxLength) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  let decoded = raw;
+  try { decoded = decodeURIComponent(raw); } catch (_) {}
+  return decoded.replace(/[\r\n\t]+/g, ' ').trim().slice(0, maxLength || 180);
 }
 
-function cachedActor(token) {
-  const key = cacheKey(token);
+function requestDeviceMeta(req) {
+  const headers = req && req.headers ? req.headers : {};
+  return Object.freeze({
+    dispositivoId: decodeHeaderValue(headers['x-homeeasy-device-id'], 180),
+    dispositivoNombre: decodeHeaderValue(headers['x-homeeasy-device-name'], 120),
+    plataforma: decodeHeaderValue(headers['x-homeeasy-platform'], 80),
+    navegador: decodeHeaderValue(headers['x-homeeasy-browser'], 80)
+  });
+}
+
+function cacheKey(token, deviceId) {
+  return crypto.createHash('sha256')
+    .update(String(token || ''))
+    .update('\n')
+    .update(String(deviceId || ''))
+    .digest('hex');
+}
+
+function cachedActor(token, deviceId) {
+  const key = cacheKey(token, deviceId);
   const entry = cache.get(key);
   if (!entry) return null;
   if (entry.expiresAt <= Date.now()) {
@@ -77,7 +102,7 @@ function cachedActor(token) {
   return entry.actor;
 }
 
-function storeActor(token, actor) {
+function storeActor(token, deviceId, actor) {
   if (cache.size > 500) {
     const now = Date.now();
     for (const [key, entry] of cache.entries()) {
@@ -85,14 +110,20 @@ function storeActor(token, actor) {
       if (cache.size <= 400) break;
     }
   }
-  cache.set(cacheKey(token), { actor, expiresAt: Date.now() + CACHE_TTL_MS });
+  cache.set(cacheKey(token, deviceId), { actor, expiresAt: Date.now() + CACHE_TTL_MS });
 }
 
-async function validateOperationalSession(token) {
+async function validateOperationalSession(token, deviceMeta) {
   const rawToken = String(token || '').trim();
   if (!rawToken) throw authError('HomeEasy session required', 401);
 
-  const cached = cachedActor(rawToken);
+  const meta = deviceMeta && typeof deviceMeta === 'object' ? deviceMeta : {};
+  const deviceId = String(meta.dispositivoId || '').trim();
+  if (!deviceId) {
+    throw authError('HomeEasy device context required', 401, { code: 'DEVICE_CONTEXT_REQUIRED' });
+  }
+
+  const cached = cachedActor(rawToken, deviceId);
   if (cached) return cached;
 
   let response;
@@ -107,8 +138,12 @@ async function validateOperationalSession(token) {
         tipo: 'AUTH_VALIDAR_SESION',
         appSessionToken: rawToken,
         meta: {
+          dispositivoId: deviceId,
+          dispositivoNombre: String(meta.dispositivoNombre || 'HomeEasy Web').trim().slice(0, 120),
+          plataforma: String(meta.plataforma || '').trim().slice(0, 80),
+          navegador: String(meta.navegador || '').trim().slice(0, 80),
           pagina: 'whatsapp-bridge',
-          versionApp: '3.0',
+          versionApp: '3.5',
           origen: 'HomeEasy WhatsApp Bridge'
         }
       }),
@@ -140,7 +175,7 @@ async function validateOperationalSession(token) {
     profile: Object.freeze(profile),
     permissions: Object.freeze(permissionsArray(data.permisos))
   });
-  storeActor(rawToken, actor);
+  storeActor(rawToken, deviceId, actor);
   return actor;
 }
 
@@ -156,7 +191,7 @@ async function authorize(req, requiredPermission) {
     return Object.freeze({ internal: true, profile: Object.freeze({ rol: 'SYSTEM' }), permissions: Object.freeze(['*']) });
   }
   const token = String(req && req.headers && req.headers['x-homeeasy-session'] || '').trim();
-  const actor = await validateOperationalSession(token);
+  const actor = await validateOperationalSession(token, requestDeviceMeta(req));
   assertPermission(actor, requiredPermission);
   return actor;
 }
