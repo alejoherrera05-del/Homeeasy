@@ -31,6 +31,10 @@ mkdir -p "$INSTALL_DIR"
 cp -a "$TMP_DIR/repo/infra/whatsapp/." "$INSTALL_DIR/"
 cd "$INSTALL_DIR"
 mkdir -p data/sessions data/bridge backups
+# El Bridge corre como el usuario restringido node (UID/GID 1000).
+# Ajustamos exclusivamente data/bridge; data/sessions de WAHA no se toca.
+chown -R 1000:1000 data/bridge
+chmod 750 data/bridge
 
 if [[ ! -f .env ]]; then
   WAHA_KEY="$(openssl rand -hex 32)"
@@ -78,11 +82,6 @@ docker compose config >/dev/null
 echo "Descargando WAHA y construyendo Bridge..."
 docker compose pull waha
 docker compose build bridge
-
-echo "Preparando almacenamiento persistente del Bridge..."
-# El Bridge corre como usuario restringido 'node'. Ajustamos solo su volumen,
-# nunca la carpeta de sesión de WAHA.
-docker compose run --rm --no-deps --user root bridge sh -lc 'mkdir -p /app/data && chown -R node:node /app/data' >/dev/null
 
 echo "Iniciando servicios..."
 docker compose up -d
