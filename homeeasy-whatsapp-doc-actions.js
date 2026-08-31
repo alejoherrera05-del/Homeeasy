@@ -1,28 +1,36 @@
 /**
- * HomeEasy WhatsApp Document Actions v0.2.0
- * Envío manual y reenvío de PDFs con mensajes personalizados y vista previa.
- * WhatsApp nunca modifica ni bloquea el flujo principal de HomeEasy.
+ * HomeEasy WhatsApp Document Actions v0.3.0
+ * Envío/reenvío de PDFs con plantillas centralizadas, vista previa y trazabilidad.
+ * WhatsApp es secundario: nunca bloquea ni modifica el flujo principal de HomeEasy.
  */
 (function (global) {
     'use strict';
 
     if (global.HomeEasyWhatsAppDocumentActions) return;
 
-    const VERSION = '0.2.0';
+    const VERSION = '0.3.0';
     const page = ((global.location && global.location.pathname ? global.location.pathname.split('/').pop() : '') || '').toLowerCase();
     const DOCUMENT_PAGES = Object.freeze({
         'cotizacion.html': 'cotizacion',
         'pedido.html': 'pedido',
         'abono.html': 'abono'
     });
-    const SUPPORTED_PAGES = new Set([...Object.keys(DOCUMENT_PAGES), 'ventas.html', 'clientes.html']);
-    if (!SUPPORTED_PAGES.has(page)) return;
+    const SUPPORTED = new Set([...Object.keys(DOCUMENT_PAGES), 'ventas.html', 'clientes.html']);
+    if (!SUPPORTED.has(page)) return;
 
     const STYLE_ID = 'homeeasyWhatsappDocumentActionsStyle';
-    const FETCH_PATCH_FLAG = '__HOMEEASY_WHATSAPP_DOC_FETCH_V2__';
+    const FETCH_PATCH_FLAG = '__HOMEEASY_WHATSAPP_DOC_FETCH_V3__';
     const processed = new WeakSet();
     let latestGenerated = null;
     let toastTimer = null;
+
+    const DEFAULT_TEMPLATES = Object.freeze({
+        cotizacion: 'Hola, *{nombre}* 👋\n\nTe compartimos tu *Cotización {numero}* de HomeEasy.\n\nEn el PDF encontrarás el detalle de tu propuesta, productos, medidas y valores.\n\nSi deseas realizar algún ajuste o tienes alguna duda, puedes responder directamente a este mensaje. Con gusto te ayudamos.\n\n*HomeEasy*\n_Viste tu hogar con estilo_ ✨',
+        pedido: 'Hola, *{nombre}* 👋\n\nTe compartimos tu *Orden de Pedido {numero}* de HomeEasy.\n\nTe recomendamos revisar los productos, medidas, acabados y valores registrados en el documento adjunto.\n\nSi encuentras alguna novedad, escríbenos por este mismo medio.\n\n*HomeEasy*\n_Viste tu hogar con estilo_ ✨',
+        abono: 'Hola, *{nombre}* 👋\n\nHemos registrado correctamente tu abono de *{valor}* correspondiente a la *{op}*.\n\nTe adjuntamos tu *Recibo de Abono {numero}* en PDF para tu respaldo.\n\n{estado_saldo}\n\nGracias por confiar en *HomeEasy*. 🤍',
+        reenvio: 'Hola, *{nombre}* 👋\n\nTal como solicitaste, te reenviamos {documento} de HomeEasy.\n\nEncontrarás el documento adjunto en PDF.\n\n*HomeEasy*\n_Viste tu hogar con estilo_ ✨'
+    });
+    let templates = { ...DEFAULT_TEMPLATES };
 
     const clean = value => String(value == null ? '' : value).trim();
 
@@ -50,13 +58,12 @@
 
     function formatMoney(value) {
         const number = Number(value);
-        if (!Number.isFinite(number)) return '';
-        return '$' + Math.round(number).toLocaleString('es-CO');
+        return Number.isFinite(number) ? '$' + Math.round(number).toLocaleString('es-CO') : '';
     }
 
     function firstName(value) {
         const raw = clean(value).replace(/\s+/g, ' ');
-        if (!raw) return '';
+        if (!raw) return 'Cliente';
         const word = raw.split(' ')[0].toLocaleLowerCase('es-CO');
         return word.charAt(0).toLocaleUpperCase('es-CO') + word.slice(1);
     }
@@ -78,7 +85,7 @@
     }
 
     function normalizeReference(type, value) {
-        let raw = clean(value).replace(/^(COT|OP|R\.?\s*C\.?|RECIBO)\s*[-:#Nº°.]?\s*/i, '');
+        let raw = clean(value).replace(/^(COT|OP|R\.?\s*C\.?|RECIBO|N\.?º?)\s*[-:#Nº°.]?\s*/i, '');
         if (!raw) return '';
         if (type === 'cotizacion') return 'COT-' + raw;
         if (type === 'pedido') return 'OP-' + raw;
@@ -87,7 +94,6 @@
 
     function referenceFromFilename(type, filename) {
         const name = clean(filename);
-        if (!name) return '';
         const patterns = type === 'cotizacion'
             ? [/cot(?:izacion)?[_\s-]*(\d+)/i]
             : type === 'pedido'
@@ -107,45 +113,62 @@
         return 'Recibo_Abono' + (ref ? '_' + ref : '') + '.pdf';
     }
 
-    function buildCaption(context, resend) {
+    function templateVariables(context) {
         const ctx = context || {};
         const type = ctx.documentType || 'pedido';
-        const name = firstName(ctx.clientName);
-        const hello = name ? `Hola, *${name}* 👋` : 'Hola 👋';
-        const reference = normalizeReference(type, ctx.reference);
-        const orderReference = normalizeReference('pedido', ctx.orderReference);
-        const signature = '*HomeEasy*\n_Viste tu hogar con estilo_ ✨';
-
-        if (resend) {
-            const doc = type === 'cotizacion'
-                ? `tu *Cotización${reference ? ' ' + reference : ''}*`
-                : type === 'pedido'
-                    ? `tu *Orden de Pedido${reference ? ' ' + reference : ''}*`
-                    : `tu *Recibo de Abono${reference ? ' ' + reference : ''}*`;
-            return [hello, '', `Tal como solicitaste, te reenviamos ${doc} de HomeEasy.`, '', 'Encontrarás el documento adjunto en PDF.', '', signature].join('\n').slice(0, 1000);
+        const number = normalizeReference(type, ctx.reference);
+        const op = normalizeReference('pedido', ctx.orderReference);
+        const document = type === 'cotizacion'
+            ? `tu *Cotización${number ? ' ' + number : ''}*`
+            : type === 'pedido'
+                ? `tu *Orden de Pedido${number ? ' ' + number : ''}*`
+                : `tu *Recibo de Abono${number ? ' ' + number : ''}*`;
+        let saldo = '';
+        if (Number.isFinite(Number(ctx.balance))) {
+            saldo = Number(ctx.balance) <= 0
+                ? '*Tu pedido se encuentra a paz y salvo. ✅*'
+                : `*Saldo pendiente: ${formatMoney(ctx.balance)}*`;
         }
+        return {
+            nombre: firstName(ctx.clientName),
+            numero: number,
+            op,
+            valor: Number.isFinite(Number(ctx.amount)) ? formatMoney(ctx.amount) : '',
+            estado_saldo: saldo,
+            documento: document
+        };
+    }
 
-        if (type === 'cotizacion') {
-            return [hello, '', `Te compartimos tu *Cotización${reference ? ' ' + reference : ''}* de HomeEasy.`, '', 'En el PDF encontrarás el detalle de tu propuesta, productos, medidas y valores.', '', 'Si deseas realizar algún ajuste o tienes alguna duda, puedes responder directamente a este mensaje. Con gusto te ayudamos.', '', signature].join('\n').slice(0, 1000);
-        }
+    function buildCaption(context, resend) {
+        const ctx = context || {};
+        const key = resend ? 'reenvio' : (ctx.documentType || 'pedido');
+        const source = clean(templates[key]) || DEFAULT_TEMPLATES[key] || DEFAULT_TEMPLATES.pedido;
+        const vars = templateVariables(ctx);
+        return source
+            .replace(/\{([a-z_]+)\}/gi, (match, name) => Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name] || '') : match)
+            .replace(/\n[ \t]*\n[ \t]*\n+/g, '\n\n')
+            .trim()
+            .slice(0, 1000);
+    }
 
-        if (type === 'pedido') {
-            return [hello, '', `Te compartimos tu *Orden de Pedido${reference ? ' ' + reference : ''}* de HomeEasy.`, '', 'Te recomendamos revisar los productos, medidas, acabados y valores registrados en el documento adjunto.', '', 'Si encuentras alguna novedad, escríbenos por este mismo medio.', '', signature].join('\n').slice(0, 1000);
+    async function refreshTemplates() {
+        if (!global.HomeEasyWhatsApp || typeof global.HomeEasyWhatsApp.getTemplates !== 'function') return templates;
+        try {
+            const payload = await global.HomeEasyWhatsApp.getTemplates();
+            if (payload && payload.templates && typeof payload.templates === 'object') {
+                templates = { ...DEFAULT_TEMPLATES, ...payload.templates };
+            }
+        } catch (error) {
+            console.warn('HomeEasy WhatsApp: se usarán las plantillas locales de respaldo.', error);
         }
-
-        const lines = [hello, '', `Hemos registrado correctamente tu abono${Number.isFinite(ctx.amount) ? ' de *' + formatMoney(ctx.amount) + '*' : ''}${orderReference ? ' correspondiente a la *' + orderReference + '*' : ''}.`, '', `Te adjuntamos tu *Recibo de Abono${reference ? ' ' + reference : ''}* en PDF para tu respaldo.`, ''];
-        if (Number.isFinite(ctx.balance)) {
-            if (ctx.balance <= 0) lines.push('*Tu pedido se encuentra a paz y salvo. ✅*');
-            else lines.push(`*Saldo pendiente: ${formatMoney(ctx.balance)}*`);
-            lines.push('');
-        }
-        lines.push('Gracias por confiar en *HomeEasy*. 🤍');
-        return lines.join('\n').slice(0, 1000);
+        return templates;
     }
 
     function createIdempotencyKey(prefix, type, filename, phone) {
         const core = global.HomeEasyCore;
-        const nonce = core && typeof core.createRequestId === 'function' ? core.createRequestId() : String(Date.now()) + '-' + Math.random().toString(36).slice(2, 10);
+        const nonce = core && typeof core.createRequestId === 'function'
+            ? core.createRequestId()
+            : String(Date.now()) + '-' + Math.random().toString(36).slice(2, 10);
         return [prefix, type, clean(filename), digits(phone), nonce].join(':').slice(0, 180);
     }
 
@@ -180,7 +203,12 @@
     function toast(message) {
         if (!global.document || !global.document.body) return;
         let node = global.document.getElementById('homeeasyWhatsappToast');
-        if (!node) { node = global.document.createElement('div'); node.id = 'homeeasyWhatsappToast'; node.className = 'he-wa-toast'; global.document.body.appendChild(node); }
+        if (!node) {
+            node = global.document.createElement('div');
+            node.id = 'homeeasyWhatsappToast';
+            node.className = 'he-wa-toast';
+            global.document.body.appendChild(node);
+        }
         node.textContent = clean(message) || 'Listo';
         node.classList.add('is-showing');
         global.clearTimeout(toastTimer);
@@ -194,7 +222,9 @@
         overlay.id = 'homeeasyWhatsappSendDialog';
         overlay.className = 'he-wa-dialog';
         overlay.innerHTML = `<section class="he-wa-dialog-card" role="dialog" aria-modal="true" aria-labelledby="heWaDialogTitle"><div class="he-wa-dialog-icon"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></div><h3 id="heWaDialogTitle">Enviar por WhatsApp</h3><p id="heWaDialogCopy">Confirma el cliente y el número antes de enviar.</p><label for="heWaDialogPhone">Número de WhatsApp</label><input id="heWaDialogPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Ej. 333 123 4567"><div class="he-wa-preview" id="heWaDialogPreview"><strong>Mensaje que verá el cliente</strong><span></span></div><div class="he-wa-dialog-error" id="heWaDialogError"></div><div class="he-wa-dialog-actions"><button type="button" id="heWaDialogCancel">Cancelar</button><button type="button" class="he-wa-confirm" id="heWaDialogConfirm"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Enviar</button></div></section>`;
-        overlay.addEventListener('click', event => { if (event.target === overlay) global.document.getElementById('heWaDialogCancel').click(); });
+        overlay.addEventListener('click', event => {
+            if (event.target === overlay) global.document.getElementById('heWaDialogCancel').click();
+        });
         global.document.body.appendChild(overlay);
         return overlay;
     }
@@ -210,9 +240,11 @@
         const cancel = global.document.getElementById('heWaDialogCancel');
         const confirm = global.document.getElementById('heWaDialogConfirm');
         const caption = buildCaption(ctx, Boolean(ctx.resend));
+
         title.textContent = (ctx.resend ? 'Reenviar ' : 'Enviar ') + documentLabel(ctx.documentType || 'pedido') + ' por WhatsApp';
-        const who = clean(ctx.clientName);
-        copy.textContent = who ? `Revisa el envío para ${who}. Puedes corregir el número antes de continuar.` : 'Confirma el número del cliente antes de enviar.';
+        copy.textContent = clean(ctx.clientName)
+            ? `Revisa el envío para ${clean(ctx.clientName)}. Puedes corregir el número antes de continuar.`
+            : 'Confirma el número del cliente antes de enviar.';
         input.value = displayPhone(ctx.phone || '');
         preview.textContent = caption;
         error.textContent = '';
@@ -220,155 +252,468 @@
         cancel.disabled = false;
         overlay.classList.add('is-open');
         global.setTimeout(() => { try { input.focus(); input.select(); } catch (_) {} }, 80);
+
         return new Promise(resolve => {
             let settled = false;
-            const finish = value => { if (settled) return; settled = true; overlay.classList.remove('is-open'); cancel.removeEventListener('click', onCancel); confirm.removeEventListener('click', onConfirm); input.removeEventListener('keydown', onKey); resolve(value); };
+            const finish = value => {
+                if (settled) return;
+                settled = true;
+                overlay.classList.remove('is-open');
+                cancel.removeEventListener('click', onCancel);
+                confirm.removeEventListener('click', onConfirm);
+                input.removeEventListener('keydown', onKey);
+                resolve(value);
+            };
             const onCancel = () => finish(null);
-            const onConfirm = () => { const phone = digits(input.value); if (!/^\d{8,15}$/.test(phone)) { error.textContent = 'Revisa el número. Puedes escribirlo con espacios; HomeEasy lo organiza.'; input.focus(); return; } finish({ phone, caption }); };
-            const onKey = event => { if (event.key === 'Enter') { event.preventDefault(); onConfirm(); } if (event.key === 'Escape') { event.preventDefault(); onCancel(); } };
-            cancel.addEventListener('click', onCancel); confirm.addEventListener('click', onConfirm); input.addEventListener('keydown', onKey);
+            const onConfirm = () => {
+                const phone = digits(input.value);
+                if (!/^\d{8,15}$/.test(phone)) {
+                    error.textContent = 'Revisa el número. Puedes escribirlo con espacios; HomeEasy lo organiza.';
+                    input.focus();
+                    return;
+                }
+                finish({ phone, caption });
+            };
+            const onKey = event => {
+                if (event.key === 'Enter') { event.preventDefault(); onConfirm(); }
+                if (event.key === 'Escape') { event.preventDefault(); onCancel(); }
+            };
+            cancel.addEventListener('click', onCancel);
+            confirm.addEventListener('click', onConfirm);
+            input.addEventListener('keydown', onKey);
         });
     }
 
     function parseStoredClients(cedula) {
-        const id = clean(cedula); if (!id) return null;
+        const id = clean(cedula);
+        if (!id) return null;
         try {
-            const parsed = JSON.parse(global.localStorage.getItem('CACHE_CLIENTES') || 'null'); if (!parsed) return null;
+            const parsed = JSON.parse(global.localStorage.getItem('CACHE_CLIENTES') || 'null');
+            if (!parsed) return null;
             if (Array.isArray(parsed)) {
                 const row = parsed.find(item => Array.isArray(item) ? clean(item[0]) === id : clean(item && (item.cedula || item.documento || item.id)) === id);
                 if (Array.isArray(row)) return { cedula: clean(row[0]), nombre: clean(row[1]), telefono: clean(row[2]) };
                 if (row && typeof row === 'object') return row;
             }
-            if (typeof parsed === 'object') { if (parsed[id] && typeof parsed[id] === 'object') return parsed[id]; return Object.values(parsed).find(item => item && typeof item === 'object' && clean(item.cedula) === id) || null; }
+            if (typeof parsed === 'object') {
+                if (parsed[id] && typeof parsed[id] === 'object') return parsed[id];
+                return Object.values(parsed).find(item => item && typeof item === 'object' && clean(item.cedula) === id) || null;
+            }
         } catch (_) {}
         return null;
     }
 
     async function lookupClient(cedula) {
-        const id = clean(cedula); const cached = parseStoredClients(id);
+        const id = clean(cedula);
+        const cached = parseStoredClients(id);
         if (cached && (cached.telefono || cached.nombre)) return cached;
         if (!id) return cached || null;
-        const core = global.HomeEasyCore; if (!core || typeof core.get !== 'function') return cached || null;
-        try { const data = await core.get({ tipo: 'HISTORIAL_CLIENTE', cedula: id, t: Date.now() }, { timeoutMs: 18000 }); if (data && data.status === 'found' && data.cliente) return data.cliente; } catch (_) {}
+        const core = global.HomeEasyCore;
+        if (!core || typeof core.get !== 'function') return cached || null;
+        try {
+            const data = await core.get({ tipo: 'HISTORIAL_CLIENTE', cedula: id, t: Date.now() }, { timeoutMs: 18000 });
+            if (data && data.status === 'found' && data.cliente) return data.cliente;
+        } catch (_) {}
         return cached || null;
     }
 
     async function enrichClientContext(context) {
         const ctx = { ...(context || {}) };
-        if ((!ctx.phone || !ctx.clientName) && ctx.cedula) { const client = await lookupClient(ctx.cedula); if (client) { if (!ctx.phone) ctx.phone = client.telefono || client.phone || ''; if (!ctx.clientName) ctx.clientName = client.nombre || client.name || ''; } }
+        if ((!ctx.phone || !ctx.clientName) && ctx.cedula) {
+            const client = await lookupClient(ctx.cedula);
+            if (client) {
+                if (!ctx.phone) ctx.phone = client.telefono || client.phone || '';
+                if (!ctx.clientName) ctx.clientName = client.nombre || client.name || '';
+            }
+        }
         return ctx;
     }
 
     function generatedContext(payload) {
         const type = DOCUMENT_PAGES[page];
         if (!type || !payload || typeof payload !== 'object') return null;
-        const pdfBase64 = clean(payload.pdfBase64); const filename = clean(payload.nombreArchivo || payload.filename); if (!pdfBase64 || !filename) return null;
-        let reference = clean(payload.numero || payload.numeroCotizacion || ''); let orderReference = clean(payload.numeroOP || ''); let amount = null; let balance = null;
-        if (type === 'cotizacion') reference = reference || textOf('#n_cot_display') || referenceFromFilename(type, filename);
-        else if (type === 'pedido') { reference = reference || textOf('#n_orden_display') || referenceFromFilename(type, filename); balance = parseMoney(textOf('#saldo_pendiente_val')); }
-        else { reference = textOf('#n_recibo_display') || referenceFromFilename(type, filename) || reference; orderReference = orderReference || valueOf('#numeroOP'); amount = Number(payload.valorAbono); if (!Number.isFinite(amount)) amount = parseMoney(valueOf('#valorAbono')); balance = parseMoney(textOf('#nuevo_saldo_val')); }
-        return { documentType: type, pdfBase64, filename, cedula: clean(payload.cedula || valueOf('#cedula')), phone: clean(payload.telefono || valueOf('#telefono')), clientName: clean(payload.nombre || valueOf('#nombre')), reference, orderReference, amount, balance, resend: false };
+        const pdfBase64 = clean(payload.pdfBase64);
+        const filename = clean(payload.nombreArchivo || payload.filename);
+        if (!pdfBase64 || !filename) return null;
+
+        let reference = clean(payload.numero || payload.numeroCotizacion || '');
+        let orderReference = clean(payload.numeroOP || '');
+        let amount = null;
+        let balance = null;
+
+        if (type === 'cotizacion') {
+            reference = reference || textOf('#n_cot_display') || referenceFromFilename(type, filename);
+        } else if (type === 'pedido') {
+            reference = reference || textOf('#n_orden_display') || referenceFromFilename(type, filename);
+            balance = parseMoney(textOf('#saldo_pendiente_val'));
+        } else {
+            reference = textOf('#n_recibo_display') || referenceFromFilename(type, filename) || reference;
+            orderReference = orderReference || valueOf('#numeroOP');
+            amount = Number(payload.valorAbono);
+            if (!Number.isFinite(amount)) amount = parseMoney(valueOf('#valorAbono'));
+            balance = parseMoney(textOf('#nuevo_saldo_val'));
+        }
+
+        return {
+            documentType: type,
+            pdfBase64,
+            filename,
+            cedula: clean(payload.cedula || valueOf('#cedula')),
+            phone: clean(payload.telefono || valueOf('#telefono')),
+            clientName: clean(payload.nombre || valueOf('#nombre')),
+            reference,
+            orderReference,
+            amount,
+            balance,
+            source: 'generado',
+            resend: false,
+            idempotencyKey: createIdempotencyKey('generated', type, filename, payload.telefono || '')
+        };
     }
 
-    function isSuccessful(data) { const status = clean(data && data.status).toLowerCase(); return status === 'success' || status === 'ok'; }
+    function isSuccessful(data) {
+        const status = clean(data && data.status).toLowerCase();
+        return status === 'success' || status === 'ok';
+    }
 
     function installGeneratedCapture() {
         if (!DOCUMENT_PAGES[page] || global[FETCH_PATCH_FLAG]) return;
         global[FETCH_PATCH_FLAG] = true;
         const originalFetch = global.fetch.bind(global);
         global.fetch = async function homeEasyWhatsappCaptureFetch(resource, init) {
-            const options = init || {}; let payload = null; if (typeof options.body === 'string') { try { payload = JSON.parse(options.body); } catch (_) {} }
-            const candidate = generatedContext(payload); const response = await originalFetch(resource, init);
-            if (candidate) response.clone().json().then(data => { if (!isSuccessful(data)) return; latestGenerated = candidate; global.setTimeout(showGeneratedButton, 650); }).catch(() => {});
+            const options = init || {};
+            let payload = null;
+            if (typeof options.body === 'string') {
+                try { payload = JSON.parse(options.body); } catch (_) {}
+            }
+            const candidate = generatedContext(payload);
+            const response = await originalFetch(resource, init);
+            if (candidate) {
+                response.clone().json().then(data => {
+                    if (!isSuccessful(data)) return;
+                    latestGenerated = candidate;
+                    global.setTimeout(showGeneratedButton, 650);
+                }).catch(() => {});
+            }
             return response;
         };
     }
 
     async function sendContext(context) {
-        if (!global.HomeEasyWhatsApp) { toast('WhatsApp todavía no está disponible. Intenta nuevamente.'); return null; }
-        let ctx = await enrichClientContext(context); const confirmed = await confirmSend(ctx); if (!confirmed) return null; ctx = { ...ctx, phone: confirmed.phone, caption: confirmed.caption };
+        if (!global.HomeEasyWhatsApp) {
+            toast('WhatsApp todavía no está disponible. Intenta nuevamente.');
+            return null;
+        }
+
+        let ctx = await enrichClientContext(context);
+        const confirmed = await confirmSend(ctx);
+        if (!confirmed) return null;
+        ctx = { ...ctx, phone: confirmed.phone, caption: confirmed.caption };
+
         const filename = clean(ctx.filename) || defaultFilename(ctx.documentType, ctx.reference);
-        const common = { documentType: ctx.documentType, phone: ctx.phone, filename, caption: ctx.caption, idempotencyKey: createIdempotencyKey(ctx.resend ? 'resend' : 'send', ctx.documentType, filename, ctx.phone) };
+        const common = {
+            documentType: ctx.documentType,
+            phone: ctx.phone,
+            filename,
+            caption: ctx.caption,
+            idempotencyKey: ctx.idempotencyKey || createIdempotencyKey(ctx.resend ? 'resend' : 'send', ctx.documentType, filename, ctx.phone),
+            reference: ctx.reference,
+            clientName: ctx.clientName,
+            cedula: ctx.cedula,
+            source: ctx.source || (ctx.resend ? page.replace('.html', '') : 'generado'),
+            resend: Boolean(ctx.resend),
+            orderReference: ctx.orderReference,
+            amount: ctx.amount,
+            balance: ctx.balance
+        };
+
         try {
-            const result = ctx.pdfBase64 ? await global.HomeEasyWhatsApp.sendDocument({ ...common, pdfBase64: ctx.pdfBase64 }) : await global.HomeEasyWhatsApp.sendDocumentUrl({ ...common, pdfUrl: ctx.pdfUrl });
+            const result = ctx.pdfBase64
+                ? await global.HomeEasyWhatsApp.sendDocument({ ...common, pdfBase64: ctx.pdfBase64 })
+                : await global.HomeEasyWhatsApp.sendDocumentUrl({ ...common, pdfUrl: ctx.pdfUrl });
+
             if (result && result.delivery === 'UNKNOWN') toast('WhatsApp recibió el envío, pero no confirmó el resultado. No lo reenviaremos automáticamente.');
             else if (result && result.duplicate) toast('Este envío ya había sido procesado.');
             else toast((ctx.resend ? 'Documento reenviado' : 'Documento enviado') + ' por WhatsApp ✅');
             return result;
-        } catch (error) { toast(error && error.message ? error.message : 'No fue posible enviar el documento por WhatsApp.'); return null; }
+        } catch (error) {
+            toast(error && error.message ? error.message : 'No fue posible enviar el documento por WhatsApp.');
+            return null;
+        }
     }
 
-    async function sendGenerated() { if (!latestGenerated) { toast('El PDF todavía no está listo.'); return; } await sendContext(latestGenerated); }
+    async function sendGenerated() {
+        if (!latestGenerated) {
+            toast('El PDF todavía no está listo.');
+            return;
+        }
+        await sendContext(latestGenerated);
+    }
 
     function showGeneratedButton() {
-        const box = global.document.querySelector('#success-modal .success-box, .success-overlay .success-box'); if (!box || box.querySelector('.he-wa-generated-btn')) return;
-        const home = box.querySelector('.btn-success-home, #btn-success-home'); const button = global.document.createElement('button'); button.type = 'button'; button.className = 'he-wa-generated-btn'; button.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Enviar por WhatsApp';
-        button.addEventListener('click', async () => { if (button.disabled) return; button.disabled = true; const old = button.innerHTML; button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Preparando…'; try { await sendGenerated(); } finally { button.disabled = false; button.innerHTML = old; } });
-        if (home) box.insertBefore(button, home); else box.appendChild(button);
+        const box = global.document.querySelector('#success-modal .success-box, .success-overlay .success-box');
+        if (!box || box.querySelector('.he-wa-generated-btn')) return;
+        const home = box.querySelector('.btn-success-home, #btn-success-home');
+        const button = global.document.createElement('button');
+        button.type = 'button';
+        button.className = 'he-wa-generated-btn';
+        button.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Enviar por WhatsApp';
+        button.addEventListener('click', async () => {
+            if (button.disabled) return;
+            button.disabled = true;
+            const old = button.innerHTML;
+            button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Preparando…';
+            try { await sendGenerated(); } finally {
+                button.disabled = false;
+                button.innerHTML = old;
+            }
+        });
+        if (home) box.insertBefore(button, home);
+        else box.appendChild(button);
     }
 
-    function makeInlineButton(text, className) { const button = global.document.createElement('button'); button.type = 'button'; button.className = className || 'he-wa-inline-btn'; button.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>' + (text ? ' ' + text : ''); return button; }
+    function makeInlineButton(text, className) {
+        const button = global.document.createElement('button');
+        button.type = 'button';
+        button.className = className || 'he-wa-inline-btn';
+        button.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>' + (text ? ' ' + text : '');
+        return button;
+    }
 
     function pdfUrlFromElement(root) {
-        if (!root) return ''; const anchor = root.querySelector('a[href*="drive.google"],a[href*="googleusercontent"],a[href$=".pdf"],a[title*="PDF"]'); if (anchor) return clean(anchor.href);
-        const clickable = root.querySelector('[onclick*="abrirVisorPDF"]'); if (clickable) { const match = clean(clickable.getAttribute('onclick')).match(/abrirVisorPDF\(['"]([^'"]+)['"]\)/); if (match) return match[1]; }
+        if (!root) return '';
+        const anchor = root.querySelector('a[href*="drive.google"],a[href*="googleusercontent"],a[href$=".pdf"],a[title*="PDF"]');
+        if (anchor) return clean(anchor.href);
+        const clickable = root.querySelector('[onclick*="abrirVisorPDF"]');
+        if (clickable) {
+            const match = clean(clickable.getAttribute('onclick')).match(/abrirVisorPDF\(['"]([^'"]+)['"]\)/);
+            if (match) return match[1];
+        }
         return '';
     }
 
     function clientNameFromPage() { return textOf('.v31-name') || textOf('#c_nombre'); }
     function clientCedulaFromPage() { return textOf('.v31-id') || textOf('#c_cedula') || clean(global.clienteActual && global.clienteActual.cedula); }
-    function clientPhoneFromPage() { const visible = textOf('.v31-contact-value'); return clean(global.clienteActual && global.clienteActual.telefono) || visible; }
+    function clientPhoneFromPage() { return clean(global.clienteActual && global.clienteActual.telefono) || textOf('.v31-contact-value'); }
 
     function addClientOrderButton(card) {
-        const url = pdfUrlFromElement(card); if (!url) return; const actions = card.querySelector('.v31-order-actions'); if (!actions || actions.querySelector('.he-wa-client-resend')) return;
-        const reference = textOf('.v31-order-code', card).replace(/^OP\s*/i, ''); const button = makeInlineButton('Reenviar', 'he-wa-inline-btn he-wa-client-resend'); actions.classList.add('he-wa-order-actions');
-        button.addEventListener('click', event => { event.stopPropagation(); sendContext({ documentType: 'pedido', pdfUrl: url, filename: defaultFilename('pedido', reference), cedula: clientCedulaFromPage(), phone: clientPhoneFromPage(), clientName: clientNameFromPage(), reference, balance: parseMoney(textOf('.v31-balance', card)), resend: true }); });
+        const url = pdfUrlFromElement(card);
+        const actions = card.querySelector('.v31-order-actions');
+        if (!url || !actions || actions.querySelector('.he-wa-client-resend')) return;
+        const reference = textOf('.v31-order-code', card).replace(/^OP\s*/i, '');
+        const button = makeInlineButton('Reenviar', 'he-wa-inline-btn he-wa-client-resend');
+        actions.classList.add('he-wa-order-actions');
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            sendContext({
+                documentType: 'pedido',
+                pdfUrl: url,
+                filename: defaultFilename('pedido', reference),
+                cedula: clientCedulaFromPage(),
+                phone: clientPhoneFromPage(),
+                clientName: clientNameFromPage(),
+                reference,
+                balance: parseMoney(textOf('.v31-balance', card)),
+                source: 'clientes',
+                resend: true
+            });
+        });
         actions.appendChild(button);
     }
 
     function addClientQuoteButton(card) {
-        const url = pdfUrlFromElement(card); if (!url) return; const actions = card.querySelector('.v31-quote-actions'); if (!actions || actions.querySelector('.he-wa-client-resend')) return;
-        const reference = textOf('.v31-order-code', card).replace(/^COT\s*/i, ''); const button = makeInlineButton('Reenviar', 'he-wa-inline-btn he-wa-client-resend');
-        button.addEventListener('click', event => { event.stopPropagation(); sendContext({ documentType: 'cotizacion', pdfUrl: url, filename: defaultFilename('cotizacion', reference), cedula: clientCedulaFromPage(), phone: clientPhoneFromPage(), clientName: clientNameFromPage(), reference, resend: true }); }); actions.appendChild(button);
+        const url = pdfUrlFromElement(card);
+        const actions = card.querySelector('.v31-quote-actions');
+        if (!url || !actions || actions.querySelector('.he-wa-client-resend')) return;
+        const reference = textOf('.v31-order-code', card).replace(/^COT\s*/i, '');
+        const button = makeInlineButton('Reenviar', 'he-wa-inline-btn he-wa-client-resend');
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            sendContext({
+                documentType: 'cotizacion',
+                pdfUrl: url,
+                filename: defaultFilename('cotizacion', reference),
+                cedula: clientCedulaFromPage(),
+                phone: clientPhoneFromPage(),
+                clientName: clientNameFromPage(),
+                reference,
+                source: 'clientes',
+                resend: true
+            });
+        });
+        actions.appendChild(button);
     }
 
     function addClientPaymentButton(row) {
-        const url = pdfUrlFromElement(row); if (!url || row.querySelector('.he-wa-payment-resend')) return; const orderCard = row.closest('.v31-order'); const orderReference = orderCard ? textOf('.v31-order-code', orderCard).replace(/^OP\s*/i, '') : '';
-        const paymentName = textOf('.v31-payment-name', row); const receiptMatch = paymentName.match(/(?:R\.?\s*C\.?|RECIBO)\s*([A-Za-z0-9_-]+)/i); const reference = receiptMatch ? receiptMatch[1] : paymentName; const button = makeInlineButton('', 'he-wa-icon-btn he-wa-payment-resend'); button.title = 'Reenviar recibo por WhatsApp'; button.setAttribute('aria-label', 'Reenviar recibo por WhatsApp'); row.classList.add('he-wa-payment-row');
-        button.addEventListener('click', event => { event.stopPropagation(); sendContext({ documentType: 'abono', pdfUrl: url, filename: defaultFilename('abono', reference), cedula: clientCedulaFromPage(), phone: clientPhoneFromPage(), clientName: clientNameFromPage(), reference, orderReference, amount: parseMoney(textOf('.v31-payment-amount', row)), balance: orderCard ? parseMoney(textOf('.v31-balance', orderCard)) : null, resend: true }); }); row.appendChild(button);
+        const url = pdfUrlFromElement(row);
+        if (!url || row.querySelector('.he-wa-payment-resend')) return;
+        const orderCard = row.closest('.v31-order');
+        const orderReference = orderCard ? textOf('.v31-order-code', orderCard).replace(/^OP\s*/i, '') : '';
+        const paymentName = textOf('.v31-payment-name', row);
+        const receiptMatch = paymentName.match(/(?:R\.?\s*C\.?|RECIBO)\s*([A-Za-z0-9_-]+)/i);
+        const reference = receiptMatch ? receiptMatch[1] : paymentName;
+        const button = makeInlineButton('', 'he-wa-icon-btn he-wa-payment-resend');
+        button.title = 'Reenviar recibo por WhatsApp';
+        button.setAttribute('aria-label', 'Reenviar recibo por WhatsApp');
+        row.classList.add('he-wa-payment-row');
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            sendContext({
+                documentType: 'abono',
+                pdfUrl: url,
+                filename: defaultFilename('abono', reference),
+                cedula: clientCedulaFromPage(),
+                phone: clientPhoneFromPage(),
+                clientName: clientNameFromPage(),
+                reference,
+                orderReference,
+                amount: parseMoney(textOf('.v31-payment-amount', row)),
+                balance: orderCard ? parseMoney(textOf('.v31-balance', orderCard)) : null,
+                source: 'clientes',
+                resend: true
+            });
+        });
+        row.appendChild(button);
     }
 
     function augmentClients() {
         if (page !== 'clientes.html') return;
-        global.document.querySelectorAll('.v31-order').forEach(card => { if (!processed.has(card)) { addClientOrderButton(card); processed.add(card); } });
-        global.document.querySelectorAll('.v31-quote').forEach(card => { if (!processed.has(card)) { addClientQuoteButton(card); processed.add(card); } });
-        global.document.querySelectorAll('.v31-payment-row').forEach(row => { if (!row.querySelector('.he-wa-payment-resend')) addClientPaymentButton(row); });
-        global.document.querySelectorAll('.item-card').forEach(card => { if (card.querySelector('.he-wa-client-resend')) return; const url = pdfUrlFromElement(card); if (!url) return; const header = textOf('.item-header', card); const type = /COT/i.test(header) ? 'cotizacion' : 'pedido'; const refMatch = header.match(/(?:COT|OP)[-\s]*([A-Za-z0-9_-]+)/i); const reference = refMatch ? refMatch[1] : ''; const footer = card.querySelector('.item-footer .d-flex'); if (!footer) return; const button = makeInlineButton('WhatsApp', 'he-wa-inline-btn he-wa-client-resend'); button.addEventListener('click', event => { event.stopPropagation(); sendContext({ documentType: type, pdfUrl: url, filename: defaultFilename(type, reference), cedula: clientCedulaFromPage(), phone: clientPhoneFromPage(), clientName: clientNameFromPage(), reference, resend: true }); }); footer.appendChild(button); });
+        global.document.querySelectorAll('.v31-order').forEach(card => {
+            if (!processed.has(card)) { addClientOrderButton(card); processed.add(card); }
+        });
+        global.document.querySelectorAll('.v31-quote').forEach(card => {
+            if (!processed.has(card)) { addClientQuoteButton(card); processed.add(card); }
+        });
+        global.document.querySelectorAll('.v31-payment-row').forEach(row => {
+            if (!row.querySelector('.he-wa-payment-resend')) addClientPaymentButton(row);
+        });
+        global.document.querySelectorAll('.item-card').forEach(card => {
+            if (card.querySelector('.he-wa-client-resend')) return;
+            const url = pdfUrlFromElement(card);
+            if (!url) return;
+            const header = textOf('.item-header', card);
+            const type = /COT/i.test(header) ? 'cotizacion' : 'pedido';
+            const refMatch = header.match(/(?:COT|OP)[-\s]*([A-Za-z0-9_-]+)/i);
+            const reference = refMatch ? refMatch[1] : '';
+            const footer = card.querySelector('.item-footer .d-flex');
+            if (!footer) return;
+            const button = makeInlineButton('WhatsApp', 'he-wa-inline-btn he-wa-client-resend');
+            button.addEventListener('click', event => {
+                event.stopPropagation();
+                sendContext({
+                    documentType: type,
+                    pdfUrl: url,
+                    filename: defaultFilename(type, reference),
+                    cedula: clientCedulaFromPage(),
+                    phone: clientPhoneFromPage(),
+                    clientName: clientNameFromPage(),
+                    reference,
+                    source: 'clientes',
+                    resend: true
+                });
+            });
+            footer.appendChild(button);
+        });
     }
 
     function salesContextFromRow(row, pdfUrl) {
         const reference = clean(row && row.dataset && row.dataset.op) || textOf('.cell-op', row).replace(/^OP-?/i, '');
-        return { documentType: 'pedido', pdfUrl, filename: defaultFilename('pedido', reference), cedula: textOf('.client-doc', row).replace(/^Sin documento$/i, ''), clientName: textOf('.client-name', row), reference, balance: parseMoney(textOf('.money.saldo', row)), resend: true };
+        return {
+            documentType: 'pedido',
+            pdfUrl,
+            filename: defaultFilename('pedido', reference),
+            cedula: textOf('.client-doc', row).replace(/^Sin documento$/i, ''),
+            clientName: textOf('.client-name', row),
+            reference,
+            balance: parseMoney(textOf('.money.saldo', row)),
+            source: 'ventas',
+            resend: true
+        };
     }
 
     function augmentSalesRows() {
         if (page !== 'ventas.html') return;
-        global.document.querySelectorAll('#salesBody tr, table tbody tr').forEach(row => { if (row.querySelector('.he-wa-sales-send')) return; const pdf = row.querySelector('a[href][title*="PDF"],a[href*="drive.google"],a[href*="googleusercontent"]'); if (!pdf) return; const actions = row.querySelector('.row-actions'); if (!actions) return; const button = makeInlineButton('', 'he-wa-icon-btn he-wa-sales-send'); button.title = 'Reenviar por WhatsApp'; button.setAttribute('aria-label', 'Reenviar por WhatsApp'); button.addEventListener('click', event => { event.stopPropagation(); sendContext(salesContextFromRow(row, pdf.href)); }); actions.appendChild(button); });
+        global.document.querySelectorAll('#salesBody tr, table tbody tr').forEach(row => {
+            if (row.querySelector('.he-wa-sales-send')) return;
+            const pdf = row.querySelector('a[href][title*="PDF"],a[href*="drive.google"],a[href*="googleusercontent"]');
+            const actions = row.querySelector('.row-actions');
+            if (!pdf || !actions) return;
+            const button = makeInlineButton('', 'he-wa-icon-btn he-wa-sales-send');
+            button.title = 'Reenviar por WhatsApp';
+            button.setAttribute('aria-label', 'Reenviar por WhatsApp');
+            button.addEventListener('click', event => {
+                event.stopPropagation();
+                sendContext(salesContextFromRow(row, pdf.href));
+            });
+            actions.appendChild(button);
+        });
     }
 
     function augmentSalesDrawer() {
-        if (page !== 'ventas.html') return; const drawer = global.document.querySelector('#detailDrawer, .drawer'); if (!drawer) return; const actions = drawer.querySelector('.drawer-actions'); if (!actions || actions.querySelector('.he-wa-drawer-send')) return; const pdf = actions.querySelector('a[href][target="_blank"],a[href*="drive.google"],a[href*="googleusercontent"]'); if (!pdf) return;
-        const reference = textOf('#drawerTitle').replace(/^OP-?/i, '') || textOf('.drawer-title strong').replace(/^OP-?/i, ''); const button = makeInlineButton('Reenviar por WhatsApp', 'drawer-action he-wa-drawer-send');
-        button.addEventListener('click', event => { event.stopPropagation(); const row = global.document.querySelector(`tr[data-op="${reference}"]`); sendContext({ documentType: 'pedido', pdfUrl: pdf.href, filename: defaultFilename('pedido', reference), clientName: textOf('.detail-hero h3', drawer), cedula: clean(row && row.querySelector('.client-doc') && row.querySelector('.client-doc').textContent), reference, balance: parseMoney(textOf('.money.saldo', row || drawer)), resend: true }); }); actions.appendChild(button);
+        if (page !== 'ventas.html') return;
+        const drawer = global.document.querySelector('#detailDrawer, .drawer');
+        if (!drawer) return;
+        const actions = drawer.querySelector('.drawer-actions');
+        if (!actions || actions.querySelector('.he-wa-drawer-send')) return;
+        const pdf = actions.querySelector('a[href][target="_blank"],a[href*="drive.google"],a[href*="googleusercontent"]');
+        if (!pdf) return;
+        const reference = textOf('#drawerTitle').replace(/^OP-?/i, '') || textOf('.drawer-title strong').replace(/^OP-?/i, '');
+        const button = makeInlineButton('Reenviar por WhatsApp', 'drawer-action he-wa-drawer-send');
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            const row = global.document.querySelector(`tr[data-op="${reference}"]`);
+            sendContext({
+                documentType: 'pedido',
+                pdfUrl: pdf.href,
+                filename: defaultFilename('pedido', reference),
+                clientName: textOf('.detail-hero h3', drawer),
+                cedula: clean(row && row.querySelector('.client-doc') && row.querySelector('.client-doc').textContent),
+                reference,
+                balance: parseMoney(textOf('.money.saldo', row || drawer)),
+                source: 'ventas',
+                resend: true
+            });
+        });
+        actions.appendChild(button);
     }
 
-    function augmentDynamicContent() { augmentClients(); augmentSalesRows(); augmentSalesDrawer(); if (DOCUMENT_PAGES[page] && latestGenerated) showGeneratedButton(); }
-    function observeDynamicContent() { if (!global.document || !global.document.documentElement) return; const observer = new MutationObserver(() => augmentDynamicContent()); observer.observe(global.document.documentElement, { childList: true, subtree: true }); }
-    async function sendStoredDocument(options) { const opts = options || {}; return sendContext({ ...opts, documentType: clean(opts.documentType || 'pedido').toLowerCase(), resend: opts.resend !== false }); }
+    function augmentDynamicContent() {
+        augmentClients();
+        augmentSalesRows();
+        augmentSalesDrawer();
+        if (DOCUMENT_PAGES[page] && latestGenerated) showGeneratedButton();
+    }
 
-    installStyles(); installGeneratedCapture();
-    if (global.document.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', () => { augmentDynamicContent(); observeDynamicContent(); }, { once: true });
-    else { augmentDynamicContent(); observeDynamicContent(); }
+    function observeDynamicContent() {
+        if (!global.document || !global.document.documentElement) return;
+        const observer = new MutationObserver(() => augmentDynamicContent());
+        observer.observe(global.document.documentElement, { childList: true, subtree: true });
+    }
 
-    global.HomeEasyWhatsAppDocumentActions = Object.freeze({ VERSION, buildCaption, sendStoredDocument, getLatestGenerated: () => latestGenerated });
+    async function sendStoredDocument(options) {
+        const opts = options || {};
+        return sendContext({ ...opts, documentType: clean(opts.documentType || 'pedido').toLowerCase(), resend: opts.resend !== false });
+    }
+
+    installStyles();
+    installGeneratedCapture();
+    refreshTemplates();
+
+    if (global.document.readyState === 'loading') {
+        global.document.addEventListener('DOMContentLoaded', () => {
+            augmentDynamicContent();
+            observeDynamicContent();
+        }, { once: true });
+    } else {
+        augmentDynamicContent();
+        observeDynamicContent();
+    }
+
+    global.HomeEasyWhatsAppDocumentActions = Object.freeze({
+        VERSION,
+        buildCaption,
+        refreshTemplates,
+        sendStoredDocument,
+        getLatestGenerated: () => latestGenerated
+    });
 })(window);
