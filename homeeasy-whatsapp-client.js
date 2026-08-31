@@ -1,5 +1,5 @@
 /**
- * HomeEasy WhatsApp Client v0.4.0
+ * HomeEasy WhatsApp Client v0.5.0
  * Cliente seguro para api.homeeasy.com.co.
  *
  * REGLA CRÍTICA:
@@ -12,9 +12,12 @@
 
     if (global.HomeEasyWhatsApp) return;
 
-    const VERSION = '0.4.0';
+    const VERSION = '0.5.0';
     const BASE_URL = 'https://api.homeeasy.com.co';
     const REQUEST_TIMEOUT_MS = 25000;
+    const RECOVERY_BUTTON_ID = 'heWaRecover';
+    let recoveryObserver = null;
+    let lastStatusPayload = null;
 
     class HomeEasyWhatsAppError extends Error {
         constructor(code, message, details, status) {
@@ -129,8 +132,17 @@
         return payload || { ok: response.ok };
     }
 
-    function status() {
-        return request('/api/whatsapp/status');
+    function emitStatus(payload) {
+        lastStatusPayload = payload || null;
+        try {
+            global.dispatchEvent(new CustomEvent('homeeasy:whatsapp-status', { detail: payload || null }));
+        } catch (error) {}
+    }
+
+    async function status() {
+        const payload = await request('/api/whatsapp/status');
+        emitStatus(payload);
+        return payload;
     }
 
     function activity(limit) {
@@ -153,12 +165,16 @@
         return request('/api/whatsapp/templates/reset', { method: 'POST', body: {} });
     }
 
-    function restart() {
-        return request('/api/whatsapp/restart', { method: 'POST', body: {} });
+    async function restart() {
+        const payload = await request('/api/whatsapp/restart', { method: 'POST', body: {} });
+        emitStatus(payload);
+        return payload;
     }
 
-    function bootstrap() {
-        return request('/api/whatsapp/bootstrap', { method: 'POST', body: {} });
+    async function bootstrap() {
+        const payload = await request('/api/whatsapp/bootstrap', { method: 'POST', body: {} });
+        emitStatus(payload);
+        return payload;
     }
 
     function qr() {
@@ -237,6 +253,235 @@
         return raw.replace(/@c\.us$/i, '');
     }
 
+    function isConfigPage() {
+        return ((global.location && global.location.pathname ? global.location.pathname.split('/').pop() : '') || '').toLowerCase() === 'configuracion.html';
+    }
+
+    function whatsappReady(payload) {
+        const whatsapp = payload && payload.whatsapp ? payload.whatsapp : {};
+        return whatsapp.ready === true && String(whatsapp.status || '').toUpperCase() === 'WORKING';
+    }
+
+    function whatsappStatus(payload) {
+        return String(payload && payload.whatsapp && payload.whatsapp.status || 'UNKNOWN').toUpperCase();
+    }
+
+    function qrSource(payload) {
+        const qrData = payload && payload.qr ? payload.qr : {};
+        const raw = String(qrData.data || qrData.value || qrData.qr || '').trim();
+        if (!raw) return '';
+        return raw.startsWith('data:image/') ? raw : 'data:image/png;base64,' + raw;
+    }
+
+    function syncRecoveryButton(payload) {
+        const button = global.document && global.document.getElementById(RECOVERY_BUTTON_ID);
+        if (!button) return;
+        button.hidden = !payload || whatsappReady(payload);
+    }
+
+    function ensureRecoveryButton() {
+        if (!isConfigPage() || !global.document) return null;
+        let button = global.document.getElementById(RECOVERY_BUTTON_ID);
+        if (button) return button;
+        const actions = global.document.querySelector('#panel-integraciones .he-wa-actions');
+        if (!actions) return null;
+
+        button = global.document.createElement('button');
+        button.type = 'button';
+        button.id = RECOVERY_BUTTON_ID;
+        button.className = 'he-wa-button whatsapp';
+        button.hidden = true;
+        button.innerHTML = '<i class="fa-solid fa-link"></i>Recuperar WhatsApp';
+        button.addEventListener('click', recoverWhatsApp);
+
+        const refresh = actions.querySelector('#heWaRefresh');
+        if (refresh && refresh.nextSibling) actions.insertBefore(button, refresh.nextSibling);
+        else if (refresh) actions.appendChild(button);
+        else actions.prepend(button);
+
+        syncRecoveryButton(lastStatusPayload);
+        return button;
+    }
+
+    function wait(ms) {
+        return new Promise(resolve => global.setTimeout(resolve, ms));
+    }
+
+    async function findRecoveryQr() {
+        let initial = null;
+        try { initial = await bootstrap(); } catch (error) {}
+        if (initial && whatsappReady(initial)) return { connected: true, status: initial };
+
+        let last = initial;
+        for (let attempt = 0; attempt < 18; attempt += 1) {
+            try {
+                last = await status();
+                if (whatsappReady(last)) return { connected: true, status: last };
+            } catch (error) {}
+
+            try {
+                const qrPayload = await qr();
+                const src = qrSource(qrPayload);
+                if (src) return { connected: false, qrPayload, src, status: last };
+            } catch (error) {
+                if (error && error.status && ![409, 422, 503].includes(Number(error.status))) throw error;
+            }
+            await wait(1000);
+        }
+        throw new HomeEasyWhatsAppError('WHATSAPP_QR_WAIT', 'WhatsApp todavía está preparando la vinculación. Intenta Recuperar WhatsApp nuevamente en unos segundos.', last, 409);
+    }
+
+    async function refreshSettingsCenter() {
+        await wait(250);
+        const refresh = global.document && global.document.getElementById('heWaRefresh');
+        if (refresh && !refresh.disabled) {
+            try { refresh.click(); return; } catch (error) {}
+        }
+        try { await status(); } catch (error) {}
+    }
+
+    async function showRecoveryQr(src) {
+        if (!global.Swal) {
+            global.alert('El QR está listo. Abre HomeEasy desde una pantalla que puedas escanear con el celular de WhatsApp.');
+            return false;
+        }
+
+        let interval = null;
+        let checking = false;
+        let connected = false;
+        let checks = 0;
+
+        await global.Swal.fire({
+            title: 'Recuperar WhatsApp',
+            html:
+                '<div class="he-wa-qr-wrap"><img class="he-wa-qr" src="' + String(src).replace(/"/g, '&quot;') + '" alt="Código QR para recuperar WhatsApp"></div>' +
+                '<div style="margin:10px auto 0;max-width:330px;text-align:left;padding:12px 14px;border-radius:14px;background:#f7f6f7;color:#6f686c;font-size:12px;line-height:1.5">' +
+                '<b style="display:block;margin-bottom:5px;color:#3d383a">En el celular de WhatsApp HomeEasy:</b>' +
+                'WhatsApp → Configuración → Dispositivos vinculados → Vincular dispositivo → escanea este código.' +
+                '</div>' +
+                '<div id="heWaRecoveryWatching" style="margin-top:12px;color:#168b43;font-size:12px;font-weight:700"><i class="fa-solid fa-circle-notch fa-spin"></i> Esperando vinculación…</div>',
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#a6455a',
+            allowOutsideClick: true,
+            didOpen: () => {
+                interval = global.setInterval(async () => {
+                    if (checking || connected) return;
+                    checking = true;
+                    checks += 1;
+                    try {
+                        const payload = await status();
+                        if (whatsappReady(payload)) {
+                            connected = true;
+                            if (interval) global.clearInterval(interval);
+                            const watching = global.document.getElementById('heWaRecoveryWatching');
+                            if (watching) watching.innerHTML = '<i class="fa-solid fa-circle-check"></i> WhatsApp conectado';
+                            await wait(500);
+                            global.Swal.close();
+                        } else if (checks >= 45) {
+                            if (interval) global.clearInterval(interval);
+                            const watching = global.document.getElementById('heWaRecoveryWatching');
+                            if (watching) watching.innerHTML = '<span style="color:#9a7a3f">El QR puede haber vencido. Cierra y toca Recuperar WhatsApp para generar uno nuevo.</span>';
+                        }
+                    } catch (error) {
+                    } finally {
+                        checking = false;
+                    }
+                }, 2000);
+            },
+            willClose: () => {
+                if (interval) global.clearInterval(interval);
+            }
+        });
+
+        if (connected) {
+            await global.Swal.fire({
+                icon: 'success',
+                title: 'WhatsApp recuperado',
+                text: 'HomeEasy volvió a conectarse correctamente.',
+                confirmButtonColor: '#a6455a',
+                timer: 2200,
+                timerProgressBar: true
+            });
+            await refreshSettingsCenter();
+            return true;
+        }
+        return false;
+    }
+
+    async function recoverWhatsApp() {
+        const button = ensureRecoveryButton();
+        if (button && button.disabled) return;
+        if (button) {
+            button.disabled = true;
+            button.dataset.originalHtml = button.innerHTML;
+            button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>Preparando QR…';
+        }
+
+        try {
+            if (global.Swal) {
+                global.Swal.fire({
+                    title: 'Preparando WhatsApp',
+                    text: 'HomeEasy está comprobando la sesión y preparando la vinculación si hace falta.',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => global.Swal.showLoading()
+                });
+            }
+
+            const recovery = await findRecoveryQr();
+            if (global.Swal) global.Swal.close();
+
+            if (recovery.connected) {
+                if (global.Swal) {
+                    await global.Swal.fire({
+                        icon: 'success',
+                        title: 'WhatsApp ya está conectado',
+                        text: 'No fue necesario generar un nuevo QR.',
+                        confirmButtonColor: '#a6455a',
+                        timer: 1800
+                    });
+                }
+                await refreshSettingsCenter();
+                return;
+            }
+
+            await showRecoveryQr(recovery.src);
+        } catch (error) {
+            if (global.Swal) global.Swal.close();
+            if (global.Swal) {
+                await global.Swal.fire({
+                    icon: 'info',
+                    title: 'Todavía no está listo',
+                    text: error && error.message ? error.message : 'No fue posible preparar la vinculación de WhatsApp.',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#a6455a'
+                });
+            }
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = button.dataset.originalHtml || '<i class="fa-solid fa-link"></i>Recuperar WhatsApp';
+            }
+        }
+    }
+
+    function installRecoveryUi() {
+        if (!isConfigPage() || !global.document) return;
+        const mount = () => {
+            ensureRecoveryButton();
+            if (!recoveryObserver && global.document.documentElement) {
+                recoveryObserver = new MutationObserver(() => ensureRecoveryButton());
+                recoveryObserver.observe(global.document.documentElement, { childList: true, subtree: true });
+            }
+        };
+        if (global.document.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', mount, { once: true });
+        else mount();
+        global.addEventListener('homeeasy:whatsapp-status', event => {
+            ensureRecoveryButton();
+            syncRecoveryButton(event && event.detail ? event.detail : null);
+        });
+    }
+
     global.HomeEasyWhatsApp = Object.freeze({
         VERSION,
         BASE_URL,
@@ -253,6 +498,9 @@
         testDocument,
         sendDocument,
         sendDocumentUrl,
-        connectedPhone
+        connectedPhone,
+        recoverWhatsApp
     });
+
+    installRecoveryUi();
 })(window);
