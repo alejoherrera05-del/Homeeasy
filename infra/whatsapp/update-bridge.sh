@@ -34,10 +34,12 @@ docker compose build bridge
 
 echo "Preparando almacenamiento persistente del Bridge..."
 mkdir -p "$INSTALL_DIR/data/bridge"
-# La imagen corre como el usuario restringido 'node'. Ajustamos SOLO el volumen
-# del Bridge; data/sessions de WAHA no se modifica.
-docker compose run --rm --no-deps --user root bridge sh -lc 'mkdir -p /app/data && chown -R node:node /app/data' >/dev/null
+# node:20-alpine usa UID/GID 1000 para el usuario restringido 'node'.
+# Ajustamos SOLO el volumen del Bridge. data/sessions de WAHA no se toca.
+chown -R 1000:1000 "$INSTALL_DIR/data/bridge"
+chmod 750 "$INSTALL_DIR/data/bridge"
 
+echo "Iniciando solo el Bridge..."
 docker compose up -d --no-deps bridge
 
 rm -f "$HEALTH_FILE"
