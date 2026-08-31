@@ -1,5 +1,5 @@
 /**
- * HomeEasy WhatsApp Client v0.3.0
+ * HomeEasy WhatsApp Client v0.4.0
  * Cliente seguro para api.homeeasy.com.co.
  *
  * REGLA CRÍTICA:
@@ -12,7 +12,7 @@
 
     if (global.HomeEasyWhatsApp) return;
 
-    const VERSION = '0.3.0';
+    const VERSION = '0.4.0';
     const BASE_URL = 'https://api.homeeasy.com.co';
     const REQUEST_TIMEOUT_MS = 25000;
 
@@ -47,7 +47,6 @@
         } catch (error) {
             meta = null;
         }
-
         if (!meta || typeof meta !== 'object') return {};
 
         const headers = {};
@@ -60,7 +59,6 @@
         if (deviceName) headers['X-HomeEasy-Device-Name'] = encodeURIComponent(deviceName);
         if (platform) headers['X-HomeEasy-Platform'] = encodeURIComponent(platform);
         if (browser) headers['X-HomeEasy-Browser'] = encodeURIComponent(browser);
-
         return headers;
     }
 
@@ -81,8 +79,6 @@
         const opts = options || {};
         const token = sessionToken();
 
-        // Nunca intentar recuperar/modificar la sesión aquí. Page Guard es el único dueño
-        // del ciclo de autenticación de HomeEasy.
         if (!token) {
             throw new HomeEasyWhatsAppError(
                 'WHATSAPP_HOME_SESSION_UNAVAILABLE',
@@ -137,6 +133,26 @@
         return request('/api/whatsapp/status');
     }
 
+    function activity(limit) {
+        const size = Math.max(1, Math.min(150, Number(limit || 60)));
+        return request('/api/whatsapp/activity?limit=' + encodeURIComponent(size));
+    }
+
+    function getTemplates() {
+        return request('/api/whatsapp/templates');
+    }
+
+    function saveTemplates(templates) {
+        return request('/api/whatsapp/templates', {
+            method: 'POST',
+            body: { templates: templates && typeof templates === 'object' ? templates : {} }
+        });
+    }
+
+    function resetTemplates() {
+        return request('/api/whatsapp/templates/reset', { method: 'POST', body: {} });
+    }
+
     function restart() {
         return request('/api/whatsapp/restart', { method: 'POST', body: {} });
     }
@@ -159,6 +175,27 @@
         });
     }
 
+    function testDocument(phone) {
+        return request('/api/whatsapp/test-document', {
+            method: 'POST',
+            timeoutMs: 105000,
+            body: { phone: String(phone || '').trim() }
+        });
+    }
+
+    function documentMeta(opts) {
+        return {
+            reference: String(opts.reference || '').trim(),
+            clientName: String(opts.clientName || '').trim(),
+            cedula: String(opts.cedula || '').trim(),
+            source: String(opts.source || '').trim(),
+            resend: Boolean(opts.resend),
+            orderReference: String(opts.orderReference || '').trim(),
+            amount: Number.isFinite(Number(opts.amount)) ? Number(opts.amount) : null,
+            balance: Number.isFinite(Number(opts.balance)) ? Number(opts.balance) : null
+        };
+    }
+
     function sendDocument(options) {
         const opts = options || {};
         return request('/api/whatsapp/send-document', {
@@ -170,7 +207,8 @@
                 pdfBase64: String(opts.pdfBase64 || ''),
                 filename: String(opts.filename || 'HomeEasy.pdf'),
                 caption: String(opts.caption || ''),
-                idempotencyKey: String(opts.idempotencyKey || '')
+                idempotencyKey: String(opts.idempotencyKey || ''),
+                ...documentMeta(opts)
             }
         });
     }
@@ -186,7 +224,8 @@
                 pdfUrl: String(opts.pdfUrl || '').trim(),
                 filename: String(opts.filename || 'HomeEasy.pdf'),
                 caption: String(opts.caption || ''),
-                idempotencyKey: String(opts.idempotencyKey || '')
+                idempotencyKey: String(opts.idempotencyKey || ''),
+                ...documentMeta(opts)
             }
         });
     }
@@ -203,10 +242,15 @@
         BASE_URL,
         HomeEasyWhatsAppError,
         status,
+        activity,
+        getTemplates,
+        saveTemplates,
+        resetTemplates,
         restart,
         bootstrap,
         qr,
         testMessage,
+        testDocument,
         sendDocument,
         sendDocumentUrl,
         connectedPhone
