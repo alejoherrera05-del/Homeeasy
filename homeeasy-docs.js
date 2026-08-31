@@ -281,27 +281,30 @@
     const style = document.createElement("style");
     style.id = "homeeasy-mobile-text-editor-style";
     style.textContent = `
-      body.homeeasy-text-editor-open{overflow:hidden!important;}
-      .homeeasy-expanded-text-source{cursor:pointer;touch-action:manipulation;}
+      html.homeeasy-text-editor-open,body.homeeasy-text-editor-open{
+        overflow:hidden!important;overscroll-behavior:none!important;
+      }
+      .homeeasy-expanded-text-source{
+        cursor:pointer;touch-action:manipulation;font-size:16px!important;-webkit-text-size-adjust:100%;
+      }
       .homeeasy-text-editor-overlay{
-        position:fixed;inset:0;z-index:12000;display:flex;align-items:flex-end;justify-content:center;
-        padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+        --homeeasy-editor-height:100dvh;
+        position:fixed;left:0;right:0;top:0;bottom:auto;height:var(--homeeasy-editor-height);box-sizing:border-box;
+        z-index:12000;display:flex;align-items:flex-end;justify-content:center;
+        padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));
         background:rgba(45,35,39,.18);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
         opacity:0;visibility:hidden;pointer-events:none;
-        transition:opacity .22s ease,visibility .22s ease;
+        transition:opacity .18s ease,visibility .18s ease;
       }
       .homeeasy-text-editor-overlay.is-open{opacity:1;visibility:visible;pointer-events:auto;}
       .homeeasy-text-editor-panel{
-        width:min(100%,580px);height:min(68dvh,620px);min-height:360px;max-height:calc(100dvh - 24px - env(safe-area-inset-top));
+        width:min(100%,580px);height:min(86%,560px);min-height:0;max-height:100%;
         display:flex;flex-direction:column;overflow:hidden;
-        background:rgba(255,255,255,.985);border:1px solid rgba(166,69,90,.12);border-radius:26px;
-        box-shadow:0 24px 70px rgba(68,42,50,.22),inset 0 1px 0 rgba(255,255,255,.9);
-        transform:translateY(14px) scale(.987);transform-origin:center bottom;
-        transition:transform .24s cubic-bezier(.2,.8,.2,1);
+        background:rgba(255,255,255,.985);border:1px solid rgba(166,69,90,.12);border-radius:24px;
+        box-shadow:0 20px 64px rgba(68,42,50,.22),inset 0 1px 0 rgba(255,255,255,.9);
       }
-      .homeeasy-text-editor-overlay.is-open .homeeasy-text-editor-panel{transform:translateY(0) scale(1);}
       .homeeasy-text-editor-handle{width:38px;height:4px;border-radius:999px;background:#DED7DA;margin:9px auto 3px;flex:0 0 auto;}
-      .homeeasy-text-editor-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px 10px;}
+      .homeeasy-text-editor-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px 10px;flex:0 0 auto;}
       .homeeasy-text-editor-heading{min-width:0;text-align:left;}
       .homeeasy-text-editor-title{margin:0;color:#302A2D;font:700 1.02rem/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;letter-spacing:-.015em;}
       .homeeasy-text-editor-caption{margin:4px 0 0;color:#8B8387;font:500 .72rem/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;}
@@ -311,12 +314,17 @@
       .homeeasy-text-editor-input{
         display:block;width:100%;height:100%;min-height:0;resize:none;overflow:auto;-webkit-overflow-scrolling:touch;
         border:1px solid rgba(60,60,67,.11);outline:0;border-radius:18px;background:#FAF8F9;color:#2D282A;
-        padding:16px 16px 24px;font:500 16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
-        caret-color:#A6455A;box-shadow:inset 0 1px 2px rgba(43,31,36,.025);
+        padding:16px 16px 24px;font:500 16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif!important;
+        caret-color:#A6455A;box-shadow:inset 0 1px 2px rgba(43,31,36,.025);scroll-padding:16px;-webkit-text-size-adjust:100%;
       }
       .homeeasy-text-editor-input:focus{border-color:rgba(166,69,90,.34);background:#fff;box-shadow:0 0 0 4px rgba(166,69,90,.07);}
+      .homeeasy-text-editor-overlay.is-compact .homeeasy-text-editor-handle{margin:6px auto 1px;}
+      .homeeasy-text-editor-overlay.is-compact .homeeasy-text-editor-header{padding:8px 14px 8px;}
+      .homeeasy-text-editor-overlay.is-compact .homeeasy-text-editor-caption{display:none;}
+      .homeeasy-text-editor-overlay.is-compact .homeeasy-text-editor-body{padding:2px 10px 10px;}
+      .homeeasy-text-editor-overlay.is-compact .homeeasy-text-editor-input{border-radius:16px;padding:12px 14px 18px;}
       @media (min-width:821px) and (pointer:fine){.homeeasy-text-editor-overlay{display:none!important;}}
-      @media (prefers-reduced-motion:reduce){.homeeasy-text-editor-overlay,.homeeasy-text-editor-panel{transition:none!important;}}
+      @media (prefers-reduced-motion:reduce){.homeeasy-text-editor-overlay{transition:none!important;}}
     `;
     document.head.appendChild(style);
   }
@@ -330,6 +338,8 @@
 
     const mobileQuery = window.matchMedia("(max-width: 820px), (pointer: coarse)");
     const originalReadOnly = Boolean(target.readOnly);
+    const originalTabIndex = target.getAttribute("tabindex");
+    const originalInputMode = target.getAttribute("inputmode");
     const overlay = document.createElement("div");
     overlay.className = "homeeasy-text-editor-overlay no-print";
     overlay.setAttribute("aria-hidden", "true");
@@ -352,20 +362,73 @@
     const editor = overlay.querySelector(".homeeasy-text-editor-input");
     const done = overlay.querySelector(".homeeasy-text-editor-done");
     let open = false;
+    let pageLock = null;
+
+    function restoreAttribute(name, value) {
+      if (value === null) target.removeAttribute(name);
+      else target.setAttribute(name, value);
+    }
 
     function syncMode() {
       const mobile = mobileQuery.matches;
       target.readOnly = mobile ? true : originalReadOnly;
       target.classList.toggle("homeeasy-expanded-text-source", mobile);
       target.setAttribute("aria-haspopup", mobile ? "dialog" : "false");
+      if (mobile) {
+        target.setAttribute("tabindex", "-1");
+        target.setAttribute("inputmode", "none");
+      } else {
+        restoreAttribute("tabindex", originalTabIndex);
+        restoreAttribute("inputmode", originalInputMode);
+      }
       if (!mobile && open) closeEditor();
     }
 
     function syncViewport() {
-      if (!open || !window.visualViewport) return;
-      overlay.style.top = window.visualViewport.offsetTop + "px";
-      overlay.style.height = window.visualViewport.height + "px";
-      overlay.style.bottom = "auto";
+      if (!open) return;
+      const viewport = window.visualViewport;
+      const viewportHeight = Math.round(viewport && viewport.height ? viewport.height : (window.innerHeight || document.documentElement.clientHeight || 0));
+      if (viewportHeight > 0) overlay.style.setProperty("--homeeasy-editor-height", viewportHeight + "px");
+      overlay.classList.toggle("is-compact", viewportHeight > 0 && viewportHeight < 560);
+    }
+
+    function lockPage() {
+      if (pageLock) return;
+      const bodyStyle = document.body.style;
+      pageLock = {
+        scrollY: window.pageYOffset || document.documentElement.scrollTop || 0,
+        position: bodyStyle.position,
+        top: bodyStyle.top,
+        left: bodyStyle.left,
+        right: bodyStyle.right,
+        width: bodyStyle.width,
+        overflow: bodyStyle.overflow
+      };
+      document.documentElement.classList.add("homeeasy-text-editor-open");
+      document.body.classList.add("homeeasy-text-editor-open");
+      bodyStyle.position = "fixed";
+      bodyStyle.top = "-" + pageLock.scrollY + "px";
+      bodyStyle.left = "0";
+      bodyStyle.right = "0";
+      bodyStyle.width = "100%";
+      bodyStyle.overflow = "hidden";
+    }
+
+    function unlockPage() {
+      if (!pageLock) return;
+      const lock = pageLock;
+      pageLock = null;
+      const bodyStyle = document.body.style;
+      bodyStyle.position = lock.position;
+      bodyStyle.top = lock.top;
+      bodyStyle.left = lock.left;
+      bodyStyle.right = lock.right;
+      bodyStyle.width = lock.width;
+      bodyStyle.overflow = lock.overflow;
+      document.documentElement.classList.remove("homeeasy-text-editor-open");
+      document.body.classList.remove("homeeasy-text-editor-open");
+      window.scrollTo(0, lock.scrollY);
+      window.requestAnimationFrame(function () { window.scrollTo(0, lock.scrollY); });
     }
 
     function commit() {
@@ -373,39 +436,55 @@
       target.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
+    function focusEditor() {
+      editor.scrollTop = 0;
+      try { editor.focus({ preventScroll: true }); } catch (error) { editor.focus(); }
+      const end = editor.value.length;
+      window.requestAnimationFrame(syncViewport);
+      window.setTimeout(function () {
+        syncViewport();
+        try { editor.setSelectionRange(end, end); } catch (error) {}
+        editor.scrollTop = editor.scrollHeight;
+      }, 180);
+      window.setTimeout(syncViewport, 340);
+    }
+
     function openEditor() {
       if (!mobileQuery.matches || open) return;
       open = true;
       editor.value = target.value || "";
+      lockPage();
       overlay.classList.add("is-open");
       overlay.setAttribute("aria-hidden", "false");
-      document.body.classList.add("homeeasy-text-editor-open");
       syncViewport();
-      window.requestAnimationFrame(function () {
-        editor.focus({ preventScroll: true });
-        const end = editor.value.length;
-        try { editor.setSelectionRange(end, end); } catch (error) {}
-      });
+      focusEditor();
     }
 
     function closeEditor() {
       if (!open) return;
       commit();
+      editor.blur();
       open = false;
-      overlay.classList.remove("is-open");
+      overlay.classList.remove("is-open", "is-compact");
       overlay.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("homeeasy-text-editor-open");
-      overlay.style.top = "";
-      overlay.style.height = "";
-      overlay.style.bottom = "";
+      overlay.style.removeProperty("--homeeasy-editor-height");
       target.blur();
+      unlockPage();
     }
 
-    target.addEventListener("click", function (event) {
+    function openFromSource(event) {
       if (!mobileQuery.matches) return;
-      event.preventDefault();
+      if (event && event.cancelable) event.preventDefault();
+      target.blur();
       openEditor();
-    });
+    }
+
+    if (window.PointerEvent) {
+      target.addEventListener("pointerdown", openFromSource);
+    } else {
+      target.addEventListener("touchstart", openFromSource, { passive: false });
+    }
+    target.addEventListener("click", openFromSource);
     target.addEventListener("focus", function () {
       if (!mobileQuery.matches) return;
       target.blur();
@@ -416,6 +495,7 @@
     overlay.addEventListener("click", function (event) { if (event.target === overlay) closeEditor(); });
     document.addEventListener("keydown", function (event) { if (open && event.key === "Escape") closeEditor(); });
     if (window.visualViewport) window.visualViewport.addEventListener("resize", syncViewport);
+    window.addEventListener("resize", syncViewport);
     if (typeof mobileQuery.addEventListener === "function") mobileQuery.addEventListener("change", syncMode);
     syncMode();
     return { open: openEditor, close: closeEditor, overlay: overlay, target: target };
