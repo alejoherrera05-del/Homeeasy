@@ -75,10 +75,14 @@ chmod 600 ACCESS.txt
 
 echo "Validando configuración Docker..."
 docker compose config >/dev/null
-
 echo "Descargando WAHA y construyendo Bridge..."
 docker compose pull waha
 docker compose build bridge
+
+echo "Preparando almacenamiento persistente del Bridge..."
+# El Bridge corre como usuario restringido 'node'. Ajustamos solo su volumen,
+# nunca la carpeta de sesión de WAHA.
+docker compose run --rm --no-deps --user root bridge sh -lc 'mkdir -p /app/data && chown -R node:node /app/data' >/dev/null
 
 echo "Iniciando servicios..."
 docker compose up -d
