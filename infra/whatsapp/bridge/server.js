@@ -4,8 +4,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const auth = require('./auth');
+const ops = require('./operations');
 
-const BRIDGE_VERSION = '0.4.0';
+const BRIDGE_VERSION = '0.5.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -122,9 +123,7 @@ async function ensureSessionStarted() {
     session = await wahaRequest('POST', '/api/sessions', {
       name: WAHA_SESSION,
       start: true,
-      config: {
-        webjs: { tagsEventsOn: false }
-      }
+      config: { webjs: { tagsEventsOn: false } }
     });
     return session;
   }
@@ -191,9 +190,7 @@ function normalizeRemotePdfUrl(value) {
   const host = parsed.hostname.toLowerCase();
   if (host === 'drive.google.com' || host === 'docs.google.com') {
     const fileId = driveFileId(parsed);
-    if (!fileId) {
-      throw Object.assign(new Error('Google Drive PDF link is not supported'), { statusCode: 400 });
-    }
+    if (!fileId) throw Object.assign(new Error('Google Drive PDF link is not supported'), { statusCode: 400 });
     return new URL(`https://drive.usercontent.google.com/download?id=${encodeURIComponent(fileId)}&export=download&confirm=t`);
   }
   return parsed;
@@ -201,9 +198,7 @@ function normalizeRemotePdfUrl(value) {
 
 async function readRemoteBody(response) {
   const announced = Number(response.headers.get('content-length') || 0);
-  if (announced > REMOTE_PDF_MAX_BYTES) {
-    throw Object.assign(new Error('Stored PDF is too large'), { statusCode: 413 });
-  }
+  if (announced > REMOTE_PDF_MAX_BYTES) throw Object.assign(new Error('Stored PDF is too large'), { statusCode: 413 });
   if (!response.body || typeof response.body.getReader !== 'function') {
     throw Object.assign(new Error('Stored PDF response could not be read'), { statusCode: 502 });
   }
@@ -238,17 +233,15 @@ async function fetchStoredPdfBase64(value) {
       redirect: 'follow',
       headers: {
         'Accept': 'application/pdf,application/octet-stream;q=0.9,*/*;q=0.2',
-        'User-Agent': 'HomeEasy-WhatsApp-Bridge/0.4'
+        'User-Agent': 'HomeEasy-WhatsApp-Bridge/0.5'
       },
       signal: AbortSignal.timeout(35000)
     });
-  } catch (error) {
+  } catch (_) {
     throw Object.assign(new Error('Stored PDF could not be downloaded'), { statusCode: 502 });
   }
 
-  if (!response.ok) {
-    throw Object.assign(new Error('Stored PDF could not be downloaded'), { statusCode: 502 });
-  }
+  if (!response.ok) throw Object.assign(new Error('Stored PDF could not be downloaded'), { statusCode: 502 });
 
   let finalUrl;
   try { finalUrl = new URL(response.url); } catch (_) { finalUrl = target; }
@@ -304,37 +297,96 @@ function publicDeliveryRecord(record, duplicate) {
   };
 }
 
-async function sendText(phoneValue, textValue) {
+function actorCan(actor, permission) {
+  if (!permission || actor && actor.internal) return true;
+  const permissions = actor && Array.isArray(actor.permissions) ? actor.permissions : [];
+  return permissions.includes('*') || permissions.includes(permission);
+}
+
+function capabilities(actor) {
+  return {
+    configure: actorCan(actor, 'config.read'),
+    sendCotizacion: actorCan(actor, 'cotizaciones.write'),
+    sendPedido: actorCan(actor, 'pedidos.write'),
+    sendAbono: actorCan(actor, 'abonos.write')
+  };
+}
+
+function auditActor(actor) {
+  const visible = auth.publicActor(actor);
+  return visible && !visible.internal
+    ? String(visible.nombre || visible.email || visible.rol || '').trim()
+    : 'Sistema';
+}
+
+function activityMeta(payload, actor, documentType, kind, state, record, error) {
+  const source = payload && typeof payload === 'object' ? payload : {};
+  return {
+    kind: kind || 'document',
+    state,
+    documentType: documentType || String(source.documentType || '').toLowerCase(),
+    reference: source.reference || '',
+    clientName: source.clientName || '',
+    phone: record && record.phone || source.phone || '',
+    filename: record && record.filename || source.filename || '',
+    source: source.source || '',
+    resend: Boolean(source.resend),
+    actor: auditActor(actor),
+    messageId: record && record.messageId || '',
+    error: error ? String(error.message || error) : ''
+  };
+}
+
+function recordActivitySafe(payload) {
+  try { return ops.recordActivity(payload); } catch (error) {
+    console.warn(new Date().toISOString(), 'Could not persist WhatsApp activity', error.message);
+    return null;
+  }
+}
+
+async function sendText(phoneValue, textValue, audit) {
   const session = await getSession();
   if (!session || session.status !== 'WORKING') {
     const error = new Error(`WhatsApp is not ready (${session ? session.status : 'MISSING'})`);
     error.statusCode = 503;
     error.details = publicSession(session);
+    if (audit) recordActivitySafe(activityMeta(audit.payload || {}, audit.actor, 'prueba', 'test', 'FAILED', null, error));
     throw error;
   }
+
   let phone = String(phoneValue || '').trim();
   if (!phone && session.me && session.me.id) phone = String(session.me.id).replace(/@c\.us$/i, '');
   phone = normalizePhone(phone);
   const text = String(textValue || 'Prueba HomeEasy ✅ Integración de WhatsApp operativa.').trim().slice(0, 1200);
-  const result = await wahaRequest('POST', '/api/sendText', {
-    session: WAHA_SESSION,
-    chatId: `${phone}@c.us`,
-    text
-  });
-  return {
-    ok: true,
-    phone,
-    messageId: result && (result.id || result.key || result.messageId) || null,
-    sentAt: new Date().toISOString()
-  };
+
+  try {
+    const result = await wahaRequest('POST', '/api/sendText', {
+      session: WAHA_SESSION,
+      chatId: `${phone}@c.us`,
+      text
+    });
+    const record = {
+      state: 'SENT',
+      phone,
+      filename: '',
+      messageId: result && (result.id || result.key || result.messageId) || null,
+      sentAt: new Date().toISOString()
+    };
+    if (audit) recordActivitySafe(activityMeta(audit.payload || {}, audit.actor, 'prueba', 'test', 'SENT', record));
+    return { ok: true, phone, messageId: record.messageId, sentAt: record.sentAt };
+  } catch (error) {
+    if (audit) recordActivitySafe(activityMeta(audit.payload || {}, audit.actor, 'prueba', 'test', 'FAILED', { phone }, error));
+    throw error;
+  }
 }
 
-async function sendDocument(payload) {
+async function sendDocument(payload, audit) {
   const session = await getSession();
   if (!session || session.status !== 'WORKING') {
     const error = new Error(`WhatsApp is not ready (${session ? session.status : 'MISSING'})`);
     error.statusCode = 503;
     error.details = publicSession(session);
+    if (audit) recordActivitySafe(activityMeta(payload, audit.actor, audit.documentType, audit.kind, 'FAILED', null, error));
     throw error;
   }
 
@@ -370,11 +422,7 @@ async function sendDocument(payload) {
       session: WAHA_SESSION,
       chatId: `${phone}@c.us`,
       caption,
-      file: {
-        mimetype: 'application/pdf',
-        filename,
-        data: pdfBase64
-      }
+      file: { mimetype: 'application/pdf', filename, data: pdfBase64 }
     });
 
     record.state = 'SENT';
@@ -384,6 +432,7 @@ async function sendDocument(payload) {
       idempotency[idempotencyKey] = record;
       persistIdempotency();
     }
+    if (audit) recordActivitySafe(activityMeta(payload, audit.actor, audit.documentType, audit.kind, 'SENT', record));
     return publicDeliveryRecord(record, false);
   } catch (error) {
     if (isAmbiguousSendError(error)) {
@@ -394,29 +443,35 @@ async function sendDocument(payload) {
         idempotency[idempotencyKey] = record;
         persistIdempotency();
       }
+      if (audit) recordActivitySafe(activityMeta(payload, audit.actor, audit.documentType, audit.kind, 'UNKNOWN', record, error));
       console.warn(new Date().toISOString(), 'Ambiguous WhatsApp send; automatic retry locked', {
-        phone,
-        filename,
-        idempotencyKey,
-        error: error.message
+        phone, filename, idempotencyKey, error: error.message
       });
       return publicDeliveryRecord(record, false);
     }
+
     if (idempotencyKey) {
       delete idempotency[idempotencyKey];
       persistIdempotency();
     }
+    if (audit) recordActivitySafe(activityMeta(payload, audit.actor, audit.documentType, audit.kind, 'FAILED', record, error));
     throw error;
   }
 }
 
-async function sendStoredDocument(payload) {
-  const pdfBase64 = await fetchStoredPdfBase64(payload.pdfUrl);
+async function sendStoredDocument(payload, audit) {
+  let pdfBase64;
+  try {
+    pdfBase64 = await fetchStoredPdfBase64(payload.pdfUrl);
+  } catch (error) {
+    if (audit) recordActivitySafe(activityMeta(payload, audit.actor, audit.documentType, audit.kind, 'FAILED', null, error));
+    throw error;
+  }
   return sendDocument({
     ...payload,
     pdfBase64,
     filename: safeFilename(payload.filename)
-  });
+  }, audit);
 }
 
 function documentPermission(payload, actor) {
@@ -432,9 +487,7 @@ function documentPermission(payload, actor) {
 async function handle(req, res) {
   const url = new URL(req.url, 'http://bridge.local');
 
-  if (!auth.applyCors(req, res)) {
-    return json(res, 403, { ok: false, error: 'Origin not allowed' });
-  }
+  if (!auth.applyCors(req, res)) return json(res, 403, { ok: false, error: 'Origin not allowed' });
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204, { 'Cache-Control': 'no-store' });
@@ -442,13 +495,50 @@ async function handle(req, res) {
   }
 
   if (req.method === 'GET' && url.pathname === '/health') {
-    return json(res, 200, { ok: true, service: 'homeeasy-whatsapp-bridge', version: BRIDGE_VERSION });
+    return json(res, 200, {
+      ok: true,
+      service: 'homeeasy-whatsapp-bridge',
+      version: BRIDGE_VERSION,
+      storage: ops.storageStatus()
+    });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/status') {
     const actor = await auth.authorize(req, 'config.read');
     const session = await getSession();
-    return json(res, 200, { ok: true, whatsapp: publicSession(session), actor: auth.publicActor(actor) });
+    return json(res, 200, {
+      ok: true,
+      whatsapp: publicSession(session),
+      bridge: { version: BRIDGE_VERSION, serverTime: new Date().toISOString(), storage: ops.storageStatus() },
+      actor: auth.publicActor(actor),
+      capabilities: capabilities(actor)
+    });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/activity') {
+    await auth.authorize(req, 'config.read');
+    return json(res, 200, {
+      ok: true,
+      items: ops.getActivity(url.searchParams.get('limit') || 60)
+    });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/templates') {
+    await auth.authorize(req);
+    return json(res, 200, { ok: true, ...ops.templatePayload() });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/templates') {
+    const actor = await auth.authorize(req, 'config.read');
+    const payload = await readJsonBody(req);
+    const saved = ops.saveTemplates(payload.templates, auth.publicActor(actor));
+    return json(res, 200, { ok: true, ...saved });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/templates/reset') {
+    const actor = await auth.authorize(req, 'config.read');
+    const saved = ops.resetTemplates(auth.publicActor(actor));
+    return json(res, 200, { ok: true, ...saved });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/bootstrap') {
@@ -471,28 +561,54 @@ async function handle(req, res) {
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/qr') {
     const actor = await auth.authorize(req, 'config.read');
     const session = await ensureSessionStarted();
-    if (session.status === 'WORKING') return json(res, 409, { ok: false, error: 'WhatsApp is already connected', whatsapp: publicSession(session), actor: auth.publicActor(actor) });
+    if (session.status === 'WORKING') {
+      return json(res, 409, { ok: false, error: 'WhatsApp is already connected', whatsapp: publicSession(session), actor: auth.publicActor(actor) });
+    }
     try {
       const qr = await wahaRequest('GET', `/api/${encodeURIComponent(WAHA_SESSION)}/auth/qr`, null, 'application/json');
       return json(res, 200, { ok: true, qr, actor: auth.publicActor(actor) });
     } catch (error) {
-      if (error.statusCode === 422) return json(res, 409, { ok: false, error: 'QR is not available in the current session state', whatsapp: publicSession(await getSession()), actor: auth.publicActor(actor) });
+      if (error.statusCode === 422) {
+        return json(res, 409, { ok: false, error: 'QR is not available in the current session state', whatsapp: publicSession(await getSession()), actor: auth.publicActor(actor) });
+      }
       throw error;
     }
   }
 
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/test-message') {
-    await auth.authorize(req, 'config.read');
+    const actor = await auth.authorize(req, 'config.read');
     const payload = await readJsonBody(req);
-    const result = await sendText(payload.phone, payload.text);
+    const result = await sendText(payload.phone, payload.text, {
+      actor,
+      payload: { ...payload, source: 'configuracion', reference: 'PRUEBA MENSAJE', clientName: 'Prueba HomeEasy' }
+    });
+    return json(res, 200, result);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/test-document') {
+    const actor = await auth.authorize(req, 'config.read');
+    const payload = await readJsonBody(req);
+    const testPayload = {
+      documentType: 'prueba',
+      phone: payload.phone,
+      pdfBase64: ops.testPdfBase64(),
+      filename: 'Prueba_WhatsApp_HomeEasy.pdf',
+      caption: 'Prueba de documentos HomeEasy ✅ Si recibes este PDF, el canal de WhatsApp está funcionando correctamente.',
+      idempotencyKey: `test-pdf:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+      source: 'configuracion',
+      reference: 'PRUEBA PDF',
+      clientName: 'Prueba HomeEasy',
+      resend: false
+    };
+    const result = await sendDocument(testPayload, { actor, documentType: 'prueba', kind: 'test' });
     return json(res, 200, result);
   }
 
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/send-document') {
     const actor = await auth.authorize(req);
     const payload = await readJsonBody(req);
-    documentPermission(payload, actor);
-    const result = await sendDocument(payload);
+    const documentType = documentPermission(payload, actor);
+    const result = await sendDocument(payload, { actor, documentType, kind: 'document' });
     const status = result.delivery === 'UNKNOWN' || result.delivery === 'SENDING' ? 202 : 200;
     return json(res, status, result);
   }
@@ -500,8 +616,8 @@ async function handle(req, res) {
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/send-document-url') {
     const actor = await auth.authorize(req);
     const payload = await readJsonBody(req);
-    documentPermission(payload, actor);
-    const result = await sendStoredDocument(payload);
+    const documentType = documentPermission(payload, actor);
+    const result = await sendStoredDocument(payload, { actor, documentType, kind: 'document' });
     const status = result.delivery === 'UNKNOWN' || result.delivery === 'SENDING' ? 202 : 200;
     return json(res, status, result);
   }
