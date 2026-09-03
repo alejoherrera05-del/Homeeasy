@@ -23,7 +23,7 @@ const rawMessages = [
   {
     id: 'm2',
     timestamp: 1788296460,
-    fromMe: true,
+    key: { id: 'm2-key', fromMe: true },
     body: 'Quedamos atentos a cualquier duda.',
     hasMedia: false
   }
@@ -31,8 +31,9 @@ const rawMessages = [
 
 const messages = conversation.normalizeMessages(rawMessages, { limit: 20 });
 assert.equal(messages.length, 3);
-assert.deepEqual(messages.map(item => item.id), ['m1', 'm2', 'm3']);
+assert.deepEqual(messages.map(item => item.id), ['m1', 'm2-key', 'm3']);
 assert.equal(messages[0].direction, 'OUTGOING');
+assert.equal(messages[1].direction, 'OUTGOING');
 assert.equal(messages[2].direction, 'INCOMING');
 assert.equal(messages[0].media, '[Archivo: Cotizacion_COT-32.pdf]');
 assert.ok(!JSON.stringify(messages).includes('@c.us'));
