@@ -1,0 +1,70 @@
+name: Stage Seguimiento 10D Review Send UI
+
+on:
+  push:
+    branches:
+      - seguimiento-review-send-ui-10d
+    paths:
+      - '.github/workflows/stage-seguimiento-review-send-ui-10d.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: seguimiento-review-send-ui-10d
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Import only certified UI files
+        run: |
+          git fetch origin seguimiento-human-send-10d
+          git checkout origin/seguimiento-human-send-10d -- homeeasy-whatsapp-client.js seguimiento.html seguimiento-hommy.js
+
+      - name: Validate JavaScript
+        run: |
+          node --check homeeasy-whatsapp-client.js
+          node --check seguimiento-hommy.js
+
+      - name: Verify 10D UI contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          client = Path('homeeasy-whatsapp-client.js').read_text(encoding='utf-8')
+          page = Path('seguimiento.html').read_text(encoding='utf-8')
+          hommy = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
+
+          assert "const VERSION = '0.6.0'" in client
+          assert "request('/api/whatsapp/send-followup'" in client
+          start = client.index('function sendFollowup(options)')
+          end = client.index('function connectedPhone', start)
+          assert 'phone:' not in client[start:end]
+          assert 'homeeasy-whatsapp-client.js?v=0.6.0' in page
+          assert 'seguimiento-hommy.js?v=10d1' in page
+          assert "hasPermission('cotizaciones.write')" in hommy
+          assert "sendLabel.textContent = 'Revisar y enviar'" in hommy
+          assert "tipo: 'ACTUALIZAR_ESTADO_SEGUIMIENTO_IA'" in hommy
+          assert "tipo: 'REGISTRAR_EVENTO_SEGUIMIENTO'" in hommy
+          assert "eventType: 'MESSAGE_SENT'" in hommy
+          assert 'FOLLOWUP_CONVERSATION_CHANGED' in hommy
+          assert 'FOLLOWUP_STATE_CHANGED' in hommy
+          print('Seguimiento 10D review-send UI: PASS')
+          PY
+
+      - name: Commit UI only
+        run: |
+          git diff --check
+          git config user.name homeeasy-automation
+          git config user.email actions@users.noreply.github.com
+          git add homeeasy-whatsapp-client.js seguimiento.html seguimiento-hommy.js
+          git commit -m 'Seguimiento 10D: add human review and send UI'
+          git push origin HEAD:seguimiento-review-send-ui-10d
