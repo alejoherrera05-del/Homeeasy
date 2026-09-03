@@ -5,12 +5,14 @@ on:
     branches:
       - main
       - whatsapp-context-10c
+      - whatsapp-deploy-10c
     paths:
       - 'infra/whatsapp/bridge/server.js'
       - 'infra/whatsapp/bridge/auth.js'
       - 'infra/whatsapp/bridge/conversation.js'
       - 'infra/whatsapp/bridge/test-conversation.js'
       - 'infra/whatsapp/bridge/test-conversation-smoke.js'
+      - 'infra/whatsapp/update-bridge.sh'
       - '.github/workflows/whatsapp-context-qa.yml'
   workflow_dispatch:
 
@@ -34,6 +36,14 @@ jobs:
           node --check infra/whatsapp/bridge/conversation.js
           node --check infra/whatsapp/bridge/auth.js
           node --check infra/whatsapp/bridge/operations.js
+
+      - name: Validate controlled Bridge updater
+        run: |
+          bash -n infra/whatsapp/update-bridge.sh
+          grep -Fq 'EXPECTED_VERSION="0.6.0"' infra/whatsapp/update-bridge.sh
+          grep -Fq 'bridge/conversation.js' infra/whatsapp/update-bridge.sh
+          grep -Fq 'docker compose build bridge' infra/whatsapp/update-bridge.sh
+          grep -Fq 'docker compose up -d --no-deps bridge' infra/whatsapp/update-bridge.sh
 
       - name: Run conversation evidence tests
         run: node infra/whatsapp/bridge/test-conversation.js
