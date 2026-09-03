@@ -1,0 +1,56 @@
+name: WhatsApp Context QA
+
+on:
+  push:
+    branches:
+      - main
+      - whatsapp-context-10c
+    paths:
+      - 'infra/whatsapp/bridge/server.js'
+      - 'infra/whatsapp/bridge/conversation.js'
+      - 'infra/whatsapp/bridge/test-conversation.js'
+      - 'infra/whatsapp/bridge/test-conversation-smoke.js'
+      - '.github/workflows/whatsapp-context-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate bridge JavaScript
+        run: |
+          node --check infra/whatsapp/bridge/server.js
+          node --check infra/whatsapp/bridge/conversation.js
+          node --check infra/whatsapp/bridge/auth.js
+          node --check infra/whatsapp/bridge/operations.js
+
+      - name: Run conversation evidence tests
+        run: node infra/whatsapp/bridge/test-conversation.js
+
+      - name: Run authenticated bridge smoke test
+        run: node infra/whatsapp/bridge/test-conversation-smoke.js
+
+      - name: Verify security boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('infra/whatsapp/bridge/server.js').read_text(encoding='utf-8')
+          module = Path('infra/whatsapp/bridge/conversation.js').read_text(encoding='utf-8')
+          assert "'/api/whatsapp/conversation'" in source
+          assert "auth.authorize(req, 'cotizaciones.read')" in source
+          assert "downloadMedia: 'false'" in source
+          assert "source: 'WAHA_WEBJS'" in source
+          assert "mediaUrl" not in module
+          assert "_data" not in module
+          print('WhatsApp context security boundary: PASS')
+          PY
