@@ -179,6 +179,7 @@ class WhatsAppConversationClient:
         self.bridge_url = (bridge_url or os.getenv("HOMMY_WHATSAPP_BRIDGE_URL", DEFAULT_WHATSAPP_BRIDGE)).strip().rstrip("/")
         raw_timeout = timeout if timeout is not None else int(os.getenv("HOMMY_WHATSAPP_CONTEXT_TIMEOUT_SECONDS", "18"))
         self.timeout = max(5, min(int(raw_timeout), 40))
+        self.http = requests.Session()
 
     def context(
         self,
@@ -207,7 +208,7 @@ class WhatsAppConversationClient:
             "limit": "60",
         }
         try:
-            response = requests.get(
+            response = self.http.get(
                 f"{self.bridge_url}/api/whatsapp/conversation",
                 params=params,
                 headers=headers,

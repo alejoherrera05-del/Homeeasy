@@ -250,7 +250,7 @@ class WhatsAppContextClientTests(unittest.TestCase):
             },
         }
         client = WhatsAppConversationClient("https://bridge.example.invalid", timeout=8)
-        with patch("hommy_backend.whatsapp_context.requests.get", return_value=response) as get:
+        with patch.object(client.http, "get", return_value=response) as get:
             result = client.context(
                 "32",
                 source_detail(),
@@ -280,7 +280,7 @@ class WhatsAppContextClientTests(unittest.TestCase):
         client = WhatsAppConversationClient("https://bridge.example.invalid")
         detail = source_detail()
         detail["cliente"]["telefono"] = "#ERROR!"
-        with patch("hommy_backend.whatsapp_context.requests.get") as get:
+        with patch.object(client.http, "get") as get:
             result = client.context(
                 "32",
                 detail,
