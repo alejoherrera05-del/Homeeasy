@@ -475,7 +475,7 @@ async function sendStoredDocument(payload, audit) {
   }, audit);
 }
 
-async function getConversationContext(phoneValue, options) {
+async function getConversationContext(referenceValue, detail, options) {
   const opts = options && typeof options === 'object' ? options : {};
   const session = await getSession();
   if (!session || session.status !== 'WORKING') {
@@ -485,10 +485,17 @@ async function getConversationContext(phoneValue, options) {
     throw error;
   }
 
-  const phone = normalizePhone(phoneValue);
+  const reference = canonicalQuoteReference(referenceValue);
+  const client = detail && detail.cliente && typeof detail.cliente === 'object' ? detail.cliente : {};
+  const followup = detail && detail.seguimiento && typeof detail.seguimiento === 'object' ? detail.seguimiento : {};
+  const quote = detail && detail.cotizacion && typeof detail.cotizacion === 'object' ? detail.cotizacion : {};
+  const phone = normalizePhone(client.telefono || followup.telefono || '');
   const chatId = `${phone}@c.us`;
   const limit = Math.max(1, Math.min(80, Number(opts.limit || 50)));
-  const sinceMs = conversation.timestampMs(opts.since);
+  const quoteMs = conversation.timestampMs(quote.fecha);
+  const canonicalSinceMs = quoteMs ? Math.max(0, quoteMs - 7 * 24 * 60 * 60 * 1000) : 0;
+  const requestedSinceMs = conversation.timestampMs(opts.since);
+  const sinceMs = Math.max(canonicalSinceMs, requestedSinceMs || 0);
   const params = new URLSearchParams({
     limit: String(limit),
     downloadMedia: 'false'
@@ -509,19 +516,31 @@ async function getConversationContext(phoneValue, options) {
   const activity = conversation.normalizeActivity(ops.getActivity(150), {
     phone,
     since: opts.since,
-    reference: opts.reference
+    reference
   });
   const evidence = conversation.buildConversationEvidence(messages, activity);
 
   return {
     ok: true,
     source: 'WAHA_WEBJS',
+    reference,
     session: WAHA_SESSION,
     messages,
     activity,
     evidence,
     serverTime: new Date().toISOString()
   };
+}
+
+function canonicalQuoteReference(value) {
+  const raw = String(value || '').trim().toUpperCase();
+  const match = raw.match(/^COT\s*[-:#]?\s*([A-Z0-9._-]{1,80})$/i);
+  if (!match) throw Object.assign(new Error('Invalid quote reference'), { statusCode: 400 });
+  return `COT-${match[1]}`;
+}
+
+function quoteNumberFromReference(value) {
+  return canonicalQuoteReference(value).slice(4);
 }
 
 function documentPermission(payload, actor) {
@@ -575,8 +594,9 @@ async function handle(req, res) {
 
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/conversation') {
     await auth.authorize(req, 'cotizaciones.read');
-    const result = await getConversationContext(url.searchParams.get('phone') || '', {
-      reference: url.searchParams.get('reference') || '',
+    const reference = canonicalQuoteReference(url.searchParams.get('reference') || '');
+    const detail = await auth.readFollowupDetail(req, quoteNumberFromReference(reference));
+    const result = await getConversationContext(reference, detail, {
       since: url.searchParams.get('since') || '',
       limit: url.searchParams.get('limit') || 50
     });
