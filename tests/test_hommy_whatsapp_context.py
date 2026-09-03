@@ -306,9 +306,9 @@ class FollowupWhatsAppIntegrationTests(unittest.TestCase):
 
     def test_confirmed_quote_silence_reaches_model_as_no_response_evidence(self):
         ai = FakeOpenAI(no_response_plan())
-        whatsapp = SequenceWhatsAppClient([silent_whatsapp(), silent_whatsapp()])
+        whatsapp = SequenceWhatsAppClient([silent_whatsapp()])
         planner = FollowupPlanner(
-            SequenceFollowupClient([source_detail(), source_detail()]),
+            SequenceFollowupClient([source_detail()]),
             ai,
             whatsapp,
         )
@@ -319,23 +319,21 @@ class FollowupWhatsAppIntegrationTests(unittest.TestCase):
             client_meta={"dispositivoId": "device-1"},
             now=self.now,
         )
-        self.assertEqual(result["stage"], "10C")
+        self.assertEqual(result["stage"], "10C2")
         self.assertEqual(result["plan"]["decision"], "SEND")
         self.assertEqual(result["plan"]["intent"], "NO_RESPONSE")
-        self.assertEqual(result["model"], planner.model)
-        self.assertEqual(len(ai.responses.calls), 1)
-        prompt = ai.responses.calls[0]["input"][0]["content"]
-        self.assertIn("Quedamos atentos a cualquier duda", prompt)
-        self.assertIn('"incomingCount":0', prompt)
-        self.assertIn('"reference":"COT-32"', prompt)
-        self.assertNotIn("3001112233", prompt)
-        self.assertNotIn("SECRET-ID", prompt)
+        self.assertEqual(result["model"], "deterministic-guard")
+        self.assertEqual(len(ai.responses.calls), 0)
+        self.assertEqual(len(whatsapp.calls), 1)
+        self.assertIn("Karen", result["plan"]["message"])
+        self.assertIn("propuesta", result["plan"]["message"].lower())
+        self.assertIn("ajustar o comparar", result["plan"]["message"])
 
     def test_new_whatsapp_reply_discards_stale_plan(self):
         planner = FollowupPlanner(
             SequenceFollowupClient([source_detail(), source_detail()]),
             FakeOpenAI(no_response_plan()),
-            SequenceWhatsAppClient([silent_whatsapp(), with_reply()]),
+            SequenceWhatsAppClient([with_reply(), silent_whatsapp()]),
         )
         with self.assertRaises(FollowupPlanError) as raised:
             planner.plan(
