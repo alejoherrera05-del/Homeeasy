@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import quote
 
-import requests
+import httpx
 
 from .periods import HOME_EASY_TIMEZONE
 
@@ -179,7 +179,7 @@ class WhatsAppConversationClient:
         self.bridge_url = (bridge_url or os.getenv("HOMMY_WHATSAPP_BRIDGE_URL", DEFAULT_WHATSAPP_BRIDGE)).strip().rstrip("/")
         raw_timeout = timeout if timeout is not None else int(os.getenv("HOMMY_WHATSAPP_CONTEXT_TIMEOUT_SECONDS", "18"))
         self.timeout = max(5, min(int(raw_timeout), 40))
-        self.http = requests.Session()
+        self.http = httpx.Client(timeout=self.timeout, follow_redirects=True)
 
     def context(
         self,
@@ -212,14 +212,12 @@ class WhatsAppConversationClient:
                 f"{self.bridge_url}/api/whatsapp/conversation",
                 params=params,
                 headers=headers,
-                timeout=self.timeout,
-                allow_redirects=True,
             )
             response.raise_for_status()
             payload = response.json()
-        except requests.Timeout:
+        except httpx.TimeoutException:
             return {"available": False, "reason": "WHATSAPP_CONTEXT_TIMEOUT", "messages": [], "activity": [], "evidence": {}}
-        except (requests.RequestException, ValueError):
+        except (httpx.HTTPError, ValueError):
             return {"available": False, "reason": "WHATSAPP_CONTEXT_UNAVAILABLE", "messages": [], "activity": [], "evidence": {}}
 
         if not isinstance(payload, dict) or payload.get("ok") is not True:
