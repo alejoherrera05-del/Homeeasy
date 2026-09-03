@@ -1,0 +1,79 @@
+name: Patch WhatsApp Follow-up Send 10D
+
+on:
+  push:
+    branches:
+      - seguimiento-human-send-10d
+    paths:
+      - 'scripts/patch_whatsapp_followup_send_10d.py'
+      - 'infra/whatsapp/bridge/test-followup-send-smoke.js'
+      - '.github/workflows/patch-whatsapp-followup-send-10d.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: seguimiento-human-send-10d
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Apply patch
+        run: python scripts/patch_whatsapp_followup_send_10d.py
+
+      - name: Validate JavaScript and updater
+        run: |
+          node --check infra/whatsapp/bridge/server.js
+          node --check infra/whatsapp/bridge/auth.js
+          node --check infra/whatsapp/bridge/conversation.js
+          node --check infra/whatsapp/bridge/operations.js
+          bash -n infra/whatsapp/update-bridge.sh
+
+      - name: Run existing conversation QA
+        run: |
+          node infra/whatsapp/bridge/test-conversation.js
+          node infra/whatsapp/bridge/test-conversation-smoke.js
+
+      - name: Run human-approved send QA
+        run: node infra/whatsapp/bridge/test-followup-send-smoke.js
+
+      - name: Verify 10D security boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('infra/whatsapp/bridge/server.js').read_text(encoding='utf-8')
+          updater = Path('infra/whatsapp/update-bridge.sh').read_text(encoding='utf-8')
+          assert "const BRIDGE_VERSION = '0.7.0'" in source
+          assert "url.pathname === '/api/whatsapp/send-followup'" in source
+          assert "auth.authorize(req, 'cotizaciones.write')" in source
+          assert "auth.readFollowupDetail(req" in source
+          assert 'assertFollowupSendable' in source
+          assert 'conversationChangedAfter' in source
+          assert "mode !== 'REVIEW'" in source
+          assert 'FOLLOWUP_CONVERSATION_CHANGED' in source
+          assert 'FOLLOWUP_STATE_CHANGED' in source
+          assert 'followup:${reference}:${planId}' in source
+          assert "kind: 'followup'" not in source  # activity is emitted through activityMeta arguments, not browser payload
+          assert 'EXPECTED_VERSION="0.7.0"' in updater
+          print('WhatsApp 10D secure human-send boundary: PASS')
+          PY
+
+      - name: Commit patched bridge
+        run: |
+          if git diff --quiet -- infra/whatsapp/bridge/server.js infra/whatsapp/update-bridge.sh; then
+            echo 'No bridge changes to commit'
+            exit 0
+          fi
+          git config user.name homeeasy-automation
+          git config user.email actions@users.noreply.github.com
+          git add infra/whatsapp/bridge/server.js infra/whatsapp/update-bridge.sh
+          git commit -m 'WhatsApp 10D: add human-approved follow-up send route'
+          git push origin HEAD:seguimiento-human-send-10d
