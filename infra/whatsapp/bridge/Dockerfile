@@ -6,6 +6,7 @@ COPY package.json ./
 COPY server.js ./
 COPY auth.js ./
 COPY operations.js ./
+COPY conversation.js ./
 
 RUN mkdir -p /app/data && chown -R node:node /app
 
