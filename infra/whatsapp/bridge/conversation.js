@@ -68,10 +68,11 @@ function normalizeMessages(raw, options) {
     const media = mediaLabel(item);
     if (!body && !media) continue;
 
+    const fromMe = item.fromMe === true || Boolean(item.key && item.key.fromMe === true);
     out.push({
       id,
       at: atMs ? new Date(atMs).toISOString() : '',
-      direction: item.fromMe === true ? 'OUTGOING' : 'INCOMING',
+      direction: fromMe ? 'OUTGOING' : 'INCOMING',
       text: body || media,
       hasMedia: Boolean(item.hasMedia || media),
       media: media || '',
