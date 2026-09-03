@@ -31,7 +31,7 @@ const rawMessages = [
 
 const messages = conversation.normalizeMessages(rawMessages, { limit: 20 });
 assert.equal(messages.length, 3);
-assert.deepEqual(messages.map(item => item.id), ['m1', 'm2-key', 'm3']);
+assert.deepEqual(messages.map(item => item.id), ['m1', 'm2', 'm3']);
 assert.equal(messages[0].direction, 'OUTGOING');
 assert.equal(messages[1].direction, 'OUTGOING');
 assert.equal(messages[2].direction, 'INCOMING');
