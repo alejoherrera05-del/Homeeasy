@@ -1,0 +1,58 @@
+name: Fix Hommy 10C2 Polish
+
+on:
+  push:
+    branches:
+      - hommy-followup-fastpath-10c2
+    paths:
+      - scripts/fix_hommy_10c2_polish.py
+      - .github/workflows/fix-hommy-10c2-polish.yml
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hommy-followup-fastpath-10c2
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply polish
+        run: python scripts/fix_hommy_10c2_polish.py
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile
+        run: python -m compileall -q servidor.py hommy_backend tests
+      - name: Run WhatsApp follow-up tests
+        run: python -m unittest tests.test_hommy_whatsapp_context -v
+      - name: Full suite
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Check wording and config
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('hommy_backend/followup.py').read_text(encoding='utf-8')
+          render = Path('render.yaml').read_text(encoding='utf-8')
+          assert 're.sub(r"\\s+"' in source
+          assert 'HOMMY_FIRST_SILENCE_MIN_HOURS' in source
+          assert 'ajustar o comparar' in source
+          assert 'HOMMY_FIRST_SILENCE_MIN_HOURS' in render
+          print('Hommy 10C2 polish checks: PASS')
+          PY
+      - name: Commit result
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name homeeasy-automation
+          git config user.email actions@users.noreply.github.com
+          git add hommy_backend/followup.py render.yaml tests/test_hommy_whatsapp_context.py
+          git commit -m 'Polish Hommy 10C2 first-silence plan [skip render]'
+          git push origin HEAD:hommy-followup-fastpath-10c2
