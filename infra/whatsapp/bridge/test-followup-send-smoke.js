@@ -187,12 +187,23 @@ async function send(body, token) {
 
   try {
     await waitForBridge();
+    const generatedAt = new Date(Date.now() - 5000).toISOString();
+    const contextUrl = new URL(`http://127.0.0.1:${BRIDGE_PORT}/api/whatsapp/conversation`);
+    contextUrl.searchParams.set('reference', 'COT-32');
+    contextUrl.searchParams.set('since', generatedAt);
+    contextUrl.searchParams.set('limit', '30');
+    const contextResponse = await fetch(contextUrl, { headers: headers() });
+    const contextPayload = await contextResponse.json();
+    assert.equal(contextResponse.status, 200, JSON.stringify(contextPayload));
+    assert.deepEqual(contextPayload.messages, []);
+    assert.deepEqual(contextPayload.activity, []);
+
     const base = {
       reference: 'COT-32',
       text: 'Hola Karen 😊 Quería saber si alcanzaste a revisar la propuesta.',
       planId: 'FUP-ABCDEF123456',
       expectedVersion: 7,
-      generatedAt: new Date(Date.now() - 5000).toISOString(),
+      generatedAt,
       phone: '573999999999'
     };
 
