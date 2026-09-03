@@ -5,6 +5,7 @@ REPO_URL="https://github.com/alejoherrera05-del/Homeeasy.git"
 INSTALL_DIR="/opt/homeeasy-whatsapp"
 TMP_DIR="$(mktemp -d)"
 HEALTH_FILE="/tmp/homeeasy-bridge-health.json"
+EXPECTED_VERSION="0.6.0"
 
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
@@ -25,6 +26,7 @@ git clone --depth 1 "$REPO_URL" "$TMP_DIR/repo" >/dev/null 2>&1
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/server.js" "$INSTALL_DIR/bridge/server.js"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/auth.js" "$INSTALL_DIR/bridge/auth.js"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/operations.js" "$INSTALL_DIR/bridge/operations.js"
+cp "$TMP_DIR/repo/infra/whatsapp/bridge/conversation.js" "$INSTALL_DIR/bridge/conversation.js"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/Dockerfile" "$INSTALL_DIR/bridge/Dockerfile"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/package.json" "$INSTALL_DIR/bridge/package.json"
 
@@ -59,8 +61,8 @@ fi
 cat "$HEALTH_FILE" | jq .
 VERSION="$(jq -r '.version // empty' "$HEALTH_FILE")"
 STORAGE="$(jq -r '.storage // empty' "$HEALTH_FILE")"
-if [[ "$VERSION" != "0.5.0" ]]; then
-  echo "El Bridge no quedó en v0.5.0. Revisa: cd $INSTALL_DIR && docker compose logs bridge"
+if [[ "$VERSION" != "$EXPECTED_VERSION" ]]; then
+  echo "El Bridge no quedó en v$EXPECTED_VERSION. Revisa: cd $INSTALL_DIR && docker compose logs bridge"
   exit 1
 fi
 if [[ "$STORAGE" != "OK" ]]; then
@@ -70,4 +72,4 @@ if [[ "$STORAGE" != "OK" ]]; then
 fi
 
 echo
-echo "Bridge actualizado correctamente a v0.5.0. Almacenamiento OK. La sesión de WhatsApp permanece intacta."
+echo "Bridge actualizado correctamente a v$EXPECTED_VERSION. Almacenamiento OK. La sesión de WhatsApp permanece intacta."
