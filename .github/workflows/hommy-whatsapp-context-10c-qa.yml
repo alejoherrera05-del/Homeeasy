@@ -1,0 +1,67 @@
+name: Hommy WhatsApp Context 10C QA
+
+on:
+  push:
+    branches:
+      - hommy-whatsapp-context-10c
+      - hommy-2.0
+    paths:
+      - 'hommy_backend/followup.py'
+      - 'hommy_backend/whatsapp_context.py'
+      - 'tests/test_hommy_followup.py'
+      - 'tests/test_hommy_whatsapp_context.py'
+      - 'servidor.py'
+      - 'requirements.txt'
+      - '.github/workflows/hommy-whatsapp-context-10c-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      OPENAI_API_KEY: test-key-not-for-network-calls
+      HOMMY_CONVERSATION_SECRET: hommy-ci-conversation-secret
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Compile backend
+        run: python -m py_compile servidor.py hommy_backend/*.py
+
+      - name: Run full Hommy unit suite
+        run: python -m unittest discover -s tests -v
+
+      - name: Verify WhatsApp boundary stays read-only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          context = Path('hommy_backend/whatsapp_context.py').read_text(encoding='utf-8')
+          followup = Path('hommy_backend/followup.py').read_text(encoding='utf-8')
+
+          assert 'requests.get(' in context
+          assert 'requests.post(' not in context
+          assert '/api/whatsapp/conversation' in context
+          assert '/api/whatsapp/send' not in context
+          assert 'X-HomeEasy-Session' in context
+          assert 'X-HomeEasy-Device-Id' in context
+          assert 'store=False' in followup
+          assert 'commercial_context["whatsapp"]' in followup
+          assert 'latest_whatsapp = self.whatsapp_client.context(' in followup
+          assert 'FOLLOWUP_STATE_CHANGED' in followup
+          print('Hommy WhatsApp 10C read-only boundary: PASS')
+          PY
+
+      - name: Diff hygiene
+        run: git diff --check
