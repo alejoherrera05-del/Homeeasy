@@ -512,10 +512,11 @@ async function getConversationContext(referenceValue, detail, options) {
     if (Number(error.statusCode || 0) !== 404) throw error;
   }
 
-  const messages = conversation.normalizeMessages(rawMessages, { since: opts.since, limit });
+  const effectiveSince = sinceMs ? new Date(sinceMs).toISOString() : '';
+  const messages = conversation.normalizeMessages(rawMessages, { since: effectiveSince, limit });
   const activity = conversation.normalizeActivity(ops.getActivity(150), {
     phone,
-    since: opts.since,
+    since: effectiveSince,
     reference
   });
   const evidence = conversation.buildConversationEvidence(messages, activity);
