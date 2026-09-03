@@ -1,0 +1,53 @@
+name: Hommy Follow-up 10B Live Contract
+
+on:
+  push:
+    branches:
+      - hommy-2.0
+    paths:
+      - 'hommy_backend/followup.py'
+      - 'servidor.py'
+      - '.github/workflows/hommy-followup-10b-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify deployed 10B boundary
+        run: |
+          set -euo pipefail
+          BASE='https://homeeasy-hommy-staging.onrender.com'
+
+          HEALTH_STATUS=$(curl --silent --show-error --location --max-time 30 --connect-timeout 10 \
+            --output /tmp/hommy-health.json --write-out '%{http_code}' "$BASE/api/health")
+          echo "health=$HEALTH_STATUS"
+          test "$HEALTH_STATUS" = '200'
+          grep -q '"service":"Hommy"' /tmp/hommy-health.json
+
+          FOLLOWUP_STATUS=$(curl --silent --show-error --max-time 30 --connect-timeout 10 \
+            --output /tmp/hommy-followup.json --write-out '%{http_code}' \
+            -X POST "$BASE/api/hommy/followup/plan" \
+            -H 'Content-Type: application/json' \
+            --data '{"numero":"32","context":{"ignore":"browser-data"}}')
+          echo "followup_unauthenticated=$FOLLOWUP_STATUS"
+          cat /tmp/hommy-followup.json
+          echo
+          test "$FOLLOWUP_STATUS" = '401'
+          grep -q 'AUTH_REQUIRED' /tmp/hommy-followup.json
+
+          PREFLIGHT_STATUS=$(curl --silent --show-error --max-time 20 --connect-timeout 8 \
+            --output /dev/null --dump-header /tmp/hommy-followup-cors.txt --write-out '%{http_code}' \
+            -X OPTIONS "$BASE/api/hommy/followup/plan" \
+            -H 'Origin: https://alejoherrera05-del.github.io' \
+            -H 'Access-Control-Request-Method: POST')
+          echo "followup_preflight=$PREFLIGHT_STATUS"
+          test "$PREFLIGHT_STATUS" = '204'
+          grep -qi '^Access-Control-Allow-Origin: https://alejoherrera05-del.github.io' /tmp/hommy-followup-cors.txt
+          grep -qi '^X-Content-Type-Options: nosniff' /tmp/hommy-followup-cors.txt
+
+          echo 'Hommy Follow-up 10B live contract passed'
