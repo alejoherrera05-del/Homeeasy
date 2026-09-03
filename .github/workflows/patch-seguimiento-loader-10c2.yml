@@ -37,7 +37,8 @@ jobs:
           from pathlib import Path
           page = Path('seguimiento.html').read_text(encoding='utf-8')
           source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
-          assert page.count('seguimiento-hommy.js?v=10c2') == 1
+          tag = '<script src="seguimiento-hommy.js?v=10c2" defer></script>'
+          assert page.count(tag) == 1
           assert 'seguimiento-hommy.js?v=10c2-retry' in page
           assert 'const REQUEST_TIMEOUT_MS = 90_000;' in source
           assert '__HOMEEASY_SEGUIMIENTO_HOMMY_10B__' in page
