@@ -7,7 +7,7 @@ const auth = require('./auth');
 const ops = require('./operations');
 const conversation = require('./conversation');
 
-const BRIDGE_VERSION = '0.6.0';
+const BRIDGE_VERSION = '0.6.1';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -475,6 +475,60 @@ async function sendStoredDocument(payload, audit) {
   }, audit);
 }
 
+function addConversationChatCandidate(target, value) {
+  const candidate = String(value || '').trim();
+  if (!candidate || !/@(?:c\.us|lid)$/i.test(candidate)) return;
+  if (!target.includes(candidate)) target.push(candidate);
+}
+
+async function resolveConversationChatCandidates(phone) {
+  const candidates = [];
+  addConversationChatCandidate(candidates, `${phone}@c.us`);
+
+  try {
+    const mapped = await wahaRequest(
+      'GET',
+      `/api/${encodeURIComponent(WAHA_SESSION)}/lids/pn/${encodeURIComponent(phone)}`
+    );
+    if (mapped && typeof mapped === 'object') addConversationChatCandidate(candidates, mapped.lid);
+  } catch (error) {
+    const code = Number(error && error.statusCode || 0);
+    if (![404, 422, 500].includes(code)) throw error;
+  }
+
+  if (!candidates.some(candidate => /@lid$/i.test(candidate))) {
+    try {
+      const contact = await wahaRequest(
+        'GET',
+        `/api/contacts?contactId=${encodeURIComponent(phone)}&session=${encodeURIComponent(WAHA_SESSION)}`
+      );
+      if (contact && typeof contact === 'object') {
+        addConversationChatCandidate(candidates, contact.lid);
+        addConversationChatCandidate(candidates, contact.id);
+      }
+    } catch (error) {
+      const code = Number(error && error.statusCode || 0);
+      if (![404, 422, 500].includes(code)) throw error;
+    }
+  }
+
+  return candidates;
+}
+
+async function fetchConversationMessagesCandidate(chatId, params) {
+  try {
+    const data = await wahaRequest(
+      'GET',
+      `/api/${encodeURIComponent(WAHA_SESSION)}/chats/${encodeURIComponent(chatId)}/messages?${params.toString()}`
+    );
+    return { ok: true, data: Array.isArray(data) ? data : data && Array.isArray(data.data) ? data.data : data && Array.isArray(data.items) ? data.items : [] };
+  } catch (error) {
+    const code = Number(error && error.statusCode || 0);
+    if ([404, 422, 500].includes(code)) return { ok: false, status: code, data: [] };
+    throw error;
+  }
+}
+
 async function getConversationContext(referenceValue, detail, options) {
   const opts = options && typeof options === 'object' ? options : {};
   const session = await getSession();
@@ -490,7 +544,7 @@ async function getConversationContext(referenceValue, detail, options) {
   const followup = detail && detail.seguimiento && typeof detail.seguimiento === 'object' ? detail.seguimiento : {};
   const quote = detail && detail.cotizacion && typeof detail.cotizacion === 'object' ? detail.cotizacion : {};
   const phone = normalizePhone(client.telefono || followup.telefono || '');
-  const chatId = `${phone}@c.us`;
+  const chatCandidates = await resolveConversationChatCandidates(phone);
   const limit = Math.max(1, Math.min(80, Number(opts.limit || 50)));
   const quoteMs = conversation.timestampMs(quote.fecha);
   const canonicalSinceMs = quoteMs ? Math.max(0, quoteMs - 7 * 24 * 60 * 60 * 1000) : 0;
@@ -502,14 +556,14 @@ async function getConversationContext(referenceValue, detail, options) {
   });
   if (sinceMs) params.set('filter.timestamp.gte', String(Math.floor(sinceMs / 1000)));
 
-  let rawMessages = [];
-  try {
-    rawMessages = await wahaRequest(
-      'GET',
-      `/api/${encodeURIComponent(WAHA_SESSION)}/chats/${encodeURIComponent(chatId)}/messages?${params.toString()}`
-    );
-  } catch (error) {
-    if (Number(error.statusCode || 0) !== 404) throw error;
+  const rawMessages = [];
+  let successfulQueries = 0;
+  let failedQueries = 0;
+  for (const chatId of chatCandidates) {
+    const result = await fetchConversationMessagesCandidate(chatId, params);
+    if (result.ok) successfulQueries += 1;
+    else failedQueries += 1;
+    if (Array.isArray(result.data)) rawMessages.push(...result.data);
   }
 
   const effectiveSince = sinceMs ? new Date(sinceMs).toISOString() : '';
@@ -529,6 +583,12 @@ async function getConversationContext(referenceValue, detail, options) {
     messages,
     activity,
     evidence,
+    lookup: {
+      candidateCount: chatCandidates.length,
+      lidResolved: chatCandidates.some(candidate => /@lid$/i.test(candidate)),
+      successfulQueries,
+      failedQueries
+    },
     serverTime: new Date().toISOString()
   };
 }
