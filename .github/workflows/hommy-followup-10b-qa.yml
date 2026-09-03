@@ -1,0 +1,112 @@
+name: Hommy Follow-up 10B QA
+
+on:
+  push:
+    branches:
+      - hommy-followup-10b
+    paths:
+      - 'hommy_backend/**'
+      - 'servidor.py'
+      - 'tests/**'
+      - '.github/workflows/hommy-followup-10b-qa.yml'
+      - 'docs/HOMMY_FOLLOWUP_10B_AUDIT.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OPENAI_API_KEY: test-key-not-for-network-calls
+      HOMMY_CONVERSATION_SECRET: hommy-ci-conversation-secret
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile backend
+        run: python -m py_compile servidor.py hommy_backend/*.py
+
+      - name: Verify OpenAI Structured Outputs contract
+        run: |
+          python - <<'PY'
+          import inspect
+          from openai import OpenAI
+
+          client = OpenAI(api_key='test-key-not-for-network-calls')
+          params = inspect.signature(client.responses.create).parameters
+          assert 'text' in params, 'Responses text/Structured Outputs parameter missing'
+          assert 'safety_identifier' in params, 'Responses safety_identifier parameter missing'
+          print('Responses Structured Outputs contract available')
+          PY
+
+      - name: Run 10B follow-up tests
+        run: python -m unittest tests.test_hommy_followup -v
+
+      - name: Existing suite A · auth data cache
+        run: >-
+          python -m unittest -v
+          tests.test_auth_upstream_transport
+          tests.test_backend_contract
+          tests.test_homeeasy_session_stability
+          tests.test_hommy_analytics_v2
+          tests.test_hommy_cache_v2
+
+      - name: Existing suite B · continuity engine periods
+        run: >-
+          python -m unittest -v
+          tests.test_hommy_continuity
+          tests.test_hommy_data_v2
+          tests.test_hommy_engine_metrics
+          tests.test_hommy_intent_eval
+          tests.test_hommy_intent_model_eval
+          tests.test_hommy_periods
+
+      - name: Existing C1 · RBAC
+        run: python -m unittest tests.test_hommy_rbac -v
+
+      - name: Existing C2 · tools
+        run: python -m unittest tests.test_hommy_tools_v2 -v
+
+      - name: Existing C3 · voice
+        run: python -m unittest tests.test_hommy_voice_ux -v
+
+      - name: Existing suite D · HTTP static legacy
+        run: >-
+          python -m unittest -v
+          tests.test_http_contract
+          tests.test_no_legacy_hommy
+          tests.test_static_contract
+
+      - name: Verify no accidental write or WhatsApp dependency in 10B module
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('hommy_backend/followup.py').read_text(encoding='utf-8')
+          assert 'GET_SEGUIMIENTO_DETALLE' in source
+          for forbidden in (
+              'ACTUALIZAR_ESTADO_SEGUIMIENTO_IA',
+              'REGISTRAR_EVENTO_SEGUIMIENTO',
+              '/api/whatsapp/',
+              'sendText(',
+              'send-document',
+          ):
+              assert forbidden not in source, f'10B read-only boundary violated: {forbidden}'
+          print('10B remains read-only and WhatsApp-free')
+          PY
+
+      - name: Diff hygiene
+        run: git diff --check HEAD~1 HEAD || git diff --check

@@ -1,8 +1,10 @@
 import time
 import unittest
+from datetime import datetime
 
 from hommy_backend.auth import AuthContext
 from hommy_backend.data import HomeEasyDataStore, Snapshot
+from hommy_backend.periods import HOME_EASY_TIMEZONE
 from hommy_backend.tools import (
     PERMISSIONS,
     TOOL_SPECS,
@@ -40,9 +42,10 @@ def store():
         "ordenes": [{**order, "abonos_extra": [payment]}],
         "cotizaciones": [quote],
     }
+    current_homeeasy_day = datetime.now(HOME_EASY_TIMEZONE).date().isoformat()
     data._snapshot = Snapshot(
         time.time(), {"900": client}, [quote], [order], {"38": [payment]},
-        [{"id": "A1", "fecha": "2026-08-28", "hora": "10:00", "categoria": "VISITA", "titulo": "Medición", "cliente": "Cliente Prueba", "estado": "PENDIENTE"}],
+        [{"id": "A1", "fecha": current_homeeasy_day, "hora": "10:00", "categoria": "VISITA", "titulo": "Medición", "cliente": "Cliente Prueba", "estado": "PENDIENTE"}],
         [],
         "2026-08-28T10:00:00-05:00",
     )

@@ -13,6 +13,7 @@ from hommy_backend.auth import HommyAuthError, SessionValidator, decode_client_m
 from hommy_backend.continuity import RealtimeConversationSync, RealtimeSyncUnavailable
 from hommy_backend.data import HomeEasyDataStore, HomeEasyDataError
 from hommy_backend.engine import HommyEngine, HommyEngineError
+from hommy_backend.followup import FollowupError, FollowupPlanner, require_followup_permission
 from hommy_backend.realtime import RealtimeError, create_call
 from hommy_backend.tools import ToolPermissionError, execute_tool
 
@@ -23,6 +24,7 @@ validator = SessionValidator()
 data_store = HomeEasyDataStore()
 engine: HommyEngine | None = None
 realtime_sync: RealtimeConversationSync | None = None
+followup_planner: FollowupPlanner | None = None
 
 
 class HommyRateLimitError(RuntimeError):
@@ -83,6 +85,13 @@ def get_realtime_sync() -> RealtimeConversationSync:
     if realtime_sync is None or realtime_sync.engine is not hommy_engine:
         realtime_sync = RealtimeConversationSync(hommy_engine)
     return realtime_sync
+
+
+def get_followup_planner() -> FollowupPlanner:
+    global followup_planner
+    if followup_planner is None:
+        followup_planner = FollowupPlanner()
+    return followup_planner
 
 
 def allowed_origins() -> set[str]:
@@ -161,6 +170,11 @@ def handle_data(error: HomeEasyDataError):
 @app.errorhandler(HommyEngineError)
 def handle_engine(error: HommyEngineError):
     return json_error(str(error), "HOMMY_ERROR", 400)
+
+
+@app.errorhandler(FollowupError)
+def handle_followup(error: FollowupError):
+    return json_error(str(error), error.code, error.status_code)
 
 
 @app.errorhandler(RealtimeSyncUnavailable)
@@ -251,6 +265,34 @@ def hommy_tool():
     data_ms = (time.perf_counter() - data_started) * 1000
     log_timing("tool", auth_ms=auth_ms, data_ms=data_ms, tools_ms=data_ms, total_ms=(time.perf_counter() - started) * 1000)
     return jsonify({"ok": True, "result": result})
+
+
+@app.post("/api/hommy/followup/plan", provide_automatic_options=False)
+def hommy_followup_plan():
+    started = time.perf_counter()
+    auth_started = time.perf_counter()
+    context = auth_context()
+    require_followup_permission(context)
+    enforce_rate_limit(context, "followup-plan", "HOMMY_RATE_FOLLOWUP_PER_MINUTE", 12)
+    auth_ms = (time.perf_counter() - auth_started) * 1000
+
+    payload: dict[str, Any] = request.get_json(silent=True) or {}
+    quote_number = str(payload.get("numero") or payload.get("quoteNumber") or "").strip()
+
+    # Deliberately ignore any client-supplied quote/customer/context fields. 10B
+    # rereads the canonical opportunity from HomeEasy using the authenticated session.
+    result = get_followup_planner().plan(
+        quote_number,
+        context,
+        session_token=request.headers.get("X-HomeEasy-Session", ""),
+        client_meta=decode_client_meta(request.headers.get("X-HomeEasy-Meta", "")),
+    )
+    log_timing(
+        "followup_plan",
+        auth_ms=auth_ms,
+        total_ms=(time.perf_counter() - started) * 1000,
+    )
+    return jsonify({"ok": True, **result})
 
 
 @app.post("/api/hommy/realtime/session", provide_automatic_options=False)
