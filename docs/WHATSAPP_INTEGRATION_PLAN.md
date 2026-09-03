@@ -1,27 +1,21 @@
 # HomeEasy · Ruta de integración WhatsApp
 
-Estado: **Fase 1 completada · Fase 2 pendiente de HTTPS/Integraciones**
+Actualizado: **03-sep-2026**
+
+Estado: **Canal saliente operativo e integrado en HomeEasy · siguiente etapa: seguimiento inteligente con Hommy**
 
 ## Objetivo
 
-Conectar HomeEasy con WhatsApp para enviar desde la app, sin depender de WhatsApp instalado en el PC o teléfono:
+Conectar HomeEasy con WhatsApp para enviar desde la app sin depender de WhatsApp instalado en el PC o teléfono, manteniendo el canal desacoplado del flujo principal de HomeEasy.
 
-- Cotizaciones en PDF.
-- Órdenes de pedido en PDF.
-- Recibos de abono en PDF.
-
-La primera implementación usa **WAHA + WEBJS**, alojada en un VPS 24/7 con Docker y sesión persistente.
-
-## Arquitectura aprobada
+## Arquitectura vigente
 
 ```text
 HomeEasy (GitHub Pages)
         |
+        | sesión/permisos HomeEasy
         v
-Backend HomeEasy (Google Apps Script)
-        |
-        v
-HomeEasy WhatsApp Bridge (VPS, HTTPS, autenticado)
+HomeEasy WhatsApp Bridge · api.homeeasy.com.co
         |
         v
 WAHA + WEBJS (red Docker privada)
@@ -33,105 +27,126 @@ WhatsApp Web
 Cliente
 ```
 
-### Reglas de seguridad
+WAHA no se consume directamente desde los HTML públicos.
 
-1. WAHA **no** se llama directamente desde los HTML públicos.
-2. Ninguna API key, token o sesión se guarda en GitHub.
-3. El Bridge es el único componente que podrá exponerse para la integración de HomeEasy.
-4. WAHA queda privado en el VPS y protegido con `X-Api-Key`.
-5. La sesión de WhatsApp se guarda fuera del contenedor en almacenamiento persistente del VPS.
-6. `.env`, sesiones, backups y archivos temporales están excluidos de Git.
+---
 
-## Fases
+# Estado real actual
 
-### Fase 1 · Infraestructura aislada — COMPLETADA ✅
+## Infraestructura
 
-- VPS Hetzner CX23, Ubuntu 24.04, Falkenstein.
-- Docker + Docker Compose instalados.
-- WAHA 2026.8.1 con motor WEBJS.
-- Volumen persistente para `.sessions`.
-- Autoarranque después de reinicio.
-- HomeEasy WhatsApp Bridge desplegado.
-- Sesión `homeeasy` vinculada por QR.
-- Estado verificado: `WORKING`, `ready: true`.
-- Primer mensaje de prueba enviado y recibido correctamente.
-- Primer PDF de prueba enviado y recibido correctamente.
+- VPS 24/7 con Docker.
+- WAHA con motor WEBJS.
+- Sesión persistente `homeeasy`.
+- Bridge público por HTTPS en `api.homeeasy.com.co`.
+- WAHA permanece privado dentro de la infraestructura.
+- Reinicio y recuperación guiada de sesión disponibles.
 
-**Resultado:** la cadena `VPS → Bridge → WAHA → WhatsApp` funciona en producción real.
+## HomeEasy WhatsApp Bridge
 
-### Fase 2 · HTTPS + Configuración dentro de HomeEasy
+Versión actual del código: **0.5.0**.
 
-Antes de conectar los HTML públicos se debe exponer **solo el Bridge** mediante HTTPS válido y mantener WAHA privado.
+Capacidades implementadas:
 
-Después crear en `configuracion.html` una sección **Integraciones → WhatsApp HomeEasy** con:
+- `GET /health`
+- `GET /api/whatsapp/status`
+- `GET /api/whatsapp/activity`
+- `GET /api/whatsapp/templates`
+- `POST /api/whatsapp/templates`
+- `POST /api/whatsapp/templates/reset`
+- `POST /api/whatsapp/bootstrap`
+- `POST /api/whatsapp/restart`
+- `GET /api/whatsapp/qr`
+- `POST /api/whatsapp/test-message`
+- `POST /api/whatsapp/test-document`
+- `POST /api/whatsapp/send-document`
+- `POST /api/whatsapp/send-document-url`
 
-- Estado: Conectado / Reconectando / Necesita vincularse.
-- Número conectado.
-- Última comprobación.
-- Botón `Probar conexión`.
-- Botón `Enviar mensaje de prueba`.
-- QR solamente cuando la sesión lo requiera.
+El Bridge registra actividad persistente, mantiene plantillas persistentes y usa idempotencia para reducir el riesgo de documentos duplicados.
 
-### Fase 3 · Cotizaciones
+## Configuración dentro de HomeEasy
 
-- Botón `Enviar por WhatsApp` después de generar el PDF.
-- Confirmación de número antes de enviar.
-- Estado `PENDIENTE / ENVIADO / ERROR`.
-- Sin envío automático inicialmente.
+La integración visual en `Configuración → Integraciones → WhatsApp HomeEasy` ya existe.
 
-### Fase 4 · Pedido + Abono
+El cliente `homeeasy-whatsapp-client.js`:
 
-Reutilizar exactamente el mismo servicio para:
+- usa la sesión HomeEasy;
+- consulta estado;
+- consulta actividad;
+- administra plantillas;
+- permite reinicio/recuperación;
+- obtiene QR cuando corresponde;
+- envía mensajes/PDF de prueba;
+- envía documentos de HomeEasy;
+- evita que una falla del canal WhatsApp cierre o altere la sesión principal de HomeEasy.
 
-- Orden de pedido.
-- Recibo de abono.
+## Envío de documentos
 
-### Fase 5 · Cola y recuperación
+El canal ya puede reutilizarse para:
 
-- Reintentos automáticos.
-- Evitar duplicados.
-- Mantener el documento guardado aunque WhatsApp esté caído.
-- Registro de fecha, número, documento y resultado.
+- cotizaciones;
+- órdenes de pedido;
+- recibos de abono;
+- reenvío desde documentos almacenados cuando el PDF es accesible.
 
-### Fase 6 · Automatización
+---
 
-Después de validar estabilidad:
+# Reglas de seguridad vigentes
 
-- Enviar cotizaciones automáticamente: ON/OFF.
-- Enviar órdenes automáticamente: ON/OFF.
-- Enviar abonos automáticamente: ON/OFF.
+1. WAHA no se llama directamente desde los HTML públicos.
+2. Las credenciales privadas no se guardan en GitHub.
+3. El Bridge es la frontera pública del canal.
+4. La sesión de HomeEasy se valida antes de operaciones protegidas.
+5. Los permisos de HomeEasy limitan operaciones de documentos.
+6. La falla de WhatsApp nunca debe bloquear la creación/guardado del documento.
+7. Un envío ambiguo no debe reintentarse automáticamente si existe riesgo de duplicado.
 
-## Comportamiento ante fallos
+---
 
-WhatsApp nunca debe bloquear el flujo principal de HomeEasy.
+# Hueco funcional actual
 
-Si WhatsApp no está disponible:
+El sistema actual está principalmente orientado a **salida**.
 
-```text
-Documento guardado  ✓
-PDF generado        ✓
-WhatsApp             PENDIENTE
-```
+Todavía no existe en el repositorio un flujo completo para:
 
-El envío puede reintentarse posteriormente sin regenerar el documento.
+- recibir mensajes entrantes de clientes desde WAHA;
+- vincular automáticamente una respuesta con cliente/cotización;
+- interpretar intención comercial;
+- cancelar o reprogramar un seguimiento por lo que respondió el cliente;
+- ejecutar seguimientos automáticos 24/7.
 
-## Sesión
+Ese hueco se resuelve en la siguiente etapa.
 
-La sesión se almacena en el VPS en:
+---
 
-```text
-/opt/homeeasy-whatsapp/data/sessions/
-```
+# Nueva etapa · Hommy Seguimiento Inteligente
 
-Reiniciar Docker, WAHA o el VPS no debe requerir un nuevo QR mientras WhatsApp conserve válido el dispositivo vinculado.
+La ruta oficial continúa en:
 
-## Motor actual
+- `docs/HOMMY_SMART_FOLLOWUP_PLAN.md`
+- `docs/HOMMY_SALES_PLAYBOOK.md`
 
-- WAHA 2026.8.1
-- `WHATSAPP_DEFAULT_ENGINE=WEBJS`
-- Imagen Docker: `devlikeapro/waha:chrome`
-- Sesión: `homeeasy`
+La nueva arquitectura separa:
 
-## Próximo hito
+- **HomeEasy:** fuente de verdad de la oportunidad y timeline.
+- **Hommy:** análisis, intención, estrategia y redacción.
+- **Follow-up Worker:** ejecución 24/7 y programación.
+- **WhatsApp Bridge:** canal de entrega/recepción y auditoría técnica.
 
-**Publicar únicamente el HomeEasy WhatsApp Bridge mediante HTTPS válido, probarlo desde fuera del VPS y después integrar el panel de WhatsApp en `configuracion.html`.**
+El navegador no será responsable de ejecutar automatizaciones cuando HomeEasy esté cerrado.
+
+---
+
+# Próximo hito
+
+Construir la primera entrega de seguimiento inteligente en modo **REVIEW**:
+
+1. memoria comercial por cotización;
+2. timeline auditable;
+3. análisis de Hommy;
+4. próxima acción recomendada;
+5. borrador contextual;
+6. aprobar / editar / omitir;
+7. posteriormente conectar envío de texto comercial y WhatsApp entrante.
+
+No activar `AUTO` hasta validar casos reales, STOP rules, idempotencia y comportamiento en errores.
