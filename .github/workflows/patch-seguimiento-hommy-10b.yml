@@ -1,0 +1,52 @@
+name: Patch Seguimiento Hommy 10B
+
+on:
+  push:
+    branches:
+      - hommy-followup-ui-10b
+    paths:
+      - '.github/workflows/patch-seguimiento-hommy-10b.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hommy-followup-ui-10b
+          fetch-depth: 0
+
+      - name: Insert isolated Hommy extension
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('seguimiento.html')
+          text = path.read_text(encoding='utf-8')
+          tag = '<script src="seguimiento-hommy.js?v=10b1" defer></script>'
+          if tag in text:
+              print('Hommy script tag already present.')
+          else:
+              anchor = '    <script src="homeeasy-page-guard.js?v=3.6"></script>'
+              if anchor not in text:
+                  raise SystemExit('Expected page-guard anchor was not found; refusing to patch.')
+              text = text.replace(anchor, anchor + '\n    ' + tag, 1)
+              path.write_text(text, encoding='utf-8')
+              print('Hommy script tag inserted.')
+          PY
+
+      - name: Commit patched page
+        run: |
+          if git diff --quiet -- seguimiento.html; then
+            echo 'No page change required.'
+            exit 0
+          fi
+          git config user.name 'homeeasy-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add seguimiento.html
+          git commit -m 'Load Hommy 10B review panel in Seguimiento'
+          git push origin HEAD:hommy-followup-ui-10b
