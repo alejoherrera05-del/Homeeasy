@@ -50,7 +50,8 @@ jobs:
           context = Path('hommy_backend/whatsapp_context.py').read_text(encoding='utf-8')
           followup = Path('hommy_backend/followup.py').read_text(encoding='utf-8')
 
-          assert 'requests.get(' in context
+          assert 'self.http = requests.Session()' in context
+          assert 'self.http.get(' in context
           assert 'requests.post(' not in context
           assert '/api/whatsapp/conversation' in context
           assert '/api/whatsapp/send' not in context
