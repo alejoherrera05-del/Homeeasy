@@ -63,7 +63,8 @@ jobs:
           assert 'sourceStateVersion' in hommy
           assert 'planId' in hommy
           assert "reference: `COT-${clean(numero)}`" in hommy
-          assert 'phone:' not in hommy[hommy.index('whatsapp.sendFollowup({'):hommy.index('});', hommy.index('whatsapp.sendFollowup({'))]
+          send_call = hommy[hommy.index('whatsapp.sendFollowup({'):hommy.index('});', hommy.index('whatsapp.sendFollowup({'))]
+          assert 'phone:' not in send_call
           assert "decision === 'SEND' && canSendFollowup()" in hommy
           assert 'FOLLOWUP_CONVERSATION_CHANGED' in hommy
           assert 'FOLLOWUP_STATE_CHANGED' in hommy
@@ -91,7 +92,17 @@ jobs:
             document: { readyState: 'complete' }
           };
           window.window = window;
-          vm.runInNewContext(fs.readFileSync('homeeasy-whatsapp-client.js', 'utf8'), { window, MutationObserver: class {}, URL, console, CustomEvent: class {}, setTimeout, clearTimeout, encodeURIComponent });
+          vm.runInNewContext(fs.readFileSync('homeeasy-whatsapp-client.js', 'utf8'), {
+            window,
+            MutationObserver: class {},
+            URL,
+            console,
+            CustomEvent: class {},
+            AbortController,
+            setTimeout,
+            clearTimeout,
+            encodeURIComponent
+          });
           (async () => {
             await window.HomeEasyWhatsApp.sendFollowup({
               reference: 'COT-32', text: 'Hola Karen', planId: 'FUP-TEST123', expectedVersion: 7,
