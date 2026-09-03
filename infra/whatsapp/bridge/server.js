@@ -5,8 +5,9 @@ const fs = require('fs');
 const path = require('path');
 const auth = require('./auth');
 const ops = require('./operations');
+const conversation = require('./conversation');
 
-const BRIDGE_VERSION = '0.5.0';
+const BRIDGE_VERSION = '0.6.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -474,6 +475,55 @@ async function sendStoredDocument(payload, audit) {
   }, audit);
 }
 
+async function getConversationContext(phoneValue, options) {
+  const opts = options && typeof options === 'object' ? options : {};
+  const session = await getSession();
+  if (!session || session.status !== 'WORKING') {
+    const error = new Error(`WhatsApp is not ready (${session ? session.status : 'MISSING'})`);
+    error.statusCode = 503;
+    error.details = publicSession(session);
+    throw error;
+  }
+
+  const phone = normalizePhone(phoneValue);
+  const chatId = `${phone}@c.us`;
+  const limit = Math.max(1, Math.min(80, Number(opts.limit || 50)));
+  const sinceMs = conversation.timestampMs(opts.since);
+  const params = new URLSearchParams({
+    limit: String(limit),
+    downloadMedia: 'false'
+  });
+  if (sinceMs) params.set('filter.timestamp.gte', String(Math.floor(sinceMs / 1000)));
+
+  let rawMessages = [];
+  try {
+    rawMessages = await wahaRequest(
+      'GET',
+      `/api/${encodeURIComponent(WAHA_SESSION)}/chats/${encodeURIComponent(chatId)}/messages?${params.toString()}`
+    );
+  } catch (error) {
+    if (Number(error.statusCode || 0) !== 404) throw error;
+  }
+
+  const messages = conversation.normalizeMessages(rawMessages, { since: opts.since, limit });
+  const activity = conversation.normalizeActivity(ops.getActivity(150), {
+    phone,
+    since: opts.since,
+    reference: opts.reference
+  });
+  const evidence = conversation.buildConversationEvidence(messages, activity);
+
+  return {
+    ok: true,
+    source: 'WAHA_WEBJS',
+    session: WAHA_SESSION,
+    messages,
+    activity,
+    evidence,
+    serverTime: new Date().toISOString()
+  };
+}
+
 function documentPermission(payload, actor) {
   const documentType = String(payload && payload.documentType || '').trim().toLowerCase();
   const requiredPermission = DOCUMENT_PERMISSIONS[documentType];
@@ -521,6 +571,16 @@ async function handle(req, res) {
       ok: true,
       items: ops.getActivity(url.searchParams.get('limit') || 60)
     });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/conversation') {
+    await auth.authorize(req, 'cotizaciones.read');
+    const result = await getConversationContext(url.searchParams.get('phone') || '', {
+      reference: url.searchParams.get('reference') || '',
+      since: url.searchParams.get('since') || '',
+      limit: url.searchParams.get('limit') || 50
+    });
+    return json(res, 200, result);
   }
 
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/templates') {
