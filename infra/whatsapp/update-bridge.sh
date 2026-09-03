@@ -5,7 +5,7 @@ REPO_URL="https://github.com/alejoherrera05-del/Homeeasy.git"
 INSTALL_DIR="/opt/homeeasy-whatsapp"
 TMP_DIR="$(mktemp -d)"
 HEALTH_FILE="/tmp/homeeasy-bridge-health.json"
-EXPECTED_VERSION="0.6.0"
+EXPECTED_VERSION="0.6.1"
 
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
