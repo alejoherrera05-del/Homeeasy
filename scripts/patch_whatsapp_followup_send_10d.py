@@ -5,6 +5,7 @@ updater_path = Path('infra/whatsapp/update-bridge.sh')
 
 server = server_path.read_text(encoding='utf-8')
 server = server.replace("const BRIDGE_VERSION = '0.6.1';", "const BRIDGE_VERSION = '0.7.0';", 1)
+server = server.replace("const path = require('path');", "const path = require('path');\nconst crypto = require('crypto');", 1)
 
 helper_anchor = "async function sendDocument(payload, audit) {"
 helper_block = r'''
@@ -35,6 +36,10 @@ function followupExpectedVersion(value) {
     throw Object.assign(new Error('Invalid follow-up state version'), { statusCode: 400, details: { code: 'FOLLOWUP_STATE_VERSION_INVALID' } });
   }
   return version;
+}
+
+function followupMessageHash(text) {
+  return crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex');
 }
 
 function assertFollowupSendable(detail, expectedVersion) {
@@ -113,6 +118,25 @@ async function sendFollowup(payload, actor, detail) {
   const expectedVersion = followupExpectedVersion(payload && payload.expectedVersion);
   const generatedAt = String(payload && payload.generatedAt || '').trim();
   const text = cleanFollowupText(payload && payload.text);
+  const messageHash = followupMessageHash(text);
+  const idempotencyKey = `followup:${reference}:${planId}`;
+  const previous = idempotency[idempotencyKey];
+  if (previous) {
+    if (previous.messageHash && previous.messageHash !== messageHash) {
+      throw Object.assign(new Error('This Hommy plan was already used with different message text'), {
+        statusCode: 409,
+        details: { code: 'FOLLOWUP_PLAN_REUSED' }
+      });
+    }
+    if (previous.expectedVersion !== undefined && Number(previous.expectedVersion) !== expectedVersion) {
+      throw Object.assign(new Error('This Hommy plan was already used with another state version'), {
+        statusCode: 409,
+        details: { code: 'FOLLOWUP_PLAN_REUSED' }
+      });
+    }
+    return publicFollowupDelivery(previous, true);
+  }
+
   assertFollowupSendable(detail, expectedVersion);
 
   const latestContext = await getConversationContext(reference, detail, {
@@ -130,9 +154,6 @@ async function sendFollowup(payload, actor, detail) {
   const client = detail && detail.cliente && typeof detail.cliente === 'object' ? detail.cliente : {};
   const state = detail && detail.seguimiento && typeof detail.seguimiento === 'object' ? detail.seguimiento : {};
   const phone = normalizePhone(client.telefono || state.telefono || '');
-  const idempotencyKey = `followup:${reference}:${planId}`;
-  const previous = idempotency[idempotencyKey];
-  if (previous) return publicFollowupDelivery(previous, true);
 
   const record = {
     state: 'SENDING',
@@ -141,7 +162,10 @@ async function sendFollowup(payload, actor, detail) {
     messageId: null,
     startedAt: new Date().toISOString(),
     reference,
-    planId
+    planId,
+    expectedVersion,
+    generatedAt,
+    messageHash
   };
   idempotency[idempotencyKey] = record;
   persistIdempotency();
