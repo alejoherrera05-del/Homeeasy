@@ -5,7 +5,7 @@ import os
 import re
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 import requests
@@ -21,8 +21,8 @@ DEFAULT_HOMEEASY_BACKEND = (
     "AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec"
 )
 
-PLAYBOOK_VERSION = "1.1"
-FOLLOWUP_STAGE = "10C"
+PLAYBOOK_VERSION = "1.2"
+FOLLOWUP_STAGE = "10C2"
 FOLLOWUP_PLAN_SCHEMA_VERSION = "1"
 
 FOLLOWUP_DECISIONS = ("SEND", "WAIT", "STOP", "HUMAN_REVIEW")
@@ -423,6 +423,80 @@ def _base_plan(
     }
 
 
+def _first_silence_followup_plan(context: dict[str, Any], *, now: datetime) -> dict[str, Any] | None:
+    quote = context.get("quote") if isinstance(context.get("quote"), dict) else {}
+    followup = context.get("followup") if isinstance(context.get("followup"), dict) else {}
+    whatsapp = context.get("whatsapp") if isinstance(context.get("whatsapp"), dict) else {}
+    if whatsapp.get("available") is not True:
+        return None
+    evidence = whatsapp.get("evidence") if isinstance(whatsapp.get("evidence"), dict) else {}
+    delivery = evidence.get("quoteDelivery") if isinstance(evidence.get("quoteDelivery"), dict) else None
+    if not delivery:
+        return None
+    delivery_state = _clean(delivery.get("state"), 40).upper()
+    if delivery_state not in {"SENT", "DELIVERED", "READ", "PLAYED"}:
+        return None
+    if bool(evidence.get("customerRepliedAfterQuote")):
+        return None
+    try:
+        attempts = int(followup.get("attempts") or 0)
+    except (TypeError, ValueError):
+        attempts = 0
+    if attempts > 0:
+        return None
+
+    last_outgoing = _parse_iso(evidence.get("lastOutgoingAt")) or _parse_iso(delivery.get("at"))
+    if not last_outgoing:
+        return None
+    hours = max(0.0, (now - last_outgoing).total_seconds() / 3600.0)
+    minimum_hours = 36.0
+    if hours < minimum_hours:
+        next_at = last_outgoing + timedelta(hours=minimum_hours)
+        return _base_plan(
+            decision="WAIT",
+            reason_code="NO_NEW_VALUE",
+            intent="NO_RESPONSE",
+            temperature="WAITING",
+            summary="La cotización fue enviada por WhatsApp y aún es pronto para un primer seguimiento.",
+            objective="Dar espacio al cliente antes de retomar la conversación.",
+            message=None,
+            next_action_at=next_at.isoformat(timespec="seconds"),
+            confidence=0.99,
+            needs_human_review=False,
+            stop_reason=None,
+            explanation="WhatsApp confirma el envío, pero todavía no ha transcurrido una ventana prudente para retomar el contacto.",
+        )
+
+    first_name = _clean(quote.get("firstName"), 80) or "Cliente"
+    description = re.sub(r"\\s+", " ", _clean(quote.get("description"), 180)).strip(" .,-")
+    product_phrase = f" la propuesta de {description}" if description else " la propuesta que te enviamos"
+    message = (
+        f"Hola {first_name} 😊 Quería saber si alcanzaste a revisar{product_phrase}. "
+        "Si te quedó alguna duda sobre la tela, las medidas o algún ajuste, con gusto te ayudo a revisarlo. "
+        "¿Hay algún detalle que quieras que revisemos?"
+    )
+    if len(message.split()) > 90:
+        message = (
+            f"Hola {first_name} 😊 Quería saber si alcanzaste a revisar la propuesta que te enviamos. "
+            "Si te quedó alguna duda sobre la tela, las medidas o algún ajuste, con gusto te ayudo a revisarlo. "
+            "¿Hay algún detalle que quieras que revisemos?"
+        )
+    return _base_plan(
+        decision="SEND",
+        reason_code="FOLLOWUP_DUE",
+        intent="NO_RESPONSE",
+        temperature="ACTIVE",
+        summary="La cotización fue enviada por WhatsApp y no existe una respuesta posterior del cliente.",
+        objective="Confirmar que pudo revisar la propuesta y abrir una ayuda concreta sin presión.",
+        message=message,
+        next_action_at=None,
+        confidence=0.99,
+        needs_human_review=False,
+        stop_reason=None,
+        explanation="WhatsApp confirma el envío y no registra respuesta posterior; corresponde un primer seguimiento liviano.",
+    )
+
+
 def deterministic_followup_plan(context: dict[str, Any], *, now: datetime | None = None) -> dict[str, Any] | None:
     followup = context.get("followup") if isinstance(context.get("followup"), dict) else {}
     quote = context.get("quote") if isinstance(context.get("quote"), dict) else {}
@@ -503,6 +577,10 @@ def deterministic_followup_plan(context: dict[str, Any], *, now: datetime | None
             stop_reason=None,
             explanation="La memoria comercial indica que el seguimiento está pausado.",
         )
+
+    first_silence = _first_silence_followup_plan(context, now=local_now)
+    if first_silence is not None:
+        return first_silence
 
     if not has_meaningful_followup_evidence(context):
         return _base_plan(
@@ -792,8 +870,8 @@ class FollowupPlanner:
         api_key = openai_api_key()
         if openai_client is None and not api_key:
             raise FollowupPlanError("Falta OPENAI_API_KEY para iniciar 10B.", "FOLLOWUP_OPENAI_NOT_CONFIGURED", 503)
-        timeout = max(10.0, min(float(os.getenv("HOMMY_OPENAI_TIMEOUT_SECONDS", "55")), 80.0))
-        max_retries = max(0, min(int(os.getenv("HOMMY_OPENAI_MAX_RETRIES", "1")), 2))
+        timeout = max(10.0, min(float(os.getenv("HOMMY_FOLLOWUP_OPENAI_TIMEOUT_SECONDS", "45")), 60.0))
+        max_retries = max(0, min(int(os.getenv("HOMMY_FOLLOWUP_OPENAI_MAX_RETRIES", "0")), 1))
         self.openai = openai_client or OpenAI(api_key=api_key, timeout=timeout, max_retries=max_retries)
         self.model = os.getenv("HOMMY_FOLLOWUP_MODEL", os.getenv("HOMMY_MODEL", "gpt-5.6-terra")).strip()
         self.reasoning_effort = os.getenv("HOMMY_FOLLOWUP_REASONING_EFFORT", "low").strip()
