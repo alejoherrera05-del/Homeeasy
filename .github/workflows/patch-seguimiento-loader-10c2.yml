@@ -1,0 +1,56 @@
+name: Patch Seguimiento Hommy Loader 10C2
+
+on:
+  push:
+    branches:
+      - seguimiento-hommy-loader-10c2
+    paths:
+      - scripts/patch_seguimiento_loader_10c2.py
+      - .github/workflows/patch-seguimiento-loader-10c2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: seguimiento-hommy-loader-10c2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply patch
+        run: python scripts/patch_seguimiento_loader_10c2.py
+      - name: Validate JavaScript syntax
+        run: node --check seguimiento-hommy.js
+      - name: Install frontend QA dependencies
+        run: npm install --no-save jsdom@26
+      - name: Run Seguimiento Hommy QA
+        run: node tests/seguimiento-hommy-10b-qa.mjs
+      - name: Validate loader contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          page = Path('seguimiento.html').read_text(encoding='utf-8')
+          source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
+          assert page.count('seguimiento-hommy.js?v=10c2') == 1
+          assert 'seguimiento-hommy.js?v=10c2-retry' in page
+          assert 'const REQUEST_TIMEOUT_MS = 90_000;' in source
+          assert '__HOMEEASY_SEGUIMIENTO_HOMMY_10B__' in page
+          print('Seguimiento Hommy 10C2 loader contract: PASS')
+          PY
+      - name: Commit result
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name homeeasy-automation
+          git config user.email actions@users.noreply.github.com
+          git add seguimiento.html seguimiento-hommy.js .github/workflows/seguimiento-hommy-qa.yml
+          git commit -m 'Seguimiento 10C2: resilient Hommy loader and timeout budget'
+          git push origin HEAD:seguimiento-hommy-loader-10c2
