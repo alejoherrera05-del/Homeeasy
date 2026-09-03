@@ -191,8 +191,10 @@ class WhatsAppConversationClient:
         now: datetime | None = None,
     ) -> dict[str, Any]:
         local_now = (now or datetime.now(HOME_EASY_TIMEZONE)).astimezone(HOME_EASY_TIMEZONE)
-        phone = _source_phone(detail)
-        if not phone:
+        # Validate that HomeEasy has a usable phone before asking the Bridge. The phone
+        # itself is deliberately NOT transmitted; the Bridge derives it canonically
+        # from the authenticated COT reference.
+        if not _source_phone(detail):
             return {"available": False, "reason": "MISSING_OR_INVALID_PHONE", "messages": [], "activity": [], "evidence": {}}
 
         headers = _device_headers(session_token, client_meta)
@@ -202,7 +204,6 @@ class WhatsAppConversationClient:
         quote_date = _quote_date(detail)
         since = (quote_date - timedelta(days=7)) if quote_date else (local_now - timedelta(days=30))
         params = {
-            "phone": phone,
             "reference": f"COT-{_quote_number(quote_number)}",
             "since": since.isoformat(timespec="seconds"),
             "limit": "60",
