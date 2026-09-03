@@ -7,7 +7,7 @@
   const API_BASE = String(window.HOMMY_API_BASE || 'https://homeeasy-hommy-staging.onrender.com').replace(/\/$/, '');
   const ENDPOINT = `${API_BASE}/api/hommy/followup/plan`;
   const STYLE_ID = 'homeeasy-followup-hommy-10b-style';
-  const REQUEST_TIMEOUT_MS = 75_000;
+  const REQUEST_TIMEOUT_MS = 90_000;
 
   const DECISION_LABELS = Object.freeze({
     SEND: 'Borrador recomendado',

@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - hommy-followup-ui-10b
+      - seguimiento-hommy-loader-10c2
     paths:
       - 'seguimiento.html'
       - 'seguimiento-hommy.js'
@@ -44,8 +45,10 @@ jobs:
 
           page = Path('seguimiento.html').read_text(encoding='utf-8')
           source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
-          tag = '<script src="seguimiento-hommy.js?v=10b1" defer></script>'
+          tag = '<script src="seguimiento-hommy.js?v=10c2" defer></script>'
           assert page.count(tag) == 1, 'Seguimiento must load the Hommy extension exactly once'
+          assert 'seguimiento-hommy.js?v=10c2-retry' in page, 'Seguimiento must retry the Hommy extension after a transient loader failure'
+          assert 'const REQUEST_TIMEOUT_MS = 90_000;' in source, 'Seguimiento must keep enough time budget for the review endpoint'
           assert '/api/hommy/followup/plan' in source
           assert source.count('fetch(') == 1, '10B UI should have a single network path'
           for forbidden in (
@@ -57,7 +60,7 @@ jobs:
               'sendText(',
           ):
               assert forbidden not in source, f'REVIEW-only boundary violated: {forbidden}'
-          print('Seguimiento Hommy remains REVIEW-only')
+          print('Seguimiento Hommy remains REVIEW-only and loader-resilient')
           PY
 
       - name: Diff hygiene
