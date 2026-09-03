@@ -43,7 +43,7 @@ jobs:
         run: |
           grep -Fq 'COPY conversation.js ./' infra/whatsapp/bridge/Dockerfile
           bash -n infra/whatsapp/update-bridge.sh
-          grep -Fq 'EXPECTED_VERSION="0.6.1"' infra/whatsapp/update-bridge.sh
+          grep -Fq 'EXPECTED_VERSION="0.7.0"' infra/whatsapp/update-bridge.sh
           grep -Fq 'bridge/conversation.js' infra/whatsapp/update-bridge.sh
           grep -Fq 'docker compose build bridge' infra/whatsapp/update-bridge.sh
           grep -Fq 'docker compose up -d --no-deps bridge' infra/whatsapp/update-bridge.sh
@@ -63,7 +63,7 @@ jobs:
           auth = Path('infra/whatsapp/bridge/auth.js').read_text(encoding='utf-8')
           module = Path('infra/whatsapp/bridge/conversation.js').read_text(encoding='utf-8')
 
-          assert "const BRIDGE_VERSION = '0.6.1'" in source
+          assert "const BRIDGE_VERSION = '0.7.0'" in source
           assert "'/api/whatsapp/conversation'" in source
           assert "auth.authorize(req, 'cotizaciones.read')" in source
           assert "auth.readFollowupDetail(req" in source
