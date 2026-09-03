@@ -10,6 +10,7 @@ on:
       - 'hommy_backend/whatsapp_context.py'
       - 'tests/test_hommy_followup.py'
       - 'tests/test_hommy_whatsapp_context.py'
+      - 'tests/test_hommy_whatsapp_context_request.py'
       - 'servidor.py'
       - 'requirements.txt'
       - '.github/workflows/hommy-whatsapp-context-10c-qa.yml'
@@ -42,7 +43,7 @@ jobs:
       - name: Run full Hommy unit suite
         run: python -m unittest discover -s tests -v
 
-      - name: Verify WhatsApp boundary stays read-only
+      - name: Verify WhatsApp boundary stays read-only and quote-bound
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -57,13 +58,15 @@ jobs:
           assert 'requests.post(' not in context
           assert '/api/whatsapp/conversation' in context
           assert '/api/whatsapp/send' not in context
+          assert '"reference": f"COT-' in context
+          assert '"phone": phone' not in context
           assert 'X-HomeEasy-Session' in context
           assert 'X-HomeEasy-Device-Id' in context
           assert 'store=False' in followup
           assert 'commercial_context["whatsapp"]' in followup
           assert 'latest_whatsapp = self.whatsapp_client.context(' in followup
           assert 'FOLLOWUP_STATE_CHANGED' in followup
-          print('Hommy WhatsApp 10C read-only boundary: PASS')
+          print('Hommy WhatsApp 10C quote-only read boundary: PASS')
           PY
 
       - name: Diff hygiene
