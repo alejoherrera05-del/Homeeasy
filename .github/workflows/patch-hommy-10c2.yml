@@ -1,0 +1,60 @@
+name: Patch Hommy 10C2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - hommy-followup-fastpath-10c2
+    paths:
+      - scripts/patch_hommy_10c2.py
+      - .github/workflows/patch-hommy-10c2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hommy-followup-fastpath-10c2
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply patch
+        run: python scripts/patch_hommy_10c2.py
+      - name: Install runtime dependencies
+        run: pip install -r requirements.txt
+      - name: Compile
+        run: python -m compileall -q servidor.py hommy_backend tests
+      - name: Follow-up WhatsApp tests
+        run: python -m unittest tests.test_hommy_whatsapp_context -v
+      - name: Full Hommy contract suite
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Validate fast first-silence boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('hommy_backend/followup.py').read_text(encoding='utf-8')
+          assert 'FOLLOWUP_STAGE = "10C2"' in source
+          assert 'def _first_silence_followup_plan' in source
+          assert 'minimum_hours = 36.0' in source
+          assert 'HOMMY_FOLLOWUP_OPENAI_MAX_RETRIES' in source
+          assert 'decision="SEND"' in source
+          assert 'intent="NO_RESPONSE"' in source
+          print('Hommy 10C2 fast first-silence boundary: PASS')
+          PY
+      - name: Commit patch result
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name homeeasy-automation
+          git config user.email actions@users.noreply.github.com
+          git add hommy_backend/followup.py tests/test_hommy_whatsapp_context.py render.yaml
+          git commit -m 'Hommy 10C2: fast first-silence follow-up planning [skip render]'
+          git push origin HEAD:hommy-followup-fastpath-10c2
