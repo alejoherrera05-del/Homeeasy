@@ -11,6 +11,7 @@ const WAHA_PORT = 39101;
 const BRIDGE_PORT = 39102;
 const HOMEEASY_PORT = 39103;
 const TEST_PHONE = '573001112233';
+const TEST_LID = '123456789012345@lid';
 
 function json(res, status, payload) {
   const body = JSON.stringify(payload);
@@ -79,8 +80,12 @@ const fakeWaha = http.createServer((req, res) => {
       me: { id: '573334319374@c.us' }
     });
   }
-  const expectedPath = `/api/homeeasy/chats/${TEST_PHONE}@c.us/messages`;
-  if (req.method === 'GET' && decodeURIComponent(url.pathname) === expectedPath) {
+  const lidLookupPath = `/api/homeeasy/lids/pn/${TEST_PHONE}`;
+  if (req.method === 'GET' && decodeURIComponent(url.pathname) === lidLookupPath) {
+    return json(res, 200, { lid: TEST_LID, pn: `${TEST_PHONE}@c.us` });
+  }
+  const expectedPnPath = `/api/homeeasy/chats/${TEST_PHONE}@c.us/messages`;
+  if (req.method === 'GET' && decodeURIComponent(url.pathname) === expectedPnPath) {
     assert.equal(url.searchParams.get('downloadMedia'), 'false');
     assert.equal(url.searchParams.get('limit'), '20');
     assert.ok(Number(url.searchParams.get('filter.timestamp.gte')) > 0);
@@ -93,11 +98,19 @@ const fakeWaha = http.createServer((req, res) => {
         hasMedia: true,
         media: { mimetype: 'application/pdf', filename: 'Cotizacion_COT-32.pdf' },
         ackName: 'READ'
-      },
+      }
+    ]);
+  }
+  const expectedLidPath = `/api/homeeasy/chats/${TEST_LID}/messages`;
+  if (req.method === 'GET' && decodeURIComponent(url.pathname) === expectedLidPath) {
+    assert.equal(url.searchParams.get('downloadMedia'), 'false');
+    assert.equal(url.searchParams.get('limit'), '20');
+    assert.ok(Number(url.searchParams.get('filter.timestamp.gte')) > 0);
+    return json(res, 200, [
       {
         id: 'out-2',
         timestamp: 1788296460,
-        fromMe: true,
+        key: { id: 'out-2', fromMe: true },
         body: 'Quedamos atentos a cualquier duda.',
         hasMedia: false
       }
@@ -173,6 +186,10 @@ async function waitForBridge() {
     assert.equal(payload.messages[1].text, 'Quedamos atentos a cualquier duda.');
     assert.equal(payload.evidence.incomingCount, 0);
     assert.equal(payload.evidence.outgoingCount, 2);
+    assert.equal(payload.lookup.candidateCount, 2);
+    assert.equal(payload.lookup.lidResolved, true);
+    assert.equal(payload.lookup.successfulQueries, 2);
+    assert.equal(payload.lookup.failedQueries, 0);
     assert.equal(Object.prototype.hasOwnProperty.call(payload, 'phone'), false);
     assert.ok(!JSON.stringify(payload).includes(TEST_PHONE));
     assert.ok(!JSON.stringify(payload).includes('573999999999'));
