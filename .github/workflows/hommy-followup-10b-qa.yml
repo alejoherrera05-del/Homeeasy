@@ -76,15 +76,12 @@ jobs:
           tests.test_hommy_periods
 
       - name: Existing C1 · RBAC
-        continue-on-error: true
         run: python -m unittest tests.test_hommy_rbac -v
 
       - name: Existing C2 · tools
-        continue-on-error: true
         run: python -m unittest tests.test_hommy_tools_v2 -v
 
       - name: Existing C3 · voice
-        continue-on-error: true
         run: python -m unittest tests.test_hommy_voice_ux -v
 
       - name: Existing suite D · HTTP static legacy
