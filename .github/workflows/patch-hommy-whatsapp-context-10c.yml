@@ -1,0 +1,39 @@
+name: Patch Hommy WhatsApp Context 10C
+
+on:
+  push:
+    branches:
+      - hommy-whatsapp-context-10c
+    paths:
+      - '.github/workflows/patch-hommy-whatsapp-context-10c.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hommy-whatsapp-context-10c
+          fetch-depth: 0
+
+      - name: Patch follow-up analyzer
+        run: python hommy_backend/patch_whatsapp_followup_10c.py
+
+      - name: Validate Python syntax
+        run: python -m py_compile hommy_backend/followup.py hommy_backend/whatsapp_context.py
+
+      - name: Commit patched analyzer
+        run: |
+          if git diff --quiet -- hommy_backend/followup.py; then
+            echo 'No follow-up patch required.'
+            exit 0
+          fi
+          git config user.name 'homeeasy-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add hommy_backend/followup.py
+          git commit -m 'Feed WhatsApp conversation context into Hommy follow-up'
+          git push origin HEAD:hommy-whatsapp-context-10c
