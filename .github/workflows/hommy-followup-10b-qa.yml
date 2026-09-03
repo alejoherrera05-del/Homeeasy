@@ -56,24 +56,46 @@ jobs:
       - name: Run 10B follow-up tests
         run: python -m unittest tests.test_hommy_followup -v
 
-      - name: Run pre-10B Hommy Python suite
-        run: |
-          python - <<'PY'
-          import pathlib
-          import subprocess
-          import sys
+      - name: Existing suite A · auth data cache
+        id: suite_a
+        continue-on-error: true
+        run: >-
+          python -m unittest -v
+          tests.test_auth_upstream_transport
+          tests.test_backend_contract
+          tests.test_homeeasy_session_stability
+          tests.test_hommy_analytics_v2
+          tests.test_hommy_cache_v2
 
-          modules = []
-          for path in sorted(pathlib.Path('tests').glob('test_*.py')):
-              if path.name == 'test_hommy_followup.py':
-                  continue
-              modules.append('.'.join(path.with_suffix('').parts))
-          print('Running existing modules:', ', '.join(modules))
-          subprocess.run([sys.executable, '-m', 'unittest', '-v', *modules], check=True)
-          PY
+      - name: Existing suite B · continuity engine periods
+        id: suite_b
+        continue-on-error: true
+        run: >-
+          python -m unittest -v
+          tests.test_hommy_continuity
+          tests.test_hommy_data_v2
+          tests.test_hommy_engine_metrics
+          tests.test_hommy_intent_eval
+          tests.test_hommy_intent_model_eval
+          tests.test_hommy_periods
 
-      - name: Run full Python discovery integration
-        run: python -m unittest discover -s tests -v
+      - name: Existing suite C · RBAC tools voice
+        id: suite_c
+        continue-on-error: true
+        run: >-
+          python -m unittest -v
+          tests.test_hommy_rbac
+          tests.test_hommy_tools_v2
+          tests.test_hommy_voice_ux
+
+      - name: Existing suite D · HTTP static legacy
+        id: suite_d
+        continue-on-error: true
+        run: >-
+          python -m unittest -v
+          tests.test_http_contract
+          tests.test_no_legacy_hommy
+          tests.test_static_contract
 
       - name: Verify no accidental write or WhatsApp dependency in 10B module
         run: |
@@ -94,3 +116,15 @@ jobs:
 
       - name: Diff hygiene
         run: git diff --check HEAD~1 HEAD || git diff --check
+
+      - name: Fail if a legacy group regressed
+        if: always()
+        run: |
+          echo "suite_a=${{ steps.suite_a.outcome }}"
+          echo "suite_b=${{ steps.suite_b.outcome }}"
+          echo "suite_c=${{ steps.suite_c.outcome }}"
+          echo "suite_d=${{ steps.suite_d.outcome }}"
+          test "${{ steps.suite_a.outcome }}" = "success"
+          test "${{ steps.suite_b.outcome }}" = "success"
+          test "${{ steps.suite_c.outcome }}" = "success"
+          test "${{ steps.suite_d.outcome }}" = "success"
