@@ -56,7 +56,23 @@ jobs:
       - name: Run 10B follow-up tests
         run: python -m unittest tests.test_hommy_followup -v
 
-      - name: Run existing Hommy Python suite
+      - name: Run pre-10B Hommy Python suite
+        run: |
+          python - <<'PY'
+          import pathlib
+          import subprocess
+          import sys
+
+          modules = []
+          for path in sorted(pathlib.Path('tests').glob('test_*.py')):
+              if path.name == 'test_hommy_followup.py':
+                  continue
+              modules.append('.'.join(path.with_suffix('').parts))
+          print('Running existing modules:', ', '.join(modules))
+          subprocess.run([sys.executable, '-m', 'unittest', '-v', *modules], check=True)
+          PY
+
+      - name: Run full Python discovery integration
         run: python -m unittest discover -s tests -v
 
       - name: Verify no accidental write or WhatsApp dependency in 10B module
