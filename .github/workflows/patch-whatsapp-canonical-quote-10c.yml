@@ -1,0 +1,41 @@
+name: Patch WhatsApp Canonical Quote 10C
+
+on:
+  push:
+    branches:
+      - whatsapp-context-10c
+    paths:
+      - '.github/workflows/patch-whatsapp-canonical-quote-10c.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: whatsapp-context-10c
+          fetch-depth: 0
+
+      - name: Bind conversation lookup to canonical quote
+        run: python infra/whatsapp/patch_context_canonical_quote_10c.py
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check infra/whatsapp/bridge/server.js
+          node --check infra/whatsapp/bridge/auth.js
+
+      - name: Commit hardening
+        run: |
+          if git diff --quiet -- infra/whatsapp/bridge/server.js infra/whatsapp/bridge/auth.js; then
+            echo 'No canonical quote patch required.'
+            exit 0
+          fi
+          git config user.name 'homeeasy-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add infra/whatsapp/bridge/server.js infra/whatsapp/bridge/auth.js
+          git commit -m 'Bind WhatsApp conversation reads to canonical quote context'
+          git push origin HEAD:whatsapp-context-10c
