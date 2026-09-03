@@ -7,6 +7,7 @@ on:
       - whatsapp-context-10c
     paths:
       - 'infra/whatsapp/bridge/server.js'
+      - 'infra/whatsapp/bridge/auth.js'
       - 'infra/whatsapp/bridge/conversation.js'
       - 'infra/whatsapp/bridge/test-conversation.js'
       - 'infra/whatsapp/bridge/test-conversation-smoke.js'
@@ -44,13 +45,28 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+
           source = Path('infra/whatsapp/bridge/server.js').read_text(encoding='utf-8')
+          auth = Path('infra/whatsapp/bridge/auth.js').read_text(encoding='utf-8')
           module = Path('infra/whatsapp/bridge/conversation.js').read_text(encoding='utf-8')
+
           assert "'/api/whatsapp/conversation'" in source
           assert "auth.authorize(req, 'cotizaciones.read')" in source
+          assert "auth.readFollowupDetail(req" in source
+          assert "canonicalQuoteReference" in source
+          assert "detail.cliente" in source
+          assert "url.searchParams.get('phone')" not in source
           assert "downloadMedia: 'false'" in source
+          assert "const effectiveSince = sinceMs ? new Date(sinceMs).toISOString()" in source
+          assert "since: effectiveSince" in source
           assert "source: 'WAHA_WEBJS'" in source
+
+          assert "async function readFollowupDetail" in auth
+          assert "tipo: 'GET_SEGUIMIENTO_DETALLE'" in auth
+          assert "appSessionToken: token" in auth
+
+          assert "item.key && item.key.fromMe === true" in module
           assert "mediaUrl" not in module
           assert "_data" not in module
-          print('WhatsApp context security boundary: PASS')
+          print('WhatsApp context canonical security boundary: PASS')
           PY
