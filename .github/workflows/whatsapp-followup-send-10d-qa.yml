@@ -1,0 +1,102 @@
+name: WhatsApp Follow-up Send 10D QA
+
+on:
+  push:
+    branches:
+      - main
+      - seguimiento-human-send-10d
+    paths:
+      - 'infra/whatsapp/bridge/server.js'
+      - 'infra/whatsapp/bridge/auth.js'
+      - 'infra/whatsapp/bridge/conversation.js'
+      - 'infra/whatsapp/bridge/operations.js'
+      - 'infra/whatsapp/bridge/Dockerfile'
+      - 'infra/whatsapp/bridge/test-conversation.js'
+      - 'infra/whatsapp/bridge/test-conversation-smoke.js'
+      - 'infra/whatsapp/bridge/test-followup-send-smoke.js'
+      - 'infra/whatsapp/update-bridge.sh'
+      - '.github/workflows/whatsapp-followup-send-10d-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate bridge JavaScript and updater
+        run: |
+          node --check infra/whatsapp/bridge/server.js
+          node --check infra/whatsapp/bridge/auth.js
+          node --check infra/whatsapp/bridge/conversation.js
+          node --check infra/whatsapp/bridge/operations.js
+          node --check infra/whatsapp/bridge/test-followup-send-smoke.js
+          bash -n infra/whatsapp/update-bridge.sh
+
+      - name: Run conversation regression tests
+        run: |
+          node infra/whatsapp/bridge/test-conversation.js
+          node infra/whatsapp/bridge/test-conversation-smoke.js
+
+      - name: Run human-approved send contract
+        run: node infra/whatsapp/bridge/test-followup-send-smoke.js
+
+      - name: Verify REVIEW-only security boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          source = Path('infra/whatsapp/bridge/server.js').read_text(encoding='utf-8')
+          updater = Path('infra/whatsapp/update-bridge.sh').read_text(encoding='utf-8')
+
+          assert "const BRIDGE_VERSION = '0.7.0'" in source
+          assert "url.pathname === '/api/whatsapp/send-followup'" in source
+          assert "auth.authorize(req, 'cotizaciones.write')" in source
+          assert "auth.readFollowupDetail(req" in source
+          assert 'assertFollowupSendable' in source
+          assert "mode !== 'REVIEW'" in source
+          assert "['STOPPED', 'CONVERTED', 'ARCHIVED', 'PAUSED']" in source
+          assert "['NOT_INTERESTED', 'DO_NOT_CONTACT']" in source
+          assert 'conversationChangedAfter' in source
+          assert 'FOLLOWUP_CONVERSATION_CHANGED' in source
+          assert 'FOLLOWUP_STATE_CHANGED' in source
+          assert 'FOLLOWUP_PLAN_REUSED' in source
+          assert 'followupMessageHash' in source
+          assert 'followup:${reference}:${planId}' in source
+          assert "wahaRequest('POST', '/api/sendText'" in source
+          assert 'idempotency[idempotencyKey] = record' in source
+          assert "source: 'seguimiento-hommy-review'" in source
+          assert 'EXPECTED_VERSION="0.7.0"' in updater
+
+          # The send route must derive the customer from the canonical quote detail;
+          # it must never use payload.phone supplied by the browser.
+          send_start = source.index('async function sendFollowup')
+          send_end = source.index('async function sendDocument', send_start)
+          send_source = source[send_start:send_end]
+          assert 'payload.phone' not in send_source
+          assert 'detail.cliente' in send_source
+          assert 'client.telefono || state.telefono' in send_source
+
+          # There is still no background/automatic follow-up sender in the Bridge.
+          assert 'setInterval(' not in send_source
+          assert 'setTimeout(' not in send_source
+          print('WhatsApp 10D REVIEW-only send security boundary: PASS')
+          PY
+
+      - name: Verify controlled deployment contract
+        run: |
+          grep -Fq 'EXPECTED_VERSION="0.7.0"' infra/whatsapp/update-bridge.sh
+          grep -Fq 'docker compose build bridge' infra/whatsapp/update-bridge.sh
+          grep -Fq 'docker compose up -d --no-deps bridge' infra/whatsapp/update-bridge.sh
+          grep -Fq 'COPY conversation.js ./' infra/whatsapp/bridge/Dockerfile
+
+      - name: Diff hygiene
+        run: git diff --check HEAD^ HEAD
