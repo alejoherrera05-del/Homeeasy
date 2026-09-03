@@ -53,6 +53,8 @@ services:
         value: "0"
       - key: HOMMY_FOLLOWUP_MAX_OUTPUT_TOKENS
         value: "700"
+      - key: HOMMY_FIRST_SILENCE_MIN_HOURS
+        value: "36"
       - key: HOMMY_RATE_CHAT_PER_MINUTE
         value: "20"
       - key: HOMMY_RATE_TOOL_PER_MINUTE

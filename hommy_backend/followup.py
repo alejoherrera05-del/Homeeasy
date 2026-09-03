@@ -449,7 +449,7 @@ def _first_silence_followup_plan(context: dict[str, Any], *, now: datetime) -> d
     if not last_outgoing:
         return None
     hours = max(0.0, (now - last_outgoing).total_seconds() / 3600.0)
-    minimum_hours = 36.0
+    minimum_hours = max(12.0, min(float(os.getenv("HOMMY_FIRST_SILENCE_MIN_HOURS", "36")), 120.0))
     if hours < minimum_hours:
         next_at = last_outgoing + timedelta(hours=minimum_hours)
         return _base_plan(
@@ -468,18 +468,18 @@ def _first_silence_followup_plan(context: dict[str, Any], *, now: datetime) -> d
         )
 
     first_name = _clean(quote.get("firstName"), 80) or "Cliente"
-    description = re.sub(r"\\s+", " ", _clean(quote.get("description"), 180)).strip(" .,-")
-    product_phrase = f" la propuesta de {description}" if description else " la propuesta que te enviamos"
+    description = re.sub(r"\s+", " ", _clean(quote.get("description"), 120)).strip(" .,-")
+    product_hint = f" para tu {description.lower()}" if description and len(description.split()) <= 12 else ""
     message = (
-        f"Hola {first_name} 😊 Quería saber si alcanzaste a revisar{product_phrase}. "
-        "Si te quedó alguna duda sobre la tela, las medidas o algún ajuste, con gusto te ayudo a revisarlo. "
-        "¿Hay algún detalle que quieras que revisemos?"
+        f"Hola {first_name} 😊 Quería saber si alcanzaste a revisar la propuesta que te enviamos{product_hint}. "
+        "Si te quedó alguna duda sobre la tela, las medidas o el sistema, con gusto te ayudo. "
+        "¿Hay algún detalle que quieras ajustar o comparar?"
     )
     if len(message.split()) > 90:
         message = (
             f"Hola {first_name} 😊 Quería saber si alcanzaste a revisar la propuesta que te enviamos. "
-            "Si te quedó alguna duda sobre la tela, las medidas o algún ajuste, con gusto te ayudo a revisarlo. "
-            "¿Hay algún detalle que quieras que revisemos?"
+            "Si te quedó alguna duda sobre la tela, las medidas o el sistema, con gusto te ayudo. "
+            "¿Hay algún detalle que quieras ajustar o comparar?"
         )
     return _base_plan(
         decision="SEND",

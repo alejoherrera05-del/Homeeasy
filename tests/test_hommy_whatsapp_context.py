@@ -327,6 +327,7 @@ class FollowupWhatsAppIntegrationTests(unittest.TestCase):
         self.assertEqual(len(whatsapp.calls), 1)
         self.assertIn("Karen", result["plan"]["message"])
         self.assertIn("propuesta", result["plan"]["message"].lower())
+        self.assertIn("ajustar o comparar", result["plan"]["message"])
 
     def test_new_whatsapp_reply_discards_stale_plan(self):
         planner = FollowupPlanner(
