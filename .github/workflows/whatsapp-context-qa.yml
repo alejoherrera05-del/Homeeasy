@@ -10,6 +10,7 @@ on:
       - 'infra/whatsapp/bridge/server.js'
       - 'infra/whatsapp/bridge/auth.js'
       - 'infra/whatsapp/bridge/conversation.js'
+      - 'infra/whatsapp/bridge/Dockerfile'
       - 'infra/whatsapp/bridge/test-conversation.js'
       - 'infra/whatsapp/bridge/test-conversation-smoke.js'
       - 'infra/whatsapp/update-bridge.sh'
@@ -37,8 +38,9 @@ jobs:
           node --check infra/whatsapp/bridge/auth.js
           node --check infra/whatsapp/bridge/operations.js
 
-      - name: Validate controlled Bridge updater
+      - name: Validate Bridge image and updater
         run: |
+          grep -Fq 'COPY conversation.js ./' infra/whatsapp/bridge/Dockerfile
           bash -n infra/whatsapp/update-bridge.sh
           grep -Fq 'EXPECTED_VERSION="0.6.0"' infra/whatsapp/update-bridge.sh
           grep -Fq 'bridge/conversation.js' infra/whatsapp/update-bridge.sh
