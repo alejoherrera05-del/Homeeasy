@@ -12,7 +12,7 @@
 
     if (global.HomeEasyWhatsApp) return;
 
-    const VERSION = '0.5.0';
+    const VERSION = '0.6.0';
     const BASE_URL = 'https://api.homeeasy.com.co';
     const REQUEST_TIMEOUT_MS = 25000;
     const RECOVERY_BUTTON_ID = 'heWaRecover';
@@ -242,6 +242,21 @@
                 caption: String(opts.caption || ''),
                 idempotencyKey: String(opts.idempotencyKey || ''),
                 ...documentMeta(opts)
+            }
+        });
+    }
+
+    function sendFollowup(options) {
+        const opts = options || {};
+        return request('/api/whatsapp/send-followup', {
+            method: 'POST',
+            timeoutMs: 45000,
+            body: {
+                reference: String(opts.reference || '').trim(),
+                text: String(opts.text || '').trim(),
+                planId: String(opts.planId || '').trim(),
+                expectedVersion: Number(opts.expectedVersion),
+                generatedAt: String(opts.generatedAt || '').trim()
             }
         });
     }
@@ -498,6 +513,7 @@
         testDocument,
         sendDocument,
         sendDocumentUrl,
+        sendFollowup,
         connectedPhone,
         recoverWhatsApp
     });

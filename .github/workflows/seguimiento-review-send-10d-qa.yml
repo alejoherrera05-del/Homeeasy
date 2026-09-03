@@ -1,0 +1,111 @@
+name: Seguimiento Review Send 10D QA
+
+on:
+  push:
+    branches:
+      - main
+      - seguimiento-review-send-ui-10d
+    paths:
+      - 'homeeasy-whatsapp-client.js'
+      - 'seguimiento.html'
+      - 'seguimiento-hommy.js'
+      - '.github/workflows/seguimiento-review-send-10d-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate JavaScript
+        run: |
+          node --check homeeasy-whatsapp-client.js
+          node --check seguimiento-hommy.js
+
+      - name: Verify review-send security contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          client = Path('homeeasy-whatsapp-client.js').read_text(encoding='utf-8')
+          page = Path('seguimiento.html').read_text(encoding='utf-8')
+          hommy = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
+
+          assert "const VERSION = '0.6.0'" in client
+          assert "request('/api/whatsapp/send-followup'" in client
+          start = client.index('function sendFollowup(options)')
+          end = client.index('function connectedPhone', start)
+          send_client = client[start:end]
+          assert 'phone:' not in send_client
+          for key in ('reference:', 'text:', 'planId:', 'expectedVersion:', 'generatedAt:'):
+              assert key in send_client
+
+          assert 'homeeasy-whatsapp-client.js?v=0.6.0' in page
+          assert 'seguimiento-hommy.js?v=10d1' in page
+          assert "hasPermission('cotizaciones.write')" in hommy
+          assert "sendLabel.textContent = 'Revisar y enviar'" in hommy
+          assert "decision === 'SEND' && canSendFollowup()" in hommy
+          assert "tipo: 'ACTUALIZAR_ESTADO_SEGUIMIENTO_IA'" in hommy
+          assert "tipo: 'REGISTRAR_EVENTO_SEGUIMIENTO'" in hommy
+          assert "eventType: 'MESSAGE_SENT'" in hommy
+          assert "channel: 'WHATSAPP'" in hommy
+          assert 'FOLLOWUP_CONVERSATION_CHANGED' in hommy
+          assert 'FOLLOWUP_STATE_CHANGED' in hommy
+          assert 'FOLLOWUP_PLAN_REUSED' in hommy
+          call_start = hommy.index('whatsapp.sendFollowup({')
+          call_end = hommy.index('});', call_start)
+          assert 'phone:' not in hommy[call_start:call_end]
+          print('Seguimiento 10D review-send security contract: PASS')
+          PY
+
+      - name: Verify WhatsApp client does not trust browser phone
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          let captured = null;
+          const window = {
+            location: { pathname: '/seguimiento.html' },
+            setTimeout,
+            clearTimeout,
+            fetch: async (url, options) => {
+              captured = { url, body: JSON.parse(options.body) };
+              return { ok: true, status: 200, json: async () => ({ ok: true, delivery: 'SENT', messageId: 'm1' }) };
+            },
+            HomeEasyAuth: {
+              getAppSessionToken: () => 'session',
+              buildMeta: () => ({ dispositivoId: 'device' })
+            },
+            document: { readyState: 'complete' }
+          };
+          window.window = window;
+          vm.runInNewContext(fs.readFileSync('homeeasy-whatsapp-client.js', 'utf8'), {
+            window, MutationObserver: class {}, URL, console, CustomEvent: class {}, AbortController,
+            setTimeout, clearTimeout, encodeURIComponent
+          });
+          (async () => {
+            await window.HomeEasyWhatsApp.sendFollowup({
+              reference: 'COT-32',
+              text: 'Hola Karen',
+              planId: 'FUP-TEST123',
+              expectedVersion: 7,
+              generatedAt: '2026-09-03T17:50:00-05:00',
+              phone: '573999999999'
+            });
+            if (!captured.url.endsWith('/api/whatsapp/send-followup')) throw new Error('wrong route');
+            if ('phone' in captured.body) throw new Error('browser phone leaked');
+            if (captured.body.reference !== 'COT-32') throw new Error('wrong reference');
+            console.log('Seguimiento 10D transport smoke: PASS');
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
+
+      - name: Diff hygiene
+        run: git diff --check
