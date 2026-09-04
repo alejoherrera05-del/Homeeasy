@@ -57,10 +57,12 @@ Ahora:
 - 10G + 11A contracts: validados.
 - Seguimiento 10B / 10D.2 / 10E / 10F: sin regresiones.
 
-## 11A.2 · Runtime Cache compartido — CERTIFICADO EN STAGE
+## 11A.2 · Runtime Cache compartido — IMPLEMENTADO
 
-Rama: `performance-11a2-runtime-cache`
+Rama de trabajo: `performance-11a2-runtime-cache`
 Commit de cableado certificado: `9d9586ebe6b0c2986d37518b9db2224f5cca1837`
+PR: #21
+Merge en `main`: `e9fc2cedf16093497cd022a70d835c1019c410d4`
 
 ### Alcance implementado
 
@@ -83,13 +85,17 @@ Commit de cableado certificado: `9d9586ebe6b0c2986d37518b9db2224f5cca1837`
 - Hommy, sus cuatro mensajes, sus tiempos y `¡Hommy está listo!` no cambian.
 - Sin SPA, Service Worker ni polling.
 
-### QA stage 11A.2
+### QA final 11A.2
 
+- Stage 11A.2 completo: success.
 - Cableado de páginas: success.
 - Sintaxis JavaScript externa e inline: success.
 - Contratos 11A.1 + 11A.2: success.
 - Aislamiento de caché entre usuarios: success.
-- Performance Audit + budgets: success.
+- Performance Audit + budgets de stage: success.
+- PR Performance Audit: success.
+- Post-merge Performance Audit en `main`: success.
+- GitHub Pages build + deployment: success.
 - Contrato 10G: success.
 - Seguimiento 10B / 10D.2 / 10E / 10F: sin regresiones.
 - `diff --check`: success.
