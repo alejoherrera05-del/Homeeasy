@@ -8,6 +8,13 @@
   const ENDPOINT = `${API_BASE}/api/hommy/followup/plan`;
   const STYLE_ID = 'homeeasy-followup-hommy-10b-style';
   const REQUEST_TIMEOUT_MS = 90_000;
+  const TRANSIENT_RETRY_DELAY_MS = 700;
+  const TRANSIENT_ANALYSIS_CODES = new Set([
+    'AUTH_UPSTREAM_TIMEOUT',
+    'AUTH_UPSTREAM_UNAVAILABLE',
+    'FOLLOWUP_UPSTREAM_TIMEOUT',
+    'FOLLOWUP_UPSTREAM_UNAVAILABLE'
+  ]);
   const HOME_EASY_API = String(window.HomeEasyCore && window.HomeEasyCore.API_URL || 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
 
   const DECISION_LABELS = Object.freeze({
@@ -246,7 +253,7 @@
     panel.appendChild(wrap);
   }
 
-  function renderLoading(panel) {
+  function renderLoading(panel, message = 'Hommy está revisando el contexto comercial…') {
     clearPanel(panel);
     const loading = document.createElement('div');
     loading.className = 'he-hommy-loading';
@@ -254,7 +261,7 @@
     spinner.className = 'he-hommy-spinner';
     spinner.setAttribute('aria-hidden', 'true');
     const text = document.createElement('span');
-    text.textContent = 'Hommy está revisando el contexto comercial…';
+    text.textContent = message;
     loading.append(spinner, text);
     panel.appendChild(loading);
   }
@@ -664,6 +671,9 @@
 
   function friendlyError(error) {
     const code = clean(error && error.code).toUpperCase();
+    if (TRANSIENT_ANALYSIS_CODES.has(code)) {
+      return 'La conexión con HomeEasy está lenta. Hommy no envió nada ni cambió datos. Puedes seguir usando la cotización y volver a analizar en un momento.';
+    }
     if (['AUTH_REQUIRED', 'APP_SESSION_EXPIRED', 'APP_SESSION_REJECTED', 'NO_SESSION'].includes(code)) {
       return 'Tu sesión necesita renovarse. Vuelve a HomeEasy e inténtalo nuevamente.';
     }
@@ -689,12 +699,28 @@
     panel.appendChild(wrap);
   }
 
+  function isTransientAnalysisError(error) {
+    return TRANSIENT_ANALYSIS_CODES.has(clean(error && error.code).toUpperCase());
+  }
+
+  function wait(ms) {
+    return new Promise(resolve => window.setTimeout(resolve, ms));
+  }
+
   async function analyze(panel, numero) {
     if (!panel || panel.dataset.loading === '1') return;
     panel.dataset.loading = '1';
     renderLoading(panel);
     try {
-      const payload = await requestPlan(numero);
+      let payload;
+      try {
+        payload = await requestPlan(numero);
+      } catch (error) {
+        if (!isTransientAnalysisError(error)) throw error;
+        if (panel.isConnected) renderLoading(panel, 'Reconectando con HomeEasy…');
+        await wait(TRANSIENT_RETRY_DELAY_MS);
+        payload = await requestPlan(numero);
+      }
       if (panel.isConnected) renderResult(panel, numero, payload);
     } catch (error) {
       if (panel.isConnected) renderError(panel, numero, error);
