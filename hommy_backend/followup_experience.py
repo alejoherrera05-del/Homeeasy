@@ -83,7 +83,12 @@ def infer_conversation_style(quote: dict[str, Any], whatsapp: dict[str, Any]) ->
             tu_score += 2
 
     register = "UNKNOWN"
-    if usted_score >= tu_score + 2 and usted_score >= 2:
+    if honorific_observed and tu_score == 0:
+        # An observed don/doña/señor/señora is itself strong evidence that the
+        # relationship is being handled respectfully. Do not downgrade it merely
+        # because the recent sentence omitted the literal pronoun "usted".
+        register = "USTED"
+    elif usted_score >= tu_score + 2 and usted_score >= 2:
         register = "USTED"
     elif tu_score >= usted_score + 2 and tu_score >= 2:
         register = "TU"
