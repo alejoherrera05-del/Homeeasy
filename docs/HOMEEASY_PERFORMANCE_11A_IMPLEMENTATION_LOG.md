@@ -57,13 +57,48 @@ Ahora:
 - 10G + 11A contracts: validados.
 - Seguimiento 10B / 10D.2 / 10E / 10F: sin regresiones.
 
+## 11A.2 · Runtime Cache compartido — CERTIFICADO EN STAGE
+
+Rama: `performance-11a2-runtime-cache`
+Commit de cableado certificado: `9d9586ebe6b0c2986d37518b9db2224f5cca1837`
+
+### Alcance implementado
+
+1. El Boot Manager 11A.1 permanece intacto y `homeeasy-runtime-cache.js` se monta como extensión separada.
+2. `Clientes`, `Cotización` y `Pedido` cargan `Core -> Runtime -> Runtime Cache -> Page Guard`, manteniendo al Page Guard como compuerta exterior de autorización y RBAC.
+3. La caché calentada durante la pantalla de Hommy puede responder de inmediato a `listaClientes=1` y al subconjunto de clientes de `init=LOAD`.
+4. El Runtime conserva los dos contratos que esperan las páginas actuales: lista de objetos para Clientes y filas para Cotización/Pedido.
+5. Se añadió un índice de búsqueda compartido para clientes, sin cambiar la lógica de creación, edición ni generación documental.
+6. La metadata de caché queda vinculada al `uid` de la sesión HomeEasy. Una caché de otro usuario nunca se sirve y fuerza lectura en vivo.
+7. La revalidación es silenciosa y deduplicada; una caché válida puede mostrarse primero y refrescarse detrás.
+8. Después de una escritura explícita de cliente, la frescura del bundle se invalida para evitar reutilizar datos anteriores.
+
+### Límites conservados
+
+- Historial de cliente continúa live y bajo demanda.
+- Guardados y escrituras continúan live y autoritativos.
+- Saldos y operaciones financieras no se cachean como verdad.
+- PDFs no cambian.
+- Apps Script/Cerebro no cambia en esta fase.
+- Hommy, sus cuatro mensajes, sus tiempos y `¡Hommy está listo!` no cambian.
+- Sin SPA, Service Worker ni polling.
+
+### QA stage 11A.2
+
+- Cableado de páginas: success.
+- Sintaxis JavaScript externa e inline: success.
+- Contratos 11A.1 + 11A.2: success.
+- Aislamiento de caché entre usuarios: success.
+- Performance Audit + budgets: success.
+- Contrato 10G: success.
+- Seguimiento 10B / 10D.2 / 10E / 10F: sin regresiones.
+- `diff --check`: success.
+
 ## Próxima fase propuesta
 
-### 11A.2 · Runtime Cache compartido
+### 11A.3 · OP / Abonos / Agenda
 
-Objetivo: que Clientes, Cotización, Pedido, Abonos, Agenda y Seguimiento consuman los bundles precalentados en lugar de volver a iniciar lecturas equivalentes en cada HTML.
-
-Se implementará primero en shadow/equivalence mode y sin convertir HomeEasy en SPA.
+Extender el Runtime Cache a índices ligeros de OP y Agenda. El saldo seguirá consultándose de forma autoritativa en el momento de operar y Agenda histórica continuará bajo demanda.
 
 ### 11A.5 · Cerebro indexado + sincronización incremental
 
