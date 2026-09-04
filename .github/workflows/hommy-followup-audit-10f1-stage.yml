@@ -1,0 +1,82 @@
+name: Stage Hommy Follow-up Audit 10F.1
+
+on:
+  push:
+    branches:
+      - hommy-followup-auth-resilience-10d2
+    paths:
+      - 'scripts/patch_hommy_followup_audit_10f1.py'
+      - 'tests/test_hommy_followup_audit_10f1.py'
+      - '.github/workflows/hommy-followup-audit-10f1-stage.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OPENAI_API_KEY: test-key-not-for-network-calls
+      HOMMY_CONVERSATION_SECRET: hommy-ci-conversation-secret
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+          ref: hommy-followup-auth-resilience-10d2
+      - name: Sync current Hommy baseline without touching deployed branch
+        run: |
+          git fetch origin hommy-2.0 --depth=20
+          git checkout origin/hommy-2.0 -- hommy_backend servidor.py requirements.txt tests .python-version .env.example render.yaml Hommychat.html hommy-chat.css hommy-ios.css hommy-polish.css hommy-chat.js hommy-transport.js hommy-richtext.js index.html
+          git checkout HEAD -- tests/test_hommy_followup_audit_10f1.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Apply Hommy audit patch
+        run: python scripts/patch_hommy_followup_audit_10f1.py
+      - name: Compile backend
+        run: python -m py_compile servidor.py hommy_backend/*.py
+      - name: Run full Hommy unit contracts
+        run: python -m unittest discover -s tests -v
+      - name: Verify latency and naturality contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('hommy_backend/followup.py').read_text(encoding='utf-8')
+          experience = Path('hommy_backend/followup_experience.py').read_text(encoding='utf-8')
+          assert 'PLAYBOOK_VERSION = "1.4"' in source
+          assert 'FOLLOWUP_STAGE = "10F.1"' in source
+          assert 'has_unverified_relationship_claim' in source
+          assert 'FOLLOWUP_UNVERIFIED_RELATIONSHIP_CLAIM' in source
+          assert 'quedo pendiente' in source.lower()
+          assert 'normalmente NO las repitas' in source
+          plan_start = source.index('    def plan(')
+          plan_source = source[plan_start:]
+          assert 'latest_detail = self.followup_client.detail' not in plan_source
+          assert 'latest_whatsapp = self.whatsapp_client.context' not in plan_source
+          assert 'revalidates both state version and WhatsApp conversation' in plan_source
+          assert '_PRODUCT_CANONICAL' in experience
+          assert 'Onda Serena' in experience
+          assert '_RELATIONSHIP_PATTERNS' in experience
+          print('Hommy 10F.1 latency + naturality audit contract: PASS')
+          PY
+      - name: Diff hygiene
+        run: git diff --check
+      - name: Commit certified Hommy 10F.1 patch
+        run: |
+          git config user.name 'homeeasy-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add hommy_backend/followup.py hommy_backend/followup_experience.py tests/test_hommy_followup_experience.py tests/test_hommy_followup_audit_10f1.py
+          if git diff --cached --quiet; then
+            echo 'No Hommy runtime changes to commit'
+          else
+            git commit -m 'Hommy 10F.1: faster REVIEW analysis and evidence-safe naturality'
+            git push origin HEAD:hommy-followup-auth-resilience-10d2
+          fi
