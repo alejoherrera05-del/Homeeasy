@@ -18,11 +18,14 @@ const abono = text('abono.html');
 const calendario = text('calendario.html');
 const reportes = text('reportes.html');
 
-// Index: security remains HomeEasyCore-owned; only artificial visual waiting is removed.
-assert(!index.includes('setTimeout(() => { closeIntro(); }, 5500)'), 'Index still contains artificial 5.5s splash delay');
+// Index: security remains HomeEasyCore-owned. 11A intentionally uses the full
+// Hommy splash sequence to warm reusable data instead of optimizing for the
+// shortest possible visual wait.
+assert(!index.includes('setTimeout(() => { closeIntro(); }, 5500)'), 'Index must not return to a blind fixed 5.5s timer');
 assert(index.includes("homeeasy:index-auth-ready"), 'Index must react to authoritative auth-ready event');
-assert(index.includes('minimoVisualMs = 420'), 'Index must keep a short stable visual minimum');
-assert(index.includes('setTimeout(programar, 2400)'), 'Index must retain bounded visual fallback');
+assert(index.includes('HOMEEASY_BOOT_MIN_VISUAL_MS = 5200'), 'Index must preserve the approved full Hommy splash window');
+assert(index.includes('HOMEEASY_BOOT_FAILOVER_MS = 9000'), 'Index must retain a bounded visual failover');
+assert(index.includes('cerrarIntroCuandoBootEsteListo(warmPromise)'), 'Index must coordinate splash closure with useful warm-up');
 assert(core.includes("global.__HOMEEASY_INDEX_AUTH_READY_AT__ = Date.now();"), 'Core must expose auth-ready timing marker');
 assert(core.includes("indexAuthStatus = 'authorized'"), 'Core auth authorization gate must remain');
 assert(core.includes("indexAuthReadyPromise.then(execute)"), 'Commercial requests must remain gated behind index auth');
@@ -72,4 +75,4 @@ for (const source of [index, core, auth, cot, pedido, abono, calendario, reporte
   assert(!source.includes('serviceWorker.register'), 'Performance patch must not add service-worker business-data caching');
 }
 
-console.log('HomeEasy 10G performance safety contracts: PASS');
+console.log('HomeEasy 10G/11A performance safety contracts: PASS');
