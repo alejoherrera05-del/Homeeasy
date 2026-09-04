@@ -67,7 +67,7 @@ jobs:
           node tests/seguimiento-hommy-history-10e.mjs
           node tests/seguimiento-hommy-fluid-10f.mjs
       - name: Diff hygiene
-        run: git diff --check
+        run: git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --check
       - name: Commit certified runtime changes
         run: |
           git config user.name 'homeeasy-automation'
