@@ -15,12 +15,14 @@
   const planCache = new Map();
   const PLAN_CACHE_PREFIX = 'homeeasy:seguimiento:hommy-plan:10f1:';
   const RADAR_CACHE_PREFIX = 'homeeasy:seguimiento:hommy-radar:10f1:';
+  const CACHE_OWNER_KEY = 'homeeasy:seguimiento:hommy-cache-owner:10f1';
   const PLAN_FRESH_MS = 5 * 60 * 1000;
   const PLAN_MAX_AGE_MS = 2 * 60 * 60 * 1000;
   const RADAR_FRESH_MS = 2 * 60 * 1000;
   const RADAR_MAX_AGE_MS = 30 * 60 * 1000;
   const BACKGROUND_REFRESH_MS = 3 * 60 * 1000;
   const BACKGROUND_WARMUP_DELAY_MS = 260;
+  const INITIAL_RADAR_WARM_COUNT = 8;
   const MAX_RADAR_WORKERS = 3;
   const radarQueue = [];
   const queuedRadar = new Set();
@@ -227,6 +229,8 @@
     if (!response.ok || !payload || payload.ok !== true || !Array.isArray(payload.history)) {
       const error = new Error(clean(payload && payload.error && payload.error.message) || 'No fue posible cargar el historial comercial.');
       error.code = code || `HTTP_${response.status}`;
+      const retryAfter = Number(response.headers && typeof response.headers.get === 'function' ? response.headers.get('Retry-After') : 0);
+      if (Number.isFinite(retryAfter) && retryAfter > 0) error.retryAfterSeconds = retryAfter;
       throw error;
     }
     return payload;
@@ -328,6 +332,46 @@
     while (panel.firstChild) panel.firstChild.remove();
   }
 
+
+
+  function cacheOwnerFingerprint() {
+    const auth = window.HomeEasyAuth;
+    const profile = auth && typeof auth.getCurrentProfile === 'function' ? auth.getCurrentProfile() : null;
+    const token = sessionToken();
+    const basis = clean(profile && (profile.email || profile.nombre || profile.rol)) || token;
+    if (!basis) return '';
+    let hash = 2166136261;
+    const text = `${basis}|${token.slice(-24)}`;
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  }
+
+  function purgeHommySessionCache() {
+    planCache.clear();
+    radarCache.clear();
+    historyCache.clear();
+    try {
+      if (!window.sessionStorage) return;
+      const keys = [];
+      for (let index = 0; index < window.sessionStorage.length; index += 1) {
+        const key = window.sessionStorage.key(index);
+        if (key && (key.startsWith(PLAN_CACHE_PREFIX) || key.startsWith(RADAR_CACHE_PREFIX))) keys.push(key);
+      }
+      keys.forEach(key => window.sessionStorage.removeItem(key));
+    } catch (_) {}
+  }
+
+  function ensureCacheOwner() {
+    const fingerprint = cacheOwnerFingerprint();
+    if (!fingerprint) return;
+    let previous = '';
+    try { previous = clean(window.sessionStorage && window.sessionStorage.getItem(CACHE_OWNER_KEY)); } catch (_) {}
+    if (previous && previous !== fingerprint) purgeHommySessionCache();
+    try { if (window.sessionStorage) window.sessionStorage.setItem(CACHE_OWNER_KEY, fingerprint); } catch (_) {}
+  }
 
   function sessionRead(key) {
     try {
@@ -837,7 +881,12 @@
       queuedRadar.delete(key);
       radarWorkers += 1;
       prefetchRadar(key, Boolean(job.force))
-        .catch(() => {})
+        .catch(error => {
+          if (clean(error && error.code).toUpperCase() === 'RATE_LIMITED') {
+            const delay = Math.max(5, Math.min(90, Number(error.retryAfterSeconds || 15))) * 1000;
+            window.setTimeout(() => queueRadar(key, Boolean(job.force), true), delay);
+          }
+        })
         .finally(() => {
           radarWorkers -= 1;
           drainRadarQueue();
@@ -890,8 +939,9 @@
     const key = clean(numero);
     const planRecord = cachedPlan(key);
     if (planRecord) {
-      renderResult(panel, key, planRecord.payload, { cached: true, cachedAt: planRecord.cachedAt });
-      if (Date.now() - planRecord.cachedAt > PLAN_FRESH_MS && visibleQuotes.has(key)) {
+      const stale = Date.now() - planRecord.cachedAt > PLAN_FRESH_MS;
+      renderResult(panel, key, planRecord.payload, { cached: true, cachedAt: planRecord.cachedAt, stale });
+      if (stale && visibleQuotes.has(key)) {
         window.setTimeout(() => refreshPlanSilently(key), 30);
       }
       return;
@@ -920,7 +970,7 @@
   }
 
   function warmRadar() {
-    document.querySelectorAll('.crm-card').forEach((card, index) => {
+    Array.from(document.querySelectorAll('.crm-card')).slice(0, INITIAL_RADAR_WARM_COUNT).forEach((card, index) => {
       const numero = quoteNumberFromCard(card);
       if (numero) queueRadar(numero, false, index < 5);
     });
@@ -1244,7 +1294,9 @@
     if (options.cached) {
       const cacheNote = document.createElement('div');
       cacheNote.className = 'he-hommy-cache-note';
-      cacheNote.textContent = `Análisis guardado ${ageLabel(options.cachedAt)} · se actualizará en segundo plano si cambia el contexto.`;
+      cacheNote.textContent = options.stale
+        ? `Análisis guardado ${ageLabel(options.cachedAt)} · verificando cambios antes de permitir acciones.`
+        : `Análisis guardado ${ageLabel(options.cachedAt)} · se actualizará en segundo plano si cambia el contexto.`;
       result.appendChild(cacheNote);
     }
 
@@ -1319,7 +1371,7 @@
     again.addEventListener('click', () => analyze(panel, numero));
     actions.appendChild(again);
 
-    if (message) {
+    if (message && !options.stale) {
       const copyButton = document.createElement('button');
       copyButton.type = 'button';
       copyButton.className = 'he-hommy-action primary';
@@ -1333,7 +1385,7 @@
       });
       actions.appendChild(copyButton);
     }
-    if (message && decision === 'SEND' && canSendFollowup()) {
+    if (message && decision === 'SEND' && canSendFollowup() && !options.stale) {
       const sendButton = document.createElement('button');
       sendButton.type = 'button';
       sendButton.className = 'he-hommy-action send';
@@ -1348,9 +1400,11 @@
 
     const safe = document.createElement('div');
     safe.className = 'he-hommy-safe';
-    safe.textContent = decision === 'SEND' && canSendFollowup()
-      ? 'Modo REVIEW · Hommy propone; tú revisas y autorizas cualquier envío.'
-      : 'Modo REVIEW · Hommy no envió nada y no cambió datos de HomeEasy.';
+    safe.textContent = options.stale
+      ? 'Modo REVIEW · este análisis se muestra para no hacerte esperar, pero Hommy está verificando cambios antes de habilitar acciones.'
+      : decision === 'SEND' && canSendFollowup()
+        ? 'Modo REVIEW · Hommy propone; tú revisas y autorizas cualquier envío.'
+        : 'Modo REVIEW · Hommy no envió nada y no cambió datos de HomeEasy.';
     result.appendChild(safe);
     panel.appendChild(result);
   }
@@ -1446,6 +1500,7 @@
   }
 
   function install() {
+    ensureCacheOwner();
     addStyles();
     enhanceCards();
     const container = document.getElementById('tarjetas-container');
@@ -1458,6 +1513,15 @@
     }
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) window.setTimeout(warmRadar, 30);
+    });
+    window.addEventListener('homeeasy:auth-change', event => {
+      const type = clean(event && event.detail && event.detail.type).toLowerCase();
+      if (['signed-out', 'session-rejected'].includes(type)) {
+        purgeHommySessionCache();
+        try { if (window.sessionStorage) window.sessionStorage.removeItem(CACHE_OWNER_KEY); } catch (_) {}
+        return;
+      }
+      if (type.includes('signed-in')) ensureCacheOwner();
     });
     window.addEventListener('homeeasy:seguimiento-updated', event => {
       const numero = clean(event && event.detail && event.detail.numero);
