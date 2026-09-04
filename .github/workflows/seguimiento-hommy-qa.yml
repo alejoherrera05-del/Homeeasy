@@ -8,12 +8,14 @@ on:
       - seguimiento-hommy-loader-10c2
       - seguimiento-review-send-ui-10d
       - seguimiento-10d-qa-fix
+      - seguimiento-history-10e
     paths:
       - 'seguimiento.html'
       - 'seguimiento-hommy.js'
       - 'homeeasy-whatsapp-client.js'
       - 'tests/seguimiento-hommy-10b-qa.mjs'
       - 'tests/seguimiento-hommy-transient-retry-10d2.mjs'
+      - 'tests/seguimiento-hommy-history-10e.mjs'
       - '.github/workflows/seguimiento-hommy-qa.yml'
   workflow_dispatch:
 
@@ -45,6 +47,7 @@ jobs:
         run: |
           node tests/seguimiento-hommy-10b-qa.mjs
           node tests/seguimiento-hommy-transient-retry-10d2.mjs
+          node tests/seguimiento-hommy-history-10e.mjs
 
       - name: Verify REVIEW-only human-send boundary
         run: |
@@ -55,30 +58,32 @@ jobs:
           source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
           client = Path('homeeasy-whatsapp-client.js').read_text(encoding='utf-8')
 
-          tag = '<script src="seguimiento-hommy.js?v=10d2" defer></script>'
-          assert page.count(tag) == 1, 'Seguimiento must load the 10D.2 Hommy extension exactly once'
-          assert 'seguimiento-hommy.js?v=10d2-retry' in page, 'Seguimiento must retry the current Hommy extension after a transient loader failure'
+          tag = '<script src="seguimiento-hommy.js?v=10e1" defer></script>'
+          assert page.count(tag) == 1, 'Seguimiento must load the 10E Hommy extension exactly once'
+          assert 'seguimiento-hommy.js?v=10e1-retry' in page, 'Seguimiento must retry the current Hommy extension after a transient loader failure'
           assert 'homeeasy-whatsapp-client.js?v=0.6.0' in page
           assert 'const REQUEST_TIMEOUT_MS = 90_000;' in source
+          assert 'const HISTORY_TIMEOUT_MS = 45_000;' in source
+          assert '/api/hommy/followup/plan' in source
+          assert '/api/hommy/followup/history' in source
+          assert "label.textContent = 'Historial y contexto'" in source
+          assert 'historyCache = new Map()' in source
           assert 'TRANSIENT_ANALYSIS_CODES' in source
           assert 'TRANSIENT_RETRY_DELAY_MS = 700' in source
-          assert "'AUTH_UPSTREAM_TIMEOUT'" in source
-          assert "'FOLLOWUP_UPSTREAM_TIMEOUT'" in source
           assert "renderLoading(panel, 'Reconectando con HomeEasy…')" in source
-          assert 'if (!isTransientAnalysisError(error)) throw error;' in source
-          assert 'conexión con HomeEasy está lenta' in source
-          assert '/api/hommy/followup/plan' in source
           assert "hasPermission('cotizaciones.write')" in source
           assert "sendLabel.textContent = 'Revisar y enviar'" in source
           assert "tipo: 'ACTUALIZAR_ESTADO_SEGUIMIENTO_IA'" in source
           assert "tipo: 'REGISTRAR_EVENTO_SEGUIMIENTO'" in source
           assert "eventType: 'MESSAGE_SENT'" in source
+          assert "estado: 'WAITING_CUSTOMER'" in source
+          assert 'intentosSeguimiento: sourceAttempts + 1' in source
           assert "request('/api/whatsapp/send-followup'" in client
           send_start = client.index('function sendFollowup(options)')
           send_end = client.index('function connectedPhone', send_start)
           assert 'phone:' not in client[send_start:send_end]
-          assert 'setInterval(' not in source, 'Seguimiento 10D.2 must not create an automatic sender loop'
-          print('Seguimiento Hommy 10D.2 remains REVIEW-only, human-approved, loader-resilient and transient-read tolerant')
+          assert 'setInterval(' not in source, 'Seguimiento 10E must not create an automatic sender loop'
+          print('Seguimiento Hommy 10E remains REVIEW-only, human-approved, history-aware and transient-read tolerant')
           PY
 
       - name: Diff hygiene
