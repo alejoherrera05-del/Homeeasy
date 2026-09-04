@@ -1,0 +1,73 @@
+name: Stage Seguimiento Transient Retry 10D2
+
+on:
+  push:
+    branches:
+      - seguimiento-transient-retry-10d2
+    paths:
+      - 'scripts/patch_seguimiento_transient_retry_10d2.py'
+      - 'tests/seguimiento-hommy-transient-retry-10d2.mjs'
+      - '.github/workflows/seguimiento-transient-retry-10d2-stage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: seguimiento-transient-retry-10d2
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Apply UI resilience patch
+        run: python scripts/patch_seguimiento_transient_retry_10d2.py
+
+      - name: Validate JavaScript and static contract
+        run: |
+          node --check seguimiento-hommy.js
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
+          page = Path('seguimiento.html').read_text(encoding='utf-8')
+          assert 'TRANSIENT_ANALYSIS_CODES' in source
+          assert 'TRANSIENT_RETRY_DELAY_MS = 700' in source
+          assert "'AUTH_UPSTREAM_TIMEOUT'" in source
+          assert "'FOLLOWUP_UPSTREAM_TIMEOUT'" in source
+          assert "renderLoading(panel, 'Reconectando con HomeEasy…')" in source
+          assert 'if (!isTransientAnalysisError(error)) throw error;' in source
+          assert source.count('payload = await requestPlan(numero);') == 2
+          assert 'conexión con HomeEasy está lenta' in source
+          assert 'seguimiento-hommy.js?v=10d2" defer' in page
+          assert 'seguimiento-hommy.js?v=10d2-retry' in page
+          assert 'setInterval(' not in source
+          print('Seguimiento transient retry static contract: PASS')
+          PY
+          git diff --check
+
+      - name: Install ephemeral browser QA dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
+
+      - name: Run browser regression tests
+        run: |
+          node tests/seguimiento-hommy-10b-qa.mjs
+          node tests/seguimiento-hommy-transient-retry-10d2.mjs
+
+      - name: Commit certified UI resilience patch
+        run: |
+          if git diff --quiet -- seguimiento-hommy.js seguimiento.html; then
+            echo 'No UI changes to commit'
+            exit 0
+          fi
+          git config user.name homeeasy-automation
+          git config user.email actions@users.noreply.github.com
+          git add seguimiento-hommy.js seguimiento.html
+          git commit -m 'Seguimiento 10D2: retry transient read failures once'
+          git push origin HEAD:seguimiento-transient-retry-10d2
