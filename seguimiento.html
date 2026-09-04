@@ -618,13 +618,13 @@
     <script src="homeeasy-core.js?v=3.5"></script>
     <script src="homeeasy-page-guard.js?v=3.6"></script>
     <script src="homeeasy-whatsapp-client.js?v=0.6.0"></script>
-    <script src="seguimiento-hommy.js?v=10e1" defer></script>
+    <script src="seguimiento-hommy.js?v=10f1" defer></script>
     <script>
       window.addEventListener('load', () => {
         window.setTimeout(() => {
           if (window.__HOMEEASY_SEGUIMIENTO_HOMMY_10B__) return;
           const retry = document.createElement('script');
-          retry.src = 'seguimiento-hommy.js?v=10e1-retry';
+          retry.src = 'seguimiento-hommy.js?v=10f1-retry';
           retry.defer = true;
           document.head.appendChild(retry);
         }, 1400);
@@ -976,6 +976,9 @@
                             allCotizaciones.splice(index, 1);
                         }
                     }
+                    window.dispatchEvent(new CustomEvent('homeeasy:seguimiento-updated', {
+                        detail: { numero: String(numero), archived: Boolean(removerDePantalla), noteChanged: payloadData.notasSeguimiento !== undefined }
+                    }));
                     aplicarFiltros();
                 } else {
                     Swal.fire('Error', res.msg, 'error');

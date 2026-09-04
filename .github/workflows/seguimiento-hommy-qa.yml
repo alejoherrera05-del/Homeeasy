@@ -9,6 +9,7 @@ on:
       - seguimiento-review-send-ui-10d
       - seguimiento-10d-qa-fix
       - seguimiento-history-10e
+      - seguimiento-fluid-10f
     paths:
       - 'seguimiento.html'
       - 'seguimiento-hommy.js'
@@ -16,6 +17,7 @@ on:
       - 'tests/seguimiento-hommy-10b-qa.mjs'
       - 'tests/seguimiento-hommy-transient-retry-10d2.mjs'
       - 'tests/seguimiento-hommy-history-10e.mjs'
+      - 'tests/seguimiento-hommy-fluid-10f.mjs'
       - '.github/workflows/seguimiento-hommy-qa.yml'
   workflow_dispatch:
 
@@ -48,6 +50,7 @@ jobs:
           node tests/seguimiento-hommy-10b-qa.mjs
           node tests/seguimiento-hommy-transient-retry-10d2.mjs
           node tests/seguimiento-hommy-history-10e.mjs
+          node tests/seguimiento-hommy-fluid-10f.mjs
 
       - name: Verify REVIEW-only human-send boundary
         run: |
@@ -58,9 +61,9 @@ jobs:
           source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
           client = Path('homeeasy-whatsapp-client.js').read_text(encoding='utf-8')
 
-          tag = '<script src="seguimiento-hommy.js?v=10e1" defer></script>'
-          assert page.count(tag) == 1, 'Seguimiento must load the 10E Hommy extension exactly once'
-          assert 'seguimiento-hommy.js?v=10e1-retry' in page, 'Seguimiento must retry the current Hommy extension after a transient loader failure'
+          tag = '<script src="seguimiento-hommy.js?v=10f1" defer></script>'
+          assert page.count(tag) == 1, 'Seguimiento must load the 10F Hommy extension exactly once'
+          assert 'seguimiento-hommy.js?v=10f1-retry' in page, 'Seguimiento must retry the current Hommy extension after a transient loader failure'
           assert 'homeeasy-whatsapp-client.js?v=0.6.0' in page
           assert 'const REQUEST_TIMEOUT_MS = 90_000;' in source
           assert 'const HISTORY_TIMEOUT_MS = 45_000;' in source
@@ -68,6 +71,13 @@ jobs:
           assert '/api/hommy/followup/history' in source
           assert "label.textContent = 'Historial y contexto'" in source
           assert 'historyCache = new Map()' in source
+          assert 'planCache = new Map()' in source
+          assert 'radarCache = new Map()' in source
+          assert 'window.sessionStorage' in source
+          assert 'BACKGROUND_REFRESH_MS = 3 * 60 * 1000' in source
+          assert 'MAX_RADAR_WORKERS = 3' in source
+          assert 'refreshPlanSilently' in source
+          assert "panel.dataset.mode = 'result'" in source
           assert 'TRANSIENT_ANALYSIS_CODES' in source
           assert 'TRANSIENT_RETRY_DELAY_MS = 700' in source
           assert "renderLoading(panel, 'Reconectando con HomeEasy…')" in source
@@ -82,8 +92,8 @@ jobs:
           send_start = client.index('function sendFollowup(options)')
           send_end = client.index('function connectedPhone', send_start)
           assert 'phone:' not in client[send_start:send_end]
-          assert 'setInterval(' not in source, 'Seguimiento 10E must not create an automatic sender loop'
-          print('Seguimiento Hommy 10E remains REVIEW-only, human-approved, history-aware and transient-read tolerant')
+          assert 'setInterval(' not in source, 'Seguimiento 10F must not create an automatic sender loop'
+          print('Seguimiento Hommy 10F remains REVIEW-only, human-approved, cached, background-aware and transient-read tolerant')
           PY
 
       - name: Diff hygiene

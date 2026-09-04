@@ -11,6 +11,23 @@
   const REQUEST_TIMEOUT_MS = 90_000;
   const HISTORY_TIMEOUT_MS = 45_000;
   const historyCache = new Map();
+  const radarCache = new Map();
+  const planCache = new Map();
+  const PLAN_CACHE_PREFIX = 'homeeasy:seguimiento:hommy-plan:10f1:';
+  const RADAR_CACHE_PREFIX = 'homeeasy:seguimiento:hommy-radar:10f1:';
+  const PLAN_FRESH_MS = 5 * 60 * 1000;
+  const PLAN_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+  const RADAR_FRESH_MS = 2 * 60 * 1000;
+  const RADAR_MAX_AGE_MS = 30 * 60 * 1000;
+  const BACKGROUND_REFRESH_MS = 3 * 60 * 1000;
+  const BACKGROUND_WARMUP_DELAY_MS = 260;
+  const MAX_RADAR_WORKERS = 3;
+  const radarQueue = [];
+  const queuedRadar = new Set();
+  const visibleQuotes = new Set();
+  let radarWorkers = 0;
+  let refreshTimer = null;
+  let cardVisibilityObserver = null;
   const TRANSIENT_RETRY_DELAY_MS = 700;
   const TRANSIENT_ANALYSIS_CODES = new Set([
     'AUTH_UPSTREAM_TIMEOUT',
@@ -222,6 +239,17 @@
     style.textContent = `
       .he-hommy-followup{margin-top:13px;border:1px solid rgba(178,86,108,.12);border-radius:16px;background:linear-gradient(180deg,#fff 0%,#fcf8f9 100%);overflow:hidden}
       .he-hommy-idle{padding:11px}
+      .he-hommy-radar-head{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:8px}
+      .he-hommy-radar-brand{display:flex;align-items:center;gap:8px;min-width:0}
+      .he-hommy-radar-mark{width:29px;height:29px;border-radius:9px;background:#f8eef1;color:#b2566c;display:grid;place-items:center;flex:0 0 auto}
+      .he-hommy-radar-brand strong{display:block;color:#413b3e;font-size:12.5px;line-height:1.05;font-weight:760}
+      .he-hommy-radar-brand small{display:block;margin-top:2px!important;text-align:left!important;color:#918a8e!important;font-size:9.8px!important;font-weight:560!important}
+      .he-hommy-radar-signal{min-height:26px;padding:0 9px;border-radius:999px;background:#f4f3f4;color:#716b6f;display:inline-flex;align-items:center;font-size:10.2px;font-weight:760;white-space:nowrap}
+      .he-hommy-radar-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+      .he-hommy-radar-chip{min-height:24px;padding:0 7px;border-radius:8px;background:#f5f4f5;color:#716b6f;display:inline-flex;align-items:center;font-size:10px;font-weight:680}
+      .he-hommy-radar-chip.address{background:#fbf5e8;color:#8d6b2c}
+      .he-hommy-radar-note{margin:0 1px 9px;color:#918a8e;font-size:10.2px;line-height:1.35;font-weight:560}
+      .he-hommy-cache-note{margin:8px 0 0;color:#918a8e;font-size:10px;line-height:1.3;font-weight:560}
       .he-hommy-analyze{width:100%;min-height:44px;border:1px solid rgba(178,86,108,.16);border-radius:13px;background:#fff;color:#9c485d;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:720;font-size:13px;box-shadow:0 6px 16px rgba(70,42,51,.04)}
       .he-hommy-analyze:active{transform:scale(.985)}
       .he-hommy-analyze:disabled{opacity:.62;cursor:wait;transform:none}
@@ -300,10 +328,247 @@
     while (panel.firstChild) panel.firstChild.remove();
   }
 
-  function renderIdle(panel, numero) {
+
+  function sessionRead(key) {
+    try {
+      const raw = window.sessionStorage && window.sessionStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function sessionWrite(key, value) {
+    try {
+      if (window.sessionStorage) window.sessionStorage.setItem(key, JSON.stringify(value));
+    } catch (_) {}
+  }
+
+  function sessionRemove(key) {
+    try {
+      if (window.sessionStorage) window.sessionStorage.removeItem(key);
+    } catch (_) {}
+  }
+
+  function planStorageKey(numero) {
+    return `${PLAN_CACHE_PREFIX}${clean(numero)}`;
+  }
+
+  function radarStorageKey(numero) {
+    return `${RADAR_CACHE_PREFIX}${clean(numero)}`;
+  }
+
+  function cachedPlan(numero) {
+    const key = clean(numero);
+    if (!key) return null;
+    let record = planCache.get(key) || sessionRead(planStorageKey(key));
+    if (!record || !record.payload || typeof record.payload !== 'object') return null;
+    const age = Date.now() - Number(record.cachedAt || 0);
+    if (!Number.isFinite(age) || age < 0 || age > PLAN_MAX_AGE_MS) {
+      planCache.delete(key);
+      sessionRemove(planStorageKey(key));
+      return null;
+    }
+    planCache.set(key, record);
+    return record;
+  }
+
+  function rememberPlan(numero, payload) {
+    const key = clean(numero);
+    if (!key || !payload || typeof payload !== 'object') return null;
+    const record = { cachedAt: Date.now(), payload };
+    planCache.set(key, record);
+    sessionWrite(planStorageKey(key), record);
+    return record;
+  }
+
+  function forgetPlan(numero) {
+    const key = clean(numero);
+    if (!key) return;
+    planCache.delete(key);
+    sessionRemove(planStorageKey(key));
+  }
+
+  function cachedRadar(numero) {
+    const key = clean(numero);
+    if (!key) return null;
+    let record = radarCache.get(key) || sessionRead(radarStorageKey(key));
+    if (!record || !record.summary || typeof record.summary !== 'object') return null;
+    const age = Date.now() - Number(record.cachedAt || 0);
+    if (!Number.isFinite(age) || age < 0 || age > RADAR_MAX_AGE_MS) {
+      radarCache.delete(key);
+      sessionRemove(radarStorageKey(key));
+      return null;
+    }
+    radarCache.set(key, record);
+    return record;
+  }
+
+  function maxDateMs(values) {
+    let best = 0;
+    (values || []).forEach(value => {
+      const ms = Date.parse(clean(value));
+      if (Number.isFinite(ms) && ms > best) best = ms;
+    });
+    return best;
+  }
+
+  function summarizeHistory(payload) {
+    const status = payload && payload.status && typeof payload.status === 'object' ? payload.status : {};
+    const style = payload && payload.conversationStyle && typeof payload.conversationStyle === 'object' ? payload.conversationStyle : {};
+    const rows = Array.isArray(payload && payload.history) ? payload.history : [];
+    let incomingCount = 0;
+    let outgoingCount = 0;
+    let latestEventMs = 0;
+    let latestIncomingMs = Date.parse(clean(status.lastIncomingAt)) || 0;
+    let latestOutgoingMs = Date.parse(clean(status.lastOutgoingAt)) || 0;
+    rows.forEach(item => {
+      if (!item || typeof item !== 'object') return;
+      const kind = clean(item.kind).toUpperCase();
+      const at = Date.parse(clean(item.at)) || 0;
+      if (at > latestEventMs) latestEventMs = at;
+      if (kind === 'INCOMING') {
+        incomingCount += 1;
+        if (at > latestIncomingMs) latestIncomingMs = at;
+      }
+      if (kind === 'OUTGOING' || kind === 'QUOTE_SENT') {
+        outgoingCount += 1;
+        if (at > latestOutgoingMs) latestOutgoingMs = at;
+      }
+    });
+    latestEventMs = Math.max(latestEventMs, latestIncomingMs, latestOutgoingMs);
+    return {
+      state: clean(status.state).toUpperCase(),
+      intent: clean(status.intent).toUpperCase(),
+      temperature: clean(status.temperature).toUpperCase(),
+      attempts: Math.max(0, Number(status.attempts || 0)),
+      preferredAddress: clean(style.preferredAddress),
+      honorificObserved: style.honorificObserved === true,
+      register: clean(style.register).toUpperCase(),
+      eventCount: rows.length,
+      incomingCount,
+      outgoingCount,
+      latestEventMs,
+      latestIncomingMs,
+      latestOutgoingMs
+    };
+  }
+
+  function rememberRadar(numero, payload) {
+    const key = clean(numero);
+    if (!key) return null;
+    const record = { cachedAt: Date.now(), summary: summarizeHistory(payload) };
+    radarCache.set(key, record);
+    sessionWrite(radarStorageKey(key), record);
+    return record;
+  }
+
+  function radarSignal(summary) {
+    const state = clean(summary && summary.state).toUpperCase();
+    const intent = clean(summary && summary.intent).toUpperCase();
+    const incoming = Number(summary && summary.incomingCount || 0);
+    const outgoing = Number(summary && summary.outgoingCount || 0);
+    const attempts = Number(summary && summary.attempts || 0);
+    const lastIn = Number(summary && summary.latestIncomingMs || 0);
+    const lastOut = Number(summary && summary.latestOutgoingMs || 0);
+    if (intent === 'READY_TO_BUY') return 'Listo para comprar';
+    if (intent === 'WAITING_UNTIL_DATE') return 'Esperando fecha';
+    if (intent === 'NOT_INTERESTED' || intent === 'DO_NOT_CONTACT' || state === 'STOPPED') return 'No contactar';
+    if (state === 'WAITING_CUSTOMER') return 'Esperando respuesta';
+    if (lastIn > lastOut) return 'Cliente respondió';
+    if (attempts > 0) return 'Seguimiento activo';
+    if (incoming > 0) return 'Conversación activa';
+    if (outgoing > 0) return 'Contacto iniciado';
+    return 'Nueva cotización';
+  }
+
+  function ageLabel(timestamp) {
+    const age = Math.max(0, Date.now() - Number(timestamp || 0));
+    if (age < 45_000) return 'ahora';
+    const minutes = Math.max(1, Math.round(age / 60_000));
+    if (minutes < 60) return `hace ${minutes} min`;
+    const hours = Math.max(1, Math.round(minutes / 60));
+    return `hace ${hours} h`;
+  }
+
+  function panelFor(numero) {
+    const card = document.getElementById(`card-${clean(numero)}`);
+    return card && card.querySelector('.he-hommy-followup');
+  }
+
+  function updateIdleRadar(panel, numero, record) {
+    if (!panel || panel.dataset.mode !== 'idle') return;
+    const summary = record && record.summary;
+    const signal = panel.querySelector('.he-hommy-radar-signal');
+    const chips = panel.querySelector('.he-hommy-radar-chips');
+    const note = panel.querySelector('.he-hommy-radar-note');
+    if (!summary) {
+      if (signal) signal.textContent = 'Preparando radar';
+      if (note) note.textContent = 'Hommy está leyendo el contexto en segundo plano…';
+      return;
+    }
+    if (signal) signal.textContent = radarSignal(summary);
+    if (chips) {
+      clearPanel(chips);
+      const add = (text, className = '') => {
+        if (!clean(text)) return;
+        const chip = document.createElement('span');
+        chip.className = `he-hommy-radar-chip${className ? ` ${className}` : ''}`;
+        chip.textContent = text;
+        chips.appendChild(chip);
+      };
+      if (summary.attempts > 0) add(summary.attempts === 1 ? '1 seguimiento' : `${summary.attempts} seguimientos`);
+      if (summary.incomingCount > 0) add(summary.latestIncomingMs > summary.latestOutgoingMs ? 'Respuesta nueva' : 'Conversación registrada');
+      if (summary.honorificObserved && summary.preferredAddress) add(`Trato: ${summary.preferredAddress}`, 'address');
+      if (['HIGH', 'RISK', 'WAITING', 'COLD'].includes(summary.temperature)) {
+        add(`Temperatura: ${TEMPERATURE_LABELS[summary.temperature] || summary.temperature}`);
+      }
+      if (!chips.children.length) add('Contexto listo');
+    }
+    if (note) {
+      const events = summary.eventCount === 1 ? '1 evento' : `${summary.eventCount} eventos`;
+      note.textContent = `${events} · contexto actualizado ${ageLabel(record.cachedAt)}`;
+    }
+  }
+
+  function latestHistoryAfterPlan(numero, radarRecord) {
+    const planRecord = cachedPlan(numero);
+    if (!planRecord || !radarRecord || !radarRecord.summary) return false;
+    const generatedMs = Date.parse(clean(planRecord.payload && planRecord.payload.generatedAt)) || Number(planRecord.cachedAt || 0);
+    return Number(radarRecord.summary.latestEventMs || 0) > generatedMs + 1000;
+  }
+
+  function renderIdle(panel, numero, radarRecord = cachedRadar(numero)) {
     clearPanel(panel);
+    panel.dataset.mode = 'idle';
     const wrap = document.createElement('div');
     wrap.className = 'he-hommy-idle';
+
+    const head = document.createElement('div');
+    head.className = 'he-hommy-radar-head';
+    const brand = document.createElement('div');
+    brand.className = 'he-hommy-radar-brand';
+    const mark = document.createElement('span');
+    mark.className = 'he-hommy-radar-mark';
+    mark.append(icon('fas fa-wand-magic-sparkles'));
+    const brandText = document.createElement('span');
+    const title = document.createElement('strong');
+    title.textContent = 'Hommy';
+    const subtitle = document.createElement('small');
+    subtitle.textContent = 'Radar comercial';
+    brandText.append(title, subtitle);
+    brand.append(mark, brandText);
+    const signal = document.createElement('span');
+    signal.className = 'he-hommy-radar-signal';
+    signal.textContent = 'Preparando radar';
+    head.append(brand, signal);
+
+    const chips = document.createElement('div');
+    chips.className = 'he-hommy-radar-chips';
+    const note = document.createElement('div');
+    note.className = 'he-hommy-radar-note';
+    note.textContent = 'Hommy está leyendo el contexto en segundo plano…';
+
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'he-hommy-analyze';
@@ -312,11 +577,13 @@
     label.textContent = 'Analizar con Hommy';
     button.append(label);
     button.addEventListener('click', () => analyze(panel, numero));
-    const note = document.createElement('small');
-    note.textContent = 'Revisión comercial · no envía mensajes ni modifica la cotización';
-    wrap.append(button, note);
+    const safety = document.createElement('small');
+    safety.textContent = 'El radar se actualiza en segundo plano · no envía mensajes ni modifica la cotización. El análisis completo solo se recalcula cuando hace falta.';
+
+    wrap.append(head, chips, note, button, safety);
     panel.appendChild(wrap);
     panel.appendChild(createHistoryAccordion(numero));
+    updateIdleRadar(panel, numero, radarRecord);
   }
 
   function renderLoading(panel, message = 'Hommy está revisando el contexto comercial…') {
@@ -500,6 +767,8 @@
           }
           historyCache.set(key, payload);
         }
+        const radarRecord = rememberRadar(numero, payload);
+        updateIdleRadar(panelFor(numero), numero, radarRecord);
         if (details.isConnected) renderHistoryPayload(body, meta, payload);
       } catch (error) {
         details.dataset.loaded = '0';
@@ -524,6 +793,151 @@
       if (details.open) load(false);
     });
     return details;
+  }
+
+
+  async function prefetchRadar(numero, force = false) {
+    const key = clean(numero);
+    if (!key) return null;
+    const existing = cachedRadar(key);
+    if (!force && existing && Date.now() - existing.cachedAt <= RADAR_FRESH_MS) {
+      updateIdleRadar(panelFor(key), key, existing);
+      return existing;
+    }
+    let payload;
+    try {
+      payload = await requestHistory(key);
+    } catch (error) {
+      if (!isTransientAnalysisError(error)) throw error;
+      await wait(TRANSIENT_RETRY_DELAY_MS);
+      payload = await requestHistory(key);
+    }
+    historyCache.set(key, payload);
+    const record = rememberRadar(key, payload);
+    updateIdleRadar(panelFor(key), key, record);
+    if (latestHistoryAfterPlan(key, record)) {
+      const hadPlan = Boolean(cachedPlan(key));
+      forgetPlan(key);
+      const panel = panelFor(key);
+      if (panel && panel.dataset.mode === 'result') {
+        renderIdle(panel, key, record);
+        const note = panel.querySelector('.he-hommy-radar-note');
+        if (note) note.textContent = 'Hay actividad nueva · Hommy actualizará el análisis sin bloquear la tarjeta.';
+      }
+      if (hadPlan && visibleQuotes.has(key)) refreshPlanSilently(key);
+    }
+    return record;
+  }
+
+  function drainRadarQueue() {
+    while (radarWorkers < MAX_RADAR_WORKERS && radarQueue.length) {
+      const job = radarQueue.shift();
+      const key = clean(job && job.numero);
+      if (!key) continue;
+      queuedRadar.delete(key);
+      radarWorkers += 1;
+      prefetchRadar(key, Boolean(job.force))
+        .catch(() => {})
+        .finally(() => {
+          radarWorkers -= 1;
+          drainRadarQueue();
+        });
+    }
+  }
+
+  function queueRadar(numero, force = false, priority = false) {
+    const key = clean(numero);
+    if (!key) return;
+    const existing = cachedRadar(key);
+    if (!force && existing && Date.now() - existing.cachedAt <= RADAR_FRESH_MS) {
+      updateIdleRadar(panelFor(key), key, existing);
+      return;
+    }
+    if (queuedRadar.has(key)) return;
+    queuedRadar.add(key);
+    const job = { numero: key, force: Boolean(force) };
+    if (priority) radarQueue.unshift(job);
+    else radarQueue.push(job);
+    drainRadarQueue();
+  }
+
+  async function refreshPlanSilently(numero) {
+    const key = clean(numero);
+    const panel = panelFor(key);
+    if (!key || !panel || panel.dataset.loading === '1' || panel.dataset.backgroundPlan === '1') return;
+    panel.dataset.backgroundPlan = '1';
+    try {
+      let payload;
+      try {
+        payload = await requestPlan(key);
+      } catch (error) {
+        if (!isTransientAnalysisError(error)) throw error;
+        await wait(TRANSIENT_RETRY_DELAY_MS);
+        payload = await requestPlan(key);
+      }
+      const record = rememberPlan(key, payload);
+      if (panel.isConnected && panel.dataset.loading !== '1') {
+        renderResult(panel, key, payload, { cached: false, cachedAt: record.cachedAt, background: true });
+      }
+    } catch (_) {
+      // Background refresh is intentionally silent; the last usable UI remains available.
+    } finally {
+      if (panel) panel.dataset.backgroundPlan = '0';
+    }
+  }
+
+  function restorePanel(panel, numero) {
+    const key = clean(numero);
+    const planRecord = cachedPlan(key);
+    if (planRecord) {
+      renderResult(panel, key, planRecord.payload, { cached: true, cachedAt: planRecord.cachedAt });
+      if (Date.now() - planRecord.cachedAt > PLAN_FRESH_MS && visibleQuotes.has(key)) {
+        window.setTimeout(() => refreshPlanSilently(key), 30);
+      }
+      return;
+    }
+    renderIdle(panel, key, cachedRadar(key));
+  }
+
+  function ensureVisibilityObserver() {
+    if (cardVisibilityObserver || typeof window.IntersectionObserver !== 'function') return;
+    cardVisibilityObserver = new window.IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const numero = quoteNumberFromCard(entry.target);
+        if (!numero) return;
+        if (entry.isIntersecting) {
+          visibleQuotes.add(numero);
+          queueRadar(numero, false, true);
+          const planRecord = cachedPlan(numero);
+          if (planRecord && Date.now() - planRecord.cachedAt > PLAN_FRESH_MS) {
+            window.setTimeout(() => refreshPlanSilently(numero), 20);
+          }
+        } else {
+          visibleQuotes.delete(numero);
+        }
+      });
+    }, { rootMargin: '260px 0px 260px 0px', threshold: 0.01 });
+  }
+
+  function warmRadar() {
+    document.querySelectorAll('.crm-card').forEach((card, index) => {
+      const numero = quoteNumberFromCard(card);
+      if (numero) queueRadar(numero, false, index < 5);
+    });
+  }
+
+  function scheduleBackgroundRefresh() {
+    if (refreshTimer) window.clearTimeout(refreshTimer);
+    refreshTimer = window.setTimeout(() => {
+      if (!document.hidden) {
+        visibleQuotes.forEach(numero => {
+          queueRadar(numero, true, true);
+          const planRecord = cachedPlan(numero);
+          if (planRecord && Date.now() - planRecord.cachedAt > PLAN_FRESH_MS) refreshPlanSilently(numero);
+        });
+      }
+      scheduleBackgroundRefresh();
+    }, BACKGROUND_REFRESH_MS);
   }
 
   async function copyText(value) {
@@ -771,7 +1185,9 @@
       const sync = await syncSentFollowup(numero, payload, finalMessage, delivery);
       window.Swal.close();
       markDelivery(panel, delivery, sync);
+      forgetPlan(numero);
       resetHistoryControl(panel, numero);
+      queueRadar(numero, true, true);
       if (clean(delivery && delivery.delivery).toUpperCase() === 'SENT') {
         toast(sync.memoryOk ? 'Seguimiento enviado y registrado' : 'Seguimiento enviado por WhatsApp');
       } else {
@@ -795,8 +1211,9 @@
     }
   }
 
-  function renderResult(panel, numero, payload) {
+  function renderResult(panel, numero, payload, options = {}) {
     clearPanel(panel);
+    panel.dataset.mode = 'result';
     const plan = payload.plan || {};
     const decision = clean(plan.decision).toUpperCase();
     const result = document.createElement('div');
@@ -823,6 +1240,13 @@
     badge.textContent = DECISION_LABELS[decision] || 'Análisis';
     head.append(brand, badge);
     result.appendChild(head);
+
+    if (options.cached) {
+      const cacheNote = document.createElement('div');
+      cacheNote.className = 'he-hommy-cache-note';
+      cacheNote.textContent = `Análisis guardado ${ageLabel(options.cachedAt)} · se actualizará en segundo plano si cambia el contexto.`;
+      result.appendChild(cacheNote);
+    }
 
     const chips = document.createElement('div');
     chips.className = 'he-hommy-chips';
@@ -972,6 +1396,7 @@
   async function analyze(panel, numero) {
     if (!panel || panel.dataset.loading === '1') return;
     panel.dataset.loading = '1';
+    panel.dataset.mode = 'loading';
     invalidateHistory(numero);
     renderLoading(panel);
     try {
@@ -984,7 +1409,8 @@
         await wait(TRANSIENT_RETRY_DELAY_MS);
         payload = await requestPlan(numero);
       }
-      if (panel.isConnected) renderResult(panel, numero, payload);
+      const record = rememberPlan(numero, payload);
+      if (panel.isConnected) renderResult(panel, numero, payload, { cached: false, cachedAt: record.cachedAt });
     } catch (error) {
       if (panel.isConnected) renderError(panel, numero, error);
     } finally {
@@ -1009,8 +1435,10 @@
     const panel = document.createElement('section');
     panel.className = 'he-hommy-followup';
     panel.setAttribute('aria-label', `Revisión comercial de Hommy para cotización ${numero}`);
-    renderIdle(panel, numero);
     body.appendChild(panel);
+    restorePanel(panel, numero);
+    ensureVisibilityObserver();
+    if (cardVisibilityObserver) cardVisibilityObserver.observe(card);
   }
 
   function enhanceCards() {
@@ -1024,6 +1452,24 @@
     if (!container) return;
     const observer = new MutationObserver(() => enhanceCards());
     observer.observe(container, { childList: true, subtree: true });
+    if (typeof window.IntersectionObserver === 'function') {
+      window.setTimeout(warmRadar, BACKGROUND_WARMUP_DELAY_MS);
+      scheduleBackgroundRefresh();
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) window.setTimeout(warmRadar, 30);
+    });
+    window.addEventListener('homeeasy:seguimiento-updated', event => {
+      const numero = clean(event && event.detail && event.detail.numero);
+      if (!numero) return;
+      forgetPlan(numero);
+      invalidateHistory(numero);
+      radarCache.delete(numero);
+      sessionRemove(radarStorageKey(numero));
+      const panel = panelFor(numero);
+      if (panel) renderIdle(panel, numero, null);
+      queueRadar(numero, true, true);
+    });
   }
 
   if (document.readyState === 'loading') {
