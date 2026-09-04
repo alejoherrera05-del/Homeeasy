@@ -9,6 +9,7 @@ on:
       - 'tests/test_hommy_followup_experience.py'
       - 'scripts/patch_hommy_followup_10e_experience.py'
       - 'scripts/patch_hommy_followup_history_route_10e.py'
+      - 'scripts/patch_followup_experience_register_10e.py'
       - '.github/workflows/hommy-followup-10e-experience-stage.yml'
 
 permissions:
@@ -35,6 +36,7 @@ jobs:
         run: |
           python scripts/patch_hommy_followup_10e_experience.py
           python scripts/patch_hommy_followup_history_route_10e.py
+          python scripts/patch_followup_experience_register_10e.py
 
       - name: Compile Python
         run: python -m compileall -q hommy_backend servidor.py
@@ -62,6 +64,7 @@ jobs:
           assert '/api/hommy/followup/history' in server
           assert 'doña Sandra' in followup
           assert 'has_unverified_payment_completion_claim' in helper
+          assert 'honorific_observed and tu_score == 0' in helper
           print('Hommy 10E experience contracts: PASS')
           PY
 
