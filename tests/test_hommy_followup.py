@@ -209,6 +209,34 @@ class FollowupUnitTests(unittest.TestCase):
             validate_followup_plan(enum_plan, context, now=self.now)
         self.assertEqual(raised.exception.code, "FOLLOWUP_PLAN_SCHEMA_INVALID")
 
+    def test_homeeasy_detail_remains_authoritative_permission_gate(self):
+        client = HomeEasyFollowupClient()
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "status": "error", "code": "PERMISSION_DENIED",
+            "msg": "Sin permiso cotizaciones.read",
+        }
+        from hommy_backend.followup import FollowupPermissionError
+        with patch("hommy_backend.followup.requests.post", return_value=response):
+            with self.assertRaises(FollowupPermissionError):
+                client.detail("32", session_token="invalid-for-read", client_meta={})
+
+    def test_homeeasy_detail_rejects_expired_session_without_fail_open(self):
+        client = HomeEasyFollowupClient()
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "status": "error", "code": "APP_SESSION_EXPIRED",
+            "msg": "La sesión venció.",
+        }
+        from hommy_backend.followup import FollowupUpstreamError
+        with patch("hommy_backend.followup.requests.post", return_value=response):
+            with self.assertRaises(FollowupUpstreamError) as raised:
+                client.detail("32", session_token="expired", client_meta={})
+        self.assertEqual(raised.exception.status_code, 401)
+        self.assertEqual(raised.exception.code, "APP_SESSION_EXPIRED")
+
     def test_homeeasy_client_only_reads_detail_route(self):
         client = HomeEasyFollowupClient()
         response = Mock()
@@ -238,15 +266,27 @@ class FollowupHttpTests(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.get_json()["error"]["code"], "AUTH_REQUIRED")
 
-    def test_requires_quote_permission(self):
-        denied = AuthContext("u2", "Asesor", "a@example.invalid", "ASESOR", frozenset({"app.access"}))
-        with patch.object(servidor, "auth_context", return_value=denied):
+    def test_followup_local_context_is_read_only_opaque_and_skips_duplicate_auth(self):
+        planner = Mock()
+        planner.plan.return_value = {
+            "quoteNumber": "32", "planId": "FUP-TEST",
+            "generatedAt": "2026-09-03T14:00:00-05:00", "sourceStateVersion": 3,
+            "playbookVersion": "1.0", "schemaVersion": "1", "stage": "10B",
+            "model": "fake", "reviewOnly": True, "analysisMs": 1.0, "plan": valid_plan(),
+        }
+        with patch.object(servidor.validator, "validate", side_effect=AssertionError("duplicate auth called")), patch.object(
+            servidor, "get_followup_planner", return_value=planner
+        ):
             response = self.client.post(
                 "/api/hommy/followup/plan", json={"numero": "32"},
                 headers={"X-HomeEasy-Session": "test-session"},
             )
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.get_json()["error"]["code"], "PERMISSION_DENIED")
+        self.assertEqual(response.status_code, 200)
+        context = planner.plan.call_args.args[1]
+        self.assertEqual(context.permissions, frozenset({"app.access", "cotizaciones.read"}))
+        self.assertFalse(context.has("cotizaciones.write"))
+        self.assertTrue(context.uid.startswith("followup:"))
+        self.assertNotIn("test-session", context.uid)
 
     def test_ignores_browser_supplied_context(self):
         planner = Mock()
@@ -256,7 +296,7 @@ class FollowupHttpTests(unittest.TestCase):
             "playbookVersion": "1.0", "schemaVersion": "1", "stage": "10B",
             "model": "fake", "reviewOnly": True, "analysisMs": 1.0, "plan": valid_plan(),
         }
-        with patch.object(servidor, "auth_context", return_value=self.ctx), patch.object(
+        with patch.object(servidor, "followup_auth_context", return_value=self.ctx), patch.object(
             servidor, "get_followup_planner", return_value=planner
         ):
             response = self.client.post(
