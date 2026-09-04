@@ -6,8 +6,11 @@
 
   const API_BASE = String(window.HOMMY_API_BASE || 'https://homeeasy-hommy-staging.onrender.com').replace(/\/$/, '');
   const ENDPOINT = `${API_BASE}/api/hommy/followup/plan`;
+  const HISTORY_ENDPOINT = `${API_BASE}/api/hommy/followup/history`;
   const STYLE_ID = 'homeeasy-followup-hommy-10b-style';
   const REQUEST_TIMEOUT_MS = 90_000;
+  const HISTORY_TIMEOUT_MS = 45_000;
+  const historyCache = new Map();
   const TRANSIENT_RETRY_DELAY_MS = 700;
   const TRANSIENT_ANALYSIS_CODES = new Set([
     'AUTH_UPSTREAM_TIMEOUT',
@@ -174,6 +177,44 @@
     return payload;
   }
 
+
+  async function requestHistory(numero, allowRecovery = true) {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), HISTORY_TIMEOUT_MS);
+    let response;
+    try {
+      response = await fetch(HISTORY_ENDPOINT, {
+        method: 'POST',
+        headers: authenticatedHeaders(),
+        body: JSON.stringify({ numero: clean(numero) }),
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        const timeout = new Error('El historial tardó demasiado en responder.');
+        timeout.code = 'FOLLOWUP_UPSTREAM_TIMEOUT';
+        throw timeout;
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timer);
+    }
+
+    let payload = null;
+    try { payload = await response.json(); } catch (_) {}
+    const code = clean(payload && payload.error && payload.error.code).toUpperCase();
+    if (response.status === 401 && allowRecovery && ['AUTH_REQUIRED', 'APP_SESSION_EXPIRED', 'APP_SESSION_REJECTED', 'NO_SESSION'].includes(code || 'AUTH_REQUIRED')) {
+      if (await recoverSession()) return requestHistory(numero, false);
+    }
+    if (!response.ok || !payload || payload.ok !== true || !Array.isArray(payload.history)) {
+      const error = new Error(clean(payload && payload.error && payload.error.message) || 'No fue posible cargar el historial comercial.');
+      error.code = code || `HTTP_${response.status}`;
+      throw error;
+    }
+    return payload;
+  }
+
   function addStyles() {
     if (document.getElementById(STYLE_ID)) return;
     const style = document.createElement('style');
@@ -214,6 +255,30 @@
       .he-hommy-delivery{margin-top:10px;padding:10px 11px;border-radius:11px;background:#eef8f3;color:#2b765f;font-size:11.5px;line-height:1.4;font-weight:680;display:flex;align-items:flex-start;gap:7px}
       .he-hommy-delivery.unknown{background:#fff8e8;color:#946c1f}
       .he-hommy-action:active{transform:scale(.98)}
+      .he-hommy-history{margin-top:11px;border:1px solid #ebe7e9;border-radius:12px;background:rgba(255,255,255,.82);overflow:hidden}
+      .he-hommy-history summary{list-style:none;cursor:pointer;min-height:42px;padding:0 11px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#625b5f;font-size:11.5px;font-weight:720;user-select:none}
+      .he-hommy-history summary::-webkit-details-marker{display:none}
+      .he-hommy-history-summary{display:flex;align-items:center;gap:7px;min-width:0}
+      .he-hommy-history-summary i{color:#a0465b}
+      .he-hommy-history-meta{color:#9a9397;font-size:10px;font-weight:620;white-space:nowrap}
+      .he-hommy-history-chevron{font-size:9px;color:#aaa3a7;transition:transform .18s ease}
+      .he-hommy-history[open] .he-hommy-history-chevron{transform:rotate(180deg)}
+      .he-hommy-history-body{border-top:1px solid #f0edef;padding:10px}
+      .he-hommy-history-status{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px}
+      .he-hommy-history-pill{min-height:23px;padding:0 7px;border-radius:7px;background:#f5f4f5;color:#716b6f;display:inline-flex;align-items:center;font-size:9.8px;font-weight:680}
+      .he-hommy-history-pill.address{background:#fbf5e8;color:#8d6b2c}
+      .he-hommy-history-list{display:flex;flex-direction:column;gap:0;max-height:330px;overflow:auto;overscroll-behavior:contain}
+      .he-hommy-history-item{position:relative;padding:2px 0 11px 25px}
+      .he-hommy-history-item:not(:last-child)::before{content:'';position:absolute;left:7px;top:18px;bottom:-1px;width:1px;background:#ebe7e9}
+      .he-hommy-history-dot{position:absolute;left:0;top:2px;width:15px;height:15px;border-radius:50%;background:#f4f3f4;color:#8c8589;display:grid;place-items:center;font-size:7px;z-index:1}
+      .he-hommy-history-item[data-kind="INCOMING"] .he-hommy-history-dot{background:#eef8f3;color:#2b765f}
+      .he-hommy-history-item[data-kind="OUTGOING"] .he-hommy-history-dot,.he-hommy-history-item[data-kind="QUOTE_SENT"] .he-hommy-history-dot{background:#f8eef1;color:#a0465b}
+      .he-hommy-history-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+      .he-hommy-history-title{color:#514b4e;font-size:10.7px;font-weight:740}
+      .he-hommy-history-time{color:#9a9397;font-size:9.4px;font-weight:560;white-space:nowrap}
+      .he-hommy-history-text{margin:3px 0 0;color:#746d71;font-size:10.7px;line-height:1.42;font-weight:530;white-space:pre-wrap;overflow-wrap:anywhere}
+      .he-hommy-history-loading,.he-hommy-history-empty{padding:5px 2px;color:#8b8488;font-size:10.7px;line-height:1.4}
+      .he-hommy-history-retry{margin-top:7px;min-height:32px;padding:0 9px;border:1px solid #e8e3e5;border-radius:9px;background:#fff;color:#a0465b;font-size:10.5px;font-weight:700}
       .he-hommy-safe{margin-top:8px;color:#9a9397;font-size:10.5px;line-height:1.3;text-align:center;font-weight:540}
       .he-hommy-error{padding:13px}
       .he-hommy-error strong{display:block;color:#9f4659;font-size:12.5px;font-weight:740}
@@ -251,6 +316,7 @@
     note.textContent = 'Revisión comercial · no envía mensajes ni modifica la cotización';
     wrap.append(button, note);
     panel.appendChild(wrap);
+    panel.appendChild(createHistoryAccordion(numero));
   }
 
   function renderLoading(panel, message = 'Hommy está revisando el contexto comercial…') {
@@ -275,6 +341,189 @@
       dateStyle: 'medium',
       timeStyle: 'short'
     }).format(date);
+  }
+
+
+  const HISTORY_KIND_LABELS = Object.freeze({
+    QUOTE_CREATED: 'Cotización creada',
+    QUOTE_SENT: 'Cotización enviada',
+    OUTGOING: 'Mensaje enviado',
+    INCOMING: 'Cliente respondió',
+    NOTE: 'Nota de seguimiento',
+    CLOSED: 'Seguimiento cerrado',
+    STATUS: 'Cambio de seguimiento'
+  });
+
+  const HISTORY_KIND_ICONS = Object.freeze({
+    QUOTE_CREATED: 'fas fa-file-lines',
+    QUOTE_SENT: 'fab fa-whatsapp',
+    OUTGOING: 'fas fa-arrow-up',
+    INCOMING: 'fas fa-arrow-down',
+    NOTE: 'fas fa-note-sticky',
+    CLOSED: 'fas fa-circle-stop',
+    STATUS: 'fas fa-circle-dot'
+  });
+
+  function formatHistoryDate(value) {
+    const raw = clean(value);
+    if (!raw) return '';
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('es-CO', {
+      day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'
+    }).format(date);
+  }
+
+  function historyText(value, limit = 360) {
+    const text = clean(value).replace(/\s+/g, ' ');
+    if (text.length <= limit) return text;
+    return `${text.slice(0, Math.max(0, limit - 1)).trim()}…`;
+  }
+
+  function invalidateHistory(numero) {
+    historyCache.delete(clean(numero));
+  }
+
+  function resetHistoryControl(panel, numero) {
+    invalidateHistory(numero);
+    const current = panel && panel.querySelector('.he-hommy-history');
+    if (current) current.replaceWith(createHistoryAccordion(numero));
+  }
+
+  function renderHistoryPayload(body, meta, payload) {
+    clearPanel(body);
+    const status = payload && payload.status && typeof payload.status === 'object' ? payload.status : {};
+    const style = payload && payload.conversationStyle && typeof payload.conversationStyle === 'object' ? payload.conversationStyle : {};
+    const history = Array.isArray(payload && payload.history) ? payload.history : [];
+    const pills = document.createElement('div');
+    pills.className = 'he-hommy-history-status';
+
+    const addPill = (label, className = '') => {
+      if (!clean(label)) return;
+      const pill = document.createElement('span');
+      pill.className = `he-hommy-history-pill${className ? ` ${className}` : ''}`;
+      pill.textContent = label;
+      pills.appendChild(pill);
+    };
+
+    const attempts = Math.max(0, Number(status.attempts || 0));
+    addPill(attempts === 1 ? '1 seguimiento enviado' : attempts > 1 ? `${attempts} seguimientos enviados` : 'Sin seguimientos enviados');
+    if (status.intent) addPill(INTENT_LABELS[clean(status.intent).toUpperCase()] || clean(status.intent));
+    if (status.temperature) addPill(`Temperatura: ${TEMPERATURE_LABELS[clean(status.temperature).toUpperCase()] || clean(status.temperature)}`);
+    if (style.honorificObserved === true && style.preferredAddress) addPill(`Trato: ${clean(style.preferredAddress)}`, 'address');
+    body.appendChild(pills);
+
+    meta.textContent = history.length ? `${history.length} eventos` : 'Sin eventos';
+    if (!history.length) {
+      const empty = document.createElement('div');
+      empty.className = 'he-hommy-history-empty';
+      empty.textContent = 'Aún no hay actividad comercial registrada para esta cotización.';
+      body.appendChild(empty);
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'he-hommy-history-list';
+    history.forEach(event => {
+      if (!event || typeof event !== 'object') return;
+      const kind = clean(event.kind).toUpperCase() || 'STATUS';
+      const item = document.createElement('div');
+      item.className = 'he-hommy-history-item';
+      item.dataset.kind = kind;
+      const dot = document.createElement('span');
+      dot.className = 'he-hommy-history-dot';
+      dot.append(icon(HISTORY_KIND_ICONS[kind] || HISTORY_KIND_ICONS.STATUS));
+      const top = document.createElement('div');
+      top.className = 'he-hommy-history-top';
+      const title = document.createElement('span');
+      title.className = 'he-hommy-history-title';
+      title.textContent = HISTORY_KIND_LABELS[kind] || 'Actividad';
+      const time = document.createElement('span');
+      time.className = 'he-hommy-history-time';
+      time.textContent = formatHistoryDate(event.at);
+      top.append(title, time);
+      item.append(dot, top);
+      const textValue = historyText(event.text);
+      if (textValue) {
+        const text = document.createElement('p');
+        text.className = 'he-hommy-history-text';
+        text.textContent = textValue;
+        item.appendChild(text);
+      }
+      list.appendChild(item);
+    });
+    body.appendChild(list);
+  }
+
+  function createHistoryAccordion(numero) {
+    const details = document.createElement('details');
+    details.className = 'he-hommy-history';
+    const summary = document.createElement('summary');
+    const left = document.createElement('span');
+    left.className = 'he-hommy-history-summary';
+    left.append(icon('fas fa-clock-rotate-left'));
+    const label = document.createElement('span');
+    label.textContent = 'Historial y contexto';
+    left.appendChild(label);
+    const right = document.createElement('span');
+    right.style.display = 'inline-flex';
+    right.style.alignItems = 'center';
+    right.style.gap = '7px';
+    const meta = document.createElement('span');
+    meta.className = 'he-hommy-history-meta';
+    meta.textContent = 'Ver actividad';
+    const chevron = icon('fas fa-chevron-down he-hommy-history-chevron');
+    right.append(meta, chevron);
+    summary.append(left, right);
+    const body = document.createElement('div');
+    body.className = 'he-hommy-history-body';
+    details.append(summary, body);
+
+    const load = async force => {
+      if (!force && details.dataset.loaded === '1') return;
+      details.dataset.loaded = '1';
+      clearPanel(body);
+      const loading = document.createElement('div');
+      loading.className = 'he-hommy-history-loading';
+      loading.textContent = 'Cargando actividad de HomeEasy y WhatsApp…';
+      body.appendChild(loading);
+      try {
+        const key = clean(numero);
+        let payload = !force ? historyCache.get(key) : null;
+        if (!payload) {
+          try {
+            payload = await requestHistory(numero);
+          } catch (error) {
+            if (!isTransientAnalysisError(error)) throw error;
+            await wait(TRANSIENT_RETRY_DELAY_MS);
+            payload = await requestHistory(numero);
+          }
+          historyCache.set(key, payload);
+        }
+        if (details.isConnected) renderHistoryPayload(body, meta, payload);
+      } catch (error) {
+        details.dataset.loaded = '0';
+        clearPanel(body);
+        const failed = document.createElement('div');
+        failed.className = 'he-hommy-history-empty';
+        failed.textContent = 'No pudimos cargar el historial en este momento. El seguimiento y WhatsApp no fueron modificados.';
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'he-hommy-history-retry';
+        retry.textContent = 'Volver a cargar';
+        retry.addEventListener('click', event => {
+          event.preventDefault();
+          event.stopPropagation();
+          load(true);
+        });
+        body.append(failed, retry);
+      }
+    };
+
+    details.addEventListener('toggle', () => {
+      if (details.open) load(false);
+    });
+    return details;
   }
 
   async function copyText(value) {
@@ -339,6 +588,7 @@
     const plan = payload.plan || {};
     const planId = clean(payload.planId);
     const sentAt = clean(delivery && delivery.sentAt) || new Date().toISOString();
+    const sourceAttempts = Math.max(0, Number(payload.sourceAttemptCount || 0));
     let stateResult = null;
     let stateError = null;
     let eventResult = null;
@@ -349,9 +599,11 @@
         tipo: 'ACTUALIZAR_ESTADO_SEGUIMIENTO_IA',
         numero: clean(numero),
         expectedVersion: Number(payload.sourceStateVersion || 0),
+        estado: 'WAITING_CUSTOMER',
         intencion: clean(plan.intent).toUpperCase(),
         temperatura: clean(plan.temperature).toUpperCase(),
         resumen: clean(plan.summary),
+        intentosSeguimiento: sourceAttempts + 1,
         proximaAccionFecha: plan.nextActionAt || '',
         proximaAccionTipo: 'WAIT_REPLY',
         ultimoSaliente: sentAt,
@@ -519,6 +771,7 @@
       const sync = await syncSentFollowup(numero, payload, finalMessage, delivery);
       window.Swal.close();
       markDelivery(panel, delivery, sync);
+      resetHistoryControl(panel, numero);
       if (clean(delivery && delivery.delivery).toUpperCase() === 'SENT') {
         toast(sync.memoryOk ? 'Seguimiento enviado y registrado' : 'Seguimiento enviado por WhatsApp');
       } else {
@@ -589,6 +842,13 @@
       temperature.textContent = `Temperatura: ${TEMPERATURE_LABELS[clean(plan.temperature).toUpperCase()] || clean(plan.temperature)}`;
       chips.appendChild(temperature);
     }
+    const priorAttempts = Math.max(0, Number(payload.sourceAttemptCount || 0));
+    if (priorAttempts > 0) {
+      const attempts = document.createElement('span');
+      attempts.className = 'he-hommy-chip';
+      attempts.textContent = priorAttempts === 1 ? '1 seguimiento previo' : `${priorAttempts} seguimientos previos`;
+      chips.appendChild(attempts);
+    }
     result.appendChild(chips);
 
     const reason = document.createElement('p');
@@ -620,6 +880,8 @@
       next.textContent = `Próxima revisión sugerida: ${nextAction}`;
       result.appendChild(next);
     }
+
+    result.appendChild(createHistoryAccordion(numero));
 
     const actions = document.createElement('div');
     actions.className = 'he-hommy-actions';
@@ -710,6 +972,7 @@
   async function analyze(panel, numero) {
     if (!panel || panel.dataset.loading === '1') return;
     panel.dataset.loading = '1';
+    invalidateHistory(numero);
     renderLoading(panel);
     try {
       let payload;
