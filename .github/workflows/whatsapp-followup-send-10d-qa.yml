@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - seguimiento-human-send-10d
+      - seguimiento-fluid-10f
     paths:
       - 'infra/whatsapp/bridge/server.js'
       - 'infra/whatsapp/bridge/auth.js'
@@ -59,7 +60,7 @@ jobs:
           source = Path('infra/whatsapp/bridge/server.js').read_text(encoding='utf-8')
           updater = Path('infra/whatsapp/update-bridge.sh').read_text(encoding='utf-8')
 
-          assert "const BRIDGE_VERSION = '0.7.0'" in source
+          assert "const BRIDGE_VERSION = '0.7.1'" in source
           assert "url.pathname === '/api/whatsapp/send-followup'" in source
           assert "auth.authorize(req, 'cotizaciones.write')" in source
           assert "auth.readFollowupDetail(req" in source
@@ -76,7 +77,9 @@ jobs:
           assert "wahaRequest('POST', '/api/sendText'" in source
           assert 'idempotency[idempotencyKey] = record' in source
           assert "source: 'seguimiento-hommy-review'" in source
-          assert 'EXPECTED_VERSION="0.7.0"' in updater
+          assert 'EXPECTED_VERSION="0.7.1"' in updater
+          assert 'normalizeMessageIdValue' in source
+          assert 'extractMessageId' in source
 
           # The send route must derive the customer from the canonical quote detail;
           # it must never use payload.phone supplied by the browser.
@@ -95,7 +98,7 @@ jobs:
 
       - name: Verify controlled deployment contract
         run: |
-          grep -Fq 'EXPECTED_VERSION="0.7.0"' infra/whatsapp/update-bridge.sh
+          grep -Fq 'EXPECTED_VERSION="0.7.1"' infra/whatsapp/update-bridge.sh
           grep -Fq 'docker compose build bridge' infra/whatsapp/update-bridge.sh
           grep -Fq 'docker compose up -d --no-deps bridge' infra/whatsapp/update-bridge.sh
           grep -Fq 'COPY conversation.js ./' infra/whatsapp/bridge/Dockerfile
