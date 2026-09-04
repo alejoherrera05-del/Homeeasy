@@ -1458,6 +1458,7 @@ button, input, select, textarea { font-family: inherit; }
 
 </style>
     <script src="homeeasy-core.js?v=3.5"></script>
+    <script src="homeeasy-runtime.js?v=11a0"></script>
 </head>
 
 <body ontouchstart="">
@@ -1719,70 +1720,69 @@ function correrGuion() {
     });
 }
 
-function cerrarIntroCuandoAuthEsteLista() {
+const HOMEEASY_BOOT_MIN_VISUAL_MS = 5200;
+const HOMEEASY_BOOT_FAILOVER_MS = 9000;
+
+function esperarMs(ms) {
+    return new Promise(resolve => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+}
+
+function esperarAuthIndex() {
+    if (window.__HOMEEASY_INDEX_AUTH_READY_AT__) return Promise.resolve('ready');
+    return new Promise(resolve => {
+        window.addEventListener('homeeasy:index-auth-ready', () => resolve('ready'), { once: true });
+    });
+}
+
+function cerrarIntroCuandoBootEsteListo(warmPromise) {
     const inicio = performance.now();
-    const minimoVisualMs = 420;
-    let programado = false;
-    const programar = () => {
-        if (programado || appIniciada) return;
-        programado = true;
-        const espera = Math.max(0, minimoVisualMs - (performance.now() - inicio));
-        setTimeout(closeIntro, espera);
-    };
 
-    window.addEventListener('homeeasy:index-auth-ready', programar, { once: true });
-    if (window.__HOMEEASY_INDEX_AUTH_READY_AT__) programar();
+    // P0: autenticación real. P1: cachés que ya existían en Index, ahora coordinadas.
+    // El failover solo libera el splash: HomeEasyCore conserva su gate de seguridad.
+    const authGate = Promise.race([
+        esperarAuthIndex(),
+        esperarMs(HOMEEASY_BOOT_FAILOVER_MS).then(() => 'auth-timeout')
+    ]);
+    const warmGate = Promise.race([
+        Promise.resolve(warmPromise).catch(error => {
+            console.warn('HomeEasy 11A: el warm-up continuará de forma degradada.', error);
+            return { status: 'degraded' };
+        }),
+        esperarMs(HOMEEASY_BOOT_FAILOVER_MS).then(() => ({ status: 'warm-timeout' }))
+    ]);
 
-    // Fallback visual only. HomeEasyCore keeps its independent auth-pending gate
-    // over the app until the session is actually authorized.
-    setTimeout(programar, 2400);
+    Promise.allSettled([authGate, warmGate]).then(() => {
+        const elapsed = performance.now() - inicio;
+        return esperarMs(Math.max(0, HOMEEASY_BOOT_MIN_VISUAL_MS - elapsed));
+    }).then(() => closeIntro());
 }
 
 document.addEventListener("DOMContentLoaded", function() {
     const curtain = document.getElementById("intro-curtain");
+    const runtime = window.HomeEasyRuntime;
 
     if (sessionStorage.getItem("APP_INIT_DONE") === "true") {
         if(curtain) curtain.style.display = "none";
         actualizarCampana();
-        return; 
+
+        // Volver al Home conserva la navegación instantánea. Si la caché envejeció,
+        // se refresca detrás sin volver a interponer el splash.
+        if (runtime && typeof runtime.warmIndex === 'function') {
+            runtime.warmIndex(URL_SCRIPT, { force: false, prefetch: true }).then(() => {
+                actualizarCampana();
+            }).catch(error => console.warn('HomeEasy 11A: refresh de fondo omitido.', error));
+        }
+        return;
     }
 
+    // La animación y el guion de Hommy no cambian. Ahora cubren trabajo real.
     correrGuion();
-    cerrarIntroCuandoAuthEsteLista();
 
-    fetch(URL_SCRIPT + "?init=LOAD")
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === "ok") {
-                const clientesObj = {};
-                if(data.clientes){
-                    for (let i = 1; i < data.clientes.length; i++) {
-                        const c = data.clientes[i];
-                        if(c && c[0]) clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] };
-                    }
-                }
-                const ordenesArr = [];
-                if(data.ordenes){
-                    for (let i = 1; i < data.ordenes.length; i++) {
-                        const o = data.ordenes[i];
-                        if(o) ordenesArr.push({ numero: o[1], cedula: o[2], nombre: o[3], total: o[6], saldo: o[17] });
-                    }
-                }
-                localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
-                localStorage.setItem("CACHE_ORDENES", JSON.stringify(ordenesArr));
-                
-                return fetch(URL_SCRIPT + "?tipo=EVENTOS_TODOS");
-            }
-        })
-        .then(response => response ? response.json() : null)
-        .then(data => {
-            if (data && data.eventos) {
-                localStorage.setItem("CACHE_EVENTOS", JSON.stringify(data.eventos));
-            }
-        })
-        .catch(err => { 
-            console.error("⚠️ Error cargando caché:", err); 
-        });
+    const warmPromise = runtime && typeof runtime.warmIndex === 'function'
+        ? runtime.warmIndex(URL_SCRIPT, { force: true, prefetch: true })
+        : Promise.resolve({ status: 'runtime-unavailable' });
+
+    cerrarIntroCuandoBootEsteListo(warmPromise);
 });
 
 // ==========================================
