@@ -944,7 +944,14 @@
     function startPresenceHeartbeat() {
         stopPresenceHeartbeat();
         if (!getAppSessionToken()) return;
-        global.setTimeout(() => { touchPresence(); }, 900);
+        const firstPresence = () => {
+            if (!global.document || !global.document.hidden) touchPresence();
+        };
+        if (typeof global.requestIdleCallback === 'function') {
+            global.requestIdleCallback(firstPresence, { timeout: 5000 });
+        } else {
+            global.setTimeout(firstPresence, 3500);
+        }
         presenceTimer = global.setInterval(() => { if (!global.document || !global.document.hidden) touchPresence(); }, PRESENCE_INTERVAL_MS);
     }
 

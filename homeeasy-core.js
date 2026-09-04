@@ -494,6 +494,7 @@
 
     function revealAuthenticatedIndex() {
         indexAuthStatus = 'authorized';
+        global.__HOMEEASY_INDEX_AUTH_READY_AT__ = Date.now();
         clearTimeout(indexPendingTimer);
         if (resolveIndexAuthReady) resolveIndexAuthReady(true);
         if (global.document && global.document.documentElement) {

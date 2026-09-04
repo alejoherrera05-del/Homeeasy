@@ -200,8 +200,6 @@
         .row-desc, #notas { height: auto !important; min-height: 35px; }
     </style>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="homeeasy-docs.js?v=4.3"></script>
     <script src="homeeasy-core.js?v=3.5"></script>
     <script src="homeeasy-page-guard.js?v=3.6"></script>
@@ -363,10 +361,115 @@
     let editNum = null;
     let returnCedula = null; 
 
+    let homeEasyPdfLibrariesPromise = null;
+    function cargarScriptPdf(src, ready) {
+        if (ready()) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const existing = Array.from(document.scripts).find(s => s.src === src);
+            if (existing) {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.addEventListener('load', resolve, { once: true });
+            script.addEventListener('error', () => reject(new Error('No se pudo cargar el motor PDF.')), { once: true });
+            document.head.appendChild(script);
+        });
+    }
+    function asegurarLibreriasPdf() {
+        if (window.html2canvas && window.jspdf) return Promise.resolve();
+        if (!homeEasyPdfLibrariesPromise) {
+            homeEasyPdfLibrariesPromise = Promise.all([
+                cargarScriptPdf('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => Boolean(window.html2canvas)),
+                cargarScriptPdf('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => Boolean(window.jspdf))
+            ]).catch(error => { homeEasyPdfLibrariesPromise = null; throw error; });
+        }
+        return homeEasyPdfLibrariesPromise;
+    }
+    function precalentarLibreriasPdf() {
+        const warm = () => asegurarLibreriasPdf().catch(() => {});
+        if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(warm, { timeout: 7000 });
+        else window.setTimeout(warm, 4500);
+    }
+
+    const MAX_CLIENTE_SUGERENCIAS = 10;
+    let clientesCacheMem = null;
+    let clientesSearchIndex = [];
+    let clienteSearchTimer = null;
+
+    function normalizarBusquedaCliente(value) {
+        return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function indexarClientes(cache) {
+        clientesSearchIndex = Object.values(cache || {}).map(cliente => ({
+            cliente,
+            texto: normalizarBusquedaCliente(`${cliente.cedula || ''} ${cliente.nombre || ''}`)
+        }));
+    }
+
+    function setClientesCache(cache) {
+        clientesCacheMem = cache && typeof cache === 'object' ? cache : {};
+        indexarClientes(clientesCacheMem);
+        try { localStorage.setItem('CACHE_CLIENTES', JSON.stringify(clientesCacheMem)); } catch (e) {}
+        return clientesCacheMem;
+    }
+
+    function getClientesCache() {
+        if (clientesCacheMem) return clientesCacheMem;
+        try {
+            const parsed = JSON.parse(localStorage.getItem('CACHE_CLIENTES') || '{}');
+            return setClientesCache(parsed && typeof parsed === 'object' ? parsed : {});
+        } catch (e) {
+            return setClientesCache({});
+        }
+    }
+
+    function renderSugerenciasCliente(valor, cont) {
+        const needle = normalizarBusquedaCliente(valor);
+        if (needle.length < 2) return;
+        getClientesCache();
+        const fragment = document.createDocumentFragment();
+        let mostrados = 0;
+        for (const entry of clientesSearchIndex) {
+            if (!entry.texto.includes(needle)) continue;
+            const cliente = entry.cliente;
+            const div = document.createElement('div');
+            div.style.padding = '12px 15px';
+            div.style.cursor = 'pointer';
+            div.style.borderBottom = '1px solid #eee';
+            div.style.fontSize = '0.85rem';
+            div.onmouseover = () => div.style.background = '#f9f9f9';
+            div.onmouseout = () => div.style.background = 'white';
+            const strong = document.createElement('strong');
+            strong.style.color = 'var(--homeeasy-wine)';
+            strong.textContent = String(cliente.cedula || '');
+            div.append(strong, document.createTextNode(` - ${cliente.nombre || ''}`));
+            div.onclick = function() {
+                document.getElementById('cedula').value = cliente.cedula;
+                buscarCliente();
+                cont.replaceChildren();
+                cont.style.display = 'none';
+            };
+            fragment.appendChild(div);
+            mostrados += 1;
+            if (mostrados >= MAX_CLIENTE_SUGERENCIAS) break;
+        }
+        if (mostrados) {
+            cont.appendChild(fragment);
+            cont.style.display = 'block';
+        }
+    }
+
+
     // ==========================================
     // 1. CARGA INICIAL Y MODO EDICIÓN
     // ==========================================
     window.onload = () => {
+        precalentarLibreriasPdf();
         window.__homeeasyDocsReady = (window.HomeEasyDocs ? window.HomeEasyDocs.init({ url: URL_G, documentType: 'pedido' }) : Promise.resolve());
         const params = new URLSearchParams(window.location.search);
         editNum = params.get("edit");
@@ -477,7 +580,7 @@
                             clientesObj[c[0]] = { cedula: c[0], nombre: c[1], telefono: c[2], email: c[3], direccion: c[4] }; 
                         }
                     }
-                    localStorage.setItem("CACHE_CLIENTES", JSON.stringify(clientesObj));
+                    setClientesCache(clientesObj);
                     if(!isEditMode && !numeroCot) buscarCliente(); 
                 }
             }).catch(err => console.error("Error parchando caché:", err));
@@ -637,6 +740,7 @@
     }
 
     async function finalizar() {
+        await asegurarLibreriasPdf();
         if (window.__homeeasyDocsReady) { try { await window.__homeeasyDocsReady; } catch (e) { console.warn("No fue posible cargar la configuración dinámica.", e); } }
         const cedula = document.getElementById('cedula').value.trim();
         let nombre = document.getElementById('nombre').value.toUpperCase();
@@ -877,40 +981,14 @@
     // 4. 🔎 SUGERENCIAS Y AUTOCOMPLETADO
     // ===============================
     document.getElementById("cedula").addEventListener("input", function() {
-        buscarCliente(); 
-        
-        const valor = this.value.trim().toLowerCase(); 
+        buscarCliente();
+        const valor = this.value.trim();
         const cont = document.getElementById("sugerencias_cliente");
-        
-        cont.innerHTML = ""; 
+        cont.replaceChildren();
         cont.style.display = "none";
-        
+        clearTimeout(clienteSearchTimer);
         if (valor.length < 2) return;
-        
-        const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
-        
-        Object.values(cache).forEach(cliente => {
-            if (String(cliente.cedula).includes(valor) || cliente.nombre.toLowerCase().includes(valor)) {
-                const div = document.createElement("div"); 
-                div.style.padding = "12px 15px"; 
-                div.style.cursor = "pointer"; 
-                div.style.borderBottom = "1px solid #eee"; 
-                div.style.fontSize = "0.85rem";
-                div.onmouseover = () => div.style.background = "#f9f9f9"; 
-                div.onmouseout = () => div.style.background = "white";
-                div.innerHTML = `<strong style="color:var(--homeeasy-wine)">${cliente.cedula}</strong> - ${cliente.nombre}`;
-                
-                div.onclick = function() { 
-                    document.getElementById("cedula").value = cliente.cedula; 
-                    buscarCliente(); 
-                    cont.innerHTML = ""; 
-                    cont.style.display = "none"; 
-                };
-                
-                cont.appendChild(div); 
-                cont.style.display = "block";
-            }
-        });
+        clienteSearchTimer = setTimeout(() => renderSugerenciasCliente(valor, cont), 90);
     });
 
     document.addEventListener("click", function(e) { 
@@ -923,7 +1001,7 @@
 
     function buscarCliente() {
         const ced = document.getElementById('cedula').value.trim(); 
-        const cache = JSON.parse(localStorage.getItem("CACHE_CLIENTES") || "{}");
+        const cache = getClientesCache();
         
         if (!ced) { 
             document.getElementById('nombre').value = ""; 
