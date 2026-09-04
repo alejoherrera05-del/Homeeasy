@@ -73,7 +73,7 @@ replacement = '''        # REVIEW-only optimization: return the validated adviso
 followup = followup[:start] + replacement + followup[end:]
 followup_path.write_text(followup, encoding='utf-8')
 
-# Keep the existing experience regression aligned with canonical product casing.
+# Align regression tests with the new REVIEW boundary: analysis is advisory; send-time revalidation owns stale blocking.
 test_path = Path('tests/test_hommy_followup_experience.py')
 test_source = test_path.read_text(encoding='utf-8')
 test_source = replace_once(
@@ -83,3 +83,18 @@ test_source = replace_once(
     'experience product expectation',
 )
 test_path.write_text(test_source, encoding='utf-8')
+
+followup_test_path = Path('tests/test_hommy_followup.py')
+followup_test = followup_test_path.read_text(encoding='utf-8')
+old_state_test = '''    def test_state_change_discards_model_plan(self):\n        planner = FollowupPlanner(\n            SequenceClient([sample_detail(version=3), sample_detail(version=4)]),\n            FakeOpenAI(valid_plan()),\n        )\n        with self.assertRaises(FollowupPlanError) as raised:\n            planner.plan("32", self.ctx, session_token="test-session", client_meta={}, now=self.now)\n        self.assertEqual(raised.exception.code, "FOLLOWUP_STATE_CHANGED")\n        self.assertEqual(raised.exception.status_code, 409)\n'''
+new_state_test = '''    def test_review_model_plan_uses_single_authoritative_snapshot(self):\n        client = SequenceClient([sample_detail(version=3), sample_detail(version=4)])\n        planner = FollowupPlanner(client, FakeOpenAI(valid_plan()))\n        result = planner.plan("32", self.ctx, session_token="test-session", client_meta={}, now=self.now)\n        self.assertTrue(result["reviewOnly"])\n        self.assertEqual(result["sourceStateVersion"], 3)\n        self.assertEqual(len(client.calls), 1)\n        self.assertEqual(len(client.items), 1, "A second HomeEasy read belongs to send-time revalidation, not REVIEW analysis")\n'''
+followup_test = replace_once(followup_test, old_state_test, new_state_test, 'obsolete state reread test')
+followup_test_path.write_text(followup_test, encoding='utf-8')
+
+wa_test_path = Path('tests/test_hommy_whatsapp_context.py')
+wa_test = wa_test_path.read_text(encoding='utf-8')
+wa_test = replace_once(wa_test, 'self.assertEqual(result["stage"], "10E")', 'self.assertEqual(result["stage"], "10F.1")', 'whatsapp stage expectation')
+old_reply_test = '''    def test_new_whatsapp_reply_discards_stale_plan(self):\n        planner = FollowupPlanner(\n            SequenceFollowupClient([source_detail(), source_detail()]),\n            FakeOpenAI(no_response_plan()),\n            SequenceWhatsAppClient([with_reply(), silent_whatsapp()]),\n        )\n        with self.assertRaises(FollowupPlanError) as raised:\n            planner.plan(\n                "32",\n                self.ctx,\n                session_token="session-secret",\n                client_meta={"dispositivoId": "device-1"},\n                now=self.now,\n            )\n        self.assertEqual(raised.exception.code, "FOLLOWUP_STATE_CHANGED")\n        self.assertEqual(raised.exception.status_code, 409)\n'''
+new_reply_test = '''    def test_review_analysis_uses_current_whatsapp_snapshot_once(self):\n        wait_plan = {\n            "decision": "WAIT",\n            "reasonCode": "CUSTOMER_WAIT_REQUEST",\n            "intent": "WAITING_UNTIL_DATE",\n            "temperature": "WAITING",\n            "summary": "La cliente respondió que confirmará mañana.",\n            "objective": "Respetar el tiempo que pidió la cliente.",\n            "message": None,\n            "nextActionAt": "2026-09-04T15:30:00-05:00",\n            "confidence": 0.94,\n            "needsHumanReview": False,\n            "stopReason": None,\n            "explanation": "La respuesta entrante pidió esperar hasta mañana.",\n        }\n        followup = SequenceFollowupClient([source_detail(), source_detail()])\n        whatsapp = SequenceWhatsAppClient([with_reply(), silent_whatsapp()])\n        planner = FollowupPlanner(followup, FakeOpenAI(wait_plan), whatsapp)\n        result = planner.plan(\n            "32",\n            self.ctx,\n            session_token="session-secret",\n            client_meta={"dispositivoId": "device-1"},\n            now=self.now,\n        )\n        self.assertEqual(result["plan"]["decision"], "WAIT")\n        self.assertEqual(result["plan"]["intent"], "WAITING_UNTIL_DATE")\n        self.assertEqual(len(whatsapp.calls), 1)\n        self.assertEqual(len(followup.rows), 1, "Final stale protection is enforced again immediately before human-approved send")\n'''
+wa_test = replace_once(wa_test, old_reply_test, new_reply_test, 'obsolete whatsapp reread test')
+wa_test_path.write_text(wa_test, encoding='utf-8')
