@@ -48,7 +48,7 @@ old_assign = "record.messageId = result && (result.id || result.key || result.me
 count = source.count(old_assign)
 if count < 2:
     raise SystemExit(f'Expected at least 2 messageId assignments, found {count}')
-source = source.replace(old_assign, "record.messageId = extractMessageId(result);" )
+source = source.replace(old_assign, "record.messageId = extractMessageId(result);")
 
 old_inline = "messageId: result && (result.id || result.key || result.messageId) || null,"
 source = source.replace(old_inline, "messageId: extractMessageId(result),")
@@ -65,3 +65,20 @@ updater = updater_path.read_text(encoding='utf-8')
 if updater.count('EXPECTED_VERSION="0.7.0"') != 1:
     raise SystemExit('Updater version anchor mismatch')
 updater_path.write_text(updater.replace('EXPECTED_VERSION="0.7.0"', 'EXPECTED_VERSION="0.7.1"', 1), encoding='utf-8')
+
+# Exercise the real send smoke with the object-shaped ID WAHA/WebJS may return.
+smoke_path = Path('infra/whatsapp/bridge/test-followup-send-smoke.js')
+smoke = smoke_path.read_text(encoding='utf-8')
+old_smoke = "    return json(res, 200, { id: `msg-${sendCount}` });"
+new_smoke = "    return json(res, 200, { id: { _serialized: `msg-${sendCount}`, id: `inner-${sendCount}` } });"
+if smoke.count(old_smoke) != 1:
+    raise SystemExit(f'Follow-up smoke ID anchor mismatch: {smoke.count(old_smoke)}')
+smoke_path.write_text(smoke.replace(old_smoke, new_smoke, 1), encoding='utf-8')
+
+# Permanent CI must certify the deployed version after merge to main.
+for workflow_name in ('whatsapp-context-qa.yml', 'whatsapp-followup-send-10d-qa.yml'):
+    path = Path('.github/workflows') / workflow_name
+    text = path.read_text(encoding='utf-8')
+    if '0.7.0' not in text:
+        raise SystemExit(f'{workflow_name}: expected old Bridge version anchor')
+    path.write_text(text.replace('0.7.0', '0.7.1'), encoding='utf-8')
