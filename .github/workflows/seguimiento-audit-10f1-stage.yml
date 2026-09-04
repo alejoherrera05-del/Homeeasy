@@ -1,0 +1,71 @@
+name: Stage Seguimiento Audit 10F.1
+
+on:
+  push:
+    branches:
+      - seguimiento-fluid-10f
+    paths:
+      - 'scripts/patch_seguimiento_audit_10f1.py'
+      - 'tests/seguimiento-hommy-audit-10f2.mjs'
+      - '.github/workflows/seguimiento-audit-10f1-stage.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: seguimiento-fluid-10f
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply 10F.1 audit hardening
+        run: python scripts/patch_seguimiento_audit_10f1.py
+      - name: Validate JavaScript
+        run: node --check seguimiento-hommy.js
+      - name: Install browser QA dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
+      - name: Run regression suite
+        run: |
+          node tests/seguimiento-hommy-10b-qa.mjs
+          node tests/seguimiento-hommy-transient-retry-10d2.mjs
+          node tests/seguimiento-hommy-history-10e.mjs
+          node tests/seguimiento-hommy-fluid-10f.mjs
+          node tests/seguimiento-hommy-audit-10f2.mjs
+      - name: Verify audit contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
+          page = Path('seguimiento.html').read_text(encoding='utf-8')
+          assert 'CACHE_OWNER_KEY' in source
+          assert 'INITIAL_RADAR_WARM_COUNT = 8' in source
+          assert 'retryAfterSeconds' in source
+          assert 'options.stale' in source
+          assert "['signed-out', 'session-rejected']" in source
+          assert 'seguimiento-hommy.js?v=10f2' in page
+          assert 'seguimiento-hommy.js?v=10f2-retry' in page
+          assert 'setInterval(' not in source
+          print('Seguimiento 10F.1 audit contract: PASS')
+          PY
+      - name: Diff hygiene
+        run: git diff --check
+      - name: Commit certified audit patch
+        run: |
+          git config user.name 'homeeasy-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add seguimiento-hommy.js seguimiento.html
+          if git diff --cached --quiet; then
+            echo 'No runtime changes to commit'
+          else
+            git commit -m 'Seguimiento 10F.1: cache safety, stale-plan guard and radar backoff'
+            git push origin HEAD:seguimiento-fluid-10f
+          fi
