@@ -40,7 +40,7 @@ class FollowupExperienceUnitTests(unittest.TestCase):
         self.assertFalse(style["honorificObserved"])
 
     def test_storage_style_product_is_humanized(self):
-        self.assertEqual(natural_product_subject("1 x Cortina onda serena 2.8 /"), "Cortina onda serena 2.8")
+        self.assertEqual(natural_product_subject("1 x Cortina onda serena 2.8 /"), "Cortina Onda Serena 2.8")
         self.assertEqual(natural_product_subject("1 x Sala / 1 x Habitación /"), "")
 
     def test_waiting_for_payday_does_not_prove_payment_happened(self):

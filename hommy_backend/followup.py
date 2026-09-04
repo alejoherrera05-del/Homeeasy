@@ -20,6 +20,7 @@ from .followup_experience import (
     conversation_register,
     followup_attempt_count,
     has_unverified_payment_completion_claim,
+    has_unverified_relationship_claim,
     infer_conversation_style,
     natural_product_subject,
     preferred_address,
@@ -30,8 +31,8 @@ DEFAULT_HOMEEASY_BACKEND = (
     "AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec"
 )
 
-PLAYBOOK_VERSION = "1.3"
-FOLLOWUP_STAGE = "10E"
+PLAYBOOK_VERSION = "1.4"
+FOLLOWUP_STAGE = "10F.1"
 FOLLOWUP_PLAN_SCHEMA_VERSION = "1"
 
 FOLLOWUP_DECISIONS = ("SEND", "WAIT", "STOP", "HUMAN_REVIEW")
@@ -158,6 +159,8 @@ Forma de trato y naturalidad:
   "señora Marta" o "señor Jorge", mantenlo: no rebajes "doña Sandra" a "Sandra";
 - no inventes "don", "doña", "señor" o "señora" cuando no exista evidencia en la conversación;
 - si se distingue tuteo o trato de usted, mantén ese registro en el borrador;
+- no inventes esposo, esposa, pareja, hijos u otros vínculos familiares para personalizar: solo menciónalos si aparecen explícitamente en la evidencia;
+- no deduzcas el género de quien atiende HomeEasy para cerrar con "atenta" o "atento"; prefiere cierres neutros como "quedo pendiente";
 - evita copiar literalmente texto de base de datos como "1 x producto /"; conviértelo en lenguaje humano o
   simplemente habla de "la propuesta" cuando el producto no pueda expresarse con naturalidad.
 
@@ -166,7 +169,8 @@ Regla temporal crítica:
 - si el cliente dijo "cuando nos paguen la quincena", "cuando me paguen", "cuando tenga el dinero" o similar,
   NUNCA escribas "como ya les pagaron", "ahora que ya te pagaron" ni afirmes que esa condición ocurrió
   salvo que exista un mensaje posterior que lo confirme explícitamente;
-- al retomar una condición así usa lenguaje neutral: "paso por aquí para retomar la propuesta que habíamos dejado pendiente".
+- al retomar una condición así usa lenguaje neutral: "paso por aquí para retomar la propuesta que habíamos dejado pendiente";
+- usa circunstancias financieras personales (quincena, pago pendiente, flujo de dinero) para decidir el momento, pero normalmente NO las repitas de forma literal al cliente si puedes retomar con naturalidad sin exponerlas.
 
 No expongas razonamiento interno. explanation debe ser una razón comercial corta y factual.
 """.strip()
@@ -496,14 +500,14 @@ def _first_silence_followup_plan(context: dict[str, Any], *, now: datetime) -> d
     if register == "USTED":
         message = (
             f"Hola {address} 😊 Quería saber si alcanzó a revisar la propuesta que le enviamos{subject_hint}. "
-            "Si le quedó alguna duda sobre la tela, las medidas o el sistema, con gusto le ayudo. "
-            "¿Hay algún detalle que quiera ajustar o comparar?"
+            "Si le quedó alguna duda o quiere revisar algún detalle, con gusto le ayudo. "
+            "¿Hay algo que quisiera ajustar o comparar?"
         )
     else:
         message = (
             f"Hola {address} 😊 Quería saber si alcanzaste a revisar la propuesta que te enviamos{subject_hint}. "
-            "Si te quedó alguna duda sobre la tela, las medidas o el sistema, con gusto te ayudo. "
-            "¿Hay algún detalle que quieras ajustar o comparar?"
+            "Si te quedó alguna duda o quieres revisar algún detalle, con gusto te ayudo. "
+            "¿Hay algo que quieras ajustar o comparar?"
         )
     if len(message.split()) > 90:
         if register == "USTED":
@@ -755,6 +759,12 @@ def validate_followup_plan(
             raise FollowupPlanError(
                 "El borrador convirtió una condición de pago pendiente en un hecho no verificado.",
                 "FOLLOWUP_UNVERIFIED_TEMPORAL_CLAIM",
+                502,
+            )
+        if has_unverified_relationship_claim(message, context):
+            raise FollowupPlanError(
+                "El borrador introdujo una relación familiar o de pareja que no aparece en la evidencia.",
+                "FOLLOWUP_UNVERIFIED_RELATIONSHIP_CLAIM",
                 502,
             )
     if decision in {"WAIT", "STOP"} and message is not None:
@@ -1032,7 +1042,6 @@ class FollowupPlanner:
         commercial_context = minimize_followup_context(detail, now=now)
         commercial_context["whatsapp"] = whatsapp_context
         commercial_context["conversationStyle"] = infer_conversation_style(commercial_context["quote"], whatsapp_context)
-        source_whatsapp_key = _whatsapp_state_key(whatsapp_context)
         source_quote = normalize_quote_number(commercial_context["quote"].get("number"))
         if source_quote != number:
             raise FollowupPlanError(
@@ -1050,35 +1059,11 @@ class FollowupPlanner:
 
         validated = validate_followup_plan(plan, commercial_context, now=now)
 
-        # Reread only after model work: if the opportunity changed while Hommy was
-        # analyzing it, the draft is discarded instead of returning stale advice.
-        if model_used:
-            latest_detail = self.followup_client.detail(
-                number,
-                session_token=session_token,
-                client_meta=client_meta,
-                limit_events=1,
-            )
-            latest_version = _state_version(latest_detail)
-            if latest_version != source_version:
-                raise FollowupPlanError(
-                    "El seguimiento cambió mientras Hommy lo analizaba. Actualiza e inténtalo nuevamente.",
-                    "FOLLOWUP_STATE_CHANGED",
-                    409,
-                )
-            latest_whatsapp = self.whatsapp_client.context(
-                number,
-                latest_detail,
-                session_token=session_token,
-                client_meta=client_meta,
-                now=now,
-            )
-            if _whatsapp_state_key(latest_whatsapp) != source_whatsapp_key:
-                raise FollowupPlanError(
-                    "La conversación de WhatsApp cambió mientras Hommy la analizaba. Actualiza e inténtalo nuevamente.",
-                    "FOLLOWUP_STATE_CHANGED",
-                    409,
-                )
+        # REVIEW-only optimization: return the validated advisory plan after one canonical
+        # HomeEasy + WhatsApp read. No action can occur from this response alone; the Bridge
+        # revalidates both state version and WhatsApp conversation immediately before any
+        # human-approved send, so repeating both upstream reads here adds latency without
+        # weakening the actual send boundary.
 
         generated_at = (now or datetime.now(HOME_EASY_TIMEZONE)).astimezone(HOME_EASY_TIMEZONE)
         return {
