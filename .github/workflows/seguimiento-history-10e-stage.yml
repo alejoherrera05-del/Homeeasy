@@ -1,0 +1,81 @@
+name: Stage Seguimiento History 10E
+
+on:
+  push:
+    branches:
+      - seguimiento-history-10e
+    paths:
+      - 'scripts/patch_seguimiento_history_10e.py'
+      - 'tests/seguimiento-hommy-history-10e.mjs'
+      - '.github/workflows/seguimiento-history-10e-stage.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: seguimiento-history-10e
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply Seguimiento 10E patch
+        run: python scripts/patch_seguimiento_history_10e.py
+
+      - name: Validate JavaScript
+        run: |
+          node --check seguimiento-hommy.js
+          node --check homeeasy-whatsapp-client.js
+
+      - name: Install ephemeral browser QA dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
+
+      - name: Run browser regression suite
+        run: |
+          node tests/seguimiento-hommy-10b-qa.mjs
+          node tests/seguimiento-hommy-transient-retry-10d2.mjs
+          node tests/seguimiento-hommy-history-10e.mjs
+
+      - name: Verify history and send-state contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          page = Path('seguimiento.html').read_text(encoding='utf-8')
+          source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
+          assert 'seguimiento-hommy.js?v=10e1' in page
+          assert 'seguimiento-hommy.js?v=10e1-retry' in page
+          assert '/api/hommy/followup/history' in source
+          assert "label.textContent = 'Historial y contexto'" in source
+          assert 'historyCache = new Map()' in source
+          assert "estado: 'WAITING_CUSTOMER'" in source
+          assert 'intentosSeguimiento: sourceAttempts + 1' in source
+          assert 'sourceAttemptCount' in source
+          assert 'setInterval(' not in source
+          print('Seguimiento 10E history + REVIEW state contract: PASS')
+          PY
+
+      - name: Diff hygiene
+        run: git diff --check
+
+      - name: Commit certified UI patch
+        run: |
+          git config user.name 'homeeasy-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add seguimiento-hommy.js seguimiento.html
+          if git diff --cached --quiet; then
+            echo 'No UI changes to commit'
+          else
+            git commit -m 'Seguimiento 10E: add lazy commercial history and attempt state'
+            git push origin HEAD:seguimiento-history-10e
+          fi
