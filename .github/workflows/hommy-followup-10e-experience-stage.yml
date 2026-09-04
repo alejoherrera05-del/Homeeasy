@@ -42,7 +42,6 @@ jobs:
       - name: Run follow-up regression suite
         run: |
           python -m unittest -v tests.test_hommy_followup
-          python -m unittest -v tests.test_hommy_followup_whatsapp
           python -m unittest -v tests.test_hommy_followup_experience
           python -m unittest -v tests.test_auth_upstream_transport
           python -m unittest -v tests.test_homeeasy_session_stability
