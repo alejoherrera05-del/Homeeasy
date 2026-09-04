@@ -1,0 +1,89 @@
+name: Stage Seguimiento Fluid 10F
+
+on:
+  push:
+    branches:
+      - seguimiento-fluid-10f
+    paths:
+      - 'scripts/patch_seguimiento_fluid_10f.py'
+      - 'scripts/patch_seguimiento_fluid_10f_timer_guard.py'
+      - 'tests/seguimiento-hommy-fluid-10f.mjs'
+      - '.github/workflows/seguimiento-fluid-10f-stage.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: seguimiento-fluid-10f
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply Seguimiento 10F patches
+        run: |
+          python scripts/patch_seguimiento_fluid_10f.py
+          python scripts/patch_seguimiento_fluid_10f_timer_guard.py
+
+      - name: Validate JavaScript
+        run: |
+          node --check seguimiento-hommy.js
+          node --check homeeasy-whatsapp-client.js
+
+      - name: Install ephemeral browser QA dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
+
+      - name: Run Seguimiento browser regression suite
+        run: |
+          node tests/seguimiento-hommy-10b-qa.mjs
+          node tests/seguimiento-hommy-transient-retry-10d2.mjs
+          node tests/seguimiento-hommy-history-10e.mjs
+          node tests/seguimiento-hommy-fluid-10f.mjs
+
+      - name: Verify 10F fluid contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          page = Path('seguimiento.html').read_text(encoding='utf-8')
+          source = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
+          assert 'seguimiento-hommy.js?v=10f1' in page
+          assert 'seguimiento-hommy.js?v=10f1-retry' in page
+          assert 'PLAN_CACHE_PREFIX' in source
+          assert 'RADAR_CACHE_PREFIX' in source
+          assert 'window.sessionStorage' in source
+          assert 'BACKGROUND_REFRESH_MS = 3 * 60 * 1000' in source
+          assert 'MAX_RADAR_WORKERS = 3' in source
+          assert 'queueRadar(numero' in source
+          assert 'refreshPlanSilently' in source
+          assert "panel.dataset.mode = 'result'" in source
+          assert "window.addEventListener('homeeasy:seguimiento-updated'" in source
+          assert "window.dispatchEvent(new CustomEvent('homeeasy:seguimiento-updated'" in page
+          assert 'setInterval(' not in source
+          print('Seguimiento 10F fluid cache/background contract: PASS')
+          PY
+
+      - name: Diff hygiene
+        run: git diff --check
+
+      - name: Commit certified 10F UI patch
+        run: |
+          git config user.name 'homeeasy-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add seguimiento-hommy.js seguimiento.html
+          if git diff --cached --quiet; then
+            echo 'No UI changes to commit'
+          else
+            git commit -m 'Seguimiento 10F: fluid radar, session cache and background refresh'
+            git push origin HEAD:seguimiento-fluid-10f
+          fi
