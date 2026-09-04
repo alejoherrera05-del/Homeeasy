@@ -1,0 +1,72 @@
+name: Stage HomeEasy Performance 11A.2
+
+on:
+  push:
+    branches:
+      - performance-11a2-runtime-cache
+    paths:
+      - 'homeeasy-runtime-cache.js'
+      - 'scripts/patch_homeeasy_performance_11a2_runtime_cache.py'
+      - 'tests/homeeasy-performance-11a2-runtime-cache.mjs'
+      - '.github/workflows/homeeasy-performance-11a2-stage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  certify-and-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: performance-11a2-runtime-cache
+          fetch-depth: 3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Apply 11A.2 page wiring
+        run: python scripts/patch_homeeasy_performance_11a2_runtime_cache.py
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check homeeasy-runtime.js
+          node --check homeeasy-runtime-cache.js
+          node tests/homeeasy-inline-js-syntax.mjs
+
+      - name: Run 11A boot and 11A.2 cache contracts
+        run: |
+          node tests/homeeasy-performance-11a-boot.mjs
+          node tests/homeeasy-performance-11a2-runtime-cache.mjs
+
+      - name: Run performance guards
+        run: |
+          node tests/homeeasy-performance-audit.mjs
+          node tests/homeeasy-performance-budget.mjs
+          node tests/homeeasy-performance-10g-contract.mjs
+
+      - name: Run Seguimiento regression contracts
+        run: |
+          npm install --no-save --no-package-lock jsdom@24.1.3
+          node tests/seguimiento-hommy-10b-qa.mjs
+          node tests/seguimiento-hommy-transient-retry-10d2.mjs
+          node tests/seguimiento-hommy-history-10e.mjs
+          node tests/seguimiento-hommy-fluid-10f.mjs
+
+      - name: Diff hygiene
+        run: git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --check
+
+      - name: Commit certified 11A.2 page wiring
+        run: |
+          git config user.name 'homeeasy-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html clientes.html cotizacion.html pedido.html
+          if git diff --cached --quiet; then
+            echo 'No 11A.2 page wiring changes to commit'
+          else
+            git commit -m 'Performance 11A.2: activate shared runtime cache'
+            git push origin HEAD:performance-11a2-runtime-cache
+          fi
