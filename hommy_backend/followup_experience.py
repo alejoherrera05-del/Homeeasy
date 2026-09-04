@@ -12,6 +12,20 @@ _PAYMENT_COMPLETION_RE = re.compile(
     r"\b(?:ya\s+)?(?:recib[ií]|recibimos|recibiste|recibieron)\s+(?:el\s+)?pago\b",
     re.IGNORECASE,
 )
+_RELATIONSHIP_PATTERNS = (
+    re.compile(r"\b(?:espos[oa]|marido|pareja)\b", re.IGNORECASE),
+    re.compile(r"\bhij[oa]s?\b", re.IGNORECASE),
+    re.compile(r"\b(?:mamá|mama|madre|papá|papa|padre)\b", re.IGNORECASE),
+)
+_PRODUCT_CANONICAL = (
+    (re.compile(r"\bonda\s+serena\b", re.IGNORECASE), "Onda Serena"),
+    (re.compile(r"\bsheer\s+elegance\b", re.IGNORECASE), "Sheer Elegance"),
+    (re.compile(r"\bsheer\s+vertesse\b", re.IGNORECASE), "Sheer Vertesse"),
+    (re.compile(r"\bpanel(?:es)?\s+japon[eé]s(?:es)?\b", re.IGNORECASE), "Panel Japonés"),
+    (re.compile(r"\benrollable\s+blackout\b", re.IGNORECASE), "Enrollable Blackout"),
+    (re.compile(r"\bblackout\b", re.IGNORECASE), "Blackout"),
+    (re.compile(r"\bscreen\b", re.IGNORECASE), "Screen"),
+)
 
 
 def _clean(value: Any, limit: int = 1200) -> str:
@@ -121,14 +135,16 @@ def conversation_register(context: dict[str, Any]) -> str:
 
 
 def natural_product_subject(value: Any) -> str:
-    """Turn storage-style quote description into a short human phrase, or return blank if complex."""
+    """Turn storage-style quote description into short, brand-correct human language."""
     raw = re.sub(r"\s+", " ", _clean(value, 320)).strip(" /,;.-")
     if not raw:
         return ""
-    # Multiple slash-separated items should not be echoed into WhatsApp.
+    # Multiple item delimiters are a signal to say "la propuesta" instead of reciting storage text.
     if "/" in raw or ";" in raw:
         return ""
     raw = re.sub(r"^\s*\d+\s*[x×]\s*", "", raw, flags=re.IGNORECASE)
+    for pattern, canonical in _PRODUCT_CANONICAL:
+        raw = pattern.sub(canonical, raw)
     raw = re.sub(r"\s+", " ", raw).strip(" /,;.-")
     if not raw or len(raw.split()) > 10 or len(raw) > 100:
         return ""
@@ -174,6 +190,18 @@ def has_unverified_payment_completion_claim(message: Any, context: dict[str, Any
         return False
     evidence = _source_text(context)
     return not bool(_PAYMENT_COMPLETION_RE.search(evidence))
+
+
+def has_unverified_relationship_claim(message: Any, context: dict[str, Any]) -> bool:
+    """Do not invent a spouse/partner/family member merely to sound personal."""
+    text = _clean(message, 1600)
+    if not text:
+        return False
+    evidence = _source_text(context)
+    for pattern in _RELATIONSHIP_PATTERNS:
+        if pattern.search(text) and not pattern.search(evidence):
+            return True
+    return False
 
 
 def build_followup_history(detail: dict[str, Any], whatsapp: dict[str, Any], *, limit: int = 60) -> list[dict[str, Any]]:
