@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/patch_seguimiento_fluid_10f.py'
       - 'scripts/patch_seguimiento_fluid_10f_timer_guard.py'
+      - 'scripts/fix_patch_seguimiento_fluid_10f_asset_anchor.py'
       - 'tests/seguimiento-hommy-fluid-10f.mjs'
       - '.github/workflows/seguimiento-fluid-10f-stage.yml'
 
@@ -33,6 +34,7 @@ jobs:
 
       - name: Apply Seguimiento 10F patches
         run: |
+          python scripts/fix_patch_seguimiento_fluid_10f_asset_anchor.py
           python scripts/patch_seguimiento_fluid_10f.py
           python scripts/patch_seguimiento_fluid_10f_timer_guard.py
 
