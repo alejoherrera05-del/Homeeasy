@@ -3,11 +3,22 @@ name: HomeEasy Performance Audit
 on:
   push:
     branches:
+      - main
       - performance-audit-2026-09-04
     paths:
       - '*.html'
       - '*.js'
-      - 'tests/homeeasy-performance-audit.mjs'
+      - 'tests/homeeasy-performance-*.mjs'
+      - 'tests/homeeasy-inline-js-syntax.mjs'
+      - '.github/workflows/homeeasy-performance-audit.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '*.html'
+      - '*.js'
+      - 'tests/homeeasy-performance-*.mjs'
+      - 'tests/homeeasy-inline-js-syntax.mjs'
       - '.github/workflows/homeeasy-performance-audit.yml'
   workflow_dispatch:
 
@@ -28,11 +39,17 @@ jobs:
           for file in homeeasy-*.js seguimiento-hommy.js; do
             if [ -f "$file" ]; then node --check "$file"; fi
           done
+      - name: Validate production inline JavaScript syntax
+        run: node tests/homeeasy-inline-js-syntax.mjs
       - name: Install ephemeral browser-test dependency
         run: npm install --no-save --no-package-lock jsdom@24.1.3
       - name: Run exhaustive static performance audit
         run: node tests/homeeasy-performance-audit.mjs
-      - name: Run seguimiento regression contracts
+      - name: Enforce performance budgets
+        run: node tests/homeeasy-performance-budget.mjs
+      - name: Run 10G performance safety contracts
+        run: node tests/homeeasy-performance-10g-contract.mjs
+      - name: Run Seguimiento regression contracts
         run: |
           node tests/seguimiento-hommy-10b-qa.mjs
           node tests/seguimiento-hommy-history-10e.mjs
