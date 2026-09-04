@@ -17,6 +17,12 @@ const dom = new JSDOM(`<!doctype html><html><head></head><body><section id="tarj
 const { window } = dom;
 window.TextEncoder = globalThis.TextEncoder;
 window.AbortController = globalThis.AbortController;
+window.IntersectionObserver = class {
+  constructor(callback) { this.callback = callback; }
+  observe(target) { this.callback([{ target, isIntersecting: true }], this); }
+  unobserve() {}
+  disconnect() {}
+};
 window.HomeEasyAuth = {
   getAppSessionToken: () => 'session-test-token',
   restoreHomeEasySession: async () => ({ ok: true }),
