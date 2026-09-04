@@ -319,7 +319,7 @@ class FollowupWhatsAppIntegrationTests(unittest.TestCase):
             client_meta={"dispositivoId": "device-1"},
             now=self.now,
         )
-        self.assertEqual(result["stage"], "10C2")
+        self.assertEqual(result["stage"], "10E")
         self.assertEqual(result["plan"]["decision"], "SEND")
         self.assertEqual(result["plan"]["intent"], "NO_RESPONSE")
         self.assertEqual(result["model"], "deterministic-guard")

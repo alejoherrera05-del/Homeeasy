@@ -15,14 +15,24 @@ from .auth import AuthContext, safety_identifier
 from .periods import HOME_EASY_TIMEZONE
 from .settings import openai_api_key
 from .whatsapp_context import WhatsAppConversationClient
+from .followup_experience import (
+    build_followup_history,
+    conversation_register,
+    followup_attempt_count,
+    has_unverified_payment_completion_claim,
+    has_unverified_relationship_claim,
+    infer_conversation_style,
+    natural_product_subject,
+    preferred_address,
+)
 
 DEFAULT_HOMEEASY_BACKEND = (
     "https://script.google.com/macros/s/"
     "AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec"
 )
 
-PLAYBOOK_VERSION = "1.2"
-FOLLOWUP_STAGE = "10C2"
+PLAYBOOK_VERSION = "1.4"
+FOLLOWUP_STAGE = "10F.1"
 FOLLOWUP_PLAN_SCHEMA_VERSION = "1"
 
 FOLLOWUP_DECISIONS = ("SEND", "WAIT", "STOP", "HUMAN_REVIEW")
@@ -142,6 +152,25 @@ Contexto WhatsApp:
 - si el cliente respondió después del último mensaje saliente, analiza esa respuesta antes de proponer otro contacto;
 - si el cliente pidió esperar, dijo que no le interesa o pidió no ser contactado, respeta esa señal por encima del calendario;
 - usa el historial reciente para evitar repetir preguntas o información que ya se dijo.
+
+Forma de trato y naturalidad:
+- conserva la manera respetuosa en que HomeEasy ya viene hablando con esa persona;
+- si la conversación usa de forma consistente un tratamiento como "doña Sandra", "don Carlos",
+  "señora Marta" o "señor Jorge", mantenlo: no rebajes "doña Sandra" a "Sandra";
+- no inventes "don", "doña", "señor" o "señora" cuando no exista evidencia en la conversación;
+- si se distingue tuteo o trato de usted, mantén ese registro en el borrador;
+- no inventes esposo, esposa, pareja, hijos u otros vínculos familiares para personalizar: solo menciónalos si aparecen explícitamente en la evidencia;
+- no deduzcas el género de quien atiende HomeEasy para cerrar con "atenta" o "atento"; prefiere cierres neutros como "quedo pendiente";
+- evita copiar literalmente texto de base de datos como "1 x producto /"; conviértelo en lenguaje humano o
+  simplemente habla de "la propuesta" cuando el producto no pueda expresarse con naturalidad.
+
+Regla temporal crítica:
+- una condición futura o incierta no se convierte en un hecho solo porque pasó tiempo;
+- si el cliente dijo "cuando nos paguen la quincena", "cuando me paguen", "cuando tenga el dinero" o similar,
+  NUNCA escribas "como ya les pagaron", "ahora que ya te pagaron" ni afirmes que esa condición ocurrió
+  salvo que exista un mensaje posterior que lo confirme explícitamente;
+- al retomar una condición así usa lenguaje neutral: "paso por aquí para retomar la propuesta que habíamos dejado pendiente";
+- usa circunstancias financieras personales (quincena, pago pendiente, flujo de dinero) para decidir el momento, pero normalmente NO las repitas de forma literal al cliente si puedes retomar con naturalidad sin exponerlas.
 
 No expongas razonamiento interno. explanation debe ser una razón comercial corta y factual.
 """.strip()
@@ -438,10 +467,7 @@ def _first_silence_followup_plan(context: dict[str, Any], *, now: datetime) -> d
         return None
     if bool(evidence.get("customerRepliedAfterQuote")):
         return None
-    try:
-        attempts = int(followup.get("attempts") or 0)
-    except (TypeError, ValueError):
-        attempts = 0
+    attempts = followup_attempt_count(context)
     if attempts > 0:
         return None
 
@@ -467,20 +493,33 @@ def _first_silence_followup_plan(context: dict[str, Any], *, now: datetime) -> d
             explanation="WhatsApp confirma el envío, pero todavía no ha transcurrido una ventana prudente para retomar el contacto.",
         )
 
-    first_name = _clean(quote.get("firstName"), 80) or "Cliente"
-    description = re.sub(r"\s+", " ", _clean(quote.get("description"), 120)).strip(" .,-")
-    product_hint = f" para tu {description.lower()}" if description and len(description.split()) <= 12 else ""
-    message = (
-        f"Hola {first_name} 😊 Quería saber si alcanzaste a revisar la propuesta que te enviamos{product_hint}. "
-        "Si te quedó alguna duda sobre la tela, las medidas o el sistema, con gusto te ayudo. "
-        "¿Hay algún detalle que quieras ajustar o comparar?"
-    )
-    if len(message.split()) > 90:
+    address = preferred_address(context)
+    register = conversation_register(context)
+    subject = natural_product_subject(quote.get("description"))
+    subject_hint = f" sobre {subject}" if subject else ""
+    if register == "USTED":
         message = (
-            f"Hola {first_name} 😊 Quería saber si alcanzaste a revisar la propuesta que te enviamos. "
-            "Si te quedó alguna duda sobre la tela, las medidas o el sistema, con gusto te ayudo. "
-            "¿Hay algún detalle que quieras ajustar o comparar?"
+            f"Hola {address} 😊 Quería saber si alcanzó a revisar la propuesta que le enviamos{subject_hint}. "
+            "Si le quedó alguna duda o quiere revisar algún detalle, con gusto le ayudo. "
+            "¿Hay algo que quisiera ajustar o comparar?"
         )
+    else:
+        message = (
+            f"Hola {address} 😊 Quería saber si alcanzaste a revisar la propuesta que te enviamos{subject_hint}. "
+            "Si te quedó alguna duda o quieres revisar algún detalle, con gusto te ayudo. "
+            "¿Hay algo que quieras ajustar o comparar?"
+        )
+    if len(message.split()) > 90:
+        if register == "USTED":
+            message = (
+                f"Hola {address} 😊 Quería saber si alcanzó a revisar la propuesta que le enviamos. "
+                "Si le quedó alguna duda, con gusto la revisamos. ¿Hay algún detalle que quiera ajustar o comparar?"
+            )
+        else:
+            message = (
+                f"Hola {address} 😊 Quería saber si alcanzaste a revisar la propuesta que te enviamos. "
+                "Si te quedó alguna duda, con gusto la revisamos. ¿Hay algún detalle que quieras ajustar o comparar?"
+            )
     return _base_plan(
         decision="SEND",
         reason_code="FOLLOWUP_DUE",
@@ -716,6 +755,18 @@ def validate_followup_plan(
                     "FOLLOWUP_UNVERIFIED_CLAIM",
                     502,
                 )
+        if has_unverified_payment_completion_claim(message, context):
+            raise FollowupPlanError(
+                "El borrador convirtió una condición de pago pendiente en un hecho no verificado.",
+                "FOLLOWUP_UNVERIFIED_TEMPORAL_CLAIM",
+                502,
+            )
+        if has_unverified_relationship_claim(message, context):
+            raise FollowupPlanError(
+                "El borrador introdujo una relación familiar o de pareja que no aparece en la evidencia.",
+                "FOLLOWUP_UNVERIFIED_RELATIONSHIP_CLAIM",
+                502,
+            )
     if decision in {"WAIT", "STOP"} and message is not None:
         raise FollowupPlanError(
             f"{decision} no debe incluir un mensaje para enviar.",
@@ -877,6 +928,51 @@ class FollowupPlanner:
         self.reasoning_effort = os.getenv("HOMMY_FOLLOWUP_REASONING_EFFORT", "low").strip()
         self.max_output_tokens = max(350, min(int(os.getenv("HOMMY_FOLLOWUP_MAX_OUTPUT_TOKENS", "900")), 1800))
 
+    def history(
+        self,
+        quote_number: str,
+        context: AuthContext,
+        *,
+        session_token: str,
+        client_meta: dict[str, Any] | None,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        require_followup_permission(context)
+        number = normalize_quote_number(quote_number)
+        if not number or not re.fullmatch(r"[A-Za-z0-9._-]{1,80}", number):
+            raise FollowupPlanError("El número de cotización no es válido.", "FOLLOWUP_QUOTE_INVALID", 400)
+        detail = self.followup_client.detail(
+            number, session_token=session_token, client_meta=client_meta, limit_events=60
+        )
+        whatsapp_context = self.whatsapp_client.context(
+            number, detail, session_token=session_token, client_meta=client_meta, now=now
+        )
+        commercial_context = minimize_followup_context(detail, now=now)
+        commercial_context["whatsapp"] = whatsapp_context
+        commercial_context["conversationStyle"] = infer_conversation_style(commercial_context["quote"], whatsapp_context)
+        source_quote = normalize_quote_number(commercial_context["quote"].get("number"))
+        if source_quote != number:
+            raise FollowupPlanError(
+                "HomeEasy devolvió una cotización distinta a la solicitada.",
+                "FOLLOWUP_QUOTE_MISMATCH",
+                409,
+            )
+        followup = commercial_context.get("followup") if isinstance(commercial_context.get("followup"), dict) else {}
+        return {
+            "quoteNumber": number,
+            "stage": FOLLOWUP_STAGE,
+            "status": {
+                "state": _clean(followup.get("state"), 80).upper(),
+                "intent": _clean(followup.get("intent"), 80).upper(),
+                "temperature": _clean(followup.get("temperature"), 40).upper(),
+                "attempts": followup_attempt_count(commercial_context),
+                "lastOutgoingAt": _clean(followup.get("lastOutgoingAt"), 100),
+                "lastIncomingAt": _clean(followup.get("lastIncomingAt"), 100),
+            },
+            "conversationStyle": commercial_context["conversationStyle"],
+            "history": build_followup_history(detail, whatsapp_context, limit=60),
+        }
+
     def _model_plan(self, context: AuthContext, commercial_context: dict[str, Any]) -> dict[str, Any]:
         response = self.openai.responses.create(
             model=self.model,
@@ -945,7 +1041,7 @@ class FollowupPlanner:
         )
         commercial_context = minimize_followup_context(detail, now=now)
         commercial_context["whatsapp"] = whatsapp_context
-        source_whatsapp_key = _whatsapp_state_key(whatsapp_context)
+        commercial_context["conversationStyle"] = infer_conversation_style(commercial_context["quote"], whatsapp_context)
         source_quote = normalize_quote_number(commercial_context["quote"].get("number"))
         if source_quote != number:
             raise FollowupPlanError(
@@ -963,35 +1059,11 @@ class FollowupPlanner:
 
         validated = validate_followup_plan(plan, commercial_context, now=now)
 
-        # Reread only after model work: if the opportunity changed while Hommy was
-        # analyzing it, the draft is discarded instead of returning stale advice.
-        if model_used:
-            latest_detail = self.followup_client.detail(
-                number,
-                session_token=session_token,
-                client_meta=client_meta,
-                limit_events=1,
-            )
-            latest_version = _state_version(latest_detail)
-            if latest_version != source_version:
-                raise FollowupPlanError(
-                    "El seguimiento cambió mientras Hommy lo analizaba. Actualiza e inténtalo nuevamente.",
-                    "FOLLOWUP_STATE_CHANGED",
-                    409,
-                )
-            latest_whatsapp = self.whatsapp_client.context(
-                number,
-                latest_detail,
-                session_token=session_token,
-                client_meta=client_meta,
-                now=now,
-            )
-            if _whatsapp_state_key(latest_whatsapp) != source_whatsapp_key:
-                raise FollowupPlanError(
-                    "La conversación de WhatsApp cambió mientras Hommy la analizaba. Actualiza e inténtalo nuevamente.",
-                    "FOLLOWUP_STATE_CHANGED",
-                    409,
-                )
+        # REVIEW-only optimization: return the validated advisory plan after one canonical
+        # HomeEasy + WhatsApp read. No action can occur from this response alone; the Bridge
+        # revalidates both state version and WhatsApp conversation immediately before any
+        # human-approved send, so repeating both upstream reads here adds latency without
+        # weakening the actual send boundary.
 
         generated_at = (now or datetime.now(HOME_EASY_TIMEZONE)).astimezone(HOME_EASY_TIMEZONE)
         return {
@@ -1005,5 +1077,6 @@ class FollowupPlanner:
             "model": self.model if model_used else "deterministic-guard",
             "reviewOnly": True,
             "analysisMs": round((time.perf_counter() - started) * 1000, 1),
+            "sourceAttemptCount": followup_attempt_count(commercial_context),
             "plan": validated,
         }

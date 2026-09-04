@@ -322,6 +322,31 @@ def hommy_followup_plan():
     return jsonify({"ok": True, **result})
 
 
+@app.post("/api/hommy/followup/history", provide_automatic_options=False)
+def hommy_followup_history():
+    started = time.perf_counter()
+    auth_started = time.perf_counter()
+    context = followup_auth_context()
+    require_followup_permission(context)
+    enforce_rate_limit(context, "followup-history", "HOMMY_RATE_FOLLOWUP_HISTORY_PER_MINUTE", 20)
+    auth_ms = (time.perf_counter() - auth_started) * 1000
+
+    payload: dict[str, Any] = request.get_json(silent=True) or {}
+    quote_number = str(payload.get("numero") or payload.get("quoteNumber") or "").strip()
+    result = get_followup_planner().history(
+        quote_number,
+        context,
+        session_token=request.headers.get("X-HomeEasy-Session", ""),
+        client_meta=decode_client_meta(request.headers.get("X-HomeEasy-Meta", "")),
+    )
+    log_timing(
+        "followup_history",
+        auth_ms=auth_ms,
+        total_ms=(time.perf_counter() - started) * 1000,
+    )
+    return jsonify({"ok": True, **result})
+
+
 @app.post("/api/hommy/realtime/session", provide_automatic_options=False)
 def hommy_realtime_session():
     started = time.perf_counter()
