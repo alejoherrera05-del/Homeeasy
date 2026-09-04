@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - seguimiento-review-send-ui-10d
+      - seguimiento-history-10e
     paths:
       - 'homeeasy-whatsapp-client.js'
       - 'seguimiento.html'
@@ -49,7 +50,7 @@ jobs:
               assert key in send_client
 
           assert 'homeeasy-whatsapp-client.js?v=0.6.0' in page
-          assert 'seguimiento-hommy.js?v=10d1' in page
+          assert 'seguimiento-hommy.js?v=10e1' in page
           assert "hasPermission('cotizaciones.write')" in hommy
           assert "sendLabel.textContent = 'Revisar y enviar'" in hommy
           assert "decision === 'SEND' && canSendFollowup()" in hommy
@@ -57,13 +58,15 @@ jobs:
           assert "tipo: 'REGISTRAR_EVENTO_SEGUIMIENTO'" in hommy
           assert "eventType: 'MESSAGE_SENT'" in hommy
           assert "channel: 'WHATSAPP'" in hommy
+          assert "estado: 'WAITING_CUSTOMER'" in hommy
+          assert 'intentosSeguimiento: sourceAttempts + 1' in hommy
           assert 'FOLLOWUP_CONVERSATION_CHANGED' in hommy
           assert 'FOLLOWUP_STATE_CHANGED' in hommy
           assert 'FOLLOWUP_PLAN_REUSED' in hommy
           call_start = hommy.index('whatsapp.sendFollowup({')
           call_end = hommy.index('});', call_start)
           assert 'phone:' not in hommy[call_start:call_end]
-          print('Seguimiento 10D review-send security contract: PASS')
+          print('Seguimiento 10E review-send security contract: PASS')
           PY
 
       - name: Verify WhatsApp client does not trust browser phone
@@ -103,7 +106,7 @@ jobs:
             if (!captured.url.endsWith('/api/whatsapp/send-followup')) throw new Error('wrong route');
             if ('phone' in captured.body) throw new Error('browser phone leaked');
             if (captured.body.reference !== 'COT-32') throw new Error('wrong reference');
-            console.log('Seguimiento 10D transport smoke: PASS');
+            console.log('Seguimiento 10E transport smoke: PASS');
           })().catch(error => { console.error(error); process.exit(1); });
           NODE
 
