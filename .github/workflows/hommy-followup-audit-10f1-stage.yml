@@ -73,7 +73,7 @@ jobs:
         run: |
           git config user.name 'homeeasy-automation'
           git config user.email 'actions@users.noreply.github.com'
-          git add hommy_backend/followup.py hommy_backend/followup_experience.py tests/test_hommy_followup_experience.py tests/test_hommy_followup_audit_10f1.py
+          git add hommy_backend/followup.py hommy_backend/followup_experience.py tests/test_hommy_followup.py tests/test_hommy_followup_experience.py tests/test_hommy_whatsapp_context.py tests/test_hommy_followup_audit_10f1.py
           if git diff --cached --quiet; then
             echo 'No Hommy runtime changes to commit'
           else
