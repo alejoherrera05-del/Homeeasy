@@ -1,0 +1,98 @@
+name: Hommy Follow-up Auth Resilience 10D2 QA
+
+on:
+  push:
+    branches:
+      - hommy-followup-auth-resilience-10d2
+    paths:
+      - 'scripts/patch_hommy_followup_auth_resilience_10d2.py'
+      - 'servidor.py'
+      - 'hommy_backend/followup.py'
+      - 'tests/test_hommy_followup.py'
+      - '.github/workflows/hommy-followup-auth-resilience-10d2-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hommy-followup-auth-resilience-10d2
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Apply resilience patch
+        run: python scripts/patch_hommy_followup_auth_resilience_10d2.py
+
+      - name: Validate Python
+        run: |
+          python -m py_compile servidor.py hommy_backend/auth.py hommy_backend/followup.py tests/test_hommy_followup.py
+          git diff --check
+
+      - name: Verify single authoritative HomeEasy auth gate
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          server = Path('servidor.py').read_text(encoding='utf-8')
+          followup = Path('hommy_backend/followup.py').read_text(encoding='utf-8')
+
+          route_start = server.index('@app.post("/api/hommy/followup/plan"')
+          route_end = server.index('@app.post("/api/hommy/realtime/session"', route_start)
+          route = server[route_start:route_end]
+          assert 'context = followup_auth_context()' in route
+          assert 'context = auth_context()' not in route
+          assert 'validator.validate(' not in route
+
+          helper_start = server.index('def followup_auth_context():')
+          helper_end = server.index('def json_error(', helper_start)
+          helper = server[helper_start:helper_end]
+          assert 'cotizaciones.read' in helper
+          assert 'cotizaciones.write' not in helper
+          assert 'AUTH_REQUIRED' in helper
+          assert 'hashlib.sha256' in helper
+          assert 'uid=token' not in helper
+
+          # Other Hommy surfaces keep the original strict live/cached auth path.
+          assert server.count('context = auth_context()') >= 4
+
+          # Canonical detail is still the first external commercial-data operation.
+          plan_start = followup.index('    def plan(')
+          plan_end = followup.index('        whatsapp_context =', plan_start)
+          first_plan = followup[plan_start:plan_end]
+          assert 'self.followup_client.detail(' in first_plan
+          assert 'session_token=session_token' in first_plan
+          assert 'HOMMY_FOLLOWUP_HOME_EASY_TIMEOUT_SECONDS", "25"' in followup
+          assert 'code == "PERMISSION_DENIED"' in followup
+          assert '"APP_SESSION_EXPIRED", "APP_SESSION_REJECTED", "NO_SESSION"' in followup
+          print('Hommy follow-up single-gate auth contract: PASS')
+          PY
+
+      - name: Run targeted follow-up and auth tests
+        run: |
+          python -m unittest -v tests.test_hommy_followup
+          python -m unittest -v tests.test_auth_upstream_transport
+          python -m unittest -v tests.test_homeeasy_session_stability
+
+      - name: Commit certified backend patch
+        run: |
+          if git diff --quiet -- servidor.py hommy_backend/followup.py tests/test_hommy_followup.py; then
+            echo 'No backend changes to commit'
+            exit 0
+          fi
+          git config user.name homeeasy-automation
+          git config user.email actions@users.noreply.github.com
+          git add servidor.py hommy_backend/followup.py tests/test_hommy_followup.py
+          git commit -m 'Hommy 10D2: remove duplicate follow-up auth preflight'
+          git push origin HEAD:hommy-followup-auth-resilience-10d2
