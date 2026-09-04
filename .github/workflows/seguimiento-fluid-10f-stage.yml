@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/patch_seguimiento_fluid_10f.py'
       - 'scripts/patch_seguimiento_fluid_10f_timer_guard.py'
+      - 'scripts/patch_seguimiento_fluid_10f_safety_copy.py'
       - 'scripts/fix_patch_seguimiento_fluid_10f_asset_anchor.py'
       - 'scripts/fix_patch_seguimiento_fluid_10f_success_anchor.py'
       - 'tests/seguimiento-hommy-fluid-10f.mjs'
@@ -39,6 +40,7 @@ jobs:
           python scripts/fix_patch_seguimiento_fluid_10f_success_anchor.py
           python scripts/patch_seguimiento_fluid_10f.py
           python scripts/patch_seguimiento_fluid_10f_timer_guard.py
+          python scripts/patch_seguimiento_fluid_10f_safety_copy.py
 
       - name: Validate JavaScript
         run: |
@@ -73,6 +75,7 @@ jobs:
           assert "panel.dataset.mode = 'result'" in source
           assert "window.addEventListener('homeeasy:seguimiento-updated'" in source
           assert "window.dispatchEvent(new CustomEvent('homeeasy:seguimiento-updated'" in page
+          assert 'no envía mensajes ni modifica la cotización' in source
           assert 'setInterval(' not in source
           print('Seguimiento 10F fluid cache/background contract: PASS')
           PY
