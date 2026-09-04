@@ -1139,8 +1139,11 @@
             eventosDelGrupo.forEach(ev => {
                 const elVisual = document.getElementById(`evento-${ev.id}`) || document.getElementById(`evento-vencido-${ev.id}`);
                 if (elVisual) elVisual.remove();
-                fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ tipo: "eliminar_evento", id: ev.id }) });
             });
+            fetch(WEBAPP_URL, {
+                method: "POST",
+                body: JSON.stringify({ tipo: "eliminar_evento", groupId: grupoABorrar })
+            }).catch(error => console.error("No se pudo sincronizar el borrado recurrente:", error));
 
             actualizarContadorVencidas();
             procesarEventosLocales();

@@ -243,8 +243,6 @@
         .btn-success-home:active { transform: scale(0.95); }
     </style>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="homeeasy-docs.js?v=4.2"></script>
     <script src="homeeasy-core.js?v=3.5"></script>
     <script src="homeeasy-page-guard.js?v=3.6"></script>
@@ -384,7 +382,108 @@
     var ordenActual = null;
     var historialAbonos = [];
 
+    let homeEasyPdfLibrariesPromise = null;
+    function cargarScriptPdf(src, ready) {
+        if (ready()) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const existing = Array.from(document.scripts).find(s => s.src === src);
+            if (existing) {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.addEventListener('load', resolve, { once: true });
+            script.addEventListener('error', () => reject(new Error('No se pudo cargar el motor PDF.')), { once: true });
+            document.head.appendChild(script);
+        });
+    }
+    function asegurarLibreriasPdf() {
+        if (window.html2canvas && window.jspdf) return Promise.resolve();
+        if (!homeEasyPdfLibrariesPromise) {
+            homeEasyPdfLibrariesPromise = Promise.all([
+                cargarScriptPdf('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => Boolean(window.html2canvas)),
+                cargarScriptPdf('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => Boolean(window.jspdf))
+            ]).catch(error => { homeEasyPdfLibrariesPromise = null; throw error; });
+        }
+        return homeEasyPdfLibrariesPromise;
+    }
+    function precalentarLibreriasPdf() {
+        const warm = () => asegurarLibreriasPdf().catch(() => {});
+        if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(warm, { timeout: 7000 });
+        else window.setTimeout(warm, 4500);
+    }
+
+    const MAX_ORDEN_SUGERENCIAS = 10;
+    let ordenesCacheMem = null;
+    let ordenesByNumber = new Map();
+    let ordenesSearchIndex = [];
+    let ordenSearchTimer = null;
+
+    function normalizarBusquedaOrden(value) {
+        return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    function indexarOrdenes(rows) {
+        ordenesByNumber = new Map();
+        ordenesSearchIndex = [];
+        for (const orden of rows || []) {
+            const numero = String(orden.numero ?? '');
+            ordenesByNumber.set(numero, orden);
+            ordenesSearchIndex.push({
+                orden,
+                texto: normalizarBusquedaOrden(`${numero} ${orden.nombre || ''}`)
+            });
+        }
+    }
+    function setOrdenesCache(rows) {
+        ordenesCacheMem = Array.isArray(rows) ? rows : [];
+        indexarOrdenes(ordenesCacheMem);
+        try { localStorage.setItem('CACHE_ORDENES', JSON.stringify(ordenesCacheMem)); } catch (e) {}
+        return ordenesCacheMem;
+    }
+    function getOrdenesCache() {
+        if (ordenesCacheMem) return ordenesCacheMem;
+        try { return setOrdenesCache(JSON.parse(localStorage.getItem('CACHE_ORDENES') || '[]')); }
+        catch (e) { return setOrdenesCache([]); }
+    }
+    function renderSugerenciasOrden(valor, cont) {
+        const needle = normalizarBusquedaOrden(valor);
+        if (!needle) return;
+        getOrdenesCache();
+        const fragment = document.createDocumentFragment();
+        let mostrados = 0;
+        for (const entry of ordenesSearchIndex) {
+            if (!entry.texto.includes(needle)) continue;
+            const o = entry.orden;
+            const div = document.createElement('div');
+            div.style.padding = '12px 15px';
+            div.style.cursor = 'pointer';
+            div.style.borderBottom = '1px solid #eee';
+            div.style.fontSize = '0.85rem';
+            div.onmouseover = function() { div.style.background = '#f9f9f9'; };
+            div.onmouseout = function() { div.style.background = 'white'; };
+            const strong = document.createElement('strong');
+            strong.style.color = 'var(--homeeasy-wine)';
+            strong.textContent = `OP ${o.numero}`;
+            div.append(strong, document.createTextNode(` - ${o.nombre || ''}`));
+            div.onclick = function() {
+                document.getElementById('numeroOP').value = o.numero;
+                buscarOrden();
+                cont.replaceChildren();
+                cont.style.display = 'none';
+            };
+            fragment.appendChild(div);
+            mostrados += 1;
+            if (mostrados >= MAX_ORDEN_SUGERENCIAS) break;
+        }
+        if (mostrados) { cont.appendChild(fragment); cont.style.display = 'block'; }
+    }
+
+
     window.onload = function() {
+        precalentarLibreriasPdf();
         window.__homeeasyDocsReady = (window.HomeEasyDocs ? window.HomeEasyDocs.init({ url: URL_G, documentType: 'recibo' }) : Promise.resolve());
         var fechaHoy = new Date().toLocaleDateString('es-CO');
         document.getElementById('fecha_header_display').innerText = fechaHoy;
@@ -409,7 +508,7 @@
                             saldo: o[17] // K(saldo) se movió a R tras ampliar abonos 
                         });
                     }
-                    localStorage.setItem("CACHE_ORDENES", JSON.stringify(ordenesArr));
+                    setOrdenesCache(ordenesArr);
                 }
             }).catch(function(err) { console.error("Error parchando caché:", err); });
     };
@@ -425,8 +524,8 @@
 
     function buscarOrden() {
         var numero = document.getElementById('numeroOP').value.trim();
-        var cache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
-        var orden = cache.find(function(o) { return String(o.numero) === numero; });
+        getOrdenesCache();
+        var orden = ordenesByNumber.get(String(numero));
 
         if (!orden) {
             document.getElementById('nombre').value = "";
@@ -564,6 +663,7 @@
     }
 
     async function finalizarAbono() {
+        await asegurarLibreriasPdf();
         if (window.__homeeasyDocsReady) { try { await window.__homeeasyDocsReady; } catch (e) { console.warn("No fue posible cargar la configuración dinámica.", e); } }
         var ced = document.getElementById('cedula').value;
         var valAbono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
@@ -845,42 +945,13 @@
     // 🔎 SUGERENCIAS ORDENES CACHE
     // ===============================
     document.getElementById("numeroOP").addEventListener("input", function() {
-        var valorOriginal = this.value.trim();
-        var valor = normalizarTexto(valorOriginal);
+        var valor = this.value.trim();
         var cont = document.getElementById("sugerencias_orden");
-
-        cont.innerHTML = "";
+        cont.replaceChildren();
         cont.style.display = "none";
-
-        if (valor.length < 1) return;
-
-        var cache = JSON.parse(localStorage.getItem("CACHE_ORDENES") || "[]");
-
-        cache.forEach(function(o) {
-            var numStr = String(o.numero);
-            var nombreStr = normalizarTexto(o.nombre);
-
-            if (numStr.includes(valor) || nombreStr.includes(valor)) {
-                var div = document.createElement("div");
-                div.style.padding = "12px 15px";
-                div.style.cursor = "pointer";
-                div.style.borderBottom = "1px solid #eee";
-                div.style.fontSize = "0.85rem";
-                div.onmouseover = function() { div.style.background = "#f9f9f9"; };
-                div.onmouseout = function() { div.style.background = "white"; };
-                div.innerHTML = '<strong style="color:var(--homeeasy-wine)">OP ' + o.numero + '</strong> - ' + o.nombre;
-
-                div.onclick = function() {
-                    document.getElementById("numeroOP").value = o.numero;
-                    buscarOrden();
-                    cont.innerHTML = "";
-                    cont.style.display = "none";
-                };
-
-                cont.appendChild(div);
-                cont.style.display = "block";
-            }
-        });
+        clearTimeout(ordenSearchTimer);
+        if (!valor) return;
+        ordenSearchTimer = setTimeout(function() { renderSugerenciasOrden(valor, cont); }, 90);
     });
 
     document.addEventListener("click", function(e) {
