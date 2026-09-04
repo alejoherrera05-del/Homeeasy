@@ -172,15 +172,14 @@ class FollowupUnitTests(unittest.TestCase):
         for secret in ("SECRET-ID", "SECRET-PHONE", "SECRET-EMAIL", "SECRET-ADDRESS"):
             self.assertNotIn(secret, prompt)
 
-    def test_state_change_discards_model_plan(self):
-        planner = FollowupPlanner(
-            SequenceClient([sample_detail(version=3), sample_detail(version=4)]),
-            FakeOpenAI(valid_plan()),
-        )
-        with self.assertRaises(FollowupPlanError) as raised:
-            planner.plan("32", self.ctx, session_token="test-session", client_meta={}, now=self.now)
-        self.assertEqual(raised.exception.code, "FOLLOWUP_STATE_CHANGED")
-        self.assertEqual(raised.exception.status_code, 409)
+    def test_review_model_plan_uses_single_authoritative_snapshot(self):
+        client = SequenceClient([sample_detail(version=3), sample_detail(version=4)])
+        planner = FollowupPlanner(client, FakeOpenAI(valid_plan()))
+        result = planner.plan("32", self.ctx, session_token="test-session", client_meta={}, now=self.now)
+        self.assertTrue(result["reviewOnly"])
+        self.assertEqual(result["sourceStateVersion"], 3)
+        self.assertEqual(len(client.calls), 1)
+        self.assertEqual(len(client.items), 1, "A second HomeEasy read belongs to send-time revalidation, not REVIEW analysis")
 
     def test_discount_claim_fails_closed(self):
         plan = valid_plan()

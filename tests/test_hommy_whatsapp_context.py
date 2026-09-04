@@ -319,7 +319,7 @@ class FollowupWhatsAppIntegrationTests(unittest.TestCase):
             client_meta={"dispositivoId": "device-1"},
             now=self.now,
         )
-        self.assertEqual(result["stage"], "10E")
+        self.assertEqual(result["stage"], "10F.1")
         self.assertEqual(result["plan"]["decision"], "SEND")
         self.assertEqual(result["plan"]["intent"], "NO_RESPONSE")
         self.assertEqual(result["model"], "deterministic-guard")
@@ -329,22 +329,35 @@ class FollowupWhatsAppIntegrationTests(unittest.TestCase):
         self.assertIn("propuesta", result["plan"]["message"].lower())
         self.assertIn("ajustar o comparar", result["plan"]["message"])
 
-    def test_new_whatsapp_reply_discards_stale_plan(self):
-        planner = FollowupPlanner(
-            SequenceFollowupClient([source_detail(), source_detail()]),
-            FakeOpenAI(no_response_plan()),
-            SequenceWhatsAppClient([with_reply(), silent_whatsapp()]),
+    def test_review_analysis_uses_current_whatsapp_snapshot_once(self):
+        wait_plan = {
+            "decision": "WAIT",
+            "reasonCode": "CUSTOMER_WAIT_REQUEST",
+            "intent": "WAITING_UNTIL_DATE",
+            "temperature": "WAITING",
+            "summary": "La cliente respondió que confirmará mañana.",
+            "objective": "Respetar el tiempo que pidió la cliente.",
+            "message": None,
+            "nextActionAt": "2026-09-04T15:30:00-05:00",
+            "confidence": 0.94,
+            "needsHumanReview": False,
+            "stopReason": None,
+            "explanation": "La respuesta entrante pidió esperar hasta mañana.",
+        }
+        followup = SequenceFollowupClient([source_detail(), source_detail()])
+        whatsapp = SequenceWhatsAppClient([with_reply(), silent_whatsapp()])
+        planner = FollowupPlanner(followup, FakeOpenAI(wait_plan), whatsapp)
+        result = planner.plan(
+            "32",
+            self.ctx,
+            session_token="session-secret",
+            client_meta={"dispositivoId": "device-1"},
+            now=self.now,
         )
-        with self.assertRaises(FollowupPlanError) as raised:
-            planner.plan(
-                "32",
-                self.ctx,
-                session_token="session-secret",
-                client_meta={"dispositivoId": "device-1"},
-                now=self.now,
-            )
-        self.assertEqual(raised.exception.code, "FOLLOWUP_STATE_CHANGED")
-        self.assertEqual(raised.exception.status_code, 409)
+        self.assertEqual(result["plan"]["decision"], "WAIT")
+        self.assertEqual(result["plan"]["intent"], "WAITING_UNTIL_DATE")
+        self.assertEqual(len(whatsapp.calls), 1)
+        self.assertEqual(len(followup.rows), 1, "Final stale protection is enforced again immediately before human-approved send")
 
 
 if __name__ == "__main__":
