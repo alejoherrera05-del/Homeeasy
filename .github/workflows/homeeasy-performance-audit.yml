@@ -1,0 +1,43 @@
+name: HomeEasy Performance Audit
+
+on:
+  push:
+    branches:
+      - performance-audit-2026-09-04
+    paths:
+      - '*.html'
+      - '*.js'
+      - 'tests/homeeasy-performance-audit.mjs'
+      - '.github/workflows/homeeasy-performance-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate root JavaScript syntax
+        run: |
+          for file in homeeasy-*.js seguimiento-hommy.js; do
+            if [ -f "$file" ]; then node --check "$file"; fi
+          done
+      - name: Run exhaustive static performance audit
+        run: node tests/homeeasy-performance-audit.mjs
+      - name: Run seguimiento regression contracts
+        run: |
+          node tests/seguimiento-hommy-10b-qa.mjs
+          node tests/seguimiento-hommy-history-10e.mjs
+          node tests/seguimiento-hommy-transient-retry-10d2.mjs
+          node tests/seguimiento-hommy-fluid-10f.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: homeeasy-performance-baseline
+          path: qa/homeeasy-performance-baseline.json
+          retention-days: 14
