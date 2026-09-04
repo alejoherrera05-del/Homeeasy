@@ -8,7 +8,6 @@ on:
       - seguimiento-hommy-loader-10c2
       - seguimiento-review-send-ui-10d
       - seguimiento-10d-qa-fix
-      - seguimiento-transient-retry-10d2
     paths:
       - 'seguimiento.html'
       - 'seguimiento-hommy.js'
