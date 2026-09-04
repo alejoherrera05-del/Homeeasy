@@ -37,7 +37,7 @@ followup = replace_once(
 followup = replace_once(followup, 'PLAYBOOK_VERSION = "1.3"', 'PLAYBOOK_VERSION = "1.4"', 'playbook version')
 followup = replace_once(followup, 'FOLLOWUP_STAGE = "10E"', 'FOLLOWUP_STAGE = "10F.1"', 'stage version')
 
-old_style = '''- if se distingue tuteo o trato de usted, mantén ese registro en el borrador;\n- evita copiar literalmente texto de base de datos como "1 x producto /"; conviértelo en lenguaje humano o\n  simplemente habla de "la propuesta" cuando el producto no pueda expresarse con naturalidad.\n'''
+old_style = '''- si se distingue tuteo o trato de usted, mantén ese registro en el borrador;\n- evita copiar literalmente texto de base de datos como "1 x producto /"; conviértelo en lenguaje humano o\n  simplemente habla de "la propuesta" cuando el producto no pueda expresarse con naturalidad.\n'''
 new_style = '''- si se distingue tuteo o trato de usted, mantén ese registro en el borrador;\n- no inventes esposo, esposa, pareja, hijos u otros vínculos familiares para personalizar: solo menciónalos si aparecen explícitamente en la evidencia;\n- no deduzcas el género de quien atiende HomeEasy para cerrar con "atenta" o "atento"; prefiere cierres neutros como "quedo pendiente";\n- evita copiar literalmente texto de base de datos como "1 x producto /"; conviértelo en lenguaje humano o\n  simplemente habla de "la propuesta" cuando el producto no pueda expresarse con naturalidad.\n'''
 followup = replace_once(followup, old_style, new_style, 'style instructions')
 
@@ -72,3 +72,14 @@ if start < 0 or end < 0:
 replacement = '''        # REVIEW-only optimization: return the validated advisory plan after one canonical\n        # HomeEasy + WhatsApp read. No action can occur from this response alone; the Bridge\n        # revalidates both state version and WhatsApp conversation immediately before any\n        # human-approved send, so repeating both upstream reads here adds latency without\n        # weakening the actual send boundary.\n\n'''
 followup = followup[:start] + replacement + followup[end:]
 followup_path.write_text(followup, encoding='utf-8')
+
+# Keep the existing experience regression aligned with canonical product casing.
+test_path = Path('tests/test_hommy_followup_experience.py')
+test_source = test_path.read_text(encoding='utf-8')
+test_source = replace_once(
+    test_source,
+    'self.assertEqual(natural_product_subject("1 x Cortina onda serena 2.8 /"), "Cortina onda serena 2.8")',
+    'self.assertEqual(natural_product_subject("1 x Cortina onda serena 2.8 /"), "Cortina Onda Serena 2.8")',
+    'experience product expectation',
+)
+test_path.write_text(test_source, encoding='utf-8')
