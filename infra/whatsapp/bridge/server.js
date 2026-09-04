@@ -8,7 +8,7 @@ const auth = require('./auth');
 const ops = require('./operations');
 const conversation = require('./conversation');
 
-const BRIDGE_VERSION = '0.7.0';
+const BRIDGE_VERSION = '0.7.1';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -290,7 +290,7 @@ function publicDeliveryRecord(record, duplicate) {
     delivery: record.state,
     phone: record.phone,
     filename: record.filename,
-    messageId: record.messageId || null,
+    messageId: normalizeMessageIdValue(record.messageId),
     sentAt: record.sentAt || null,
     startedAt: record.startedAt || null,
     note: record.state === 'UNKNOWN'
@@ -371,7 +371,7 @@ async function sendText(phoneValue, textValue, audit) {
       state: 'SENT',
       phone,
       filename: '',
-      messageId: result && (result.id || result.key || result.messageId) || null,
+      messageId: extractMessageId(result),
       sentAt: new Date().toISOString()
     };
     if (audit) recordActivitySafe(activityMeta(audit.payload || {}, audit.actor, 'prueba', 'test', 'SENT', record));
@@ -463,13 +463,44 @@ function conversationChangedAfter(context, generatedAt) {
     activity.some(item => conversation.timestampMs(item && item.at) > generatedMs);
 }
 
+function normalizeMessageIdValue(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string' || typeof value === 'number') {
+    const clean = String(value).trim();
+    return clean && clean !== '[object Object]' ? clean : null;
+  }
+  if (typeof value !== 'object') return null;
+  const candidates = [
+    value._serialized,
+    value.id,
+    value.messageId,
+    value.key && value.key.id,
+    value.key && value.key._serialized
+  ];
+  for (const candidate of candidates) {
+    const normalized = normalizeMessageIdValue(candidate);
+    if (normalized) return normalized;
+  }
+  return null;
+}
+
+function extractMessageId(result) {
+  if (!result || typeof result !== 'object') return normalizeMessageIdValue(result);
+  const candidates = [result.id, result.messageId, result.key, result.key && result.key.id];
+  for (const candidate of candidates) {
+    const normalized = normalizeMessageIdValue(candidate);
+    if (normalized) return normalized;
+  }
+  return null;
+}
+
 function publicFollowupDelivery(record, duplicate) {
   return {
     ok: record.state === 'SENT',
     accepted: ['SENT', 'UNKNOWN', 'SENDING'].includes(record.state),
     duplicate: Boolean(duplicate),
     delivery: record.state,
-    messageId: record.messageId || null,
+    messageId: normalizeMessageIdValue(record.messageId),
     sentAt: record.sentAt || null,
     startedAt: record.startedAt || null,
     note: record.state === 'UNKNOWN'
@@ -559,7 +590,7 @@ async function sendFollowup(payload, actor, detail) {
       text
     });
     record.state = 'SENT';
-    record.messageId = result && (result.id || result.key || result.messageId) || null;
+    record.messageId = extractMessageId(result);
     record.sentAt = new Date().toISOString();
     idempotency[idempotencyKey] = record;
     persistIdempotency();
@@ -628,7 +659,7 @@ async function sendDocument(payload, audit) {
     });
 
     record.state = 'SENT';
-    record.messageId = result && (result.id || result.key || result.messageId) || null;
+    record.messageId = extractMessageId(result);
     record.sentAt = new Date().toISOString();
     if (idempotencyKey) {
       idempotency[idempotencyKey] = record;

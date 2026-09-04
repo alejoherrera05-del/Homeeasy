@@ -118,7 +118,7 @@ const fakeWaha = http.createServer(async (req, res) => {
     assert.equal(payload.chatId, `${TEST_PHONE}@c.us`);
     assert.equal(payload.text, 'Hola Karen 😊 Quería saber si alcanzaste a revisar la propuesta.');
     sendCount += 1;
-    return json(res, 200, { id: `msg-${sendCount}` });
+    return json(res, 200, { id: { _serialized: `msg-${sendCount}`, id: `inner-${sendCount}` } });
   }
 
   return json(res, 404, { error: 'fake route not found', path: url.pathname });
