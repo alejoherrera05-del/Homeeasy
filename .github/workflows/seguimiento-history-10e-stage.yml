@@ -31,7 +31,18 @@ jobs:
           python-version: '3.12'
 
       - name: Apply Seguimiento 10E patch
-        run: python scripts/patch_seguimiento_history_10e.py
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/patch_seguimiento_history_10e.py')
+          source = path.read_text(encoding='utf-8')
+          old = '''if html.count('seguimiento-hommy.js?v=10d2') != 1 or html.count("seguimiento-hommy.js?v=10d2-retry") != 1:\n    raise SystemExit('seguimiento.html 10d2 asset anchors did not match exactly')\nhtml = html.replace('seguimiento-hommy.js?v=10d2', 'seguimiento-hommy.js?v=10e1', 1)\nhtml = html.replace('seguimiento-hommy.js?v=10d2-retry', 'seguimiento-hommy.js?v=10e1-retry', 1)\n'''
+          new = '''primary_tag = '<script src="seguimiento-hommy.js?v=10d2" defer></script>'\nretry_asset = "seguimiento-hommy.js?v=10d2-retry"\nif html.count(primary_tag) != 1 or html.count(retry_asset) != 1:\n    raise SystemExit('seguimiento.html 10d2 asset anchors did not match exactly')\nhtml = html.replace(primary_tag, '<script src="seguimiento-hommy.js?v=10e1" defer></script>', 1)\nhtml = html.replace(retry_asset, 'seguimiento-hommy.js?v=10e1-retry', 1)\n'''
+          if source.count(old) != 1:
+              raise SystemExit('staging anchor repair did not match')
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+          python scripts/patch_seguimiento_history_10e.py
 
       - name: Validate JavaScript
         run: |
