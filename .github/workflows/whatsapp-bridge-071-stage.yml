@@ -60,11 +60,11 @@ jobs:
           PY
       - name: Diff hygiene
         run: git diff --check
-      - name: Commit certified Bridge 0.7.1 patch
+      - name: Commit certified Bridge 0.7.1 runtime patch
         run: |
           git config user.name 'homeeasy-automation'
           git config user.email 'actions@users.noreply.github.com'
-          git add infra/whatsapp/bridge/server.js infra/whatsapp/bridge/test-followup-send-smoke.js infra/whatsapp/update-bridge.sh .github/workflows/whatsapp-context-qa.yml .github/workflows/whatsapp-followup-send-10d-qa.yml
+          git add infra/whatsapp/bridge/server.js infra/whatsapp/bridge/test-followup-send-smoke.js infra/whatsapp/update-bridge.sh
           if git diff --cached --quiet; then
             echo 'No Bridge runtime changes to commit'
           else
