@@ -770,7 +770,7 @@ def validate_followup_plan(
 class HomeEasyFollowupClient:
     def __init__(self) -> None:
         self.backend_url = os.getenv("HOMEEASY_BACKEND_URL", DEFAULT_HOMEEASY_BACKEND).strip()
-        self.timeout = max(5, min(int(os.getenv("HOMMY_FOLLOWUP_HOME_EASY_TIMEOUT_SECONDS", "18")), 45))
+        self.timeout = max(5, min(int(os.getenv("HOMMY_FOLLOWUP_HOME_EASY_TIMEOUT_SECONDS", "25")), 45))
 
     def detail(
         self,

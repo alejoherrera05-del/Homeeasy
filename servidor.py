@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import threading
 import time
@@ -9,7 +10,7 @@ from typing import Any
 from flask import Flask, jsonify, make_response, request
 
 from hommy_backend import __version__
-from hommy_backend.auth import HommyAuthError, SessionValidator, decode_client_meta, safety_identifier
+from hommy_backend.auth import AuthContext, HommyAuthError, SessionValidator, decode_client_meta, safety_identifier
 from hommy_backend.continuity import RealtimeConversationSync, RealtimeSyncUnavailable
 from hommy_backend.data import HomeEasyDataStore, HomeEasyDataError
 from hommy_backend.engine import HommyEngine, HommyEngineError
@@ -129,6 +130,30 @@ def auth_context():
     return validator.validate(
         request.headers.get("X-HomeEasy-Session", ""),
         client_meta=decode_client_meta(request.headers.get("X-HomeEasy-Meta", "")),
+    )
+
+
+def followup_auth_context():
+    """Create a local read-only identity; HomeEasy detail remains the authoritative auth gate.
+
+    Follow-up analysis used to validate the same HomeEasy session twice in sequence:
+    AUTH_VALIDAR_SESION and then protected GET_SEGUIMIENTO_DETALLE. The first call
+    added a 12-second failure point without granting access to any data. This context
+    contains no customer identity and no write capability. The planner's first external
+    data operation is GET_SEGUIMIENTO_DETALLE, which validates the opaque session and
+    cotizaciones.read inside HomeEasy before any commercial or WhatsApp context exists.
+    """
+    token = str(request.headers.get("X-HomeEasy-Session", "") or "").strip()
+    if not token:
+        raise HommyAuthError("Tu sesión de HomeEasy no está disponible.", "AUTH_REQUIRED", 401)
+    salt = os.getenv("HOMMY_SAFETY_SALT", "homeeasy-hommy-v2")
+    uid = "followup:" + hashlib.sha256(f"{salt}:followup:{token}".encode("utf-8")).hexdigest()
+    return AuthContext(
+        uid=uid,
+        name="",
+        email="",
+        role="FOLLOWUP_READ",
+        permissions=frozenset({"app.access", "cotizaciones.read"}),
     )
 
 
@@ -271,7 +296,9 @@ def hommy_tool():
 def hommy_followup_plan():
     started = time.perf_counter()
     auth_started = time.perf_counter()
-    context = auth_context()
+    # Do not call AUTH_VALIDAR_SESION here. GET_SEGUIMIENTO_DETALLE below is already
+    # protected by HomeEasy and is the single authoritative read-session gate.
+    context = followup_auth_context()
     require_followup_permission(context)
     enforce_rate_limit(context, "followup-plan", "HOMMY_RATE_FOLLOWUP_PER_MINUTE", 12)
     auth_ms = (time.perf_counter() - auth_started) * 1000
