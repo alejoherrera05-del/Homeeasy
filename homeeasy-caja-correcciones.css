@@ -1,0 +1,24 @@
+.caja-tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px}
+.caja-tools[hidden]{display:none}
+.caja-tool-label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#625961;font-weight:600;min-width:0}
+.caja-select,.caja-search{width:100%;min-height:44px;border:1px solid #d5cfd3;border-radius:10px;padding:10px 12px;background:#fff;color:#292329;font:inherit;font-size:16px}
+.caja-count{grid-column:1/-1;margin:0;color:#625961;font-size:13px}
+.caja-manual-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+.caja-manual-row .tx-left,.caja-manual-row .tx-details{min-width:0}
+.caja-manual-row .tx-title,.caja-manual-row .tx-cat{white-space:normal;overflow-wrap:anywhere}
+.caja-row-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
+.caja-row-button{min-height:44px;padding:8px 12px;border:0;background:transparent;border-radius:8px;font:inherit;font-size:14px;font-weight:650;color:#943c50}
+.caja-delete{color:#b52e27}
+.caja-row-button:hover{background:#f5eef0}
+.caja-row-button:disabled{opacity:.5;cursor:wait}
+.caja-deleted-row .tx-amount{text-decoration:line-through;color:#625961!important}
+.caja-deleted-row .tx-date{max-width:145px;white-space:normal}
+.caja-more{display:block;margin:12px auto;min-height:44px;padding:8px 16px;border:1px solid #d5cfd3;border-radius:10px;background:#fff;color:#943c50;font:inherit;font-size:14px}
+.caja-empty{padding:24px;color:#625961;text-align:center;margin:0}
+.caja-correction-form{display:grid;gap:6px;text-align:left;margin-top:12px}
+.caja-correction-form label{margin:8px 0 0;color:#625961;font-size:14px;font-weight:600}
+.caja-correction-form input,.caja-correction-form select{width:100%;min-width:0;min-height:46px;padding:10px 12px;border:1px solid #d5cfd3;border-radius:10px;background:#fff;color:#292329;font:inherit;font-size:16px}
+.caja-correction-summary{font-weight:650;overflow-wrap:anywhere}
+.caja-correction-help{font-size:14px;line-height:1.5;color:#625961}
+.caja-row-button:focus-visible,.caja-more:focus-visible,.caja-select:focus-visible,.caja-search:focus-visible,.caja-correction-form input:focus-visible,.caja-correction-form select:focus-visible{outline:2px solid #943c50;outline-offset:3px}
+@media(max-width:440px){.caja-tools{grid-template-columns:1fr}.caja-manual-row{grid-template-columns:minmax(0,1fr) minmax(90px,auto)}.caja-manual-row .tx-amount{font-size:14px}.caja-correction-dialog{padding:20px 16px!important}.caja-correction-dialog .swal2-html-container{margin:12px 4px 0}}
