@@ -41,7 +41,7 @@ jobs:
           page = Path('seguimiento.html').read_text(encoding='utf-8')
           hommy = Path('seguimiento-hommy.js').read_text(encoding='utf-8')
 
-          assert "const VERSION = '0.6.0'" in client
+          assert "const VERSION = '0.7.0'" in client
           assert "request('/api/whatsapp/send-followup'" in client
           start = client.index('function sendFollowup(options)')
           end = client.index('function connectedPhone', start)
@@ -50,7 +50,7 @@ jobs:
           for key in ('reference:', 'text:', 'planId:', 'expectedVersion:', 'generatedAt:'):
               assert key in send_client
 
-          assert 'homeeasy-whatsapp-client.js?v=0.6.0' in page
+          assert 'homeeasy-whatsapp-client.js?v=20260928' in page
           assert 'seguimiento-hommy.js?v=10f1' in page
           assert "hasPermission('cotizaciones.write')" in hommy
           assert "sendLabel.textContent = 'Revisar y enviar'" in hommy
