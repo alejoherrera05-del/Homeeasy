@@ -44,6 +44,8 @@
     let resolvePageReady;
     let pendingTimer = null;
     let sessionRecoveryPromise = null;
+    let latestGeneratedDocument = null;
+    let whatsappLoadPromise = null;
     const pageReady = new Promise(resolve => { resolvePageReady = resolve; });
 
     function showPendingCover() {
@@ -89,25 +91,28 @@
             script.src = src;
             script.async = false;
             script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
-            script.addEventListener('error', reject, { once: true });
+            script.addEventListener('error', error => { script.remove(); reject(error); }, { once: true });
             (global.document.head || global.document.documentElement).appendChild(script);
         });
     }
 
-    function loadWhatsappDocumentActions() {
+    function loadWhatsappDocumentActions(retryAttempt = 0) {
         if (!WHATSAPP_DOCUMENT_PAGES.has(currentPage)) return Promise.resolve();
-        return loadScriptOnce(
-            'homeeasy-whatsapp-client.js?v=0.3.0',
+        if (whatsappLoadPromise) return whatsappLoadPromise;
+        whatsappLoadPromise = loadScriptOnce(
+            'homeeasy-whatsapp-client.js?v=20260928',
             'homeeasyWhatsappClientScript',
             () => Boolean(global.HomeEasyWhatsApp)
         ).then(() => loadScriptOnce(
-            'homeeasy-whatsapp-doc-actions.js?v=0.1.0',
+            'homeeasy-whatsapp-doc-actions.js?v=20260928',
             'homeeasyWhatsappDocumentActionsScript',
             () => Boolean(global.HomeEasyWhatsAppDocumentActions)
         )).catch(error => {
             // WhatsApp es una integración secundaria: jamás bloquear la apertura del módulo.
             console.warn('HomeEasy WhatsApp: no se pudo cargar la capa de documentos.', error);
-        });
+            if (retryAttempt < 2) global.setTimeout(() => loadWhatsappDocumentActions(retryAttempt + 1), 1500 * (retryAttempt + 1));
+        }).finally(() => { whatsappLoadPromise = null; });
+        return whatsappLoadPromise;
     }
 
     function buildMetaQuery(url) {
@@ -219,6 +224,16 @@
             const execute = async (allowRecovery) => {
                 if (method === 'POST' && !isAuth) enrichPost(options);
                 const finalUrl = method === 'GET' ? buildMetaQuery(rawUrl) : rawUrl;
+                let generated = null;
+                if (method === 'POST' && ['cotizacion.html', 'pedido.html', 'abono.html'].includes(currentPage)) {
+                    try {
+                        const body = JSON.parse(options.body);
+                        if (body.pdfBase64 && (body.nombreArchivo || body.filename)) {
+                            const { appSessionToken, meta, ...documentPayload } = body;
+                            generated = documentPayload;
+                        }
+                    } catch (_) {}
+                }
                 const response = await nativeFetch(finalUrl || resource, options);
                 const data = await readSecurityPayload(response);
 
@@ -231,6 +246,11 @@
                     redirectToLogin();
                 } else if (data && (data.forbidden === true || data.code === 'PERMISSION_DENIED')) {
                     showDenied(data.msg || 'Tu rol no tiene permiso para realizar esta acción.');
+                }
+                if (generated && data && ['success', 'ok'].includes(String(data.status).toLowerCase())) {
+                    latestGeneratedDocument = generated;
+                    global.dispatchEvent(new CustomEvent('homeeasy:document-generated', { detail: generated }));
+                    loadWhatsappDocumentActions();
                 }
                 return response;
             };
@@ -367,6 +387,8 @@
         }
     }
 
+    global.addEventListener('online', () => { if (pageAuthStatus === 'authorized') loadWhatsappDocumentActions(); });
+    global.addEventListener('pageshow', () => { if (pageAuthStatus === 'authorized') loadWhatsappDocumentActions(); });
     installFetchBridge();
     authorizePage();
 
@@ -374,6 +396,7 @@
         currentPage,
         requiredPermission,
         permissions: PAGE_PERMISSIONS,
-        getStatus: () => pageAuthStatus
+        getStatus: () => pageAuthStatus,
+        getLatestGeneratedDocument: () => latestGeneratedDocument
     });
 })(window);

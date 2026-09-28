@@ -8,7 +8,7 @@
 
     if (global.HomeEasyWhatsAppDocumentActions) return;
 
-    const VERSION = '0.3.0';
+    const VERSION = '0.4.0';
     const page = ((global.location && global.location.pathname ? global.location.pathname.split('/').pop() : '') || '').toLowerCase();
     const DOCUMENT_PAGES = Object.freeze({
         'cotizacion.html': 'cotizacion',
@@ -377,6 +377,18 @@
     }
 
     function installGeneratedCapture() {
+        const guard = global.HomeEasyPageGuard;
+        if (guard && typeof guard.getLatestGeneratedDocument === 'function') {
+            const receive = payload => {
+                const candidate = generatedContext(payload);
+                if (!candidate) return;
+                latestGenerated = candidate;
+                showGeneratedButton();
+            };
+            global.addEventListener('homeeasy:document-generated', event => receive(event.detail));
+            receive(guard.getLatestGeneratedDocument());
+            return;
+        }
         if (!DOCUMENT_PAGES[page] || global[FETCH_PATCH_FLAG]) return;
         global[FETCH_PATCH_FLAG] = true;
         const originalFetch = global.fetch.bind(global);
@@ -432,8 +444,11 @@
                 ? await global.HomeEasyWhatsApp.sendDocument({ ...common, pdfBase64: ctx.pdfBase64 })
                 : await global.HomeEasyWhatsApp.sendDocumentUrl({ ...common, pdfUrl: ctx.pdfUrl });
 
-            if (result && result.delivery === 'UNKNOWN') toast('WhatsApp recibió el envío, pero no confirmó el resultado. No lo reenviaremos automáticamente.');
-            else if (result && result.duplicate) toast('Este envío ya había sido procesado.');
+            if (!result || result.delivery !== 'SENT' || result.ok !== true) {
+                const message = 'No se pudo confirmar el envío del comprobante. Revisa el chat antes de reenviarlo para evitar duplicados. Puedes consultar el estado en Configuración → Integraciones.';
+                if (global.Swal) await global.Swal.fire({ icon: 'warning', title: 'Envío sin confirmar', text: message, confirmButtonText: 'Entendido', confirmButtonColor: '#a6455a' });
+                else toast(message);
+            } else if (result.duplicate) toast('Este envío ya había sido procesado.');
             else toast((ctx.resend ? 'Documento reenviado' : 'Documento enviado') + ' por WhatsApp ✅');
             return result;
         } catch (error) {

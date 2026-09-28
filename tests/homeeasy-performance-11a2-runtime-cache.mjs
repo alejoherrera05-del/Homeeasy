@@ -16,7 +16,7 @@ for (const file of pages) {
     const core = html.indexOf('<script src="homeeasy-core.js?v=3.5"></script>');
     const runtime = html.indexOf('<script src="homeeasy-runtime.js?v=11a0"></script>');
     const cache = html.indexOf('<script src="homeeasy-runtime-cache.js?v=11a2"></script>');
-    const guard = html.indexOf('<script src="homeeasy-page-guard.js?v=3.6"></script>');
+    const guard = html.search(/<script src="homeeasy-page-guard\.js\?v=[^"]+"><\/script>/);
     assert(core >= 0 && core < runtime && runtime < cache && cache < guard,
       `${file}: security order must stay Core -> Runtime -> Cache -> Page Guard`);
   }
@@ -164,3 +164,4 @@ await window.fetch('https://api.example.test/exec?listaClientes=1');
 assert(networkCalls === 1, 'cache was served across user scopes');
 
 console.log('HomeEasy Performance 11A.2 runtime cache contracts: PASS');
+

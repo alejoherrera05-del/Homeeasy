@@ -12,7 +12,7 @@
 
     if (global.HomeEasyWhatsApp) return;
 
-    const VERSION = '0.6.0';
+    const VERSION = '0.7.0';
     const BASE_URL = 'https://api.homeeasy.com.co';
     const REQUEST_TIMEOUT_MS = 25000;
     const RECOVERY_BUTTON_ID = 'heWaRecover';
@@ -94,6 +94,7 @@
         const controller = new AbortController();
         const timer = global.setTimeout(() => controller.abort(), Number(opts.timeoutMs || REQUEST_TIMEOUT_MS));
         let response;
+        let payload;
         try {
             response = await global.fetch(BASE_URL + path, {
                 method: String(opts.method || 'GET').toUpperCase(),
@@ -109,17 +110,19 @@
                 body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
                 signal: controller.signal
             });
+            try { payload = await response.json(); } catch (error) {
+                if (controller.signal.aborted) throw error;
+                throw new HomeEasyWhatsAppError('WHATSAPP_INVALID_RESPONSE', 'El servicio devolvió una respuesta incompleta. No se pudo confirmar la operación.', null, response.status);
+            }
         } catch (error) {
-            if (error && error.name === 'AbortError') {
+            if (error instanceof HomeEasyWhatsAppError) throw error;
+            if (controller.signal.aborted || error && error.name === 'AbortError') {
                 throw new HomeEasyWhatsAppError('WHATSAPP_TIMEOUT', 'WhatsApp tardó demasiado en responder. HomeEasy sigue funcionando.', null, 0);
             }
             throw new HomeEasyWhatsAppError('WHATSAPP_NETWORK', 'No fue posible conectar con WhatsApp. HomeEasy sigue funcionando.', error, 0);
         } finally {
             global.clearTimeout(timer);
         }
-
-        let payload = null;
-        try { payload = await response.json(); } catch (error) {}
 
         if (!response.ok && response.status !== 202) {
             throw new HomeEasyWhatsAppError(
@@ -194,7 +197,7 @@
     function testDocument(phone) {
         return request('/api/whatsapp/test-document', {
             method: 'POST',
-            timeoutMs: 105000,
+            timeoutMs: 150000,
             body: { phone: String(phone || '').trim() }
         });
     }
@@ -212,11 +215,12 @@
         };
     }
 
-    function sendDocument(options) {
+    async function sendDocument(options) {
         const opts = options || {};
+        await ensureDocumentChannel();
         return request('/api/whatsapp/send-document', {
             method: 'POST',
-            timeoutMs: 105000,
+            timeoutMs: 150000,
             body: {
                 documentType: String(opts.documentType || '').trim().toLowerCase(),
                 phone: String(opts.phone || '').trim(),
@@ -229,11 +233,12 @@
         });
     }
 
-    function sendDocumentUrl(options) {
+    async function sendDocumentUrl(options) {
         const opts = options || {};
+        await ensureDocumentChannel();
         return request('/api/whatsapp/send-document-url', {
             method: 'POST',
-            timeoutMs: 105000,
+            timeoutMs: 150000,
             body: {
                 documentType: String(opts.documentType || '').trim().toLowerCase(),
                 phone: String(opts.phone || '').trim(),
@@ -244,6 +249,23 @@
                 ...documentMeta(opts)
             }
         });
+    }
+
+    async function ensureDocumentChannel() {
+        // Sólo consultas de estado: nunca repetir un POST de envío ni reiniciar sesiones.
+        const auth = authApi();
+        // /status requiere config.read; los vendedores conservan su permiso de envío.
+        if (!auth || typeof auth.hasPermission !== 'function' || !auth.hasPermission('config.read')) return;
+        let payload;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            payload = await status();
+            if (whatsappReady(payload)) return payload;
+            const state = whatsappStatus(payload);
+            if (!['STARTING', 'WORKING'].includes(state) || attempt === 2) break;
+            await wait(1500);
+        }
+        throw new HomeEasyWhatsAppError('WHATSAPP_NOT_READY',
+            'WhatsApp todavía no está listo. El comprobante sigue guardado. Revisa Configuración → Integraciones y vuelve a intentar.', payload, 503);
     }
 
     function sendFollowup(options) {
