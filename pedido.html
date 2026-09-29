@@ -583,8 +583,13 @@
                         }
                     }
                     setClientesCache(clientesObj);
-                    if(!isEditMode && !numeroCot) buscarCliente(); 
-                }
+
+                    // Reaplica el cliente con la base recién cargada también al editar o convertir.
+
+                    // Evita que una caché previa/incompleta deje email o dirección en blanco.
+
+                    if (document.getElementById('cedula').value.trim()) buscarCliente();
+}
             }).catch(err => console.error("Error parchando caché:", err));
 
         if (numeroCot && !isEditMode) {
@@ -1001,25 +1006,62 @@
         } 
     });
 
+    let clienteLookupToken = 0;
+
+    function aplicarClienteEnFormulario(cliente) {
+        if (!cliente) return;
+        document.getElementById('nombre').value = (cliente.nombre || "").toUpperCase();
+        document.getElementById('telefono').value = cliente.telefono || "";
+        document.getElementById('email').value = (cliente.email || "").toLowerCase();
+        document.getElementById('direccion').value = (cliente.direccion || "").toUpperCase();
+    }
+
     function buscarCliente() {
-        const ced = document.getElementById('cedula').value.trim(); 
+        const ced = document.getElementById('cedula').value.trim();
         const cache = getClientesCache();
-        
-        if (!ced) { 
-            document.getElementById('nombre').value = ""; 
-            document.getElementById('telefono').value = ""; 
-            document.getElementById('email').value = ""; 
-            document.getElementById('direccion').value = ""; 
-            return; 
+        const token = ++clienteLookupToken;
+
+        if (!ced) {
+            document.getElementById('nombre').value = "";
+            document.getElementById('telefono').value = "";
+            document.getElementById('email').value = "";
+            document.getElementById('direccion').value = "";
+            return;
         }
-        
-        if (cache[ced]) {
-            const cliente = cache[ced];
-            document.getElementById('nombre').value = (cliente.nombre || "").toUpperCase(); 
-            document.getElementById('telefono').value = cliente.telefono || "";
-            document.getElementById('email').value = (cliente.email || "").toLowerCase(); 
-            document.getElementById('direccion').value = (cliente.direccion || "").toUpperCase();
-        }
+
+        const cliente = cache[ced];
+        if (!cliente) return;
+
+        aplicarClienteEnFormulario(cliente);
+
+        // Compatibilidad con cachés antiguas/incompletas: si falta email o dirección,
+        // consulta el registro vivo del cliente y repara también la caché local.
+        const faltaEmail = !String(cliente.email || "").trim();
+        const faltaDireccion = !String(cliente.direccion || "").trim();
+        if (!faltaEmail && !faltaDireccion) return;
+
+        fetch(`${URL_G}?tipo=HISTORIAL_CLIENTE&cedula=${encodeURIComponent(ced)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (token !== clienteLookupToken) return;
+                if (document.getElementById('cedula').value.trim() !== ced) return;
+                if (!data || data.status !== "found" || !data.cliente) return;
+
+                const actualizado = {
+                    ...cliente,
+                    cedula: data.cliente.cedula || ced,
+                    nombre: data.cliente.nombre || cliente.nombre || "",
+                    telefono: data.cliente.telefono || cliente.telefono || "",
+                    email: data.cliente.email || "",
+                    direccion: data.cliente.direccion || ""
+                };
+
+                aplicarClienteEnFormulario(actualizado);
+                setClientesCache({ ...getClientesCache(), [ced]: actualizado });
+            })
+            .catch(() => {
+                // El autocompletado desde caché sigue funcionando aunque falle la consulta viva.
+            });
     }
 </script>
 </body>
