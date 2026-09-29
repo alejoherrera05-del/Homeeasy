@@ -1,0 +1,21 @@
+[Unit]
+Description=HomeEasy WhatsApp maintenance
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/homeeasy-whatsapp
+ExecStart=/usr/bin/python3 /opt/homeeasy-whatsapp/maintenance/worker.py
+Restart=on-failure
+RestartSec=10
+UMask=0022
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/homeeasy-whatsapp /run/docker.sock
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

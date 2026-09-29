@@ -7,8 +7,9 @@ const crypto = require('crypto');
 const auth = require('./auth');
 const ops = require('./operations');
 const conversation = require('./conversation');
+const maintenance = require('./maintenance');
 
-const BRIDGE_VERSION = '0.7.0';
+const BRIDGE_VERSION = '0.8.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -825,6 +826,13 @@ async function handle(req, res) {
     return res.end();
   }
 
+  if (url.pathname === '/api/whatsapp/maintenance' && ['GET', 'POST'].includes(req.method)) {
+    const actor = await auth.authorize(req, 'config.read');
+    maintenance.authorize(actor);
+    if (req.method === 'GET') return json(res, 200, maintenance.status());
+    return json(res, 202, maintenance.enqueue(actor, await readJsonBody(req)));
+  }
+
   if (req.method === 'GET' && url.pathname === '/health') {
     return json(res, 200, {
       ok: true,
@@ -978,7 +986,14 @@ async function handle(req, res) {
 }
 
 const server = http.createServer((req, res) => {
-  handle(req, res).catch(error => {
+  let done = () => {};
+  Promise.resolve().then(() => {
+    const pathname = new URL(req.url, 'http://bridge.local').pathname;
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) && pathname !== '/api/whatsapp/maintenance') {
+      done = maintenance.track();
+    }
+    return handle(req, res);
+  }).catch(error => {
     const statusCode = Number(error.statusCode || 500);
     console.error(new Date().toISOString(), req.method, req.url, error.message, error.details || '');
     json(res, statusCode >= 400 && statusCode < 600 ? statusCode : 500, {
@@ -986,7 +1001,7 @@ const server = http.createServer((req, res) => {
       error: error.message || 'Unexpected error',
       ...(statusCode < 500 && error.details ? { details: error.details } : {})
     });
-  });
+  }).finally(() => { try { done(); } catch (error) { console.error('maintenance tracking failed'); } });
 });
 
 server.listen(PORT, '0.0.0.0', () => {

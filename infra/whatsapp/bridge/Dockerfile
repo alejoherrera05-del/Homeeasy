@@ -7,6 +7,7 @@ COPY server.js ./
 COPY auth.js ./
 COPY operations.js ./
 COPY conversation.js ./
+COPY maintenance.js ./
 
 RUN mkdir -p /app/data && chown -R node:node /app
 
@@ -15,3 +16,4 @@ USER node
 EXPOSE 8080
 
 CMD ["node", "server.js"]
+

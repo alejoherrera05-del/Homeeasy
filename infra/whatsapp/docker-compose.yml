@@ -45,6 +45,7 @@ services:
       DATA_DIR: /app/data
     volumes:
       - ./data/bridge:/app/data
+      - ./maintenance-runtime:/app/maintenance
     ports:
       # Durante Fase 1 se prueba desde el propio VPS. HTTPS público se añade después.
       - "127.0.0.1:${BRIDGE_PORT:-8080}:8080"
@@ -56,3 +57,4 @@ services:
 networks:
   homeeasy-whatsapp:
     name: homeeasy-whatsapp
+

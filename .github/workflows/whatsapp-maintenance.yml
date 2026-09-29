@@ -1,0 +1,29 @@
+name: WhatsApp maintenance QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/whatsapp/**'
+      - 'homeeasy-whatsapp-settings.js'
+      - 'homeeasy-whatsapp-client.js'
+      - 'tests/whatsapp-maintenance.cjs'
+      - '.github/workflows/whatsapp-maintenance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-save --no-package-lock jsdom@26
+      - run: node --test tests/whatsapp-maintenance.cjs tests/whatsapp-reliability.cjs
+      - run: python infra/whatsapp/maintenance/test_worker.py
+      - run: node --check infra/whatsapp/bridge/server.js

@@ -73,7 +73,7 @@
         if (status === 409) return serverError || 'WhatsApp ya está conectado o el QR no está disponible.';
         if (status === 413) return 'El PDF es demasiado pesado para enviarlo por WhatsApp desde HomeEasy.';
         if (status === 422) return 'El PDF guardado no pudo descargarse. Puedes abrirlo para comprobar que siga disponible.';
-        if (status === 503) return 'WhatsApp está reconectando. Intenta nuevamente en unos segundos.';
+        if (status === 503) return serverError || 'WhatsApp está reconectando. Intenta nuevamente en unos segundos.';
         if (status >= 500) return 'El servicio de WhatsApp no respondió correctamente.';
         return serverError || 'No fue posible completar la operación de WhatsApp.';
     }
@@ -536,6 +536,8 @@
         sendDocument,
         sendDocumentUrl,
         sendFollowup,
+        maintenance: () => request('/api/whatsapp/maintenance'),
+        maintain: body => request('/api/whatsapp/maintenance', { method: 'POST', body }),
         connectedPhone,
         recoverWhatsApp
     });

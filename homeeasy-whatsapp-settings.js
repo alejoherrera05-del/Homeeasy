@@ -14,7 +14,7 @@
     if (((global.location.pathname.split('/').pop() || '').toLowerCase()) !== 'configuracion.html') return;
 
     const VERSION = '0.3.0';
-    const REQUIRED_BRIDGE = '0.5.0';
+    const REQUIRED_BRIDGE = '0.8.0';
     const STYLE_ID = 'homeeasyWhatsappSettingsStyle';
     const PANEL_ID = 'panel-integraciones';
     const TEMPLATE_LABELS = Object.freeze({
@@ -99,6 +99,57 @@
         }
     }
 
+    let maintenanceState = null;
+    let maintenanceTimer = null;
+    let maintenancePending = false;
+    let maintenanceJob = null;
+    let maintenanceQueuedAt = 0;
+    const maintenanceIds = ['heWaMaintenanceCheck', 'heWaMaintenanceUpdate', 'heWaMaintenanceAuto'];
+    function renderMaintenance(data) {
+        maintenanceState = data;
+        if (maintenanceJob && data.jobId === maintenanceJob) maintenanceJob = null;
+        if (maintenanceJob && Date.now() - maintenanceQueuedAt > 120000) maintenanceJob = null;
+        const panel = document.getElementById('heWaMaintenance');
+        if (!panel) return;
+        panel.hidden = false;
+        const online = data.available && (data.busy || Date.now() - Date.parse(data.heartbeat) < 120000);
+        document.getElementById('heWaMaintenanceMessage').textContent = online ? (data.message || 'Preparado.') : 'El mantenimiento no responde. Pulsa Revisar para volver a comprobar.';
+        document.getElementById('heWaMaintenanceVersions').textContent = 'Instalada: ' + (data.currentVersion || '—') + ' · Estable: ' + (data.latestVersion || '—');
+        document.getElementById('heWaMaintenanceSchedule').textContent = data.automatic ? 'Automático: 3:00 a. m. (Colombia). Versiones estables con al menos 72 horas publicadas.' : 'Instalación automática pausada. Se revisan versiones cada 6 horas.';
+        document.getElementById('heWaMaintenanceAuto').textContent = data.automatic ? 'Pausar actualizaciones nocturnas' : 'Activar actualizaciones nocturnas';
+        maintenanceIds.forEach(id => { document.getElementById(id).disabled = Boolean(maintenancePending || maintenanceJob || data.busy || !online); });
+        document.getElementById('heWaMaintenanceUpdate').disabled ||= !data.updateAvailable || data.phase === 'attention';
+        if (!online) document.getElementById('heWaMaintenanceCheck').disabled = maintenancePending;
+        if (maintenanceTimer) global.clearTimeout(maintenanceTimer);
+        if (!document.hidden && document.getElementById(PANEL_ID)?.classList.contains('active')) {
+            maintenanceTimer = global.setTimeout(loadMaintenance, data.busy || maintenanceJob ? 4000 : 60000);
+        }
+    }
+    async function loadMaintenance() {
+        if (!global.HomeEasyWhatsApp?.maintenance || document.hidden) return;
+        try { renderMaintenance(await global.HomeEasyWhatsApp.maintenance()); }
+        catch (error) {
+            if (error.status === 403 || error.statusCode === 403) { document.getElementById('heWaMaintenance').hidden = true; return; }
+            const node = document.getElementById('heWaMaintenanceMessage');
+            if (node) node.textContent = error.message || 'No se pudo comprobar el mantenimiento.';
+        }
+    }
+    async function maintain(action) {
+        if (maintenancePending) return;
+        if (action === 'update' && global.Swal) {
+            const result = await Swal.fire({title:'Actualizar WhatsApp ahora',text:'Los envíos se pausarán durante unos minutos. HomeEasy guardará un respaldo y verificará la reconexión.',showCancelButton:true,confirmButtonText:'Actualizar',cancelButtonText:'Cancelar',confirmButtonColor:'#a6455a'});
+            if (!result.isConfirmed) return;
+        }
+        maintenancePending = true;
+        if (maintenanceState) renderMaintenance(maintenanceState);
+        try {
+            const result = await global.HomeEasyWhatsApp.maintain({action, ...(action === 'automatic' ? {enabled: !maintenanceState?.automatic} : {})});
+            maintenanceJob = result.jobId;
+            maintenanceQueuedAt = Date.now();
+        } catch (error) {
+            if (global.Swal) await Swal.fire({icon:'info',title:'Mantenimiento',text:error.message,confirmButtonColor:'#a6455a'});
+        } finally { maintenancePending = false; await loadMaintenance(); }
+    }
     function panelHtml() {
         return `
             <div class="page-heading"><h2>Integraciones</h2><p>Servicios conectados a HomeEasy para automatizar tareas sin salir de la aplicación.</p></div>
@@ -108,6 +159,14 @@
                     <div class="he-wa-path"><div class="he-wa-path-step" id="heWaStepHome"><span class="he-wa-path-dot"><i class="fa-solid fa-user-shield"></i></span><span class="he-wa-path-copy"><b>HomeEasy</b><span>Sesión autorizada</span></span></div><div class="he-wa-path-step" id="heWaStepBridge"><span class="he-wa-path-dot"><i class="fa-solid fa-server"></i></span><span class="he-wa-path-copy"><b>Servidor</b><span>Bridge seguro</span></span></div><div class="he-wa-path-step" id="heWaStepWhatsapp"><span class="he-wa-path-dot"><i class="fa-brands fa-whatsapp"></i></span><span class="he-wa-path-copy"><b>WhatsApp</b><span>Canal de documentos</span></span></div></div>
                     <div class="he-wa-details"><div class="he-wa-detail"><span class="he-wa-label">Cuenta</span><span class="he-wa-value" id="heWaAccount">—</span></div><div class="he-wa-detail"><span class="he-wa-label">Número</span><span class="he-wa-value" id="heWaPhone">—</span></div><div class="he-wa-detail"><span class="he-wa-label">Bridge</span><span class="he-wa-value" id="heWaBridge">—</span></div><div class="he-wa-detail"><span class="he-wa-label">Última comprobación</span><span class="he-wa-value" id="heWaChecked">—</span></div></div>
                     <div class="he-wa-actions"><button type="button" class="he-wa-button primary" id="heWaRefresh"><i class="fa-solid fa-arrows-rotate"></i>Probar conexión</button><button type="button" class="he-wa-button whatsapp" id="heWaTestMessage" hidden><i class="fa-regular fa-paper-plane"></i>Mensaje de prueba</button><button type="button" class="he-wa-button whatsapp" id="heWaTestPdf" hidden><i class="fa-regular fa-file-pdf"></i>PDF de prueba</button><button type="button" class="he-wa-button" id="heWaRestart" hidden><i class="fa-solid fa-rotate"></i>Reconectar</button><button type="button" class="he-wa-button" id="heWaQr" hidden><i class="fa-solid fa-qrcode"></i>Mostrar QR</button></div>
+                </section>
+                <section class="he-wa-card he-wa-security" id="heWaMaintenance" hidden>
+                    <h3>Mantenimiento automático</h3>
+                    <p id="heWaMaintenanceSchedule"></p>
+                    <p id="heWaMaintenanceVersions" style="margin-top:10px"></p>
+                    <p id="heWaMaintenanceMessage" role="status" aria-live="polite" style="margin-top:10px">Comprobando…</p>
+                    <div class="he-wa-actions"><button type="button" class="he-wa-button" id="heWaMaintenanceCheck">Revisar ahora</button><button type="button" class="he-wa-button primary" id="heWaMaintenanceUpdate">Actualizar ahora</button><button type="button" class="he-wa-button" id="heWaMaintenanceAuto">Actualizaciones nocturnas</button></div>
+                    <p style="margin-top:12px">Incluye respaldo y recuperación si la nueva versión no reconecta. No envía pruebas a clientes.</p>
                 </section>
                 <section class="he-wa-card"><div class="he-wa-section-head"><div><h3>Actividad de envíos</h3><p>Lo que HomeEasy ha enviado por este canal.</p></div><button type="button" class="he-wa-link" id="heWaHistory">Ver historial</button></div><div class="he-wa-stats"><div class="he-wa-stat"><span>Hoy</span><strong id="heWaToday">0</strong></div><div class="he-wa-stat"><span>Cotizaciones</span><strong id="heWaQuotes">0</strong></div><div class="he-wa-stat"><span>Órdenes</span><strong id="heWaOrders">0</strong></div><div class="he-wa-stat"><span>Abonos</span><strong id="heWaPayments">0</strong></div><div class="he-wa-stat error"><span>Errores</span><strong id="heWaErrors">0</strong></div></div><div class="he-wa-activity" id="heWaActivity"><div class="he-wa-empty">Abre Integraciones para cargar la actividad.</div></div></section>
                 <section class="he-wa-card"><div class="he-wa-section-head"><div><h3>Mensajes automáticos</h3><p>Edita una vez y HomeEasy usará la plantilla en los próximos envíos.</p></div><button type="button" class="he-wa-link" id="heWaResetTemplates">Restaurar</button></div><div class="he-wa-template-list" id="heWaTemplates"></div></section>
@@ -174,6 +233,7 @@
             if (activityResult.status === 'fulfilled') state.activity = Array.isArray(activityResult.value.items) ? activityResult.value.items : []; else state.activity = []; if (templateResult.status === 'fulfilled') state.templates = templateResult.value; renderActivity(); renderTemplates();
             const bridgeVersion = clean(state.status && state.status.bridge && state.status.bridge.version); if (bridgeVersion && bridgeVersion !== REQUIRED_BRIDGE && global.Swal) Swal.fire({toast:true,position:'top-end',icon:'info',title:'Actualización de WhatsApp pendiente',text:'El servidor debe quedar en v' + REQUIRED_BRIDGE + ' para usar actividad y plantillas.',showConfirmButton:false,timer:3200}); else if (showFeedback && global.Swal) Swal.fire({toast:true,position:'top-end',icon:'success',title:'WhatsApp comprobado',showConfirmButton:false,timer:1600});
         }
+        await loadMaintenance();
         loadedOnce = true; setLoading(false);
     }
 
@@ -196,7 +256,11 @@
 
     function showHistory() { if (!global.Swal) return; const items = Array.isArray(state.activity) ? state.activity : []; const html = items.length ? '<div style="max-height:55vh;overflow:auto;text-align:left">' + items.map(item => { const [,label] = activityState(item); const date = new Date(item.at); const when = Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'numeric',minute:'2-digit'}); return '<div style="padding:10px 4px;border-bottom:1px solid #eee"><b style="font-size:12px">' + escapeHtml(activityTypeLabel(item) + (item.resend ? ' · Reenvío' : '')) + '</b><div style="margin-top:3px;color:#777;font-size:11px">' + escapeHtml([item.reference,item.clientName,label].filter(Boolean).join(' · ')) + '</div><div style="margin-top:3px;color:#aaa;font-size:10px">' + escapeHtml(when) + '</div></div>'; }).join('') + '</div>' : '<p style="color:#888;font-size:13px">Todavía no hay actividad registrada.</p>'; Swal.fire({title:'Historial de WhatsApp',html,confirmButtonText:'Cerrar',confirmButtonColor:'#a6455a',width:520}); }
 
-    function bindPanelActions(panel) { panel.querySelector('#heWaRefresh').addEventListener('click',() => loadCenter(true)); panel.querySelector('#heWaTestMessage').addEventListener('click',() => sendTest('message')); panel.querySelector('#heWaTestPdf').addEventListener('click',() => sendTest('pdf')); panel.querySelector('#heWaRestart').addEventListener('click',restartSession); panel.querySelector('#heWaQr').addEventListener('click',showQr); panel.querySelector('#heWaHistory').addEventListener('click',showHistory); panel.querySelector('#heWaResetTemplates').addEventListener('click',resetAllTemplates); }
+    function bindPanelActions(panel) {
+        panel.querySelector('#heWaMaintenanceCheck').addEventListener('click', () => maintain('check'));
+        panel.querySelector('#heWaMaintenanceUpdate').addEventListener('click', () => maintain('update'));
+        panel.querySelector('#heWaMaintenanceAuto').addEventListener('click', () => maintain('automatic'));
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && panel.classList.contains('active')) loadMaintenance(); }); panel.querySelector('#heWaRefresh').addEventListener('click',() => loadCenter(true)); panel.querySelector('#heWaTestMessage').addEventListener('click',() => sendTest('message')); panel.querySelector('#heWaTestPdf').addEventListener('click',() => sendTest('pdf')); panel.querySelector('#heWaRestart').addEventListener('click',restartSession); panel.querySelector('#heWaQr').addEventListener('click',showQr); panel.querySelector('#heWaHistory').addEventListener('click',showHistory); panel.querySelector('#heWaResetTemplates').addEventListener('click',resetAllTemplates); }
     function mountAfterAuthorization() {
         const guard = global.HomeEasyPageGuard;
         if (mounted || !guard || guard.getStatus() !== 'authorized') return;
