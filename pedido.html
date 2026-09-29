@@ -583,13 +583,10 @@
                         }
                     }
                     setClientesCache(clientesObj);
-
                     // Reaplica el cliente con la base recién cargada también al editar o convertir.
-
                     // Evita que una caché previa/incompleta deje email o dirección en blanco.
-
                     if (document.getElementById('cedula').value.trim()) buscarCliente();
-}
+                }
             }).catch(err => console.error("Error parchando caché:", err));
 
         if (numeroCot && !isEditMode) {
