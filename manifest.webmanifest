@@ -1,0 +1,21 @@
+{
+  "name": "HomeEasy · Sistema Hommy",
+  "short_name": "Hommy",
+  "description": "Gestión comercial y operativa de HomeEasy",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait-primary",
+  "background_color": "#a6455a",
+  "theme_color": "#a6455a",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
