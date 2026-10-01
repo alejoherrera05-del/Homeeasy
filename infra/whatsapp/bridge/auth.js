@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const BRIDGE_TOKEN = String(process.env.BRIDGE_TOKEN || '');
 const BACKEND_URL = String(process.env.HOMEEASY_BACKEND_URL || 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec').trim();
 const ALLOWED_ORIGINS = new Set(
-  String(process.env.HOMEEASY_ALLOWED_ORIGINS || 'https://alejoherrera05-del.github.io,https://homeeasy.com.co,https://www.homeeasy.com.co')
+  String(process.env.HOMEEASY_ALLOWED_ORIGINS || 'https://alejoherrera05-del.github.io,https://homeeasy.com.co,https://www.homeeasy.com.co,https://hommy.homeeasy.com.co')
     .split(',')
     .map(value => value.trim())
     .filter(Boolean)

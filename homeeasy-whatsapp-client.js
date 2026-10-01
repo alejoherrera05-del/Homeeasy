@@ -148,6 +148,20 @@
         return payload;
     }
 
+    async function diagnose() {
+        const result = { origin: global.location.origin, checkedAt: new Date().toISOString(), online: global.navigator?.onLine !== false, server: 'unreachable' };
+        if (!result.online) return { ...result, code: 'OFFLINE' };
+        const controller = new AbortController();
+        const timer = global.setTimeout(() => controller.abort(), 8000);
+        try {
+            // No user/session data: this checks connectivity independently of authentication.
+            const response = await global.fetch(BASE_URL + '/health', { mode: 'cors', cache: 'no-store', credentials: 'omit', signal: controller.signal });
+            const body = await response.json();
+            return { ...result, server: response.ok && body.ok === true ? 'reachable' : 'error', http: response.status, version: body.version || '', code: response.ok ? 'SERVER_REACHABLE' : 'SERVER_ERROR' };
+        } catch (_) { return { ...result, code: controller.signal.aborted ? 'TIMEOUT' : 'NETWORK_OR_ORIGIN' }; }
+        finally { global.clearTimeout(timer); }
+    }
+
     function activity(limit) {
         const size = Math.max(1, Math.min(150, Number(limit || 60)));
         return request('/api/whatsapp/activity?limit=' + encodeURIComponent(size));
@@ -537,6 +551,7 @@
         sendDocumentUrl,
         sendFollowup,
         maintenance: () => request('/api/whatsapp/maintenance'),
+        diagnose,
         maintain: body => request('/api/whatsapp/maintenance', { method: 'POST', body }),
         connectedPhone,
         recoverWhatsApp

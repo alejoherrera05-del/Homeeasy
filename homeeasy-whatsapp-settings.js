@@ -104,6 +104,32 @@
     let maintenancePending = false;
     let maintenanceJob = null;
     let maintenanceQueuedAt = 0;
+    let retryTimer = null;
+    let readRetries = 0;
+    function scheduleMaintenance(delay = 60000) {
+        if (maintenanceTimer) global.clearTimeout(maintenanceTimer);
+        if (!document.hidden && document.getElementById(PANEL_ID)?.classList.contains('active')) maintenanceTimer = global.setTimeout(loadMaintenance, delay);
+    }
+    async function showDiagnosis(error, payload) {
+        const node = document.getElementById('heWaDiagnosisMessage');
+        const details = document.getElementById('heWaDiagnosisDetails');
+        if (!node || !details) return;
+        if (!error) {
+            const status = payload?.whatsapp?.status || 'UNKNOWN';
+            node.textContent = status === 'WORKING' ? 'La app está autorizada, el servidor responde y WhatsApp está conectado.' : 'El servidor responde. Estado de WhatsApp: ' + status + '. Usa Reconectar o Recuperar WhatsApp si necesita vinculación.';
+            details.textContent = 'App: ' + global.location.origin + ' · Comprobado: ' + nowLabel(true);
+            return;
+        }
+        node.textContent = 'Comprobando la conexión del navegador con el servidor…';
+        let d;
+        try { d = await global.HomeEasyWhatsApp?.diagnose?.(); } catch (_) {}
+        if (d?.code === 'OFFLINE') node.textContent = 'Este dispositivo no tiene conexión. Se volverá a comprobar al recuperar internet.';
+        else if (error.status === 401) node.textContent = 'El servidor responde, pero no pudo validar tu sesión de HomeEasy. Vuelve a iniciar sesión si el error persiste.';
+        else if (error.status === 403) node.textContent = 'El servidor rechazó el acceso. Revisa los permisos de tu usuario y el dominio autorizado de la app.';
+        else if (d?.server === 'reachable') node.textContent = 'El servidor responde. La consulta de WhatsApp falló: ' + error.message;
+        else node.textContent = 'El navegador no pudo acceder al servidor de WhatsApp. Puede ser un corte de red, un dominio bloqueado o el servidor no disponible. Tus documentos guardados se conservan.';
+        details.textContent = 'App: ' + global.location.origin + ' · Diagnóstico: ' + (d?.code || error.code || 'UNAVAILABLE') + ' · ' + nowLabel(true);
+    }
     const maintenanceIds = ['heWaMaintenanceCheck', 'heWaMaintenanceUpdate', 'heWaMaintenanceAuto'];
     function renderMaintenance(data) {
         maintenanceState = data;
@@ -129,13 +155,17 @@
         if (!global.HomeEasyWhatsApp?.maintenance || document.hidden) return;
         try { renderMaintenance(await global.HomeEasyWhatsApp.maintenance()); }
         catch (error) {
-            if (error.status === 403 || error.statusCode === 403) { document.getElementById('heWaMaintenance').hidden = true; return; }
+            document.getElementById('heWaMaintenance').hidden = false;
             const node = document.getElementById('heWaMaintenanceMessage');
-            if (node) node.textContent = error.message || 'No se pudo comprobar el mantenimiento.';
+            if (node) node.textContent = error.status === 403 ? 'El mantenimiento requiere una cuenta de propietario o administrador.' : 'No se pudo consultar el mantenimiento. El diagnóstico de conexión está arriba.';
+            document.getElementById('heWaMaintenanceSchedule').textContent = 'Modo automático sin confirmar en este dispositivo.';
+            maintenanceIds.forEach(id => { document.getElementById(id).disabled = id !== 'heWaMaintenanceCheck'; });
+            scheduleMaintenance(30000);
         }
     }
     async function maintain(action) {
         if (maintenancePending) return;
+        if (action === 'check' && !maintenanceState?.available) { await loadCenter(false); return; }
         if (action === 'update' && global.Swal) {
             const result = await Swal.fire({title:'Actualizar WhatsApp ahora',text:'Los envíos se pausarán durante unos minutos. HomeEasy guardará un respaldo y verificará la reconexión.',showCancelButton:true,confirmButtonText:'Actualizar',cancelButtonText:'Cancelar',confirmButtonColor:'#a6455a'});
             if (!result.isConfirmed) return;
@@ -160,9 +190,10 @@
                     <div class="he-wa-details"><div class="he-wa-detail"><span class="he-wa-label">Cuenta</span><span class="he-wa-value" id="heWaAccount">—</span></div><div class="he-wa-detail"><span class="he-wa-label">Número</span><span class="he-wa-value" id="heWaPhone">—</span></div><div class="he-wa-detail"><span class="he-wa-label">Bridge</span><span class="he-wa-value" id="heWaBridge">—</span></div><div class="he-wa-detail"><span class="he-wa-label">Última comprobación</span><span class="he-wa-value" id="heWaChecked">—</span></div></div>
                     <div class="he-wa-actions"><button type="button" class="he-wa-button primary" id="heWaRefresh"><i class="fa-solid fa-arrows-rotate"></i>Probar conexión</button><button type="button" class="he-wa-button whatsapp" id="heWaTestMessage" hidden><i class="fa-regular fa-paper-plane"></i>Mensaje de prueba</button><button type="button" class="he-wa-button whatsapp" id="heWaTestPdf" hidden><i class="fa-regular fa-file-pdf"></i>PDF de prueba</button><button type="button" class="he-wa-button" id="heWaRestart" hidden><i class="fa-solid fa-rotate"></i>Reconectar</button><button type="button" class="he-wa-button" id="heWaQr" hidden><i class="fa-solid fa-qrcode"></i>Mostrar QR</button></div>
                 </section>
-                <section class="he-wa-card he-wa-security" id="heWaMaintenance" hidden>
+                <section class="he-wa-card he-wa-security" id="heWaDiagnosis"><h3>Diagnóstico de conexión</h3><p id="heWaDiagnosisMessage" role="status" aria-live="polite">Abre Integraciones para comprobar la conexión.</p><p id="heWaDiagnosisDetails" style="margin-top:8px;overflow-wrap:anywhere"></p></section>
+                <section class="he-wa-card he-wa-security" id="heWaMaintenance">
                     <h3>Mantenimiento automático</h3>
-                    <p id="heWaMaintenanceSchedule"></p>
+                    <p id="heWaMaintenanceSchedule">Consultando el mantenimiento automático…</p>
                     <p id="heWaMaintenanceVersions" style="margin-top:10px"></p>
                     <p id="heWaMaintenanceMessage" role="status" aria-live="polite" style="margin-top:10px">Comprobando…</p>
                     <div class="he-wa-actions"><button type="button" class="he-wa-button" id="heWaMaintenanceCheck">Revisar ahora</button><button type="button" class="he-wa-button primary" id="heWaMaintenanceUpdate">Actualizar ahora</button><button type="button" class="he-wa-button" id="heWaMaintenanceAuto">Actualizaciones nocturnas</button></div>
@@ -227,13 +258,24 @@
 
     async function loadCenter(showFeedback) {
         if (loading || !global.HomeEasyWhatsApp) return; setLoading(true); let statusOk = false;
-        try { const payload = await global.HomeEasyWhatsApp.status(); applyStatus(payload); statusOk = true; } catch (error) { showStatusError(error); }
+        if (showFeedback) readRetries = 0;
+        if (retryTimer) global.clearTimeout(retryTimer);
+        const maintenanceRead = loadMaintenance();
+        try { const payload = await global.HomeEasyWhatsApp.status(); applyStatus(payload); statusOk = true; readRetries = 0; await showDiagnosis(null, payload); }
+        catch (error) {
+            showStatusError(error);
+            await showDiagnosis(error);
+            if ((!error.status || error.status >= 500) && readRetries < 2 && !document.hidden) {
+                readRetries += 1;
+                retryTimer = global.setTimeout(() => loadCenter(false), readRetries * 5000);
+            }
+        }
         if (statusOk) {
             const [activityResult,templateResult] = await Promise.allSettled([global.HomeEasyWhatsApp.activity ? global.HomeEasyWhatsApp.activity(80) : Promise.reject(new Error('Actividad no disponible')),global.HomeEasyWhatsApp.getTemplates ? global.HomeEasyWhatsApp.getTemplates() : Promise.reject(new Error('Plantillas no disponibles'))]);
             if (activityResult.status === 'fulfilled') state.activity = Array.isArray(activityResult.value.items) ? activityResult.value.items : []; else state.activity = []; if (templateResult.status === 'fulfilled') state.templates = templateResult.value; renderActivity(); renderTemplates();
             const bridgeVersion = clean(state.status && state.status.bridge && state.status.bridge.version); if (bridgeVersion && bridgeVersion !== REQUIRED_BRIDGE && global.Swal) Swal.fire({toast:true,position:'top-end',icon:'info',title:'Actualización de WhatsApp pendiente',text:'El servidor debe quedar en v' + REQUIRED_BRIDGE + ' para usar actividad y plantillas.',showConfirmButton:false,timer:3200}); else if (showFeedback && global.Swal) Swal.fire({toast:true,position:'top-end',icon:'success',title:'WhatsApp comprobado',showConfirmButton:false,timer:1600});
         }
-        await loadMaintenance();
+        await maintenanceRead;
         loadedOnce = true; setLoading(false);
     }
 
@@ -272,6 +314,7 @@
     global.addEventListener('homeeasy:page-auth-ready', mountAfterAuthorization);
     document.addEventListener('DOMContentLoaded', mountAfterAuthorization, { once: true });
     global.addEventListener('pageshow', mountAfterAuthorization);
+    global.addEventListener('online', () => { readRetries = 0; if (document.getElementById(PANEL_ID)?.classList.contains('active')) loadCenter(false); });
     mountAfterAuthorization();
     global.HomeEasyWhatsAppSettings = Object.freeze({ VERSION });
 })(window);

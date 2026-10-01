@@ -7,6 +7,8 @@ on:
       - 'homeeasy-whatsapp-settings.js'
       - 'homeeasy-whatsapp-client.js'
       - 'tests/whatsapp-maintenance.cjs'
+      - 'tests/whatsapp-diagnostics.cjs'
+      - 'CNAME'
       - '.github/workflows/whatsapp-maintenance.yml'
   workflow_dispatch:
 permissions:
@@ -24,6 +26,6 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-save --no-package-lock jsdom@26
-      - run: node --test tests/whatsapp-maintenance.cjs tests/whatsapp-reliability.cjs
+      - run: node --test tests/whatsapp-maintenance.cjs tests/whatsapp-reliability.cjs tests/whatsapp-diagnostics.cjs
       - run: python infra/whatsapp/maintenance/test_worker.py
       - run: node --check infra/whatsapp/bridge/server.js

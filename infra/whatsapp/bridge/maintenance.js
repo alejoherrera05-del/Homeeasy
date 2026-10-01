@@ -11,7 +11,7 @@ function status() {
   catch (_) { return { available: false, message: 'Mantenimiento todavía no disponible.' }; }
 }
 function authorize(actor) {
-  if (!actor || (!actor.internal && actor.profile?.rol !== 'ADMINISTRADOR')) {
+  if (!actor || (!actor.internal && !['ADMINISTRADOR', 'PROPIETARIO'].includes(actor.profile?.rol))) {
     throw error('Solo un administrador puede gestionar el mantenimiento.', 403);
   }
 }

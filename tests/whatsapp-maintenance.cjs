@@ -8,6 +8,7 @@ const state=v=>fs.writeFileSync(path.join(temp,'status.json'),JSON.stringify({av
 test('maintenance rejects non-admin even with wildcard permissions',()=>{
  assert.throws(()=>maint.authorize({profile:{rol:'COMERCIAL'},permissions:['*']}),e=>e.statusCode===403);
  assert.doesNotThrow(()=>maint.authorize(admin));
+ assert.doesNotThrow(()=>maint.authorize({profile:{rol:'PROPIETARIO'}}));
 });
 test('only fixed actions and one pending command accepted',()=>{
  state({});

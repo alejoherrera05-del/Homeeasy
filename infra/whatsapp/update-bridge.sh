@@ -5,7 +5,7 @@ REPO_URL="https://github.com/alejoherrera05-del/Homeeasy.git"
 INSTALL_DIR="/opt/homeeasy-whatsapp"
 TMP_DIR="$(mktemp -d)"
 HEALTH_FILE="/tmp/homeeasy-bridge-health.json"
-EXPECTED_VERSION="0.7.0"
+EXPECTED_VERSION="0.8.0"
 
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
@@ -27,6 +27,7 @@ cp "$TMP_DIR/repo/infra/whatsapp/bridge/server.js" "$INSTALL_DIR/bridge/server.j
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/auth.js" "$INSTALL_DIR/bridge/auth.js"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/operations.js" "$INSTALL_DIR/bridge/operations.js"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/conversation.js" "$INSTALL_DIR/bridge/conversation.js"
+cp "$TMP_DIR/repo/infra/whatsapp/bridge/maintenance.js" "$INSTALL_DIR/bridge/maintenance.js"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/Dockerfile" "$INSTALL_DIR/bridge/Dockerfile"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/package.json" "$INSTALL_DIR/bridge/package.json"
 

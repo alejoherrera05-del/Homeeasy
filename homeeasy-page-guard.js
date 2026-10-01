@@ -100,7 +100,7 @@
         if (!WHATSAPP_DOCUMENT_PAGES.has(currentPage)) return Promise.resolve();
         if (whatsappLoadPromise) return whatsappLoadPromise;
         whatsappLoadPromise = loadScriptOnce(
-            'homeeasy-whatsapp-client.js?v=20260929',
+            'homeeasy-whatsapp-client.js?v=20261001',
             'homeeasyWhatsappClientScript',
             () => Boolean(global.HomeEasyWhatsApp)
         ).then(() => loadScriptOnce(
