@@ -418,3 +418,11 @@ dialog textarea{margin:14px 0}
   .sale-value-row{align-items:flex-end}
   .round-sale{min-height:34px;padding:0 9px}
 }
+
+.formal-quote{
+  width:100%;height:46px;margin-top:8px;border:1px solid rgba(178,86,108,.22);border-radius:14px;
+  background:#fff;color:var(--brand-dark);font-weight:690;
+}
+.formal-quote i{margin-right:7px}
+.formal-quote:active{transform:scale(.985)}
+.formal-quote:hover{background:var(--brand-soft)}
