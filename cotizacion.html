@@ -455,6 +455,8 @@
     let isEditMode = false;
     let editNum = null;
     let returnCedula = null; 
+    const COST_CALCULATOR_TRANSFER_KEY = 'homeeasy.cost-to-formal.v1';
+    let importedCalculatorTransfer = false;
 
     let homeEasyPdfLibrariesPromise = null;
     function cargarScriptPdf(src, ready) {
@@ -560,12 +562,57 @@
     }
 
 
+    function cargarItemsDesdeCotizador(items) {
+        if (!Array.isArray(items) || !items.length) return false;
+        const tbody = document.getElementById('tabla-body');
+        tbody.innerHTML = '';
+
+        items.forEach(item => {
+            agregarFila();
+            const tr = tbody.lastElementChild;
+            tr.querySelector('.row-desc').value = String(item.descripcion || '');
+            tr.querySelector('.cant').value = Math.max(1, Math.round(Number(item.cantidad) || 1));
+            const precio = Math.max(0, Math.round(Number(item.precio) || 0));
+            tr.querySelector('.precio').value = precio
+                ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(precio)
+                : '';
+        });
+
+        document.getElementById('descuento_input').value = '';
+        calcular();
+        return true;
+    }
+
+    function cargarTransferenciaCotizador() {
+        try {
+            const raw = sessionStorage.getItem(COST_CALCULATOR_TRANSFER_KEY);
+            if (!raw) return false;
+            const transfer = JSON.parse(raw);
+            const age = Date.now() - Number(transfer && transfer.createdAt || 0);
+            if (!transfer || transfer.version !== 1 || age < 0 || age > 30 * 60 * 1000) return false;
+            if (!cargarItemsDesdeCotizador(transfer.items)) return false;
+
+            const totalCargado = Number(document.getElementById('total_val').innerText.replace(/\D/g, '')) || 0;
+            if (totalCargado !== Number(transfer.totalPesos || 0)) {
+                throw new Error('El total transferido no coincide con las líneas cargadas.');
+            }
+
+            importedCalculatorTransfer = true;
+            document.getElementById('btn-back').href = 'cotizador-persianas.html';
+            return true;
+        } catch (error) {
+            console.error('No se pudo cargar la cotización desde el calculador:', error);
+            return false;
+        }
+    }
+
     window.onload = () => {
         precalentarLibreriasPdf();
         window.__homeeasyDocsReady = (window.HomeEasyDocs ? window.HomeEasyDocs.init({ url: URL_G, documentType: 'cotizacion' }) : Promise.resolve());
         const params = new URLSearchParams(window.location.search);
         editNum = params.get("edit");
         returnCedula = params.get("return_cedula"); 
+        const fromCalculator = params.get("from") === "cotizador";
 
         if (returnCedula) {
             document.getElementById("btn-back").href = `clientes.html?search=${returnCedula}`;
@@ -669,6 +716,7 @@
 
         } else {
             document.getElementById('fecha_display').innerText = new Date().toLocaleDateString('es-CO');
+            if (fromCalculator) cargarTransferenciaCotizador();
             fetch(`${URL_G}?nextCotizacion=1`)
                 .then(r => r.json())
                 .then(d => { if(d.status === "ok") document.getElementById("n_cot_display").innerText = d.nextCotizacion; });
@@ -972,6 +1020,9 @@
             const result = await response.json();
             
             if (result.status === "success") {
+                if (importedCalculatorTransfer) {
+                    try { sessionStorage.removeItem(COST_CALCULATOR_TRANSFER_KEY); } catch (e) {}
+                }
                 setStep(3, 'check'); 
                 setStep(4, 'active');
                 
