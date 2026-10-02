@@ -14,7 +14,7 @@ const clampGain=value=>{
   if(!Number.isFinite(n))return 90;
   return Math.max(10,Math.min(100,Math.round(n/10)*10));
 };
-const fresh=()=>({version:2,project:'',items:[],transport:'0',installationTotal:'0',gain:'90',promotions:true});
+const fresh=()=>({version:2,project:'',items:[],transport:'0',installationTotal:'0',gain:'90',roundSale:false,promotions:true});
 
 let state=fresh(),catalog=null,lastEngineQuote=null,lastEngineSignature='',lastQuote=null,key='',engineCacheKey='',ready=false,loading=false;
 let saveTimer,toastTimer,undoItem,quoteTimer,requestSeq=0;
@@ -369,8 +369,11 @@ function commercialQuote(q){
   const transport=Number(rawPesos(state.transport))*100;
   const gain=clampGain(state.gain);
   const cost=Number(q.products||0)+installation+transport;
-  const profit=Math.round(cost*gain/100);
-  return {...q,installation,transport,cost,profit,sale:cost+profit,gain};
+  const baseProfit=Math.round(cost*gain/100);
+  const baseSale=cost+baseProfit;
+  const sale=state.roundSale?Math.ceil(baseSale/100000)*100000:baseSale;
+  const profit=sale-cost;
+  return {...q,installation,transport,cost,profit,sale,baseSale,gain,rounded:Boolean(state.roundSale)};
 }
 
 function renderCommercial(message=''){
@@ -398,6 +401,14 @@ function renderCommercial(message=''){
   $('sum-gain').textContent=ok?cop(q.profit):'—';
   $('sum-sale').textContent=ok?cop(q.sale):'—';
   $('mobile-sale').textContent=ok?cop(q.sale):'Completar';
+
+  const roundButton=$('round-sale');
+  if(roundButton){
+    roundButton.disabled=!ok;
+    roundButton.classList.toggle('is-active',Boolean(state.roundSale));
+    roundButton.setAttribute('aria-pressed',state.roundSale?'true':'false');
+    roundButton.title=state.roundSale?'Quitar redondeo':'Redondear al siguiente $1.000';
+  }
 
   const gain=clampGain(state.gain);
   $('gain-label').textContent='Ganancia +'+gain+'%';
@@ -643,6 +654,11 @@ $('gain').addEventListener('input',e=>{
 $('gain').addEventListener('change',e=>setGain(e.target.value));
 $('gain-minus').onclick=()=>setGain(clampGain(state.gain)-10);
 $('gain-plus').onclick=()=>setGain(clampGain(state.gain)+10);
+$('round-sale').onclick=()=>{
+  state.roundSale=!state.roundSale;
+  save();
+  renderCommercial();
+};
 
 $('new-quote').onclick=()=>$('new-dialog').showModal();
 $('cancel-new').onclick=()=>$('new-dialog').close();
