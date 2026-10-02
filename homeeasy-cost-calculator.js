@@ -16,7 +16,7 @@ const clampGain=value=>{
 };
 const fresh=()=>({version:2,project:'',items:[],transport:'0',installationTotal:'0',gain:'90',promotions:true});
 
-let state=fresh(),catalog=null,lastEngineQuote=null,lastQuote=null,key='',ready=false,loading=false;
+let state=fresh(),catalog=null,lastEngineQuote=null,lastEngineSignature='',lastQuote=null,key='',engineCacheKey='',ready=false,loading=false;
 let saveTimer,toastTimer,undoItem,quoteTimer,requestSeq=0;
 
 function toast(message){
@@ -25,17 +25,80 @@ function toast(message){
   toastTimer=setTimeout(()=>$('toast').textContent='',3500);
 }
 
+function setSaveLabel(text){
+  const box=$('save-state');
+  if(!box)return;
+  const label=box.querySelector('span');
+  if(label)label.textContent=text;
+  else box.textContent=text;
+}
+
+function saveNow(){
+  if(!key)return;
+  clearTimeout(saveTimer);
+  try{
+    localStorage.setItem(key,JSON.stringify(state));
+    setSaveLabel('Guardado');
+  }catch(e){
+    setSaveLabel('Sin guardar');
+  }
+}
+
 function save(){
   if(!key)return;
   clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>{
-    try{
-      localStorage.setItem(key,JSON.stringify(state));
-      $('save-state').textContent='Borrador guardado';
-    }catch(e){
-      $('save-state').textContent='No se pudo guardar';
-    }
-  },160);
+  saveTimer=setTimeout(saveNow,160);
+}
+
+function engineSignature(){
+  return JSON.stringify({
+    promotions:state.promotions!==false,
+    items:(state.items||[]).map(item=>({
+      family:item.family||'',
+      product:item.product||'',
+      width:String(item.width||''),
+      height:String(item.height||''),
+      quantity:String(item.quantity||'1'),
+      mode:item.mode||'auto',
+      manualCost:rawPesos(item.manualCost||'0'),
+      extras:rawPesos(item.extras||'0')
+    }))
+  });
+}
+
+function saveEngineCache(){
+  if(!engineCacheKey||!catalog?.version||!lastEngineQuote?.ok||lastEngineSignature!==engineSignature())return;
+  try{
+    sessionStorage.setItem(engineCacheKey,JSON.stringify({
+      version:catalog.version,
+      signature:lastEngineSignature,
+      quote:lastEngineQuote,
+      savedAt:Date.now()
+    }));
+  }catch(e){}
+}
+
+function restoreEngineCache(){
+  if(!engineCacheKey||!catalog?.version)return false;
+  try{
+    const cached=JSON.parse(sessionStorage.getItem(engineCacheKey));
+    if(!cached||cached.version!==catalog.version||cached.signature!==engineSignature()||!cached.quote?.ok)return false;
+    if(Date.now()-Number(cached.savedAt||0)>12*60*60*1000)return false;
+    lastEngineQuote=cached.quote;
+    lastEngineSignature=cached.signature;
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function clearEngineCache(){
+  lastEngineQuote=null;
+  lastEngineSignature='';
+  lastQuote=null;
+  if(engineCacheKey){
+    try{sessionStorage.removeItem(engineCacheKey);}catch(e){}
+  }
 }
 
 function loadDraft(){
@@ -147,10 +210,11 @@ function renderItem(item,index){
   '</article>';
 }
 
-function render(){
+function render(options={}){
   $('items').innerHTML=state.items.map(renderItem).join('');
   $('item-count').textContent='('+state.items.length+')';
-  scheduleQuote(0);
+  if(options.recalculate===false)renderCommercial();
+  else scheduleQuote(0);
   save();
 }
 
@@ -160,10 +224,24 @@ function setCalculating(){
 }
 
 async function post(tipo,payload={}){
-  const response=await fetch(API_URL,{method:'POST',cache:'no-store',body:JSON.stringify({tipo,...payload})});
-  const data=await response.json().catch(()=>({status:'error',msg:'HomeEasy respondió con datos no válidos.'}));
-  if(!response.ok)throw Error(data.msg||data.error||('HTTP '+response.status));
-  return data;
+  const controller=typeof AbortController!=='undefined'?new AbortController():null;
+  const timer=controller?setTimeout(()=>controller.abort(),15000):null;
+  try{
+    const response=await fetch(API_URL,{
+      method:'POST',
+      cache:'no-store',
+      body:JSON.stringify({tipo,...payload}),
+      ...(controller?{signal:controller.signal}:{})
+    });
+    const data=await response.json().catch(()=>({status:'error',msg:'HomeEasy respondió con datos no válidos.'}));
+    if(!response.ok)throw Error(data.msg||data.error||('HTTP '+response.status));
+    return data;
+  }catch(error){
+    if(error&&error.name==='AbortError')throw Error('La conexión tardó demasiado.');
+    throw error;
+  }finally{
+    if(timer)clearTimeout(timer);
+  }
 }
 
 function commercialQuote(q){
@@ -177,7 +255,8 @@ function commercialQuote(q){
 }
 
 function renderCommercial(message=''){
-  const q=commercialQuote(lastEngineQuote);
+  const quoteMatches=lastEngineSignature&&lastEngineSignature===engineSignature();
+  const q=commercialQuote(quoteMatches?lastEngineQuote:null);
   lastQuote=q||null;
 
   document.querySelectorAll('.item-card').forEach((el,index)=>{
@@ -208,8 +287,10 @@ function renderCommercial(message=''){
   $('copy-sale').disabled=!ok;
 }
 
-function applyQuote(rawQuote,message=''){
+function applyQuote(rawQuote,message='',signature=engineSignature()){
   lastEngineQuote=rawQuote||null;
+  lastEngineSignature=rawQuote?signature:'';
+  if(lastEngineQuote?.ok)saveEngineCache();
   renderCommercial(message);
 }
 
@@ -217,12 +298,17 @@ function scheduleQuote(delay=180){
   save();
   clearTimeout(quoteTimer);
   if(!catalog)return;
+  const signature=engineSignature();
+  if(lastEngineQuote?.ok&&lastEngineSignature===signature){
+    renderCommercial();
+    return;
+  }
   const seq=++requestSeq;
   setCalculating();
-  quoteTimer=setTimeout(()=>runQuote(seq),delay);
+  quoteTimer=setTimeout(()=>runQuote(seq,signature),delay);
 }
 
-async function runQuote(seq){
+async function runQuote(seq,signature){
   try{
     const data=await post('COSTOS_CALCULAR_COTIZACION',{
       items:state.items,
@@ -232,11 +318,15 @@ async function runQuote(seq){
       installMode:'common',
       promotions:state.promotions
     });
-    if(seq!==requestSeq)return;
-    applyQuote(data.quote,data.status==='ok'?'':data.msg);
+    if(seq!==requestSeq||signature!==engineSignature())return;
+    applyQuote(data.quote,data.status==='ok'?'':data.msg,signature);
   }catch(e){
     if(seq!==requestSeq)return;
-    applyQuote(null,'No se pudo calcular. Revisa tu conexión e intenta nuevamente.');
+    if(lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
+      renderCommercial('No se pudo actualizar ahora. Conservamos el último cálculo válido.');
+    }else{
+      applyQuote(null,'No se pudo calcular ahora. Revisa tu conexión e intenta nuevamente.','');
+    }
   }
 }
 
@@ -389,6 +479,7 @@ $('new-quote').onclick=()=>$('new-dialog').showModal();
 $('cancel-new').onclick=()=>$('new-dialog').close();
 $('confirm-new').onclick=()=>{
   state=fresh();
+  clearEngineCache();
   if(catalog)state.items=[newItem()];
   fillGlobals();
   render();
@@ -454,7 +545,8 @@ async function connect(){
 
     $('add-item').disabled=false;
     fillGlobals();
-    render();
+    const restored=restoreEngineCache();
+    render({recalculate:!restored});
   }catch(e){
     $('connection').hidden=false;
     $('connection').firstChild.textContent='No se pudieron cargar los precios. Tu borrador sigue guardado. ';
@@ -472,20 +564,57 @@ function start(){
     return;
   }
   key='homeeasy.cost-draft.v2:'+profile.uid;
+  engineCacheKey='homeeasy.cost-engine.v1:'+profile.uid;
   ready=true;
   loadDraft();
   fillGlobals();
   connect();
 }
 
+function resumeCalculator(){
+  clearTimeout(quoteTimer);
+  requestSeq++;
+  saveNow();
+
+  if(!catalog){
+    connect();
+    return;
+  }
+
+  if(lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
+    renderCommercial();
+    return;
+  }
+
+  if(restoreEngineCache()){
+    renderCommercial();
+    return;
+  }
+
+  scheduleQuote(0);
+}
+
 $('retry').onclick=connect;
 window.addEventListener('homeeasy:page-auth-ready',start);
-window.addEventListener('online',()=>{if(!catalog)connect();});
-window.addEventListener('pagehide',()=>{
-  if(!key)return;
-  clearTimeout(saveTimer);
-  try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+window.addEventListener('online',()=>{
+  if(!catalog)connect();
+  else if(!lastEngineQuote?.ok&&document.visibilityState==='visible')scheduleQuote(0);
 });
-window.addEventListener('pageshow',()=>{if(catalog)scheduleQuote(0);});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    saveNow();
+    saveEngineCache();
+    return;
+  }
+  resumeCalculator();
+});
+window.addEventListener('pagehide',()=>{
+  saveNow();
+  saveEngineCache();
+});
+window.addEventListener('pageshow',event=>{
+  if(event.persisted)resumeCalculator();
+  else if(catalog&&lastEngineQuote?.ok&&lastEngineSignature===engineSignature())renderCommercial();
+});
 start();
 })();
