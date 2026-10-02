@@ -356,8 +356,11 @@ function calcularQuoteCostos10B_(state, catalog, today) {
 
 function asegurarHojaCostos10B_(ss, name, headers, minRows, minCols) {
   let sh = ss.getSheetByName(name);
-  if (!sh) sh = ss.insertSheet(name, ss.getSheets().length, { rows: minRows || 100, columns: Math.max(minCols || headers.length, headers.length) });
-  if (sh.getMaxColumns() < headers.length) sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+  if (!sh) sh = ss.insertSheet(name);
+  const targetRows = Math.max(Number(minRows || 100), 1);
+  const targetCols = Math.max(Number(minCols || headers.length), headers.length);
+  if (sh.getMaxRows() < targetRows) sh.insertRowsAfter(sh.getMaxRows(), targetRows - sh.getMaxRows());
+  if (sh.getMaxColumns() < targetCols) sh.insertColumnsAfter(sh.getMaxColumns(), targetCols - sh.getMaxColumns());
   const current = sh.getRange(1, 1, 1, headers.length).getValues()[0];
   const empty = current.every(function(v) { return String(v || "").trim() === ""; });
   if (empty) {
