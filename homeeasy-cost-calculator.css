@@ -239,10 +239,22 @@ select{padding-right:38px}
 }
 .profit-row{position:relative;z-index:1;padding:0 0 9px;border-bottom:1px solid rgba(178,86,108,.12);font-size:11px}
 .price-label{position:relative;z-index:1;display:block;margin-top:11px;font-size:11px;font-weight:680}
-.price-card>output{
-  position:relative;z-index:1;display:block;margin-top:3px;font-size:30px;line-height:1.05;font-weight:730;
+.sale-value-row{
+  position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:3px
+}
+.sale-value-row>output{
+  min-width:0;font-size:30px;line-height:1.05;font-weight:730;
   letter-spacing:-1.1px;font-variant-numeric:tabular-nums
 }
+.round-sale{
+  flex:0 0 auto;min-height:36px;padding:0 10px;border:1px solid rgba(178,86,108,.2);border-radius:11px;
+  background:rgba(255,255,255,.72);color:var(--brand-dark);display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:720;transition:transform .15s ease,background .15s ease,border-color .15s ease
+}
+.round-sale i{font-size:10px}
+.round-sale:active{transform:scale(.96)}
+.round-sale.is-active{background:var(--brand);border-color:var(--brand);color:#fff}
+.round-sale:disabled{opacity:.45}
 .result-message{min-height:0;margin-top:8px;color:var(--muted);font-size:11px}
 .result-message:empty{display:none}
 .calculating{opacity:.75}
@@ -400,4 +412,9 @@ dialog textarea{margin:14px 0}
   .room-head{align-items:flex-start}
   .room-head h3{font-size:17px}
   .room-count{margin-top:1px}
+}
+
+@media(max-width:440px){
+  .sale-value-row{align-items:flex-end}
+  .round-sale{min-height:34px;padding:0 9px}
 }
