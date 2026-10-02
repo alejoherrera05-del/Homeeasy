@@ -304,6 +304,12 @@
         .btn-success-home:active { transform: scale(0.95); }
 
         .row-desc, #notas { height: auto !important; min-height: 35px; }
+        #area-pdf.quote-total-only thead th:nth-child(3),
+        #area-pdf.quote-total-only thead th:nth-child(4),
+        #area-pdf.quote-total-only #tabla-body td:nth-child(3),
+        #area-pdf.quote-total-only #tabla-body td:nth-child(4) { display:none !important; }
+        #area-pdf.quote-total-only #subtotal_row,
+        #area-pdf.quote-total-only #desc_row { display:none !important; }
     </style>
     
     <script src="homeeasy-docs.js?v=4.3"></script>
@@ -421,7 +427,7 @@
             
             <div class="col-md-6 col-12">
                 <div class="finance-box">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2" id="subtotal_row">
                         <span style="font-size: 0.8rem; font-weight: 800; color: #888;">SUBTOTAL:</span>
                         <span id="subtotal_val" style="font-weight: 700; color: #555;">$ 0</span>
                     </div>
@@ -457,6 +463,7 @@
     let returnCedula = null; 
     const COST_CALCULATOR_TRANSFER_KEY = 'homeeasy.cost-to-formal.v1';
     let importedCalculatorTransfer = false;
+    let quotePresentationMode = 'individual';
 
     let homeEasyPdfLibrariesPromise = null;
     function cargarScriptPdf(src, ready) {
@@ -562,6 +569,12 @@
     }
 
 
+    function aplicarModoPresentacion(mode) {
+        quotePresentationMode = mode === 'total' ? 'total' : 'individual';
+        const area = document.getElementById('area-pdf');
+        if (area) area.classList.toggle('quote-total-only', quotePresentationMode === 'total');
+    }
+
     function cargarItemsDesdeCotizador(items) {
         if (!Array.isArray(items) || !items.length) return false;
         const tbody = document.getElementById('tabla-body');
@@ -591,6 +604,12 @@
             const age = Date.now() - Number(transfer && transfer.createdAt || 0);
             if (!transfer || transfer.version !== 1 || age < 0 || age > 30 * 60 * 1000) return false;
             if (!cargarItemsDesdeCotizador(transfer.items)) return false;
+            aplicarModoPresentacion(transfer.displayMode);
+            if (transfer.observations) {
+                const notas = document.getElementById('notas');
+                notas.value = String(transfer.observations);
+                autoResize(notas);
+            }
 
             const totalCargado = Number(document.getElementById('total_val').innerText.replace(/\D/g, '')) || 0;
             if (totalCargado !== Number(transfer.totalPesos || 0)) {
@@ -675,6 +694,11 @@
                         document.getElementById('notas').value = ""; 
                     }
                     
+                    if (items.some(item => item && item.presentacion === 'total')) {
+                        aplicarModoPresentacion('total');
+                    } else {
+                        aplicarModoPresentacion('individual');
+                    }
                     let subtotalCarga = 0;
 
                     if(items.length > 0) {
@@ -979,7 +1003,8 @@
                             descripcion: descripcion, 
                             cantidad: cantidad, 
                             precio: precio, 
-                            subtotal: cantidad * precio 
+                            subtotal: cantidad * precio,
+                            presentacion: quotePresentationMode 
                         });
                     }
                 }
