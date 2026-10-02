@@ -407,7 +407,9 @@ function renderCommercial(message=''){
     roundButton.disabled=!ok;
     roundButton.classList.toggle('is-active',Boolean(state.roundSale));
     roundButton.setAttribute('aria-pressed',state.roundSale?'true':'false');
-    roundButton.title=state.roundSale?'Quitar redondeo':'Redondear al siguiente $1.000';
+    const roundLabel=state.roundSale?'Quitar redondeo':'Redondear al siguiente $1.000';
+    roundButton.title=roundLabel;
+    roundButton.setAttribute('aria-label',roundLabel);
   }
 
   const gain=clampGain(state.gain);
