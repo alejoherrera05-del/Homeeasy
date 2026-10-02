@@ -426,3 +426,74 @@ dialog textarea{margin:14px 0}
 .formal-quote i{margin-right:7px}
 .formal-quote:active{transform:scale(.985)}
 .formal-quote:hover{background:var(--brand-soft)}
+
+
+/* Operational installation details */
+.installation-trigger{
+  width:100%;min-height:54px;margin:12px 0 0;padding:10px 12px;
+  border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;
+}
+.installation-trigger-main{display:flex;align-items:center;gap:10px;min-width:0}
+.installation-trigger-main>i{
+  width:32px;height:32px;flex:0 0 32px;border-radius:10px;background:var(--brand-soft);
+  color:var(--brand);display:grid;place-items:center;font-size:12px
+}
+.installation-trigger-main span{min-width:0}
+.installation-trigger strong{display:block;font-size:12px;font-weight:700}
+.installation-trigger small{
+  display:block;margin-top:3px;color:var(--muted);font-size:11px;font-weight:520;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px
+}
+.installation-chevron{color:#aaa3a8;font-size:10px}
+
+/* Formal presentation chooser + installation bottom sheets */
+.dialog-eyebrow{
+  display:block;color:var(--brand);font-size:11px;font-weight:760;letter-spacing:.06em;text-transform:uppercase
+}
+.dialog-handle{display:none;width:38px;height:4px;border-radius:999px;background:#d8d3d6;margin:0 auto 15px}
+.formal-mode-dialog,.install-dialog{width:min(500px,calc(100% - 28px));padding:24px}
+.formal-mode-head h2,.install-head h2{margin-top:6px;font-size:22px;line-height:1.08}
+.formal-mode-head p,.install-head p{margin:8px 0 18px}
+.formal-mode-options{display:grid;gap:10px}
+.formal-mode-option{
+  width:100%;min-height:76px;padding:12px;border:1px solid var(--line);border-radius:17px;background:#fff;
+  display:grid;grid-template-columns:42px 1fr 14px;align-items:center;gap:11px;text-align:left;color:var(--ink)
+}
+.formal-mode-option:active{transform:scale(.985)}
+.formal-mode-option:hover{background:var(--brand-soft);border-color:rgba(178,86,108,.18)}
+.formal-mode-icon{
+  width:42px;height:42px;border-radius:13px;background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center
+}
+.formal-mode-option strong{display:block;font-size:14px}
+.formal-mode-option small{display:block;margin-top:4px;color:var(--muted);font-size:11px;line-height:1.35}
+.formal-mode-option>i{color:#aaa3a8;font-size:10px}
+.dialog-cancel{
+  width:100%;height:44px;margin-top:12px;border:0;background:transparent;color:var(--muted);font-weight:650
+}
+.install-block{margin-top:15px}
+.install-block>label{margin-bottom:8px}
+.install-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.install-choice button{
+  min-height:44px;border:1px solid var(--line);border-radius:13px;background:#fff;color:var(--ink);font-size:12px;font-weight:650
+}
+.install-choice button.selected{border-color:rgba(178,86,108,.45);background:var(--brand-soft);color:var(--brand-dark)}
+.install-dialog textarea{height:auto;min-height:76px;padding:12px;resize:none}
+.install-dialog-actions{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;margin-top:18px}
+.install-dialog-actions button{min-height:42px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;font-weight:650}
+.install-dialog-actions .primary-inline{background:var(--brand);border-color:var(--brand);color:#fff}
+
+@media(max-width:740px){
+  .installation-trigger small{max-width:230px}
+  .formal-mode-dialog,.install-dialog{
+    width:100%;max-width:none;margin:auto 0 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));
+    border-radius:26px 26px 0 0;animation:homeeasySheetUp .2s ease-out
+  }
+  .dialog-handle{display:block}
+  .formal-mode-head h2,.install-head h2{font-size:20px}
+  .formal-mode-option{min-height:72px}
+  .install-choice{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .install-dialog-actions{grid-template-columns:auto 1fr auto auto}
+}
+@keyframes homeeasySheetUp{from{transform:translateY(24px);opacity:.6}to{transform:translateY(0);opacity:1}}
