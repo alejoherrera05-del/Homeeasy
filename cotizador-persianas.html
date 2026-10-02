@@ -1,45 +1,128 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#a6455a"><title>Cotizador interno · HomeEasy</title>
-<link rel="icon" href="apple-touch-icon.png"><link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002b">
-<script src="homeeasy-core.js?v=3.5"></script><script src="homeeasy-page-guard.js?v=20261002b"></script>
-<script defer src="homeeasy-cost-calculator.js?v=20261002b"></script>
-</head><body>
-<header class="topbar"><a href="index.html" class="back" aria-label="Volver a HomeEasy">← <span>HomeEasy</span></a><span id="save-state" role="status">Borrador en este dispositivo</span></header>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#a6455a">
+<title>Cotizador · HomeEasy</title>
+<link rel="icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002c">
+<script src="homeeasy-core.js?v=3.5"></script>
+<script src="homeeasy-page-guard.js?v=20261002b"></script>
+<script defer src="homeeasy-cost-calculator.js?v=20261002c"></script>
+</head>
+<body>
+<header class="topbar">
+  <a href="index.html" class="back" aria-label="Volver a HomeEasy">← <span>HomeEasy</span></a>
+  <span id="save-state" role="status">Borrador guardado</span>
+</header>
+
 <main>
- <div class="heading"><div><h1>Cotiza en minutos</h1><p>Elige el producto, ingresa las medidas y <strong>HomeEasy hace las cuentas.</strong></p></div><button id="new-quote" class="quiet">Nueva cotización</button></div>
- <div class="intro-tip"><div class="tip-icon">1·2·3</div><div><strong>Flujo simple:</strong> producto → tela → medidas. Duplica una ventana cuando solo cambien las medidas.</div></div>
- <div id="connection" class="notice" role="status">Abriendo tarifas privadas de HomeEasy… <button id="retry" hidden>Reintentar</button></div>
- <div class="workspace">
-  <section class="items-section" aria-label="Persianas de la cotización">
-   <label class="project-label" for="project">Cliente o proyecto <span>(opcional)</span></label><input id="project" placeholder="Ej. Apartamento 803 · Sala y habitaciones" maxlength="120">
-   <div class="section-heading"><h2>Ventanas <span id="item-count"></span></h2><span class="muted">Medidas en metros</span></div>
-   <div id="items"></div>
-   <button id="add-item" class="add" disabled>+ Agregar otra ventana</button>
-   <p class="catalog-note" id="catalog-note"></p>
+  <section class="hero">
+    <div>
+      <span class="eyebrow">Cotizador interno</span>
+      <h1>Cotiza fácil</h1>
+      <p>Elige el producto, ingresa las medidas y HomeEasy calcula el resto.</p>
+    </div>
+    <button id="new-quote" class="secondary">Nueva cotización</button>
   </section>
-  <aside class="summary" id="summary" aria-label="Gastos y precio de venta">
-   <h2>Precio de esta propuesta</h2>
-   <label for="transport">Transporte total <span class="muted">$</span></label><input id="transport" inputmode="decimal" value="0" autocomplete="off"><small>Se cobra una sola vez para toda la cotización.</small>
-   <fieldset><legend>Instalación</legend><div class="segmented"><label><input type="radio" name="install-mode" value="common" checked> Igual por persiana</label><label><input type="radio" name="install-mode" value="individual"> Por ítem</label></div>
-    <div id="common-install"><label for="installation">Instalación por persiana <span class="muted">$</span></label><input id="installation" inputmode="decimal" value="0" autocomplete="off"><small>HomeEasy la multiplica por la cantidad.</small></div>
-    <small id="individual-hint" hidden>Ajusta la instalación dentro de cada ventana.</small>
-   </fieldset>
-   <label for="margin">Margen de utilidad <span class="muted">%</span></label><div class="margin-row"><input id="margin" inputmode="decimal" value="30" autocomplete="off"><div class="presets"><button data-margin="20">20 %</button><button data-margin="30">30 %</button><button data-margin="40">40 %</button></div></div>
-   <small>Se aplica sobre el precio de venta, cubriendo producto, instalación y transporte.</small>
-   <div class="breakdown"><div><span>Persianas</span><output id="sum-products">—</output></div><div><span>Instalación</span><output id="sum-installation">—</output></div><div><span>Transporte</span><output id="sum-transport">—</output></div><div class="cost-total"><strong>Costo completo HomeEasy</strong><output id="sum-cost">—</output></div></div>
-   <div class="sale"><span>Precio sugerido al cliente</span><output id="sum-sale">—</output><div>Utilidad estimada <output id="sum-profit">—</output></div></div>
-   <p id="result-message" class="muted" role="status">Completa la primera ventana para comenzar.</p>
-   <button id="copy-sale" class="primary" disabled>Copiar propuesta para el cliente</button>
-   <div class="summary-note">El texto para el cliente nunca incluye costos internos ni utilidad.</div>
-   <details class="tariff-settings"><summary>Tarifas y promociones</summary><label class="check"><input id="promotions" type="checkbox" checked> Aplicar promociones vigentes</label><small>Si una promoción no aplica a tu cuenta, usa costo confirmado en esa persiana.</small><p id="tariff-date" class="muted"></p></details>
-  </aside>
- </div>
+
+  <div id="connection" class="notice" role="status">
+    Cargando precios de HomeEasy…
+    <button id="retry" hidden>Reintentar</button>
+  </div>
+
+  <div class="layout">
+    <section class="left-column" aria-label="Persianas de la cotización">
+      <div class="project-card">
+        <label for="project">Cliente o proyecto <span>(opcional)</span></label>
+        <input id="project" placeholder="Ej. Apto 803 · Sala y habitaciones" maxlength="120">
+      </div>
+
+      <div class="section-title">
+        <div>
+          <span class="eyebrow">Productos</span>
+          <h2>Persianas <span id="item-count"></span></h2>
+        </div>
+        <span>Medidas en metros</span>
+      </div>
+
+      <div id="items"></div>
+      <button id="add-item" class="add-item" disabled>+ Agregar otra persiana</button>
+      <p class="catalog-note" id="catalog-note"></p>
+    </section>
+
+    <aside class="summary-card" id="summary" aria-label="Resumen y precio sugerido">
+      <div class="summary-head">
+        <span class="eyebrow">Resumen</span>
+        <h2>Precio de venta</h2>
+      </div>
+
+      <div class="money-fields">
+        <div>
+          <label for="installation">Instalación total</label>
+          <div class="money-input"><span>COP $</span><input id="installation" inputmode="numeric" autocomplete="off" value="0"></div>
+        </div>
+        <div>
+          <label for="transport">Transporte total</label>
+          <div class="money-input"><span>COP $</span><input id="transport" inputmode="numeric" autocomplete="off" value="0"></div>
+        </div>
+      </div>
+
+      <div class="gain-box">
+        <div class="gain-copy">
+          <label for="gain">Ganancia sobre costo</label>
+          <span>De 10% a 100%</span>
+        </div>
+        <div class="gain-control">
+          <button id="gain-minus" type="button" aria-label="Restar 10 por ciento">−</button>
+          <div class="percent-input"><input id="gain" type="number" min="10" max="100" step="10" inputmode="numeric" value="90"><span>%</span></div>
+          <button id="gain-plus" type="button" aria-label="Sumar 10 por ciento">+</button>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div><span>Persianas</span><output id="sum-products">—</output></div>
+        <div><span>Instalación</span><output id="sum-installation">—</output></div>
+        <div><span>Transporte</span><output id="sum-transport">—</output></div>
+        <div class="cost-total"><strong>Costo HomeEasy</strong><output id="sum-cost">—</output></div>
+      </div>
+
+      <div class="price-card">
+        <div class="profit-row"><span id="gain-label">Ganancia +90%</span><output id="sum-gain">—</output></div>
+        <span class="price-label">Precio sugerido al cliente</span>
+        <output id="sum-sale">—</output>
+      </div>
+
+      <p id="result-message" class="result-message" role="status">Completa la primera persiana.</p>
+      <button id="copy-sale" class="primary" disabled>Copiar propuesta para el cliente</button>
+      <p class="privacy-note">Al cliente solo se copia el precio final, nunca tus costos.</p>
+
+      <div class="tariff-meta" id="tariff-date"></div>
+    </aside>
+  </div>
 </main>
-<a class="mobile-total" href="#summary"><span>Ver precio</span><strong id="mobile-sale">—</strong></a>
-<dialog id="new-dialog"><h2>¿Empezar otra cotización?</h2><p>Se borrará únicamente este borrador del dispositivo.</p><div class="dialog-actions"><button id="cancel-new">Conservar</button><button id="confirm-new" class="primary">Empezar de nuevo</button></div></dialog>
-<dialog id="copy-dialog"><h2>Propuesta para el cliente</h2><p>Copia el texto y compártelo por WhatsApp.</p><textarea id="copy-text" readonly rows="12"></textarea><button id="close-copy">Cerrar</button></dialog>
+
+<a class="mobile-total" href="#summary">
+  <span>Precio sugerido</span>
+  <strong id="mobile-sale">—</strong>
+</a>
+
+<dialog id="new-dialog">
+  <h2>¿Empezar otra cotización?</h2>
+  <p>Se borrará únicamente este borrador.</p>
+  <div class="dialog-actions">
+    <button id="cancel-new">Conservar</button>
+    <button id="confirm-new" class="primary">Empezar de nuevo</button>
+  </div>
+</dialog>
+
+<dialog id="copy-dialog">
+  <h2>Propuesta para el cliente</h2>
+  <textarea id="copy-text" readonly rows="12"></textarea>
+  <button id="close-copy">Cerrar</button>
+</dialog>
+
 <div id="toast" role="status" aria-live="polite"></div>
-</body></html>
+</body>
+</html>
