@@ -171,7 +171,7 @@ function setRoomLocation(roomId,value){
 
 const installationLabels={
   mount:{techo:'Techo',pared:'Pared'},
-  control:{izquierda:'Mando izquierda',derecha:'Mando derecha'},
+  control:{izquierda:'Mando a la izquierda',derecha:'Mando a la derecha'},
   opening:{extremos:'Apertura a los extremos',centro:'Apertura al centro',izquierda:'Apertura a la izquierda',derecha:'Apertura a la derecha'}
 };
 
@@ -252,7 +252,7 @@ function installationObservationLines(q){
     const data=installationData(item);
     const fields=familyInstallationFields(item.family);
     const details=[];
-    if(fields.mount&&data.mount)details.push('instalación a '+(installationLabels.mount[data.mount]||data.mount).toLowerCase());
+    if(fields.mount&&data.mount)details.push(data.mount==='techo'?'instalación al techo':data.mount==='pared'?'instalación a pared':'instalación '+data.mount);
     if(fields.opening&&data.opening)details.push((installationLabels.opening[data.opening]||data.opening).toLowerCase());
     if(fields.control&&data.control)details.push((installationLabels.control[data.control]||data.control).toLowerCase());
     if(data.note)details.push(data.note.trim());
