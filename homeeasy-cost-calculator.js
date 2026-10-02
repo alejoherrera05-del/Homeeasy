@@ -16,7 +16,7 @@ const clampGain=value=>{
 };
 const fresh=()=>({version:2,project:'',items:[],transport:'0',installationTotal:'0',gain:'90',promotions:true});
 
-let state=fresh(),catalog=null,lastQuote=null,key='',ready=false,loading=false;
+let state=fresh(),catalog=null,lastEngineQuote=null,lastQuote=null,key='',ready=false,loading=false;
 let saveTimer,toastTimer,undoItem,quoteTimer,requestSeq=0;
 
 function toast(message){
@@ -176,17 +176,17 @@ function commercialQuote(q){
   return {...q,installation,transport,cost,profit,sale:cost+profit,gain};
 }
 
-function applyQuote(rawQuote,message=''){
-  const q=commercialQuote(rawQuote);
+function renderCommercial(message=''){
+  const q=commercialQuote(lastEngineQuote);
   lastQuote=q||null;
 
   document.querySelectorAll('.item-card').forEach((el,index)=>{
-    const r=q?.items?.[index];
+    const itemResult=q?.items?.[index];
     const unit=el.querySelector('[data-output=unit]');
     const total=el.querySelector('[data-output=total]');
-    if(unit)unit.textContent=r?.ok?cop(r.unit):'—';
-    if(total)total.textContent=r?.ok?cop(r.total):'—';
-    el.querySelector('[data-output=error]').textContent=r?.ok?'':r?.error||'';
+    if(unit)unit.textContent=itemResult?.ok?cop(itemResult.unit):'—';
+    if(total)total.textContent=itemResult?.ok?cop(itemResult.total):'—';
+    el.querySelector('[data-output=error]').textContent=itemResult?.ok?'':itemResult?.error||'';
   });
 
   const ok=Boolean(q?.ok);
@@ -197,22 +197,32 @@ function applyQuote(rawQuote,message=''){
   $('sum-gain').textContent=ok?cop(q.profit):'—';
   $('sum-sale').textContent=ok?cop(q.sale):'—';
   $('mobile-sale').textContent=ok?cop(q.sale):'Completar';
-  $('gain-label').textContent='Ganancia +'+clampGain(state.gain)+'%';
+
+  const gain=clampGain(state.gain);
+  $('gain-label').textContent='Ganancia +'+gain+'%';
+  $('gain-minus').disabled=gain<=10;
+  $('gain-plus').disabled=gain>=100;
+
   $('result-message').classList.remove('calculating');
-  $('result-message').textContent=ok?'Precio actualizado.':(message||q?.error||'Completa las medidas para calcular.');
+  $('result-message').textContent=ok?'':(message||q?.error||'Completa las medidas para calcular.');
   $('copy-sale').disabled=!ok;
 }
 
-function scheduleQuote(delay=220){
+function applyQuote(rawQuote,message=''){
+  lastEngineQuote=rawQuote||null;
+  renderCommercial(message);
+}
+
+function scheduleQuote(delay=180){
   save();
   clearTimeout(quoteTimer);
   if(!catalog)return;
+  const seq=++requestSeq;
   setCalculating();
-  quoteTimer=setTimeout(runQuote,delay);
+  quoteTimer=setTimeout(()=>runQuote(seq),delay);
 }
 
-async function runQuote(){
-  const seq=++requestSeq;
+async function runQuote(seq){
   try{
     const data=await post('COSTOS_CALCULAR_COTIZACION',{
       items:state.items,
@@ -234,13 +244,15 @@ function updateMoneyInput(input,stateKey){
   const raw=rawPesos(input.value);
   state[stateKey]=raw;
   input.value=formatPesos(raw);
-  scheduleQuote();
+  save();
+  renderCommercial();
 }
 
 function setGain(value){
   state.gain=String(clampGain(value));
   $('gain').value=state.gain;
-  scheduleQuote(0);
+  save();
+  renderCommercial();
 }
 
 function fillGlobals(){
@@ -265,6 +277,14 @@ $('items').addEventListener('input',event=>{
   }else{
     item[field]=target.value;
   }
+
+  if(field==='location'){
+    const title=card.querySelector('.item-head h3');
+    if(title)title.textContent=item.location||'Sin ambiente';
+    save();
+    return;
+  }
+
   scheduleQuote();
 });
 
@@ -357,7 +377,8 @@ $('gain').addEventListener('input',e=>{
   const n=Number(e.target.value);
   if(Number.isFinite(n)&&n>=10&&n<=100){
     state.gain=String(n);
-    scheduleQuote();
+    save();
+    renderCommercial();
   }
 });
 $('gain').addEventListener('change',e=>setGain(e.target.value));
