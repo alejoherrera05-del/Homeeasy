@@ -488,27 +488,57 @@ $('confirm-new').onclick=()=>{
 
 $('close-copy').onclick=()=>$('copy-dialog').close();
 
+function whatsappMeasure(value){
+  return String(value||'').trim().replace('.',',');
+}
+
+function buildWhatsAppProposal(q){
+  const intro=state.project
+    ? 'Te comparto la propuesta que preparamos para *'+String(state.project).trim()+'* en *HomeEasy*:'
+    : 'Te comparto la propuesta que preparamos para ti en *HomeEasy*:';
+
+  const itemBlocks=state.items.map((item,index)=>{
+    const product=q.items[index]?.product;
+    const family=familyLabels[item.family]||item.family||'Persiana';
+    const reference=product?.name||'';
+    const title=item.location
+      ? '*'+(index+1)+'. '+item.location+' · '+family+(reference?' · '+reference:'')+'*'
+      : '*'+(index+1)+'. '+family+(reference?' · '+reference:'')+'*';
+
+    return [
+      title,
+      '• *Medidas:* '+whatsappMeasure(item.width)+' × '+whatsappMeasure(item.height)+' m',
+      '• *Cantidad:* '+(item.quantity||1)
+    ].join('\n');
+  });
+
+  const includes=[];
+  if(q.installation)includes.push('instalación');
+  if(q.transport)includes.push('transporte');
+
+  let inclusion='';
+  if(includes.length===1)inclusion='✅ Este valor incluye *'+includes[0]+'*.';
+  if(includes.length===2)inclusion='✅ Este valor incluye *instalación y transporte*.';
+
+  return [
+    'Hola 👋',
+    intro,
+    itemBlocks.join('\n\n'),
+    '💰 *Valor total de la propuesta: '+cop(q.sale)+'*',
+    inclusion,
+    'La propuesta está sujeta a disponibilidad y confirmación de fabricación.',
+    'Si deseas, con gusto te ayudo a continuar con el pedido o resolver cualquier duda.'
+  ].filter(Boolean).join('\n\n');
+}
+
 $('copy-sale').onclick=async()=>{
   const q=lastQuote;
   if(!q?.ok)return;
 
-  const lines=[
-    'Propuesta HomeEasy',
-    state.project,
-    ...state.items.map((item,index)=>{
-      const product=q.items[index]?.product;
-      return (index+1)+'. '+(familyLabels[item.family]||item.family)+' · '+(product?.name||'')+(item.location?' · '+item.location:'')+'\n'+item.width+' × '+item.height+' m · Cantidad: '+item.quantity;
-    }),
-    'Precio total: '+cop(q.sale)+' · IVA incluido.',
-    q.installation?'Incluye instalación.':'',
-    q.transport?'Incluye transporte.':'',
-    'Sujeto a disponibilidad y confirmación de fabricación.'
-  ].filter(Boolean);
-
-  const text=lines.join('\n\n');
+  const text=buildWhatsAppProposal(q);
   try{
     await navigator.clipboard.writeText(text);
-    toast('Propuesta copiada.');
+    toast('Mensaje para WhatsApp copiado.');
   }catch(e){
     $('copy-text').value=text;
     $('copy-dialog').showModal();
