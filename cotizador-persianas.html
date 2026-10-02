@@ -9,10 +9,10 @@
 <title>HomeEasy | Cotizador</title>
 <link rel="icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002-formal">
+<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002-formalux">
 <script src="homeeasy-core.js?v=3.5"></script>
 <script src="homeeasy-page-guard.js?v=20261002b"></script>
-<script defer src="homeeasy-cost-calculator.js?v=20261002-formal"></script>
+<script defer src="homeeasy-cost-calculator.js?v=20261002-formalux"></script>
 </head>
 <body>
 
@@ -180,6 +180,60 @@
   <h2>Mensaje para WhatsApp</h2>
   <textarea id="copy-text" readonly rows="12"></textarea>
   <button id="close-copy">Cerrar</button>
+</dialog>
+
+<dialog id="formal-mode-dialog" class="formal-mode-dialog">
+  <div class="dialog-handle" aria-hidden="true"></div>
+  <div class="formal-mode-head">
+    <span class="dialog-eyebrow">Cotización formal</span>
+    <h2>¿Cómo quieres mostrar los valores?</h2>
+    <p>Los productos y el total serán los mismos. Solo cambia cómo los ve el cliente.</p>
+  </div>
+  <div class="formal-mode-options">
+    <button type="button" class="formal-mode-option" data-formal-mode="individual">
+      <span class="formal-mode-icon"><i class="fa-solid fa-list"></i></span>
+      <span><strong>Valores por producto</strong><small>Muestra el valor de cada persiana y el total.</small></span>
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+    <button type="button" class="formal-mode-option" data-formal-mode="total">
+      <span class="formal-mode-icon"><i class="fa-solid fa-receipt"></i></span>
+      <span><strong>Solo valor total</strong><small>Muestra productos y medidas con un único valor final.</small></span>
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  </div>
+  <button id="cancel-formal-mode" class="dialog-cancel" type="button">Cancelar</button>
+</dialog>
+
+<dialog id="install-dialog" class="install-dialog">
+  <div class="dialog-handle" aria-hidden="true"></div>
+  <div class="install-head">
+    <span class="dialog-eyebrow">Detalles de instalación</span>
+    <h2 id="install-product">Persiana</h2>
+    <p>Solo completa lo que necesites recordar para la instalación.</p>
+  </div>
+
+  <div id="install-mount-block" class="install-block">
+    <label>Montaje</label>
+    <div id="install-mount-options"></div>
+  </div>
+  <div id="install-opening-block" class="install-block">
+    <label>Apertura</label>
+    <div id="install-opening-options"></div>
+  </div>
+  <div id="install-control-block" class="install-block">
+    <label>Mando</label>
+    <div id="install-control-options"></div>
+  </div>
+  <div class="install-block">
+    <label for="install-note">Nota adicional <span>(opcional)</span></label>
+    <textarea id="install-note" rows="3" maxlength="240" placeholder="Ej. dejar 3 cm libres del marco"></textarea>
+  </div>
+  <div class="install-dialog-actions">
+    <button id="clear-install" type="button">Limpiar</button>
+    <span></span>
+    <button id="cancel-install" type="button">Cancelar</button>
+    <button id="save-install" class="primary-inline" type="button">Guardar</button>
+  </div>
 </dialog>
 
 <div id="toast" role="status" aria-live="polite"></div>
