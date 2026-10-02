@@ -378,14 +378,15 @@ function renderCommercial(message=''){
   const q=commercialQuote(quoteMatches?lastEngineQuote:null);
   lastQuote=q||null;
 
-  document.querySelectorAll('.item-card').forEach((el,index)=>{
-    const itemResult=q?.items?.[index];
+  document.querySelectorAll('.item-card').forEach(el=>{
+    const stateIndex=state.items.findIndex(item=>item.id===el.dataset.id);
+    const itemResult=stateIndex>=0?q?.items?.[stateIndex]:null;
     const unit=el.querySelector('[data-output=unit]');
     const total=el.querySelector('[data-output=total]');
     if(unit)unit.textContent=itemResult?.ok?cop(itemResult.unit):'—';
     if(total)total.textContent=itemResult?.ok?cop(itemResult.total):'—';
     const coverControls=el.querySelector('.enrollable-options');
-    if(coverControls)coverControls.innerHTML=coverlightControls(state.items[index]);
+    if(coverControls&&stateIndex>=0)coverControls.innerHTML=coverlightControls(state.items[stateIndex]);
     el.querySelector('[data-output=error]').textContent=itemResult?.ok?'':itemResult?.error||'';
   });
 
