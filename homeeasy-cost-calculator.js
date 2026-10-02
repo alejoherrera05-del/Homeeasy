@@ -19,6 +19,7 @@ const fresh=()=>({version:2,project:'',items:[],transport:'0',installationTotal:
 
 let state=fresh(),catalog=null,lastEngineQuote=null,lastEngineSignature='',lastQuote=null,key='',engineCacheKey='',ready=false,loading=false;
 let saveTimer,toastTimer,undoItem,quoteTimer,requestSeq=0;
+let installationEditingId='',installationDraft=null;
 
 function toast(message){
   $('toast').textContent=message;
@@ -168,6 +169,101 @@ function setRoomLocation(roomId,value){
   });
 }
 
+const installationLabels={
+  mount:{techo:'Techo',pared:'Pared'},
+  control:{izquierda:'Mando izquierda',derecha:'Mando derecha'},
+  opening:{extremos:'Apertura a los extremos',centro:'Apertura al centro',izquierda:'Apertura a la izquierda',derecha:'Apertura a la derecha'}
+};
+
+function installationData(item){
+  return {
+    mount:String(item?.installation?.mount||''),
+    control:String(item?.installation?.control||''),
+    opening:String(item?.installation?.opening||''),
+    note:String(item?.installation?.note||'')
+  };
+}
+
+function familyInstallationFields(family){
+  return {
+    mount:true,
+    control:['enrollable','sheer','vertesse','panel','vertical'].includes(family),
+    opening:['onda','vertesse','panel','vertical'].includes(family)
+  };
+}
+
+function installationSummary(item){
+  const data=installationData(item);
+  const fields=familyInstallationFields(item.family);
+  const parts=[];
+  if(fields.mount&&data.mount)parts.push(installationLabels.mount[data.mount]||data.mount);
+  if(fields.opening&&data.opening)parts.push((installationLabels.opening[data.opening]||data.opening).replace(/^Apertura /,''));
+  if(fields.control&&data.control)parts.push((installationLabels.control[data.control]||data.control).replace(/^Mando /,'mando '));
+  if(data.note)parts.push('nota');
+  return parts.length?parts.join(' · '):'Sin definir';
+}
+
+function installationButton(item){
+  const summary=installationSummary(item);
+  return '<button class="installation-trigger" data-action="installation" type="button">'+
+    '<span class="installation-trigger-main"><i class="fa-solid fa-screwdriver-wrench"></i><span><strong>Detalles de instalación</strong><small>'+escape(summary)+'</small></span></span>'+
+    '<i class="fa-solid fa-chevron-right installation-chevron"></i>'+
+  '</button>';
+}
+
+function renderInstallChoice(field,options,current){
+  return '<div class="install-choice" data-install-group="'+field+'">'+options.map(([value,label])=>
+    '<button type="button" data-install-field="'+field+'" data-install-value="'+value+'" class="'+(current===value?'selected':'')+'">'+escape(label)+'</button>'
+  ).join('')+'</div>';
+}
+
+function openInstallationDialog(item){
+  installationEditingId=item.id;
+  installationDraft=installationData(item);
+  const fields=familyInstallationFields(item.family);
+  $('install-product').textContent=(familyLabels[item.family]||'Persiana')+(chosen(item)?.name?' · '+chosen(item).name:'');
+  $('install-mount-block').hidden=!fields.mount;
+  $('install-control-block').hidden=!fields.control;
+  $('install-opening-block').hidden=!fields.opening;
+  $('install-mount-options').innerHTML=renderInstallChoice('mount',[['techo','Techo'],['pared','Pared']],installationDraft.mount);
+  $('install-control-options').innerHTML=renderInstallChoice('control',[['izquierda','Izquierda'],['derecha','Derecha']],installationDraft.control);
+  $('install-opening-options').innerHTML=renderInstallChoice('opening',[['extremos','A los extremos'],['centro','Al centro'],['izquierda','A la izquierda'],['derecha','A la derecha']],installationDraft.opening);
+  $('install-note').value=installationDraft.note;
+  $('install-dialog').showModal();
+}
+
+function refreshInstallChoice(field){
+  const group=$('install-dialog').querySelector('[data-install-group="'+field+'"]');
+  if(!group)return;
+  group.querySelectorAll('[data-install-value]').forEach(button=>{
+    button.classList.toggle('selected',button.dataset.installValue===installationDraft?.[field]);
+  });
+}
+
+function cleanCommercialComplementName(name){
+  return String(name||'')
+    .replace(/\s*[·\-–]\s*(?:blanco\s*(?:o|\/)\s*negro|costo confirmado|precio confirmado)\s*$/i,'')
+    .replace(/\s*\((?:blanco\s*(?:o|\/)\s*negro)\)\s*$/i,'')
+    .trim();
+}
+
+function installationObservationLines(q){
+  return state.items.map((item,index)=>{
+    const data=installationData(item);
+    const fields=familyInstallationFields(item.family);
+    const details=[];
+    if(fields.mount&&data.mount)details.push('instalación a '+(installationLabels.mount[data.mount]||data.mount).toLowerCase());
+    if(fields.opening&&data.opening)details.push((installationLabels.opening[data.opening]||data.opening).toLowerCase());
+    if(fields.control&&data.control)details.push((installationLabels.control[data.control]||data.control).toLowerCase());
+    if(data.note)details.push(data.note.trim());
+    if(!details.length)return '';
+    const product=q.items?.[index]?.product;
+    const location=String(item.location||'').trim();
+    const name=[location,familyLabels[item.family]||'Persiana',product?.name||''].filter(Boolean).join(' — ');
+    return '• '+name+': '+details.join('; ')+'.';
+  }).filter(Boolean);
+}
+
 function availableFamilies(){
   const present=new Set((catalog?.products||[]).map(p=>p.family));
   return familyOrder.filter(f=>present.has(f));
@@ -244,7 +340,8 @@ function newItem(previous,roomId=''){
     extras:'0',
     configuration:'standard',
     coverlight:'',
-    addons:[]
+    addons:[],
+    installation:{mount:'',control:'',opening:'',note:''}
   };
 }
 
@@ -294,6 +391,8 @@ function renderItem(item,index,layerIndex=0,layerCount=1){
     '</div>'+
 
     enrollableControls(item,p,manual)+
+
+    installationButton(item)+
 
     (item.family!=='enrollable'?'<details class="optional-settings" '+(forcedManual?'open':'')+'>'+
       '<summary>Ajustes opcionales</summary>'+
@@ -542,6 +641,16 @@ $('items').addEventListener('change',event=>{
       item.manualCost='';
       item.extras='0';
       item.mode=requiresManual(item)?'manual':'auto';
+      if(field==='family'){
+        const existing=installationData(item);
+        const allowed=familyInstallationFields(item.family);
+        item.installation={
+          mount:existing.mount,
+          control:allowed.control?existing.control:'',
+          opening:allowed.opening?existing.opening:'',
+          note:existing.note
+        };
+      }
     }
     if(field==='configuration'){
       resetComplements(item);
@@ -603,10 +712,15 @@ $('items').addEventListener('click',event=>{
   const index=state.items.findIndex(i=>i.id===card.dataset.id);
   if(index<0)return;
 
+  if(button.dataset.action==='installation'){
+    openInstallationDialog(state.items[index]);
+    return;
+  }
+
   if(button.dataset.action==='duplicate'){
     if(state.items.length>=100){toast('Máximo 100 persianas.');return;}
     const source=state.items[index];
-    const item={...source,id:crypto.randomUUID(),roomId:roomIdOf(source),addons:[...(source.addons||[])]};
+    const item={...source,id:crypto.randomUUID(),roomId:roomIdOf(source),addons:[...(source.addons||[])],installation:{...installationData(source)}};
     state.items.splice(index+1,0,item);
     render();
     document.querySelector('[data-id="'+item.id+'"] [data-field=product]')?.focus();
@@ -686,7 +800,8 @@ function formalDescription(item,index,q){
   if(product?.name)parts.push(product.name);
   if(item.coverlight){
     const cover=calculatedCovers(item).find(c=>c.id===item.coverlight);
-    parts.push(cover?.name||'Coverlight');
+    const coverName=cleanCommercialComplementName(cover?.name||'Coverlight');
+    parts.push('+ '+coverName);
   }
   if(item.width&&item.height)parts.push(whatsappMeasure(item.width)+' × '+whatsappMeasure(item.height)+' m');
   return parts.filter(Boolean).join(' · ');
@@ -750,17 +865,20 @@ function formalRowsFromQuote(q){
   return exactRows;
 }
 
-function createFormalQuoteTransfer(){
+function createFormalQuoteTransfer(displayMode='individual'){
   const q=lastQuote;
   if(!q?.ok)return null;
   const rows=formalRowsFromQuote(q);
   const totalPesos=rows.reduce((sum,row)=>sum+(Number(row.cantidad)||0)*(Number(row.precio)||0),0);
+  const installLines=installationObservationLines(q);
   return {
     version:1,
     createdAt:Date.now(),
     project:String(state.project||'').trim(),
     rounded:Boolean(state.roundSale),
+    displayMode:displayMode==='total'?'total':'individual',
     totalPesos,
+    observations:installLines.length?'Detalles de instalación:\n'+installLines.join('\n'):'',
     items:rows
   };
 }
@@ -811,16 +929,60 @@ function buildWhatsAppProposal(q){
   return blocks.join('\n\n');
 }
 
+$('install-dialog').addEventListener('click',event=>{
+  const option=event.target.closest('[data-install-field][data-install-value]');
+  if(!option||!installationDraft)return;
+  const field=option.dataset.installField;
+  const value=option.dataset.installValue;
+  installationDraft[field]=installationDraft[field]===value?'':value;
+  refreshInstallChoice(field);
+});
+
+$('save-install').onclick=()=>{
+  const item=state.items.find(i=>i.id===installationEditingId);
+  if(!item){$('install-dialog').close();return;}
+  installationDraft.note=$('install-note').value.trim();
+  item.installation={...installationDraft};
+  saveNow();
+  $('install-dialog').close();
+  installationEditingId='';
+  installationDraft=null;
+  render({recalculate:false});
+};
+
+$('clear-install').onclick=()=>{
+  if(!installationDraft)return;
+  installationDraft={mount:'',control:'',opening:'',note:''};
+  $('install-note').value='';
+  ['mount','control','opening'].forEach(refreshInstallChoice);
+};
+
+$('cancel-install').onclick=()=>{
+  $('install-dialog').close();
+  installationEditingId='';
+  installationDraft=null;
+};
+
 $('formal-quote').onclick=()=>{
-  const transfer=createFormalQuoteTransfer();
+  if(!lastQuote?.ok)return;
+  $('formal-mode-dialog').showModal();
+};
+
+$('formal-mode-dialog').addEventListener('click',event=>{
+  const option=event.target.closest('[data-formal-mode]');
+  if(!option)return;
+  const transfer=createFormalQuoteTransfer(option.dataset.formalMode);
   if(!transfer)return;
   try{
     sessionStorage.setItem(FORMAL_QUOTE_TRANSFER_KEY,JSON.stringify(transfer));
+    $('formal-mode-dialog').close();
     window.location.assign('cotizacion.html?from=cotizador');
   }catch(e){
     toast('No se pudo abrir la cotización formal.');
   }
-};
+});
+
+$('cancel-formal-mode').onclick=()=>$('formal-mode-dialog').close();
 
 $('copy-sale').onclick=async()=>{
   const q=lastQuote;
