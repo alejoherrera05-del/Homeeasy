@@ -4,6 +4,7 @@
 const $=id=>document.getElementById(id);
 const API_URL=String(window.HomeEasyCore&&window.HomeEasyCore.API_URL||'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
 const familyLabels={onda:'Onda Serena',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales',enrollable:'Enrollable'};
+const FORMAL_QUOTE_TRANSFER_KEY='homeeasy.cost-to-formal.v1';
 const familyOrder=['onda','sheer','vertesse','panel','vertical','enrollable'];
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cop=cents=>'COP $'+new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Math.round((Number(cents)||0)/100));
@@ -420,6 +421,7 @@ function renderCommercial(message=''){
   $('result-message').classList.remove('calculating');
   $('result-message').textContent=ok?'':(message||q?.error||'Completa las medidas para calcular.');
   $('copy-sale').disabled=!ok;
+  if($('formal-quote'))$('formal-quote').disabled=!ok;
 }
 
 function applyQuote(rawQuote,message='',signature=engineSignature()){
@@ -675,6 +677,94 @@ $('confirm-new').onclick=()=>{
 
 $('close-copy').onclick=()=>$('copy-dialog').close();
 
+function formalDescription(item,index,q){
+  const product=q.items?.[index]?.product;
+  const parts=[];
+  const location=String(item.location||'').trim();
+  if(location)parts.push(location);
+  parts.push(familyLabels[item.family]||item.family||'Persiana');
+  if(product?.name)parts.push(product.name);
+  if(item.coverlight){
+    const cover=calculatedCovers(item).find(c=>c.id===item.coverlight);
+    parts.push(cover?.name||'Coverlight');
+  }
+  if(item.width&&item.height)parts.push(whatsappMeasure(item.width)+' × '+whatsappMeasure(item.height)+' m');
+  return parts.filter(Boolean).join(' · ');
+}
+
+function allocateFormalItemTotals(q){
+  const totalPesos=Math.max(0,Math.round(Number(q.sale||0)/100));
+  const weights=state.items.map((item,index)=>{
+    const engineTotal=Number(q.items?.[index]?.total||0);
+    if(engineTotal>0)return engineTotal;
+    return Math.max(1,Number(item.quantity)||1);
+  });
+  const weightTotal=weights.reduce((sum,value)=>sum+value,0)||1;
+  const raw=weights.map(weight=>totalPesos*weight/weightTotal);
+  const allocations=raw.map(Math.floor);
+  let remaining=totalPesos-allocations.reduce((sum,value)=>sum+value,0);
+  raw.map((value,index)=>({index,fraction:value-Math.floor(value)}))
+    .sort((a,b)=>b.fraction-a.fraction||a.index-b.index)
+    .slice(0,remaining)
+    .forEach(({index})=>allocations[index]++);
+  return {totalPesos,allocations};
+}
+
+function formalRowsFromQuote(q){
+  const {totalPesos,allocations}=allocateFormalItemTotals(q);
+  const rows=state.items.map((item,index)=>{
+    const quantity=Math.max(1,Math.round(Number(item.quantity)||1));
+    const allocated=allocations[index]||0;
+    return {
+      description:formalDescription(item,index,q),
+      quantity,
+      unitPrice:Math.max(0,Math.round(allocated/quantity)),
+      allocated
+    };
+  });
+
+  let current=rows.reduce((sum,row)=>sum+row.quantity*row.unitPrice,0);
+  let difference=totalPesos-current;
+  const anchor=rows.find(row=>row.quantity===1&&row.unitPrice+difference>=0);
+  if(anchor){
+    anchor.unitPrice+=difference;
+    difference=0;
+  }
+
+  if(difference===0){
+    return rows.map(row=>({descripcion:row.description,cantidad:row.quantity,precio:row.unitPrice}));
+  }
+
+  // Caso poco común: todas las líneas tienen cantidad > 1 y el total no puede
+  // cuadrar con un único valor unitario entero. Se divide solo la línea final necesaria.
+  const exactRows=[];
+  state.items.forEach((item,index)=>{
+    const quantity=Math.max(1,Math.round(Number(item.quantity)||1));
+    const allocated=allocations[index]||0;
+    const base=Math.floor(allocated/quantity);
+    const remainder=allocated-(base*quantity);
+    const description=formalDescription(item,index,q);
+    if(quantity-remainder>0)exactRows.push({descripcion:description,cantidad:quantity-remainder,precio:base});
+    if(remainder>0)exactRows.push({descripcion:description,cantidad:remainder,precio:base+1});
+  });
+  return exactRows;
+}
+
+function createFormalQuoteTransfer(){
+  const q=lastQuote;
+  if(!q?.ok)return null;
+  const rows=formalRowsFromQuote(q);
+  const totalPesos=rows.reduce((sum,row)=>sum+(Number(row.cantidad)||0)*(Number(row.precio)||0),0);
+  return {
+    version:1,
+    createdAt:Date.now(),
+    project:String(state.project||'').trim(),
+    rounded:Boolean(state.roundSale),
+    totalPesos,
+    items:rows
+  };
+}
+
 function whatsappMeasure(value){
   return String(value||'').trim().replace('.',',');
 }
@@ -720,6 +810,17 @@ function buildWhatsAppProposal(q){
 
   return blocks.join('\n\n');
 }
+
+$('formal-quote').onclick=()=>{
+  const transfer=createFormalQuoteTransfer();
+  if(!transfer)return;
+  try{
+    sessionStorage.setItem(FORMAL_QUOTE_TRANSFER_KEY,JSON.stringify(transfer));
+    window.location.assign('cotizacion.html?from=cotizador');
+  }catch(e){
+    toast('No se pudo abrir la cotización formal.');
+  }
+};
 
 $('copy-sale').onclick=async()=>{
   const q=lastQuote;
