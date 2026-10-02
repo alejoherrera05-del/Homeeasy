@@ -9,10 +9,10 @@
 <title>HomeEasy | Cotizador</title>
 <link rel="icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002-ambientes">
+<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002-redondeo">
 <script src="homeeasy-core.js?v=3.5"></script>
 <script src="homeeasy-page-guard.js?v=20261002b"></script>
-<script defer src="homeeasy-cost-calculator.js?v=20261002-ambientes2"></script>
+<script defer src="homeeasy-cost-calculator.js?v=20261002-redondeo"></script>
 </head>
 <body>
 
@@ -135,7 +135,13 @@
           <output id="sum-gain">—</output>
         </div>
         <span class="price-label">Precio sugerido al cliente</span>
-        <output id="sum-sale">—</output>
+        <div class="sale-value-row">
+          <output id="sum-sale">—</output>
+          <button id="round-sale" class="round-sale" type="button" aria-label="Redondear al siguiente mil" aria-pressed="false" title="Redondear al siguiente $1.000" disabled>
+            <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+            <span>$1.000</span>
+          </button>
+        </div>
       </div>
 
       <p id="result-message" class="result-message" role="status"></p>
