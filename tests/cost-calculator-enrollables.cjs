@@ -1,7 +1,7 @@
 // Datos ficticios: las tarifas reales permanecen en Sheets privados.
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const store=new Map();
-const ctx={console,CacheService:{getScriptCache:()=>({get:k=>store.get(k)||null,put:(k,v)=>store.set(k,v)})}};
+const ctx={console,Utilities:{formatDate:()=> '2026-10-02'},CacheService:{getScriptCache:()=>({get:k=>store.get(k)||null,put:(k,v)=>store.set(k,v)})}};
 vm.createContext(ctx);vm.runInContext(fs.readFileSync(path.join(__dirname,'../apps-script/ETAPA_10B_COSTOS_PENTAGRAMA.gs'),'utf8'),ctx);
 const base={family:'enrollable',familyName:'Enrollables',type:'Blackout',method:'area',rateCents:10000,minHeightMm:1000,minAreaMm2:1000000,extraDiscount:0,promotional:true,configuration:'Manual',active:true,status:'VIGENTE',validThrough:'2026-10-31',currency:'COP',pricesIncludeVat:true,matrixCells:[]};
 const rules={minWidthMm:250,minHeightMm:400,maxWidthMm:2500,maxHeightMm:2500,maxRatio:4,coverlightIds:['cover'],addonIds:['out'],configurations:[{id:'motor',label:'Motorizada',method:'manual'}]};
@@ -16,6 +16,9 @@ assert.equal(run({width:'0.5',height:'0.6'}).unit,10000);
 assert.equal(run({width:'1.8',height:'0.6'}).unit,18000);
 assert.equal(run({coverlight:'cover'}).unit,46000);
 assert.equal(run({coverlight:'cover'}).total,92000);
+assert.equal(run().coverlightOptions[0].costCents,4600);
+assert.equal(run({height:'2'}).coverlightOptions[0].costCents,4000);
+assert.equal(run({quantity:'9'}).unit,41400); // La tarifa institucional permanece sin aplicar.
 assert.equal(run({coverlight:'cover',addons:['out']}).unit,49600);
 assert.equal(run({product:'screen-test',coverlight:'cover'}).ok,false);
 assert.equal(run({product:'cover'}).ok,false);
@@ -33,15 +36,21 @@ assert.equal(run({}, {promotions:false}).ok,false);
 assert.equal(run({configuration:'motor',manualCost:'200'}).unit,20000);
 assert.equal(run({mode:'manual',manualCost:'200',coverlight:'cover'}).ok,false);
 const sh={getSheetByName(){throw Error('No debe leer Sheets con cache íntegra');}};
-store.set('HOMEEASY_COST_CATALOG_V2_ENROLLABLES',JSON.stringify({chunks:2,generation:'test'}));
+store.set('HOMEEASY_COST_CATALOG_V3_SIMPLE',JSON.stringify({chunks:2,generation:'test'}));
 const serialized=JSON.stringify(catalog),mid=Math.floor(serialized.length/2);
-store.set('HOMEEASY_COST_CATALOG_V2_ENROLLABLES:test:0',serialized.slice(0,mid));
-store.set('HOMEEASY_COST_CATALOG_V2_ENROLLABLES:test:1',serialized.slice(mid));
+store.set('HOMEEASY_COST_CATALOG_V3_SIMPLE:test:0',serialized.slice(0,mid));
+store.set('HOMEEASY_COST_CATALOG_V3_SIMPLE:test:1',serialized.slice(mid));
 const options=ctx.obtenerOpcionesCostos10B_(sh);
+const originalLoader=ctx.cargarCatalogoCostos10B_;
+ctx.cargarCatalogoCostos10B_=()=>({...catalog,products:[...products,{...base,id:'pending',name:'Pendiente',method:'manual'},{...base,id:'institutional',name:'Tela Institucional (Más de 30m2)',rules},{...base,id:'no-price',name:'Sin tarifa',rateCents:0}]});
+assert.equal(ctx.obtenerOpcionesCostos10B_(sh).products.length,2);
+ctx.cargarCatalogoCostos10B_=originalLoader;
 assert.equal(options.products.length,2);
 assert.equal(options.products[0].coverlight[0].id,'cover');
-assert.equal(options.products[0].configurations[0].manual,true);
+assert.equal('configurations' in options.products[0],false);
+assert.equal('configuration' in options.products[0],false);
+assert.equal('addons' in options.products[0],false);
 for(const p of options.products){assert.equal('rateCents' in p,false);assert.equal('rules' in p,false);}
-store.delete('HOMEEASY_COST_CATALOG_V2_ENROLLABLES:test:1');
+store.delete('HOMEEASY_COST_CATALOG_V3_SIMPLE:test:1');
 assert.throws(()=>ctx.cargarCatalogoCostos10B_(sh,false),/No debe leer/);
 console.log('Enrollables: mínimos, vigencia, IVA, fabricación, complementos, privacidad y cache OK');

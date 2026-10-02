@@ -136,27 +136,41 @@ function familyOptions(value){
   return availableFamilies().map(id=>'<option value="'+id+'" '+(id===value?'selected':'')+'>'+escape(familyLabels[id]||id)+'</option>').join('');
 }
 function productOptions(item){
-  return (catalog?.products||[]).filter(p=>p.family===item.family).map(p=>'<option value="'+escape(p.id)+'" '+(p.id===item.product?'selected':'')+'>'+escape(p.name)+'</option>').join('');
+  let products=(catalog?.products||[]).filter(p=>p.family===item.family);
+  const option=p=>'<option value="'+escape(p.id)+'" '+(p.id===item.product?'selected':'')+'>'+escape(p.name)+'</option>';
+  if(item.family!=='enrollable')return products.map(option).join('');
+  const w=Number(String(item.width).replace(',','.'))*1000,h=Number(String(item.height).replace(',','.'))*1000;
+  products=products.filter(p=>{
+    const l=p.limits||{};
+    return (!w||((!l.minWidthMm||w>=l.minWidthMm)&&(!l.maxWidthMm||w<=l.maxWidthMm)))&&
+      (!h||((!l.minHeightMm||h>=l.minHeightMm)&&(!l.maxHeightMm||h<=l.maxHeightMm)))&&
+      (!w||!h||!l.maxRatio||h/w<=l.maxRatio);
+  });
+  const groups=[['Blackout','Blackout'],['Screen','Screen'],['Traslúcida','Traslúcidas'],['DimOut','Dim Out'],['Lona transparente','Lona'],['Membrana bioclimática','Soltis'],['Serenade','Serenade']];
+  const missing=!products.some(p=>p.id===item.product)?'<option value="'+escape(item.product)+'" selected disabled>Selecciona una tela disponible</option>':'';
+  return missing+groups.map(([type,label])=>{
+    const entries=products.filter(p=>p.type===type).sort((a,b)=>a.name.localeCompare(b.name,'es',{numeric:true}));
+    return entries.length?'<optgroup label="'+escape(label)+'">'+entries.map(option).join('')+'</optgroup>':'';
+  }).join('');
 }
 function firstProduct(family){return (catalog?.products||[]).find(p=>p.family===family);}
 function chosen(item){return (catalog?.products||[]).find(p=>p.id===item.product);}
 function chosenConfiguration(item){return chosen(item)?.configurations?.find(c=>c.id===(item.configuration||'standard'));}
-function requiresManual(item){return chosen(item)?.method==='manual'||chosenConfiguration(item)?.manual;}
+function requiresManual(item){return item.family!=='enrollable'&&(chosen(item)?.method==='manual'||chosenConfiguration(item)?.manual);}
 function resetComplements(item){item.coverlight='';item.addons=[];}
 
-function enrollableControls(item,p,manual){
-  if(item.family!=='enrollable')return '';
-  const configurations=p?.configurations||[];
-  const standard=(item.configuration||'standard')==='standard';
-  const covers=standard&&!manual?(p?.coverlight||[]):[];
-  const addons=standard&&!manual?(p?.addons||[]):[];
-  return '<div class="enrollable-options">'+
-    (configurations.length?'<div class="field"><label for="configuration-'+item.id+'">Configuración</label><select id="configuration-'+item.id+'" data-field="configuration">'+
-      configurations.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===(item.configuration||'standard')?'selected':'')+'>'+escape(c.label)+(c.manual?' · costo confirmado':'')+'</option>').join('')+'</select></div>':'')+
-    (covers.length?'<label class="coverlight-toggle" for="coverlight-'+item.id+'"><input id="coverlight-'+item.id+'" type="checkbox" data-action="coverlight-toggle" '+(item.coverlight?'checked':'')+'> Agregar Coverlight</label>'+
-      (item.coverlight&&covers.length>1?'<div class="field"><label for="coverlight-version-'+item.id+'">Coverlight · dos laterales</label><select id="coverlight-version-'+item.id+'" data-field="coverlight">'+covers.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===item.coverlight?'selected':'')+'>'+escape(c.name)+'</option>').join('')+'</select></div>':''):'')+
-    (addons.length?'<details class="enrollable-accessories"><summary>Complementos</summary>'+addons.map(a=>'<label class="coverlight-toggle"><input type="checkbox" data-action="addon-toggle" data-addon="'+escape(a.id)+'" '+((item.addons||[]).includes(a.id)?'checked':'')+'> '+escape(a.name)+'</label>').join('')+'</details>':'')+
-    '</div>';
+function calculatedCovers(item){
+  const result=lastEngineQuote?.items?.[state.items.indexOf(item)];
+  const mm=value=>Math.round(Number(String(value).replace(',','.'))*1000);
+  return result?.ok&&result.product.id===item.product&&result.widthMm===mm(item.width)&&result.heightMm===mm(item.height)?result.coverlightOptions||[]:[];
+}
+function coverlightControls(item){
+  const covers=calculatedCovers(item);
+  return covers.length?'<label class="coverlight-toggle" for="coverlight-'+item.id+'"><input id="coverlight-'+item.id+'" type="checkbox" data-action="coverlight-toggle" '+(item.coverlight?'checked':'')+'> Agregar Coverlight</label>'+
+    (item.coverlight?'<div class="field"><label for="coverlight-version-'+item.id+'">Coverlight</label><select id="coverlight-version-'+item.id+'" data-field="coverlight">'+covers.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===item.coverlight?'selected':'')+'>'+escape(c.name)+' · +'+escape(cop(c.costCents))+'</option>').join('')+'</select></div>':''):'';
+}
+function enrollableControls(item){
+  return item.family==='enrollable'?'<div class="enrollable-options">'+coverlightControls(item)+'</div>':'';
 }
 
 function newItem(previous){
@@ -208,7 +222,7 @@ function renderItem(item,index){
       '<div class="field"><label for="product-'+item.id+'">Tela / referencia</label><select id="product-'+item.id+'" data-field="product">'+productOptions(item)+'</select></div>'+
     '</div>'+
 
-    (p?.configuration?'<div class="product-meta">'+escape(p.configuration)+'</div>':'')+
+    (item.family!=='enrollable'&&p?.configuration?'<div class="product-meta">'+escape(p.configuration)+'</div>':'')+
 
     '<div class="measure-grid">'+
       field(item,'width','Ancho (m)','inputmode="decimal" placeholder="1,80" autocomplete="off"')+
@@ -220,13 +234,13 @@ function renderItem(item,index){
 
     '<div class="location-row">'+field(item,'location','Ambiente <span>(opcional)</span>','placeholder="Ej. Sala" maxlength="80"')+'</div>'+
 
-    '<details class="optional-settings" '+(forcedManual?'open':'')+'>'+
+    (item.family!=='enrollable'?'<details class="optional-settings" '+(forcedManual?'open':'')+'>'+
       '<summary>Ajustes opcionales</summary>'+
       '<p>Solo si Pentagrama te dio otro costo o necesitas sumar accesorios.</p>'+
       '<label class="manual-toggle"><input type="checkbox" data-action="manual-toggle" '+(manual?'checked':'')+' '+(forcedManual?'disabled':'')+'> Usar costo confirmado por Pentagrama</label>'+
       '<div class="manual-cost" '+(!manual?'hidden':'')+'>'+moneyField(item,'manualCost','Costo confirmado por persiana')+'</div>'+
       moneyField(item,'extras','Accesorios adicionales por persiana')+
-    '</details>'+
+    '</details>':'')+
 
     '<div class="item-price">'+
       '<div><span>'+unitLabel+'</span><strong data-output="unit">—</strong></div>'+
@@ -291,6 +305,8 @@ function renderCommercial(message=''){
     const total=el.querySelector('[data-output=total]');
     if(unit)unit.textContent=itemResult?.ok?cop(itemResult.unit):'—';
     if(total)total.textContent=itemResult?.ok?cop(itemResult.total):'—';
+    const coverControls=el.querySelector('.enrollable-options');
+    if(coverControls)coverControls.innerHTML=coverlightControls(state.items[index]);
     el.querySelector('[data-output=error]').textContent=itemResult?.ok?'':itemResult?.error||'';
   });
 
@@ -393,6 +409,10 @@ $('items').addEventListener('input',event=>{
   }else{
     item[field]=target.value;
   }
+  if(item.family==='enrollable'&&(field==='width'||field==='height')){
+    card.querySelector('[data-field=product]').innerHTML=productOptions(item);
+    card.querySelector('.enrollable-options').innerHTML=coverlightControls(item);
+  }
 
   if(field==='location'){
     const title=card.querySelector('.item-head h3');
@@ -436,7 +456,7 @@ $('items').addEventListener('change',event=>{
   }
 
   if(target.dataset.action==='coverlight-toggle'){
-    item.coverlight=target.checked?(chosen(item)?.coverlight?.[0]?.id||''):'';
+    item.coverlight=target.checked?(calculatedCovers(item)[0]?.id||''):'';
     render();
     return;
   }
@@ -616,6 +636,11 @@ async function connect(){
     state.items=state.items.map(item=>{
       const existing=catalog.products.find(p=>p.id===item.product);
       if(existing){
+        if(item.family==='enrollable'){
+          item.configuration='standard';item.mode='auto';item.manualCost='';item.extras='0';item.addons=[];
+          if(item.coverlight&&!(existing.coverlight||[]).some(c=>c.id===item.coverlight))item.coverlight='';
+          return item;
+        }
         const configuration=(existing.configurations||[]).find(c=>c.id===(item.configuration||'standard'));
         if(item.configuration&&item.configuration!=='standard'&&!configuration){item.configuration='standard';resetComplements(item);}
         if(requiresManual(item)||item.mode==='manual')resetComplements(item);
@@ -624,7 +649,7 @@ async function connect(){
         return item;
       }
       const family=firstProduct(item.family)?item.family:(availableFamilies()[0]||'onda');
-      return {...item,family,product:firstProduct(family)?.id||'',mode:'auto',configuration:'standard',coverlight:'',addons:[],manualCost:'',extras:''};
+      return {...item,family,product:family==='enrollable'?'':firstProduct(family)?.id||'',mode:'auto',configuration:'standard',coverlight:'',addons:[],manualCost:'',extras:''};
     });
 
     $('add-item').disabled=false;
@@ -648,7 +673,7 @@ function start(){
     return;
   }
   key='homeeasy.cost-draft.v2:'+profile.uid;
-  engineCacheKey='homeeasy.cost-engine.v1:'+profile.uid;
+  engineCacheKey='homeeasy.cost-engine.v2:'+profile.uid;
   ready=true;
   loadDraft();
   fillGlobals();

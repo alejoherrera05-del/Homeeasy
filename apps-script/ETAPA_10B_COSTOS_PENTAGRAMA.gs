@@ -16,7 +16,7 @@ const HOMEEASY_COST_SCHEMA_VERSION = 1;
 const HOMEEASY_COST_SHEET = "Costos_Pentagrama";
 const HOMEEASY_COST_MATRIX_SHEET = "Costos_Pentagrama_Matrices";
 const HOMEEASY_COST_CONFIG_SHEET = "Costos_Pentagrama_Config";
-const HOMEEASY_COST_CACHE_KEY = "HOMEEASY_COST_CATALOG_V2_ENROLLABLES";
+const HOMEEASY_COST_CACHE_KEY = "HOMEEASY_COST_CATALOG_V3_SIMPLE";
 const HOMEEASY_COST_CACHE_SECONDS = 300;
 const HOMEEASY_COST_PERMISSION = "cotizaciones.write";
 
@@ -153,8 +153,18 @@ function obtenerEstadoCostos10B_(ss) {
 
 function obtenerOpcionesCostos10B_(ss) {
   const catalog = cargarCatalogoCostos10B_(ss, false);
-  const products = catalog.products.filter(function(p) { return p.active && p.family !== "complemento-enrollable"; }).map(function(p) {
+  const products = catalog.products.filter(function(p) {
+    return p.active && p.family !== "complemento-enrollable" && (p.family !== "enrollable" ||
+      (p.method === "area" && p.rateCents > 0 && p.status === "VIGENTE" && p.pricesIncludeVat && p.currency === "COP" &&
+       catalog.validThrough >= fechaBogota10B_() && p.validThrough >= fechaBogota10B_() && !/institucional|m[aá]s de 30/i.test(p.name)));
+  }).map(function(p) {
     const rules = p.rules || {};
+    if (p.family === "enrollable") return {
+      id: p.id, family: p.family, familyName: p.familyName, name: nombreEnrollable10B_(p), type: p.type,
+      method: p.method, manual: false, coverlight: opcionesComplementos10B_(catalog, rules.coverlightIds || []),
+      limits: { minWidthMm: rules.minWidthMm, minHeightMm: rules.minHeightMm,
+        maxWidthMm: rules.maxWidthMm, maxHeightMm: rules.maxHeightMm, maxRatio: rules.maxRatio }
+    };
     return {
       id: p.id, family: p.family, familyName: p.familyName, name: p.name, type: p.type,
       method: p.method, configuration: p.configuration, status: p.status,
@@ -169,6 +179,12 @@ function obtenerOpcionesCostos10B_(ss) {
     validThrough: catalog.validThrough, currency: catalog.currency,
     pricesIncludeVat: catalog.pricesIncludeVat, products: products
   };
+}
+
+function nombreEnrollable10B_(p) {
+  let name = p.name.replace(/\s+/g, " ").trim().replace(/Lagrima/gi, "Lágrima");
+  if (p.type === "Blackout" && !/^Blackout\b/i.test(name)) name = "Blackout " + name.replace(/\s+Blackout\b/gi, "");
+  return name.replace(/\s+(Lágrima|Platina)$/i, " — $1");
 }
 
 function calcularCotizacionCostos10B_(ss, data) {
@@ -358,9 +374,17 @@ function calcularItemCostos10B_(item, catalog, options) {
     return {
       ok: true, unit: unit, total: total, installation: installation, quantity: qty,
       manual: manual, area: area,
+      widthMm: width, heightMm: height,
+      coverlightOptions: product.family === "enrollable" && !manual ? (product.rules.coverlightIds || []).map(function(id) {
+        try {
+          const cents = calcularComplemento10B_(id, catalog, width, height, options.today, 2);
+          const complement = catalog.products.find(function(p) { return p.id === id; });
+          return cents > 0 ? { id: id, name: complement.name, costCents: cents } : null;
+        } catch (e) { return null; }
+      }).filter(Boolean) : [],
       product: {
         id: product.id, family: product.family, familyName: product.familyName,
-        name: product.name, type: product.type, method: product.method,
+        name: product.family === "enrollable" ? nombreEnrollable10B_(product) : product.name, type: product.type, method: product.method,
         configuration: product.configuration + (item.coverlight ? " · con Coverlight" : ""), status: product.status,
         coverlight: Boolean(item.coverlight)
       }
