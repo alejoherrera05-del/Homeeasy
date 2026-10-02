@@ -527,7 +527,7 @@ function buildWhatsAppProposal(q){
     '💰 *Valor total de la propuesta: '+cop(q.sale)+'*',
     inclusion,
     'La propuesta está sujeta a disponibilidad y confirmación de fabricación.',
-    'Si deseas, con gusto te ayudo a continuar con el pedido o resolver cualquier duda. 😊'
+    'Si deseas, con gusto te ayudo a continuar con el pedido o resolver cualquier duda.'
   ].filter(Boolean).join('\n\n');
 }
 
