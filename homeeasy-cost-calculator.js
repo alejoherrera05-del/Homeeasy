@@ -3,8 +3,8 @@
 
 const $=id=>document.getElementById(id);
 const API_URL=String(window.HomeEasyCore&&window.HomeEasyCore.API_URL||'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
-const familyLabels={onda:'Onda Serena',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales'};
-const familyOrder=['onda','sheer','vertesse','panel','vertical'];
+const familyLabels={onda:'Onda Serena',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales',enrollable:'Enrollable'};
+const familyOrder=['onda','sheer','vertesse','panel','vertical','enrollable'];
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cop=cents=>'COP $'+new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Math.round((Number(cents)||0)/100));
 const formatPesos=raw=>new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Number(String(raw||'0').replace(/\D/g,''))||0);
@@ -56,6 +56,9 @@ function engineSignature(){
     items:(state.items||[]).map(item=>({
       family:item.family||'',
       product:item.product||'',
+      configuration:item.configuration||'standard',
+      coverlight:item.coverlight||'',
+      addons:Array.isArray(item.addons)?item.addons:[],
       width:String(item.width||''),
       height:String(item.height||''),
       quantity:String(item.quantity||'1'),
@@ -137,6 +140,24 @@ function productOptions(item){
 }
 function firstProduct(family){return (catalog?.products||[]).find(p=>p.family===family);}
 function chosen(item){return (catalog?.products||[]).find(p=>p.id===item.product);}
+function chosenConfiguration(item){return chosen(item)?.configurations?.find(c=>c.id===(item.configuration||'standard'));}
+function requiresManual(item){return chosen(item)?.method==='manual'||chosenConfiguration(item)?.manual;}
+function resetComplements(item){item.coverlight='';item.addons=[];}
+
+function enrollableControls(item,p,manual){
+  if(item.family!=='enrollable')return '';
+  const configurations=p?.configurations||[];
+  const standard=(item.configuration||'standard')==='standard';
+  const covers=standard&&!manual?(p?.coverlight||[]):[];
+  const addons=standard&&!manual?(p?.addons||[]):[];
+  return '<div class="enrollable-options">'+
+    (configurations.length?'<div class="field"><label for="configuration-'+item.id+'">Configuración</label><select id="configuration-'+item.id+'" data-field="configuration">'+
+      configurations.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===(item.configuration||'standard')?'selected':'')+'>'+escape(c.label)+(c.manual?' · costo confirmado':'')+'</option>').join('')+'</select></div>':'')+
+    (covers.length?'<label class="coverlight-toggle" for="coverlight-'+item.id+'"><input id="coverlight-'+item.id+'" type="checkbox" data-action="coverlight-toggle" '+(item.coverlight?'checked':'')+'> Agregar Coverlight</label>'+
+      (item.coverlight&&covers.length>1?'<div class="field"><label for="coverlight-version-'+item.id+'">Coverlight · dos laterales</label><select id="coverlight-version-'+item.id+'" data-field="coverlight">'+covers.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===item.coverlight?'selected':'')+'>'+escape(c.name)+'</option>').join('')+'</select></div>':''):'')+
+    (addons.length?'<details class="enrollable-accessories"><summary>Complementos</summary>'+addons.map(a=>'<label class="coverlight-toggle"><input type="checkbox" data-action="addon-toggle" data-addon="'+escape(a.id)+'" '+((item.addons||[]).includes(a.id)?'checked':'')+'> '+escape(a.name)+'</label>').join('')+'</details>':'')+
+    '</div>';
+}
 
 function newItem(previous){
   const fallbackFamily=availableFamilies()[0]||'onda';
@@ -153,7 +174,10 @@ function newItem(previous){
     quantity:'1',
     mode:'auto',
     manualCost:'',
-    extras:'0'
+    extras:'0',
+    configuration:'standard',
+    coverlight:'',
+    addons:[]
   };
 }
 
@@ -169,7 +193,7 @@ function moneyField(item,name,label,placeholder='0'){
 
 function renderItem(item,index){
   const p=chosen(item);
-  const forcedManual=p?.method==='manual';
+  const forcedManual=requiresManual(item);
   const manual=forcedManual||item.mode==='manual';
   const unitLabel=Number(item.quantity)>1?'Costo por persiana':'Costo de la persiana';
 
@@ -191,6 +215,8 @@ function renderItem(item,index){
       field(item,'height','Alto (m)','inputmode="decimal" placeholder="2,30" autocomplete="off"')+
       field(item,'quantity','Cantidad','inputmode="numeric" autocomplete="off"')+
     '</div>'+
+
+    enrollableControls(item,p,manual)+
 
     '<div class="location-row">'+field(item,'location','Ambiente <span>(opcional)</span>','placeholder="Ej. Sala" maxlength="80"')+'</div>'+
 
@@ -355,7 +381,7 @@ function fillGlobals(){
 $('items').addEventListener('input',event=>{
   const target=event.target;
   const field=target.dataset.field;
-  if(!field||target.tagName==='SELECT')return;
+  if(!field||target.tagName==='SELECT'||target.type==='checkbox')return;
   const card=target.closest('.item-card');
   if(!card)return;
   const item=state.items.find(i=>i.id===card.dataset.id);
@@ -393,16 +419,38 @@ $('items').addEventListener('change',event=>{
       item.mode='auto';
     }
     if(field==='family'||field==='product'){
+      item.configuration='standard';
+      resetComplements(item);
       item.manualCost='';
       item.extras='0';
-      if(chosen(item)?.method==='manual')item.mode='manual';
+      item.mode=requiresManual(item)?'manual':'auto';
+    }
+    if(field==='configuration'){
+      resetComplements(item);
+      item.manualCost='';
+      item.extras='0';
+      item.mode=requiresManual(item)?'manual':'auto';
     }
     render();
     return;
   }
 
+  if(target.dataset.action==='coverlight-toggle'){
+    item.coverlight=target.checked?(chosen(item)?.coverlight?.[0]?.id||''):'';
+    render();
+    return;
+  }
+  if(target.dataset.action==='addon-toggle'){
+    const ids=new Set(item.addons||[]);
+    if(target.checked)ids.add(target.dataset.addon);
+    else ids.delete(target.dataset.addon);
+    item.addons=Array.from(ids);
+    scheduleQuote(0);
+    return;
+  }
   if(target.dataset.action==='manual-toggle'){
-    if(chosen(item)?.method==='manual'){
+    resetComplements(item);
+    if(requiresManual(item)){
       item.mode='manual';
     }else{
       item.mode=target.checked?'manual':'auto';
@@ -414,7 +462,7 @@ $('items').addEventListener('change',event=>{
 
 $('items').addEventListener('click',event=>{
   const button=event.target.closest('[data-action]');
-  if(!button||button.dataset.action==='manual-toggle')return;
+  if(!button||['manual-toggle','coverlight-toggle','addon-toggle'].includes(button.dataset.action))return;
   const card=button.closest('.item-card');
   if(!card)return;
   const index=state.items.findIndex(i=>i.id===card.dataset.id);
@@ -500,7 +548,7 @@ function buildWhatsAppProposal(q){
   const itemBlocks=state.items.map((item,index)=>{
     const product=q.items[index]?.product;
     const family=familyLabels[item.family]||item.family||'Persiana';
-    const reference=product?.name||'';
+    const reference=(product?.name||'')+(product?.coverlight?' · con Coverlight':'');
     const title=item.location
       ? '*'+(index+1)+'. '+item.location+' · '+family+(reference?' · '+reference:'')+'*'
       : '*'+(index+1)+'. '+family+(reference?' · '+reference:'')+'*';
@@ -567,9 +615,16 @@ async function connect(){
     if(!state.items.length)state.items.push(newItem());
     state.items=state.items.map(item=>{
       const existing=catalog.products.find(p=>p.id===item.product);
-      if(existing)return item;
+      if(existing){
+        const configuration=(existing.configurations||[]).find(c=>c.id===(item.configuration||'standard'));
+        if(item.configuration&&item.configuration!=='standard'&&!configuration){item.configuration='standard';resetComplements(item);}
+        if(requiresManual(item)||item.mode==='manual')resetComplements(item);
+        if(item.coverlight&&!(existing.coverlight||[]).some(c=>c.id===item.coverlight))item.coverlight='';
+        item.addons=(item.addons||[]).filter(id=>(existing.addons||[]).some(a=>a.id===id));
+        return item;
+      }
       const family=firstProduct(item.family)?item.family:(availableFamilies()[0]||'onda');
-      return {...item,family,product:firstProduct(family)?.id||'',mode:'auto'};
+      return {...item,family,product:firstProduct(family)?.id||'',mode:'auto',configuration:'standard',coverlight:'',addons:[],manualCost:'',extras:''};
     });
 
     $('add-item').disabled=false;

@@ -324,3 +324,7 @@ dialog textarea{margin:14px 0}
   .measure-grid .field:last-child{grid-column:1/-1}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.enrollable-options{display:grid;gap:12px;margin:12px 0}
+.coverlight-toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;cursor:pointer}
+.coverlight-toggle input{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent,#97475a)}
+.enrollable-accessories summary{font-size:13px;color:var(--muted);cursor:pointer;padding:10px 0}
