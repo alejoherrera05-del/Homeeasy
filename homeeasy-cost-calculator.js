@@ -521,7 +521,7 @@ function buildWhatsAppProposal(q){
   if(includes.length===2)inclusion='✅ Este valor incluye *instalación y transporte*.';
 
   const blocks=[
-    'Hola 👋\n'+intro,
+    intro,
     itemBlocks.join('\n\n'),
     '💰 *Valor total: '+cop(q.sale)+'*'+(inclusion?'\n'+inclusion:''),
     'Si deseas, con gusto te ayudo a continuar con el pedido o resolver cualquier duda.'
