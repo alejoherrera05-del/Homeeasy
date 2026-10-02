@@ -2,29 +2,52 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#a6455a">
-<title>Cotizador · HomeEasy</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f6f6f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>HomeEasy | Cotizador</title>
 <link rel="icon" href="apple-touch-icon.png">
-<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002c">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002d">
 <script src="homeeasy-core.js?v=3.5"></script>
 <script src="homeeasy-page-guard.js?v=20261002b"></script>
-<script defer src="homeeasy-cost-calculator.js?v=20261002c"></script>
+<script defer src="homeeasy-cost-calculator.js?v=20261002d"></script>
 </head>
 <body>
-<header class="topbar">
-  <a href="index.html" class="back" aria-label="Volver a HomeEasy">← <span>HomeEasy</span></a>
-  <span id="save-state" role="status">Borrador guardado</span>
+
+<header class="app-header">
+  <div class="header-inner">
+    <a class="btn-back" href="index.html" aria-label="Volver a HomeEasy">
+      <i class="fa-solid fa-chevron-left"></i>
+    </a>
+
+    <div class="brand">
+      <img src="triangulo.png" alt="" aria-hidden="true">
+      <div class="brand-copy">
+        <strong>Cotizador</strong>
+        <span>Sistema Hommy</span>
+      </div>
+    </div>
+
+    <div class="save-status" id="save-state" role="status">
+      <i class="fa-solid fa-check"></i><span>Guardado</span>
+    </div>
+  </div>
 </header>
 
-<main>
+<main class="page-shell">
   <section class="hero">
-    <div>
-      <span class="eyebrow">Cotizador interno</span>
-      <h1>Cotiza fácil</h1>
-      <p>Elige el producto, ingresa las medidas y HomeEasy calcula el resto.</p>
+    <div class="hero-copy">
+      <div class="hero-eyebrow"><i class="fa-solid fa-calculator"></i><span>Precios HomeEasy</span></div>
+      <h1>Cotiza persianas</h1>
+      <p>Selecciona el producto, escribe las medidas y obtén el precio de venta.</p>
     </div>
-    <button id="new-quote" class="secondary">Nueva cotización</button>
+
+    <button id="new-quote" class="hero-action" type="button">
+      <i class="fa-solid fa-plus"></i>
+      <span>Nueva cotización</span>
+    </button>
   </section>
 
   <div id="connection" class="notice" role="status">
@@ -41,42 +64,60 @@
 
       <div class="section-title">
         <div>
-          <span class="eyebrow">Productos</span>
+          <span class="section-kicker">Productos</span>
           <h2>Persianas <span id="item-count"></span></h2>
         </div>
         <span>Medidas en metros</span>
       </div>
 
       <div id="items"></div>
-      <button id="add-item" class="add-item" disabled>+ Agregar otra persiana</button>
+
+      <button id="add-item" class="add-item" disabled type="button">
+        <i class="fa-solid fa-plus"></i>
+        Agregar otra persiana
+      </button>
+
       <p class="catalog-note" id="catalog-note"></p>
     </section>
 
     <aside class="summary-card" id="summary" aria-label="Resumen y precio sugerido">
       <div class="summary-head">
-        <span class="eyebrow">Resumen</span>
-        <h2>Precio de venta</h2>
+        <div class="summary-icon"><i class="fa-solid fa-receipt"></i></div>
+        <div>
+          <span>Resumen</span>
+          <h2>Precio de venta</h2>
+        </div>
       </div>
 
       <div class="money-fields">
         <div>
           <label for="installation">Instalación total</label>
-          <div class="money-input"><span>COP $</span><input id="installation" inputmode="numeric" autocomplete="off" value="0"></div>
+          <div class="money-input">
+            <span>COP $</span>
+            <input id="installation" inputmode="numeric" autocomplete="off" value="0">
+          </div>
         </div>
         <div>
           <label for="transport">Transporte total</label>
-          <div class="money-input"><span>COP $</span><input id="transport" inputmode="numeric" autocomplete="off" value="0"></div>
+          <div class="money-input">
+            <span>COP $</span>
+            <input id="transport" inputmode="numeric" autocomplete="off" value="0">
+          </div>
         </div>
       </div>
 
       <div class="gain-box">
         <div class="gain-copy">
           <label for="gain">Ganancia sobre costo</label>
-          <span>De 10% a 100%</span>
+          <span>10% – 100%</span>
         </div>
+
         <div class="gain-control">
           <button id="gain-minus" type="button" aria-label="Restar 10 por ciento">−</button>
-          <div class="percent-input"><input id="gain" type="number" min="10" max="100" step="10" inputmode="numeric" value="90"><span>%</span></div>
+          <div class="percent-input">
+            <input id="gain" type="number" min="10" max="100" step="10" inputmode="numeric" value="90" aria-label="Porcentaje de ganancia">
+            <span>%</span>
+          </div>
           <button id="gain-plus" type="button" aria-label="Sumar 10 por ciento">+</button>
         </div>
       </div>
@@ -89,15 +130,22 @@
       </div>
 
       <div class="price-card">
-        <div class="profit-row"><span id="gain-label">Ganancia +90%</span><output id="sum-gain">—</output></div>
+        <div class="profit-row">
+          <span id="gain-label">Ganancia +90%</span>
+          <output id="sum-gain">—</output>
+        </div>
         <span class="price-label">Precio sugerido al cliente</span>
         <output id="sum-sale">—</output>
       </div>
 
-      <p id="result-message" class="result-message" role="status">Completa la primera persiana.</p>
-      <button id="copy-sale" class="primary" disabled>Copiar propuesta para el cliente</button>
-      <p class="privacy-note">Al cliente solo se copia el precio final, nunca tus costos.</p>
+      <p id="result-message" class="result-message" role="status"></p>
 
+      <button id="copy-sale" class="primary" disabled>
+        <i class="fa-regular fa-copy"></i>
+        Copiar propuesta
+      </button>
+
+      <p class="privacy-note">El cliente nunca ve tus costos internos.</p>
       <div class="tariff-meta" id="tariff-date"></div>
     </aside>
   </div>
@@ -109,7 +157,7 @@
 </a>
 
 <dialog id="new-dialog">
-  <h2>¿Empezar otra cotización?</h2>
+  <h2>¿Nueva cotización?</h2>
   <p>Se borrará únicamente este borrador.</p>
   <div class="dialog-actions">
     <button id="cancel-new">Conservar</button>
