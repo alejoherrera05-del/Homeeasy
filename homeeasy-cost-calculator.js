@@ -59,7 +59,7 @@
  }
  function setCalculating(){$('result-message').textContent='Calculando con las tarifas privadas de HomeEasy…';$('result-message').classList.add('calculating');}
  async function post(tipo,payload={}){
-   const response=await fetch(API_URL,{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo,...payload})});
+   const response=await fetch(API_URL,{method:'POST',cache:'no-store',body:JSON.stringify({tipo,...payload})});
    const data=await response.json().catch(()=>({status:'error',msg:'HomeEasy respondió con datos no válidos.'}));
    if(!response.ok)throw Error(data.msg||data.error||('HTTP '+response.status));
    return data;
