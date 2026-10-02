@@ -520,15 +520,14 @@ function buildWhatsAppProposal(q){
   if(includes.length===1)inclusion='✅ Este valor incluye *'+includes[0]+'*.';
   if(includes.length===2)inclusion='✅ Este valor incluye *instalación y transporte*.';
 
-  return [
-    'Hola 👋',
-    intro,
+  const blocks=[
+    'Hola 👋\n'+intro,
     itemBlocks.join('\n\n'),
-    '💰 *Valor total de la propuesta: '+cop(q.sale)+'*',
-    inclusion,
-    'La propuesta está sujeta a disponibilidad y confirmación de fabricación.',
+    '💰 *Valor total: '+cop(q.sale)+'*'+(inclusion?'\n'+inclusion:''),
     'Si deseas, con gusto te ayudo a continuar con el pedido o resolver cualquier duda.'
-  ].filter(Boolean).join('\n\n');
+  ].filter(Boolean);
+
+  return blocks.join('\n\n');
 }
 
 $('copy-sale').onclick=async()=>{
