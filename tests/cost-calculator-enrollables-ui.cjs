@@ -4,6 +4,7 @@ const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'cotizador-persianas.html'),'utf8').replace(/<script\b[\s\S]*?<\/script>/gi,'');
 const catalog=[{id:'old',family:'onda',name:'Referencia previa',method:'area'},{id:'black',family:'enrollable',name:'Blackout ficticio',type:'Blackout',method:'area',coverlight:[{id:'cover',name:'Coverlight ficticio'}]},{id:'screen',family:'enrollable',name:'Screen ficticio',type:'Screen',method:'area',coverlight:[]}];
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+catalog.push({id:'dim',family:'enrollable',name:'Dim Out ficticio',type:'Dim Out',method:'area',coverlight:[]});
 async function mount(saved){
  const dom=new JSDOM(html,{url:'https://hommy.homeeasy.com.co/cotizador-persianas.html',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window;w.HomeEasyPageGuard={getStatus:()=> 'authorized'};w.HomeEasyAuth={getHomeEasyProfile:()=>({uid:'qa'})};
@@ -24,6 +25,8 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  change(w,'[data-field=family]','enrollable');assert.equal(d.querySelector('[data-field=configuration]'),null);
  assert.equal(d.querySelector('[data-action=manual-toggle]'),null);assert.equal(d.querySelector('.product-meta'),null);
  assert.equal(d.querySelector('[data-action=coverlight-toggle]'),null);
+ assert.equal(d.querySelectorAll('[data-field=product] option').length,3);
+ assert.ok(d.querySelector('optgroup[label="Dim Out"]'));
  input(w,'[data-field=width]','1');input(w,'[data-field=height]','1');await sleep(250);
  const toggle=d.querySelector('[data-action=coverlight-toggle]');toggle.checked=true;toggle.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(250);
  assert.match(d.querySelector('[data-field=coverlight]').textContent,/20/);

@@ -146,7 +146,7 @@ function productOptions(item){
       (!h||((!l.minHeightMm||h>=l.minHeightMm)&&(!l.maxHeightMm||h<=l.maxHeightMm)))&&
       (!w||!h||!l.maxRatio||h/w<=l.maxRatio);
   });
-  const groups=[['Blackout','Blackout'],['Screen','Screen'],['Traslúcida','Traslúcidas'],['DimOut','Dim Out'],['Lona transparente','Lona'],['Membrana bioclimática','Soltis'],['Serenade','Serenade']];
+  const groups=[['Blackout','Blackout'],['Screen','Screen'],['Traslúcida','Traslúcidas'],['Dim Out','Dim Out'],['Lona transparente','Lona'],['Membrana bioclimática','Soltis'],['Serenade','Serenade']];
   const missing=!products.some(p=>p.id===item.product)?'<option value="'+escape(item.product)+'" selected disabled>Selecciona una tela disponible</option>':'';
   return missing+groups.map(([type,label])=>{
     const entries=products.filter(p=>p.type===type).sort((a,b)=>a.name.localeCompare(b.name,'es',{numeric:true}));
