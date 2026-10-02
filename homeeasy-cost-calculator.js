@@ -128,6 +128,45 @@ function loadDraft(){
   }
 }
 
+function normalizeRoomIds(){
+  const legacyRooms=new Map();
+  state.items.forEach(item=>{
+    if(item.roomId)return;
+    const location=String(item.location||'').trim().toLocaleLowerCase('es');
+    if(location){
+      if(!legacyRooms.has(location))legacyRooms.set(location,crypto.randomUUID());
+      item.roomId=legacyRooms.get(location);
+    }else{
+      item.roomId=crypto.randomUUID();
+    }
+  });
+}
+
+function roomIdOf(item){
+  return item?.roomId||item?.id||'';
+}
+
+function roomGroups(){
+  const groups=[];
+  const byId=new Map();
+  state.items.forEach(item=>{
+    const id=roomIdOf(item);
+    if(!byId.has(id)){
+      const group={id,items:[]};
+      byId.set(id,group);
+      groups.push(group);
+    }
+    byId.get(id).items.push(item);
+  });
+  return groups;
+}
+
+function setRoomLocation(roomId,value){
+  state.items.forEach(item=>{
+    if(roomIdOf(item)===roomId)item.location=value;
+  });
+}
+
 function availableFamilies(){
   const present=new Set((catalog?.products||[]).map(p=>p.family));
   return familyOrder.filter(f=>present.has(f));
@@ -185,13 +224,14 @@ function enrollableControls(item){
   return item.family==='enrollable'?'<div class="enrollable-options">'+coverlightControls(item)+'</div>':'';
 }
 
-function newItem(previous){
+function newItem(previous,roomId=''){
   const fallbackFamily=availableFamilies()[0]||'onda';
   const family=previous?.family&&firstProduct(previous.family)?previous.family:fallbackFamily;
   const previousProduct=previous?.product?(catalog?.products||[]).find(p=>p.id===previous.product):null;
   const product=previousProduct&&previousProduct.family===family?previousProduct.id:(firstProduct(family)?.id||'');
   return {
     id:crypto.randomUUID(),
+    roomId:roomId||crypto.randomUUID(),
     family,
     product,
     location:'',
@@ -207,6 +247,15 @@ function newItem(previous){
   };
 }
 
+function newRoomLayer(previous){
+  const item=newItem(previous,roomIdOf(previous));
+  item.location=previous?.location||'';
+  item.width=previous?.width||'';
+  item.height=previous?.height||'';
+  item.quantity=previous?.quantity||'1';
+  return item;
+}
+
 function field(item,name,label,extra=''){
   const id=name+'-'+item.id;
   return '<div class="field"><label for="'+id+'">'+label+'</label><input id="'+id+'" data-field="'+name+'" value="'+escape(item[name])+'" '+extra+'></div>';
@@ -217,15 +266,16 @@ function moneyField(item,name,label,placeholder='0'){
   return '<div class="field"><label for="'+id+'">'+label+'</label><div class="money-input"><span>COP $</span><input id="'+id+'" data-field="'+name+'" data-money="true" inputmode="numeric" value="'+escape(formatPesos(item[name]))+'" placeholder="'+placeholder+'" autocomplete="off"></div></div>';
 }
 
-function renderItem(item,index){
+function renderItem(item,index,layerIndex=0,layerCount=1){
   const p=chosen(item);
   const forcedManual=requiresManual(item);
   const manual=forcedManual||item.mode==='manual';
   const unitLabel=Number(item.quantity)>1?'Costo por persiana':'Costo de la persiana';
+  const layerLabel=layerCount>1?'Persiana '+(layerIndex+1)+' de '+layerCount:'Persiana '+(layerIndex+1);
 
   return '<article class="item-card" data-id="'+escape(item.id)+'">'+
     '<div class="item-head">'+
-      '<div><span class="item-number">Persiana '+(index+1)+'</span><h3>'+escape(item.location||'Sin ambiente')+'</h3></div>'+
+      '<div><span class="item-number">'+layerLabel+'</span><h3>'+escape(familyLabels[item.family]||'Persiana')+'</h3></div>'+
       '<div class="item-actions"><button data-action="duplicate" title="Duplicar">Duplicar</button><button data-action="remove" title="Quitar">Quitar</button></div>'+
     '</div>'+
 
@@ -244,8 +294,6 @@ function renderItem(item,index){
 
     enrollableControls(item,p,manual)+
 
-    '<div class="location-row">'+field(item,'location','Ambiente <span>(opcional)</span>','placeholder="Ej. Sala" maxlength="80"')+'</div>'+
-
     (item.family!=='enrollable'?'<details class="optional-settings" '+(forcedManual?'open':'')+'>'+
       '<summary>Ajustes opcionales</summary>'+
       '<p>Solo si Pentagrama te dio otro costo o necesitas sumar accesorios.</p>'+
@@ -262,8 +310,27 @@ function renderItem(item,index){
   '</article>';
 }
 
+function renderRoom(group,roomIndex){
+  const first=group.items[0];
+  const location=first?.location||'';
+  const count=group.items.length;
+  return '<section class="room-card" data-room-id="'+escape(group.id)+'">'+
+    '<div class="room-head">'+
+      '<div><span class="room-number">Ambiente '+(roomIndex+1)+'</span><h3 data-room-title>'+escape(location||'Sin ambiente')+'</h3></div>'+
+      '<span class="room-count">'+count+' '+(count===1?'persiana':'persianas')+'</span>'+
+    '</div>'+
+    '<div class="room-location field">'+
+      '<label for="room-location-'+escape(group.id)+'">Ambiente <span>(opcional)</span></label>'+
+      '<input id="room-location-'+escape(group.id)+'" data-room-field="location" value="'+escape(location)+'" placeholder="Ej. Habitación principal" maxlength="80">'+
+    '</div>'+
+    '<div class="room-layers">'+group.items.map((item,layerIndex)=>renderItem(item,state.items.indexOf(item),layerIndex,count)).join('')+'</div>'+
+    '<button class="add-room-item" data-action="add-room-item" type="button"><i class="fa-solid fa-plus"></i> Agregar otra persiana en este ambiente</button>'+
+  '</section>';
+}
+
 function render(options={}){
-  $('items').innerHTML=state.items.map(renderItem).join('');
+  const groups=roomGroups();
+  $('items').innerHTML=groups.map(renderRoom).join('');
   $('item-count').textContent='('+state.items.length+')';
   if(options.recalculate===false)renderCommercial();
   else scheduleQuote(0);
@@ -408,6 +475,16 @@ function fillGlobals(){
 
 $('items').addEventListener('input',event=>{
   const target=event.target;
+  if(target.dataset.roomField==='location'){
+    const room=target.closest('.room-card');
+    if(!room)return;
+    setRoomLocation(room.dataset.roomId,target.value);
+    const title=room.querySelector('[data-room-title]');
+    if(title)title.textContent=target.value||'Sin ambiente';
+    save();
+    return;
+  }
+
   const field=target.dataset.field;
   if(!field||target.tagName==='SELECT'||target.type==='checkbox')return;
   const card=target.closest('.item-card');
@@ -424,13 +501,6 @@ $('items').addEventListener('input',event=>{
   if(item.family==='enrollable'&&(field==='width'||field==='height')){
     card.querySelector('[data-field=product]').innerHTML=productOptions(item);
     card.querySelector('.enrollable-options').innerHTML=coverlightControls(item);
-  }
-
-  if(field==='location'){
-    const title=card.querySelector('.item-head h3');
-    if(title)title.textContent=item.location||'Sin ambiente';
-    save();
-    return;
   }
 
   scheduleQuote();
@@ -495,6 +565,23 @@ $('items').addEventListener('change',event=>{
 $('items').addEventListener('click',event=>{
   const button=event.target.closest('[data-action]');
   if(!button||['manual-toggle','coverlight-toggle','addon-toggle'].includes(button.dataset.action))return;
+
+  if(button.dataset.action==='add-room-item'){
+    if(state.items.length>=100){toast('Máximo 100 persianas.');return;}
+    const room=button.closest('.room-card');
+    if(!room)return;
+    const group=roomGroups().find(g=>g.id===room.dataset.roomId);
+    const previous=group?.items?.at(-1);
+    if(!previous)return;
+    const item=newRoomLayer(previous);
+    const lastIndex=Math.max(...group.items.map(i=>state.items.indexOf(i)));
+    state.items.splice(lastIndex+1,0,item);
+    render();
+    document.querySelector('[data-id="'+item.id+'"] [data-field=family]')?.focus();
+    toast('Persiana agregada al mismo ambiente.');
+    return;
+  }
+
   const card=button.closest('.item-card');
   if(!card)return;
   const index=state.items.findIndex(i=>i.id===card.dataset.id);
@@ -502,11 +589,12 @@ $('items').addEventListener('click',event=>{
 
   if(button.dataset.action==='duplicate'){
     if(state.items.length>=100){toast('Máximo 100 persianas.');return;}
-    const item={...state.items[index],id:crypto.randomUUID(),location:''};
+    const source=state.items[index];
+    const item={...source,id:crypto.randomUUID(),roomId:roomIdOf(source),addons:[...(source.addons||[])]};
     state.items.splice(index+1,0,item);
     render();
-    document.querySelector('[data-id="'+item.id+'"] [data-field=width]')?.focus();
-    toast('Persiana duplicada.');
+    document.querySelector('[data-id="'+item.id+'"] [data-field=product]')?.focus();
+    toast('Persiana duplicada en este ambiente.');
   }
 
   if(button.dataset.action==='remove'){
@@ -536,7 +624,7 @@ $('add-item').onclick=()=>{
   const item=newItem(state.items.at(-1));
   state.items.push(item);
   render();
-  document.querySelector('[data-id="'+item.id+'"] [data-field=width]')?.focus();
+  document.querySelector('[data-room-id="'+item.roomId+'"] [data-room-field=location]')?.focus();
 };
 
 $('project').addEventListener('input',e=>{state.project=e.target.value;save();});
@@ -577,19 +665,23 @@ function buildWhatsAppProposal(q){
     ? 'Te comparto la propuesta que preparamos para *'+String(state.project).trim()+'* en *HomeEasy*:'
     : 'Te comparto la propuesta que preparamos para ti en *HomeEasy*:';
 
-  const itemBlocks=state.items.map((item,index)=>{
-    const product=q.items[index]?.product;
-    const family=familyLabels[item.family]||item.family||'Persiana';
-    const reference=(product?.name||'')+(product?.coverlight?' · con Coverlight':'');
-    const title=item.location
-      ? '*'+(index+1)+'. '+item.location+' · '+family+(reference?' · '+reference:'')+'*'
-      : '*'+(index+1)+'. '+family+(reference?' · '+reference:'')+'*';
-
-    return [
-      title,
-      '• *Medidas:* '+whatsappMeasure(item.width)+' × '+whatsappMeasure(item.height)+' m',
-      '• *Cantidad:* '+(item.quantity||1)
-    ].join('\n');
+  const groups=roomGroups();
+  const roomBlocks=groups.map((group,roomIndex)=>{
+    const location=String(group.items[0]?.location||'').trim();
+    const roomTitle=location?'*'+location+'*':(groups.length>1?'*Ambiente '+(roomIndex+1)+'*':'');
+    const products=group.items.map((item,layerIndex)=>{
+      const index=state.items.indexOf(item);
+      const product=q.items[index]?.product;
+      const family=familyLabels[item.family]||item.family||'Persiana';
+      const reference=(product?.name||'')+(product?.coverlight?' · con Coverlight':'');
+      const prefix=group.items.length>1?(layerIndex+1)+'. ':'';
+      return [
+        '*'+prefix+family+(reference?' · '+reference:'')+'*',
+        '• *Medidas:* '+whatsappMeasure(item.width)+' × '+whatsappMeasure(item.height)+' m',
+        '• *Cantidad:* '+(item.quantity||1)
+      ].join('\n');
+    }).join('\n\n');
+    return [roomTitle,products].filter(Boolean).join('\n');
   });
 
   const includes=[];
@@ -602,7 +694,7 @@ function buildWhatsAppProposal(q){
 
   const blocks=[
     intro,
-    itemBlocks.join('\n\n'),
+    roomBlocks.join('\n\n'),
     '💰 *Valor total: '+cop(q.sale)+'*'+(inclusion?'\n'+inclusion:''),
     'Si deseas, con gusto te ayudo a continuar con el pedido o resolver cualquier duda.'
   ].filter(Boolean);
@@ -688,6 +780,7 @@ function start(){
   engineCacheKey='homeeasy.cost-engine.v2:'+profile.uid;
   ready=true;
   loadDraft();
+  normalizeRoomIds();
   fillGlobals();
   connect();
 }

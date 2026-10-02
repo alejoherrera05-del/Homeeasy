@@ -328,3 +328,76 @@ dialog textarea{margin:14px 0}
 .coverlight-toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;cursor:pointer}
 .coverlight-toggle input{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent,#97475a)}
 .enrollable-accessories summary{font-size:13px;color:var(--muted);cursor:pointer;padding:10px 0}
+
+
+/* Ambientes con múltiples persianas */
+.room-card{
+  background:#fff;
+  border:1px solid rgba(60,60,67,.065);
+  box-shadow:var(--shadow);
+  border-radius:24px;
+  padding:20px;
+  margin-bottom:14px;
+}
+.room-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+.room-number{
+  display:block;
+  color:var(--brand);
+  font-size:11px;
+  font-weight:760;
+  letter-spacing:.065em;
+  text-transform:uppercase;
+}
+.room-head h3{
+  margin-top:4px;
+  font-size:18px;
+  font-weight:710;
+  letter-spacing:-.35px;
+}
+.room-count{
+  flex:0 0 auto;
+  padding:6px 9px;
+  border-radius:999px;
+  background:var(--brand-soft);
+  color:var(--brand-dark);
+  font-size:11px;
+  font-weight:680;
+}
+.room-location{margin-bottom:12px}
+.room-layers{display:grid;gap:12px}
+.room-card .item-card{
+  margin:0;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fbfbfc;
+  box-shadow:none;
+}
+.room-card .item-head{margin-bottom:15px}
+.add-room-item{
+  width:100%;
+  min-height:46px;
+  margin-top:12px;
+  border:1px dashed rgba(178,86,108,.35);
+  border-radius:14px;
+  background:#fff;
+  color:var(--brand);
+  font-size:13px;
+  font-weight:680;
+}
+.add-room-item i{margin-right:6px}
+.add-room-item:hover{background:var(--brand-soft)}
+
+@media(max-width:740px){
+  .room-card{padding:16px;border-radius:21px}
+  .room-card .item-card{padding:14px;border-radius:17px}
+  .room-head{align-items:flex-start}
+  .room-head h3{font-size:17px}
+  .room-count{margin-top:1px}
+}
