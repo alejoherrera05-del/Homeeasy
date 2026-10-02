@@ -135,10 +135,25 @@ function availableFamilies(){
 function familyOptions(value){
   return availableFamilies().map(id=>'<option value="'+id+'" '+(id===value?'selected':'')+'>'+escape(familyLabels[id]||id)+'</option>').join('');
 }
+function groupedProductOptions(products,item,groups,groupOf,includeUngrouped=true){
+  const option=p=>'<option value="'+escape(p.id)+'" '+(p.id===item.product?'selected':'')+'>'+escape(p.name)+'</option>';
+  const sorted=entries=>entries.slice().sort((a,b)=>a.name.localeCompare(b.name,'es',{numeric:true}));
+  const keys=new Set(groups.map(([key])=>key));
+  return groups.map(([key,label])=>{
+    const entries=sorted(products.filter(p=>groupOf(p)===key));
+    return entries.length?'<optgroup label="'+escape(label)+'">'+entries.map(option).join('')+'</optgroup>':'';
+  }).join('')+(includeUngrouped?sorted(products.filter(p=>!keys.has(groupOf(p)))).map(option).join(''):'');
+}
+function referenceGroup(product){
+  if(product.collection||product.category||product.type)return product.collection||product.category||product.type;
+  return product.name.match(/^(Black\s?Out|Screen(?: Ultimate Jacquard| Jacquard| Splendour| Tretto)?|Serenade Screen|Romantic|Night|Regular traslucente|Soft \/ Bisou)(?=\s|$)/i)?.[0]||'';
+}
 function productOptions(item){
   let products=(catalog?.products||[]).filter(p=>p.family===item.family);
-  const option=p=>'<option value="'+escape(p.id)+'" '+(p.id===item.product?'selected':'')+'>'+escape(p.name)+'</option>';
-  if(item.family!=='enrollable')return products.map(option).join('');
+  if(item.family!=='enrollable'){
+    const keys=[...new Set(products.map(referenceGroup).filter(Boolean))];
+    return groupedProductOptions(products,item,keys.map(key=>[key,key]),referenceGroup);
+  }
   const w=Number(String(item.width).replace(',','.'))*1000,h=Number(String(item.height).replace(',','.'))*1000;
   products=products.filter(p=>{
     const l=p.limits||{};
@@ -148,10 +163,7 @@ function productOptions(item){
   });
   const groups=[['Blackout','Blackout'],['Screen','Screen'],['Traslúcida','Traslúcidas'],['Dim Out','Dim Out'],['Lona transparente','Lona'],['Membrana bioclimática','Soltis'],['Serenade','Serenade']];
   const missing=!products.some(p=>p.id===item.product)?'<option value="'+escape(item.product)+'" selected disabled>Selecciona una tela disponible</option>':'';
-  return missing+groups.map(([type,label])=>{
-    const entries=products.filter(p=>p.type===type).sort((a,b)=>a.name.localeCompare(b.name,'es',{numeric:true}));
-    return entries.length?'<optgroup label="'+escape(label)+'">'+entries.map(option).join('')+'</optgroup>':'';
-  }).join('');
+  return missing+groupedProductOptions(products,item,groups,p=>p.type,false);
 }
 function firstProduct(family){return (catalog?.products||[]).find(p=>p.family===family);}
 function chosen(item){return (catalog?.products||[]).find(p=>p.id===item.product);}
