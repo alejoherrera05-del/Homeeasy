@@ -10,6 +10,7 @@
         'clientes.html': 'clientes.read',
         'ventas.html': 'ventas.read',
         'cotizacion.html': 'cotizaciones.write',
+        'cotizador-persianas.html': 'cotizaciones.write',
         'seguimiento.html': 'cotizaciones.read',
         'pedido.html': 'pedidos.write',
         'abono.html': 'abonos.write',
