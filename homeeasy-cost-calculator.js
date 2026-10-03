@@ -286,21 +286,19 @@ function referenceGroup(product){
   return product.name.match(/^(Black\s?Out|Screen(?: Ultimate Jacquard| Jacquard| Splendour| Tretto)?|Serenade Screen|Romantic|Night|Regular traslucente|Soft \/ Bisou)(?=\s|$)/i)?.[0]||'';
 }
 function productOptions(item){
-  let products=(catalog?.products||[]).filter(p=>p.family===item.family);
+  const products=(catalog?.products||[]).filter(p=>p.family===item.family);
   if(item.family!=='enrollable'){
     const keys=[...new Set(products.map(referenceGroup).filter(Boolean))];
     const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Revisa la referencia compartida</option>':'';
     return missing+groupedProductOptions(products,item,keys.map(key=>[key,key]),referenceGroup);
   }
-  const w=Number(String(item.width).replace(',','.'))*1000,h=Number(String(item.height).replace(',','.'))*1000;
-  products=products.filter(p=>{
-    const l=p.limits||{};
-    return (!w||((!l.minWidthMm||w>=l.minWidthMm)&&(!l.maxWidthMm||w<=l.maxWidthMm)))&&
-      (!h||((!l.minHeightMm||h>=l.minHeightMm)&&(!l.maxHeightMm||h<=l.maxHeightMm)))&&
-      (!w||!h||!l.maxRatio||h/w<=l.maxRatio);
-  });
+
+  // Enrollables: no ocultar telas por las medidas actuales.
+  // El vendedor debe poder registrar la referencia durante una visita incluso si
+  // esa medida exige confirmación especial. El backend conserva la validación
+  // autoritativa y evita calcular un precio automático fuera de los límites.
   const groups=[['Blackout','Blackout'],['Screen','Screen'],['Traslúcida','Traslúcidas'],['Dim Out','Dim Out'],['Lona transparente','Lona'],['Membrana bioclimática','Soltis'],['Serenade','Serenade']];
-  const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Selecciona una tela disponible</option>':'';
+  const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Selecciona una tela / referencia</option>':'';
   return missing+groupedProductOptions(products,item,groups,p=>p.type,false);
 }
 function firstProduct(family){return (catalog?.products||[]).find(p=>p.family===family);}
