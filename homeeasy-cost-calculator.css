@@ -95,11 +95,13 @@ h1,h2,h3,p{margin:0}
 .hero p{
   margin:9px 0 0;color:var(--muted);font-size:16px;line-height:1.5;font-weight:500
 }
+.hero-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .hero-action{
   height:44px;padding:0 15px;border:1px solid var(--line);border-radius:999px;
   background:#fff;color:var(--brand);font-weight:680;display:flex;align-items:center;gap:8px;
   box-shadow:0 7px 20px rgba(45,34,39,.035)
 }
+.hero-action-secondary{color:var(--ink);background:rgba(255,255,255,.72)}
 .hero-action:active{transform:scale(.97)}
 
 .notice{
@@ -497,3 +499,71 @@ dialog textarea{margin:14px 0}
   .install-dialog-actions{grid-template-columns:auto 1fr auto auto}
 }
 @keyframes homeeasySheetUp{from{transform:translateY(24px);opacity:.6}to{transform:translateY(0);opacity:1}}
+
+
+/* Transferencias temporales Hommy */
+.share-visit-action{color:var(--gold-dark);border-color:rgba(194,164,104,.34)}
+.transfer-dialog{
+  width:min(500px,calc(100% - 28px));padding:24px;border:0;border-radius:24px;
+  box-shadow:0 24px 70px rgba(39,31,35,.18)
+}
+.transfer-head h2{margin-top:6px;font-size:22px;line-height:1.08;letter-spacing:-.55px}
+.transfer-head p{margin:8px 0 18px;color:var(--muted);font-size:13px;line-height:1.45}
+.transfer-loading{
+  min-height:110px;border:1px solid var(--line);border-radius:17px;background:#fbfbfc;
+  display:flex;align-items:center;justify-content:center;gap:9px;color:var(--muted);font-size:13px;font-weight:650
+}
+.share-code-card{
+  width:100%;min-height:118px;border:1px solid rgba(178,86,108,.16);border-radius:19px;
+  background:linear-gradient(145deg,#fff,var(--brand-soft));display:flex;flex-direction:column;align-items:center;
+  justify-content:center;color:var(--ink)
+}
+.share-code-card>span{font-size:10px;color:var(--muted);font-weight:720;text-transform:uppercase;letter-spacing:.08em}
+.share-code-card strong{margin-top:5px;color:var(--brand-dark);font-size:34px;letter-spacing:.18em;font-variant-numeric:tabular-nums}
+.share-code-card small{margin-top:5px;color:var(--muted);font-size:10px}
+.transfer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.transfer-actions button,.transfer-primary{
+  min-height:46px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font-weight:680
+}
+.transfer-actions .primary-inline,.transfer-primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.transfer-actions i{margin-right:6px}
+.transfer-code-input{
+  height:58px;margin-top:3px;text-align:center;font-size:24px;font-weight:760;letter-spacing:.16em;text-transform:uppercase;
+  font-variant-numeric:tabular-nums
+}
+.transfer-primary{width:100%;margin-top:10px}
+.transfer-preview-card{
+  padding:15px;border:1px solid var(--line);border-radius:17px;background:#fbfbfc;display:flex;flex-direction:column;gap:4px
+}
+.transfer-preview-card>span{color:var(--brand);font-size:10px;font-weight:760;text-transform:uppercase;letter-spacing:.06em}
+.transfer-preview-card strong{font-size:17px;letter-spacing:-.25px}
+.transfer-preview-card small{color:var(--muted);font-size:11px;line-height:1.35}
+.transfer-warning{
+  margin-top:10px;padding:11px 12px;border-radius:13px;background:var(--gold-soft);color:#75643d;
+  display:flex;align-items:flex-start;gap:8px;font-size:11px;line-height:1.4
+}
+.transfer-warning i{margin-top:2px}
+.transfer-error{min-height:0;margin-top:10px;color:#b44747;font-size:11px;line-height:1.4}
+.transfer-error:empty{display:none}
+
+@media(max-width:740px){
+  .hero{align-items:flex-start}
+  .hero-actions{gap:6px}
+  .hero-actions .hero-action{height:42px;padding:0 11px;font-size:11px}
+  .hero-actions .hero-action i{font-size:11px}
+  .transfer-dialog{
+    width:100%;max-width:none;margin:auto 0 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));
+    border-radius:26px 26px 0 0;animation:homeeasySheetUp .2s ease-out
+  }
+  .transfer-head h2{font-size:20px}
+  .share-code-card strong{font-size:31px}
+}
+@media(max-width:520px){
+  .hero{gap:8px}
+  .hero-copy{min-width:0}
+  .hero h1{font-size:28px}
+  .hero p{display:none}
+  .hero-actions{flex-direction:column;align-items:stretch}
+  .hero-actions .hero-action{justify-content:center;height:38px;padding:0 10px}
+  .hero-actions .hero-action span{font-size:10px}
+}
