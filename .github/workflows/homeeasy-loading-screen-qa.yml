@@ -46,7 +46,7 @@ jobs:
       - name: Render and validate loading screen
         run: |
           mkdir -p qa/loading-screen
-          cat > /tmp/loading-qa.mjs <<'EOF'
+          cat > loading-qa.mjs <<'EOF'
           import { chromium } from 'playwright';
           import fs from 'node:fs';
 
@@ -98,7 +98,7 @@ jobs:
           console.log(JSON.stringify({desktop,mobile}, null, 2));
           await browser.close();
           EOF
-          node /tmp/loading-qa.mjs
+          node loading-qa.mjs
 
       - uses: actions/upload-artifact@v4
         if: always()
