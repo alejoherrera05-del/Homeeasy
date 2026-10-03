@@ -9,10 +9,10 @@
 <title>HomeEasy | Cotizador</title>
 <link rel="icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002-formalux">
+<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002-transfer">
 <script src="homeeasy-core.js?v=3.5"></script>
 <script src="homeeasy-page-guard.js?v=20261002b"></script>
-<script defer src="homeeasy-cost-calculator.js?v=20261002-formalux"></script>
+<script defer src="homeeasy-cost-calculator.js?v=20261002-transfer"></script>
 </head>
 <body>
 
@@ -44,10 +44,16 @@
       <p>Selecciona el producto, escribe las medidas y obtén el precio de venta.</p>
     </div>
 
-    <button id="new-quote" class="hero-action" type="button">
-      <i class="fa-solid fa-plus"></i>
-      <span>Nueva cotización</span>
-    </button>
+    <div class="hero-actions">
+      <button id="receive-visit" class="hero-action hero-action-secondary" type="button" disabled>
+        <i class="fa-solid fa-arrow-down"></i>
+        <span>Recibir visita</span>
+      </button>
+      <button id="new-quote" class="hero-action" type="button">
+        <i class="fa-solid fa-plus"></i>
+        <span>Nueva cotización</span>
+      </button>
+    </div>
   </section>
 
   <div id="connection" class="notice" role="status">
@@ -156,6 +162,11 @@
         Generar cotización formal
       </button>
 
+      <button id="share-visit" class="formal-quote share-visit-action" disabled type="button">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+        Compartir visita
+      </button>
+
       <p class="privacy-note">El cliente nunca ve tus costos internos.</p>
       <div class="tariff-meta" id="tariff-date"></div>
     </aside>
@@ -234,6 +245,68 @@
     <button id="cancel-install" type="button">Cancelar</button>
     <button id="save-install" class="primary-inline" type="button">Guardar</button>
   </div>
+</dialog>
+
+<dialog id="share-visit-dialog" class="transfer-dialog">
+  <div class="dialog-handle" aria-hidden="true"></div>
+  <div class="transfer-head">
+    <span class="dialog-eyebrow">Compartir visita</span>
+    <h2>Entrega el levantamiento sin volver a escribirlo</h2>
+    <p>Hommy comparte medidas, referencias y detalles de instalación. No envía precios, margen, transporte ni costos.</p>
+  </div>
+
+  <div id="share-visit-loading" class="transfer-loading" hidden>
+    <i class="fa-solid fa-circle-notch fa-spin"></i>
+    <span>Preparando código…</span>
+  </div>
+
+  <div id="share-visit-ready" hidden>
+    <div id="share-code-card" class="share-code-card" aria-label="Código de visita">
+      <span>Código Hommy</span>
+      <strong id="share-visit-code">—</strong>
+      <small id="share-visit-expiry"></small>
+    </div>
+    <div class="transfer-actions">
+      <button id="copy-transfer-code" type="button"><i class="fa-regular fa-copy"></i> Copiar código</button>
+      <button id="share-transfer-code" class="primary-inline" type="button"><i class="fa-solid fa-share-nodes"></i> Compartir</button>
+    </div>
+  </div>
+
+  <p id="share-visit-error" class="transfer-error" role="status"></p>
+  <button id="close-share-visit" class="dialog-cancel" type="button">Cerrar</button>
+</dialog>
+
+<dialog id="receive-visit-dialog" class="transfer-dialog">
+  <div class="dialog-handle" aria-hidden="true"></div>
+  <div class="transfer-head">
+    <span class="dialog-eyebrow">Recibir visita</span>
+    <h2>Continúa un levantamiento compartido</h2>
+    <p>Escribe el código de 6 caracteres que te enviaron.</p>
+  </div>
+
+  <div id="receive-visit-entry">
+    <label for="receive-visit-code">Código de visita</label>
+    <input id="receive-visit-code" class="transfer-code-input" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="H7K4P2">
+    <button id="preview-transfer" class="transfer-primary" type="button">Buscar visita</button>
+  </div>
+
+  <div id="receive-visit-preview" hidden>
+    <div class="transfer-preview-card">
+      <span>Visita encontrada</span>
+      <strong id="receive-preview-project">—</strong>
+      <small id="receive-preview-meta"></small>
+      <small id="receive-preview-by"></small>
+    </div>
+    <div id="receive-draft-warning" class="transfer-warning" hidden>
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Tienes un borrador en este cotizador. Al continuar, esta visita lo reemplazará en este dispositivo.</span>
+    </div>
+    <button id="consume-transfer" class="transfer-primary" type="button">Continuar con esta visita</button>
+    <button id="receive-use-another" class="dialog-cancel" type="button">Usar otro código</button>
+  </div>
+
+  <p id="receive-visit-error" class="transfer-error" role="status"></p>
+  <button id="close-receive-visit" class="dialog-cancel" type="button">Cerrar</button>
 </dialog>
 
 <div id="toast" role="status" aria-live="polite"></div>
