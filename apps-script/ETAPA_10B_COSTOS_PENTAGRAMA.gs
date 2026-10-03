@@ -12,11 +12,11 @@
  *********************************************************/
 
 const HOMEEASY_COST_STAGE = "10B";
-const HOMEEASY_COST_SCHEMA_VERSION = 1;
+const HOMEEASY_COST_SCHEMA_VERSION = 2;
 const HOMEEASY_COST_SHEET = "Costos_Pentagrama";
 const HOMEEASY_COST_MATRIX_SHEET = "Costos_Pentagrama_Matrices";
 const HOMEEASY_COST_CONFIG_SHEET = "Costos_Pentagrama_Config";
-const HOMEEASY_COST_CACHE_KEY = "HOMEEASY_COST_CATALOG_V3_SIMPLE";
+const HOMEEASY_COST_CACHE_KEY = "HOMEEASY_COST_CATALOG_V4_SIZE_RULES";
 const HOMEEASY_COST_CACHE_SECONDS = 300;
 const HOMEEASY_COST_PERMISSION = "cotizaciones.write";
 
@@ -235,6 +235,7 @@ function cargarCatalogoCostos10B_(ss, forceRefresh) {
   const configRows = shConfig.getLastRow() > 1 ? shConfig.getRange(2, 1, shConfig.getLastRow() - 1, 3).getValues() : [];
   const config = {};
   configRows.forEach(function(r) { const k = String(r[0] || "").trim(); if (k) config[k] = r[1]; });
+  const enrollableSizeRules = leerConfigJsonCostos10B_(config.ENROLLABLE_SIZE_RULES_JSON, "reglas de medidas para Enrollables");
 
   const matrixRows = shMatrix.getLastRow() > 1 ? shMatrix.getRange(2, 1, shMatrix.getLastRow() - 1, HOMEEASY_COST_MATRIX_HEADERS.length).getValues() : [];
   const matrices = {};
@@ -286,7 +287,8 @@ function cargarCatalogoCostos10B_(ss, forceRefresh) {
     currency: String(config.MONEDA || (products[0] && products[0].currency) || "COP").trim(),
     pricesIncludeVat: boolCostos10B_(config.PRECIOS_INCLUYEN_IVA, true),
     products: products,
-    matrixCount: matrixRows.length
+    matrixCount: matrixRows.length,
+    enrollableSizeRules: enrollableSizeRules
   };
   if (!catalog.version || !catalog.validThrough || catalog.currency !== "COP" || catalog.pricesIncludeVat !== true) {
     throw new Error("La configuración de Costos Pentagrama está incompleta o no es compatible.");
@@ -317,6 +319,7 @@ function calcularItemCostos10B_(item, catalog, options) {
 
     let unit = 0;
     let area = null;
+    let fabrication = null;
     const manual = String(item && item.mode || "auto") === "manual" || product.method === "manual";
     if (manual) {
       if (item.coverlight || (Array.isArray(item.addons) && item.addons.length)) throw new Error("El costo confirmado debe incluir Coverlight y los accesorios. Desactiva los complementos automáticos.");
@@ -328,7 +331,7 @@ function calcularItemCostos10B_(item, catalog, options) {
         throw new Error("La tarifa automática venció. Confirma el costo actualizado con Pentagrama.");
       }
       validarVigenciaProducto10B_(product, options.today);
-      validarMedidasEnrollable10B_(product, width, height);
+      fabrication = validarMedidasEnrollable10B_(product, width, height, catalog);
       if (product.promotional && !options.promotions) {
         throw new Error("Esta referencia usa una promoción vigente. Si no aplica, usa costo confirmado.");
       }
@@ -373,7 +376,7 @@ function calcularItemCostos10B_(item, catalog, options) {
     const installation = dineroCostos10B_(install * qty);
     return {
       ok: true, unit: unit, total: total, installation: installation, quantity: qty,
-      manual: manual, area: area,
+      manual: manual, area: area, fabrication: fabrication,
       widthMm: width, heightMm: height,
       coverlightOptions: product.family === "enrollable" && !manual ? (product.rules.coverlightIds || []).map(function(id) {
         try {
@@ -390,7 +393,11 @@ function calcularItemCostos10B_(item, catalog, options) {
       }
     };
   } catch (error) {
-    return { ok: false, error: error && error.message ? error.message : String(error) };
+    const response = { ok: false, error: error && error.message ? error.message : String(error) };
+    ["code", "reason", "requiresAlternative", "notManufacturable", "alternatives"].forEach(function(key) {
+      if (error && error[key] !== undefined) response[key] = error[key];
+    });
+    return response;
   }
 }
 
@@ -399,6 +406,12 @@ function leerReglasCostos10B_(value) {
   const text = String(value || "").trim();
   if (text.charAt(0) !== "{") return {};
   try { return JSON.parse(text); } catch (e) { throw new Error("Hay reglas inválidas en Notas del catálogo de costos."); }
+}
+
+function leerConfigJsonCostos10B_(value, label) {
+  const text = String(value || "").trim();
+  if (!text) return {};
+  try { return JSON.parse(text); } catch (e) { throw new Error("Hay " + String(label || "configuración JSON") + " inválidas en Costos_Pentagrama_Config."); }
 }
 
 function opcionesComplementos10B_(catalog, ids) {
@@ -428,20 +441,94 @@ function validarVigenciaProducto10B_(product, today) {
   }
 }
 
-function validarMedidasEnrollable10B_(product, width, height) {
+function validarMedidasEnrollable10B_(product, width, height, catalog) {
   const r = product.rules || {};
   if (product.family !== "enrollable" && product.family !== "complemento-enrollable") return;
   if ((r.minWidthMm && width < r.minWidthMm) || (r.minHeightMm && height < r.minHeightMm)) throw new Error("Estas medidas están por debajo del mínimo de fabricación.");
+
+  const sizePolicy = catalog && catalog.enrollableSizeRules || {};
+  const sizeRuleId = String(r.sizeRuleId || "");
+  const group = String(r.sizeGroup || "");
+  const configurations = sizePolicy.configurations || {};
+  const standard = configurations.standard || {};
+  const bands = standard.groups && standard.groups[group] || [];
+  if (product.family === "enrollable" && sizeRuleId && sizePolicy.id === sizeRuleId && bands.length) {
+    const band = buscarBandaFabricacion10B_(bands, width, height);
+    if (!band) {
+      const alternatives = Object.keys(configurations).filter(function(id) { return id !== "standard"; }).map(function(id) {
+        const alternative = configurations[id] || {};
+        const alternativeBand = buscarBandaFabricacion10B_(alternative.groups && alternative.groups[group] || [], width, height);
+        return alternativeBand ? {
+          id: id,
+          label: String(alternative.label || id),
+          mechanism: String(alternativeBand.mechanism || ""),
+          tube: String(alternativeBand.tube || ""),
+          requiresConfirmedCost: alternative.requiresConfirmedCost !== false
+        } : null;
+      }).filter(Boolean);
+      throw errorFabricacionEnrollable10B_(alternatives.length ?
+        "La medida no cabe en la configuración Standard. Pentagrama ofrece otra configuración de fabricación." :
+        "La tabla oficial de Pentagrama no contiene una configuración fabricable para esta medida.", alternatives);
+    }
+
+    const rollWidth = numeroCostos10B_(r.rollWidthMm, 0);
+    let orientation = "normal";
+    let requiresAuthorization = false;
+    let warranty = true;
+    if (rollWidth && width > rollWidth) {
+      if (!r.canRotate) {
+        throw errorFabricacionEnrollable10B_("El ancho supera el rollo y esta referencia no permite atravesar la tela.", []);
+      }
+      if (height <= rollWidth) {
+        orientation = "atravesada";
+      } else {
+        orientation = "atravesada_y_anadida";
+        requiresAuthorization = true;
+        warranty = false;
+      }
+    }
+    return {
+      supported: true,
+      ruleId: sizeRuleId,
+      sizeGroup: group,
+      configuration: "standard",
+      orientation: orientation,
+      requiresAuthorization: requiresAuthorization,
+      warranty: warranty,
+      mechanism: String(band.mechanism || ""),
+      tube: String(band.tube || ""),
+      source: String(sizePolicy.source || "Pentagrama")
+    };
+  }
+
   if ((r.maxWidthMm && width > r.maxWidthMm) || (r.maxHeightMm && height > r.maxHeightMm) || (r.maxRatio && height > width * r.maxRatio)) {
     throw new Error("Esta medida requiere confirmar fabricación y recargos con Pentagrama. Usa costo confirmado.");
   }
+  return null;
+}
+
+function buscarBandaFabricacion10B_(bands, width, height) {
+  return (bands || []).find(function(band) {
+    return width <= numeroCostos10B_(band.maxWidthMm, 0) && height <= numeroCostos10B_(band.maxHeightMm, 0);
+  }) || null;
+}
+
+function errorFabricacionEnrollable10B_(reason, alternatives) {
+  const list = Array.isArray(alternatives) ? alternatives : [];
+  const error = new Error(reason);
+  error.code = list.length ? "ENROLLABLE_REQUIRES_ALTERNATIVE" : "ENROLLABLE_NOT_MANUFACTURABLE";
+  error.reason = reason;
+  error.requiresAlternative = list.length > 0;
+  error.notManufacturable = list.length === 0;
+  error.alternatives = list;
+  return error;
 }
 
 function calcularComplemento10B_(id, catalog, width, height, today, quantity) {
   const p = catalog.products.find(function(p) { return p.id === id && p.active && p.family === "complemento-enrollable"; });
   if (!p) throw new Error("El complemento no está disponible.");
   validarVigenciaProducto10B_(p, today);
-  validarMedidasEnrollable10B_(p, width, height);
+  validarMedidasEnrollable10B_(p, width, height, catalog);
   let factor;
   if (p.method === "linear-height") factor = height / 1000;
   else if (p.method === "linear-width") factor = width / 1000;
