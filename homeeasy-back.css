@@ -1,0 +1,76 @@
+/* HomeEasy · Back navigation v1.0
+   Un único botón de regreso para todas las vistas principales de Hommy. */
+:root{
+  --he-back-wine:#a6455a;
+}
+#homeeasy-global-back{
+  position:fixed!important;
+  z-index:4800!important;
+  top:calc(env(safe-area-inset-top,0px) + 18px)!important;
+  left:max(20px,calc((100vw - 1240px)/2 + 28px))!important;
+  width:46px!important;
+  height:46px!important;
+  padding:0!important;
+  margin:0!important;
+  border:1px solid rgba(60,60,67,.07)!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  background:rgba(255,255,255,.97)!important;
+  color:var(--he-back-wine)!important;
+  box-shadow:0 7px 22px rgba(35,28,31,.09)!important;
+  backdrop-filter:blur(16px) saturate(145%)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(145%)!important;
+  text-decoration:none!important;
+  outline:none!important;
+  cursor:pointer!important;
+  transform:translateZ(0);
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .16s ease,background .16s ease!important;
+}
+#homeeasy-global-back svg{
+  width:18px!important;
+  height:18px!important;
+  display:block!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:2.15!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+#homeeasy-global-back:active{
+  transform:scale(.94)!important;
+  box-shadow:0 4px 14px rgba(35,28,31,.08)!important;
+}
+.he-original-back-hidden{
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+@media(any-hover:hover) and (any-pointer:fine){
+  #homeeasy-global-back:hover{
+    transform:translateY(-1px)!important;
+    background:#fff!important;
+    box-shadow:0 10px 26px rgba(35,28,31,.12)!important;
+  }
+}
+@media(max-width:1280px){
+  #homeeasy-global-back{
+    left:20px!important;
+  }
+}
+@media(max-width:600px){
+  #homeeasy-global-back{
+    top:calc(env(safe-area-inset-top,0px) + 13px)!important;
+    left:14px!important;
+    width:44px!important;
+    height:44px!important;
+  }
+  #homeeasy-global-back svg{
+    width:17px!important;
+    height:17px!important;
+  }
+}
+@media print{
+  #homeeasy-global-back{display:none!important}
+}
