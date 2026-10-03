@@ -567,3 +567,53 @@ dialog textarea{margin:14px 0}
   .hero-actions .hero-action{justify-content:center;height:38px;padding:0 10px}
   .hero-actions .hero-action span{font-size:10px}
 }
+
+
+/* Fabricación Pentagrama: avisos compactos y alternativas */
+.fabrication-result:empty{display:none}
+.fabrication-result{margin-top:10px}
+.fabrication-note{
+  display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border:1px solid var(--line);
+  border-radius:14px;background:#fbfbfc;font-size:11px;line-height:1.4
+}
+.fabrication-note>i{
+  width:28px;height:28px;flex:0 0 28px;border-radius:9px;display:grid;place-items:center;font-size:11px
+}
+.fabrication-note>span{min-width:0;display:block;flex:1}
+.fabrication-note strong{display:block;color:var(--ink);font-size:11px}
+.fabrication-note small{display:block;margin-top:2px;color:var(--muted);font-size:10px;line-height:1.4}
+.fabrication-note.info{background:#f5f8fb;border-color:rgba(70,112,150,.14)}
+.fabrication-note.info>i{background:#eaf2f8;color:#4a789b}
+.fabrication-note.warning{background:#fff8eb;border-color:rgba(194,164,104,.30)}
+.fabrication-note.warning>i{background:rgba(194,164,104,.16);color:#9a7a3f}
+.fabrication-note.warning strong{color:#7d6333}
+.fabrication-note.confirmed{background:#f4f8f5;border-color:rgba(72,126,92,.18)}
+.fabrication-note.confirmed>i{background:#e8f2eb;color:#4f8662}
+.fabrication-note.alternative{background:#faf5f7;border-color:rgba(178,86,108,.20)}
+.fabrication-note.alternative>i{background:var(--brand-soft);color:var(--brand)}
+.fabrication-note.blocked{background:#fff4f4;border-color:rgba(184,78,92,.20)}
+.fabrication-note.blocked>i{background:#fde8ea;color:#b84e5c}
+.fabrication-alt-copy>button{
+  min-height:38px;margin-top:9px;padding:0 11px;border:1px solid rgba(178,86,108,.22);border-radius:11px;
+  background:#fff;color:var(--brand-dark);font-size:10px;font-weight:720
+}
+.fabrication-alt-row{margin-top:7px;padding-top:7px;border-top:1px solid rgba(178,86,108,.10)}
+.fabrication-alt-row strong{font-size:10px}
+.enrollable-confirmed-cost{
+  padding:12px;border:1px solid rgba(178,86,108,.18);border-radius:15px;background:#fbf7f8
+}
+.confirmed-cost-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.confirmed-cost-head>span{color:var(--brand-dark);font-size:11px;font-weight:730}
+.confirmed-cost-head i{margin-right:5px}
+.confirmed-cost-head button{
+  min-height:32px;padding:0 9px;border:1px solid var(--line);border-radius:10px;background:#fff;
+  color:var(--muted);font-size:9px;font-weight:680
+}
+.enrollable-confirmed-cost>p{margin:0 0 10px;color:var(--muted);font-size:10px;line-height:1.4}
+.enrollable-confirmed-cost .money-input{background:#fff}
+
+@media(max-width:740px){
+  .fabrication-note{padding:10px 11px}
+  .fabrication-alt-copy>button{width:100%}
+  .confirmed-cost-head{align-items:flex-start}
+}
