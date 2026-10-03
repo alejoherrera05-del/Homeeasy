@@ -1,0 +1,108 @@
+name: HomeEasy Loading Screen QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'homeeasy-core.js'
+      - 'triangulo.png'
+      - 'hommysaludando.png'
+      - 'qa-loading-runtime/**'
+      - '.github/workflows/homeeasy-loading-screen-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homeeasy-loading-screen-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate HomeEasy core syntax
+        run: node --check homeeasy-core.js
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Serve repository
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/homeeasy-http.log 2>&1 &
+          echo $! > /tmp/homeeasy-http.pid
+          sleep 2
+
+      - name: Render and validate loading screen
+        run: |
+          mkdir -p qa/loading-screen
+          cat > /tmp/loading-qa.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const browser = await chromium.launch({headless:true});
+          const page = await browser.newPage({viewport:{width:1440,height:900}, deviceScaleFactor:1});
+          const url = 'http://127.0.0.1:4173/qa-loading-runtime/index.html';
+
+          async function validate(label) {
+            await page.waitForSelector('#homeeasy-auth-loading-screen', {state:'visible', timeout:5000});
+            await page.waitForTimeout(250);
+            const result = await page.evaluate(() => {
+              const screen = document.getElementById('homeeasy-auth-loading-screen');
+              const mark = screen?.querySelector('.he-load-mark');
+              const hommy = screen?.querySelector('.he-load-hommy');
+              const name = screen?.querySelector('.he-load-name');
+              const word = screen?.querySelector('.he-load-word');
+              const visual = screen?.querySelector('.he-load-visual');
+              const generic = document.body.innerText.includes('Abriendo HomeEasy');
+              return {
+                screenVisible: !!screen && getComputedStyle(screen).visibility !== 'hidden',
+                markLoaded: !!mark && mark.complete && mark.naturalWidth > 0,
+                hommyLoaded: !!hommy && hommy.complete && hommy.naturalWidth > 0,
+                firstName: name?.textContent?.trim() || '',
+                homeEasyColor: word ? getComputedStyle(word).color : '',
+                visualBackground: visual ? getComputedStyle(visual).backgroundImage : '',
+                oldGenericTextPresent: generic
+              };
+            });
+            const failures = [];
+            if (!result.screenVisible) failures.push('screen not visible');
+            if (!result.markLoaded) failures.push('official triangle did not load');
+            if (!result.hommyLoaded) failures.push('official Hommy did not load');
+            if (result.firstName !== 'Alejandro') failures.push('first name mismatch');
+            if (result.oldGenericTextPresent) failures.push('old generic loader still present');
+            if (failures.length) throw new Error(label + ': ' + failures.join(', ') + '\n' + JSON.stringify(result,null,2));
+            return result;
+          }
+
+          await page.goto(url, {waitUntil:'networkidle'});
+          const desktop = await validate('desktop');
+          await page.screenshot({path:'qa/loading-screen/desktop.png', fullPage:true});
+
+          await page.setViewportSize({width:390,height:844});
+          await page.reload({waitUntil:'networkidle'});
+          const mobile = await validate('mobile');
+          await page.screenshot({path:'qa/loading-screen/mobile.png', fullPage:true});
+
+          fs.writeFileSync('qa/loading-screen/report.json', JSON.stringify({desktop,mobile}, null, 2));
+          console.log(JSON.stringify({desktop,mobile}, null, 2));
+          await browser.close();
+          EOF
+          node /tmp/loading-qa.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homeeasy-loading-screen-qa
+          path: qa/loading-screen/
+          retention-days: 14
