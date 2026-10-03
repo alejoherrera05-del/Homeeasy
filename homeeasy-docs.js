@@ -12,7 +12,7 @@
     "empresa.telefono": "3334319374",
     "empresa.whatsapp": "",
     "empresa.email": "",
-    "empresa.web": "",
+    "empresa.web": "www.homeeasy.com.co",
     "empresa.instagram": "@homeeasypopayan",
     "empresa.eslogan": "Viste tu hogar con estilo",
     "documentos.cotizacion.titulo": "COTIZACIÓN",
@@ -28,7 +28,7 @@
     "documentos.pie_principal": "HomeEasy - Viste tu hogar con estilo",
     "documentos.pie_sistema": "Documento generado automáticamente • Sistema Hommy V3.0",
     "documentos.mostrar_email": true,
-    "documentos.mostrar_web": false,
+    "documentos.mostrar_web": true,
     "documentos.mostrar_whatsapp": false,
     "documentos.mostrar_instagram": true
   };
@@ -205,22 +205,44 @@
     if (kind === "pedido") applyPedido(cfg);
   }
 
+  function normalizeConfigPayload(data) {
+    if (data && data.configuracion) {
+      const flat = flattenObject(data.configuracion);
+      if (Object.prototype.hasOwnProperty.call(flat, "empresa.nit") && !clean(flat["empresa.nit"])) {
+        flat["empresa.nit_formateado"] = "";
+      }
+      return {
+        config: Object.assign({}, FALLBACK, flat),
+        version: data.version || 1,
+        source: data.source || "network"
+      };
+    }
+    return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
+  }
+
   function fetchConfig(url) {
+    // Los documentos deben leer exactamente la misma configuración central que Configuración.
+    // Evita mantener un segundo camino de sincronización con comportamiento/caché distinto.
+    if (window.HomeEasyCore && typeof window.HomeEasyCore.getConfiguration === "function") {
+      return window.HomeEasyCore.getConfiguration({ force: true, allowFallback: true })
+        .then(normalizeConfigPayload)
+        .catch(function () {
+          return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
+        });
+    }
+
     const apiUrl = clean(url) || DEFAULT_API_URL;
-    return fetch(apiUrl + "?tipo=GET_CONFIGURACION", { cache: "no-store" })
+    return fetch(apiUrl + "?tipo=GET_CONFIGURACION&t=" + Date.now(), { cache: "no-store" })
       .then(function (response) { return response.json(); })
       .then(function (data) {
-        if (data && data.status === "ok" && data.configuracion) {
-          const flat = flattenObject(data.configuracion);
-          if (Object.prototype.hasOwnProperty.call(flat, "empresa.nit") && !clean(flat["empresa.nit"])) {
-            flat["empresa.nit_formateado"] = "";
-          }
-          return { config: Object.assign({}, FALLBACK, flat), version: data.version || 1 };
+        const status = clean(data && data.status).toLowerCase();
+        if (data && (status === "ok" || status === "success") && data.configuracion) {
+          return normalizeConfigPayload(data);
         }
-        return { config: Object.assign({}, FALLBACK), version: 1 };
+        return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
       })
       .catch(function () {
-        return { config: Object.assign({}, FALLBACK), version: 1 };
+        return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
       });
   }
 
