@@ -318,7 +318,17 @@ function coverlightControls(item){
     (item.coverlight?'<div class="field"><label for="coverlight-version-'+item.id+'">Coverlight</label><select id="coverlight-version-'+item.id+'" data-field="coverlight">'+covers.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===item.coverlight?'selected':'')+'>'+escape(c.name)+' · +'+escape(cop(c.costCents))+'</option>').join('')+'</select></div>':''):'';
 }
 function enrollableControls(item){
-  return item.family==='enrollable'?'<div class="enrollable-options">'+coverlightControls(item)+'</div>':'';
+  if(item.family!=='enrollable')return '';
+  if(item.mode==='manual'){
+    return '<div class="enrollable-options">'+
+      '<div class="enrollable-confirmed-cost">'+
+        '<div class="confirmed-cost-head"><span><i class="fa-solid fa-file-circle-check"></i> Costo confirmado por Pentagrama</span><button type="button" data-action="return-auto">Volver a automático</button></div>'+
+        '<p>Usa el costo total por persiana con IVA de la configuración especial confirmada por Pentagrama.</p>'+
+        moneyField(item,'manualCost','Costo confirmado por persiana')+
+      '</div>'+
+    '</div>';
+  }
+  return '<div class="enrollable-options">'+coverlightControls(item)+'</div>';
 }
 
 function newItem(previous,roomId=''){
@@ -406,6 +416,7 @@ function renderItem(item,index,layerIndex=0,layerCount=1){
       '<div><span>'+unitLabel+'</span><strong data-output="unit">—</strong></div>'+
       (Number(item.quantity)>1?'<div class="item-total"><span>Total del ítem</span><strong data-output="total">—</strong></div>':'<strong data-output="total" hidden>—</strong>')+
     '</div>'+
+    '<div class="fabrication-result" data-output="fabrication"></div>'+
     '<p class="item-error" data-output="error" role="status"></p>'+
   '</article>';
 }
@@ -725,6 +736,65 @@ async function post(tipo,payload={}){
   }
 }
 
+function fabricationLabel(value){
+  const map={
+    normal:'Normal',
+    atravesada:'Tela atravesada',
+    atravesada_y_anadida:'Atravesada y añadida'
+  };
+  return map[String(value||'').toLowerCase()]||String(value||'');
+}
+
+function fabricationMarkup(itemResult,item){
+  if(!itemResult)return '';
+
+  if(itemResult.ok&&item?.mode==='manual'){
+    return '<div class="fabrication-note confirmed"><i class="fa-solid fa-circle-check"></i><span><strong>Costo confirmado</strong><small>Este ítem usa el valor especial confirmado por Pentagrama.</small></span></div>';
+  }
+
+  if(itemResult.ok&&itemResult.fabrication){
+    const f=itemResult.fabrication;
+    const orientation=String(f.orientation||'normal').toLowerCase();
+
+    if(f.requiresAuthorization||f.warranty===false){
+      const tech=[f.tube,f.mechanism].filter(Boolean).join(' · ');
+      return '<div class="fabrication-note warning">'+
+        '<i class="fa-solid fa-triangle-exclamation"></i>'+
+        '<span><strong>'+escape(fabricationLabel(orientation))+'</strong>'+
+        '<small>Requiere autorización de fabricación'+(f.warranty===false?' · sin garantía':'')+(tech?' · '+escape(tech):'')+'</small></span>'+
+      '</div>';
+    }
+
+    if(orientation==='atravesada'){
+      const tech=[f.tube,f.mechanism].filter(Boolean).join(' · ');
+      return '<div class="fabrication-note info">'+
+        '<i class="fa-solid fa-arrows-left-right"></i>'+
+        '<span><strong>Tela atravesada</strong><small>'+escape(tech||'Configuración validada por Pentagrama')+'</small></span>'+
+      '</div>';
+    }
+
+    return '';
+  }
+
+  if(itemResult.requiresAlternative&&Array.isArray(itemResult.alternatives)&&itemResult.alternatives.length){
+    const alternatives=itemResult.alternatives.map(alt=>{
+      const details=[alt.label,alt.tube,alt.mechanism].filter(Boolean).map(escape).join(' · ');
+      return '<div class="fabrication-alt-row"><span><strong>'+details+'</strong><small>'+(alt.requiresConfirmedCost?'Requiere costo confirmado por Pentagrama.':'Disponible como alternativa oficial.')+'</small></span></div>';
+    }).join('');
+    return '<div class="fabrication-note alternative">'+
+      '<i class="fa-solid fa-route"></i>'+
+      '<span class="fabrication-alt-copy"><strong>Hay una alternativa de fabricación</strong><small>'+escape(itemResult.reason||itemResult.error||'Standard no aplica para esta medida.')+'</small>'+alternatives+
+      '<button type="button" data-action="use-confirmed-cost">Ingresar costo confirmado</button></span>'+
+    '</div>';
+  }
+
+  if(itemResult.notManufacturable){
+    return '<div class="fabrication-note blocked"><i class="fa-solid fa-ban"></i><span><strong>No fabricable con las configuraciones oficiales cargadas</strong><small>'+escape(itemResult.reason||itemResult.error||'Pentagrama no reporta una configuración válida para esta medida.')+'</small></span></div>';
+  }
+
+  return '';
+}
+
 function commercialQuote(q){
   if(!q?.ok)return q;
   const installation=Number(rawPesos(state.installationTotal))*100;
@@ -751,8 +821,11 @@ function renderCommercial(message=''){
     if(unit)unit.textContent=itemResult?.ok?cop(itemResult.unit):'—';
     if(total)total.textContent=itemResult?.ok?cop(itemResult.total):'—';
     const coverControls=el.querySelector('.enrollable-options');
-    if(coverControls&&stateIndex>=0)coverControls.innerHTML=coverlightControls(state.items[stateIndex]);
-    el.querySelector('[data-output=error]').textContent=itemResult?.ok?'':itemResult?.error||'';
+    if(coverControls&&stateIndex>=0&&state.items[stateIndex]?.mode!=='manual')coverControls.innerHTML=coverlightControls(state.items[stateIndex]);
+    const fabrication=el.querySelector('[data-output=fabrication]');
+    if(fabrication)fabrication.innerHTML=fabricationMarkup(itemResult,stateIndex>=0?state.items[stateIndex]:null);
+    const structuredFabricationError=Boolean(itemResult?.requiresAlternative||itemResult?.notManufacturable);
+    el.querySelector('[data-output=error]').textContent=itemResult?.ok||structuredFabricationError?'':itemResult?.error||'';
   });
 
   const ok=Boolean(q?.ok);
@@ -976,6 +1049,26 @@ $('items').addEventListener('click',event=>{
 
   if(button.dataset.action==='installation'){
     openInstallationDialog(state.items[index]);
+    return;
+  }
+
+  if(button.dataset.action==='use-confirmed-cost'){
+    const item=state.items[index];
+    resetComplements(item);
+    item.mode='manual';
+    item.manualCost='';
+    render();
+    requestAnimationFrame(()=>document.querySelector('[data-id="'+item.id+'"] [data-field=manualCost]')?.focus());
+    toast('Ingresa el costo total con IVA confirmado por Pentagrama.');
+    return;
+  }
+
+  if(button.dataset.action==='return-auto'){
+    const item=state.items[index];
+    item.mode='auto';
+    item.manualCost='';
+    render();
+    toast('Volviste al cálculo automático.');
     return;
   }
 
