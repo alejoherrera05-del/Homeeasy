@@ -7,7 +7,7 @@
     'use strict';
 
     const API_URL = 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
-    const APP_VERSION = '3.5.1';
+    const APP_VERSION = '3.5.2';
     const CONFIG_CACHE_KEY = 'HOMEEASY_CONFIG_BROWSER_V1';
     const CONFIG_CACHE_FRESH_MS = 5 * 60 * 1000;
     const CONFIG_CACHE_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -808,7 +808,7 @@ html.${AUTH_PENDING_CLASS},html.${AUTH_PENDING_CLASS} body{overflow:auto!importa
 
             const profile = global.HomeEasyAuth.getCurrentProfile();
             if (profile) setOperator(profile.nombre || profile.email || 'Sin identificar');
-            await loadScriptOnce('homeeasy-account.js?v=3.1', 'homeeasyAccountScript', () => Boolean(global.document && global.document.getElementById('homeeasyAccountControl')));
+            await loadScriptOnce('homeeasy-account.js?v=3.2', 'homeeasyAccountScript', () => Boolean(global.document && global.document.getElementById('homeeasyAccountControl')));
             revealAuthenticatedIndex();
 
             if (global.HomeEasyAuth.shouldRevalidateAppSession && global.HomeEasyAuth.shouldRevalidateAppSession(5 * 60 * 1000)) {
