@@ -20,6 +20,7 @@ const fresh=()=>({version:2,project:'',items:[],transport:'0',installationTotal:
 let state=fresh(),catalog=null,lastEngineQuote=null,lastEngineSignature='',lastQuote=null,key='',engineCacheKey='',ready=false,loading=false;
 let saveTimer,toastTimer,undoItem,quoteTimer,requestSeq=0;
 let installationEditingId='',installationDraft=null;
+let pendingTransferPreview=null,lastSharedTransfer=null,transferBusy=false;
 
 function toast(message){
   $('toast').textContent=message;
@@ -288,7 +289,8 @@ function productOptions(item){
   let products=(catalog?.products||[]).filter(p=>p.family===item.family);
   if(item.family!=='enrollable'){
     const keys=[...new Set(products.map(referenceGroup).filter(Boolean))];
-    return groupedProductOptions(products,item,keys.map(key=>[key,key]),referenceGroup);
+    const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Revisa la referencia compartida</option>':'';
+    return missing+groupedProductOptions(products,item,keys.map(key=>[key,key]),referenceGroup);
   }
   const w=Number(String(item.width).replace(',','.'))*1000,h=Number(String(item.height).replace(',','.'))*1000;
   products=products.filter(p=>{
@@ -298,7 +300,7 @@ function productOptions(item){
       (!w||!h||!l.maxRatio||h/w<=l.maxRatio);
   });
   const groups=[['Blackout','Blackout'],['Screen','Screen'],['Traslúcida','Traslúcidas'],['Dim Out','Dim Out'],['Lona transparente','Lona'],['Membrana bioclimática','Soltis'],['Serenade','Serenade']];
-  const missing=!products.some(p=>p.id===item.product)?'<option value="'+escape(item.product)+'" selected disabled>Selecciona una tela disponible</option>':'';
+  const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Selecciona una tela disponible</option>':'';
   return missing+groupedProductOptions(products,item,groups,p=>p.type,false);
 }
 function firstProduct(family){return (catalog?.products||[]).find(p=>p.family===family);}
@@ -440,6 +442,268 @@ function render(options={}){
 function setCalculating(){
   $('result-message').textContent='Calculando…';
   $('result-message').classList.add('calculating');
+}
+
+function normalizeTransferCode(value){
+  return String(value||'').toUpperCase().replace(/[\s-]+/g,'').replace(/[^A-Z0-9]/g,'').slice(0,6);
+}
+
+function technicalTransferPayload(){
+  return {
+    project:String(state.project||'').trim(),
+    items:(state.items||[]).map(item=>({
+      roomId:String(roomIdOf(item)||'').trim(),
+      family:String(item.family||'').trim(),
+      product:String(item.product||'').trim(),
+      location:String(item.location||'').trim(),
+      width:String(item.width||'').trim(),
+      height:String(item.height||'').trim(),
+      quantity:String(item.quantity||'1').trim(),
+      configuration:String(item.configuration||'standard').trim(),
+      coverlight:String(item.coverlight||'').trim(),
+      addons:Array.isArray(item.addons)?item.addons.slice():[],
+      installation:installationData(item)
+    }))
+  };
+}
+
+function validateTechnicalTransferPayload(payload){
+  if(!payload?.items?.length)return 'Agrega al menos una persiana antes de compartir.';
+  for(let index=0;index<payload.items.length;index++){
+    const item=payload.items[index];
+    const label=item.location||('Persiana '+(index+1));
+    if(!item.roomId||!item.family)return 'Revisa '+label+'.';
+    if(!item.product)return 'Selecciona la referencia de '+label+' antes de compartir.';
+    const width=Number(String(item.width).replace(',','.'));
+    const height=Number(String(item.height).replace(',','.'));
+    const quantity=Number(item.quantity);
+    if(!Number.isFinite(width)||width<=0||!Number.isFinite(height)||height<=0){
+      return 'Completa ancho y alto de '+label+' antes de compartir.';
+    }
+    if(!Number.isInteger(quantity)||quantity<1){
+      return 'Revisa la cantidad de '+label+'.';
+    }
+  }
+  return '';
+}
+
+function transferSignature(payload){
+  return JSON.stringify(payload);
+}
+
+function transferShareText(code){
+  return [
+    'Te compartí una visita de HomeEasy.',
+    'Código Hommy: *'+code+'*',
+    'Entra a HomeEasy → Cotizador → Recibir visita.'
+  ].join('\n');
+}
+
+function formatTransferExpiry(value){
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return '7 días';
+  return date.toLocaleString('es-CO',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
+}
+
+function setTransferBusy(button,busy,label){
+  if(!button)return;
+  button.disabled=Boolean(busy);
+  if(label)button.dataset.idleLabel=label;
+  const idle=button.dataset.idleLabel||button.textContent.trim();
+  if(busy)button.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Espera…';
+  else button.textContent=idle;
+}
+
+function resetShareVisitDialog(){
+  $('share-visit-error').textContent='';
+  $('share-visit-loading').hidden=true;
+  $('share-visit-ready').hidden=true;
+  $('share-visit-code').textContent='—';
+  $('share-visit-expiry').textContent='';
+}
+
+function showSharedTransfer(result,signature){
+  lastSharedTransfer={
+    signature,
+    code:result.code,
+    expiresAt:result.expiresAt
+  };
+  $('share-visit-loading').hidden=true;
+  $('share-visit-ready').hidden=false;
+  $('share-visit-code').textContent=result.code;
+  $('share-visit-expiry').textContent='Válido hasta '+formatTransferExpiry(result.expiresAt);
+}
+
+async function createSharedVisit(){
+  if(transferBusy)return;
+  const payload=technicalTransferPayload();
+  const validation=validateTechnicalTransferPayload(payload);
+  if(validation){toast(validation);return;}
+
+  const signature=transferSignature(payload);
+  resetShareVisitDialog();
+  $('share-visit-dialog').showModal();
+
+  if(lastSharedTransfer&&lastSharedTransfer.signature===signature&&new Date(lastSharedTransfer.expiresAt).getTime()>Date.now()){
+    showSharedTransfer(lastSharedTransfer,signature);
+    return;
+  }
+
+  transferBusy=true;
+  $('share-visit-loading').hidden=false;
+  try{
+    const result=await post('COTIZADOR_TRANSFERENCIA_CREAR',{payload});
+    if(result?.status!=='ok'||!result.code)throw Error(result?.msg||'No se pudo generar el código.');
+    showSharedTransfer(result,signature);
+  }catch(error){
+    $('share-visit-loading').hidden=true;
+    $('share-visit-error').textContent=error?.message||'No se pudo compartir la visita.';
+  }finally{
+    transferBusy=false;
+  }
+}
+
+function hasMeaningfulDraft(){
+  if(String(state.project||'').trim()||state.items.length>1)return true;
+  return state.items.some(item=>{
+    const install=installationData(item);
+    return Boolean(
+      String(item.location||'').trim()||
+      String(item.width||'').trim()||
+      String(item.height||'').trim()||
+      String(item.quantity||'1')!=='1'||
+      item.coverlight||
+      (item.addons||[]).length||
+      rawPesos(item.manualCost||'0')!=='0'||
+      rawPesos(item.extras||'0')!=='0'||
+      install.mount||install.control||install.opening||install.note
+    );
+  });
+}
+
+function resetReceiveVisitDialog(){
+  pendingTransferPreview=null;
+  $('receive-visit-code').value='';
+  $('receive-visit-error').textContent='';
+  $('receive-visit-preview').hidden=true;
+  $('receive-visit-entry').hidden=false;
+  $('receive-draft-warning').hidden=true;
+  $('receive-preview-project').textContent='';
+  $('receive-preview-meta').textContent='';
+  $('receive-preview-by').textContent='';
+}
+
+async function previewSharedVisit(){
+  if(transferBusy)return;
+  const code=normalizeTransferCode($('receive-visit-code').value);
+  $('receive-visit-code').value=code;
+  $('receive-visit-error').textContent='';
+  if(code.length!==6){
+    $('receive-visit-error').textContent='Escribe los 6 caracteres del código.';
+    return;
+  }
+
+  transferBusy=true;
+  setTransferBusy($('preview-transfer'),true,'Buscar visita');
+  try{
+    const result=await post('COTIZADOR_TRANSFERENCIA_PREVIEW',{code});
+    if(result?.status!=='ok'||!result.payload)throw Error(result?.msg||'No se encontró la visita.');
+    pendingTransferPreview=result;
+    $('receive-visit-entry').hidden=true;
+    $('receive-visit-preview').hidden=false;
+    $('receive-preview-project').textContent=result.summary?.project||'Visita sin nombre';
+    $('receive-preview-meta').textContent=(result.summary?.rooms||0)+' ambientes · '+(result.summary?.items||0)+' persianas';
+    $('receive-preview-by').textContent='Compartida por '+(result.createdBy||'HomeEasy')+' · '+formatTransferExpiry(result.createdAt);
+    $('receive-draft-warning').hidden=!hasMeaningfulDraft();
+  }catch(error){
+    $('receive-visit-error').textContent=error?.message||'No se pudo abrir ese código.';
+  }finally{
+    transferBusy=false;
+    setTransferBusy($('preview-transfer'),false,'Buscar visita');
+  }
+}
+
+function hydrateTransferredItem(raw){
+  const originalFamily=String(raw?.family||'').trim();
+  const family=availableFamilies().includes(originalFamily)?originalFamily:(availableFamilies()[0]||'onda');
+  const existing=(catalog?.products||[]).find(p=>p.id===raw?.product&&p.family===family);
+  const item={
+    id:crypto.randomUUID(),
+    roomId:String(raw?.roomId||crypto.randomUUID()),
+    family,
+    product:existing?String(raw.product):'',
+    location:String(raw?.location||''),
+    width:String(raw?.width||''),
+    height:String(raw?.height||''),
+    quantity:String(raw?.quantity||'1'),
+    mode:'auto',
+    manualCost:'',
+    extras:'0',
+    configuration:String(raw?.configuration||'standard'),
+    coverlight:String(raw?.coverlight||''),
+    addons:Array.isArray(raw?.addons)?raw.addons.slice():[],
+    installation:installationData({installation:raw?.installation||{}})
+  };
+
+  if(!existing){
+    item.configuration='standard';
+    item.coverlight='';
+    item.addons=[];
+    item.needsReview=true;
+    return item;
+  }
+
+  if(item.family==='enrollable'){
+    item.configuration='standard';
+    item.addons=[];
+  }else{
+    const validConfig=(existing.configurations||[]).some(c=>c.id===item.configuration);
+    if(item.configuration!=='standard'&&!validConfig)item.configuration='standard';
+    item.addons=item.addons.filter(id=>(existing.addons||[]).some(addon=>addon.id===id));
+  }
+
+  if(item.coverlight&&!(existing.coverlight||[]).some(cover=>cover.id===item.coverlight))item.coverlight='';
+  item.mode=requiresManual(item)?'manual':'auto';
+  return item;
+}
+
+function applyTransferredVisit(payload){
+  const received=fresh();
+  received.project=String(payload?.project||'');
+  received.items=(payload?.items||[]).map(hydrateTransferredItem);
+  if(!received.items.length)received.items=[newItem()];
+  state=received;
+  normalizeRoomIds();
+  clearEngineCache();
+  fillGlobals();
+  render();
+  saveNow();
+  const needsReview=state.items.filter(item=>item.needsReview).length;
+  if(needsReview){
+    toast('Visita cargada. '+needsReview+' referencia'+(needsReview===1?' necesita':'s necesitan')+' revisión.');
+  }else{
+    toast('Visita recibida. Ya puedes continuar la cotización.');
+  }
+}
+
+async function consumeSharedVisit(){
+  if(transferBusy||!pendingTransferPreview)return;
+  transferBusy=true;
+  $('receive-visit-error').textContent='';
+  setTransferBusy($('consume-transfer'),true,'Continuar con esta visita');
+  try{
+    const result=await post('COTIZADOR_TRANSFERENCIA_CONSUMIR',{code:pendingTransferPreview.code});
+    if(result?.status!=='ok')throw Error(result?.msg||'No se pudo importar la visita.');
+    const payload=pendingTransferPreview.payload;
+    $('receive-visit-dialog').close();
+    applyTransferredVisit(payload);
+    pendingTransferPreview=null;
+  }catch(error){
+    $('receive-visit-error').textContent=error?.message||'No se pudo importar la visita.';
+  }finally{
+    transferBusy=false;
+    setTransferBusy($('consume-transfer'),false,'Continuar con esta visita');
+  }
 }
 
 async function post(tipo,payload={}){
@@ -789,6 +1053,57 @@ $('confirm-new').onclick=()=>{
   $('new-dialog').close();
 };
 
+$('share-visit').onclick=createSharedVisit;
+$('close-share-visit').onclick=()=>$('share-visit-dialog').close();
+$('copy-transfer-code').onclick=async()=>{
+  const code=$('share-visit-code').textContent.trim();
+  if(!code||code==='—')return;
+  try{
+    await navigator.clipboard.writeText(code);
+    toast('Código copiado.');
+  }catch(error){
+    toast('No se pudo copiar. Mantén presionado el código.');
+  }
+};
+$('share-transfer-code').onclick=async()=>{
+  const code=$('share-visit-code').textContent.trim();
+  if(!code||code==='—')return;
+  const text=transferShareText(code);
+  try{
+    if(navigator.share){
+      await navigator.share({text});
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    toast('Mensaje copiado. Ya puedes pegarlo en WhatsApp.');
+  }catch(error){
+    if(error?.name!=='AbortError')toast('No se pudo compartir el código.');
+  }
+};
+
+$('receive-visit').onclick=()=>{
+  resetReceiveVisitDialog();
+  $('receive-visit-dialog').showModal();
+  setTimeout(()=>$('receive-visit-code').focus(),60);
+};
+$('close-receive-visit').onclick=()=>$('receive-visit-dialog').close();
+$('receive-visit-code').addEventListener('input',event=>{
+  event.target.value=normalizeTransferCode(event.target.value);
+  $('receive-visit-error').textContent='';
+});
+$('receive-visit-code').addEventListener('keydown',event=>{
+  if(event.key==='Enter'){event.preventDefault();previewSharedVisit();}
+});
+$('preview-transfer').onclick=previewSharedVisit;
+$('receive-use-another').onclick=()=>{
+  pendingTransferPreview=null;
+  $('receive-visit-preview').hidden=true;
+  $('receive-visit-entry').hidden=false;
+  $('receive-visit-error').textContent='';
+  $('receive-visit-code').focus();
+};
+$('consume-transfer').onclick=consumeSharedVisit;
+
 $('close-copy').onclick=()=>$('copy-dialog').close();
 
 function formalDescription(item,index,q){
@@ -1039,6 +1354,8 @@ async function connect(){
     });
 
     $('add-item').disabled=false;
+    $('share-visit').disabled=false;
+    $('receive-visit').disabled=false;
     fillGlobals();
     const restored=restoreEngineCache();
     render({recalculate:!restored});
