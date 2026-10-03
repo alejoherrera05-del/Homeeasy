@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>HomeEasy loading runtime QA</title>
+  <script>
+    sessionStorage.setItem('HOMEEASY_AUTH_SESSION_V1', JSON.stringify({
+      profile:{nombre:'Alejandro Herrera'},
+      appSessionToken:'qa-session',
+      expiresAt:Date.now()+3600000,
+      appSessionExpiresAt:Date.now()+3600000
+    }));
+    window.HOMEEASY_AUTH_CONFIG = { qa: true };
+    window.HomeEasyAuth = {
+      isConfigured: () => true,
+      getCachedHomeEasySession: () => null,
+      restoreHomeEasySession: () => new Promise(() => {}),
+      getCurrentProfile: () => ({ nombre: 'Alejandro Herrera' }),
+      isTransientError: () => false
+    };
+  </script>
+</head>
+<body>
+  <div id="qa-underlay">QA underlay: debe quedar oculto durante la comprobación.</div>
+  <script src="../homeeasy-core.js"></script>
+</body>
+</html>
