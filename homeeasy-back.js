@@ -3,6 +3,8 @@
   const GLOBAL_ID='homeeasy-global-back';
   const HIDDEN_CLASS='he-original-back-hidden';
   const selectors=[
+    '.btn-back-cover',
+    '.header-left > .btn-back',
     '#btn-back',
     '#back-button',
     '#back',
