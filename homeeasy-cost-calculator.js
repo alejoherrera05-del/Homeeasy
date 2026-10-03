@@ -445,7 +445,7 @@ function setCalculating(){
 }
 
 function normalizeTransferCode(value){
-  return String(value||'').toUpperCase().replace(/[\s-]+/g,'').replace(/[^A-Z0-9]/g,'').slice(0,6);
+  return String(value||'').toUpperCase().replace(/[\s-]+/g,'').replace(/[^ABCDEFGHJKLMNPQRSTUVWXYZ23456789]/g,'').slice(0,6);
 }
 
 function technicalTransferPayload(){
