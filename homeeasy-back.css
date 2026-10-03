@@ -1,4 +1,4 @@
-/* HomeEasy · Back navigation v1.0
+/* HomeEasy · Back navigation v1.1
    Un único botón de regreso para todas las vistas principales de Hommy. */
 :root{
   --he-back-wine:#a6455a;
@@ -7,7 +7,7 @@
   position:fixed!important;
   z-index:4800!important;
   top:calc(env(safe-area-inset-top,0px) + 18px)!important;
-  left:max(20px,calc((100vw - 1240px)/2 + 28px))!important;
+  left:18px!important;
   width:46px!important;
   height:46px!important;
   padding:0!important;
@@ -52,11 +52,6 @@
     transform:translateY(-1px)!important;
     background:#fff!important;
     box-shadow:0 10px 26px rgba(35,28,31,.12)!important;
-  }
-}
-@media(max-width:1280px){
-  #homeeasy-global-back{
-    left:20px!important;
   }
 }
 @media(max-width:600px){
