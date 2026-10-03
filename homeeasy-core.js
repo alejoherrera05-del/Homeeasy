@@ -7,7 +7,7 @@
     'use strict';
 
     const API_URL = 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec';
-    const APP_VERSION = '3.5';
+    const APP_VERSION = '3.5.1';
     const CONFIG_CACHE_KEY = 'HOMEEASY_CONFIG_BROWSER_V1';
     const CONFIG_CACHE_FRESH_MS = 5 * 60 * 1000;
     const CONFIG_CACHE_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -107,15 +107,117 @@
         : Promise.resolve(true);
 
     let indexPendingTimer = null;
+    const AUTH_LOADING_SCREEN_ID = 'homeeasy-auth-loading-screen';
+
+    function escapePendingHtml(value) {
+        return String(value || '').replace(/[&<>"']/g, character => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[character]));
+    }
+
+    function getIndexPendingFirstName() {
+        const session = getStoredAuthSessionSnapshot();
+        const name = session && session.profile && session.profile.nombre ? String(session.profile.nombre).trim() : '';
+        return name ? name.split(/\s+/)[0] : '';
+    }
+
+    function removeIndexPendingScreen() {
+        if (!global.document) return;
+        const screen = global.document.getElementById(AUTH_LOADING_SCREEN_ID);
+        if (screen) screen.remove();
+    }
+
     function showIndexPending() {
         if (indexAuthStatus !== 'checking' || !global.document || !global.document.documentElement) return;
         global.document.documentElement.classList.add(AUTH_PENDING_CLASS);
-        if (global.document.getElementById(AUTH_LOADING_STYLE_ID)) return;
-        const loadingStyle = global.document.createElement('style');
-        loadingStyle.id = AUTH_LOADING_STYLE_ID;
-        loadingStyle.textContent = `html.${AUTH_PENDING_CLASS} body{visibility:hidden!important}html.${AUTH_PENDING_CLASS}{min-height:100%;background:#a6455a!important}html.${AUTH_PENDING_CLASS}::before{content:'';position:fixed;z-index:2147483646;inset:0;background:#a6455a}html.${AUTH_PENDING_CLASS}::after{content:'Abriendo HomeEasy…';position:fixed;z-index:2147483647;left:50%;top:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.88);font:650 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}`;
-        (global.document.head || global.document.documentElement).appendChild(loadingStyle);
+
+        if (!global.document.getElementById(AUTH_LOADING_STYLE_ID)) {
+            const loadingStyle = global.document.createElement('style');
+            loadingStyle.id = AUTH_LOADING_STYLE_ID;
+            loadingStyle.textContent = `
+html.${AUTH_PENDING_CLASS},html.${AUTH_PENDING_CLASS} body{min-height:100%;background:#fff!important;overflow:hidden!important}
+html.${AUTH_PENDING_CLASS} body>*:not(#${AUTH_LOADING_SCREEN_ID}){visibility:hidden!important}
+#${AUTH_LOADING_SCREEN_ID}{--he-home:#a6455a;--he-home-light:#b54f67;--he-home-dark:#823646;--he-text:#252125;--he-muted:#777075;position:fixed;z-index:2147483647;inset:0;display:grid;grid-template-columns:minmax(0,1.06fr) minmax(430px,.94fr);background:#fff;color:var(--he-text);visibility:visible!important;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI Variable","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#${AUTH_LOADING_SCREEN_ID} *{box-sizing:border-box}
+#${AUTH_LOADING_SCREEN_ID} .he-load-copy{position:relative;z-index:4;display:flex;align-items:center;justify-content:center;padding:clamp(44px,6vw,88px);background:radial-gradient(circle at 16% 12%,rgba(166,69,90,.03),transparent 30%),#fff}
+#${AUTH_LOADING_SCREEN_ID} .he-load-inner{width:min(610px,100%)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-brand{width:max-content;display:grid;justify-items:center;margin:0 0 clamp(52px,7vh,74px)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-mark{display:block;width:52px;height:52px;object-fit:contain;margin-bottom:8px}
+#${AUTH_LOADING_SCREEN_ID} .he-load-word{color:var(--he-home);font-size:clamp(2rem,3vw,2.58rem);line-height:.98;font-weight:500;letter-spacing:-.052em;white-space:nowrap}
+#${AUTH_LOADING_SCREEN_ID} .he-load-system{margin-top:8px;width:100%;text-align:center;color:#8a7a7f;font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.20em}
+#${AUTH_LOADING_SCREEN_ID} .he-load-title{margin:0;max-width:680px;font-size:clamp(2.72rem,4.45vw,4.65rem);line-height:.98;font-weight:700;letter-spacing:-.052em}
+#${AUTH_LOADING_SCREEN_ID} .he-load-name{display:block;margin-top:2px;color:var(--he-home)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-sub{margin:17px 0 0;color:var(--he-muted);font-size:clamp(.98rem,1.28vw,1.15rem);line-height:1.5;font-weight:450;max-width:39ch}
+#${AUTH_LOADING_SCREEN_ID} .he-load-progress-wrap{margin-top:36px;width:min(430px,80%)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-progress{position:relative;height:3px;overflow:hidden;border-radius:999px;background:rgba(60,60,67,.10)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-progress:before{content:"";position:absolute;inset:0 auto 0 -38%;width:38%;border-radius:inherit;background:linear-gradient(90deg,var(--he-home-light),var(--he-home),var(--he-home-dark));animation:heAuthLoading 1.65s cubic-bezier(.2,.8,.2,1) infinite}
+#${AUTH_LOADING_SCREEN_ID} .he-load-status{margin-top:12px;color:#817a7e;font-size:.8rem;font-weight:520}
+#${AUTH_LOADING_SCREEN_ID} .he-load-visual{position:relative;z-index:2;min-width:0;overflow:hidden;background:radial-gradient(circle at 28% 15%,rgba(255,255,255,.10),transparent 31%),linear-gradient(150deg,var(--he-home-light) 0%,var(--he-home) 50%,var(--he-home-dark) 100%)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-visual:before{content:"";position:absolute;z-index:5;top:-7%;left:-86px;width:176px;height:114%;border-radius:50%;background:#fff;box-shadow:-16px 0 34px rgba(78,24,39,.07)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-visual:after{content:"";position:absolute;z-index:2;right:-16%;bottom:-22%;width:68%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.045)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-watermark{position:absolute;z-index:1;top:49%;left:50%;width:min(70%,480px);transform:translate(-56%,-52%);opacity:.13;filter:brightness(.42) saturate(.70);pointer-events:none}
+#${AUTH_LOADING_SCREEN_ID} .he-load-hommy{position:absolute;z-index:3;left:52%;bottom:-2%;height:86%;width:auto;max-width:91%;transform:translateX(-50%);object-fit:contain;object-position:center bottom;image-rendering:auto;filter:none;pointer-events:none;animation:heHommyIn .5s .04s cubic-bezier(.2,.8,.2,1) both}
+@keyframes heAuthLoading{0%{left:-40%;width:34%}55%{width:46%}100%{left:112%;width:34%}}
+@keyframes heHommyIn{from{opacity:0;transform:translateX(-50%) translateY(18px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(max-width:900px){
+html.${AUTH_PENDING_CLASS},html.${AUTH_PENDING_CLASS} body{overflow:auto!important}
+#${AUTH_LOADING_SCREEN_ID}{position:fixed;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;overflow:hidden}
+#${AUTH_LOADING_SCREEN_ID} .he-load-visual{order:1;min-height:32dvh;flex:0 0 32dvh}
+#${AUTH_LOADING_SCREEN_ID} .he-load-visual:before{top:auto;bottom:-72px;left:-10%;width:120%;height:142px;border-radius:50%;background:#fff;box-shadow:0 -16px 32px rgba(78,24,39,.06)}
+#${AUTH_LOADING_SCREEN_ID} .he-load-visual:after{width:88%;right:-35%;bottom:-45%}
+#${AUTH_LOADING_SCREEN_ID} .he-load-watermark{width:50%;top:48%;left:26%;transform:translate(-50%,-50%);opacity:.11}
+#${AUTH_LOADING_SCREEN_ID} .he-load-hommy{height:91%;left:71%;bottom:-11%}
+#${AUTH_LOADING_SCREEN_ID} .he-load-copy{order:2;display:block;flex:1;padding:34px 24px max(28px,env(safe-area-inset-bottom));background:#fff}
+#${AUTH_LOADING_SCREEN_ID} .he-load-inner{width:min(430px,100%);margin:0 auto}
+#${AUTH_LOADING_SCREEN_ID} .he-load-brand{margin:0 auto 28px}
+#${AUTH_LOADING_SCREEN_ID} .he-load-mark{width:44px;height:44px;margin-bottom:6px}
+#${AUTH_LOADING_SCREEN_ID} .he-load-word{font-size:1.88rem}
+#${AUTH_LOADING_SCREEN_ID} .he-load-system{margin-top:5px;font-size:.53rem;letter-spacing:.17em}
+#${AUTH_LOADING_SCREEN_ID} .he-load-title{font-size:clamp(2.28rem,10.5vw,3.18rem);line-height:.98}
+#${AUTH_LOADING_SCREEN_ID} .he-load-sub{margin-top:11px;font-size:.92rem;max-width:31ch}
+#${AUTH_LOADING_SCREEN_ID} .he-load-progress-wrap{width:100%;margin-top:26px}
+#${AUTH_LOADING_SCREEN_ID} .he-load-status{font-size:.76rem}
+}
+@media(max-height:700px) and (max-width:900px){#${AUTH_LOADING_SCREEN_ID} .he-load-visual{min-height:27dvh;flex-basis:27dvh}#${AUTH_LOADING_SCREEN_ID} .he-load-brand{margin-bottom:20px}#${AUTH_LOADING_SCREEN_ID} .he-load-copy{padding-top:24px}}
+@media(prefers-reduced-motion:reduce){#${AUTH_LOADING_SCREEN_ID} .he-load-progress:before,#${AUTH_LOADING_SCREEN_ID} .he-load-hommy{animation:none}}
+`;
+            (global.document.head || global.document.documentElement).appendChild(loadingStyle);
+        }
+
+        const render = () => {
+            if (indexAuthStatus !== 'checking' || !global.document || !global.document.body || global.document.getElementById(AUTH_LOADING_SCREEN_ID)) return;
+            const firstName = getIndexPendingFirstName();
+            const screen = global.document.createElement('main');
+            screen.id = AUTH_LOADING_SCREEN_ID;
+            screen.setAttribute('role', 'status');
+            screen.setAttribute('aria-live', 'polite');
+            screen.innerHTML = `
+                <section class="he-load-copy">
+                    <div class="he-load-inner">
+                        <header class="he-load-brand" aria-label="HomeEasy Sistema Hommy">
+                            <img class="he-load-mark" src="triangulo.png" alt="">
+                            <div class="he-load-word">HomeEasy</div>
+                            <div class="he-load-system">Sistema Hommy</div>
+                        </header>
+                        <h1 class="he-load-title">Hola de nuevo,${firstName ? `<span class="he-load-name">${escapePendingHtml(firstName)}</span>` : ''}</h1>
+                        <p class="he-load-sub">Hommy está preparando todo para ti.</p>
+                        <div class="he-load-progress-wrap">
+                            <div class="he-load-progress" aria-hidden="true"></div>
+                            <div class="he-load-status">Recuperando tu sesión…</div>
+                        </div>
+                    </div>
+                </section>
+                <aside class="he-load-visual" aria-hidden="true">
+                    <img class="he-load-watermark" src="triangulo.png" alt="">
+                    <img class="he-load-hommy" src="hommysaludando.png" alt="">
+                </aside>`;
+            global.document.body.appendChild(screen);
+        };
+
+        if (global.document.body) render();
+        else global.document.addEventListener('DOMContentLoaded', render, { once: true });
     }
+
     function scheduleIndexPending() {
         clearTimeout(indexPendingTimer);
         if (isFastHomeReturn()) return;
@@ -500,6 +602,7 @@
         if (global.document && global.document.documentElement) {
             global.document.documentElement.classList.remove(AUTH_PENDING_CLASS);
         }
+        removeIndexPendingScreen();
         removeSessionValue(INTERNAL_HOME_RETURN_KEY);
         try {
             global.dispatchEvent(new CustomEvent('homeeasy:index-auth-ready', {
@@ -534,6 +637,7 @@
         indexAuthStatus = 'network-error';
         clearTimeout(indexPendingTimer);
         if (global.document && global.document.documentElement) global.document.documentElement.classList.remove(AUTH_PENDING_CLASS);
+        removeIndexPendingScreen();
         const render = () => {
             if (!global.document || !global.document.body || global.document.getElementById('homeeasyIndexConnectionIssue')) return;
             const box = global.document.createElement('div');
