@@ -21,8 +21,19 @@ async function mount(saved){
  w.fetch=async(_url,options)=>{const data=JSON.parse(options.body);return {ok:true,json:async()=>{
   if(data.tipo==='COSTOS_OPCIONES')return {status:'ok',products:catalog,version:'test',validThrough:'2026-10-31',currency:'COP'};
   lastItems=data.items;
-  const items=data.items.map(i=>({ok:!!i.width&&!!i.height,widthMm:Number(i.width)*1000,heightMm:Number(i.height)*1000,coverlightOptions:i.product==='black'?[{id:'cover',name:'Coverlight ficticio',costCents:Number(i.height)*2000}]:[],unit:10000+(i.coverlight?Number(i.height)*2000:0),total:(10000+(i.coverlight?Number(i.height)*2000:0))*Number(i.quantity),product:{...catalog.find(p=>p.id===i.product),coverlight:!!i.coverlight}}));
-  const products=items.reduce((n,i)=>n+i.total,0);return {status:'ok',quote:{ok:items.every(i=>i.ok),items,products,installation:0,transport:0,cost:products}};
+  const items=data.items.map(i=>{
+   if(i.product==='screen'&&Number(i.width)===2.3&&Number(i.height)===3&&i.mode!=='manual'){
+    return {ok:false,error:'La medida no cabe en la configuración Standard. Pentagrama ofrece otra configuración de fabricación.',reason:'La medida no cabe en la configuración Standard. Pentagrama ofrece otra configuración de fabricación.',requiresAlternative:true,notManufacturable:false,alternatives:[{id:'penta13',label:'Cenefa Penta13 manual',mechanism:'Clic L',tube:'T50',requiresConfirmedCost:true}]};
+   }
+   if(i.product==='dim'&&Number(i.width)===4&&Number(i.height)===4){
+    return {ok:false,error:'La tabla oficial de Pentagrama no contiene una configuración fabricable para esta medida.',reason:'La tabla oficial de Pentagrama no contiene una configuración fabricable para esta medida.',requiresAlternative:false,notManufacturable:true,alternatives:[]};
+   }
+   const manual=i.mode==='manual';
+   const unit=manual?Number(i.manualCost||0)*100:10000+(i.coverlight?Number(i.height)*2000:0);
+   const fabrication=!manual&&i.product==='black'&&Number(i.width)===2.5&&Number(i.height)===3.2?{supported:true,orientation:'atravesada_y_anadida',requiresAuthorization:true,warranty:false,mechanism:'VTX-20 o Clic M',tube:'T50'}:null;
+   return {ok:!!i.width&&!!i.height&&(!manual||unit>0),widthMm:Number(i.width)*1000,heightMm:Number(i.height)*1000,coverlightOptions:i.product==='black'?[{id:'cover',name:'Coverlight ficticio',costCents:Number(i.height)*2000}]:[],unit,total:unit*Number(i.quantity),fabrication,product:{...catalog.find(p=>p.id===i.product),coverlight:!!i.coverlight}};
+  });
+  const products=items.filter(i=>i.ok).reduce((n,i)=>n+i.total,0);return {status:'ok',quote:{ok:items.every(i=>i.ok),items,products,installation:0,transport:0,cost:products,error:items.every(i=>i.ok)?'':'Completa las persianas pendientes para calcular el total.'}};
  }};};
  w.eval(fs.readFileSync(path.join(root,'homeeasy-cost-calculator.js'),'utf8'));await sleep(40);
  return {dom,w,getCopied:()=>copied,getLastItems:()=>lastItems};
@@ -48,6 +59,19 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  input(w,'[data-field=height]','2');assert.equal(d.querySelector('[data-action=coverlight-toggle]'),null);await sleep(250);
  assert.match(d.querySelector('[data-field=coverlight]').textContent,/40/);
  change(w,'[data-field=product]','screen');assert.equal(d.querySelector('[data-action=manual-toggle]'),null);await sleep(250);assert.equal(d.querySelector('[data-action=coverlight-toggle]'),null);
+ input(w,'[data-field=width]','2.3');input(w,'[data-field=height]','3');await sleep(250);
+ assert.ok(d.querySelector('.fabrication-notice--alternative'));
+ assert.match(d.querySelector('.fabrication-notice--alternative').textContent,/Penta13/);
+ d.querySelector('[data-action=special-cost]').click();await sleep(30);
+ assert.ok(d.querySelector('[data-field=manualCost]'));
+ input(w,'[data-field=manualCost]','500000');await sleep(250);
+ assert.match(d.querySelector('[data-output=unit]').textContent,/500.000/);
+ assert.ok(d.querySelector('.fabrication-notice--manual'));
+ change(w,'[data-field=product]','black');input(w,'[data-field=width]','2.5');input(w,'[data-field=height]','3.2');await sleep(250);
+ assert.ok(d.querySelector('.fabrication-notice--warning'));
+ assert.match(d.querySelector('.fabrication-notice--warning').textContent,/sin garantía/i);
+ change(w,'[data-field=product]','dim');input(w,'[data-field=width]','4');input(w,'[data-field=height]','4');await sleep(250);
+ assert.ok(d.querySelector('.fabrication-notice--danger'));
  change(w,'[data-field=family]','onda');assert.equal(d.querySelector('[data-field=product]').value,'old');assert.equal(d.querySelector('[data-field=configuration]'),null);
  for(const [family,id] of [['onda','onda-67'],['panel','panel-84'],['vertical','vertical-113'],['sheer','sheer-130'],['vertesse','vertesse-161']]){
   change(w,'[data-field=family]',family);
