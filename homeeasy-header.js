@@ -13,7 +13,7 @@
     'reportes.html':{module:'Reportes',hideRows:['.report-header .header-main']},
     'cotizador-persianas.html':{module:'Cotizador',hide:['body > .app-header'],move:['#save-state']},
     'perfil.html':{module:'Mi perfil',hide:['body > .header']},
-    'caja.html':{module:'Caja',hide:['.caja-header'],move:['.caja-header .btn-lock-caja']},
+    'caja.html':{module:'Caja',hideRows:['.caja-header .header-top'],move:['.caja-header .btn-lock-caja']},
     'hommychat.html':{module:'Hommy',hide:['.hommy-app > .app-header'],move:['.hommy-app > .app-header .header-actions']},
     'ar-homeeasy-v3.html':{module:'Visualizador AR',hide:['body > .topbar'],move:['body > .topbar .top-link']},
     'clientes.html':{module:'Clientes',hide:['.v31-header','.header-mini'],move:['.v31-new-search']},
@@ -62,6 +62,7 @@
   function createHeader(){
     if(document.getElementById('homeeasy-app-header') || !document.body) return;
     document.body.classList.add('he-app-header-active');
+    if(['cotizacion.html','pedido.html','abono.html'].includes(file)) document.body.classList.add('he-document-page');
 
     const oldGlobal=document.getElementById('homeeasy-global-back');
     if(oldGlobal) oldGlobal.remove();
