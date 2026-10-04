@@ -128,7 +128,11 @@ class PentagramaPhase2 {
   }
 
   fail(id, error) { this.store.updateOperation(id, { state: 'failed', stage: 'FAILED', error: { code: String(error.code || 'PENTAGRAMA_SYNC_FAILED'), message: String(error.message || 'Sync failed').slice(0, 300) } }); }
-  status() { return { latestScan: this.store.latestScan(), nextScheduledCheck: this.store.state.nextScheduledCheck }; }
+  status() {
+    const scheduler = this.store.schedulerState();
+    return { latestScan: this.store.latestScan(), nextScheduledCheck: this.store.state.nextScheduledCheck,
+      lastAutomaticCheck: scheduler.lastRunAt, automaticResult: scheduler.lastResult };
+  }
 }
 
 module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, SCAN_MAX_AGE_MS });

@@ -12,8 +12,9 @@ class HomeEasyCostClient {
   async cost(item, context = {}) {
     const token = String(context.sessionToken || '').trim();
     const deviceId = String(context.deviceId || '').trim();
-    if (!token || !deviceId) {
-      throw new SyncError('HomeEasy session and device context are required for live cost comparison', {
+    const serviceKey = String(context.serviceKey || '').trim();
+    if ((!token && !serviceKey) || !deviceId) {
+      throw new SyncError('HomeEasy session or scheduler service key and device context are required for live cost comparison', {
         code: 'HOMEEASY_COST_SESSION_REQUIRED',
         statusCode: 401
       });
@@ -24,7 +25,7 @@ class HomeEasyCostClient {
         method: 'POST',
         headers: { 'Accept': 'application/json', 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-          tipo: 'COSTOS_CALCULAR_COTIZACION',
+          tipo: serviceKey ? 'COSTOS_SYNC_COST' : 'COSTOS_CALCULAR_COTIZACION',
           items: [item],
           transport: '0',
           installation: '0',
@@ -32,6 +33,7 @@ class HomeEasyCostClient {
           installMode: 'common',
           promotions: true,
           appSessionToken: token,
+          ...(serviceKey ? { pentagramaSyncKey: serviceKey } : {}),
           meta: {
             dispositivoId: deviceId,
             dispositivoNombre: String(context.deviceName || 'Pentagrama Sync').slice(0, 120),

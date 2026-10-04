@@ -38,6 +38,7 @@ const HOMEEASY_COST_ROUTES = Object.freeze({
   COSTOS_ESTADO: HOMEEASY_COST_PERMISSION,
   COSTOS_OPCIONES: HOMEEASY_COST_PERMISSION,
   COSTOS_CALCULAR_COTIZACION: HOMEEASY_COST_PERMISSION,
+  COSTOS_SYNC_COST: "config.read",
   COSTOS_SYNC_READ: "config.read",
   COSTOS_SYNC_APPLY: "config.write",
   COSTOS_SYNC_ROLLBACK: "config.write",
@@ -130,6 +131,7 @@ function procesarRutaCostos10B_(ss, data) {
   if (tipo === "COSTOS_ESTADO") return obtenerEstadoCostos10B_(ss);
   if (tipo === "COSTOS_OPCIONES") return obtenerOpcionesCostos10B_(ss);
   if (tipo === "COSTOS_CALCULAR_COTIZACION") return calcularCotizacionCostos10B_(ss, data);
+  if (tipo === "COSTOS_SYNC_COST") return calcularCotizacionCostos10B_(ss, data);
   if (/^COSTOS_SYNC_/.test(tipo) && typeof procesarRutaPentagramaSync10C_ === "function") return procesarRutaPentagramaSync10C_(ss, data, auth.validation);
   return { status: "error", code: "COST_ROUTE_NOT_FOUND", msg: "La acción del cotizador no existe." };
 }
@@ -149,6 +151,10 @@ function borrarCacheCostos10B_() {
 }
 
 function autorizarRutaCostos10B_(ss, data, permission) {
+  const tipo = String(data && data.tipo || "").trim();
+  if ((tipo === "COSTOS_SYNC_READ" || tipo === "COSTOS_SYNC_COST") && autorizarServicioPentagramaSync10D_(data)) {
+    return { ok: true, validation: { usuario: "Pentagrama Scheduler", email: "scheduler@homeeasy", userId: "PENTAGRAMA_SCHEDULER" } };
+  }
   if (typeof validarPermisoSesionAuth9B_ !== "function") {
     return { ok: false, response: { status: "error", code: "COST_AUTH_UNAVAILABLE", msg: "El núcleo de sesión HomeEasy no está disponible." } };
   }
@@ -157,6 +163,15 @@ function autorizarRutaCostos10B_(ss, data, permission) {
   const check = validarPermisoSesionAuth9B_(ss, token, meta, permission);
   if (check.response) return { ok: false, response: check.response };
   return { ok: true, validation: check.validation };
+}
+
+function autorizarServicioPentagramaSync10D_(data) {
+  const supplied = String(data && data.pentagramaSyncKey || "").trim();
+  const expected = String(PropertiesService.getScriptProperties().getProperty("HOMEEASY_PENTAGRAMA_SYNC_KEY") || "").trim();
+  if (!supplied || !expected || supplied.length !== expected.length) return false;
+  let difference = 0;
+  for (let i = 0; i < supplied.length; i++) difference |= supplied.charCodeAt(i) ^ expected.charCodeAt(i);
+  return difference === 0;
 }
 
 function obtenerEstadoCostos10B_(ss) {

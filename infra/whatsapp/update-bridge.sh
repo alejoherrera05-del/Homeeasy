@@ -5,7 +5,7 @@ REPO_URL="https://github.com/alejoherrera05-del/Homeeasy.git"
 INSTALL_DIR="/opt/homeeasy-whatsapp"
 TMP_DIR="$(mktemp -d)"
 HEALTH_FILE="/tmp/homeeasy-bridge-health.json"
-EXPECTED_VERSION="0.8.0"
+EXPECTED_VERSION="0.12.0"
 
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
@@ -30,6 +30,9 @@ cp "$TMP_DIR/repo/infra/whatsapp/bridge/conversation.js" "$INSTALL_DIR/bridge/co
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/maintenance.js" "$INSTALL_DIR/bridge/maintenance.js"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/Dockerfile" "$INSTALL_DIR/bridge/Dockerfile"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/package.json" "$INSTALL_DIR/bridge/package.json"
+mkdir -p "$INSTALL_DIR/bridge/pentagrama-sync" "$INSTALL_DIR/bridge/pentagrama-agents"
+cp -R "$TMP_DIR/repo/infra/whatsapp/bridge/pentagrama-sync/." "$INSTALL_DIR/bridge/pentagrama-sync/"
+cp -R "$TMP_DIR/repo/infra/whatsapp/bridge/pentagrama-agents/." "$INSTALL_DIR/bridge/pentagrama-agents/"
 
 cd "$INSTALL_DIR"
 echo "Reconstruyendo solo el Bridge (WAHA y su sesión no se tocan)..."
