@@ -103,16 +103,19 @@ test('catalog wrappers preserve endpoint methods and payloads', async () => {
 
 test('pricing reconstructs distributor discount and VAT exactly', async () => {
   const client = {
-    get: async route => {
+    get: async (route, params) => {
       if (route === '/Order/GetProductPrice') return 244800;
-      if (route.startsWith('/Order/SearchProduct')) {
+      if (route === '/Atribute/ProductAttributes') {
+        assert.equal(params.ProductCode, 'CORONSEVECORWH2.8');
+        assert.equal(params.Group, 'ONDASE');
+        assert.equal(params.Discount, 0);
         return "<script>var distDiscountAttributes = parseFloat('0.37'); var distDiscount = parseFloat(String('37').replace(',', '.'));</script>";
       }
       throw new Error(`Unexpected route ${route}`);
     }
   };
   const pricing = new PentagramaPricing(client);
-  const result = await pricing.supplierCost({ ProductCode: 'CORONSEVECORWH2.8', Width: 1, Height: 1, GroupCode: 1345 });
+  const result = await pricing.supplierCost({ ProductCode: 'CORONSEVECORWH2.8', Width: 1, Height: 1, GroupCode: 1345, AssociationGroup: 'ONDASE', Discount: 0 });
   assert.equal(result.basePrice, 244800);
   assert.equal(result.distributorDiscount, 0.37);
   assert.equal(result.subtotal, 154224);

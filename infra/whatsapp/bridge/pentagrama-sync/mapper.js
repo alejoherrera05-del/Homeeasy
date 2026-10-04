@@ -15,7 +15,7 @@ const INITIAL_MAPPINGS = Object.freeze([
     productDiscount: 0,
     pricingMode: 'account-discount',
     updateField: 'Tarifa_IVA_COP',
-    special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
+    special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: 'VERTELCA', Discount: 0 })
   }),
   Object.freeze({
     id: 'onda-coral-white-100x100',
