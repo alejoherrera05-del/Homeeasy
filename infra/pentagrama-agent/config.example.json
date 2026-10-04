@@ -1,0 +1,4 @@
+{
+  "serverUrl": "https://168.119.191.42:8443",
+  "caFile": "server.crt"
+}
