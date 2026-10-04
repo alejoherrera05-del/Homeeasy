@@ -43,9 +43,21 @@ class PentagramaPricing {
     return price;
   }
 
-  async accountTerms() {
+  async accountTerms(params = {}) {
     if (this.terms && this.terms.expiresAt > Date.now()) return this.terms.value;
-    const html = await this.client.get('/Order/SearchProduct?reset=True', null, 'html');
+    const associationGroup = String(params.AssociationGroup || params.Group || '').trim();
+    const html = associationGroup
+      ? await this.client.get('/Atribute/ProductAttributes', {
+          ProductCode: requiredText(params.ProductCode, 'ProductCode'),
+          Group: associationGroup,
+          GroupCode: params.GroupCode === undefined ? '' : params.GroupCode,
+          LineNumber: '',
+          PrimaryGroup: '',
+          Discount: params.Discount === undefined ? 0 : params.Discount,
+          CalculationType: params.calculationType || 'NormalProduct',
+          Modified: ''
+        }, 'html')
+      : await this.client.get('/Order/SearchProduct?reset=True', null, 'html');
     const percentMatch = html.match(/\bdistDiscount\s*=\s*parseFloat\s*\(\s*String\s*\(\s*['"]([\d.,]+)['"]/i);
     const fractionMatch = html.match(/\bdistDiscountAttributes\s*=\s*parseFloat\s*\(\s*['"]([\d.,]+)['"]/i);
     const raw = percentMatch ? percentMatch[1] : fractionMatch ? fractionMatch[1] : '';
@@ -65,7 +77,7 @@ class PentagramaPricing {
     const basePrice = await this.price(params);
     const terms = pricingMode === 'net-before-vat'
       ? { distributorDiscount: 0, vatRate: this.vatRate }
-      : await this.accountTerms();
+      : await this.accountTerms(params);
     const productDiscount = decimalFraction(options.productDiscount || 0);
     const subtotal = basePrice * (1 - terms.distributorDiscount) * (1 - productDiscount);
     const total = Math.round(subtotal * (1 + terms.vatRate) * 100) / 100;
