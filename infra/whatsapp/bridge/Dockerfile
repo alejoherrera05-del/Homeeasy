@@ -8,6 +8,7 @@ COPY auth.js ./
 COPY operations.js ./
 COPY conversation.js ./
 COPY maintenance.js ./
+COPY pentagrama-sync ./pentagrama-sync
 
 RUN mkdir -p /app/data && chown -R node:node /app
 

@@ -110,6 +110,28 @@ En Fase 1 **ninguno se expone directamente a Internet**. Primero validaremos est
 
 ## Endpoints del Bridge
 
+### Pentagrama Sync (Fase 1, solo lectura)
+
+El VPS debe definir `PENTAGRAMA_LOGIN` y `PENTAGRAMA_PASSWORD` en `.env`. El endpoint no
+escribe en Sheets ni modifica tarifas; compara el costo vigente calculado por HomeEasy con
+el costo proveedor reconstruido desde Pentagrama.
+
+```text
+POST /api/pentagrama-sync/check
+X-HomeEasy-Session: ...
+X-HomeEasy-Device-Id: ...
+Content-Type: application/json
+```
+
+Payload opcional:
+
+```json
+{ "mappingIds": ["onda-coral-white-100x100"] }
+```
+
+Una respuesta parcial usa HTTP `207` y conserva un error controlado por caso. Nunca devuelve
+la cookie Pentagrama ni las credenciales configuradas.
+
 ### Salud
 
 ```text

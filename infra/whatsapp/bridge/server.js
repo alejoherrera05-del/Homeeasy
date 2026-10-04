@@ -8,8 +8,9 @@ const auth = require('./auth');
 const ops = require('./operations');
 const conversation = require('./conversation');
 const maintenance = require('./maintenance');
+const { createPentagramaSync } = require('./pentagrama-sync');
 
-const BRIDGE_VERSION = '0.8.0';
+const BRIDGE_VERSION = '0.9.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -26,6 +27,7 @@ const DOCUMENT_PERMISSIONS = Object.freeze({
   pedido: 'pedidos.write',
   abono: 'abonos.write'
 });
+const pentagramaSync = createPentagramaSync();
 
 if (!WAHA_API_KEY || !BRIDGE_TOKEN) {
   console.error('Missing WAHA_API_KEY or BRIDGE_TOKEN. Refusing to start.');
@@ -842,6 +844,22 @@ async function handle(req, res) {
     });
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/check') {
+    await auth.authorize(req, 'cotizaciones.write');
+    const payload = await readJsonBody(req);
+    const result = await pentagramaSync.comparison.check({
+      mappingIds: payload.mappingIds,
+      homeeasyContext: {
+        sessionToken: req.headers['x-homeeasy-session'],
+        deviceId: req.headers['x-homeeasy-device-id'],
+        deviceName: req.headers['x-homeeasy-device-name'],
+        platform: req.headers['x-homeeasy-platform'],
+        browser: req.headers['x-homeeasy-browser']
+      }
+    });
+    return json(res, result.ok ? 200 : 207, result);
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/status') {
     const actor = await auth.authorize(req, 'config.read');
     const session = await getSession();
@@ -989,7 +1007,8 @@ const server = http.createServer((req, res) => {
   let done = () => {};
   Promise.resolve().then(() => {
     const pathname = new URL(req.url, 'http://bridge.local').pathname;
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) && pathname !== '/api/whatsapp/maintenance') {
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) &&
+        !['/api/whatsapp/maintenance', '/api/pentagrama-sync/check'].includes(pathname)) {
       done = maintenance.track();
     }
     return handle(req, res);
