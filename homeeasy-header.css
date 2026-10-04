@@ -1,4 +1,4 @@
-/* HomeEasy App Header v2.3 · Centered compact lockup */
+/* HomeEasy App Header v2.4 · Optical pyramid lockup */
 :root{
   --he-header-brand:#a6455a;
   --he-header-brand-dark:#823646;
@@ -94,17 +94,24 @@
   display:grid;
   justify-items:center;
   align-items:center;
-  row-gap:4px;
+  row-gap:5px;
   text-align:center;
   user-select:none;
 }
 
 #homeeasy-app-header .he-app-header-brand-row{
   min-width:0;
-  display:flex;
+  display:grid;
+  grid-template-columns:22px auto 22px;
   align-items:center;
-  justify-content:center;
-  gap:7px;
+  justify-items:center;
+  column-gap:7px;
+}
+
+#homeeasy-app-header .he-app-header-brand-row::after{
+  content:"";
+  width:22px;
+  height:1px;
 }
 
 #homeeasy-app-header .he-app-header-mark{
@@ -112,7 +119,6 @@
   height:25px;
   display:grid;
   place-items:center;
-  flex:0 0 auto;
 }
 
 #homeeasy-app-header .he-app-header-logo{
@@ -123,10 +129,10 @@
 
 #homeeasy-app-header .he-app-header-wordmark{
   color:var(--he-header-brand);
-  font-size:.97rem;
+  font-size:1rem;
   line-height:1;
   font-weight:690;
-  letter-spacing:-.028em;
+  letter-spacing:-.03em;
   white-space:nowrap;
 }
 
@@ -134,13 +140,14 @@
   position:relative;
   display:block;
   max-width:100%;
-  padding-bottom:6px;
+  padding-bottom:7px;
   overflow:hidden;
   color:var(--he-header-text);
-  font-size:.68rem;
+  font-size:.56rem;
   line-height:1;
-  font-weight:620;
-  letter-spacing:.015em;
+  font-weight:650;
+  letter-spacing:.075em;
+  text-transform:uppercase;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
@@ -150,7 +157,7 @@
   position:absolute;
   left:50%;
   bottom:0;
-  width:22px;
+  width:20px;
   height:1.5px;
   border-radius:999px;
   transform:translateX(-50%);
@@ -325,7 +332,14 @@ body.he-document-page #homeeasy-app-header{
     row-gap:3px;
   }
 
-  #homeeasy-app-header .he-app-header-brand-row{gap:6px}
+  #homeeasy-app-header .he-app-header-brand-row{
+    grid-template-columns:20px auto 20px;
+    column-gap:6px;
+  }
+
+  #homeeasy-app-header .he-app-header-brand-row::after{
+    width:20px;
+  }
 
   #homeeasy-app-header .he-app-header-mark{
     width:20px;
@@ -338,17 +352,18 @@ body.he-document-page #homeeasy-app-header{
   }
 
   #homeeasy-app-header .he-app-header-wordmark{
-    font-size:.88rem;
+    font-size:.90rem;
   }
 
   #homeeasy-app-header .he-app-header-module{
     max-width:150px;
     padding-bottom:5px;
-    font-size:.58rem;
+    font-size:.50rem;
+    letter-spacing:.07em;
   }
 
   #homeeasy-app-header .he-app-header-module::after{
-    width:18px;
+    width:17px;
     height:1px;
   }
 
