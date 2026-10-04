@@ -95,13 +95,25 @@ function publicError(error) {
   };
 }
 
+const CATALOG_OPERATIONS = Object.freeze({
+  categories: 'categories', products: 'products', attributes: 'attributes', defaults: 'defaults',
+  dependencies: 'dependencies', alerts: 'alerts', validateRoller: 'validateRoller'
+});
+
 async function runJob(job, sync) {
-  if (!job || !['health', 'getPrice'].includes(job.type)) throw Object.assign(new Error('Job type is not allowed'), { code: 'AGENT_JOB_NOT_ALLOWED' });
+  if (!job || !['health', 'getPrice', 'catalog'].includes(job.type)) throw Object.assign(new Error('Job type is not allowed'), { code: 'AGENT_JOB_NOT_ALLOWED' });
   if (job.type === 'health') {
     await sync.client.get('/Order/GetJsonCategoryList');
     return { ok: true, checkedAt: new Date().toISOString() };
   }
   const payload = job.payload && typeof job.payload === 'object' ? job.payload : {};
+  if (job.type === 'catalog') {
+    const method = CATALOG_OPERATIONS[String(payload.operation || '')];
+    if (!method || !sync.catalog || typeof sync.catalog[method] !== 'function') {
+      throw Object.assign(new Error('Catalog operation is not allowed'), { code: 'AGENT_CATALOG_OPERATION_NOT_ALLOWED' });
+    }
+    return sync.catalog[method](payload.params || {});
+  }
   return sync.pricing.supplierCost(payload.params || {}, payload.options || {});
 }
 
@@ -158,4 +170,4 @@ if (require.main === module) {
   main().catch(error => { logger.error('startup_failed', { code: error.code || 'STARTUP_FAILED', message: error.message }); process.exit(1); });
 }
 
-module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob });
+module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, CATALOG_OPERATIONS });

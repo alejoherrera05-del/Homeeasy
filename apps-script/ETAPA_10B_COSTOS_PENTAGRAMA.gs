@@ -37,7 +37,11 @@ const HOMEEASY_COST_CONFIG_HEADERS = Object.freeze(["Clave", "Valor", "Descripci
 const HOMEEASY_COST_ROUTES = Object.freeze({
   COSTOS_ESTADO: HOMEEASY_COST_PERMISSION,
   COSTOS_OPCIONES: HOMEEASY_COST_PERMISSION,
-  COSTOS_CALCULAR_COTIZACION: HOMEEASY_COST_PERMISSION
+  COSTOS_CALCULAR_COTIZACION: HOMEEASY_COST_PERMISSION,
+  COSTOS_SYNC_READ: "config.read",
+  COSTOS_SYNC_APPLY: "config.write",
+  COSTOS_SYNC_ROLLBACK: "config.write",
+  COSTOS_SYNC_HISTORY: "config.read"
 });
 
 function instalarEtapa10BHomeEasy() {
@@ -126,7 +130,22 @@ function procesarRutaCostos10B_(ss, data) {
   if (tipo === "COSTOS_ESTADO") return obtenerEstadoCostos10B_(ss);
   if (tipo === "COSTOS_OPCIONES") return obtenerOpcionesCostos10B_(ss);
   if (tipo === "COSTOS_CALCULAR_COTIZACION") return calcularCotizacionCostos10B_(ss, data);
+  if (/^COSTOS_SYNC_/.test(tipo) && typeof procesarRutaPentagramaSync10C_ === "function") return procesarRutaPentagramaSync10C_(ss, data, auth.validation);
   return { status: "error", code: "COST_ROUTE_NOT_FOUND", msg: "La acción del cotizador no existe." };
+}
+
+function borrarCacheCostos10B_() {
+  const cache = CacheService.getScriptCache();
+  const manifestText = cache.get(HOMEEASY_COST_CACHE_KEY);
+  if (manifestText) {
+    try {
+      const manifest = JSON.parse(manifestText);
+      if (manifest && manifest.chunks && manifest.generation) {
+        for (let i = 0; i < manifest.chunks; i++) cache.remove(HOMEEASY_COST_CACHE_KEY + ":" + manifest.generation + ":" + i);
+      }
+    } catch (ignore) {}
+  }
+  cache.remove(HOMEEASY_COST_CACHE_KEY);
 }
 
 function autorizarRutaCostos10B_(ss, data, permission) {
