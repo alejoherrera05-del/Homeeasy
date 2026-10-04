@@ -4,6 +4,7 @@ const INITIAL_MAPPINGS = Object.freeze([
   Object.freeze({
     id: 'vertical-matte-blanco-120x130',
     family: 'Vertical',
+    reference: 'Black Out Matte',
     homeeasyId: 'vertical-111',
     productCode: 'VERBOMATCAD090',
     groupCode: '446',
@@ -13,11 +14,13 @@ const INITIAL_MAPPINGS = Object.freeze([
     quantity: 1,
     productDiscount: 0,
     pricingMode: 'account-discount',
+    updateField: 'Tarifa_IVA_COP',
     special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
   }),
   Object.freeze({
     id: 'onda-coral-white-100x100',
     family: 'Onda Serena',
+    reference: 'Coral White',
     homeeasyId: 'onda-67',
     productCode: 'CORONSEVECORWH2.8',
     groupCode: '1345',
@@ -27,11 +30,13 @@ const INITIAL_MAPPINGS = Object.freeze([
     quantity: 1,
     productDiscount: 0,
     pricingMode: 'account-discount',
+    updateField: 'Tarifa_IVA_COP',
     special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
   }),
   Object.freeze({
     id: 'enrollable-blackout-matte3-200x320',
     family: 'Enrollable',
+    reference: 'Matte 3',
     homeeasyId: 'enrollable-blackout-matte3',
     productCode: 'ENRSTDBOMA3090',
     groupCode: '599',
@@ -41,6 +46,7 @@ const INITIAL_MAPPINGS = Object.freeze([
     quantity: 1,
     productDiscount: 0,
     pricingMode: 'net-before-vat',
+    updateField: 'Tarifa_IVA_COP',
     special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
   })
 ]);
