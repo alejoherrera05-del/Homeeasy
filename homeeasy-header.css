@@ -1,4 +1,4 @@
-/* HomeEasy App Header v2.1 · Editorial flat */
+/* HomeEasy App Header v2.2 · Centered lockup */
 :root{
   --he-header-brand:#a6455a;
   --he-header-brand-dark:#823646;
@@ -38,12 +38,13 @@
 }
 
 #homeeasy-app-header .he-app-header-inner{
+  position:relative;
   width:100%;
-  min-height:84px;
-  padding:calc(11px + env(safe-area-inset-top,0px)) 18px 11px;
-  display:grid;
-  grid-template-columns:minmax(110px,1fr) auto minmax(110px,1fr);
+  min-height:78px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 18px 10px;
+  display:flex;
   align-items:center;
+  justify-content:space-between;
   gap:18px;
 }
 
@@ -83,286 +84,31 @@
 #homeeasy-app-header .he-app-header-back:active{transform:scale(.94)}
 
 #homeeasy-app-header .he-app-header-brand{
-  position:relative;
-  justify-self:center;
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  max-width:calc(100% - 280px);
   min-width:0;
   display:grid;
-  grid-template-columns:auto 1px auto;
+  justify-items:center;
   align-items:center;
-  gap:12px;
+  row-gap:4px;
   padding:0;
   border:0;
-  border-radius:0;
   background:transparent;
   box-shadow:none;
   user-select:none;
+  text-align:center;
 }
-#homeeasy-app-header .he-app-header-mark{
-  width:26px;
-  height:30px;
-  flex:0 0 auto;
-  border-radius:0;
-  display:grid;
-  place-items:center;
-  background:transparent;
-  border:0;
-  box-shadow:none;
-}
-#homeeasy-app-header .he-app-header-mark::after{
-  content:"";
-  width:1px;
-  height:30px;
-  background:linear-gradient(180deg,transparent,rgba(194,164,104,.78),transparent);
-  position:absolute;
-  left:38px;
-  top:50%;
-  transform:translateY(-50%);
-}
-#homeeasy-app-header .he-app-header-logo{
-  width:25px;
-  height:29px;
-  object-fit:contain;
-}
-#homeeasy-app-header .he-app-header-copy{
-  min-width:0;
-  text-align:left;
-  line-height:1;
-  padding-left:1px;
-}
-#homeeasy-app-header .he-app-header-eyebrow{
-  display:block;
-  color:var(--he-header-brand);
-  font-size:.61rem;
-  line-height:1;
-  font-weight:700;
-  letter-spacing:.11em;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-#homeeasy-app-header .he-app-header-copy strong{
-  position:relative;
-  display:block;
-  margin-top:5px;
-  padding-bottom:6px;
-  color:var(--he-header-text);
-  font-size:1.03rem;
-  line-height:1;
-  font-weight:720;
-  letter-spacing:-.035em;
-  white-space:nowrap;
-}
-#homeeasy-app-header .he-app-header-copy strong::after{
-  content:"";
-  position:absolute;
-  left:0;
-  bottom:0;
-  width:30px;
-  height:2px;
-  border-radius:999px;
-  background:linear-gradient(90deg,var(--he-header-gold),rgba(194,164,104,.18));
-}
-#homeeasy-app-header .he-app-header-actions{
-  justify-self:end;
+#homeeasy-app-header .he-app-header-brand-row{
   display:flex;
   align-items:center;
-  justify-content:flex-end;
-  gap:8px;
-  min-width:110px;
+  justify-content:center;
+  gap:7px;
+  min-width:0;
 }
-
-#homeeasy-app-header .he-app-header-actions:empty::before{
-  content:"";
-  display:block;
-  width:44px;
-  height:44px;
-}
-
-#homeeasy-app-header .he-app-header-actions button,
-#homeeasy-app-header .he-app-header-actions a,
-#homeeasy-app-header .he-app-header-actions [role="button"],
-#homeeasy-app-header .he-app-header-actions .header-action-icon{
-  position:relative!important;
-  inset:auto!important;
-  margin:0!important;
-  width:44px!important;
-  height:44px!important;
-  min-width:44px!important;
-  min-height:44px!important;
-  padding:0!important;
-  border:1px solid rgba(60,60,67,.075)!important;
-  border-radius:14px!important;
-  display:grid!important;
-  place-items:center!important;
-  background:rgba(255,255,255,.94)!important;
-  color:var(--he-header-brand)!important;
-  box-shadow:0 6px 18px rgba(35,28,31,.055)!important;
-  text-decoration:none!important;
-  font-size:.92rem!important;
-  line-height:1!important;
-  cursor:pointer!important;
-  transition:transform .16s var(--he-header-ease),box-shadow .16s ease,background .16s ease!important;
-}
-
-#homeeasy-app-header .he-app-header-actions svg{
-  width:18px!important;
-  height:18px!important;
-  stroke:currentColor;
-}
-
-#homeeasy-app-header .he-app-header-actions .lock-wrap{
-  display:flex!important;
-  align-items:center!important;
-  gap:0!important;
-  position:relative!important;
-}
-
-#homeeasy-app-header .he-app-header-actions .lock-wrap>.header-round{
-  width:44px!important;
-  height:44px!important;
-}
-
-#homeeasy-app-header .he-app-header-actions .dirty-dot{
-  position:absolute!important;
-  right:-1px!important;
-  top:-1px!important;
-}
-
-#homeeasy-app-header .he-app-header-actions .header-icons,
-#homeeasy-app-header .he-app-header-actions .header-actions{
-  display:flex!important;
-  align-items:center!important;
-  gap:8px!important;
-}
-
-#homeeasy-app-header .he-app-header-actions .save-status{
-  width:auto!important;
-  min-width:0!important;
-  height:34px!important;
-  min-height:34px!important;
-  padding:0 12px!important;
-  border-radius:999px!important;
-  background:#fffaf0!important;
-  color:var(--he-header-gold-dark)!important;
-  border-color:rgba(194,164,104,.22)!important;
-  box-shadow:none!important;
-  font-size:.68rem!important;
-  font-weight:660!important;
-}
-
-#homeeasy-app-header .he-app-header-actions .top-link{
-  width:auto!important;
-  min-width:44px!important;
-  padding:0 14px!important;
-  border-radius:14px!important;
-  gap:7px!important;
-}
-
-#homeeasy-app-header .he-app-header-actions .top-link span{
-  display:inline!important;
-  font-size:.72rem!important;
-  font-weight:650!important;
-}
-
-#homeeasy-app-header .he-app-header-actions .v31-new-search{
-  width:auto!important;
-  min-width:118px!important;
-  height:42px!important;
-  min-height:42px!important;
-  padding:0 14px!important;
-  border-radius:14px!important;
-  font-size:.72rem!important;
-  font-weight:650!important;
-  white-space:nowrap!important;
-}
-
-.he-legacy-header-hidden{display:none!important}
-.he-legacy-header-row-hidden{display:none!important}
-body.he-app-header-active #homeeasy-global-back{display:none!important}
-body.he-app-header-active .report-header{padding-top:0!important}
-
-body.he-document-page #homeeasy-app-header{
-  margin:-20px -10px 20px!important;
-  width:calc(100% + 20px)!important;
-}
-
-@media(any-hover:hover) and (any-pointer:fine){
-  #homeeasy-app-header .he-app-header-back:hover{
-    transform:translateY(-1px)!important;
-    background:#fff!important;
-    box-shadow:0 10px 27px rgba(35,28,31,.11)!important;
-  }
-
-  #homeeasy-app-header .he-app-header-actions button:hover,
-  #homeeasy-app-header .he-app-header-actions a:hover,
-  #homeeasy-app-header .he-app-header-actions [role="button"]:hover{
-    transform:translateY(-1px)!important;
-    background:#fff!important;
-    box-shadow:0 9px 22px rgba(35,28,31,.095)!important;
-  }
-
-  
-}
-
-@media(max-width:768px){
-  body.he-document-page #homeeasy-app-header{
-    margin:0!important;
-    width:100%!important;
-  }
-}
-
-@media(max-width:720px){
-  #homeeasy-app-header .he-app-header-inner{
-    min-height:74px;
-    padding:calc(9px + env(safe-area-inset-top,0px)) 13px 9px;
-    grid-template-columns:minmax(46px,1fr) auto minmax(46px,1fr);
-    gap:8px;
-  }
-
-  #homeeasy-app-header::after{
-    width:min(270px,62vw);
-  }
-
-  #homeeasy-app-header .he-app-header-back{
-    width:44px;
-    height:44px;
-  }
-
-  #homeeasy-app-header .he-app-header-brand{
-    gap:9px;
-  }
-
-  #homeeasy-app-header .he-app-header-mark{
-    width:23px;
-    height:27px;
-  }
-  #homeeasy-app-header .he-app-header-mark::after{
-    left:33px;
-    height:26px;
-  }
-
-  #homeeasy-app-header .he-app-header-logo{
-    width:22px;
-    height:26px;
-  }
-
-  #homeeasy-app-header .he-app-header-eyebrow{
-    font-size:.54rem;
-    letter-spacing:.09em;
-  }
-
-  #homeeasy-app-header .he-app-header-copy strong{
-    margin-top:4px;
-    padding-bottom:5px;
-    font-size:.92rem;
-  }
-  #homeeasy-app-header .he-app-header-copy strong::after{
-    width:24px;
-    height:1.5px;
-  }
-
-  
-
-  #homeeasy-app-header .he-app-header-actions{
+#homeeasy-app-header .he-app-header-actions{
     min-width:46px;
     gap:6px;
   }
@@ -407,10 +153,34 @@ body.he-document-page #homeeasy-app-header{
   #homeeasy-app-header .he-app-header-brand{
     max-width:220px;
   }
-  #homeeasy-app-header .he-app-header-copy strong{
-    max-width:140px;
-    overflow:hidden;
-    text-overflow:ellipsis;
+  }
+
+
+@media(max-width:720px){
+  #homeeasy-app-header .he-app-header-brand{
+    max-width:calc(100% - 150px);
+    row-gap:3px;
+  }
+  #homeeasy-app-header .he-app-header-brand-row{gap:6px}
+  #homeeasy-app-header .he-app-header-mark{
+    width:20px;
+    height:23px;
+  }
+  #homeeasy-app-header .he-app-header-logo{
+    width:20px;
+    height:23px;
+  }
+  #homeeasy-app-header .he-app-header-wordmark{
+    font-size:.88rem;
+  }
+  #homeeasy-app-header .he-app-header-module{
+    max-width:150px;
+    padding-bottom:5px;
+    font-size:.58rem;
+  }
+  #homeeasy-app-header .he-app-header-module::after{
+    width:18px;
+    height:1px;
   }
 }
 
