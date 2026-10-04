@@ -7,7 +7,7 @@ const path = require('path');
 class Phase2Store {
   constructor(options = {}) {
     this.file = path.join(String(options.dataDir || process.env.DATA_DIR || '/app/data'), 'pentagrama-sync-phase2.json');
-    this.state = { scans: [], operations: [], history: [], nextScheduledCheck: null };
+    this.state = { scans: [], operations: [], history: [], nextScheduledCheck: null, scheduler: { lock: null, lastPeriod: null, lastRunAt: null, lastResult: null } };
     this.load();
   }
 
@@ -39,6 +39,34 @@ class Phase2Store {
   addHistory(value) { this.state.history.unshift(value); this.state.history = this.state.history.slice(0, 100); this.save(); }
   publicHistory() { return this.state.history.slice(0, 50); }
   latestScan() { return this.state.scans[0] || null; }
+
+  schedulerState() {
+    this.state.scheduler = { lock: null, lastPeriod: null, lastRunAt: null, lastResult: null, ...(this.state.scheduler || {}) };
+    return this.state.scheduler;
+  }
+
+  acquireSchedulerLock(period, owner, now = Date.now(), leaseMs = 60 * 60 * 1000) {
+    const scheduler = this.schedulerState();
+    const lockExpiresAt = Date.parse(scheduler.lock && scheduler.lock.expiresAt || '') || 0;
+    if (scheduler.lastPeriod === period || lockExpiresAt > now) return false;
+    scheduler.lock = { owner, period, acquiredAt: new Date(now).toISOString(), expiresAt: new Date(now + leaseMs).toISOString() };
+    this.save();
+    return true;
+  }
+
+  finishScheduledRun(period, result, now = Date.now()) {
+    const scheduler = this.schedulerState();
+    scheduler.lock = null;
+    scheduler.lastPeriod = period;
+    scheduler.lastRunAt = new Date(now).toISOString();
+    scheduler.lastResult = result;
+    this.save();
+  }
+
+  releaseSchedulerLock(owner) {
+    const scheduler = this.schedulerState();
+    if (scheduler.lock && scheduler.lock.owner === owner) { scheduler.lock = null; this.save(); }
+  }
 }
 
 module.exports = Object.freeze({ Phase2Store });

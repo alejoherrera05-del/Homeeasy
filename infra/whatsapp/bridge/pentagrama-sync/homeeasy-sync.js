@@ -12,12 +12,13 @@ class HomeEasySyncClient {
   async request(tipo, payload, context) {
     const token = String(context && context.sessionToken || '');
     const deviceId = String(context && context.deviceId || '');
-    if (!token || !deviceId) throw new SyncError('HomeEasy session is required', { code: 'HOMEEASY_SYNC_SESSION_REQUIRED', statusCode: 401 });
+    const serviceKey = String(context && context.serviceKey || '');
+    if ((!token && !serviceKey) || !deviceId) throw new SyncError('HomeEasy session or scheduler service key is required', { code: 'HOMEEASY_SYNC_SESSION_REQUIRED', statusCode: 401 });
     let response;
     try {
       response = await this.fetch(this.backendUrl, {
         method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ tipo, ...(payload || {}), appSessionToken: token, meta: {
+        body: JSON.stringify({ tipo, ...(payload || {}), appSessionToken: token, ...(serviceKey ? { pentagramaSyncKey: serviceKey } : {}), meta: {
           dispositivoId: deviceId, dispositivoNombre: String(context.deviceName || 'Pentagrama Sync').slice(0, 120),
           plataforma: String(context.platform || 'VPS').slice(0, 80), navegador: String(context.browser || 'HTTP').slice(0, 80),
           pagina: 'pentagrama-sync', versionApp: '2.0.0', origen: 'HomeEasy Pentagrama Sync'

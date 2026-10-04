@@ -148,6 +148,21 @@ test('HomeEasy client reads private calculated unit cost without catalog leakage
   assert.equal(payload.appSessionToken, 'session');
 });
 
+test('HomeEasy scheduler client uses the scoped read-only service route', async () => {
+  let payload;
+  const client = new HomeEasyCostClient({
+    backendUrl: 'https://homeeasy.invalid/exec',
+    fetch: async (_url, options) => {
+      payload = JSON.parse(options.body);
+      return response(JSON.stringify({ status: 'ok', quote: { ok: true, items: [{ unit: 10000 }] } }));
+    }
+  });
+  await client.cost({ product: 'vertical-1', width: '1', height: '1', quantity: '1' }, { serviceKey: 'scheduler-secret', deviceId: 'pentagrama-scheduler' });
+  assert.equal(payload.tipo, 'COSTOS_SYNC_COST');
+  assert.equal(payload.pentagramaSyncKey, 'scheduler-secret');
+  assert.equal(payload.appSessionToken, '');
+});
+
 test('comparison checks Vertical, Onda Serena and Enrollable and reports only changes', async () => {
   const mappings = [
     { id: 'v', family: 'Vertical', homeeasyId: 'vertical-1', productCode: 'V', groupCode: '1', calculationType: 'NormalProduct', width: '1.2', height: '1.3', quantity: 1 },

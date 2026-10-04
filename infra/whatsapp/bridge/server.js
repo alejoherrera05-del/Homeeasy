@@ -12,8 +12,9 @@ const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
+const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.11.1';
+const BRIDGE_VERSION = '0.12.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -39,6 +40,7 @@ const pentagramaSync = createPentagramaSync({ mode: PENTAGRAMA_MODE, dispatcher:
 const pentagramaPhase2 = new PentagramaPhase2({
   dataDir: DATA_DIR, pricing: pentagramaSync.pricing, homeeasyCost: pentagramaSync.homeeasy, gateway: pentagramaAgents
 });
+const pentagramaScheduler = new PentagramaScheduler({ phase2: pentagramaPhase2, gateway: pentagramaAgents });
 
 if (!WAHA_API_KEY || !BRIDGE_TOKEN) {
   console.error('Missing WAHA_API_KEY or BRIDGE_TOKEN. Refusing to start.');
@@ -1127,6 +1129,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`HomeEasy WhatsApp Bridge v${BRIDGE_VERSION} listening on :${PORT}`);
+  const schedule = pentagramaScheduler.start();
+  console.log(`Pentagrama monthly scan scheduled for ${schedule.nextRunAt} (${schedule.timezone})`);
 });
 
 if (AGENT_TLS_PORT && AGENT_TLS_CERT && AGENT_TLS_KEY) {
