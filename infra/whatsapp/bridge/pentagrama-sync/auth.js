@@ -1,6 +1,6 @@
 'use strict';
 
-const { ConfigurationError, SessionExpiredError, UpstreamResponseError } = require('./errors');
+const { ConfigurationError, SessionExpiredError, UpstreamResponseError, AccessBlockedError } = require('./errors');
 
 function splitSetCookie(value) {
   return String(value || '').split(/,(?=\s*[^;,=\s]+=[^;,]*)/g).map(item => item.trim()).filter(Boolean);
@@ -97,6 +97,12 @@ class PentagramaAuth {
     }
     this.jar.absorb(response.headers);
     const location = String(response.headers.get('location') || '');
+    if (response.status === 403 && /cloudflare/i.test(String(response.headers.get('server') || ''))) {
+      throw new AccessBlockedError();
+    }
+    if (!response.ok && ![301, 302, 303, 307, 308].includes(response.status)) {
+      throw new UpstreamResponseError(`Pentagrama login failed with HTTP ${response.status}`, { status: response.status });
+    }
     if (!this.jar.has('.ASPXAUTH') || /\/User\/Login/i.test(location)) {
       throw new SessionExpiredError('Pentagrama rejected the configured credentials');
     }

@@ -58,6 +58,22 @@ test('JSON request renews an expired session once', async () => {
   assert.equal(prices, 2);
 });
 
+test('Cloudflare VPS rejection is reported as an operational block, not bad credentials', async () => {
+  const auth = new PentagramaAuth({
+    login: 'user',
+    password: 'password',
+    fetch: async () => response('<title>Attention Required! | Cloudflare</title>', {
+      status: 403,
+      headers: { Server: 'cloudflare', 'Content-Type': 'text/html' }
+    })
+  });
+  await assert.rejects(() => auth.authenticate(), error => {
+    assert.equal(error.code, 'PENTAGRAMA_ACCESS_BLOCKED');
+    assert.equal(error.statusCode, 502);
+    return true;
+  });
+});
+
 test('catalog wrappers preserve endpoint methods and payloads', async () => {
   const calls = [];
   const client = {

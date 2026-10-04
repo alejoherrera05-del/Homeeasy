@@ -28,9 +28,16 @@ class UpstreamResponseError extends SyncError {
   }
 }
 
+class AccessBlockedError extends SyncError {
+  constructor(message = 'Pentagrama blocked HTTP access from the VPS') {
+    super(message, { code: 'PENTAGRAMA_ACCESS_BLOCKED', statusCode: 502 });
+  }
+}
+
 module.exports = Object.freeze({
   SyncError,
   ConfigurationError,
   SessionExpiredError,
-  UpstreamResponseError
+  UpstreamResponseError,
+  AccessBlockedError
 });
