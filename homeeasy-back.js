@@ -2,6 +2,7 @@
   'use strict';
   const GLOBAL_ID='homeeasy-global-back';
   const HIDDEN_CLASS='he-original-back-hidden';
+  function headerOwnsBack(){return document.documentElement.hasAttribute('data-he-app-header') || !!document.getElementById('homeeasy-app-header');}
   const selectors=[
     '.btn-back-cover',
     '.header-left > .btn-back',
@@ -60,6 +61,11 @@
   }
 
   function mount(){
+    if(headerOwnsBack()){
+      const current=document.getElementById(GLOBAL_ID);
+      if(current) current.remove();
+      return;
+    }
     if(!document.body) return;
     hideSources();
     let button=document.getElementById(GLOBAL_ID);
@@ -77,6 +83,11 @@
   else mount();
 
   const observer=new MutationObserver(()=>{
+    if(headerOwnsBack()){
+      const current=document.getElementById(GLOBAL_ID);
+      if(current) current.remove();
+      return;
+    }
     hideSources();
     if(!document.getElementById(GLOBAL_ID)) mount();
   });
