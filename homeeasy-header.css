@@ -1,40 +1,61 @@
-/* HomeEasy App Header v1.1 */
+/* HomeEasy App Header v2.0 */
 :root{
   --he-header-brand:#a6455a;
   --he-header-brand-dark:#823646;
   --he-header-gold:#c2a468;
-  --he-header-bg:rgba(247,247,248,.94);
-  --he-header-text:#282428;
-  --he-header-muted:#898287;
+  --he-header-gold-dark:#9a7e47;
+  --he-header-bg:rgba(247,247,248,.92);
+  --he-header-text:#292529;
+  --he-header-muted:#8d858a;
+  --he-header-line:rgba(60,60,67,.065);
+  --he-header-ease:cubic-bezier(.2,.8,.2,1);
 }
+
 #homeeasy-app-header{
   position:sticky;
   top:0;
   z-index:4700;
   width:100%;
-  background:var(--he-header-bg);
-  border-bottom:1px solid rgba(60,60,67,.065);
-  backdrop-filter:blur(22px) saturate(155%);
-  -webkit-backdrop-filter:blur(22px) saturate(155%);
-  box-shadow:0 1px 0 rgba(255,255,255,.72) inset;
+  background:
+    radial-gradient(circle at 50% -60%,rgba(194,164,104,.10),transparent 42%),
+    var(--he-header-bg);
+  border-bottom:1px solid var(--he-header-line);
+  backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
+  box-shadow:0 1px 0 rgba(255,255,255,.78) inset;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI Variable","Segoe UI",system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;
   font-synthesis:none;
 }
+
+#homeeasy-app-header::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-1px;
+  width:min(420px,42vw);
+  height:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(194,164,104,.58) 28%,rgba(166,69,90,.34) 72%,transparent);
+  pointer-events:none;
+}
+
 #homeeasy-app-header .he-app-header-inner{
   width:100%;
-  min-height:78px;
-  padding:calc(10px + env(safe-area-inset-top,0px)) 18px 10px;
+  min-height:84px;
+  padding:calc(11px + env(safe-area-inset-top,0px)) 18px 11px;
   display:grid;
-  grid-template-columns:minmax(100px,1fr) auto minmax(100px,1fr);
+  grid-template-columns:minmax(110px,1fr) auto minmax(110px,1fr);
   align-items:center;
-  gap:16px;
+  gap:18px;
 }
+
 #homeeasy-app-header .he-app-header-left{
   justify-self:start;
   display:flex;
   align-items:center;
 }
+
 #homeeasy-app-header .he-app-header-back{
   width:46px;
   height:46px;
@@ -43,77 +64,120 @@
   border-radius:50%;
   display:grid;
   place-items:center;
-  background:#fff;
+  background:rgba(255,255,255,.96);
   color:var(--he-header-brand);
-  box-shadow:0 7px 22px rgba(35,28,31,.085);
+  box-shadow:0 7px 22px rgba(35,28,31,.082);
   cursor:pointer;
   outline:none;
   -webkit-tap-highlight-color:transparent;
-  transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .16s ease,background .16s ease;
+  transition:transform .16s var(--he-header-ease),box-shadow .16s ease,background .16s ease;
 }
+
 #homeeasy-app-header .he-app-header-back svg{
   width:18px;
   height:18px;
   fill:none;
   stroke:currentColor;
-  stroke-width:2.15;
+  stroke-width:2.1;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
+
 #homeeasy-app-header .he-app-header-back:active{transform:scale(.94)}
+
 #homeeasy-app-header .he-app-header-brand{
+  position:relative;
   justify-self:center;
+  min-width:0;
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:10px;
-  min-width:0;
+  gap:11px;
+  padding:7px 14px 7px 8px;
+  border:1px solid rgba(60,60,67,.065);
+  border-radius:19px;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.96),rgba(255,255,255,.82)),
+    radial-gradient(circle at 18% 12%,rgba(194,164,104,.11),transparent 38%);
+  box-shadow:
+    0 9px 26px rgba(38,30,34,.055),
+    0 1px 0 rgba(255,255,255,.92) inset;
   user-select:none;
 }
-#homeeasy-app-header .he-app-header-logo{
-  width:27px;
-  height:31px;
-  object-fit:contain;
-  flex:0 0 auto;
+
+#homeeasy-app-header .he-app-header-mark{
+  width:39px;
+  height:39px;
+  flex:0 0 39px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#fffaf0,#f8f1df);
+  border:1px solid rgba(194,164,104,.22);
+  box-shadow:0 5px 14px rgba(154,126,71,.07);
 }
+
+#homeeasy-app-header .he-app-header-logo{
+  width:23px;
+  height:27px;
+  object-fit:contain;
+}
+
 #homeeasy-app-header .he-app-header-copy{
   min-width:0;
   text-align:left;
-  line-height:1.05;
+  line-height:1;
 }
-#homeeasy-app-header .he-app-header-copy strong{
+
+#homeeasy-app-header .he-app-header-eyebrow{
   display:block;
   color:var(--he-header-brand);
-  font-size:1rem;
-  line-height:1.08;
-  font-weight:690;
-  letter-spacing:-.025em;
-  white-space:nowrap;
-}
-#homeeasy-app-header .he-app-header-copy span{
-  display:block;
-  margin-top:4px;
-  color:var(--he-header-muted);
-  font-size:.62rem;
+  font-size:.66rem;
   line-height:1;
-  font-weight:620;
-  letter-spacing:.025em;
+  font-weight:680;
+  letter-spacing:.055em;
+  text-transform:uppercase;
   white-space:nowrap;
 }
+
+#homeeasy-app-header .he-app-header-copy strong{
+  display:block;
+  margin-top:5px;
+  color:var(--he-header-text);
+  font-size:1.01rem;
+  line-height:1.02;
+  font-weight:720;
+  letter-spacing:-.03em;
+  white-space:nowrap;
+}
+
+#homeeasy-app-header .he-app-header-copy strong::after{
+  content:"";
+  display:inline-block;
+  width:18px;
+  height:1px;
+  margin-left:8px;
+  margin-bottom:4px;
+  background:var(--he-header-gold);
+  opacity:.78;
+}
+
 #homeeasy-app-header .he-app-header-actions{
   justify-self:end;
   display:flex;
   align-items:center;
   justify-content:flex-end;
   gap:8px;
-  min-width:100px;
+  min-width:110px;
 }
+
 #homeeasy-app-header .he-app-header-actions:empty::before{
   content:"";
   display:block;
-  width:46px;
-  height:46px;
+  width:44px;
+  height:44px;
 }
+
 #homeeasy-app-header .he-app-header-actions button,
 #homeeasy-app-header .he-app-header-actions a,
 #homeeasy-app-header .he-app-header-actions [role="button"],
@@ -127,44 +191,50 @@
   min-height:44px!important;
   padding:0!important;
   border:1px solid rgba(60,60,67,.075)!important;
-  border-radius:50%!important;
+  border-radius:14px!important;
   display:grid!important;
   place-items:center!important;
-  background:#fff!important;
+  background:rgba(255,255,255,.94)!important;
   color:var(--he-header-brand)!important;
-  box-shadow:0 6px 18px rgba(35,28,31,.065)!important;
+  box-shadow:0 6px 18px rgba(35,28,31,.055)!important;
   text-decoration:none!important;
-  font-size:.93rem!important;
+  font-size:.92rem!important;
   line-height:1!important;
   cursor:pointer!important;
-  transition:transform .16s ease,box-shadow .16s ease,background .16s ease!important;
+  transition:transform .16s var(--he-header-ease),box-shadow .16s ease,background .16s ease!important;
 }
+
 #homeeasy-app-header .he-app-header-actions svg{
   width:18px!important;
   height:18px!important;
   stroke:currentColor;
 }
+
 #homeeasy-app-header .he-app-header-actions .lock-wrap{
   display:flex!important;
   align-items:center!important;
   gap:0!important;
   position:relative!important;
 }
+
 #homeeasy-app-header .he-app-header-actions .lock-wrap>.header-round{
   width:44px!important;
   height:44px!important;
 }
+
 #homeeasy-app-header .he-app-header-actions .dirty-dot{
   position:absolute!important;
-  right:1px!important;
-  top:1px!important;
+  right:-1px!important;
+  top:-1px!important;
 }
+
 #homeeasy-app-header .he-app-header-actions .header-icons,
 #homeeasy-app-header .he-app-header-actions .header-actions{
   display:flex!important;
   align-items:center!important;
   gap:8px!important;
 }
+
 #homeeasy-app-header .he-app-header-actions .save-status{
   width:auto!important;
   min-width:0!important;
@@ -172,71 +242,144 @@
   min-height:34px!important;
   padding:0 12px!important;
   border-radius:999px!important;
+  background:#fffaf0!important;
+  color:var(--he-header-gold-dark)!important;
+  border-color:rgba(194,164,104,.22)!important;
   box-shadow:none!important;
   font-size:.68rem!important;
-  font-weight:650!important;
+  font-weight:660!important;
 }
+
 #homeeasy-app-header .he-app-header-actions .top-link{
   width:auto!important;
   min-width:44px!important;
   padding:0 14px!important;
-  border-radius:999px!important;
+  border-radius:14px!important;
   gap:7px!important;
 }
+
 #homeeasy-app-header .he-app-header-actions .top-link span{
   display:inline!important;
   font-size:.72rem!important;
   font-weight:650!important;
 }
-.he-legacy-header-hidden{
-  display:none!important;
+
+#homeeasy-app-header .he-app-header-actions .v31-new-search{
+  width:auto!important;
+  min-width:118px!important;
+  height:42px!important;
+  min-height:42px!important;
+  padding:0 14px!important;
+  border-radius:14px!important;
+  font-size:.72rem!important;
+  font-weight:650!important;
+  white-space:nowrap!important;
 }
-.he-legacy-header-row-hidden{
-  display:none!important;
+
+.he-legacy-header-hidden{display:none!important}
+.he-legacy-header-row-hidden{display:none!important}
+body.he-app-header-active #homeeasy-global-back{display:none!important}
+body.he-app-header-active .report-header{padding-top:0!important}
+
+body.he-document-page #homeeasy-app-header{
+  margin:-20px -10px 20px!important;
+  width:calc(100% + 20px)!important;
 }
-body.he-app-header-active #homeeasy-global-back{
-  display:none!important;
-}
+
 @media(any-hover:hover) and (any-pointer:fine){
-  #homeeasy-app-header .he-app-header-back:hover,
+  #homeeasy-app-header .he-app-header-back:hover{
+    transform:translateY(-1px)!important;
+    background:#fff!important;
+    box-shadow:0 10px 27px rgba(35,28,31,.11)!important;
+  }
+
   #homeeasy-app-header .he-app-header-actions button:hover,
   #homeeasy-app-header .he-app-header-actions a:hover,
   #homeeasy-app-header .he-app-header-actions [role="button"]:hover{
     transform:translateY(-1px)!important;
     background:#fff!important;
-    box-shadow:0 10px 26px rgba(35,28,31,.105)!important;
+    box-shadow:0 9px 22px rgba(35,28,31,.095)!important;
+  }
+
+  #homeeasy-app-header .he-app-header-brand{
+    transition:box-shadow .18s ease,transform .18s var(--he-header-ease),border-color .18s ease;
+  }
+
+  #homeeasy-app-header .he-app-header-brand:hover{
+    transform:translateY(-1px);
+    border-color:rgba(194,164,104,.16);
+    box-shadow:0 12px 30px rgba(38,30,34,.07),0 1px 0 rgba(255,255,255,.95) inset;
   }
 }
+
+@media(max-width:768px){
+  body.he-document-page #homeeasy-app-header{
+    margin:0!important;
+    width:100%!important;
+  }
+}
+
 @media(max-width:720px){
   #homeeasy-app-header .he-app-header-inner{
-    min-height:70px;
+    min-height:74px;
     padding:calc(9px + env(safe-area-inset-top,0px)) 13px 9px;
     grid-template-columns:minmax(46px,1fr) auto minmax(46px,1fr);
     gap:8px;
   }
+
+  #homeeasy-app-header::after{
+    width:min(270px,62vw);
+  }
+
   #homeeasy-app-header .he-app-header-back{
     width:44px;
     height:44px;
   }
+
+  #homeeasy-app-header .he-app-header-brand{
+    gap:8px;
+    padding:5px 10px 5px 6px;
+    border-radius:16px;
+  }
+
+  #homeeasy-app-header .he-app-header-mark{
+    width:34px;
+    height:34px;
+    flex-basis:34px;
+    border-radius:11px;
+  }
+
   #homeeasy-app-header .he-app-header-logo{
-    width:24px;
-    height:28px;
+    width:20px;
+    height:23px;
   }
-  #homeeasy-app-header .he-app-header-copy strong{
-    font-size:.94rem;
-  }
-  #homeeasy-app-header .he-app-header-copy span{
-    margin-top:3px;
+
+  #homeeasy-app-header .he-app-header-eyebrow{
     font-size:.56rem;
+    letter-spacing:.045em;
   }
+
+  #homeeasy-app-header .he-app-header-copy strong{
+    margin-top:4px;
+    font-size:.90rem;
+  }
+
+  #homeeasy-app-header .he-app-header-copy strong::after{
+    width:12px;
+    margin-left:6px;
+    margin-bottom:3px;
+  }
+
   #homeeasy-app-header .he-app-header-actions{
     min-width:46px;
     gap:6px;
   }
+
   #homeeasy-app-header .he-app-header-actions:empty::before{
-    width:44px;
-    height:44px;
+    width:42px;
+    height:42px;
   }
+
   #homeeasy-app-header .he-app-header-actions button,
   #homeeasy-app-header .he-app-header-actions a,
   #homeeasy-app-header .he-app-header-actions [role="button"],
@@ -245,52 +388,40 @@ body.he-app-header-active #homeeasy-global-back{
     height:42px!important;
     min-width:42px!important;
     min-height:42px!important;
+    border-radius:13px!important;
   }
+
   #homeeasy-app-header .he-app-header-actions .top-link{
     width:42px!important;
     padding:0!important;
   }
+
   #homeeasy-app-header .he-app-header-actions .top-link span{
     display:none!important;
   }
 }
-@media(max-width:430px){
-  #homeeasy-app-header .he-app-header-brand{gap:8px}
-  #homeeasy-app-header .he-app-header-copy strong{font-size:.90rem}
-  #homeeasy-app-header .he-app-header-copy span{font-size:.52rem}
-}
-@media print{
-  #homeeasy-app-header{display:none!important}
-}
-/* Integraciones particulares sin romper la estructura de cada módulo */
-#homeeasy-app-header .he-app-header-actions .v31-new-search{
-  width:auto!important;
-  min-width:118px!important;
-  height:42px!important;
-  min-height:42px!important;
-  padding:0 14px!important;
-  border-radius:999px!important;
-  font-size:.72rem!important;
-  font-weight:650!important;
-  white-space:nowrap!important;
-}
-body.he-app-header-active .report-header{padding-top:0!important}
-body.he-document-page #homeeasy-app-header{
-  margin:-20px -10px 20px!important;
-  width:calc(100% + 20px)!important;
-}
-@media(max-width:768px){
-  body.he-document-page #homeeasy-app-header{
-    margin:0!important;
-    width:100%!important;
-  }
-}
+
 @media(max-width:560px){
   #homeeasy-app-header .he-app-header-actions .v31-new-search{
     min-width:0!important;
     width:auto!important;
-    max-width:108px!important;
-    padding:0 11px!important;
-    font-size:.66rem!important;
+    max-width:104px!important;
+    padding:0 10px!important;
+    font-size:.64rem!important;
   }
+}
+
+@media(max-width:430px){
+  #homeeasy-app-header .he-app-header-brand{
+    max-width:220px;
+  }
+  #homeeasy-app-header .he-app-header-copy strong{
+    max-width:140px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
+
+@media print{
+  #homeeasy-app-header{display:none!important}
 }
