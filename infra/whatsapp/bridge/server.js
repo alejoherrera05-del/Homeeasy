@@ -1,6 +1,7 @@
 'use strict';
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -9,8 +10,9 @@ const ops = require('./operations');
 const conversation = require('./conversation');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
+const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 
-const BRIDGE_VERSION = '0.9.0';
+const BRIDGE_VERSION = '0.10.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -20,6 +22,10 @@ const MAX_BODY_MB = Math.max(2, Number(process.env.MAX_BODY_MB || 18));
 const MAX_BODY_BYTES = MAX_BODY_MB * 1024 * 1024;
 const REMOTE_PDF_MAX_BYTES = Math.min(MAX_BODY_BYTES, 18 * 1024 * 1024);
 const DATA_DIR = String(process.env.DATA_DIR || '/app/data');
+const PENTAGRAMA_MODE = String(process.env.PENTAGRAMA_MODE || 'direct').toLowerCase();
+const AGENT_TLS_PORT = Number(process.env.PENTAGRAMA_AGENT_TLS_PORT || 0);
+const AGENT_TLS_CERT = String(process.env.PENTAGRAMA_AGENT_TLS_CERT || '');
+const AGENT_TLS_KEY = String(process.env.PENTAGRAMA_AGENT_TLS_KEY || '');
 const IDEMPOTENCY_FILE = path.join(DATA_DIR, 'idempotency.json');
 const AMBIGUOUS_LOCK_MS = 15 * 60 * 1000;
 const DOCUMENT_PERMISSIONS = Object.freeze({
@@ -27,7 +33,8 @@ const DOCUMENT_PERMISSIONS = Object.freeze({
   pedido: 'pedidos.write',
   abono: 'abonos.write'
 });
-const pentagramaSync = createPentagramaSync();
+const pentagramaAgents = new PentagramaAgentGateway({ dataDir: DATA_DIR });
+const pentagramaSync = createPentagramaSync({ mode: PENTAGRAMA_MODE, dispatcher: pentagramaAgents });
 
 if (!WAHA_API_KEY || !BRIDGE_TOKEN) {
   console.error('Missing WAHA_API_KEY or BRIDGE_TOKEN. Refusing to start.');
@@ -70,6 +77,35 @@ async function readJsonBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+function bearerToken(req) {
+  const match = String(req.headers.authorization || '').match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : '';
+}
+
+async function handleAgentRequest(req, res) {
+  const url = new URL(req.url, 'https://agent.homeeasy.local');
+  if (req.method === 'GET' && url.pathname === '/health') {
+    return json(res, 200, { ok: true, service: 'homeeasy-pentagrama-agent-gateway', version: BRIDGE_VERSION });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-agent/register') {
+    const result = pentagramaAgents.register(req.headers['x-homeeasy-enrollment'], await readJsonBody(req));
+    return json(res, 201, result);
+  }
+  if (!url.pathname.startsWith('/api/pentagrama-agent/')) return json(res, 404, { ok: false, error: 'Not found' });
+  const agent = pentagramaAgents.authenticate(req.headers['x-homeeasy-installation-id'], bearerToken(req));
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-agent/heartbeat') {
+    return json(res, 200, pentagramaAgents.heartbeat(agent, await readJsonBody(req)));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-agent/poll') {
+    pentagramaAgents.heartbeat(agent, await readJsonBody(req));
+    return json(res, 200, await pentagramaAgents.poll(agent));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-agent/result') {
+    return json(res, 200, pentagramaAgents.complete(agent, await readJsonBody(req)));
+  }
+  return json(res, 404, { ok: false, error: 'Not found' });
 }
 
 async function wahaRequest(method, route, body, accept = 'application/json') {
@@ -860,6 +896,24 @@ async function handle(req, res) {
     return json(res, result.ok ? 200 : 207, result);
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/price') {
+    await auth.authorize(req, 'cotizaciones.write');
+    const payload = await readJsonBody(req);
+    const result = await pentagramaSync.pricing.supplierCost(payload.params || {}, payload.options || {});
+    return json(res, 200, { ok: true, mode: pentagramaSync.mode, result });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/pentagrama-agent/status') {
+    await auth.authorize(req, 'config.read');
+    const agents = pentagramaAgents.list();
+    return json(res, 200, {
+      ok: true,
+      mode: PENTAGRAMA_MODE,
+      summary: { registered: agents.length, online: agents.filter(item => item.online).length },
+      agents
+    });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/status') {
     const actor = await auth.authorize(req, 'config.read');
     const session = await getSession();
@@ -1008,7 +1062,7 @@ const server = http.createServer((req, res) => {
   Promise.resolve().then(() => {
     const pathname = new URL(req.url, 'http://bridge.local').pathname;
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) &&
-        !['/api/whatsapp/maintenance', '/api/pentagrama-sync/check'].includes(pathname)) {
+        !['/api/whatsapp/maintenance', '/api/pentagrama-sync/check', '/api/pentagrama-sync/price'].includes(pathname)) {
       done = maintenance.track();
     }
     return handle(req, res);
@@ -1018,6 +1072,7 @@ const server = http.createServer((req, res) => {
     json(res, statusCode >= 400 && statusCode < 600 ? statusCode : 500, {
       ok: false,
       error: error.message || 'Unexpected error',
+      ...(error.code ? { code: error.code } : {}),
       ...(statusCode < 500 && error.details ? { details: error.details } : {})
     });
   }).finally(() => { try { done(); } catch (error) { console.error('maintenance tracking failed'); } });
@@ -1026,3 +1081,24 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`HomeEasy WhatsApp Bridge v${BRIDGE_VERSION} listening on :${PORT}`);
 });
+
+if (AGENT_TLS_PORT && AGENT_TLS_CERT && AGENT_TLS_KEY) {
+  const agentServer = https.createServer({
+    cert: fs.readFileSync(AGENT_TLS_CERT),
+    key: fs.readFileSync(AGENT_TLS_KEY),
+    minVersion: 'TLSv1.2'
+  }, (req, res) => {
+    Promise.resolve(handleAgentRequest(req, res)).catch(error => {
+      const statusCode = Number(error.statusCode || 500);
+      console.error(new Date().toISOString(), 'agent-gateway', req.method, req.url, error.code || error.message);
+      json(res, statusCode >= 400 && statusCode < 600 ? statusCode : 500, {
+        ok: false,
+        error: error.message || 'Unexpected error',
+        ...(error.code ? { code: error.code } : {})
+      });
+    });
+  });
+  agentServer.listen(AGENT_TLS_PORT, '0.0.0.0', () => {
+    console.log(`HomeEasy Pentagrama Agent Gateway TLS listening on :${AGENT_TLS_PORT}`);
+  });
+}

@@ -9,6 +9,7 @@ COPY operations.js ./
 COPY conversation.js ./
 COPY maintenance.js ./
 COPY pentagrama-sync ./pentagrama-sync
+COPY pentagrama-agents ./pentagrama-agents
 
 RUN mkdir -p /app/data && chown -R node:node /app
 

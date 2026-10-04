@@ -9,6 +9,6 @@
   "scripts": {
     "start": "node server.js",
     "check": "node --check server.js",
-    "test:pentagrama-sync": "node --test pentagrama-sync/*.test.js"
+    "test:pentagrama-sync": "node --test pentagrama-sync/*.test.js pentagrama-agents/*.test.js"
   }
 }
