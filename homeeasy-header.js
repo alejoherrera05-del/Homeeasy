@@ -77,10 +77,12 @@
           </button>
         </div>
         <div class="he-app-header-brand" aria-label="HomeEasy · ${cfg.module}">
-          <img class="he-app-header-logo" src="triangulogold.png" alt="">
+          <span class="he-app-header-mark" aria-hidden="true">
+            <img class="he-app-header-logo" src="triangulogold.png" alt="">
+          </span>
           <div class="he-app-header-copy">
-            <strong>HomeEasy</strong>
-            <span>${cfg.module}</span>
+            <span class="he-app-header-eyebrow">HomeEasy</span>
+            <strong>${cfg.module}</strong>
           </div>
         </div>
         <div class="he-app-header-actions" aria-label="Acciones"></div>
