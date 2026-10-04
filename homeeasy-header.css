@@ -1,4 +1,4 @@
-/* HomeEasy App Header v1.0 */
+/* HomeEasy App Header v1.1 */
 :root{
   --he-header-brand:#a6455a;
   --he-header-brand-dark:#823646;
@@ -261,4 +261,36 @@ body.he-app-header-active #homeeasy-global-back{
 }
 @media print{
   #homeeasy-app-header{display:none!important}
+}
+/* Integraciones particulares sin romper la estructura de cada módulo */
+#homeeasy-app-header .he-app-header-actions .v31-new-search{
+  width:auto!important;
+  min-width:118px!important;
+  height:42px!important;
+  min-height:42px!important;
+  padding:0 14px!important;
+  border-radius:999px!important;
+  font-size:.72rem!important;
+  font-weight:650!important;
+  white-space:nowrap!important;
+}
+body.he-app-header-active .report-header{padding-top:0!important}
+body.he-document-page #homeeasy-app-header{
+  margin:-20px -10px 20px!important;
+  width:calc(100% + 20px)!important;
+}
+@media(max-width:768px){
+  body.he-document-page #homeeasy-app-header{
+    margin:0!important;
+    width:100%!important;
+  }
+}
+@media(max-width:560px){
+  #homeeasy-app-header .he-app-header-actions .v31-new-search{
+    min-width:0!important;
+    width:auto!important;
+    max-width:108px!important;
+    padding:0 11px!important;
+    font-size:.66rem!important;
+  }
 }
