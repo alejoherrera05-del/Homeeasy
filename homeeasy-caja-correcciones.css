@@ -22,3 +22,20 @@
 .caja-correction-help{font-size:14px;line-height:1.5;color:#625961}
 .caja-row-button:focus-visible,.caja-more:focus-visible,.caja-select:focus-visible,.caja-search:focus-visible,.caja-correction-form input:focus-visible,.caja-correction-form select:focus-visible{outline:2px solid #943c50;outline-offset:3px}
 @media(max-width:440px){.caja-tools{grid-template-columns:1fr}.caja-manual-row{grid-template-columns:minmax(0,1fr) minmax(90px,auto)}.caja-manual-row .tx-amount{font-size:14px}.caja-correction-dialog{padding:20px 16px!important}.caja-correction-dialog .swal2-html-container{margin:12px 4px 0}}
+
+
+.caja-holdable{-webkit-touch-callout:none;user-select:none;transition:transform .16s ease,background .16s ease}
+.caja-holdable.is-holding{transform:scale(.985);background:#faf6f7}
+.caja-action-sheet .swal2-title{font-size:20px!important}
+.caja-action-sheet-buttons{display:grid;gap:8px;margin-top:8px}
+.caja-sheet-action{width:100%;min-height:52px;border:0;border-radius:14px;background:#f5f1f2;color:#943c50;font:inherit;font-size:16px;font-weight:700}
+.caja-sheet-delete{background:#fff0ef;color:#c7352e}
+.caja-pull-indicator{position:fixed;z-index:10000;top:env(safe-area-inset-top,0);left:50%;transform:translate(-50%,-64px);display:flex;align-items:center;gap:8px;min-height:42px;padding:0 15px;border:1px solid rgba(166,69,90,.12);border-radius:999px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(31,26,28,.12);color:#8d3b4d;font-size:12px;font-weight:700;transition:transform .18s ease;pointer-events:none}
+.caja-pull-indicator.ready i{transform:rotate(180deg)}
+.caja-pull-indicator i{transition:transform .18s ease}
+@media(max-width:620px){
+ .caja-tools{display:none!important}
+ .caja-count{display:none!important}
+ .caja-manual-row{display:grid!important}
+ .caja-row-actions{display:none!important}
+}
