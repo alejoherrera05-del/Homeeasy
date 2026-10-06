@@ -62,22 +62,103 @@
                 row.querySelector('.tx-date').textContent = 'Eliminado · no afecta el saldo';
             }
             if (!canWrite()) return;
-            const actions = element('div', 'caja-row-actions');
-            const options = tx.eliminado ? [['RESTAURAR', 'Restaurar']] : [['EDITAR', 'Editar'], ['ELIMINAR', 'Eliminar']];
-            options.forEach(([action, label]) => {
-                const button = element('button', action === 'ELIMINAR' ? 'caja-row-button caja-delete' : 'caja-row-button', label);
-                button.type = 'button'; button.disabled = busy;
-                button.setAttribute('aria-label', `${label} ${tx.descripcion || tx.titulo}, ${money(tx.valor)}`);
-                button.addEventListener('click', () => openCorrection(tx, action, button));
-                actions.append(button);
-            });
-            row.append(actions);
+            row.classList.add('caja-holdable');
+            row.setAttribute('tabindex', '0');
+            row.setAttribute('role', 'button');
+            row.setAttribute('aria-label', `${tx.descripcion || tx.titulo}, ${money(tx.valor)}. Mantén presionado para ver opciones.`);
+            installHoldMenu(row, tx);
         });
         if (rows.length > limit) {
             const more = element('button', 'caja-more', 'Mostrar más movimientos'); more.type = 'button';
             more.addEventListener('click', () => { limit += 40; paint(); }); container.append(more);
         }
     }
+    function openActionMenu(tx, trigger) {
+        if (busy || !canWrite()) return;
+        if (navigator.vibrate) navigator.vibrate(12);
+        const restore = Boolean(tx.eliminado);
+        Swal.fire({
+            title: tx.descripcion || tx.titulo || 'Movimiento',
+            text: money(tx.valor),
+            showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: 'Cerrar',
+            customClass: { popup: 'swal2-premium caja-action-sheet' },
+            didOpen: popup => {
+                const actions = element('div', 'caja-action-sheet-buttons');
+                const options = restore ? [['RESTAURAR','Restaurar']] : [['EDITAR','Editar'],['ELIMINAR','Eliminar']];
+                options.forEach(([action,label]) => {
+                    const button = element('button', action === 'ELIMINAR' ? 'caja-sheet-action caja-sheet-delete' : 'caja-sheet-action', label);
+                    button.type = 'button';
+                    button.addEventListener('click', () => {
+                        Swal.close();
+                        setTimeout(() => openCorrection(tx, action, trigger), 120);
+                    });
+                    actions.append(button);
+                });
+                popup.querySelector('.swal2-html-container').replaceChildren(actions);
+            }
+        });
+    }
+    function installHoldMenu(row, tx) {
+        let timer = 0;
+        let startX = 0, startY = 0;
+        const cancel = () => { if (timer) clearTimeout(timer); timer = 0; row.classList.remove('is-holding'); };
+        row.addEventListener('pointerdown', event => {
+            if (event.pointerType === 'mouse' && event.button !== 0) return;
+            startX = event.clientX; startY = event.clientY;
+            row.classList.add('is-holding');
+            timer = setTimeout(() => { timer = 0; row.classList.remove('is-holding'); openActionMenu(tx, row); }, 520);
+        });
+        row.addEventListener('pointermove', event => {
+            if (Math.hypot(event.clientX-startX,event.clientY-startY) > 10) cancel();
+        });
+        ['pointerup','pointercancel','pointerleave'].forEach(name => row.addEventListener(name, cancel));
+        row.addEventListener('contextmenu', event => { event.preventDefault(); cancel(); openActionMenu(tx, row); });
+        row.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openActionMenu(tx, row); }
+        });
+    }
+    function installPullToRefresh() {
+        let startY = 0, pulling = false, distance = 0, indicator = null;
+        const ensureIndicator = () => {
+            if (indicator) return indicator;
+            indicator = element('div','caja-pull-indicator');
+            indicator.innerHTML = '<i class="fas fa-arrow-down"></i><span>Desliza para actualizar</span>';
+            document.body.prepend(indicator);
+            return indicator;
+        };
+        document.addEventListener('touchstart', event => {
+            if (window.scrollY > 2 || !event.touches || event.touches.length !== 1) return;
+            startY = event.touches[0].clientY; distance = 0; pulling = true; ensureIndicator();
+        }, {passive:true});
+        document.addEventListener('touchmove', event => {
+            if (!pulling || !event.touches || event.touches.length !== 1) return;
+            distance = Math.max(0, event.touches[0].clientY - startY);
+            const shown = Math.min(76, distance * .42);
+            indicator.style.transform = `translate(-50%, ${shown - 58}px)`;
+            indicator.classList.toggle('ready', distance >= 105);
+            indicator.querySelector('span').textContent = distance >= 105 ? 'Suelta para actualizar' : 'Desliza para actualizar';
+        }, {passive:true});
+        document.addEventListener('touchend', async () => {
+            if (!pulling) return;
+            pulling = false;
+            const refresh = distance >= 105;
+            if (refresh) {
+                indicator.classList.add('refreshing');
+                indicator.querySelector('span').textContent = 'Actualizando…';
+                indicator.querySelector('i').className = 'fas fa-sync-alt fa-spin';
+                indicator.style.transform = 'translate(-50%, 12px)';
+                try { await global.cargarCaja(); }
+                finally { setTimeout(() => { indicator.style.transform = 'translate(-50%, -64px)'; indicator.classList.remove('ready','refreshing'); }, 300); }
+            } else {
+                indicator.style.transform = 'translate(-50%, -64px)';
+                indicator.classList.remove('ready');
+            }
+            distance = 0;
+        }, {passive:true});
+    }
+    installPullToRefresh();
     function editForm() {
         return '<div class="caja-correction-form">' +
             '<label for="caja-edit-type">Tipo de movimiento</label><select id="caja-edit-type"><option value="GASTO">Gasto</option><option value="INGRESO">Ingreso extra</option></select>' +
