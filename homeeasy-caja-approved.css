@@ -1,4 +1,4 @@
-/* HomeEasy Caja · diseño aprobado v1.1 · iPhone optimized
+/* HomeEasy Caja · diseño aprobado v1.2 · fluid mobile
    Visual only: conserva lógica, IDs, handlers y seguridad de Caja. */
 
 :root{
@@ -396,4 +396,121 @@ body.he-app-header-active .caja-header{display:none!important}
     height:38px!important;
     flex-basis:38px!important;
   }
+}
+
+
+/* ===== v1.2 · Mobile fluid typography + card collision fix ===== */
+@media(max-width:620px){
+  /* La tarjeta escala por ancho, pero su tipografía conserva mínimos legibles. */
+  .he-card-name{
+    top:57.2%!important;
+    font-size:clamp(16px,4.25vw,19px)!important;
+  }
+  .he-card-number{
+    top:69.0%!important;
+    font-size:clamp(11px,3.05vw,13px)!important;
+  }
+  .he-card-balance-label{
+    bottom:18.8%!important;
+    font-size:clamp(7.5px,2vw,9px)!important;
+  }
+  .he-card-balance-row{
+    bottom:5.2%!important;
+  }
+  .he-card-balance{
+    font-size:clamp(29px,8.7vw,38px)!important;
+    line-height:.9!important;
+  }
+  .he-card-currency{
+    font-size:clamp(12px,3.35vw,15px)!important;
+  }
+
+  /* Módulos: compactos, pero no miniatura. */
+  .btn-action{
+    min-height:clamp(104px,27vw,122px)!important;
+    padding:clamp(13px,3.5vw,17px)!important;
+  }
+  .btn-action .icon-circle{
+    width:clamp(48px,13vw,56px)!important;
+    height:clamp(48px,13vw,56px)!important;
+    flex-basis:clamp(48px,13vw,56px)!important;
+  }
+  .btn-action span{
+    font-size:clamp(13px,3.55vw,15px)!important;
+  }
+  .stat-box{
+    min-height:clamp(104px,27vw,122px)!important;
+    padding:clamp(13px,3.5vw,17px)!important;
+  }
+  .stat-lbl{
+    font-size:clamp(11px,3vw,13px)!important;
+  }
+  .stat-val{
+    font-size:clamp(16px,4.25vw,20px)!important;
+  }
+  .stat-icon{
+    width:clamp(42px,11vw,50px)!important;
+    height:clamp(42px,11vw,50px)!important;
+    flex-basis:clamp(42px,11vw,50px)!important;
+  }
+
+  /* Movimientos: más densidad útil y menos vacío vertical. */
+  .transaction-card{
+    padding:0 clamp(13px,3.6vw,17px)!important;
+  }
+  .transaction-item{
+    min-height:0!important;
+    padding:14px 0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-rows:auto auto!important;
+    column-gap:10px!important;
+    row-gap:5px!important;
+    align-items:center!important;
+  }
+  .tx-left{
+    grid-column:1!important;
+    grid-row:1 / span 2!important;
+    align-self:center!important;
+  }
+  .tx-right{
+    grid-column:2!important;
+    grid-row:1!important;
+    min-width:max-content!important;
+    align-self:start!important;
+  }
+  .tx-actions{
+    grid-column:2!important;
+    grid-row:2!important;
+    margin:0!important;
+    align-self:end!important;
+  }
+  .tx-title{
+    font-size:clamp(12.5px,3.45vw,14px)!important;
+  }
+  .tx-cat{
+    font-size:clamp(10px,2.8vw,11.5px)!important;
+  }
+  .tx-amount{
+    font-size:clamp(12px,3.3vw,14px)!important;
+  }
+  .tx-date{
+    font-size:clamp(10px,2.7vw,11px)!important;
+  }
+}
+
+/* En pantallas realmente estrechas no encogemos indefinidamente:
+   apilamos controles antes de volverlos ilegibles. */
+@media(max-width:350px){
+  .action-grid,.stats-grid{
+    grid-template-columns:1fr!important;
+  }
+  .btn-action,.stat-box{
+    min-height:88px!important;
+  }
+  .he-card-brand-copy strong{font-size:21px!important}
+  .he-card-brand-copy span{font-size:7px!important}
+  .he-card-name{font-size:15px!important}
+  .he-card-number{font-size:10px!important}
+  .he-card-balance{font-size:27px!important}
 }
