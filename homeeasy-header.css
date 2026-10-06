@@ -1,4 +1,4 @@
-/* HomeEasy App Header v2.5 · Horizontal lockup */
+/* HomeEasy App Header v2.6 · Horizontal lockup + iPhone safe-area fix */
 :root{
   --he-header-brand:#a6455a;
   --he-header-brand-dark:#823646;
@@ -286,6 +286,30 @@ body.he-document-page #homeeasy-app-header{
 }
 
 @media(max-width:720px){
+  /* iPhone/Safari: alinear el lockup con los botones dentro del safe-area */
+  #homeeasy-app-header{
+    background:#f7f7f8;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+
+  #homeeasy-app-header .he-app-header-brand{
+    top:calc(env(safe-area-inset-top,0px) + 30px);
+    transform:translate(-50%,-50%);
+    max-width:calc(100% - 150px);
+  }
+
+  #homeeasy-app-header .he-app-header-wordmark{
+    font-size:.96rem;
+    font-weight:700;
+  }
+
+  #homeeasy-app-header .he-app-header-module{
+    max-width:118px;
+    font-size:.82rem;
+    font-weight:620;
+  }
+
   #homeeasy-app-header .he-app-header-inner{
     min-height:70px;
     padding:calc(8px + env(safe-area-inset-top,0px)) 13px 8px;
