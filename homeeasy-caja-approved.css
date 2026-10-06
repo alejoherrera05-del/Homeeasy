@@ -102,6 +102,8 @@ body.he-app-header-active .caja-header{display:none!important}
 .stat-icon{width:60px!important;height:60px!important;flex:0 0 60px!important;border-radius:50%!important;display:grid!important;place-items:center!important;opacity:1!important;font-size:1.25rem!important}
 .stat-box:first-child .stat-icon{background:var(--caja-green-soft)!important;color:var(--caja-green)!important}
 .stat-box:last-child .stat-icon{background:var(--caja-red-soft)!important;color:var(--caja-red)!important}
+.stat-box:first-child .stat-val{color:var(--caja-green)!important}
+.stat-box:last-child .stat-val{color:var(--caja-red)!important}
 
 .feed-header{
   grid-area:feed!important;margin:12px 2px 0!important;padding:0!important;display:flex!important;justify-content:space-between!important;align-items:center!important;
