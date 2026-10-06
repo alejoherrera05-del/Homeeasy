@@ -667,12 +667,12 @@
                 let category = tx.cat || "";
 
                 if (tx.tipo === "IN_AB") {
-                    iconClass = "tx-wine"; icon = "fa-file-invoice-dollar"; amountClass = "text-green"; prefix = "+";
+                    iconClass = "tx-in"; icon = "fa-file-invoice-dollar"; amountClass = "text-green"; prefix = "+";
                     const receipt = String(tx.id || "").replace("REC-", "");
                     const parts = String(category).split("•");
                     category = "Recibo N° " + receipt + " • " + (parts[1] ? parts[1].trim() : "EFECTIVO");
                 } else if (tx.tipo === "IN_OP") {
-                    iconClass = "tx-wine"; icon = "fa-file-invoice-dollar"; amountClass = "text-green"; prefix = "+";
+                    iconClass = "tx-in"; icon = "fa-file-invoice-dollar"; amountClass = "text-green"; prefix = "+";
                 } else if (tx.tipo === "IN_EXTRA") {
                     iconClass = "tx-in"; icon = "fa-arrow-down"; amountClass = "text-green"; prefix = "+";
                 }
