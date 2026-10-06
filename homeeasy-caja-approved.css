@@ -1,4 +1,4 @@
-/* HomeEasy Caja · diseño aprobado v1.2 · fluid mobile
+/* HomeEasy Caja · diseño aprobado v1.3 · native mobile composition
    Visual only: conserva lógica, IDs, handlers y seguridad de Caja. */
 
 :root{
@@ -513,4 +513,169 @@ body.he-app-header-active .caja-header{display:none!important}
   .he-card-name{font-size:15px!important}
   .he-card-number{font-size:10px!important}
   .he-card-balance{font-size:27px!important}
+}
+
+
+/* ===== v1.3 · Mobile-native composition ===== */
+@media(max-width:620px){
+  .content-container{
+    padding:16px 14px 34px!important;
+    gap:12px!important;
+  }
+
+  /* Tarjeta: en móvil eliminamos metadata decorativa y dejamos el saldo como foco. */
+  .he-card-number,
+  .he-card-balance-label{
+    display:none!important;
+  }
+  .he-card-name{
+    left:7.4%!important;
+    top:57%!important;
+    max-width:60%!important;
+    font-size:clamp(17px,4.5vw,20px)!important;
+  }
+  .he-card-balance-row{
+    left:7.2%!important;
+    bottom:7.4%!important;
+    gap:7px!important;
+  }
+  .he-card-balance{
+    font-size:clamp(32px,9.6vw,43px)!important;
+    line-height:.92!important;
+    letter-spacing:-.055em!important;
+  }
+  .he-card-currency{
+    margin-bottom:4px!important;
+    font-size:clamp(13px,3.5vw,16px)!important;
+  }
+
+  /* Acciones y resumen: densidad de app móvil, no desktop encogido. */
+  .btn-action{
+    min-height:98px!important;
+    padding:14px!important;
+    border-radius:19px!important;
+  }
+  .btn-action .icon-circle{
+    width:50px!important;height:50px!important;flex-basis:50px!important;
+  }
+  .btn-action span{
+    font-size:clamp(13.5px,3.65vw,15.5px)!important;
+  }
+  .stat-box{
+    min-height:98px!important;
+    padding:14px!important;
+    border-radius:19px!important;
+  }
+  .stat-lbl{
+    font-size:clamp(11.5px,3.05vw,13px)!important;
+  }
+  .stat-val{
+    font-size:clamp(17px,4.45vw,20px)!important;
+  }
+
+  .feed-header{
+    margin:11px 2px 0!important;
+  }
+  .feed-title{
+    font-size:clamp(19px,5vw,22px)!important;
+    letter-spacing:-.045em!important;
+  }
+  .feed-filter{
+    font-size:clamp(12px,3.2vw,13.5px)!important;
+  }
+
+  /* Cada movimiento se vuelve una fila/tarjeta nativa con jerarquía clara. */
+  .transaction-card{
+    padding:0 15px!important;
+    border-radius:21px!important;
+  }
+  .transaction-item{
+    display:grid!important;
+    grid-template-columns:48px minmax(0,1fr) auto!important;
+    grid-template-rows:auto auto!important;
+    column-gap:12px!important;
+    row-gap:5px!important;
+    min-height:88px!important;
+    padding:16px 0!important;
+    align-items:center!important;
+  }
+  .tx-left{
+    display:contents!important;
+  }
+  .tx-icon{
+    grid-column:1!important;
+    grid-row:1 / span 2!important;
+    width:48px!important;
+    height:48px!important;
+    align-self:center!important;
+  }
+  .tx-details{
+    grid-column:2!important;
+    grid-row:1 / span 2!important;
+    min-width:0!important;
+    align-self:center!important;
+  }
+  .tx-title{
+    display:block!important;
+    margin:0 0 5px!important;
+    overflow:hidden!important;
+    color:#242127!important;
+    font-size:clamp(14px,3.8vw,16px)!important;
+    line-height:1.22!important;
+    font-weight:690!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .tx-cat{
+    display:block!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    color:#8a858d!important;
+    font-size:clamp(11px,2.95vw,12.5px)!important;
+    line-height:1.2!important;
+    font-weight:520!important;
+    text-overflow:ellipsis!important;
+    text-transform:none!important;
+    white-space:nowrap!important;
+  }
+  .tx-right{
+    grid-column:3!important;
+    grid-row:1 / span 2!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-end!important;
+    justify-content:center!important;
+    min-width:max-content!important;
+    align-self:center!important;
+  }
+  .tx-amount{
+    font-size:clamp(13.5px,3.65vw,15.5px)!important;
+    line-height:1.15!important;
+    font-weight:730!important;
+  }
+  .tx-date{
+    margin-top:7px!important;
+    font-size:clamp(10.5px,2.8vw,12px)!important;
+    line-height:1!important;
+  }
+
+  /* El layout anterior reservaba espacio para acciones textuales;
+     en la lista renderizada real no lo necesitamos. */
+  .tx-actions{
+    display:none!important;
+  }
+}
+
+@media(max-width:365px){
+  .content-container{padding-left:10px!important;padding-right:10px!important}
+  .action-grid,.stats-grid{gap:8px!important}
+  .btn-action,.stat-box{padding:11px!important}
+  .btn-action .icon-circle{width:44px!important;height:44px!important;flex-basis:44px!important}
+  .stat-icon{width:40px!important;height:40px!important;flex-basis:40px!important}
+  .transaction-card{padding:0 12px!important}
+  .transaction-item{
+    grid-template-columns:42px minmax(0,1fr) auto!important;
+    column-gap:9px!important;
+  }
+  .tx-icon{width:42px!important;height:42px!important}
 }
