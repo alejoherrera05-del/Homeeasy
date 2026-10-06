@@ -244,6 +244,7 @@
   <link rel="stylesheet" href="homeeasy-back.css?v=1.1">
   <script defer src="homeeasy-back.js?v=1.2"></script>
   <link rel="stylesheet" href="homeeasy-header.css?v=2.5">
+  <link rel="stylesheet" href="homeeasy-caja-approved.css?v=1.0">
 <script defer src="homeeasy-header.js?v=2.5"></script>
 </head>
 <body>
@@ -295,38 +296,74 @@
         <div class="content-container">
             <div class="card-wrapper">
                 <div class="credit-card">
-                    <div class="card-top">
-                        <div class="card-chip-group">
-                            <div class="card-chip"><div class="card-chip-line"></div></div>
-                            <i class="fas fa-wifi card-contactless"></i>
-                        </div>
-                        <div class="card-logo">
-                            <img src="triangulo.png" alt="Logo" onerror="this.style.display='none'">HOMEEASY
+                    <svg class="he-card-art" viewBox="0 0 565 300" preserveAspectRatio="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="heCajaIvory" x1="0" x2="1" y1="0" y2="1">
+                                <stop offset="0" stop-color="#fffefa"/>
+                                <stop offset=".55" stop-color="#fbf8f2"/>
+                                <stop offset="1" stop-color="#f2eadc"/>
+                            </linearGradient>
+                            <linearGradient id="heCajaWine" x1="0" x2=".7" y1="0" y2="1">
+                                <stop offset="0" stop-color="#bd4a69"/>
+                                <stop offset=".55" stop-color="#9f3856"/>
+                                <stop offset="1" stop-color="#7d2942"/>
+                            </linearGradient>
+                            <linearGradient id="heCajaWineShade" x1=".1" x2="1" y1="0" y2="1">
+                                <stop offset="0" stop-color="#a43c59" stop-opacity=".10"/>
+                                <stop offset="1" stop-color="#561429" stop-opacity=".30"/>
+                            </linearGradient>
+                            <pattern id="heCajaTexture" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                                <line x1="0" y1="0" x2="0" y2="12" stroke="#d9d0c4" stroke-opacity=".14" stroke-width=".7"/>
+                            </pattern>
+                        </defs>
+                        <rect width="565" height="300" fill="url(#heCajaIvory)"/>
+                        <rect width="565" height="300" fill="url(#heCajaTexture)"/>
+                        <path d="M522 0H565V300H258C343 284 409 249 453 197C492 151 509 92 522 0Z" fill="url(#heCajaWine)"/>
+                        <path d="M565 39V300H340C406 272 449 231 477 185C507 136 528 84 565 39Z" fill="url(#heCajaWineShade)"/>
+                        <path d="M250 286C356 273 423 234 464 183C488 153 503 119 514 84" fill="none" stroke="#d2b46e" stroke-opacity=".8" stroke-width="1.2"/>
+                    </svg>
+
+                    <div class="he-card-brand">
+                        <img src="triangulogold.png" alt="">
+                        <div class="he-card-brand-copy">
+                            <strong>HomeEasy</strong>
+                            <span>SISTEMA HOMMY</span>
                         </div>
                     </div>
-                    
-                    <div class="card-middle">
-                        <span class="card-label">Saldo Disponible</span>
-                        <span class="card-balance" id="ui-saldo">...</span>
+
+                    <div class="he-card-chip" aria-hidden="true">
+                        <span class="chip-left"></span>
+                        <span class="chip-right"></span>
                     </div>
-                    
-                    <div class="card-bottom">
-                        <span class="card-holder" id="card-cash-name">Caja Principal</span>
-                        <div class="card-expiry">
-                            <span class="card-expiry-label">VÁLIDA</span>
-                            <span class="card-expiry-val"><i class="fas fa-sync-alt fa-spin" style="font-size: 0.6rem; margin-right: 3px;" id="ui-sync-icon"></i> AHORA</span>
-                        </div>
+
+                    <div class="he-card-contactless" aria-hidden="true">
+                        <svg viewBox="0 0 48 48">
+                            <path d="M12 17c4 4 4 10 0 14"/>
+                            <path d="M19 12c7 7 7 17 0 24"/>
+                            <path d="M27 8c10 10 10 22 0 32"/>
+                        </svg>
                     </div>
+
+                    <div class="he-card-name" id="card-cash-name">Caja Principal</div>
+                    <div class="he-card-number">****&nbsp;&nbsp;****&nbsp;&nbsp;****&nbsp;&nbsp;4821</div>
+                    <div class="he-card-balance-label">SALDO DISPONIBLE</div>
+                    <div class="he-card-balance-row">
+                        <span class="he-card-balance" id="ui-saldo">…</span>
+                        <span class="he-card-currency">COP</span>
+                    </div>
+
+                    <img class="he-card-watermark" src="triangulogold.png" alt="">
+                    <i class="fas fa-sync-alt" id="ui-sync-icon" aria-hidden="true"></i>
                 </div>
             </div>
 
             <div class="action-grid">
                 <button class="btn-action" onclick="registrarIngreso()">
-                    <div class="icon-circle icon-income"><i class="fas fa-arrow-down"></i></div>
+                    <div class="icon-circle icon-income"><i class="fas fa-plus"></i></div>
                     <span>Ingreso Extra</span>
                 </button>
                 <button class="btn-action" onclick="registrarGasto()">
-                    <div class="icon-circle icon-expense"><i class="fas fa-shopping-bag"></i></div>
+                    <div class="icon-circle icon-expense"><i class="fas fa-minus"></i></div>
                     <span>Registrar Gasto</span>
                 </button>
             </div>
@@ -625,7 +662,7 @@
             container.innerHTML = feed.map(tx => {
                 let iconClass = "tx-out";
                 let icon = "fa-shopping-bag";
-                let amountClass = "text-dark";
+                let amountClass = "text-red";
                 let prefix = "-";
                 let category = tx.cat || "";
 
