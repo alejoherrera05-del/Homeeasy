@@ -73,32 +73,51 @@
             more.addEventListener('click', () => { limit += 40; paint(); }); container.append(more);
         }
     }
+    function closeActionSheet() {
+        const sheet = document.getElementById('caja-native-sheet');
+        if (!sheet) return;
+        sheet.classList.remove('is-open');
+        document.body.classList.remove('caja-sheet-open');
+        setTimeout(() => sheet.remove(), 220);
+    }
     function openActionMenu(tx, trigger) {
         if (busy || !canWrite()) return;
         if (navigator.vibrate) navigator.vibrate(12);
-        const restore = Boolean(tx.eliminado);
-        Swal.fire({
-            title: tx.descripcion || tx.titulo || 'Movimiento',
-            text: money(tx.valor),
-            showConfirmButton: false,
-            showCancelButton: true,
-            cancelButtonText: 'Cerrar',
-            customClass: { popup: 'swal2-premium caja-action-sheet' },
-            didOpen: popup => {
-                const actions = element('div', 'caja-action-sheet-buttons');
-                const options = restore ? [['RESTAURAR','Restaurar']] : [['EDITAR','Editar'],['ELIMINAR','Eliminar']];
-                options.forEach(([action,label]) => {
-                    const button = element('button', action === 'ELIMINAR' ? 'caja-sheet-action caja-sheet-delete' : 'caja-sheet-action', label);
-                    button.type = 'button';
-                    button.addEventListener('click', () => {
-                        Swal.close();
-                        setTimeout(() => openCorrection(tx, action, trigger), 120);
-                    });
-                    actions.append(button);
-                });
-                popup.querySelector('.swal2-html-container').replaceChildren(actions);
-            }
+        closeActionSheet();
+
+        const overlay = element('div', 'caja-native-sheet');
+        overlay.id = 'caja-native-sheet';
+        overlay.innerHTML =
+            '<div class="caja-native-sheet-panel" role="dialog" aria-modal="true" aria-label="Opciones del movimiento">' +
+              '<div class="caja-native-sheet-handle"></div>' +
+              '<div class="caja-native-sheet-copy">' +
+                '<strong></strong><span></span>' +
+              '</div>' +
+              '<div class="caja-native-sheet-actions"></div>' +
+              '<button type="button" class="caja-native-sheet-cancel">Cancelar</button>' +
+            '</div>';
+
+        const panel = overlay.querySelector('.caja-native-sheet-panel');
+        overlay.querySelector('strong').textContent = tx.descripcion || tx.titulo || 'Movimiento';
+        overlay.querySelector('span').textContent = money(tx.valor);
+        const actions = overlay.querySelector('.caja-native-sheet-actions');
+        const options = tx.eliminado ? [['RESTAURAR','Restaurar','fa-rotate-left']] : [['EDITAR','Editar','fa-pen'],['ELIMINAR','Eliminar','fa-trash']];
+        options.forEach(([action,label,icon]) => {
+            const button = element('button', action === 'ELIMINAR' ? 'caja-native-action is-danger' : 'caja-native-action');
+            button.type = 'button';
+            button.innerHTML = '<span class="caja-native-action-icon"><i class="fas '+icon+'"></i></span><span>'+label+'</span><i class="fas fa-chevron-right caja-native-chevron"></i>';
+            button.addEventListener('click', () => {
+                closeActionSheet();
+                setTimeout(() => openCorrection(tx, action, trigger), 230);
+            });
+            actions.append(button);
         });
+        overlay.querySelector('.caja-native-sheet-cancel').addEventListener('click', closeActionSheet);
+        overlay.addEventListener('click', event => { if (event.target === overlay) closeActionSheet(); });
+        panel.addEventListener('click', event => event.stopPropagation());
+        document.body.append(overlay);
+        document.body.classList.add('caja-sheet-open');
+        requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('is-open')));
     }
     function installHoldMenu(row, tx) {
         let timer = 0;
@@ -106,6 +125,7 @@
         const cancel = () => { if (timer) clearTimeout(timer); timer = 0; row.classList.remove('is-holding'); };
         row.addEventListener('pointerdown', event => {
             if (event.pointerType === 'mouse' && event.button !== 0) return;
+            if (window.getSelection) { const selection = window.getSelection(); if (selection) selection.removeAllRanges(); }
             startX = event.clientX; startY = event.clientY;
             row.classList.add('is-holding');
             timer = setTimeout(() => { timer = 0; row.classList.remove('is-holding'); openActionMenu(tx, row); }, 520);
@@ -114,7 +134,8 @@
             if (Math.hypot(event.clientX-startX,event.clientY-startY) > 10) cancel();
         });
         ['pointerup','pointercancel','pointerleave'].forEach(name => row.addEventListener(name, cancel));
-        row.addEventListener('contextmenu', event => { event.preventDefault(); cancel(); openActionMenu(tx, row); });
+        row.addEventListener('contextmenu', event => { event.preventDefault(); if (window.getSelection) { const selection = window.getSelection(); if (selection) selection.removeAllRanges(); } cancel(); openActionMenu(tx, row); });
+        row.addEventListener('selectstart', event => event.preventDefault());
         row.addEventListener('keydown', event => {
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openActionMenu(tx, row); }
         });
