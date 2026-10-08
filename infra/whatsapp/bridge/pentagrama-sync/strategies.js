@@ -1,6 +1,6 @@
 'use strict';
 
-const { PRICE_STRATEGIES } = require('./mapper');
+const { PRICE_STRATEGIES, mappingIsCertified } = require('./mapper');
 const TOLERANCE = 0.02;
 
 function money(value) { return Math.round(Number(value) * 100) / 100; }
@@ -38,6 +38,8 @@ function rateM2Proposal(mapping, source, evidence) {
 }
 
 function buildProposal(mapping, source, evidence) {
+  if (!mappingIsCertified(mapping)) return { autoApplicable: false,
+    reason: mapping && mapping.reviewReason || 'El mapping no tiene certificado Pentagrama vigente.' };
   if (!mapping || mapping.autoApplicable === false) return { autoApplicable: false, reason: mapping && mapping.reviewReason || 'Mapping no autorizado para actualización automática.' };
   if (!Array.isArray(evidence) || !evidence.length) return { autoApplicable: false, reason: 'No existe evidencia de precio suficiente.' };
   if (mapping.strategy === PRICE_STRATEGIES.RATE_M2) return rateM2Proposal(mapping, source, evidence);
