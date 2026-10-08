@@ -1,5 +1,5 @@
 /**
- * HomeEasy WhatsApp Settings v0.3.0
+ * HomeEasy WhatsApp Settings v0.3.1
  * Centro de control de WhatsApp: estado, actividad, plantillas, pruebas y recuperación.
  *
  * Reglas:
@@ -13,7 +13,7 @@
 
     if (((global.location.pathname.split('/').pop() || '').toLowerCase()) !== 'configuracion.html') return;
 
-    const VERSION = '0.3.0';
+    const VERSION = '0.3.1';
     const REQUIRED_BRIDGE = '0.8.0';
     const STYLE_ID = 'homeeasyWhatsappSettingsStyle';
     const PANEL_ID = 'panel-integraciones';
@@ -36,6 +36,20 @@
     let state = { status: null, activity: [], templates: null };
 
     const clean = value => String(value == null ? '' : value).trim();
+
+    // La versión mínima no es una versión fija: 0.14.0 admite las funciones de 0.8.0.
+    function supportsRequiredBridge(version) {
+        const parse = value => /^\d+(?:\.\d+){0,2}$/.test(clean(value)) ? clean(value).split('.').map(Number) : null;
+        const installed = parse(version);
+        const required = parse(REQUIRED_BRIDGE);
+        if (!installed || !required) return false;
+        for (let i = 0; i < 3; i += 1) {
+            const part = installed[i] || 0;
+            const minimum = required[i] || 0;
+            if (part !== minimum) return part > minimum;
+        }
+        return true;
+    }
 
     function escapeHtml(value) {
         return String(value == null ? '' : value)
@@ -229,7 +243,7 @@
         const chip = document.getElementById('heWaChip'); const description = document.getElementById('heWaDescription');
         if (chip) { chip.className = 'he-wa-chip ' + (ready ? 'ready' : (status === 'STARTING' || status === 'SCAN_QR_CODE' ? 'busy' : 'error')); chip.textContent = ready ? 'Operativo' : (status === 'STARTING' ? 'Conectando' : (status === 'SCAN_QR_CODE' ? 'Vincular' : 'Requiere atención')); }
         if (description) description.textContent = ready ? 'Todo está listo para enviar cotizaciones, órdenes y recibos desde HomeEasy.' : (status === 'SCAN_QR_CODE' ? 'WhatsApp necesita vinculación. El resto de HomeEasy continúa funcionando.' : 'El canal de WhatsApp requiere atención; HomeEasy continúa funcionando normalmente.');
-        setPath('heWaStepHome', payload && payload.actor ? 'ok' : 'error'); setPath('heWaStepBridge', bridgeVersion ? (bridgeVersion === REQUIRED_BRIDGE ? 'ok' : 'warn') : 'warn'); setPath('heWaStepWhatsapp', ready ? 'ok' : (status === 'STARTING' || status === 'SCAN_QR_CODE' ? 'warn' : 'error'));
+        setPath('heWaStepHome', payload && payload.actor ? 'ok' : 'error'); setPath('heWaStepBridge', bridgeVersion ? (supportsRequiredBridge(bridgeVersion) ? 'ok' : 'warn') : 'warn'); setPath('heWaStepWhatsapp', ready ? 'ok' : (status === 'STARTING' || status === 'SCAN_QR_CODE' ? 'warn' : 'error'));
         const connected = global.HomeEasyWhatsApp ? global.HomeEasyWhatsApp.connectedPhone(payload) : '';
         const values = { heWaAccount:String(me.pushName || me.name || (ready ? 'HomeEasy' : '—')), heWaPhone:formatPhone(connected), heWaBridge:bridgeVersion ? 'v' + bridgeVersion : 'Actualización pendiente', heWaChecked:nowLabel(true), heWaTechSession:String(whatsapp.name || 'homeeasy'), heWaTechEngine:String(whatsapp.engine || 'WEBJS'), heWaTechBridge:bridgeVersion ? 'v' + bridgeVersion + (bridge.storage ? ' · almacenamiento ' + bridge.storage : '') : 'Anterior a v' + REQUIRED_BRIDGE, heWaTechActor:String(actor.nombre || actor.email || actor.rol || '—') };
         Object.entries(values).forEach(([id,value]) => { const node = document.getElementById(id); if (node) node.textContent = value; });
@@ -273,7 +287,7 @@
         if (statusOk) {
             const [activityResult,templateResult] = await Promise.allSettled([global.HomeEasyWhatsApp.activity ? global.HomeEasyWhatsApp.activity(80) : Promise.reject(new Error('Actividad no disponible')),global.HomeEasyWhatsApp.getTemplates ? global.HomeEasyWhatsApp.getTemplates() : Promise.reject(new Error('Plantillas no disponibles'))]);
             if (activityResult.status === 'fulfilled') state.activity = Array.isArray(activityResult.value.items) ? activityResult.value.items : []; else state.activity = []; if (templateResult.status === 'fulfilled') state.templates = templateResult.value; renderActivity(); renderTemplates();
-            const bridgeVersion = clean(state.status && state.status.bridge && state.status.bridge.version); if (bridgeVersion && bridgeVersion !== REQUIRED_BRIDGE && global.Swal) Swal.fire({toast:true,position:'top-end',icon:'info',title:'Actualización de WhatsApp pendiente',text:'El servidor debe quedar en v' + REQUIRED_BRIDGE + ' para usar actividad y plantillas.',showConfirmButton:false,timer:3200}); else if (showFeedback && global.Swal) Swal.fire({toast:true,position:'top-end',icon:'success',title:'WhatsApp comprobado',showConfirmButton:false,timer:1600});
+            const bridgeVersion = clean(state.status && state.status.bridge && state.status.bridge.version); if (bridgeVersion && !supportsRequiredBridge(bridgeVersion) && global.Swal) Swal.fire({toast:true,position:'top-end',icon:'info',title:'Actualización de WhatsApp pendiente',text:'El Bridge necesita la versión v' + REQUIRED_BRIDGE + ' o posterior para usar actividad y plantillas.',showConfirmButton:false,timer:3200}); else if (showFeedback && global.Swal) Swal.fire({toast:true,position:'top-end',icon:'success',title:'WhatsApp comprobado',showConfirmButton:false,timer:1600});
         }
         await maintenanceRead;
         loadedOnce = true; setLoading(false);

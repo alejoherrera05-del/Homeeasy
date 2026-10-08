@@ -22,6 +22,27 @@ for(const mode of ['auth-before-script','auth-before-dom','auth-after-dom'])test
  assert.equal(f.w.document.querySelectorAll('#panel-integraciones').length,1);assert.equal(f.w.document.querySelectorAll('[data-section="integraciones"]').length,2);f.d.window.close();
 });
 test('Integraciones no se monta sin autorización',()=>{const f=settings('denied');f.w.eval(code('homeeasy-whatsapp-settings.js'));f.w.dispatchEvent(new f.w.Event('homeeasy:page-auth-ready'));assert.equal(f.w.document.querySelector('#panel-integraciones'),null);f.w.close();});
+
+for(const [version,compatible] of [['0.8.0',true],['0.14.0',true],['0.7.9',false]]) {
+ test('Bridge '+version+' respeta versión mínima 0.8.0',async()=>{
+  const f=settings();const w=f.w;const notices=[];w.scrollTo=()=>{};
+  w.Swal={fire:options=>{notices.push(options);return Promise.resolve({});}};
+  w.HomeEasyWhatsApp={
+   status:async()=>({bridge:{version},whatsapp:{ready:true,status:'WORKING'},actor:{rol:'admin'}}),
+   activity:async()=>({items:[]}),
+   getTemplates:async()=>({templates:{}}),
+   maintenance:async()=>({phase:'idle',currentVersion:'2026.9.2',latestVersion:'2026.9.2',automatic:true,updateAvailable:false}),
+   connectedPhone:()=>''
+  };
+  w.eval(code('homeeasy-whatsapp-settings.js'));
+  w.document.querySelector('.side-nav [data-section="integraciones"]').click();
+  await settle();await settle();await settle();
+  assert.equal(w.document.getElementById('heWaStepBridge').classList.contains('ok'),compatible);
+  assert.equal(notices.some(item=>item.title==='Actualización de WhatsApp pendiente'),!compatible);
+  w.close();
+ });
+}
+
 async function guarded(resultStatus = "success"){
  const d=page('pedido.html','<div id="success-modal"><div class="success-box"><button class="btn-success-home">Inicio</button></div></div>');const w=d.window;
  w.HOMEEASY_AUTH_CONFIG={};w.HomeEasyAuth={isConfigured:()=>true,getCachedHomeEasySession:()=>({}),hasPermission:()=>true,getCurrentProfile:()=>({}),getAppSessionToken:()=> 'test-session'};
@@ -45,6 +66,16 @@ test('No envía si el canal está desconectado',async()=>{const calls=[];const d
 test('Vendedor sin config.read conserva envío',async()=>{const calls=[];const d=client(async u=>{calls.push(u);return response({ok:true,delivery:'SENT'});},false);await d.window.HomeEasyWhatsApp.sendDocument({});assert.equal(calls.length,1);assert.ok(calls[0].endsWith('/send-document'));d.window.close();});
 test('Respuesta incompleta no se considera éxito y no repite POST',async()=>{let count=0;const d=client(async()=>{count++;return new Response('not-json');},false);await assert.rejects(d.window.HomeEasyWhatsApp.sendDocument({}),e=>e.code==='WHATSAPP_INVALID_RESPONSE');assert.equal(count,1);d.window.close();});
 test('UNKNOWN no dispara reintentos',async()=>{let count=0;const d=client(async()=>{count++;return response({ok:false,delivery:'UNKNOWN'});},false);assert.equal((await d.window.HomeEasyWhatsApp.sendDocument({})).delivery,'UNKNOWN');assert.equal(count,1);d.window.close();});
+
+test('Módulo cargado sin inicializar se retira y permite recuperar botón',async()=>{
+ const d=await guarded(),w=d.window;
+ const script=w.document.getElementById('homeeasyWhatsappClientScript');assert.ok(script);
+ script.dispatchEvent(new w.Event('load'));await settle();
+ assert.equal(w.document.getElementById('homeeasyWhatsappClientScript'),null);
+ w.dispatchEvent(new w.Event('online'));await settle();
+ assert.ok(w.document.getElementById('homeeasyWhatsappClientScript'));
+ w.close();
+});
 
 test('Fallo de descarga del módulo permite reintento al volver la conexión',async()=>{
  const d=await guarded(),w=d.window;const script=w.document.getElementById('homeeasyWhatsappClientScript');assert.ok(script);script.dispatchEvent(new w.Event('error'));await settle();assert.equal(w.document.getElementById('homeeasyWhatsappClientScript'),null);w.dispatchEvent(new w.Event('online'));assert.ok(w.document.getElementById('homeeasyWhatsappClientScript'));w.close();

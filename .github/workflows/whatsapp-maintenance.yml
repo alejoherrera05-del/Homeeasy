@@ -10,6 +10,23 @@ on:
       - 'tests/whatsapp-diagnostics.cjs'
       - 'CNAME'
       - '.github/workflows/whatsapp-maintenance.yml'
+  pull_request:
+    paths:
+      - 'infra/whatsapp/**'
+      - 'homeeasy-whatsapp-settings.js'
+      - 'homeeasy-whatsapp-client.js'
+      - 'homeeasy-page-guard.js'
+      - 'homeeasy-whatsapp-doc-actions.js'
+      - 'cotizacion.html'
+      - 'pedido.html'
+      - 'abono.html'
+      - 'clientes.html'
+      - 'ventas.html'
+      - 'configuracion.html'
+      - 'tests/whatsapp-reliability.cjs'
+      - 'tests/whatsapp-maintenance.cjs'
+      - 'tests/whatsapp-diagnostics.cjs'
+      - '.github/workflows/whatsapp-maintenance.yml'
   workflow_dispatch:
 permissions:
   contents: read

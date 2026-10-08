@@ -1,5 +1,5 @@
 /**
- * HomeEasy Page Guard v3.7
+ * HomeEasy Page Guard v3.8
  * Navegación cache-first: usa la sesión ya validada para abrir módulos al instante
  * y revalida silenciosamente en segundo plano. AR permanece fuera de este mapa.
  */
@@ -97,6 +97,15 @@
         });
     }
 
+    function ensureWhatsappScriptReady(globalKey, scriptId) {
+        if (global[globalKey]) return;
+        // Un <script> puede disparar load aunque su JS haya fallado al ejecutarse.
+        // Retirarlo permite una nueva carga, en lugar de dejar sin botón los PDF.
+        const node = global.document.getElementById(scriptId);
+        if (node) node.remove();
+        throw new Error('WhatsApp: el módulo ' + globalKey + ' no se inicializó.');
+    }
+
     function loadWhatsappDocumentActions(retryAttempt = 0) {
         if (!WHATSAPP_DOCUMENT_PAGES.has(currentPage)) return Promise.resolve();
         if (whatsappLoadPromise) return whatsappLoadPromise;
@@ -104,11 +113,16 @@
             'homeeasy-whatsapp-client.js?v=20261001',
             'homeeasyWhatsappClientScript',
             () => Boolean(global.HomeEasyWhatsApp)
-        ).then(() => loadScriptOnce(
-            'homeeasy-whatsapp-doc-actions.js?v=20260928',
-            'homeeasyWhatsappDocumentActionsScript',
-            () => Boolean(global.HomeEasyWhatsAppDocumentActions)
-        )).catch(error => {
+        ).then(() => {
+            ensureWhatsappScriptReady('HomeEasyWhatsApp', 'homeeasyWhatsappClientScript');
+            return loadScriptOnce(
+                'homeeasy-whatsapp-doc-actions.js?v=20261008',
+                'homeeasyWhatsappDocumentActionsScript',
+                () => Boolean(global.HomeEasyWhatsAppDocumentActions)
+            );
+        }).then(() => {
+            ensureWhatsappScriptReady('HomeEasyWhatsAppDocumentActions', 'homeeasyWhatsappDocumentActionsScript');
+        }).catch(error => {
             // WhatsApp es una integración secundaria: jamás bloquear la apertura del módulo.
             console.warn('HomeEasy WhatsApp: no se pudo cargar la capa de documentos.', error);
             if (retryAttempt < 2) global.setTimeout(() => loadWhatsappDocumentActions(retryAttempt + 1), 1500 * (retryAttempt + 1));
