@@ -16,15 +16,19 @@ test('live catalog certification registry is complete and deliberately conservat
     certified: summary.certified,
     reviewRequired: summary.reviewRequired,
     unmapped: summary.unmapped
-  }, { total: 452, exactCandidates: 10, ambiguous: 10, noCandidate: 432, certified: 2, reviewRequired: 18, unmapped: 432 });
+  }, { total: 452, exactCandidates: 85, ambiguous: 10, noCandidate: 357, certified: 77, reviewRequired: 18, unmapped: 357 });
   assert.deepEqual(summary.certifiedStrategies, {
-    RATE_M2: 2, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 0, SPECIAL_CONFIGURATION: 0
+    RATE_M2: 77, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 0, SPECIAL_CONFIGURATION: 0
   });
 });
 
 test('One Click accepts only mappings carrying a complete Pentagrama certificate', () => {
   const accepted = INITIAL_MAPPINGS.filter(mappingIsCertified).map(item => item.homeeasyId).sort();
-  assert.deepEqual(accepted, ['onda-67', 'onda-9']);
+  assert.equal(accepted.length, 77);
+  assert.ok(accepted.includes('onda-0'));
+  assert.ok(accepted.includes('onda-77'));
+  assert.ok(!accepted.includes('onda-10'));
+  assert.ok(!accepted.includes('onda-163'));
 });
 
 test('Onda Comfort certificate reproduces both normal measures and the billing minimum', () => {
@@ -44,4 +48,18 @@ test('mandatory regression controls remain outside unsafe automatic strategies',
   assert.equal(byId.get('vertesse-161').status, 'REVIEW_REQUIRED');
   assert.equal(byId.get('enrollable-blackout-matte3').status, 'REVIEW_REQUIRED');
   assert.equal(byId.get('coverlight-standard').status, 'REVIEW_REQUIRED');
+});
+
+test('Onda expansion keeps one exact ProductCode per certified HomeEasy reference', () => {
+  const certified = registry.products.filter(item => item.status === 'CERTIFIED');
+  const codes = certified.map(item => item.productCode);
+  assert.equal(certified.length, 77);
+  assert.equal(new Set(certified.map(item => item.homeeasyId)).size, 77);
+  assert.equal(new Set(codes).size, 77);
+  for (const item of certified) {
+    assert.equal(item.groupCode, '1345');
+    assert.equal(item.calculationType, 'NormalProduct');
+    assert.equal(item.casesPassed, 3);
+    assert.ok(item.maxDifference <= 0.02);
+  }
 });

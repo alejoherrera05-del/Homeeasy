@@ -1,0 +1,3914 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-08T20:45:00Z",
+  "groupEvidence": {
+    "groupCode": "1345",
+    "associationGroup": "RIECOR28",
+    "calculationType": "NormalProduct",
+    "unit": "MT2",
+    "casesPassed": 3,
+    "maxDifference": 0
+  },
+  "mappings": [
+    {
+      "id": "onda-0-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Scuro (90% Blackout)",
+      "homeeasyId": "onda-0",
+      "productCode": "CORONSEBOSCUBE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-1-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Fico (100% Blackout)",
+      "homeeasyId": "onda-1",
+      "productCode": "CORONSEBOFIBL2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-2-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Notte (90% Blackout)",
+      "homeeasyId": "onda-2",
+      "productCode": "CORONSEBONOTFLGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-3-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Divano (100% Blackout)",
+      "homeeasyId": "onda-3",
+      "productCode": "CORONSEBODIVARE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-4-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Parata (100% Blackout)",
+      "homeeasyId": "onda-4",
+      "productCode": "CORONSEBOPARNEG2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-5-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Salita (100% Blackout)",
+      "homeeasyId": "onda-5",
+      "productCode": "CORONSEBOSALBRU2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-6-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Silken (100% Blackout)",
+      "homeeasyId": "onda-6",
+      "productCode": "CORONSEBOSILKNO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-7-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Velvet (100% Blackout)",
+      "homeeasyId": "onda-7",
+      "productCode": "CORONSEBOVELWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-8-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Acqua (100% Blackout - Retardante al Fuego)",
+      "homeeasyId": "onda-8",
+      "productCode": "CORONSEACQALBRF2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-11-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Felice (100% Blackout)",
+      "homeeasyId": "onda-11",
+      "productCode": "CORONSEBOFEWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-12-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Mobili (85% Blackout)",
+      "homeeasyId": "onda-12",
+      "productCode": "CORONSEDIMOBL2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-13-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Minna (100% Blackout)",
+      "homeeasyId": "onda-13",
+      "productCode": "CORONSEBOMINBLA2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-14-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Rua (100% Blackout)",
+      "homeeasyId": "onda-14",
+      "productCode": "CORONSEBORUBR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-15-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Lienzo (100% Blackout)",
+      "homeeasyId": "onda-15",
+      "productCode": "CORONSEBOLIEACE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-16-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Moderna (100% Blackout)",
+      "homeeasyId": "onda-16",
+      "productCode": "CORONSEBOMODBLA2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-17-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Piatto (90% Blackout)",
+      "homeeasyId": "onda-17",
+      "productCode": "CORONSEBOPIABE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-18-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Regina (100% Blackout)",
+      "homeeasyId": "onda-18",
+      "productCode": "CORONSEBOREWHLI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-19-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Spazio (100% Blackout)",
+      "homeeasyId": "onda-19",
+      "productCode": "CORONSEBOSPLIGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-20-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Tempo (100% Blackout)",
+      "homeeasyId": "onda-20",
+      "productCode": "CORONSEBOTEAR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-21-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Black Out Essenza (100% Blackout)",
+      "homeeasyId": "onda-21",
+      "productCode": "CORONSEBOESWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-22-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Coperta",
+      "homeeasyId": "onda-22",
+      "productCode": "CORONSETRCOCOPNU2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-23-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Raso",
+      "homeeasyId": "onda-23",
+      "productCode": "CORONSETRRASMIGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-24-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Coussin",
+      "homeeasyId": "onda-24",
+      "productCode": "CORONSETRCOCOUGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-25-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Danza",
+      "homeeasyId": "onda-25",
+      "productCode": "CORONSETRCODANCO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-26-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Allegra",
+      "homeeasyId": "onda-26",
+      "productCode": "CORONSETRASALWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-27-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Kilim",
+      "homeeasyId": "onda-27",
+      "productCode": "CORONSETRKILIV2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-28-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Linette",
+      "homeeasyId": "onda-28",
+      "productCode": "CORONSETRLIDAGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-29-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Naturale",
+      "homeeasyId": "onda-29",
+      "productCode": "CORONSETRASNATAL2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-30-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Oxford",
+      "homeeasyId": "onda-30",
+      "productCode": "CORONSETROXFCH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-31-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Flow",
+      "homeeasyId": "onda-31",
+      "productCode": "CORONSETRASFLOIV2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-32-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Polish",
+      "homeeasyId": "onda-32",
+      "productCode": "CORONSETRCOPOLAR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-33-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Reverso",
+      "homeeasyId": "onda-33",
+      "productCode": "CORONSETRASREGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-34-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Nuvola",
+      "homeeasyId": "onda-34",
+      "productCode": "CORONSETRASNUVAG2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-35-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Traslucente Molto",
+      "homeeasyId": "onda-35",
+      "productCode": "CORONSETRCOMOLAR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-36-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Pesce White (Retardante al Fuego)",
+      "homeeasyId": "onda-36",
+      "productCode": "CORONSEVEPEWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-37-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Maglia White (Retardante al Fuego)",
+      "homeeasyId": "onda-37",
+      "productCode": "CORONSEVEMAWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-38-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Tessuto White (Retardante al Fuego)",
+      "homeeasyId": "onda-38",
+      "productCode": "CORONSEVETEWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-39-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Kilt White",
+      "homeeasyId": "onda-39",
+      "productCode": "CORONSEVEKIWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-40-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Piazza White (Retardante al Fuego)",
+      "homeeasyId": "onda-40",
+      "productCode": "CORONSEVEPIWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-41-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Coppa",
+      "homeeasyId": "onda-41",
+      "productCode": "CORONSEVECOPWHGO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-42-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Corda",
+      "homeeasyId": "onda-42",
+      "productCode": "CORONSEVECORARE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-43-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Corona",
+      "homeeasyId": "onda-43",
+      "productCode": "CORONSEVECORWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-44-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Deserto",
+      "homeeasyId": "onda-44",
+      "productCode": "CORONSEVEDESGRI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-45-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Gentile",
+      "homeeasyId": "onda-45",
+      "productCode": "CORONSEVEGENARM2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-46-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Nervi",
+      "homeeasyId": "onda-46",
+      "productCode": "CORONSEVENERGRSA2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-47-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Neve",
+      "homeeasyId": "onda-47",
+      "productCode": "CORONSEVENEDAGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-48-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Perla",
+      "homeeasyId": "onda-48",
+      "productCode": "CORONSEVEPERBEI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-49-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Roco",
+      "homeeasyId": "onda-49",
+      "productCode": "CORONSEVEROCWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-50-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Sabbia",
+      "homeeasyId": "onda-50",
+      "productCode": "CORONSEVESABGOL2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-51-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Sable",
+      "homeeasyId": "onda-51",
+      "productCode": "CORONSEVESABWHLI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-52-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Knot White",
+      "homeeasyId": "onda-52",
+      "productCode": "CORONSEVEKNWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-53-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Sottile White",
+      "homeeasyId": "onda-53",
+      "productCode": "CORONSEVESOWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-54-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Cesto White Silver y Crudo Gold",
+      "homeeasyId": "onda-54",
+      "productCode": "CORONSEVECECRGO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-55-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Cotone White (Retardante al Fuego)",
+      "homeeasyId": "onda-55",
+      "productCode": "CORONSEVECOWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-56-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Gelo",
+      "homeeasyId": "onda-56",
+      "productCode": "CORONSEVEGELWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-57-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Pianto",
+      "homeeasyId": "onda-57",
+      "productCode": "CORONSEVEPIALIGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-58-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Pluvio",
+      "homeeasyId": "onda-58",
+      "productCode": "CORONSEVEPLUARG2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-59-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Rivera",
+      "homeeasyId": "onda-59",
+      "productCode": "CORONSEVERIVDAGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-60-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Angolo",
+      "homeeasyId": "onda-60",
+      "productCode": "CORONSEVEANGGRE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-61-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Nebbia",
+      "homeeasyId": "onda-61",
+      "productCode": "CORONSEVENEBWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-62-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Piccola Lino",
+      "homeeasyId": "onda-62",
+      "productCode": "CORONSEVEPICLI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-63-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Piccola White (Retardante al Fuego)",
+      "homeeasyId": "onda-63",
+      "productCode": "CORONSEVEPICWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-64-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Apresto",
+      "homeeasyId": "onda-64",
+      "productCode": "CORONSEVEAPRLIN2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-65-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Aurora White",
+      "homeeasyId": "onda-65",
+      "productCode": "CORONSEVEAUWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-66-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Boreal",
+      "homeeasyId": "onda-66",
+      "productCode": "CORONSEVEBORWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-68-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Dolore",
+      "homeeasyId": "onda-68",
+      "productCode": "CORONSEVEDOLWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-69-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Fluffy",
+      "homeeasyId": "onda-69",
+      "productCode": "CORONSEVEFLULIGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-70-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Gocce White (Retardante al Fuego)",
+      "homeeasyId": "onda-70",
+      "productCode": "CORONSEVEGOWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-71-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Horizon (Retardante al Fuego)",
+      "homeeasyId": "onda-71",
+      "productCode": "CORONSEVEHO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-72-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Strada White (Retardante al Fuego)",
+      "homeeasyId": "onda-72",
+      "productCode": "CORONSEVESTWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-73-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Cesto *No aplica White Silver ni Crudo Gold",
+      "homeeasyId": "onda-73",
+      "productCode": "CORONSEVECEBE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-74-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Crochet White",
+      "homeeasyId": "onda-74",
+      "productCode": "CORONSEVECRWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-75-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Inglese White",
+      "homeeasyId": "onda-75",
+      "productCode": "CORONSEVEINWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-76-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Gazzeta",
+      "homeeasyId": "onda-76",
+      "productCode": "CORONSEVEGAGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "onda-77-catalog-certified",
+      "family": "Onda Serena",
+      "reference": "Velo Rustico",
+      "homeeasyId": "onda-77",
+      "productCode": "CORONSEVERUGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "0.8",
+          "height": "1",
+          "role": "shared-group-boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "RIECOR28",
+        "Discount": 0
+      }
+    }
+  ]
+}
