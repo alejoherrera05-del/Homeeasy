@@ -5,6 +5,10 @@ const PRICE_STRATEGIES = Object.freeze({
   COMPLEMENT: 'COMPLEMENT', SPECIAL_CONFIGURATION: 'SPECIAL_CONFIGURATION'
 });
 
+const MAPPING_STATUSES = Object.freeze({
+  CERTIFIED: 'CERTIFIED', REVIEW_REQUIRED: 'REVIEW_REQUIRED', UNMAPPED: 'UNMAPPED'
+});
+
 const INITIAL_MAPPINGS = Object.freeze([
   Object.freeze({
     id: 'vertical-matte-blanco-120x130',
@@ -20,6 +24,12 @@ const INITIAL_MAPPINGS = Object.freeze([
     productDiscount: 0,
     pricingMode: 'account-discount',
     strategy: PRICE_STRATEGIES.RATE_M2,
+    status: MAPPING_STATUSES.REVIEW_REQUIRED,
+    verifiedAt: '2026-10-08T00:00:00Z',
+    casesPassed: 3,
+    maxDifference: 10887.94,
+    autoApplicable: false,
+    reviewReason: 'Pentagrama no es lineal en medidas normales; no se puede sustituir la tarifa por una regla proporcional.',
     destination: Object.freeze({ sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }),
     validationCases: Object.freeze([
       Object.freeze({ id: 'normal-a', width: '2', height: '2', role: 'derive' }),
@@ -43,6 +53,10 @@ const INITIAL_MAPPINGS = Object.freeze([
     productDiscount: 0,
     pricingMode: 'account-discount',
     strategy: PRICE_STRATEGIES.RATE_M2,
+    status: MAPPING_STATUSES.CERTIFIED,
+    verifiedAt: '2026-10-08T00:00:00Z',
+    casesPassed: 3,
+    maxDifference: 0,
     destination: Object.freeze({ sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }),
     validationCases: Object.freeze([
       Object.freeze({ id: 'normal-a', width: '2', height: '2', role: 'derive' }),
@@ -51,6 +65,33 @@ const INITIAL_MAPPINGS = Object.freeze([
     ]),
     updateField: 'Tarifa_IVA_COP',
     special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
+  }),
+  Object.freeze({
+    id: 'onda-comfort-white-200x200',
+    family: 'Onda Serena',
+    reference: 'Black Out Comfort (100% Blackout)',
+    homeeasyId: 'onda-9',
+    productCode: 'CORONSEBOCOWH2.8',
+    groupCode: '1345',
+    calculationType: 'NormalProduct',
+    width: '2',
+    height: '2',
+    quantity: 1,
+    productDiscount: 0,
+    pricingMode: 'account-discount',
+    strategy: PRICE_STRATEGIES.RATE_M2,
+    status: MAPPING_STATUSES.CERTIFIED,
+    verifiedAt: '2026-10-08T00:00:00Z',
+    casesPassed: 3,
+    maxDifference: 0,
+    destination: Object.freeze({ sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }),
+    validationCases: Object.freeze([
+      Object.freeze({ id: 'normal-a', width: '2', height: '2', role: 'derive' }),
+      Object.freeze({ id: 'normal-b', width: '2.4', height: '2.1', role: 'derive' }),
+      Object.freeze({ id: 'minimum-regression', width: '0.8', height: '1', role: 'boundary' })
+    ]),
+    updateField: 'Tarifa_IVA_COP',
+    special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: 'RIECOR28', Discount: 0 })
   }),
   Object.freeze({
     id: 'enrollable-blackout-matte3-200x320',
@@ -66,6 +107,10 @@ const INITIAL_MAPPINGS = Object.freeze([
     productDiscount: 0,
     pricingMode: 'net-before-vat',
     strategy: PRICE_STRATEGIES.SPECIAL_CONFIGURATION,
+    status: MAPPING_STATUSES.REVIEW_REQUIRED,
+    verifiedAt: '2026-10-08T00:00:00Z',
+    casesPassed: 1,
+    maxDifference: 808057.6,
     destination: Object.freeze({ sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }),
     autoApplicable: false,
     reviewReason: 'La referencia depende de reglas de fabricación/configuración; falta demostrar todas las variantes antes de actualizar la tarifa.',
@@ -80,6 +125,11 @@ const INITIAL_MAPPINGS = Object.freeze([
 function mappingIsReady(mapping) {
   return Boolean(mapping && PRICE_STRATEGIES[mapping.strategy] && mapping.destination &&
     !JSON.stringify(mapping).includes('__PENDING_DISCOVERY__'));
+}
+
+function mappingIsCertified(mapping) {
+  return mappingIsReady(mapping) && mapping.status === MAPPING_STATUSES.CERTIFIED &&
+    Number(mapping.casesPassed) >= 3 && Number(mapping.maxDifference) <= 0.02 && Boolean(mapping.verifiedAt);
 }
 
 function selectMappings(ids, mappings = INITIAL_MAPPINGS) {
@@ -128,5 +178,5 @@ function homeEasyItemForCase(mapping, validationCase) {
   });
 }
 
-module.exports = Object.freeze({ PRICE_STRATEGIES, INITIAL_MAPPINGS, mappingIsReady, selectMappings,
+module.exports = Object.freeze({ PRICE_STRATEGIES, MAPPING_STATUSES, INITIAL_MAPPINGS, mappingIsReady, mappingIsCertified, selectMappings,
   pentagramaParams, pentagramaParamsForCase, homeEasyItem, homeEasyItemForCase });

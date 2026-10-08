@@ -14,7 +14,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.13.0';
+const BRIDGE_VERSION = '0.14.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -950,6 +950,21 @@ async function handle(req, res) {
     const payload = await readJsonBody(req);
     const result = await pentagramaSync.pricing.supplierCost(payload.params || {}, payload.options || {});
     return json(res, 200, { ok: true, mode: pentagramaSync.mode, result });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/catalog') {
+    await auth.authorize(req, 'config.read');
+    const payload = await readJsonBody(req);
+    const operation = String(payload.operation || '').trim();
+    const allowed = new Set(['categories', 'products', 'attributes', 'defaults', 'dependencies', 'alerts', 'validateRoller']);
+    if (!allowed.has(operation)) {
+      return json(res, 400, { ok: false, code: 'PENTAGRAMA_CATALOG_OPERATION_NOT_ALLOWED' });
+    }
+    const params = payload.params && typeof payload.params === 'object' ? payload.params : {};
+    const result = await pentagramaAgents.dispatch('catalog', { operation, params }, {
+      lockKey: `catalog:${operation}:${crypto.createHash('sha256').update(JSON.stringify(params)).digest('hex')}`
+    });
+    return json(res, 200, { ok: true, mode: PENTAGRAMA_MODE, operation, result });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/pentagrama-agent/status') {
