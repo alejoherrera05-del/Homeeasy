@@ -168,9 +168,12 @@ function autorizarRutaCostos10B_(ss, data, permission) {
 function autorizarServicioPentagramaSync10D_(data) {
   const supplied = String(data && data.pentagramaSyncKey || "").trim();
   const expected = String(PropertiesService.getScriptProperties().getProperty("HOMEEASY_PENTAGRAMA_SYNC_KEY") || "").trim();
-  if (!supplied || !expected || supplied.length !== expected.length) return false;
+  if (!supplied || !expected) return false;
+  const suppliedHash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, supplied, Utilities.Charset.UTF_8)
+    .map(function(value) { return (value < 0 ? value + 256 : value).toString(16).padStart(2, "0"); }).join("");
+  if (suppliedHash.length !== expected.length) return false;
   let difference = 0;
-  for (let i = 0; i < supplied.length; i++) difference |= supplied.charCodeAt(i) ^ expected.charCodeAt(i);
+  for (let i = 0; i < suppliedHash.length; i++) difference |= suppliedHash.charCodeAt(i) ^ expected.charCodeAt(i);
   return difference === 0;
 }
 

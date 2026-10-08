@@ -165,9 +165,9 @@ test('HomeEasy scheduler client uses the scoped read-only service route', async 
 
 test('comparison checks Vertical, Onda Serena and Enrollable and reports only changes', async () => {
   const mappings = [
-    { id: 'v', family: 'Vertical', homeeasyId: 'vertical-1', productCode: 'V', groupCode: '1', calculationType: 'NormalProduct', width: '1.2', height: '1.3', quantity: 1 },
-    { id: 'o', family: 'Onda Serena', homeeasyId: 'onda-67', productCode: 'O', groupCode: '2', calculationType: 'NormalProduct', width: '1', height: '1', quantity: 1 },
-    { id: 'e', family: 'Enrollable', homeeasyId: 'enrollable-1', productCode: 'E', groupCode: '3', calculationType: 'NormalProduct', width: '2', height: '3.2', quantity: 1 }
+    { id: 'v', family: 'Vertical', homeeasyId: 'vertical-1', productCode: 'V', groupCode: '1', calculationType: 'NormalProduct', width: '1.2', height: '1.3', quantity: 1, strategy: 'RATE_M2', destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' } },
+    { id: 'o', family: 'Onda Serena', homeeasyId: 'onda-67', productCode: 'O', groupCode: '2', calculationType: 'NormalProduct', width: '1', height: '1', quantity: 1, strategy: 'RATE_M2', destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' } },
+    { id: 'e', family: 'Enrollable', homeeasyId: 'enrollable-1', productCode: 'E', groupCode: '3', calculationType: 'NormalProduct', width: '2', height: '3.2', quantity: 1, strategy: 'SPECIAL_CONFIGURATION', destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' } }
   ];
   const portalCosts = { V: 137187.96, O: 183526.56, E: 448582.4 };
   const homeCosts = { 'vertical-1': 137187.96, 'onda-67': 183526.56, 'enrollable-1': 440000 };
