@@ -1,5 +1,10 @@
 'use strict';
 
+const PRICE_STRATEGIES = Object.freeze({
+  RATE_M2: 'RATE_M2', MATRIX: 'MATRIX', FIXED_PRICE: 'FIXED_PRICE',
+  COMPLEMENT: 'COMPLEMENT', SPECIAL_CONFIGURATION: 'SPECIAL_CONFIGURATION'
+});
+
 const INITIAL_MAPPINGS = Object.freeze([
   Object.freeze({
     id: 'vertical-matte-blanco-120x130',
@@ -14,6 +19,13 @@ const INITIAL_MAPPINGS = Object.freeze([
     quantity: 1,
     productDiscount: 0,
     pricingMode: 'account-discount',
+    strategy: PRICE_STRATEGIES.RATE_M2,
+    destination: Object.freeze({ sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }),
+    validationCases: Object.freeze([
+      Object.freeze({ id: 'normal-a', width: '2', height: '2', role: 'derive' }),
+      Object.freeze({ id: 'normal-b', width: '2.4', height: '2', role: 'derive' }),
+      Object.freeze({ id: 'minimum-regression', width: '1.2', height: '1.3', role: 'boundary' })
+    ]),
     updateField: 'Tarifa_IVA_COP',
     special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: 'VERTELCA', Discount: 0 })
   }),
@@ -30,6 +42,13 @@ const INITIAL_MAPPINGS = Object.freeze([
     quantity: 1,
     productDiscount: 0,
     pricingMode: 'account-discount',
+    strategy: PRICE_STRATEGIES.RATE_M2,
+    destination: Object.freeze({ sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }),
+    validationCases: Object.freeze([
+      Object.freeze({ id: 'normal-a', width: '2', height: '2', role: 'derive' }),
+      Object.freeze({ id: 'normal-b', width: '2.2', height: '1.8', role: 'derive' }),
+      Object.freeze({ id: 'minimum-regression', width: '1', height: '1', role: 'boundary' })
+    ]),
     updateField: 'Tarifa_IVA_COP',
     special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
   }),
@@ -46,13 +65,21 @@ const INITIAL_MAPPINGS = Object.freeze([
     quantity: 1,
     productDiscount: 0,
     pricingMode: 'net-before-vat',
+    strategy: PRICE_STRATEGIES.SPECIAL_CONFIGURATION,
+    destination: Object.freeze({ sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }),
+    autoApplicable: false,
+    reviewReason: 'La referencia depende de reglas de fabricación/configuración; falta demostrar todas las variantes antes de actualizar la tarifa.',
+    validationCases: Object.freeze([
+      Object.freeze({ id: 'standard-known', width: '2', height: '3.2', role: 'evidence' })
+    ]),
     updateField: 'Tarifa_IVA_COP',
     special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
   })
 ]);
 
 function mappingIsReady(mapping) {
-  return !JSON.stringify(mapping).includes('__PENDING_DISCOVERY__');
+  return Boolean(mapping && PRICE_STRATEGIES[mapping.strategy] && mapping.destination &&
+    !JSON.stringify(mapping).includes('__PENDING_DISCOVERY__'));
 }
 
 function selectMappings(ids, mappings = INITIAL_MAPPINGS) {
@@ -76,6 +103,13 @@ function pentagramaParams(mapping) {
   };
 }
 
+function pentagramaParamsForCase(mapping, validationCase) {
+  return Object.assign({}, pentagramaParams(mapping), {
+    Width: String(validationCase.width), Height: String(validationCase.height),
+    ...(validationCase.pentagrama || {})
+  });
+}
+
 function homeEasyItem(mapping) {
   return {
     product: mapping.homeeasyId,
@@ -87,4 +121,12 @@ function homeEasyItem(mapping) {
   };
 }
 
-module.exports = Object.freeze({ INITIAL_MAPPINGS, mappingIsReady, selectMappings, pentagramaParams, homeEasyItem });
+function homeEasyItemForCase(mapping, validationCase) {
+  return Object.assign({}, homeEasyItem(mapping), {
+    width: String(validationCase.width), height: String(validationCase.height),
+    ...(validationCase.homeeasy || {})
+  });
+}
+
+module.exports = Object.freeze({ PRICE_STRATEGIES, INITIAL_MAPPINGS, mappingIsReady, selectMappings,
+  pentagramaParams, pentagramaParamsForCase, homeEasyItem, homeEasyItemForCase });

@@ -14,7 +14,7 @@
   const STAGES = Object.freeze({
     QUEUED: 'Conectando con agente…', READING_HOMEEASY: 'Leyendo catálogo HomeEasy…',
     READING_PENTAGRAMA: 'Consultando Pentagrama…', COMPARING: 'Comparando tarifas…',
-    SNAPSHOT: 'Creando respaldo…', WRITING_SHEET: 'Actualizando Sheet y refrescando caché…',
+    PREWRITE_VALIDATION: 'Validando regla de precio…', SNAPSHOT: 'Creando respaldo…', WRITING_SHEET: 'Actualizando Sheet y refrescando caché…',
     QA: 'Ejecutando QA…', ROLLING_BACK: 'Restaurando versión y validando catálogo…',
     COMPLETED: 'Validación terminada', FAILED: 'La operación no pudo completarse'
   });
@@ -25,7 +25,9 @@
     PENTAGRAMA_ACCESS_BLOCKED: 'Pentagrama bloqueó la red del agente. Usa un equipo conectado desde una red autorizada.',
     PENTAGRAMA_SESSION_EXPIRED: 'La sesión de Pentagrama no es válida. Revisa las credenciales del agente e inténtalo nuevamente.',
     PENTAGRAMA_UNEXPECTED_RESPONSE: 'Pentagrama respondió de una forma inesperada. No se modificó ninguna tarifa.',
-    PENTAGRAMA_SCAN_EXPIRED: 'Este análisis venció. Ejecuta “Actualizar tarifas” antes de aplicar cambios.',
+    PENTAGRAMA_SCAN_EXPIRED: 'Este análisis venció. Ejecuta “Actualizar desde Pentagrama” nuevamente.',
+    PENTAGRAMA_PREWRITE_VALIDATION_FAILED: 'Pentagrama cambió o la tarifa dejó de ser reproducible antes de escribir. No se modificó la Sheet.',
+    PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK: 'El QA contra Pentagrama no coincidió. El lote fue restaurado automáticamente.',
     PENTAGRAMA_NO_APPLICABLE_CHANGES: 'No hay cambios normales seleccionados para aplicar.',
     HOMEEASY_SYNC_UPSTREAM_UNAVAILABLE: 'No fue posible comunicarse con la Sheet de HomeEasy. No se aplicaron cambios.',
     HOMEEASY_SYNC_SESSION_REQUIRED: 'Tu sesión de HomeEasy venció. Inicia sesión nuevamente para continuar.',
@@ -98,12 +100,12 @@
     node.innerHTML = `
       <div class="page-heading"><h2>Precios Pentagrama</h2><p>Verifica y actualiza el costo proveedor sin alterar precios comerciales, transporte, instalación ni margen.</p></div>
       <section class="card he-ps-overview">
-        <div class="he-ps-overview-main"><div class="he-ps-status-line"><span class="he-ps-status-dot neutral" id="hePsStatusDot"></span><div><span class="he-ps-eyebrow">Estado Pentagrama</span><h3 id="hePsStatusLabel">Cargando…</h3><p id="hePsStatusHelp">Consultando el último estado disponible.</p></div></div><button class="he-ps-button primary" id="hePsScan"><i class="fa-solid fa-arrows-rotate"></i><span>Actualizar tarifas</span></button></div>
+        <div class="he-ps-overview-main"><div class="he-ps-status-line"><span class="he-ps-status-dot neutral" id="hePsStatusDot"></span><div><span class="he-ps-eyebrow">Estado Pentagrama</span><h3 id="hePsStatusLabel">Cargando…</h3><p id="hePsStatusHelp">Consultando el último estado disponible.</p></div></div><button class="he-ps-button primary" id="hePsScan"><i class="fa-solid fa-arrows-rotate"></i><span>Actualizar desde Pentagrama</span></button></div>
         <div class="he-ps-metrics" id="hePsMetrics"></div><div class="he-ps-alert" id="hePsAlert" hidden></div>
         <div class="he-ps-progress" id="hePsProgress" hidden aria-live="polite"><div class="he-ps-progress-head"><span class="he-ps-spinner"></span><div><strong id="hePsProgressTitle"></strong><span>Los pasos avanzan con el estado real del servidor.</span></div></div><div class="he-ps-progress-steps" id="hePsProgressSteps"></div></div>
       </section>
       <section class="card he-ps-results-card">
-        <div class="he-ps-section-head"><div><span class="he-ps-eyebrow">Comparación más reciente</span><h3>Resultados</h3><p id="hePsResultsSummary">Aún no hay información para mostrar.</p></div><button class="he-ps-button primary" id="hePsApply" disabled><i class="fa-solid fa-check"></i><span>Aplicar actualización</span></button></div>
+        <div class="he-ps-section-head"><div><span class="he-ps-eyebrow">Comparación más reciente</span><h3>Resultados</h3><p id="hePsResultsSummary">Aún no hay información para mostrar.</p></div><button class="he-ps-button primary" id="hePsApply" hidden disabled><i class="fa-solid fa-check"></i><span>Aplicar actualización</span></button></div>
         <div class="he-ps-success-empty" id="hePsUpToDate" hidden><span><i class="fa-solid fa-check"></i></span><div><strong>Todo está actualizado</strong><p>No se encontraron diferencias entre Pentagrama y HomeEasy.</p></div></div>
         <div class="he-ps-review-note" id="hePsReviewNote" hidden><i class="fa-solid fa-triangle-exclamation"></i><div><strong>Hay referencias que requieren revisión</strong><p>Estos casos se muestran claramente y nunca se aplican de forma automática.</p></div></div>
         <div class="he-ps-filters" id="hePsFilters" aria-label="Filtros de resultados"></div>
@@ -138,7 +140,7 @@
     $('#hePsScan').disabled = state.busy || !can('config.write');
   }
 
-  function isSafe(item) { return Boolean(item && item.id && SAFE_STATUSES.has(item.status) && item.severity !== 'review_required'); }
+  function isSafe(item) { return Boolean(item && item.id && SAFE_STATUSES.has(item.status) && item.autoApplicable === true); }
   function selectedSafe() { return (state.scan && state.scan.results || []).filter(item => isSafe(item) && state.selected.has(item.id)); }
   function filterButton(value, label, counts) { const count = value === 'ALL' ? (state.scan && state.scan.results || []).length : Number(counts[value] || 0); return `<button class="he-ps-filter${state.filter === value ? ' active' : ''}" data-filter="${value}">${esc(label)}<span>${count}</span></button>`; }
 
@@ -151,7 +153,7 @@
     $('#hePsFilters').querySelectorAll('[data-filter]').forEach(button => button.onclick = () => { state.filter = button.dataset.filter; state.limit = 50; renderResults(); });
     const filtered = filterResults(results, state.filter); const visible = filtered.slice(0, state.limit);
     $('#hePsRows').innerHTML = visible.length ? visible.map(item => {
-      const safe = isSafe(item); const checked = safe && state.selected.has(item.id); const statusNote = item.status === 'ERROR' ? `<small>${esc(friendlyError(item.error))}</small>` : item.severity === 'warning' ? '<small>Variación entre 15 % y 30 %</small>' : '';
+      const safe = isSafe(item); const checked = safe && state.selected.has(item.id); const statusNote = item.status === 'ERROR' ? `<small>${esc(friendlyError(item.error))}</small>` : item.status === 'REVIEW_REQUIRED' && item.reviewReason ? `<small>${esc(item.reviewReason)}</small>` : item.severity === 'warning' ? '<small>Variación entre 15 % y 30 %</small>' : '';
       return `<tr class="he-ps-row ${esc(item.status)}"><td class="he-ps-check-col" data-label="Seleccionar">${safe ? `<label class="he-ps-checkbox"><input type="checkbox" data-change-id="${esc(item.id)}" ${checked ? 'checked' : ''} aria-label="Seleccionar ${esc(item.reference || item.homeeasyId)}"><span></span></label>` : ''}</td><td data-label="Producto"><strong>${esc(item.reference || item.homeeasyId || '—')}</strong>${item.productCode ? `<small>${esc(item.productCode)}</small>` : ''}</td><td data-label="Familia">${esc(item.family || '—')}</td><td data-label="Anterior">${Number.isFinite(item.oldCost) ? money(item.oldCost) : '—'}</td><td data-label="Nuevo">${Number.isFinite(item.newCost) ? money(item.newCost) : '—'}</td><td data-label="Cambio"><strong class="he-ps-delta ${Number(item.difference) < 0 ? 'down' : Number(item.difference) > 0 ? 'up' : ''}">${Number.isFinite(item.difference) ? money(item.difference) : '—'}</strong>${Number.isFinite(item.percent) ? `<small>${item.percent > 0 ? '+' : ''}${esc(item.percent)} %</small>` : ''}</td><td data-label="Estado"><span class="he-ps-pill ${esc(item.status)}">${esc(STATUS_LABELS[item.status] || item.status)}</span>${statusNote}</td></tr>`;
     }).join('') : '<tr><td colspan="7" class="he-ps-empty">No hay resultados para este filtro.</td></tr>';
     $('#hePsRows').querySelectorAll('[data-change-id]').forEach(input => input.onchange = () => { if (input.checked) state.selected.add(input.dataset.changeId); else state.selected.delete(input.dataset.changeId); renderApplyButton(); });
@@ -182,7 +184,7 @@
 
   function setProgress(stage, type) {
     const box = $('#hePsProgress'); if (!stage) { box.hidden = true; return; }
-    const scanStages = ['QUEUED', 'READING_HOMEEASY', 'READING_PENTAGRAMA', 'COMPARING']; const applyStages = type === 'rollback' ? ['ROLLING_BACK'] : ['SNAPSHOT', 'WRITING_SHEET', 'QA']; const stages = type === 'scan' ? scanStages : applyStages; const currentIndex = Math.max(0, stages.indexOf(stage));
+    const scanStages = ['QUEUED', 'READING_HOMEEASY', 'READING_PENTAGRAMA', 'COMPARING']; const applyStages = type === 'rollback' ? ['ROLLING_BACK'] : ['PREWRITE_VALIDATION', 'SNAPSHOT', 'WRITING_SHEET', 'QA']; const stages = type === 'scan' ? scanStages : applyStages; const currentIndex = Math.max(0, stages.indexOf(stage));
     box.hidden = false; $('#hePsProgressTitle').textContent = STAGES[stage] || stage; $('#hePsProgressSteps').innerHTML = stages.map((value, index) => `<span class="${index < currentIndex ? 'done' : index === currentIndex ? 'current' : ''}"><i class="fa-solid ${index < currentIndex ? 'fa-check' : 'fa-circle'}"></i>${esc(STAGES[value].replace('…', ''))}</span>`).join('');
   }
   async function poll(id, type) { for (let index = 0; index < 180; index += 1) { const data = await request('/api/pentagrama-sync/operations/' + encodeURIComponent(id)); const operation = data.operation; setProgress(operation.stage, type || operation.type); if (operation.state === 'completed') { setProgress(null); return operation; } if (operation.state === 'failed') { const error = new Error(operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED'); error.code = operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED'; throw error; } await new Promise(resolve => setTimeout(resolve, 1000)); } const error = new Error('AGENT_TIMEOUT'); error.code = 'AGENT_TIMEOUT'; throw error; }
@@ -191,16 +193,16 @@
 
   async function scan() {
     if (state.busy) return; state.busy = true; state.error = null; renderAll();
-    try { const started = await request('/api/pentagrama-sync/scan', 'POST', {}); await poll(started.operation.id, 'scan'); await refresh({ resetSelection: true }); const counts = state.scan && state.scan.counts || {}; const changes = Number(counts.INCREASED || 0) + Number(counts.DECREASED || 0) + Number(counts.NEW || 0); if (!changes && !Number(counts.REVIEW_REQUIRED || 0) && !Number(counts.ERROR || 0)) await Swal.fire({ icon: 'success', title: 'Todo está actualizado', text: 'No se encontraron diferencias entre Pentagrama y HomeEasy.', confirmButtonColor: '#a6455a' }); else await Swal.fire({ icon: 'success', title: 'Comparación terminada', text: 'Revisa los resultados antes de aplicar cambios. La Sheet no fue modificada.', confirmButtonColor: '#a6455a' }); }
+    try { const started = await request('/api/pentagrama-sync/scan', 'POST', {}); await poll(started.operation.id, 'scan'); await refresh({ resetSelection: true }); const counts = state.scan && state.scan.counts || {}; const safe = selectedSafe(); const review = Number(counts.REVIEW_REQUIRED || 0); if (safe.length) { await apply(true); return; } if (!review && !Number(counts.ERROR || 0)) await Swal.fire({ icon: 'success', title: 'Todo está actualizado', text: `${Number(state.scan && state.scan.catalogAudit && state.scan.catalogAudit.mapped || 0)} referencias verificadas · 0 cambios`, confirmButtonColor: '#a6455a' }); else await Swal.fire({ icon: 'warning', title: 'Revisión necesaria', text: `${review} referencia(s) requieren revisión y no fueron modificadas.`, confirmButtonColor: '#a6455a' }); }
     catch (error) { state.error = error; setProgress(null); await Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: friendlyError(error), confirmButtonColor: '#a6455a' }); }
     finally { state.busy = false; renderAll(); }
   }
 
-  async function apply() {
+  async function apply(automatic) {
     const changes = selectedSafe(); if (!changes.length) return;
-    const result = await Swal.fire({ icon: 'warning', title: `Aplicar ${changes.length} cambio(s)`, html: 'Se creará un respaldo, se actualizará la Sheet, se refrescará la caché y se ejecutará QA.<br><b>Los casos “Revisar” no se aplicarán.</b>', showCancelButton: true, confirmButtonText: 'Crear respaldo y aplicar', cancelButtonText: 'Cancelar', confirmButtonColor: '#a6455a' }); if (!result.isConfirmed) return;
+    if (!automatic) { const result = await Swal.fire({ icon: 'warning', title: `Aplicar ${changes.length} cambio(s)`, html: 'Se creará un respaldo, se actualizará la Sheet, se refrescará la caché y se ejecutará QA.<br><b>Los casos “Revisar” no se aplicarán.</b>', showCancelButton: true, confirmButtonText: 'Crear respaldo y aplicar', cancelButtonText: 'Cancelar', confirmButtonColor: '#a6455a' }); if (!result.isConfirmed) return; }
     state.busy = true; state.error = null; renderAll();
-    try { const started = await request('/api/pentagrama-sync/apply', 'POST', { scanId: state.scan.id, changeIds: changes.map(item => item.id) }); const operation = await poll(started.operation.id, 'apply'); await refresh({ resetSelection: true }); const qa = operation.result && operation.result.qa; if (!qa || qa.ok !== true) throw Object.assign(new Error('QA_FAILED'), { code: 'QA_FAILED' }); await Swal.fire({ icon: 'success', title: 'HomeEasy actualizado correctamente', text: `Se aplicaron ${changes.length} cambio(s). El respaldo, la caché y el QA quedaron verificados.`, confirmButtonColor: '#a6455a' }); }
+    try { const started = await request('/api/pentagrama-sync/apply', 'POST', { scanId: state.scan.id, changeIds: changes.map(item => item.id) }); const operation = await poll(started.operation.id, 'apply'); await refresh({ resetSelection: true }); const qa = operation.result && operation.result.qa; if (!qa || qa.ok !== true) throw Object.assign(new Error('QA_FAILED'), { code: 'QA_FAILED' }); const review = Number(state.scan && state.scan.counts && state.scan.counts.REVIEW_REQUIRED || 0); await Swal.fire({ icon: 'success', title: 'HomeEasy actualizado correctamente', text: `${changes.length} tarifa(s) actualizadas${review ? ` · ${review} requiere(n) revisión` : ''}. QA contra Pentagrama: PASS.`, confirmButtonColor: '#a6455a' }); }
     catch (error) { state.error = error; setProgress(null); const rolledBack = /QA/i.test(String(error.code || error.message || '')); await Swal.fire({ icon: 'error', title: 'La actualización no fue aplicada', text: rolledBack ? 'El QA no pasó. HomeEasy fue restaurado al estado anterior.' : friendlyError(error), confirmButtonColor: '#a6455a' }); }
     finally { state.busy = false; renderAll(); }
   }

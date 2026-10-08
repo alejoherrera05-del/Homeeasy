@@ -24,8 +24,12 @@ function leerCatalogoPentagramaSync10C_(ss) {
   for (let i = 1; i < values.length; i++) {
     if (!String(values[i][0] || "").trim()) continue;
     products.push({ row: i + 1, id: String(values[i][0]), family: String(values[i][1]), familyName: String(values[i][2]),
-      reference: String(values[i][3]), method: String(values[i][5]), rate: Number(values[i][6]), active: String(values[i][12]).toUpperCase() !== "FALSE",
-      status: String(values[i][13]), updatedAt: values[i][19] instanceof Date ? values[i][19].toISOString() : String(values[i][19] || "") });
+      reference: String(values[i][3]), type: String(values[i][4]), method: String(values[i][5]), rate: Number(values[i][6]),
+      minHeight: Number(values[i][7] || 0), minArea: Number(values[i][8] || 0), extraDiscount: Number(values[i][9] || 0),
+      promotional: String(values[i][10]).toUpperCase() === "TRUE", configuration: String(values[i][11]),
+      active: String(values[i][12]).toUpperCase() !== "FALSE", status: String(values[i][13]),
+      destination: { sheet: HOMEEASY_COST_SHEET, row: i + 1, field: "Tarifa_IVA_COP" },
+      updatedAt: values[i][19] instanceof Date ? values[i][19].toISOString() : String(values[i][19] || "") });
   }
   const catalog = cargarCatalogoCostos10B_(ss, false);
   return { status: "ok", version: catalog.version, validThrough: catalog.validThrough, products: products };
@@ -51,6 +55,10 @@ function aplicarPentagramaSync10C_(ss, data, authValidation) {
       const before = sheet.getRange(row, 1, 1, HOMEEASY_COST_HEADERS.length).getValues()[0];
       if (String(before[0]) !== String(change.homeeasyId)) throw new Error("El producto cambió de fila: " + change.homeeasyId);
       if (Math.abs(Number(before[6]) - Number(change.expectedRate)) > 0.005) throw new Error("La tarifa cambió después del escaneo: " + change.homeeasyId);
+      if (String(change.strategy) !== "RATE_M2") throw new Error("Estrategia no habilitada para escritura automática: " + change.homeeasyId);
+      const destination = change.destination || {};
+      if (String(destination.sheet) !== HOMEEASY_COST_SHEET || String(destination.field) !== "Tarifa_IVA_COP") throw new Error("Destino de tarifa no autorizado: " + change.homeeasyId);
+      if (!Array.isArray(change.qaCases) || change.qaCases.length < 2) throw new Error("Evidencia QA insuficiente: " + change.homeeasyId);
       if (!isFinite(Number(change.proposedRate)) || Number(change.proposedRate) <= 0) throw new Error("Tarifa propuesta inválida: " + change.homeeasyId);
       snapshots.push({ row: row, productId: String(before[0]), values: before, change: change });
     });
@@ -99,13 +107,17 @@ function revertirPentagramaSync10C_(ss, data, authValidation) {
 function ejecutarQaPentagramaSync10C_(ss, snapshots) {
   const errors = []; const catalog = cargarCatalogoCostos10B_(ss, true);
   snapshots.forEach(function(item) {
-    try {
-      const result = calcularItemCostos10B_({ product: item.productId, width: String(item.change.width), height: String(item.change.height), quantity: String(item.change.quantity || 1), extras: "0" }, catalog, { today: fechaBogota10B_(), promotions: true, installMode: "common", installation: "0" });
-      const actual = Number(result.unit) / 100;
-      if (!result.ok || Math.abs(actual - Number(item.change.newCost)) > 0.02) errors.push(item.productId + " esperado " + item.change.newCost + " obtenido " + actual);
-    } catch (error) { errors.push(item.productId + ": " + String(error)); }
+    (item.change.qaCases || []).forEach(function(testCase) {
+      try {
+        const request = testCase.homeeasy || { product: item.productId, width: String(testCase.width), height: String(testCase.height), quantity: String(testCase.quantity || 1), extras: "0" };
+        const result = calcularItemCostos10B_(request, catalog, { today: fechaBogota10B_(), promotions: true, installMode: "common", installation: "0" });
+        const actual = Number(result.unit) / 100;
+        if (!result.ok || Math.abs(actual - Number(testCase.expected)) > 0.02) errors.push(item.productId + "/" + String(testCase.id || "caso") + " esperado " + testCase.expected + " obtenido " + actual);
+      } catch (error) { errors.push(item.productId + "/" + String(testCase.id || "caso") + ": " + String(error)); }
+    });
   });
-  return { ok: errors.length === 0, checked: snapshots.length, catalog: catalog.products.length, criticalFamilies: ["Vertical", "Onda Serena", "Enrollable"], errors: errors };
+  return { ok: errors.length === 0, checked: snapshots.reduce(function(sum, item) { return sum + (item.change.qaCases || []).length; }, 0),
+    catalog: catalog.products.length, tolerance: 0.02, criticalRegressions: ["Panel Japonés mínimo", "Verticales mínimo", "Sheer Vertesse matriz", "Enrollable configuración"], errors: errors };
 }
 
 function leerHistorialPentagramaSync10C_(ss) {
