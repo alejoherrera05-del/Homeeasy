@@ -9,6 +9,15 @@ const MAPPING_STATUSES = Object.freeze({
   CERTIFIED: 'CERTIFIED', REVIEW_REQUIRED: 'REVIEW_REQUIRED', UNMAPPED: 'UNMAPPED'
 });
 
+const EXPANDED_CERTIFIED_MAPPINGS = Object.freeze(
+  require('./certification/onda-serena-certified.json').mappings.map(mapping => Object.freeze({
+    ...mapping,
+    destination: Object.freeze({ ...mapping.destination }),
+    validationCases: Object.freeze(mapping.validationCases.map(item => Object.freeze({ ...item }))),
+    special: Object.freeze({ ...mapping.special })
+  }))
+);
+
 const INITIAL_MAPPINGS = Object.freeze([
   Object.freeze({
     id: 'vertical-matte-blanco-120x130',
@@ -119,7 +128,8 @@ const INITIAL_MAPPINGS = Object.freeze([
     ]),
     updateField: 'Tarifa_IVA_COP',
     special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
-  })
+  }),
+  ...EXPANDED_CERTIFIED_MAPPINGS
 ]);
 
 function mappingIsReady(mapping) {

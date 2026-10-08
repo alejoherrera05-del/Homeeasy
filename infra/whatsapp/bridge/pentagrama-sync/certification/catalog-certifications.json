@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T16:19:22Z",
+  "generatedAt": "2026-10-08T20:45:00Z",
   "sources": {
     "homeeasy": "Costos_Pentagrama live export",
-    "pentagrama": "authenticated catalog endpoints"
+    "pentagrama": "authenticated portal catalog and price endpoint/UI"
   },
   "products": [
     {
@@ -13,8 +13,39 @@
       "reference": "Black Out Scuro (90% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOSCUBE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-1",
@@ -23,8 +54,39 @@
       "reference": "Black Out Fico (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOFIBL2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-2",
@@ -33,8 +95,39 @@
       "reference": "Black Out Notte (90% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBONOTFLGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-3",
@@ -43,8 +136,39 @@
       "reference": "Black Out Divano (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBODIVARE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-4",
@@ -53,8 +177,39 @@
       "reference": "Black Out Parata (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOPARNEG2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-5",
@@ -63,8 +218,39 @@
       "reference": "Black Out Salita (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOSALBRU2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-6",
@@ -73,8 +259,39 @@
       "reference": "Black Out Silken (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOSILKNO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-7",
@@ -83,8 +300,39 @@
       "reference": "Black Out Velvet (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOVELWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-8",
@@ -93,8 +341,39 @@
       "reference": "Black Out Acqua (100% Blackout - Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEACQALBRF2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-9",
@@ -109,7 +388,10 @@
       "groupCode": "1345",
       "casesPassed": 3,
       "maxDifference": 0,
-      "verifiedAt": "2026-10-08T16:19:22Z"
+      "verifiedAt": "2026-10-08T16:19:22Z",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2"
     },
     {
       "homeeasyId": "onda-10",
@@ -128,8 +410,39 @@
       "reference": "Black Out Felice (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOFEWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-12",
@@ -138,8 +451,39 @@
       "reference": "Black Out Mobili (85% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEDIMOBL2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-13",
@@ -148,8 +492,39 @@
       "reference": "Black Out Minna (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOMINBLA2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-14",
@@ -158,8 +533,39 @@
       "reference": "Black Out Rua (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBORUBR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-15",
@@ -168,8 +574,39 @@
       "reference": "Black Out Lienzo (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOLIEACE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-16",
@@ -178,8 +615,39 @@
       "reference": "Black Out Moderna (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOMODBLA2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-17",
@@ -188,8 +656,39 @@
       "reference": "Black Out Piatto (90% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOPIABE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-18",
@@ -198,8 +697,39 @@
       "reference": "Black Out Regina (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOREWHLI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-19",
@@ -208,8 +738,39 @@
       "reference": "Black Out Spazio (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOSPLIGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-20",
@@ -218,8 +779,39 @@
       "reference": "Black Out Tempo (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOTEAR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-21",
@@ -228,8 +820,39 @@
       "reference": "Black Out Essenza (100% Blackout)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEBOESWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-22",
@@ -238,8 +861,39 @@
       "reference": "Traslucente Coperta",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRCOCOPNU2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-23",
@@ -248,8 +902,39 @@
       "reference": "Traslucente Raso",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRRASMIGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-24",
@@ -258,8 +943,39 @@
       "reference": "Traslucente Coussin",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRCOCOUGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-25",
@@ -268,8 +984,39 @@
       "reference": "Traslucente Danza",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRCODANCO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-26",
@@ -278,8 +1025,39 @@
       "reference": "Traslucente Allegra",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRASALWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-27",
@@ -288,8 +1066,39 @@
       "reference": "Traslucente Kilim",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRKILIV2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-28",
@@ -298,8 +1107,39 @@
       "reference": "Traslucente Linette",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRLIDAGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-29",
@@ -308,8 +1148,39 @@
       "reference": "Traslucente Naturale",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRASNATAL2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-30",
@@ -318,8 +1189,39 @@
       "reference": "Traslucente Oxford",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETROXFCH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-31",
@@ -328,8 +1230,39 @@
       "reference": "Traslucente Flow",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRASFLOIV2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-32",
@@ -338,8 +1271,39 @@
       "reference": "Traslucente Polish",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRCOPOLAR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-33",
@@ -348,8 +1312,39 @@
       "reference": "Traslucente Reverso",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRASREGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-34",
@@ -358,8 +1353,39 @@
       "reference": "Traslucente Nuvola",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRASNUVAG2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-35",
@@ -368,8 +1394,39 @@
       "reference": "Traslucente Molto",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSETRCOMOLAR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-36",
@@ -378,8 +1435,39 @@
       "reference": "Velo Pesce White (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEPEWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-37",
@@ -388,8 +1476,39 @@
       "reference": "Velo Maglia White (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEMAWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-38",
@@ -398,8 +1517,39 @@
       "reference": "Velo Tessuto White (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVETEWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-39",
@@ -408,8 +1558,39 @@
       "reference": "Velo Kilt White",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEKIWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-40",
@@ -418,8 +1599,39 @@
       "reference": "Velo Piazza White (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEPIWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-41",
@@ -428,8 +1640,39 @@
       "reference": "Velo Coppa",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVECOPWHGO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-42",
@@ -438,8 +1681,39 @@
       "reference": "Velo Corda",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVECORARE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-43",
@@ -448,8 +1722,39 @@
       "reference": "Velo Corona",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVECORWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-44",
@@ -458,8 +1763,39 @@
       "reference": "Velo Deserto",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEDESGRI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-45",
@@ -468,8 +1804,39 @@
       "reference": "Velo Gentile",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEGENARM2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-46",
@@ -478,8 +1845,39 @@
       "reference": "Velo Nervi",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVENERGRSA2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-47",
@@ -488,8 +1886,39 @@
       "reference": "Velo Neve",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVENEDAGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-48",
@@ -498,8 +1927,39 @@
       "reference": "Velo Perla",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEPERBEI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-49",
@@ -508,8 +1968,39 @@
       "reference": "Velo Roco",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEROCWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-50",
@@ -518,8 +2009,39 @@
       "reference": "Velo Sabbia",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVESABGOL2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-51",
@@ -528,8 +2050,39 @@
       "reference": "Velo Sable",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVESABWHLI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-52",
@@ -538,8 +2091,39 @@
       "reference": "Velo Knot White",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEKNWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-53",
@@ -548,8 +2132,39 @@
       "reference": "Velo Sottile White",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVESOWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-54",
@@ -558,8 +2173,39 @@
       "reference": "Velo Cesto White Silver y Crudo Gold",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVECECRGO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-55",
@@ -568,8 +2214,39 @@
       "reference": "Velo Cotone White (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVECOWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-56",
@@ -578,8 +2255,39 @@
       "reference": "Velo Gelo",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEGELWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-57",
@@ -588,8 +2296,39 @@
       "reference": "Velo Pianto",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEPIALIGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-58",
@@ -598,8 +2337,39 @@
       "reference": "Velo Pluvio",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEPLUARG2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-59",
@@ -608,8 +2378,39 @@
       "reference": "Velo Rivera",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVERIVDAGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-60",
@@ -618,8 +2419,39 @@
       "reference": "Velo Angolo",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEANGGRE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-61",
@@ -628,8 +2460,39 @@
       "reference": "Velo Nebbia",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVENEBWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-62",
@@ -638,8 +2501,39 @@
       "reference": "Velo Piccola Lino",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEPICLI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-63",
@@ -648,8 +2542,39 @@
       "reference": "Velo Piccola White (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEPICWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-64",
@@ -658,8 +2583,39 @@
       "reference": "Velo Apresto",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEAPRLIN2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-65",
@@ -668,8 +2624,39 @@
       "reference": "Velo Aurora White",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEAUWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-66",
@@ -678,8 +2665,39 @@
       "reference": "Velo Boreal",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEBORWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-67",
@@ -694,7 +2712,10 @@
       "groupCode": "1345",
       "casesPassed": 3,
       "maxDifference": 0,
-      "verifiedAt": "2026-10-08T16:19:22Z"
+      "verifiedAt": "2026-10-08T16:19:22Z",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2"
     },
     {
       "homeeasyId": "onda-68",
@@ -703,8 +2724,39 @@
       "reference": "Velo Dolore",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEDOLWHI2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-69",
@@ -713,8 +2765,39 @@
       "reference": "Velo Fluffy",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEFLULIGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-70",
@@ -723,8 +2806,39 @@
       "reference": "Velo Gocce White (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEGOWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-71",
@@ -733,8 +2847,39 @@
       "reference": "Velo Horizon (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEHO2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-72",
@@ -743,8 +2888,39 @@
       "reference": "Velo Strada White (Retardante al Fuego)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVESTWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-73",
@@ -753,8 +2929,39 @@
       "reference": "Velo Cesto *No aplica White Silver ni Crudo Gold",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVECEBE2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-74",
@@ -763,8 +2970,39 @@
       "reference": "Velo Crochet White",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVECRWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-75",
@@ -773,8 +3011,39 @@
       "reference": "Velo Inglese White",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEINWH2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-76",
@@ -783,8 +3052,39 @@
       "reference": "Velo Gazzeta",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVEGAGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "onda-77",
@@ -793,8 +3093,39 @@
       "reference": "Velo Rustico",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "CORONSEVERUGR2.8",
+      "groupCode": "1345",
+      "calculationType": "NormalProduct",
+      "associationGroup": "RIECOR28",
+      "unit": "MT2",
+      "verifiedAt": "2026-10-08T20:45:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Onda Serena AL 2.8 / RIECOR28",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "0.8",
+            "height": "1",
+            "role": "shared-group-boundary"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "panel-78",
