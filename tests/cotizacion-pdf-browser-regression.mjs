@@ -139,8 +139,16 @@ try{
   assert(initial.commercial.includes('22 días')&&initial.commercial.includes('40%'),scenario.label+': commercial config');
   assert(initial.logo,scenario.label+': official HomeEasy logo');
   await page.locator('#area-pdf').screenshot({path:path.join(output,scenario.label+'-preview.png')});
+  page.on('dialog',async dialog=>{errors.push('Dialog: '+dialog.message());await dialog.dismiss();});
   await page.evaluate(()=>finalizar());
-  await page.waitForFunction(()=>Boolean(window.__QA_PDF_BASE64),{timeout:60000});
+  console.log('PDF completion '+scenario.label+': '+JSON.stringify(await page.evaluate(()=>({
+    pdfWritten:Boolean(window.__QA_PDF_BASE64),
+    hasCanvas:Boolean(window.html2canvas),
+    hasJsPdf:Boolean(window.jspdf),
+    loading:document.getElementById('loading')?.style.display,
+    exportMode:document.getElementById('area-pdf')?.classList.contains('pdf-export-mode')
+  })))+'; errors='+JSON.stringify(errors));
+  await page.waitForFunction(()=>Boolean(window.__QA_PDF_BASE64),null,{timeout:12000});
   const submitted=await page.evaluate(()=>{
    const payload=window.__QA_POST;
    return {tipo:payload.tipo,rows:JSON.parse(payload.itemsJSON).length, total:Number(payload.total),base64:window.__QA_PDF_BASE64};
