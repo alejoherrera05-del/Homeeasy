@@ -417,9 +417,7 @@ function newItem(previous,roomId=''){
 function newRoomLayer(previous){
   const item=newItem(previous,roomIdOf(previous));
   item.location=previous?.location||'';
-  item.width=previous?.width||'';
-  item.height=previous?.height||'';
-  item.quantity=previous?.quantity||'1';
+  // Una persiana nueva no hereda medidas. Solo "Duplicar" realiza una copia exacta.
   return item;
 }
 
@@ -440,7 +438,7 @@ function ensureActiveItem(){
 function activateItem(itemId,options={}){
   if(!state.items.some(item=>item.id===itemId))return;
   activeItemId=itemId;
-  render({recalculate:false});
+  render({recalculate:options.recalculate===true});
   const card=Array.from(document.querySelectorAll('.item-card')).find(el=>el.dataset.id===itemId);
   if(!card)return;
   if(options.scroll&&typeof card.scrollIntoView==='function'){
@@ -1098,7 +1096,7 @@ $('items').addEventListener('click',event=>{
     const item=newRoomLayer(previous);
     const lastIndex=Math.max(...group.items.map(i=>state.items.indexOf(i)));
     state.items.splice(lastIndex+1,0,item);
-    activateItem(item.id,{scroll:true,focusField:'width'});
+    activateItem(item.id,{scroll:true,focusField:'width',recalculate:true});
     toast('Persiana agregada. Estás editando la nueva.');
     return;
   }
@@ -1151,7 +1149,7 @@ $('items').addEventListener('click',event=>{
     const source=state.items[index];
     const item={...source,id:crypto.randomUUID(),roomId:roomIdOf(source),duplicateOriginId:source.id,measureReviewPending:true,addons:[...(source.addons||[])],installation:{...installationData(source)}};
     state.items.splice(index+1,0,item);
-    activateItem(item.id,{scroll:true,focusField:'width'});
+    activateItem(item.id,{scroll:true,focusField:'width',recalculate:true});
     toast('Copia abierta. Revisa sus medidas antes de continuar.');
   }
 
