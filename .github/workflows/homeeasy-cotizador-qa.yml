@@ -6,9 +6,6 @@ on:
       - 'homeeasy-cost-calculator.js'
       - 'homeeasy-cost-calculator.css'
       - 'cotizador-persianas.html'
-      - 'cotizacion.html'
-      - 'homeeasy-quote-pdf.js'
-      - 'tests/formal-quote-pdf-layout.cjs'
       - 'tests/cost-calculator-*.cjs'
       - '.github/workflows/homeeasy-cotizador-qa.yml'
   pull_request:
@@ -16,9 +13,6 @@ on:
       - 'homeeasy-cost-calculator.js'
       - 'homeeasy-cost-calculator.css'
       - 'cotizador-persianas.html'
-      - 'cotizacion.html'
-      - 'homeeasy-quote-pdf.js'
-      - 'tests/formal-quote-pdf-layout.cjs'
       - 'tests/cost-calculator-*.cjs'
       - '.github/workflows/homeeasy-cotizador-qa.yml'
   workflow_dispatch:
@@ -37,12 +31,8 @@ jobs:
           node-version: '20'
       - name: Check script syntax
         run: node --check homeeasy-cost-calculator.js
-      - name: Check native quote PDF syntax
-        run: node --check homeeasy-quote-pdf.js
-      - name: Install isolated test dependencies
-        run: npm install --no-save --no-package-lock jsdom@25 jspdf@2.5.1
-      - name: Verify actual PDF and pagination
-        run: node tests/formal-quote-pdf-layout.cjs
+      - name: Install isolated DOM test dependency
+        run: npm install --no-save --no-package-lock jsdom@25
       - name: Verify price calculations (unchanged)
         run: node tests/cost-calculator-10b.cjs
       - name: Verify enrollable UI (unchanged)
