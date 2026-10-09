@@ -766,6 +766,8 @@
         try {
             setStep(1, 'active');
             
+            const exportScrollX = window.scrollX;
+            const exportScrollY = window.scrollY;
             const origBodyPadding = document.body.style.padding; 
             document.body.style.padding = '0';
             
@@ -774,21 +776,35 @@
             
             const origBorderRadius = areaPdf.style.borderRadius; 
             const origBoxShadow = areaPdf.style.boxShadow;
+            const origWidth = areaPdf.style.width;
+            const origMaxWidth = areaPdf.style.maxWidth;
+            const origMargin = areaPdf.style.margin;
+            let canvas;
+            try {
             areaPdf.style.borderRadius = '0px'; 
             areaPdf.style.boxShadow = 'none'; 
             areaPdf.style.width = '800px'; 
             areaPdf.style.maxWidth = '800px'; 
             areaPdf.style.margin = '0'; 
 
-            await new Promise(r => setTimeout(r, 50));
+            // La captura debe iniciar en la parte superior, aunque el usuario pulse
+            // «Procesar» al final de una cotización extensa en Safari/iPhone.
+            window.scrollTo(0, 0);
+            if (document.fonts && document.fonts.ready) await document.fonts.ready;
+            const homeEasyLogo = areaPdf.querySelector('.logo-only');
+            if (homeEasyLogo && typeof homeEasyLogo.decode === 'function') {
+                try { await homeEasyLogo.decode(); } catch (error) {}
+            }
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-            const canvas = await html2canvas(areaPdf, { 
+            canvas = await html2canvas(areaPdf, { 
                 scale: 3, 
                 useCORS: true, 
                 width: 800, 
                 windowWidth: 800, 
-                x: areaPdf.offsetLeft, 
-                y: areaPdf.offsetTop,
+                scrollX: 0, 
+                scrollY: 0, 
+                backgroundColor: '#ffffff',
                 onclone: function(clonedDoc) {
                     clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
                     
@@ -845,29 +861,155 @@
                         ta.parentNode.replaceChild(div, ta);
                     });
 
+                    // Solo modifica la copia de impresión, nunca la vista previa.
+                    const printArea = clonedDoc.getElementById('area-pdf');
+                    const printBody = printArea && printArea.querySelector('.card-body');
+                    const printFooter = printArea && printArea.querySelector('.pdf-footer');
+                    const printHeader = printArea && printArea.querySelector('.header-brand');
+                    const printTitle = printArea && printArea.querySelector('.document-type');
+                    const pageHeightPx = 800 * 279.4 / 215.9;
+                    let isMultiPage = !!(printArea && printBody && printFooter &&
+                        ((printBody.scrollHeight || 0) + (printHeader?.offsetHeight || 0) +
+                         (printTitle?.offsetHeight || 0) + (printFooter.offsetHeight || 0) > pageHeightPx + 2));
+                    if (isMultiPage) {
+                        printArea.style.position = 'relative';
+                        printArea.style.display = 'block';
+                        printArea.style.minHeight = '0';
+                        printBody.style.display = 'block';
+                        printBody.style.flex = 'none';
+                        printFooter.classList.add('pdf-pinned-footer');
+                        printFooter.style.position = 'absolute';
+                        printFooter.style.left = '0';
+                        printFooter.style.right = '0';
+                        printFooter.style.bottom = '0';
+                        printFooter.style.width = '100%';
+                    }
+                    // Solo si el pedido cabe por muy poco: recupera espacios verticales
+                    // de impresión (no cambia el diseño del formulario ni sus valores).
+                    if (isMultiPage && printArea.querySelectorAll('#tabla-body tr').length <= 8) {
+                        const bottom = printBody.getBoundingClientRect().bottom - printArea.getBoundingClientRect().top;
+                        const excess = bottom + printFooter.offsetHeight + 4 - pageHeightPx;
+                        if (excess > 0 && excess <= 48) {
+                            const totalsRow = printArea.querySelector('.row.g-4.mt-auto');
+                            if (totalsRow) totalsRow.style.setProperty('--bs-gutter-y', '0px', 'important');
+                            printBody.style.setProperty('padding-top', '4px', 'important');
+                            const footerLogo = printFooter.querySelector('img');
+                            if (footerLogo) footerLogo.style.marginBottom = '5px';
+                            const compactBottom = printBody.getBoundingClientRect().bottom - printArea.getBoundingClientRect().top;
+                            if (compactBottom + printFooter.offsetHeight + 4 <= pageHeightPx) {
+                                isMultiPage = false;
+                                printArea.style.display = 'flex';
+                                printArea.style.minHeight = pageHeightPx + 'px';
+                                printArea.style.height = pageHeightPx + 'px';
+                                printBody.style.display = 'flex';
+                                printBody.style.flex = '';
+                                printFooter.classList.remove('pdf-pinned-footer');
+                                printFooter.style.position = '';
+                                printFooter.style.left = '';
+                                printFooter.style.right = '';
+                                printFooter.style.bottom = '';
+                                printFooter.style.width = '';
+                            }
+                        }
+                    }
+                    // En órdenes largas, distribuir cada observación por línea evita
+                    // trasladar un bloque entero y dejar páginas casi vacías.
+                    const printNotes = printArea && printArea.querySelector('#notas');
+                    if (isMultiPage && printNotes) {
+                        printNotes.style.fontSize = '0.75rem';
+                        printNotes.style.fontWeight = '500';
+                        printNotes.style.lineHeight = '1.35';
+                        const lines = String(printNotes.innerText || printNotes.textContent || '').split(/\r?\n/);
+                        printNotes.replaceChildren();
+                        lines.forEach(text => {
+                            const line = clonedDoc.createElement('div');
+                            line.className = 'pdf-order-note-line';
+                            line.textContent = text;
+                            line.style.cssText = 'display:block;white-space:normal;overflow-wrap:anywhere;break-inside:avoid;margin:0 0 2px 0;';
+                            printNotes.appendChild(line);
+                        });
+                    }
                     if (window.HomeEasyDocs && typeof window.HomeEasyDocs.preparePaginatedClone === 'function') {
                         window.HomeEasyDocs.preparePaginatedClone(clonedDoc, {
                             areaId: 'area-pdf',
                             tableBodySelector: '#tabla-body',
-                            notesSelector: '#notas',
-                            summarySelector: '.row.g-4.mt-auto',
-                            footerSelector: '.pdf-footer',
+                            notesSelector: isMultiPage ? '#pdf-ignore-notes-block' : '#notas',
+                            summarySelector: isMultiPage ? '#pdf-ignore-summary-block' : '.row.g-4.mt-auto',
                             pageWidthPx: 800,
+                            // No mover el pie a una página vacía; se ancla al final
+                            // de la última hoja cuando el documento supera una página.
+                            // Nunca insertar un salto artificial antes del pie: lo coloca el flujo o el anclaje final.
+                            footerSelector: '.pdf-footer-without-extra-break',
                             repeatTableHeader: true
                         });
+                    }
+                    if (isMultiPage) {
+                        const origin = printArea.getBoundingClientRect().top;
+                        function keepTogether(element) {
+                            if (!element || !element.parentNode) return;
+                            const rect = element.getBoundingClientRect();
+                            const start = rect.top - origin;
+                            const end = rect.bottom - origin;
+                            if (end - start >= pageHeightPx - 4) return;
+                            if (Math.floor((start + .5) / pageHeightPx) === Math.floor((end - .5) / pageHeightPx)) return;
+                            const used = ((start % pageHeightPx) + pageHeightPx) % pageHeightPx;
+                            const gap = pageHeightPx - used;
+                            if (gap <= 1 || gap >= pageHeightPx - 1) return;
+                            const spacer = clonedDoc.createElement('div');
+                            spacer.className = 'pdf-smart-page-spacer';
+                            spacer.setAttribute('aria-hidden', 'true');
+                            spacer.style.cssText = 'display:block!important;height:' + gap + 'px!important;min-height:' + gap + 'px!important;background:#fff!important;';
+                            element.parentNode.insertBefore(spacer, element);
+                        }
+                        // Evitar una observación solitaria antes del resumen financiero
+                        // en una tercera hoja: mantener las últimas cinco juntas.
+                        const noteRows = Array.from(printArea.querySelectorAll('#notas .pdf-order-note-line'));
+                        const summary = printArea.querySelector('.row.g-4.mt-auto');
+                        const summaryBottom = summary ? summary.getBoundingClientRect().bottom - origin : 0;
+                        const estimatedPages = Math.ceil((summaryBottom + printFooter.offsetHeight + 4) / pageHeightPx);
+                        const lastPageUsed = summaryBottom - (estimatedPages - 1) * pageHeightPx;
+                        if (estimatedPages === 3 && noteRows.length >= 12 && noteRows.length <= 18 &&
+                            lastPageUsed > 0 && lastPageUsed < 350) {
+                            const candidate = noteRows[noteRows.length - 5];
+                            const candidateTop = candidate.getBoundingClientRect().top - origin;
+                            const nextBoundary = 2 * pageHeightPx;
+                            const gap = nextBoundary - candidateTop;
+                            if (gap > 2 && gap < pageHeightPx - 2) {
+                                const spacer = clonedDoc.createElement('div');
+                                spacer.className = 'pdf-smart-page-spacer';
+                                spacer.setAttribute('aria-hidden', 'true');
+                                spacer.style.cssText = 'display:block!important;height:' + gap +
+                                    'px!important;min-height:' + gap + 'px!important;background:#fff!important;';
+                                candidate.parentNode.insertBefore(spacer, candidate);
+                            }
+                        }
+                        printArea.querySelectorAll('#notas .pdf-order-note-line').forEach(keepTogether);
+                        keepTogether(printArea.querySelector('.row.g-4.mt-auto'));
+                    }
+                    if (isMultiPage) {
+                        printArea.querySelector('.pdf-smart-page-tail')?.remove();
+                        const bodyBottom = printBody.getBoundingClientRect().bottom - printArea.getBoundingClientRect().top;
+                        const required = Math.max(2, Math.ceil((bodyBottom + printFooter.offsetHeight + 4) / pageHeightPx));
+                        printArea.style.minHeight = (required * pageHeightPx) + 'px';
+                        printArea.style.height = (required * pageHeightPx) + 'px';
+                        printArea.dataset.pdfSmartPages = String(required);
                     }
                 }
             });
 
-            setStep(1, 'check'); 
-            setStep(2, 'active');
+            } finally {
+                areaPdf.classList.remove('pdf-export-mode');
+                document.body.style.padding = origBodyPadding;
+                areaPdf.style.borderRadius = origBorderRadius;
+                areaPdf.style.boxShadow = origBoxShadow;
+                areaPdf.style.width = origWidth;
+                areaPdf.style.maxWidth = origMaxWidth;
+                areaPdf.style.margin = origMargin;
+                window.scrollTo(exportScrollX, exportScrollY);
+            }
 
-            areaPdf.classList.remove('pdf-export-mode'); 
-            document.body.style.padding = origBodyPadding; 
-            areaPdf.style.borderRadius = origBorderRadius; 
-            areaPdf.style.boxShadow = origBoxShadow; 
-            areaPdf.style.width = '100%'; 
-            areaPdf.style.margin = '0 auto';
+            setStep(1, 'check');
+            setStep(2, 'active');
 
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF("p", "mm", "letter"); 
