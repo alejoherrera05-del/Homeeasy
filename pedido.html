@@ -912,12 +912,29 @@
                             }
                         }
                     }
+                    // En órdenes largas, distribuir cada observación por línea evita
+                    // trasladar un bloque entero y dejar páginas casi vacías.
+                    const printNotes = printArea && printArea.querySelector('#notas');
+                    if (isMultiPage && printNotes) {
+                        printNotes.style.fontSize = '0.75rem';
+                        printNotes.style.fontWeight = '500';
+                        printNotes.style.lineHeight = '1.35';
+                        const lines = String(printNotes.innerText || printNotes.textContent || '').split(/\r?\n/);
+                        printNotes.replaceChildren();
+                        lines.forEach(text => {
+                            const line = clonedDoc.createElement('div');
+                            line.className = 'pdf-order-note-line';
+                            line.textContent = text;
+                            line.style.cssText = 'display:block;white-space:normal;overflow-wrap:anywhere;break-inside:avoid;margin:0 0 2px 0;';
+                            printNotes.appendChild(line);
+                        });
+                    }
                     if (window.HomeEasyDocs && typeof window.HomeEasyDocs.preparePaginatedClone === 'function') {
                         window.HomeEasyDocs.preparePaginatedClone(clonedDoc, {
                             areaId: 'area-pdf',
                             tableBodySelector: '#tabla-body',
-                            notesSelector: '#notas',
-                            summarySelector: '.row.g-4.mt-auto',
+                            notesSelector: isMultiPage ? '#pdf-ignore-notes-block' : '#notas',
+                            summarySelector: isMultiPage ? '#pdf-ignore-summary-block' : '.row.g-4.mt-auto',
                             pageWidthPx: 800,
                             // No mover el pie a una página vacía; se ancla al final
                             // de la última hoja cuando el documento supera una página.
@@ -925,6 +942,27 @@
                             footerSelector: '.pdf-footer-without-extra-break',
                             repeatTableHeader: true
                         });
+                    }
+                    if (isMultiPage) {
+                        const origin = printArea.getBoundingClientRect().top;
+                        function keepTogether(element) {
+                            if (!element || !element.parentNode) return;
+                            const rect = element.getBoundingClientRect();
+                            const start = rect.top - origin;
+                            const end = rect.bottom - origin;
+                            if (end - start >= pageHeightPx - 4) return;
+                            if (Math.floor((start + .5) / pageHeightPx) === Math.floor((end - .5) / pageHeightPx)) return;
+                            const used = ((start % pageHeightPx) + pageHeightPx) % pageHeightPx;
+                            const gap = pageHeightPx - used;
+                            if (gap <= 1 || gap >= pageHeightPx - 1) return;
+                            const spacer = clonedDoc.createElement('div');
+                            spacer.className = 'pdf-smart-page-spacer';
+                            spacer.setAttribute('aria-hidden', 'true');
+                            spacer.style.cssText = 'display:block!important;height:' + gap + 'px!important;min-height:' + gap + 'px!important;background:#fff!important;';
+                            element.parentNode.insertBefore(spacer, element);
+                        }
+                        printArea.querySelectorAll('#notas .pdf-order-note-line').forEach(keepTogether);
+                        keepTogether(printArea.querySelector('.row.g-4.mt-auto'));
                     }
                     if (isMultiPage) {
                         printArea.querySelector('.pdf-smart-page-tail')?.remove();
