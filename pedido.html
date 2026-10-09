@@ -893,7 +893,8 @@
                             pageWidthPx: 800,
                             // No mover el pie a una página vacía; se ancla al final
                             // de la última hoja cuando el documento supera una página.
-                            footerSelector: '.pdf-footer:not(.pdf-pinned-footer)',
+                            // Nunca insertar un salto artificial antes del pie: lo coloca el flujo o el anclaje final.
+                            footerSelector: '.pdf-footer-without-extra-break',
                             repeatTableHeader: true
                         });
                     }
