@@ -170,9 +170,15 @@ try{
   assert.equal(submitted.rows,scenario.count);
   assert.equal(submitted.total,scenario.total);
   const file=path.join(output,scenario.label+'.pdf');
-  fs.writeFileSync(file,Buffer.from(submitted.base64,'base64'));
-  assert(fs.statSync(file).size>15000,'PDF must be nonempty');
-  report.push({scenario:scenario.label,form:initial,pdfBytes:fs.statSync(file).size,pdf:file,errors});
+  const pdfBytes=Buffer.from(submitted.base64,'base64');
+  fs.writeFileSync(file,pdfBytes);
+  assert(pdfBytes.length>15000,'PDF must be nonempty');
+  const pageCount=(pdfBytes.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length;
+  assert(pageCount>0,'Valid jsPDF page count required');
+  if(scenario.label==='single')assert.equal(pageCount,1,'Short quotes must fit one branded page');
+  if(scenario.label==='long-total')assert.equal(pageCount,2,'Fourteen blinds total-only must not leave an orphan page');
+  if(scenario.label==='long-individual')assert(pageCount>=2&&pageCount<=3,'Itemized 14-blind quote pagination must be controlled');
+  report.push({scenario:scenario.label,form:initial,pdfBytes:pdfBytes.length,pdfPages:pageCount,pdf:file,errors});
   if(errors.length)console.log('Diagnostics '+scenario.label+': '+errors.join(' | ').slice(0,350));
   await page.close();
  }
