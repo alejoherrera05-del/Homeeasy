@@ -868,7 +868,7 @@
                     const printHeader = printArea && printArea.querySelector('.header-brand');
                     const printTitle = printArea && printArea.querySelector('.document-type');
                     const pageHeightPx = 800 * 279.4 / 215.9;
-                    const isMultiPage = !!(printArea && printBody && printFooter &&
+                    let isMultiPage = !!(printArea && printBody && printFooter &&
                         ((printBody.scrollHeight || 0) + (printHeader?.offsetHeight || 0) +
                          (printTitle?.offsetHeight || 0) + (printFooter.offsetHeight || 0) > pageHeightPx + 2));
                     if (isMultiPage) {
@@ -883,6 +883,34 @@
                         printFooter.style.right = '0';
                         printFooter.style.bottom = '0';
                         printFooter.style.width = '100%';
+                    }
+                    // Solo si el pedido cabe por muy poco: recupera espacios verticales
+                    // de impresión (no cambia el diseño del formulario ni sus valores).
+                    if (isMultiPage && printArea.querySelectorAll('#tabla-body tr').length <= 8) {
+                        const bottom = printBody.getBoundingClientRect().bottom - printArea.getBoundingClientRect().top;
+                        const excess = bottom + printFooter.offsetHeight + 4 - pageHeightPx;
+                        if (excess > 0 && excess <= 48) {
+                            const totalsRow = printArea.querySelector('.row.g-4.mt-auto');
+                            if (totalsRow) totalsRow.style.setProperty('--bs-gutter-y', '0px', 'important');
+                            printBody.style.setProperty('padding-top', '4px', 'important');
+                            const footerLogo = printFooter.querySelector('img');
+                            if (footerLogo) footerLogo.style.marginBottom = '5px';
+                            const compactBottom = printBody.getBoundingClientRect().bottom - printArea.getBoundingClientRect().top;
+                            if (compactBottom + printFooter.offsetHeight + 4 <= pageHeightPx) {
+                                isMultiPage = false;
+                                printArea.style.display = 'flex';
+                                printArea.style.minHeight = pageHeightPx + 'px';
+                                printArea.style.height = pageHeightPx + 'px';
+                                printBody.style.display = 'flex';
+                                printBody.style.flex = '';
+                                printFooter.classList.remove('pdf-pinned-footer');
+                                printFooter.style.position = '';
+                                printFooter.style.left = '';
+                                printFooter.style.right = '';
+                                printFooter.style.bottom = '';
+                                printFooter.style.width = '';
+                            }
+                        }
                     }
                     if (window.HomeEasyDocs && typeof window.HomeEasyDocs.preparePaginatedClone === 'function') {
                         window.HomeEasyDocs.preparePaginatedClone(clonedDoc, {
