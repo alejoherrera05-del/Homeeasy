@@ -21,6 +21,7 @@ let state=fresh(),catalog=null,lastEngineQuote=null,lastEngineSignature='',lastQ
 let saveTimer,toastTimer,undoItem,quoteTimer,requestSeq=0;
 let installationEditingId='',installationDraft=null;
 let pendingTransferPreview=null,lastSharedTransfer=null,transferBusy=false;
+let activeWindowId=null,reviewExpanded=false,recentCopyId='';
 
 function toast(message){
   $('toast').textContent=message;
@@ -400,6 +401,7 @@ function newItem(previous,roomId=''){
     family,
     product,
     location:'',
+    label:'',
     width:'',
     height:'',
     quantity:'1',
@@ -432,19 +434,89 @@ function moneyField(item,name,label,placeholder='0'){
   return '<div class="field"><label for="'+id+'">'+label+'</label><div class="money-input"><span>COP $</span><input id="'+id+'" data-field="'+name+'" data-money="true" inputmode="numeric" value="'+escape(formatPesos(item[name]))+'" placeholder="'+placeholder+'" autocomplete="off"></div></div>';
 }
 
+
+/* Organización visual: IDs persistentes y cálculo original intactos. */
+function windowTitle(item,n){
+  return String(item.label||'').trim()||'Ventana '+String(n+1).padStart(2,'0');
+}
+function windowDimensions(item){
+  const w=String(item.width||'').trim(),h=String(item.height||'').trim();
+  return w&&h?w+' × '+h+' m':'Medidas pendientes';
+}
+function windowComplete(item){
+  const w=Number(String(item.width||'').replace(',','.'));
+  const h=Number(String(item.height||'').replace(',','.'));
+  const q=Number(item.quantity);
+  return w>0&&h>0&&Number.isInteger(q)&&q>0;
+}
+function windowSummary(item){
+  const product=chosen(item)?.name||familyLabels[item.family]||'Persiana';
+  return product+' · '+windowDimensions(item)+(Number(item.quantity)>1?' · '+item.quantity+' unidades':'');
+}
+function updateWindowHeader(item){
+  const card=[...$('items').querySelectorAll('.item-card')].find(el=>el.dataset.id===item.id);
+  if(!card)return;
+  const room=roomGroups().find(g=>g.id===roomIdOf(item));
+  const index=Math.max(0,room?.items.indexOf(item)||0);
+  card.querySelector('[data-window-name]').textContent=windowTitle(item,index);
+  card.querySelector('[data-window-summary]').textContent=windowSummary(item);
+  const status=card.querySelector('[data-window-status]');
+  status.textContent=windowComplete(item)?'Con medidas':'Pendiente';
+  status.classList.toggle('is-complete',windowComplete(item));
+}
+function openWindow(id,scroll=false){
+  if(!state.items.some(item=>item.id===id))return;
+  activeWindowId=id;
+  render({recalculate:false});
+  if(scroll)requestAnimationFrame(()=>{
+    const card=[...$('items').querySelectorAll('.item-card')].find(el=>el.dataset.id===id);
+    card?.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+    // Evitamos abrir el teclado de iOS inesperadamente.
+    if(window.matchMedia?.('(pointer:fine)').matches)card?.querySelector('[data-field="width"]')?.focus({preventScroll:true});
+  });
+}
+function updateMeasureReview(){
+  if(!$('measure-review'))return;
+  const groups=roomGroups();
+  const all=groups.flatMap(group=>group.items.map((item,index)=>({group,item,index})));
+  $('review-count').textContent=all.filter(({item})=>windowComplete(item)).length+' de '+all.length+' con medidas';
+  $('review-list').hidden=!reviewExpanded;
+  $('review-toggle').setAttribute('aria-expanded',String(reviewExpanded));
+  $('review-list').innerHTML='<p class="review-hint">Verifica las medidas antes de cerrar la cotización. Medidas repetidas pueden ser correctas.</p>'+
+    all.map(({group,item,index})=>{
+      const room=group.items[0]?.location||'Ambiente '+(groups.indexOf(group)+1);
+      const same=windowComplete(item)&&group.items.some(other=>other!==item&&windowComplete(other)&&
+        other.product===item.product&&String(other.width).replace(',','.')===String(item.width).replace(',','.')&&
+        String(other.height).replace(',','.')===String(item.height).replace(',','.'));
+      return '<button class="review-item" type="button" data-review-id="'+escape(item.id)+'">'+
+        '<span><strong>'+escape(windowTitle(item,index))+'</strong><small>'+escape(room+' · '+windowSummary(item))+'</small>'+
+        (same?'<em>Medida repetida, revisar</em>':'')+'</span>'+
+        '<b class="'+(windowComplete(item)?'is-complete':'')+'">'+(windowComplete(item)?'Con medidas':'Pendiente')+'</b>'+
+        '<i class="fa-solid fa-chevron-right"></i></button>';
+    }).join('');
+}
+
 function renderItem(item,index,layerIndex=0,layerCount=1){
   const p=chosen(item);
   const forcedManual=requiresManual(item);
   const manual=forcedManual||item.mode==='manual';
   const unitLabel=Number(item.quantity)>1?'Costo por persiana':'Costo de la persiana';
-  const layerLabel=layerCount>1?'Persiana '+(layerIndex+1)+' de '+layerCount:'Persiana '+(layerIndex+1);
-
-  return '<article class="item-card" data-id="'+escape(item.id)+'">'+
+  const expanded=item.id===activeWindowId;
+  const origin=item.duplicatedFrom?'Copia de otra ventana':'';
+  return '<article class="item-card '+(expanded?'is-expanded':'is-collapsed')+' '+(item.id===recentCopyId?'is-recent-copy':'')+'" data-id="'+escape(item.id)+'">'+
     '<div class="item-head">'+
-      '<div><span class="item-number">'+layerLabel+'</span><h3>'+escape(familyLabels[item.family]||'Persiana')+'</h3></div>'+
-      '<div class="item-actions"><button data-action="duplicate" title="Duplicar">Duplicar</button><button data-action="remove" title="Quitar">Quitar</button></div>'+
+      '<button type="button" class="window-toggle" data-action="toggle-window" aria-expanded="'+expanded+'">'+
+        '<span class="window-copy"><span class="item-number">Persiana '+(layerIndex+1)+' de '+layerCount+'</span>'+
+        '<strong data-window-name>'+escape(windowTitle(item,layerIndex))+'</strong>'+
+        '<span class="window-summary" data-window-summary>'+escape(windowSummary(item))+'</span>'+
+        (origin?'<small class="window-copy-note">'+origin+'</small>':'')+'</span>'+
+        '<span class="window-toggle-end"><small class="window-status '+(windowComplete(item)?'is-complete':'')+'" data-window-status>'+(windowComplete(item)?'Con medidas':'Pendiente')+'</small>'+
+        '<i class="fa-solid fa-chevron-'+(expanded?'up':'down')+'"></i></span></button>'+
+      '<div class="item-actions"><button type="button" data-action="duplicate" title="Duplicar ventana">Duplicar</button><button type="button" data-action="remove" title="Quitar ventana">Quitar</button></div>'+
     '</div>'+
-
+    '<div class="window-editor">'+
+    '<div class="field window-name"><label for="label-'+escape(item.id)+'">Nombre de esta ventana <span>(opcional)</span></label>'+
+    '<input id="label-'+escape(item.id)+'" data-field="label" value="'+escape(item.label||'')+'" placeholder="Ej. Ventana balcón" maxlength="70" autocomplete="off"></div>'+
     '<div class="product-grid">'+
       '<div class="field"><label for="family-'+item.id+'">Producto</label><select id="family-'+item.id+'" data-field="family">'+familyOptions(item.family)+'</select></div>'+
       '<div class="field"><label for="product-'+item.id+'">Tela / referencia</label><select id="product-'+item.id+'" data-field="product">'+productOptions(item)+'</select></div>'+
@@ -476,7 +548,8 @@ function renderItem(item,index,layerIndex=0,layerCount=1){
     '</div>'+
     '<div data-output="fabrication"></div>'+
     '<p class="item-error" data-output="error" role="status"></p>'+
-  '</article>';
+    '<button type="button" class="finish-window" data-action="finish-window"><i class="fa-solid fa-check"></i> Terminar edición</button>'+
+    '</div></article>';
 }
 
 function renderRoom(group,roomIndex){
@@ -498,9 +571,11 @@ function renderRoom(group,roomIndex){
 }
 
 function render(options={}){
+  if(activeWindowId===null||activeWindowId&&!state.items.some(item=>item.id===activeWindowId))activeWindowId=state.items[0]?.id||'';
   const groups=roomGroups();
   $('items').innerHTML=groups.map(renderRoom).join('');
   $('item-count').textContent='('+state.items.length+')';
+  updateMeasureReview();
   if(options.recalculate===false)renderCommercial();
   else scheduleQuote(0);
   save();
@@ -740,6 +815,7 @@ function applyTransferredVisit(payload){
   received.items=(payload?.items||[]).map(hydrateTransferredItem);
   if(!received.items.length)received.items=[newItem()];
   state=received;
+  activeWindowId=null;reviewExpanded=false;
   normalizeRoomIds();
   clearEngineCache();
   fillGlobals();
@@ -948,6 +1024,16 @@ $('items').addEventListener('input',event=>{
   }else{
     item[field]=target.value;
   }
+  if(field==='label'){
+    updateWindowHeader(item);
+    updateMeasureReview();
+    save();
+    return;
+  }
+  if(['width','height','quantity'].includes(field)){
+    updateWindowHeader(item);
+    updateMeasureReview();
+  }
   if(item.family==='enrollable'&&(field==='width'||field==='height')){
     if(item.mode==='manual'&&item.specialAlternative){
       item.mode='auto';
@@ -1042,8 +1128,7 @@ $('items').addEventListener('click',event=>{
     const item=newRoomLayer(previous);
     const lastIndex=Math.max(...group.items.map(i=>state.items.indexOf(i)));
     state.items.splice(lastIndex+1,0,item);
-    render();
-    document.querySelector('[data-id="'+item.id+'"] [data-field=family]')?.focus();
+    openWindow(item.id,true);
     toast('Persiana agregada al mismo ambiente.');
     return;
   }
@@ -1053,6 +1138,16 @@ $('items').addEventListener('click',event=>{
   const index=state.items.findIndex(i=>i.id===card.dataset.id);
   if(index<0)return;
 
+  if(button.dataset.action==='toggle-window'){
+    activeWindowId=activeWindowId===card.dataset.id?'':card.dataset.id;
+    render({recalculate:false});
+    return;
+  }
+  if(button.dataset.action==='finish-window'){
+    activeWindowId='';
+    render({recalculate:false});
+    return;
+  }
   if(button.dataset.action==='installation'){
     openInstallationDialog(state.items[index]);
     return;
@@ -1082,17 +1177,18 @@ $('items').addEventListener('click',event=>{
   if(button.dataset.action==='duplicate'){
     if(state.items.length>=100){toast('Máximo 100 persianas.');return;}
     const source=state.items[index];
-    const item={...source,id:crypto.randomUUID(),roomId:roomIdOf(source),addons:[...(source.addons||[])],installation:{...installationData(source)}};
+    const item={...source,id:crypto.randomUUID(),roomId:roomIdOf(source),label:'',duplicatedFrom:source.id,addons:[...(source.addons||[])],installation:{...installationData(source)}};
     state.items.splice(index+1,0,item);
-    render();
-    document.querySelector('[data-id="'+item.id+'"] [data-field=product]')?.focus();
-    toast('Persiana duplicada en este ambiente.');
+    recentCopyId=item.id;
+    openWindow(item.id,true);
+    toast('Copia abierta. Revisa el ancho y el alto de la nueva ventana.');
   }
 
   if(button.dataset.action==='remove'){
     undoItem={item:state.items[index],index};
     state.items.splice(index,1);
     if(!state.items.length)state.items.push(newItem());
+    if(activeWindowId===card.dataset.id)activeWindowId=state.items[Math.min(index,state.items.length-1)]?.id||'';
     render();
     $('toast').replaceChildren(document.createTextNode('Persiana eliminada. '));
     const undo=document.createElement('button');
@@ -1102,6 +1198,7 @@ $('items').addEventListener('click',event=>{
       const emptyAuto=state.items.length===1&&!state.items[0].width&&!state.items[0].height&&!state.items[0].location;
       if(emptyAuto)state.items=[];
       state.items.splice(undoItem.index,0,undoItem.item);
+      activeWindowId=undoItem.item.id;
       undoItem=null;
       render();
       $('toast').textContent='';
@@ -1115,10 +1212,12 @@ $('add-item').onclick=()=>{
   if(state.items.length>=100){toast('Máximo 100 persianas.');return;}
   const item=newItem(state.items.at(-1));
   state.items.push(item);
-  render();
-  document.querySelector('[data-room-id="'+item.roomId+'"] [data-room-field=location]')?.focus();
+  openWindow(item.id,true);
+  document.querySelector('[data-room-id="'+item.roomId+'"] [data-room-field=location]')?.focus({preventScroll:true});
 };
 
+$('review-toggle').addEventListener('click',()=>{reviewExpanded=!reviewExpanded;updateMeasureReview();});
+$('review-list').addEventListener('click',e=>{const btn=e.target.closest('[data-review-id]');if(btn)openWindow(btn.dataset.reviewId,true);});
 $('project').addEventListener('input',e=>{state.project=e.target.value;save();});
 $('transport').addEventListener('input',e=>updateMoneyInput(e.target,'transport'));
 $('installation').addEventListener('input',e=>updateMoneyInput(e.target,'installationTotal'));
@@ -1144,6 +1243,7 @@ $('new-quote').onclick=()=>$('new-dialog').showModal();
 $('cancel-new').onclick=()=>$('new-dialog').close();
 $('confirm-new').onclick=()=>{
   state=fresh();
+  activeWindowId=null;reviewExpanded=false;
   clearEngineCache();
   if(catalog)state.items=[newItem()];
   fillGlobals();
