@@ -138,6 +138,14 @@ try{
   assert(initial.company.includes('1.061.760.852-1'),scenario.label+': company config');
   assert(initial.commercial.includes('22 días')&&initial.commercial.includes('40%'),scenario.label+': commercial config');
   assert(initial.logo,scenario.label+': official HomeEasy logo');
+  // Cliente ficticio: el flujo de guardado exige identificación y nombre.
+  await page.evaluate(()=>{
+    document.getElementById('cedula').value='900123456';
+    document.getElementById('nombre').value='CLIENTE FICTICIO QA';
+    document.getElementById('telefono').value='3000000000';
+    document.getElementById('email').value='prueba@example.test';
+    document.getElementById('direccion').value='DIRECCIÓN SIMULADA';
+  });
   await page.locator('#area-pdf').screenshot({path:path.join(output,scenario.label+'-preview.png')});
   page.on('dialog',async dialog=>{errors.push('Dialog: '+dialog.message());await dialog.dismiss();});
   await page.evaluate(()=>finalizar());
