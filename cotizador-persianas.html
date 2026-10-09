@@ -9,10 +9,10 @@
 <title>HomeEasy | Cotizador</title>
 <link rel="icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002-transfer">
+<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261009-ventanas">
 <script src="homeeasy-core.js?v=3.5"></script>
 <script src="homeeasy-page-guard.js?v=20261002b"></script>
-<script defer src="homeeasy-cost-calculator.js?v=20261002-enrollablefix"></script>
+<script defer src="homeeasy-cost-calculator.js?v=20261009-ventanas"></script>
   <link rel="stylesheet" href="homeeasy-back.css?v=1.1">
   <script defer src="homeeasy-back.js?v=1.2"></script>
   <link rel="stylesheet" href="homeeasy-header.css?v=2.5">
@@ -77,7 +77,10 @@
           <span class="section-kicker">Productos</span>
           <h2>Persianas <span id="item-count"></span></h2>
         </div>
-        <span>Medidas en metros</span>
+        <div class="review-shortcut">
+          <span>Medidas en metros</span>
+          <button type="button" id="review-measures" disabled><i class="fa-solid fa-ruler-combined"></i> Revisar medidas</button>
+        </div>
       </div>
 
       <div id="items"></div>
@@ -181,6 +184,15 @@
   <span>Precio sugerido</span>
   <strong id="mobile-sale">—</strong>
 </a>
+
+<dialog id="review-dialog" class="review-dialog" aria-labelledby="review-title">
+  <div class="dialog-handle" aria-hidden="true"></div>
+  <span class="dialog-eyebrow">Comprobación final</span>
+  <h2 id="review-title">Medidas de la cotización</h2>
+  <p>Revisa cada persiana antes de generar la propuesta. Puedes abrir cualquiera para corregirla.</p>
+  <div id="review-lines" class="review-lines"></div>
+  <button id="close-review" class="review-close" type="button">Terminar revisión</button>
+</dialog>
 
 <dialog id="new-dialog">
   <h2>¿Nueva cotización?</h2>
