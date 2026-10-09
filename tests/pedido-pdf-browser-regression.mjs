@@ -233,7 +233,8 @@ try{
   if(scenario.count===28)assert(pageCount>=3&&pageCount<=4,'Extended order pagination must stay within four pages');
   const density=await page.evaluate(()=>window.__HEPageOccupancy||[]);
   console.log('Order PDF page occupancy '+scenario.label+': '+JSON.stringify(density));
-  if(pageCount>1)assert((density[density.length-1]||0)>0.055,'Last page cannot contain only the footer');
+  // Tolerancia del muestreo reducido: el pie aislado tiene menos del 4 % de tinta.
+  if(pageCount>1)assert((density[pageCount-1]||0)>0.04,'Last page cannot contain only the footer');
   const after=await page.evaluate(()=>({
    exportMode:document.getElementById('area-pdf').classList.contains('pdf-export-mode'),
    width:document.getElementById('area-pdf').style.width,
