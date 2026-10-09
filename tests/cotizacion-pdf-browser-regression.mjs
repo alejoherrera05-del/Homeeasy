@@ -158,7 +158,8 @@ try{
     hasCanvas:Boolean(window.html2canvas),
     hasJsPdf:Boolean(window.jspdf),
     loading:document.getElementById('loading')?.style.display,
-    exportMode:document.getElementById('area-pdf')?.classList.contains('pdf-export-mode')
+    exportMode:document.getElementById('area-pdf')?.classList.contains('pdf-export-mode'),
+    printLayout:window.__quoteLayoutTrace||null
   })))+'; errors='+JSON.stringify(errors));
   await page.waitForFunction(()=>Boolean(window.__QA_PDF_BASE64),null,{timeout:12000});
   const submitted=await page.evaluate(()=>{
