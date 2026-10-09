@@ -6,6 +6,7 @@ on:
       - 'cotizacion.html'
       - 'homeeasy-docs.js'
       - 'tests/cotizacion-pdf-browser-regression.mjs'
+      - 'tests/cotizacion-integracion-integridad.cjs'
       - '.github/workflows/homeeasy-formal-pdf-qa.yml'
   push:
     branches: [main]
@@ -13,6 +14,7 @@ on:
       - 'cotizacion.html'
       - 'homeeasy-docs.js'
       - 'tests/cotizacion-pdf-browser-regression.mjs'
+      - 'tests/cotizacion-integracion-integridad.cjs'
       - '.github/workflows/homeeasy-formal-pdf-qa.yml'
   workflow_dispatch:
 
@@ -33,6 +35,7 @@ jobs:
           node tests/homeeasy-inline-js-syntax.mjs
           node --check homeeasy-docs.js
           node --check tests/cotizacion-pdf-browser-regression.mjs
+          node tests/cotizacion-integracion-integridad.cjs
       - name: Install isolated QA tools
         run: |
           npm install --no-save --no-package-lock playwright@1.55.0 bootstrap@5.3.3 @fontsource/montserrat@5.2.6 @fortawesome/fontawesome-free@6.4.0 jspdf@2.5.1 html2canvas@1.4.1
