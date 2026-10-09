@@ -76,6 +76,17 @@ function input(w,el,value){
   assert.match(d.querySelector('[data-id="otra"] .item-measure').textContent,/1.80 × 2.20/);
   assert.equal(d.querySelector('[data-id="otra"] [data-action="expand"]').getAttribute('aria-expanded'),'false');
 
+  // La flecha de la tarjeta activa debe poder cerrarla y reabrirla sin perder medidas.
+  click(d,'[data-id="original"] [data-action="expand"]');
+  assert.equal(d.querySelectorAll('.item-card.is-active').length,0);
+  assert.equal(d.querySelector('[data-id="original"] .item-content').hidden,true);
+  assert.equal(d.querySelector('[data-id="original"] [data-action="expand"]').getAttribute('aria-expanded'),'false');
+  assert.equal(save().items[0].width,'1.25');
+  click(d,'[data-id="original"] [data-action="expand"]');
+  assert.equal(active(d).dataset.id,'original');
+  assert.equal(d.querySelector('[data-id="original"] .item-content').hidden,false);
+  assert.equal(d.querySelector('[data-id="original"] [data-action="expand"]').getAttribute('aria-expanded'),'true');
+
   click(d,'[data-id="otra"] [data-action="expand"]');
   assert.equal(active(d).dataset.id,'otra');
   assert.equal(d.querySelector('[data-id="original"] .item-content').hidden,true);
