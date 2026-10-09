@@ -668,7 +668,17 @@
 
     async function finalizarAbono() {
         await asegurarLibreriasPdf();
-        if (window.__homeeasyDocsReady) { try { await window.__homeeasyDocsReady; } catch (e) { console.warn("No fue posible cargar la configuración dinámica.", e); } }
+        // No emitir documentos con un encabezado predeterminado o desactualizado.
+        // Capturar exactamente la configuración que ya figura en el formulario.
+        try {
+            if (!window.HomeEasyDocs || typeof window.HomeEasyDocs.assertSynced !== 'function') {
+                throw new Error('No se pudo cargar el módulo de Configuración.');
+            }
+            await window.HomeEasyDocs.assertSynced();
+        } catch (errorConfiguracion) {
+            alert(errorConfiguracion.message || 'No fue posible sincronizar Configuración. Reabre el formulario.');
+            return;
+        }
         var ced = document.getElementById('cedula').value;
         var valAbono = parseFloat(document.getElementById('valorAbono').value.replace(/\D/g, "")) || 0;
         var mPago = document.getElementById('medioPago').value;
