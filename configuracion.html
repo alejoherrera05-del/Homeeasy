@@ -2429,6 +2429,16 @@ async function initializeSettings() {
                 .replace(/\b2\.0\b/g, "3.0");
         }
 
+        // Google Sheets puede devolver opciones como texto "true" / "false".
+        // Boolean("false") es true en JavaScript: causaba que Configuración
+        // mostrara canales activados aunque el PDF respetara un false real.
+        function configBoolean(value) {
+            if (typeof value === 'boolean') return value;
+            if (typeof value === 'number') return value !== 0;
+            const text = String(value == null ? '' : value).trim().toLowerCase();
+            return text === 'true' || text === '1' || text === 'si' || text === 'sí' || text === 'yes';
+        }
+
         function applyConfiguration(response) {
             const configuration = response && response.configuracion ? response.configuracion : {};
             const flat = HomeEasyCore.flattenObject(configuration);
@@ -2440,7 +2450,7 @@ async function initializeSettings() {
                 const value = key === "documentos.pie_sistema" ? normalizePublicVersionLabel(rawValue) : rawValue;
 
                 if (type === 'boolean') {
-                    element.checked = Boolean(value);
+                    element.checked = configBoolean(value);
                 } else if (type === 'number') {
                     element.value = value === undefined || value === null ? '' : String(value);
                 } else {
