@@ -961,6 +961,28 @@
                             spacer.style.cssText = 'display:block!important;height:' + gap + 'px!important;min-height:' + gap + 'px!important;background:#fff!important;';
                             element.parentNode.insertBefore(spacer, element);
                         }
+                        // Evitar una observación solitaria antes del resumen financiero
+                        // en una tercera hoja: mantener las últimas cinco juntas.
+                        const noteRows = Array.from(printArea.querySelectorAll('#notas .pdf-order-note-line'));
+                        const summary = printArea.querySelector('.row.g-4.mt-auto');
+                        const summaryBottom = summary ? summary.getBoundingClientRect().bottom - origin : 0;
+                        const estimatedPages = Math.ceil((summaryBottom + printFooter.offsetHeight + 4) / pageHeightPx);
+                        const lastPageUsed = summaryBottom - (estimatedPages - 1) * pageHeightPx;
+                        if (estimatedPages === 3 && noteRows.length >= 12 && noteRows.length <= 18 &&
+                            lastPageUsed > 0 && lastPageUsed < 350) {
+                            const candidate = noteRows[noteRows.length - 5];
+                            const candidateTop = candidate.getBoundingClientRect().top - origin;
+                            const nextBoundary = 2 * pageHeightPx;
+                            const gap = nextBoundary - candidateTop;
+                            if (gap > 2 && gap < pageHeightPx - 2) {
+                                const spacer = clonedDoc.createElement('div');
+                                spacer.className = 'pdf-smart-page-spacer';
+                                spacer.setAttribute('aria-hidden', 'true');
+                                spacer.style.cssText = 'display:block!important;height:' + gap +
+                                    'px!important;min-height:' + gap + 'px!important;background:#fff!important;';
+                                candidate.parentNode.insertBefore(spacer, candidate);
+                            }
+                        }
                         printArea.querySelectorAll('#notas .pdf-order-note-line').forEach(keepTogether);
                         keepTogether(printArea.querySelector('.row.g-4.mt-auto'));
                     }
