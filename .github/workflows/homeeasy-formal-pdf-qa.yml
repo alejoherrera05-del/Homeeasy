@@ -37,6 +37,16 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright@1.55.0 bootstrap@5.3.3 @fontsource/montserrat@5.2.6 @fortawesome/fontawesome-free@6.4.0 jspdf@2.5.1 html2canvas@1.4.1
           npx playwright install --with-deps chromium
+      - name: Package reproducible local PDF QA assets
+        run: |
+          mkdir -p qa/cotizacion-pdf/_offline/node_modules/{bootstrap/dist/css,html2canvas/dist,jspdf/dist,@fortawesome/fontawesome-free/css,@fortawesome/fontawesome-free/webfonts,@fontsource/montserrat/files}
+          cp cotizacion.html homeeasy-docs.js homeeasy-core.js homeeasy-page-guard.js homeeasy-runtime.js homeeasy-runtime-cache.js homeeasy-cost-calculator.js cotizador-persianas.html configuracion.html pedido.html homeeasy-whatsapp-doc-actions.js logohomeeasy.png triangulogold.png Hommypiedepagina.png Hommycompleto.png qa/cotizacion-pdf/_offline/
+          cp node_modules/bootstrap/dist/css/bootstrap.min.css qa/cotizacion-pdf/_offline/node_modules/bootstrap/dist/css/
+          cp node_modules/html2canvas/dist/html2canvas.min.js qa/cotizacion-pdf/_offline/node_modules/html2canvas/dist/
+          cp node_modules/jspdf/dist/jspdf.umd.min.js qa/cotizacion-pdf/_offline/node_modules/jspdf/dist/
+          cp node_modules/@fortawesome/fontawesome-free/css/all.min.css qa/cotizacion-pdf/_offline/node_modules/@fortawesome/fontawesome-free/css/
+          cp node_modules/@fortawesome/fontawesome-free/webfonts/* qa/cotizacion-pdf/_offline/node_modules/@fortawesome/fontawesome-free/webfonts/
+          cp node_modules/@fontsource/montserrat/files/montserrat-latin-*-normal.woff2 qa/cotizacion-pdf/_offline/node_modules/@fontsource/montserrat/files/
       - name: Serve checked-out Hommy without live backend
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/homeeasy-formal-pdf-http.log 2>&1 &
@@ -49,8 +59,8 @@ jobs:
           for pdf in qa/cotizacion-pdf/*.pdf; do
             [ -f "$pdf" ] || continue
             echo "PDF: $pdf"
-            pdfinfo "$pdf" | grep -E 'Pages:|Page size:|File size:'
-            pdftoppm -png -scale-to 950 "$pdf" "${pdf%.pdf}-render" >/dev/null 2>&1 || true
+            if command -v pdfinfo >/dev/null 2>&1; then pdfinfo "$pdf" | grep -E 'Pages:|Page size:|File size:'; fi
+            if command -v pdftoppm >/dev/null 2>&1; then pdftoppm -png -scale-to 950 "$pdf" "${pdf%.pdf}-render" >/dev/null 2>&1 || true; fi
           done
       - uses: actions/upload-artifact@v4
         if: always()
