@@ -696,3 +696,17 @@ dialog textarea{margin:14px 0}
   .item-head-meta{max-width:100px}
   .item-head-subtitle{max-width:180px}
 }
+
+/* Mobile refinement: readable, native-feeling quote cards without changing layout */
+@media (max-width: 700px){
+  .item-number{font-size:12px;line-height:1.35}
+  .item-head-title{font-size:18px;line-height:1.22;letter-spacing:-.3px}
+  .item-head-subtitle{font-size:13px;line-height:1.4}
+  .item-expand{min-height:54px;touch-action:manipulation}
+  .item-chevron{font-size:14px}
+  .editing-flag{font-size:12px}
+  .item-actions button{min-height:42px;font-size:13px;padding:0 12px}
+  .item-card label{font-size:14px;line-height:1.35}
+  .item-card input,.item-card select{font-size:16px}
+  .item-card .item-measure{font-size:13px}
+}
