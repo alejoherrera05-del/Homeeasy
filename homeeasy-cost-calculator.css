@@ -710,3 +710,65 @@ dialog textarea{margin:14px 0}
   .item-card input,.item-card select{font-size:16px}
   .item-card .item-measure{font-size:13px}
 }
+
+
+/* Cotizador mobile hero: compact native actions, no floating icon-only column.
+   Only presentation changes; button IDs and existing handlers stay untouched. */
+@media(max-width:740px){
+  .hero{
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .hero-copy{width:100%;max-width:none;min-width:0}
+  .hero-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:stretch;
+    gap:10px;
+    width:100%;
+    flex:0 0 auto;
+  }
+  .hero-actions .hero-action{
+    display:flex;
+    width:100%;
+    min-width:0;
+    height:auto;
+    min-height:48px;
+    flex:initial;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:10px 9px;
+    border-radius:14px;
+    font-size:13px;
+    font-weight:680;
+    line-height:1.25;
+    box-shadow:0 3px 10px rgba(45,34,39,.025);
+    touch-action:manipulation;
+  }
+  .hero-actions .hero-action span{
+    display:block;
+    font-size:inherit;
+    line-height:inherit;
+    text-align:center;
+    white-space:normal;
+  }
+  .hero-actions .hero-action i{font-size:14px;flex-shrink:0}
+  .hero-actions #receive-visit{
+    color:var(--brand-dark);
+    background:#fff;
+    border-color:rgba(178,86,108,.22);
+  }
+  .hero-actions #new-quote{
+    color:#fff;
+    background:var(--brand);
+    border-color:var(--brand);
+  }
+}
+@media(max-width:360px){
+  .hero-actions{gap:8px}
+  .hero-actions .hero-action{padding:10px 7px;gap:6px;font-size:12px}
+}
