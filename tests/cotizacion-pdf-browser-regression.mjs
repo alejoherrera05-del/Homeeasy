@@ -148,7 +148,11 @@ try{
   });
   await page.locator('#area-pdf').screenshot({path:path.join(output,scenario.label+'-preview.png')});
   page.on('dialog',async dialog=>{errors.push('Dialog: '+dialog.message());await dialog.dismiss();});
-  await page.evaluate(()=>finalizar());
+  await page.locator('#btnProcesar').scrollIntoViewIfNeeded();
+  const scrollBefore=await page.evaluate(()=>window.scrollY);
+  console.log('Click export at scrollY='+scrollBefore+' for '+scenario.label);
+  await page.locator('#btnProcesar').click();
+  await page.waitForTimeout(2200);
   console.log('PDF completion '+scenario.label+': '+JSON.stringify(await page.evaluate(()=>({
     pdfWritten:Boolean(window.__QA_PDF_BASE64),
     hasCanvas:Boolean(window.html2canvas),
