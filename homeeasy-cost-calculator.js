@@ -470,7 +470,7 @@ function openWindow(id,scroll=false){
   render({recalculate:false});
   if(scroll)requestAnimationFrame(()=>{
     const card=[...$('items').querySelectorAll('.item-card')].find(el=>el.dataset.id===id);
-    card?.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+    card?.scrollIntoView?.({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
     // Evitamos abrir el teclado de iOS inesperadamente.
     if(window.matchMedia?.('(pointer:fine)').matches)card?.querySelector('[data-field="width"]')?.focus({preventScroll:true});
   });
@@ -574,6 +574,7 @@ function render(options={}){
   if(activeWindowId===null||activeWindowId&&!state.items.some(item=>item.id===activeWindowId))activeWindowId=state.items[0]?.id||'';
   const groups=roomGroups();
   $('items').innerHTML=groups.map(renderRoom).join('');
+  recentCopyId='';
   $('item-count').textContent='('+state.items.length+')';
   updateMeasureReview();
   if(options.recalculate===false)renderCommercial();
