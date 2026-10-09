@@ -6,6 +6,7 @@ on:
       - 'abono.html'
       - 'configuracion.html'
       - 'homeeasy-docs.js'
+      - 'tests/homeeasy-document-config-parity.cjs'
       - 'tests/abono-pdf-browser-regression.mjs'
       - 'tests/abono-integracion-integridad.cjs'
       - 'tests/config-website-flag-integridad.cjs'
@@ -17,6 +18,7 @@ on:
       - 'abono.html'
       - 'configuracion.html'
       - 'homeeasy-docs.js'
+      - 'tests/homeeasy-document-config-parity.cjs'
       - 'tests/abono-pdf-browser-regression.mjs'
       - 'tests/abono-integracion-integridad.cjs'
       - 'tests/config-website-flag-integridad.cjs'
@@ -42,6 +44,7 @@ jobs:
           node --check homeeasy-docs.js
           node --check tests/abono-pdf-browser-regression.mjs
           node tests/cotizacion-integracion-integridad.cjs
+          node tests/homeeasy-document-config-parity.cjs
           node tests/abono-integracion-integridad.cjs
           node tests/config-website-flag-integridad.cjs
       - name: Install isolated QA tools

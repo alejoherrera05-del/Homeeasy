@@ -26,7 +26,7 @@ for(const key of fields){
 }
 must(core,"tipo: 'GET_CONFIGURACION'","App central settings endpoint disconnected");
 must(settings,"tipo: 'GUARDAR_CONFIGURACION'","Settings editor write endpoint disconnected");
-must(docs,'window.HomeEasyCore.getConfiguration({ force: true, allowFallback: true })','Document config should use core');
+must(docs,'window.HomeEasyCore.getConfiguration({ force: true, allowFallback: false })','Document config should use core');
 must(quote,'window.__homeeasyDocsReady','Formal quote must await settings initialization');
 must(quote,"documentType: 'cotizacion'","Formal quote dynamic document config");
 must(docs,'applyCotizacion(cfg)','Quote applies dynamic commercial conditions');

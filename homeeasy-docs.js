@@ -38,7 +38,9 @@
     configPromise: null,
     config: null,
     version: null,
-    documentType: null
+    documentType: null,
+    source: null,
+    error: null
   };
 
   function flattenObject(value, prefix, result) {
@@ -175,17 +177,18 @@
     document.title = "HomeEasy | " + title;
   }
 
-  function applyCotizacion(cfg) {
+  // Única fuente de verdad para Configuración y para los PDF originales.
+  function buildCotizacionConditionsHtml(cfg) {
     const validity = clean(key(cfg, "documentos.cotizacion.validez_dias", "15")) || "15";
     const measurement = clean(key(cfg, "documentos.cotizacion.medicion_instalacion", ""));
     const payment = clean(key(cfg, "documentos.cotizacion.forma_pago", ""));
     const lines = ['• Validez de la oferta: <b>' + escapeHtml(validity) + ' días calendario</b>.'];
     if (measurement) lines.push("• " + escapeHtml(measurement));
     if (payment) lines.push("• Forma de pago: " + escapeHtml(payment));
-    setHtml("condiciones-comerciales", lines.join("<br>"));
+    return lines.join("<br>");
   }
 
-  function applyPedido(cfg) {
+  function buildPedidoConditionsHtml(cfg) {
     const warranty = clean(key(cfg, "documentos.pedido.garantia_anios", "3")) || "3";
     const delivery = clean(key(cfg, "documentos.pedido.entrega_dias_habiles", "10")) || "10";
     const balance = clean(key(cfg, "documentos.pedido.condicion_saldo", ""));
@@ -196,7 +199,15 @@
     ];
     if (balance) lines.push('• <b>Saldo:</b> ' + escapeHtml(balance));
     if (installation) lines.push('• <b>Instalación:</b> ' + escapeHtml(installation));
-    setHtml("pedido-condiciones", lines.join("<br>"));
+    return lines.join("<br>");
+  }
+
+  function applyCotizacion(cfg) {
+    setHtml("condiciones-comerciales", buildCotizacionConditionsHtml(cfg));
+  }
+
+  function applyPedido(cfg) {
+    setHtml("pedido-condiciones", buildPedidoConditionsHtml(cfg));
   }
 
   function apply(cfg, kind) {
@@ -217,32 +228,26 @@
         source: data.source || "network"
       };
     }
-    return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
+    throw new Error("La configuración central no devolvió datos válidos.");
   }
 
   function fetchConfig(url) {
-    // Los documentos deben leer exactamente la misma configuración central que Configuración.
-    // Evita mantener un segundo camino de sincronización con comportamiento/caché distinto.
+    // La vista previa y los PDF deben usar configuración central confirmada.
+    // Un fallo de red no debe generar un PDF con datos predeterminados/antiguos.
     if (window.HomeEasyCore && typeof window.HomeEasyCore.getConfiguration === "function") {
-      return window.HomeEasyCore.getConfiguration({ force: true, allowFallback: true })
-        .then(normalizeConfigPayload)
-        .catch(function () {
-          return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
-        });
+      return window.HomeEasyCore.getConfiguration({ force: true, allowFallback: false })
+        .then(normalizeConfigPayload);
     }
-
     const apiUrl = clean(url) || DEFAULT_API_URL;
     return fetch(apiUrl + "?tipo=GET_CONFIGURACION&t=" + Date.now(), { cache: "no-store" })
-      .then(function (response) { return response.json(); })
+      .then(function (response) {
+        if (!response.ok) throw new Error("Error al consultar Configuración.");
+        return response.json();
+      })
       .then(function (data) {
         const status = clean(data && data.status).toLowerCase();
-        if (data && (status === "ok" || status === "success") && data.configuracion) {
-          return normalizeConfigPayload(data);
-        }
-        return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
-      })
-      .catch(function () {
-        return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
+        if (status !== "ok" && status !== "success") throw new Error("Configuración no disponible.");
+        return normalizeConfigPayload(data);
       });
   }
 
@@ -262,13 +267,41 @@
     const kind = opts.documentType || state.documentType || "cotizacion";
     state.documentType = kind;
     state.promise = ensureConfig(url).then(function (payload) {
+      if (payload.source !== "network") throw new Error("No se confirmó la configuración central.");
       state.config = payload.config;
       state.version = payload.version;
+      state.source = payload.source;
+      state.error = null;
       apply(state.config, kind);
       markReady();
       return payload;
+    }).catch(function (error) {
+      state.config = null;
+      state.source = "error";
+      state.error = error && error.message ? error.message : "Configuración no disponible";
+      const header = document.getElementById("empresa-info-header");
+      if (header) {
+        header.textContent = "No se pudo sincronizar Configuración. Revisa la conexión antes de generar el PDF.";
+        header.setAttribute("aria-busy", "false");
+      }
+      markReady();
+      return { source: "error", error: state.error };
     });
     return state.promise;
+  }
+
+  function assertSynced() {
+    return (state.promise || Promise.resolve(null)).then(function () {
+      if (!state.config || state.source !== "network") {
+        throw new Error("No se pudo confirmar la configuración actual. Vuelve a abrir el documento con conexión antes de generar su PDF.");
+      }
+      // Garantiza que lo que se exporta sea la cabecera ya sincronizada del formulario.
+      const companyHeader = document.getElementById("empresa-info-header");
+      if (!companyHeader || companyHeader.innerHTML !== buildHeader(state.config)) {
+        apply(state.config, state.documentType);
+      }
+      return state.config;
+    });
   }
 
   function detectDocumentType() {
@@ -647,6 +680,9 @@
     key: key,
     flattenObject: flattenObject,
     buildHeaderHtml: buildHeader,
+    buildCotizacionConditionsHtml: buildCotizacionConditionsHtml,
+    buildPedidoConditionsHtml: buildPedidoConditionsHtml,
+    assertSynced: assertSynced,
     normalizePhone: normalizePhone,
     installMobileTextEditor: installMobileTextEditor,
     preparePaginatedClone: preparePaginatedClone,
