@@ -30,8 +30,8 @@ class PDFMock{
     return lines;
   }
 }
-function element({value,innerText,textContent,classList}={}){
-  return {value,innerText,textContent,classList:classList||{contains:()=>false}};
+function element(properties={}){
+  return {...properties,classList:properties.classList||{contains:()=>false}};
 }
 function fixture(mode,rows=14,longNotes=14){
   const fields={
