@@ -21,6 +21,7 @@ let state=fresh(),catalog=null,lastEngineQuote=null,lastEngineSignature='',lastQ
 let saveTimer,toastTimer,undoItem,quoteTimer,requestSeq=0;
 let installationEditingId='',installationDraft=null;
 let activeItemId='';
+let activeItemCollapsed=false;
 let pendingTransferPreview=null,lastSharedTransfer=null,transferBusy=false;
 
 function toast(message){
@@ -438,6 +439,7 @@ function ensureActiveItem(){
 function activateItem(itemId,options={}){
   if(!state.items.some(item=>item.id===itemId))return;
   activeItemId=itemId;
+  activeItemCollapsed=false;
   render({recalculate:options.recalculate===true});
   const card=Array.from(document.querySelectorAll('.item-card')).find(el=>el.dataset.id===itemId);
   if(!card)return;
@@ -456,7 +458,7 @@ function renderItem(item,index,layerIndex=0,layerCount=1){
   const manual=forcedManual||item.mode==='manual';
   const unitLabel=Number(item.quantity)>1?'Costo por persiana':'Costo de la persiana';
   const layerLabel=layerCount>1?'Persiana '+(layerIndex+1)+' de '+layerCount:'Persiana '+(layerIndex+1);
-  const expanded=item.id===activeItemId;
+  const expanded=item.id===activeItemId&&!activeItemCollapsed;
   const productName=p?.name||'Selecciona una referencia';
   const measure=(item.width||'—')+' × '+(item.height||'—')+' m';
   const cardLabel=layerLabel+(item.duplicateOriginId?' · Copia':'');
@@ -1107,7 +1109,12 @@ $('items').addEventListener('click',event=>{
   if(index<0)return;
 
   if(button.dataset.action==='expand'){
-    activateItem(state.items[index].id);
+    if(activeItemId===state.items[index].id){
+      activeItemCollapsed=!activeItemCollapsed;
+      render({recalculate:false});
+    }else{
+      activateItem(state.items[index].id);
+    }
     return;
   }
 
