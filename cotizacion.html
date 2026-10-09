@@ -981,32 +981,14 @@
                         printFooter.style.right = '0';
                         printFooter.style.bottom = '0';
                         printFooter.style.width = '100%';
-                        // Las observaciones largas fluyen línea a línea entre hojas.
-                        // Evita dejar una página medio vacía por mover el bloque entero.
-                        const printNotes = printArea.querySelector('#notas');
-                        if (printNotes) {
-                            // Ajuste tipográfico solo para observaciones largas del PDF;
-                            // conserva toda la plantilla, sus encabezados y el contenido.
-                            printNotes.style.fontSize = '0.75rem';
-                            printNotes.style.fontWeight = '500';
-                            printNotes.style.lineHeight = '1.35';
-                            const noteLines = String(printNotes.innerText || printNotes.textContent || '').split(/\r?\n/);
-                            printNotes.replaceChildren();
-                            noteLines.forEach(line => {
-                                const row = clonedDoc.createElement('div');
-                                row.className = 'pdf-note-line';
-                                row.textContent = line;
-                                row.style.cssText = 'display:block;white-space:normal;overflow-wrap:anywhere;break-inside:avoid;margin:0 0 2px 0;';
-                                printNotes.appendChild(row);
-                            });
-                        }
                     }
                     if (window.HomeEasyDocs && typeof window.HomeEasyDocs.preparePaginatedClone === 'function') {
                         window.HomeEasyDocs.preparePaginatedClone(clonedDoc, {
                             areaId: 'area-pdf',
                             tableBodySelector: '#tabla-body',
-                            notesSelector: isMultiPage ? '#no-whole-note-break' : '#notas',
-                            summarySelector: isMultiPage ? '#no-early-summary-break' : '.row.g-4.mt-auto',
+                            notesSelector: '#notas',
+                            summarySelector: '.row.g-4.mt-auto',
+                            footerSelector: '.pdf-footer',
                             pageWidthPx: 800,
                             // No mover el pie a una página vacía; se ancla al final
                             // de la última hoja cuando el documento supera una página.
@@ -1016,25 +998,6 @@
                     }
                     if (isMultiPage) {
                         printArea.querySelector('.pdf-smart-page-tail')?.remove();
-                        const areaTop = printArea.getBoundingClientRect().top;
-                        function avoidLineCut(element) {
-                            if (!element || !element.parentNode) return;
-                            const rect = element.getBoundingClientRect();
-                            const top = rect.top - areaTop;
-                            const bottom = rect.bottom - areaTop;
-                            if (bottom - top >= pageHeightPx - 4) return;
-                            if (Math.floor((top + .5) / pageHeightPx) === Math.floor((bottom - .5) / pageHeightPx)) return;
-                            const used = ((top % pageHeightPx) + pageHeightPx) % pageHeightPx;
-                            const gap = pageHeightPx - used;
-                            if (gap <= 1 || gap >= pageHeightPx - 1) return;
-                            const spacer = clonedDoc.createElement('div');
-                            spacer.className = 'pdf-smart-page-spacer';
-                            spacer.setAttribute('aria-hidden', 'true');
-                            spacer.style.cssText = 'height:' + gap + 'px!important;min-height:' + gap + 'px!important;background:#fff!important;';
-                            element.parentNode.insertBefore(spacer, element);
-                        }
-                        printArea.querySelectorAll('#notas .pdf-note-line').forEach(avoidLineCut);
-                        avoidLineCut(printArea.querySelector('.row.g-4.mt-auto'));
                         const bodyBottom = printBody.getBoundingClientRect().bottom - printArea.getBoundingClientRect().top;
                         const required = Math.max(2, Math.ceil((bodyBottom + printFooter.offsetHeight + 4) / pageHeightPx));
                         printArea.style.minHeight = (required * pageHeightPx) + 'px';
