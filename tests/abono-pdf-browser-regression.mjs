@@ -18,12 +18,12 @@ const config = {
     pie_sistema:'Documento generado automáticamente - Sistema Hommy V3.0' }
 };
 const cases = [
-  { label:'mobile-first', viewport:{width:390,height:844}, history:0, initial:300000, payment:150000, concept:'' },
-  { label:'mobile-history', viewport:{width:390,height:844}, history:9, initial:300000, payment:700000, concept:'Abono para fabricación e instalación de persianas.' },
-  { label:'desktop-long', viewport:{width:1280,height:850}, history:23, initial:300000, payment:150000, concept:'Confirmación de abono por transferencia. Información validada en la orden 174.' },
-  { label:'mobile-many', viewport:{width:390,height:844}, history:40, initial:300000, payment:300000, concept:'Abono aplicado según acuerdo comercial, con historial completo.' },
-  { label:'mobile-paid', viewport:{width:390,height:844}, history:4, initial:300000, payment:1960000, concept:'Pago final de la orden. Paz y salvo.' },
-  { label:'capture-failure', viewport:{width:390,height:844}, history:3, initial:300000, payment:100000, concept:'Prueba de error de captura', failure:true }
+  { label:'mobile-first', webEnabled:true, viewport:{width:390,height:844}, history:0, initial:300000, payment:150000, concept:'' },
+  { label:'mobile-history', webEnabled:false, viewport:{width:390,height:844}, history:9, initial:300000, payment:700000, concept:'Abono para fabricación e instalación de persianas.' },
+  { label:'desktop-long', webEnabled:true, viewport:{width:1280,height:850}, history:23, initial:300000, payment:150000, concept:'Confirmación de abono por transferencia. Información validada en la orden 174.' },
+  { label:'mobile-many', webEnabled:false, viewport:{width:390,height:844}, history:40, initial:300000, payment:300000, concept:'Abono aplicado según acuerdo comercial, con historial completo.' },
+  { label:'mobile-paid', webEnabled:true, viewport:{width:390,height:844}, history:4, initial:300000, payment:1960000, concept:'Pago final de la orden. Paz y salvo.' },
+  { label:'capture-failure', webEnabled:true, viewport:{width:390,height:844}, history:3, initial:300000, payment:100000, concept:'Prueba de error de captura', failure:true }
 ];
 const totalOrder = 2300000;
 const browser = await chromium.launch({ headless:true });
@@ -63,7 +63,7 @@ try {
        }
        return native(input,opts);
      };
-   },{settings:config,history:historical,initial:scenario.initial,totalOrder,pending:expectedPending});
+   },{settings:{...config,documentos:{...config.documentos,mostrar_web:scenario.webEnabled}},history:historical,initial:scenario.initial,totalOrder,pending:expectedPending});
    await page.route('**/homeeasy-core.js*',route=>route.fulfill({
      status:200,contentType:'application/javascript',
      body:'window.HomeEasyCore={getConfiguration:async()=>({status:"ok",source:"network",version:4,configuracion:window.__QA_CONFIG})};'
@@ -110,6 +110,8 @@ try {
      currentHistory:document.querySelectorAll('#tbody_pagos tr').length
    }));
    assert(loaded.company.includes('1.061.760.852-1'),'Company settings did not load');
+   assert.equal(loaded.company.includes('www.homeeasy.com.co'),scenario.webEnabled,
+     'Receipt should honor saved Show Website toggle: '+scenario.label);
    assert(loaded.footer.includes('HOMEEASY'),'Footer config not applied');
    assert.equal(loaded.pending,expectedPending,'Outstanding balance wrong when Sheets returns payment strings');
    assert.equal(loaded.totalPaid,scenario.initial+scenario.history*10000,'Payment history total wrong');
@@ -134,6 +136,7 @@ try {
          window.__QA_CLONE_HEIGHT=area.getBoundingClientRect().height;
          window.__QA_CLONE_ROWS=doc.querySelectorAll('#tbody_pagos tr').length;
          window.__QA_CLONE_VALUE=doc.getElementById('abono_dest_valor').innerText;
+         window.__QA_CLONE_HEADER=doc.getElementById('empresa-info-header').innerText;
        }})).then(canvas=>{
          window.__QA_CANVAS={width:canvas.width,height:canvas.height};
          return canvas;
@@ -164,7 +167,7 @@ try {
    await page.waitForFunction(()=>Boolean(window.__QA_POST),null,{timeout:25000});
    const capture=await page.evaluate(()=>({payload:window.__QA_POST,canvas:window.__QA_CANVAS,
      opts:window.__QA_CAPTURE_OPTS,cloneHeight:window.__QA_CLONE_HEIGHT,cloneRows:window.__QA_CLONE_ROWS,
-     cloneValue:window.__QA_CLONE_VALUE,origWidth:document.getElementById('area-pdf').style.width,
+     cloneValue:window.__QA_CLONE_VALUE,cloneHeader:window.__QA_CLONE_HEADER,origWidth:document.getElementById('area-pdf').style.width,
      inputVisible:document.getElementById('inputs_abono').style.display,
      bodyPadding:document.body.style.padding,logo:document.querySelector('.logo-only').naturalWidth>0}));
    const p=capture.payload;
@@ -178,6 +181,8 @@ try {
    assert(capture.canvas.height>=capture.cloneHeight*2.9,'Complete receipt height must be captured');
    assert.equal(capture.cloneRows,loaded.currentHistory+3,'Current payment, total and balance rows must be present in PDF');
    assert(capture.cloneValue.includes(scenario.payment.toLocaleString('es-CO')),'Highlighted payment must be in PDF');
+   assert.equal(capture.cloneHeader.includes('www.homeeasy.com.co'),scenario.webEnabled,
+     'PDF capture must reflect website visibility: '+scenario.label);
    assert.equal(capture.origWidth,'','Receipt UI must return to original width');
    assert.notEqual(capture.inputVisible,'none','Receipt inputs must return after capture');
    assert(capture.logo,'Corporate logo missing');
