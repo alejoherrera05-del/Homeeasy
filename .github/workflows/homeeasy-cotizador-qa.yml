@@ -1,0 +1,41 @@
+name: HomeEasy Cotizador QA
+
+on:
+  push:
+    paths:
+      - 'homeeasy-cost-calculator.js'
+      - 'homeeasy-cost-calculator.css'
+      - 'cotizador-persianas.html'
+      - 'tests/cost-calculator-*.cjs'
+      - '.github/workflows/homeeasy-cotizador-qa.yml'
+  pull_request:
+    paths:
+      - 'homeeasy-cost-calculator.js'
+      - 'homeeasy-cost-calculator.css'
+      - 'cotizador-persianas.html'
+      - 'tests/cost-calculator-*.cjs'
+      - '.github/workflows/homeeasy-cotizador-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cotizador:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check script syntax
+        run: node --check homeeasy-cost-calculator.js
+      - name: Install isolated DOM test dependency
+        run: npm install --no-save --no-package-lock jsdom@25
+      - name: Verify price calculations (unchanged)
+        run: node tests/cost-calculator-10b.cjs
+      - name: Verify enrollable UI (unchanged)
+        run: node tests/cost-calculator-enrollables-ui.cjs
+      - name: Verify window editing and duplication
+        run: node tests/cost-calculator-active-window.cjs
