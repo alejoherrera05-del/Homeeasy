@@ -1003,6 +1003,24 @@
                         printArea.style.minHeight = (required * pageHeightPx) + 'px';
                         printArea.style.height = (required * pageHeightPx) + 'px';
                         printArea.dataset.pdfSmartPages = String(required);
+                        if (window.__QA_CONFIG) {
+                            const geometry = (el) => {
+                                if (!el) return null;
+                                const aRect = printArea.getBoundingClientRect();
+                                const rect = el.getBoundingClientRect();
+                                return { top: Math.round(rect.top-aRect.top), bottom: Math.round(rect.bottom-aRect.top), height: Math.round(rect.height) };
+                            };
+                            window.__quoteLayoutTrace = {
+                                multi: isMultiPage,
+                                pageHeightPx, required,
+                                area: geometry(printArea), body: geometry(printBody),
+                                footer: geometry(printFooter),
+                                notes: geometry(printArea.querySelector('#notas')),
+                                summary: geometry(printArea.querySelector('.row.g-4.mt-auto')),
+                                spacers: Array.from(printArea.querySelectorAll('.pdf-smart-page-spacer')).map(geometry),
+                                contentHeight: Math.round(printArea.scrollHeight)
+                            };
+                        }
                     }
                 }
             });
