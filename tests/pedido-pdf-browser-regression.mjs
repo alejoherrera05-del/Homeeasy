@@ -208,7 +208,8 @@ try{
   const pageCount=(pdfBytes.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length;
   assert(pageCount>0,'Valid jsPDF page count required');
   if(scenario.count===4)assert.equal(pageCount,1,'Short orders must fit a single branded page');
-  if(scenario.count>=14)assert(pageCount>=2&&pageCount<=7,'Long order should be paginated without runaway blank pages');
+  if(scenario.count===14)assert.equal(pageCount,2,'Fourteen-item orders should not generate a mostly empty third page');
+  if(scenario.count===28)assert(pageCount>=3&&pageCount<=4,'Extended order pagination must stay within four pages');
   const after=await page.evaluate(()=>({
    exportMode:document.getElementById('area-pdf').classList.contains('pdf-export-mode'),
    width:document.getElementById('area-pdf').style.width,
