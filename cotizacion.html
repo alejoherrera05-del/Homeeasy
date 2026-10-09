@@ -307,7 +307,9 @@
         #area-pdf.quote-total-only thead th:nth-child(3),
         #area-pdf.quote-total-only thead th:nth-child(4),
         #area-pdf.quote-total-only #tabla-body td:nth-child(3),
-        #area-pdf.quote-total-only #tabla-body td:nth-child(4) { display:none !important; }
+        #area-pdf.quote-total-only #tabla-body td:nth-child(4),
+        #area-pdf.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(3),
+        #area-pdf.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(4) { display:none !important; }
         #area-pdf.quote-total-only #subtotal_row,
         #area-pdf.quote-total-only #desc_row { display:none !important; }
     </style>
@@ -867,6 +869,9 @@
         try {
             setStep(1, 'active');
             
+            // Mantener la plantilla original y restaurar el formulario incluso si falla el PDF.
+            const exportScrollX = window.scrollX;
+            const exportScrollY = window.scrollY;
             const origBodyPadding = document.body.style.padding; 
             document.body.style.padding = '0';
             
@@ -875,21 +880,35 @@
             
             const origBorderRadius = areaPdf.style.borderRadius; 
             const origBoxShadow = areaPdf.style.boxShadow;
+            const origWidth = areaPdf.style.width;
+            const origMaxWidth = areaPdf.style.maxWidth;
+            const origMargin = areaPdf.style.margin;
+            let canvas;
+            try {
             areaPdf.style.borderRadius = '0px'; 
             areaPdf.style.boxShadow = 'none'; 
             areaPdf.style.width = '800px'; 
             areaPdf.style.maxWidth = '800px'; 
             areaPdf.style.margin = '0'; 
 
-            await new Promise(r => setTimeout(r, 50));
+            // La captura debe iniciar en la parte superior, aunque el usuario pulse
+            // «Procesar» al final de una cotización extensa en Safari/iPhone.
+            window.scrollTo(0, 0);
+            if (document.fonts && document.fonts.ready) await document.fonts.ready;
+            const homeEasyLogo = areaPdf.querySelector('.logo-only');
+            if (homeEasyLogo && typeof homeEasyLogo.decode === 'function') {
+                try { await homeEasyLogo.decode(); } catch (error) {}
+            }
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-            const canvas = await html2canvas(areaPdf, { 
+            canvas = await html2canvas(areaPdf, { 
                 scale: 3, 
                 useCORS: true, 
                 width: 800, 
                 windowWidth: 800, 
-                x: areaPdf.offsetLeft, 
-                y: areaPdf.offsetTop,
+                scrollX: 0, 
+                scrollY: 0, 
+                backgroundColor: '#ffffff',
                 onclone: function(clonedDoc) {
                     clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
                     
@@ -940,6 +959,29 @@
                         ta.parentNode.replaceChild(div, ta);
                     });
 
+                    // Solo modifica la copia de impresión, nunca la vista previa.
+                    const printArea = clonedDoc.getElementById('area-pdf');
+                    const printBody = printArea && printArea.querySelector('.card-body');
+                    const printFooter = printArea && printArea.querySelector('.pdf-footer');
+                    const printHeader = printArea && printArea.querySelector('.header-brand');
+                    const printTitle = printArea && printArea.querySelector('.document-type');
+                    const pageHeightPx = 800 * 279.4 / 215.9;
+                    const isMultiPage = !!(printArea && printBody && printFooter &&
+                        ((printBody.scrollHeight || 0) + (printHeader?.offsetHeight || 0) +
+                         (printTitle?.offsetHeight || 0) + (printFooter.offsetHeight || 0) > pageHeightPx + 2));
+                    if (isMultiPage) {
+                        printArea.style.position = 'relative';
+                        printArea.style.display = 'block';
+                        printArea.style.minHeight = '0';
+                        printBody.style.display = 'block';
+                        printBody.style.flex = 'none';
+                        printFooter.classList.add('pdf-pinned-footer');
+                        printFooter.style.position = 'absolute';
+                        printFooter.style.left = '0';
+                        printFooter.style.right = '0';
+                        printFooter.style.bottom = '0';
+                        printFooter.style.width = '100%';
+                    }
                     if (window.HomeEasyDocs && typeof window.HomeEasyDocs.preparePaginatedClone === 'function') {
                         window.HomeEasyDocs.preparePaginatedClone(clonedDoc, {
                             areaId: 'area-pdf',
@@ -948,21 +990,36 @@
                             summarySelector: '.row.g-4.mt-auto',
                             footerSelector: '.pdf-footer',
                             pageWidthPx: 800,
+                            // No mover el pie a una página vacía; se ancla al final
+                            // de la última hoja cuando el documento supera una página.
+                            footerSelector: '.pdf-footer:not(.pdf-pinned-footer)',
                             repeatTableHeader: true
                         });
+                    }
+                    if (isMultiPage) {
+                        printArea.querySelector('.pdf-smart-page-tail')?.remove();
+                        const bodyBottom = printBody.getBoundingClientRect().bottom - printArea.getBoundingClientRect().top;
+                        const required = Math.max(2, Math.ceil((bodyBottom + printFooter.offsetHeight + 4) / pageHeightPx));
+                        printArea.style.minHeight = (required * pageHeightPx) + 'px';
+                        printArea.style.height = (required * pageHeightPx) + 'px';
+                        printArea.dataset.pdfSmartPages = String(required);
                     }
                 }
             });
 
-            setStep(1, 'check'); 
-            setStep(2, 'active');
+            } finally {
+                areaPdf.classList.remove('pdf-export-mode');
+                document.body.style.padding = origBodyPadding;
+                areaPdf.style.borderRadius = origBorderRadius;
+                areaPdf.style.boxShadow = origBoxShadow;
+                areaPdf.style.width = origWidth;
+                areaPdf.style.maxWidth = origMaxWidth;
+                areaPdf.style.margin = origMargin;
+                window.scrollTo(exportScrollX, exportScrollY);
+            }
 
-            areaPdf.classList.remove('pdf-export-mode'); 
-            document.body.style.padding = origBodyPadding; 
-            areaPdf.style.borderRadius = origBorderRadius; 
-            areaPdf.style.boxShadow = origBoxShadow; 
-            areaPdf.style.width = '100%'; 
-            areaPdf.style.margin = '0 auto';
+            setStep(1, 'check');
+            setStep(2, 'active');
 
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF("p", "mm", "letter"); 
