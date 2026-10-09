@@ -985,13 +985,13 @@
                         // Evita dejar una página medio vacía por mover el bloque entero.
                         const printNotes = printArea.querySelector('#notas');
                         if (printNotes) {
-                            const noteLines = String(printNotes.textContent || '').split(/\r?\n/);
+                            const noteLines = String(printNotes.innerText || printNotes.textContent || '').split(/\r?\n/);
                             printNotes.replaceChildren();
                             noteLines.forEach(line => {
                                 const row = clonedDoc.createElement('div');
                                 row.className = 'pdf-note-line';
                                 row.textContent = line;
-                                row.style.cssText = 'display:block;white-space:normal;overflow-wrap:anywhere;break-inside:avoid;';
+                                row.style.cssText = 'display:block;white-space:normal;overflow-wrap:anywhere;break-inside:avoid;margin:0 0 3px 0;';
                                 printNotes.appendChild(row);
                             });
                         }
