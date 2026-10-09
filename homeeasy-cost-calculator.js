@@ -20,6 +20,7 @@ const fresh=()=>({version:2,project:'',items:[],transport:'0',installationTotal:
 let state=fresh(),catalog=null,lastEngineQuote=null,lastEngineSignature='',lastQuote=null,key='',engineCacheKey='',ready=false,loading=false;
 let saveTimer,toastTimer,undoItem,quoteTimer,requestSeq=0;
 let installationEditingId='',installationDraft=null;
+let activeItemId='';
 let pendingTransferPreview=null,lastSharedTransfer=null,transferBusy=false;
 
 function toast(message){
@@ -416,9 +417,7 @@ function newItem(previous,roomId=''){
 function newRoomLayer(previous){
   const item=newItem(previous,roomIdOf(previous));
   item.location=previous?.location||'';
-  item.width=previous?.width||'';
-  item.height=previous?.height||'';
-  item.quantity=previous?.quantity||'1';
+  // Una persiana nueva no hereda medidas. Solo "Duplicar" realiza una copia exacta.
   return item;
 }
 
@@ -432,19 +431,48 @@ function moneyField(item,name,label,placeholder='0'){
   return '<div class="field"><label for="'+id+'">'+label+'</label><div class="money-input"><span>COP $</span><input id="'+id+'" data-field="'+name+'" data-money="true" inputmode="numeric" value="'+escape(formatPesos(item[name]))+'" placeholder="'+placeholder+'" autocomplete="off"></div></div>';
 }
 
+function ensureActiveItem(){
+  if(!state.items.some(item=>item.id===activeItemId))activeItemId=state.items[0]?.id||'';
+}
+
+function activateItem(itemId,options={}){
+  if(!state.items.some(item=>item.id===itemId))return;
+  activeItemId=itemId;
+  render({recalculate:options.recalculate===true});
+  const card=Array.from(document.querySelectorAll('.item-card')).find(el=>el.dataset.id===itemId);
+  if(!card)return;
+  if(options.scroll&&typeof card.scrollIntoView==='function'){
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  const focusTarget=options.focusField
+    ?card.querySelector('[data-field="'+options.focusField+'"]')
+    :card.querySelector('[data-action="expand"]');
+  if(focusTarget)focusTarget.focus({preventScroll:true});
+}
+
 function renderItem(item,index,layerIndex=0,layerCount=1){
   const p=chosen(item);
   const forcedManual=requiresManual(item);
   const manual=forcedManual||item.mode==='manual';
   const unitLabel=Number(item.quantity)>1?'Costo por persiana':'Costo de la persiana';
   const layerLabel=layerCount>1?'Persiana '+(layerIndex+1)+' de '+layerCount:'Persiana '+(layerIndex+1);
+  const expanded=item.id===activeItemId;
+  const productName=p?.name||'Selecciona una referencia';
+  const measure=(item.width||'—')+' × '+(item.height||'—')+' m';
+  const cardLabel=layerLabel+(item.duplicateOriginId?' · Copia':'');
+  const collapsedPrice='<span class="item-mini-price" data-output="collapsed-total">—</span>';
 
-  return '<article class="item-card" data-id="'+escape(item.id)+'">'+
+  return '<article class="item-card '+(expanded?'is-active':'is-collapsed')+'" data-id="'+escape(item.id)+'">'+
     '<div class="item-head">'+
-      '<div><span class="item-number">'+layerLabel+'</span><h3>'+escape(familyLabels[item.family]||'Persiana')+'</h3></div>'+
-      '<div class="item-actions"><button data-action="duplicate" title="Duplicar">Duplicar</button><button data-action="remove" title="Quitar">Quitar</button></div>'+
+      '<button type="button" class="item-expand" data-action="expand" aria-expanded="'+(expanded?'true':'false')+'" aria-controls="item-fields-'+escape(item.id)+'">'+
+        '<span class="item-head-main"><span class="item-number">'+escape(cardLabel)+'</span><strong class="item-head-title">'+escape(familyLabels[item.family]||'Persiana')+'</strong><small class="item-head-subtitle">'+escape(productName)+'</small></span>'+
+        '<span class="item-head-meta">'+(expanded?'<span class="editing-flag">Editando ahora</span>':'<span class="item-measure">'+escape(measure)+'</span>'+collapsedPrice)+'</span>'+
+        '<i class="fa-solid fa-chevron-'+(expanded?'up':'down')+' item-chevron" aria-hidden="true"></i>'+
+      '</button>'+
+      '<div class="item-actions"><button type="button" data-action="duplicate" title="Duplicar esta persiana">Duplicar</button><button type="button" data-action="remove" title="Quitar esta persiana">Quitar</button></div>'+
     '</div>'+
-
+    '<div class="item-content" id="item-fields-'+escape(item.id)+'" '+(expanded?'':'hidden')+'>'+
+      (item.measureReviewPending?'<div class="item-duplicate-review"><span><i class="fa-solid fa-circle-info"></i> Esta copia conserva las medidas originales. Verifica ancho y alto.</span><button type="button" data-action="confirm-measures">Medidas correctas</button></div>':'')+
     '<div class="product-grid">'+
       '<div class="field"><label for="family-'+item.id+'">Producto</label><select id="family-'+item.id+'" data-field="family">'+familyOptions(item.family)+'</select></div>'+
       '<div class="field"><label for="product-'+item.id+'">Tela / referencia</label><select id="product-'+item.id+'" data-field="product">'+productOptions(item)+'</select></div>'+
@@ -476,6 +504,7 @@ function renderItem(item,index,layerIndex=0,layerCount=1){
     '</div>'+
     '<div data-output="fabrication"></div>'+
     '<p class="item-error" data-output="error" role="status"></p>'+
+    '</div>'+
   '</article>';
 }
 
@@ -498,12 +527,34 @@ function renderRoom(group,roomIndex){
 }
 
 function render(options={}){
+  ensureActiveItem();
   const groups=roomGroups();
   $('items').innerHTML=groups.map(renderRoom).join('');
   $('item-count').textContent='('+state.items.length+')';
   if(options.recalculate===false)renderCommercial();
   else scheduleQuote(0);
   save();
+}
+
+function openMeasuresReview(){
+  const groups=roomGroups();
+  $('review-lines').innerHTML=groups.map((group,roomIndex)=>{
+    const name=String(group.items[0]?.location||'').trim()||'Ambiente '+(roomIndex+1);
+    const rows=group.items.map((item,layerIndex)=>{
+      const label='Persiana '+(layerIndex+1);
+      const dimensions=item.width&&item.height
+        ?escape(item.width)+' × '+escape(item.height)+' m'
+        :'<span class="review-missing">Medidas pendientes</span>';
+      return '<div class="review-row"><div class="review-row-main">'+
+        '<strong>'+escape(label)+' · '+escape(familyLabels[item.family]||'Persiana')+(item.duplicateOriginId?' <span class="review-copy">Copia</span>':'')+'</strong>'+
+        '<small>'+escape(chosen(item)?.name||'Sin referencia')+'</small>'+
+        (item.measureReviewPending?'<small class="review-missing">Verifica las medidas copiadas</small>':'')+
+        '</div><span class="review-dimensions">'+dimensions+'</span>'+
+        '<button type="button" data-review-id="'+escape(item.id)+'">Editar</button></div>';
+    }).join('');
+    return '<section class="review-room"><h3>'+escape(name)+'</h3>'+rows+'</section>';
+  }).join('');
+  $('review-dialog').showModal();
 }
 
 function setCalculating(){
@@ -740,6 +791,7 @@ function applyTransferredVisit(payload){
   received.items=(payload?.items||[]).map(hydrateTransferredItem);
   if(!received.items.length)received.items=[newItem()];
   state=received;
+  activeItemId='';
   normalizeRoomIds();
   clearEngineCache();
   fillGlobals();
@@ -817,6 +869,8 @@ function renderCommercial(message=''){
     const itemResult=stateIndex>=0?q?.items?.[stateIndex]:null;
     const unit=el.querySelector('[data-output=unit]');
     const total=el.querySelector('[data-output=total]');
+    const collapsedTotal=el.querySelector('[data-output=collapsed-total]');
+    if(collapsedTotal)collapsedTotal.textContent=itemResult?.ok?cop(itemResult.total):'Precio pendiente';
     if(unit)unit.textContent=itemResult?.ok?cop(itemResult.unit):'—';
     if(total)total.textContent=itemResult?.ok?cop(itemResult.total):'—';
     const currentItem=stateIndex>=0?state.items[stateIndex]:null;
@@ -1042,9 +1096,8 @@ $('items').addEventListener('click',event=>{
     const item=newRoomLayer(previous);
     const lastIndex=Math.max(...group.items.map(i=>state.items.indexOf(i)));
     state.items.splice(lastIndex+1,0,item);
-    render();
-    document.querySelector('[data-id="'+item.id+'"] [data-field=family]')?.focus();
-    toast('Persiana agregada al mismo ambiente.');
+    activateItem(item.id,{scroll:true,focusField:'width',recalculate:true});
+    toast('Persiana agregada. Estás editando la nueva.');
     return;
   }
 
@@ -1052,6 +1105,18 @@ $('items').addEventListener('click',event=>{
   if(!card)return;
   const index=state.items.findIndex(i=>i.id===card.dataset.id);
   if(index<0)return;
+
+  if(button.dataset.action==='expand'){
+    activateItem(state.items[index].id);
+    return;
+  }
+
+  if(button.dataset.action==='confirm-measures'){
+    state.items[index].measureReviewPending=false;
+    render({recalculate:false});
+    toast('Medidas de la copia revisadas.');
+    return;
+  }
 
   if(button.dataset.action==='installation'){
     openInstallationDialog(state.items[index]);
@@ -1082,17 +1147,18 @@ $('items').addEventListener('click',event=>{
   if(button.dataset.action==='duplicate'){
     if(state.items.length>=100){toast('Máximo 100 persianas.');return;}
     const source=state.items[index];
-    const item={...source,id:crypto.randomUUID(),roomId:roomIdOf(source),addons:[...(source.addons||[])],installation:{...installationData(source)}};
+    const item={...source,id:crypto.randomUUID(),roomId:roomIdOf(source),duplicateOriginId:source.id,measureReviewPending:true,addons:[...(source.addons||[])],installation:{...installationData(source)}};
     state.items.splice(index+1,0,item);
-    render();
-    document.querySelector('[data-id="'+item.id+'"] [data-field=product]')?.focus();
-    toast('Persiana duplicada en este ambiente.');
+    activateItem(item.id,{scroll:true,focusField:'width',recalculate:true});
+    toast('Copia abierta. Revisa sus medidas antes de continuar.');
   }
 
   if(button.dataset.action==='remove'){
     undoItem={item:state.items[index],index};
+    const removedId=state.items[index].id;
     state.items.splice(index,1);
     if(!state.items.length)state.items.push(newItem());
+    if(activeItemId===removedId)activeItemId=state.items[Math.min(index,state.items.length-1)]?.id||'';
     render();
     $('toast').replaceChildren(document.createTextNode('Persiana eliminada. '));
     const undo=document.createElement('button');
@@ -1102,6 +1168,7 @@ $('items').addEventListener('click',event=>{
       const emptyAuto=state.items.length===1&&!state.items[0].width&&!state.items[0].height&&!state.items[0].location;
       if(emptyAuto)state.items=[];
       state.items.splice(undoItem.index,0,undoItem.item);
+      activeItemId=undoItem.item.id;
       undoItem=null;
       render();
       $('toast').textContent='';
@@ -1115,6 +1182,7 @@ $('add-item').onclick=()=>{
   if(state.items.length>=100){toast('Máximo 100 persianas.');return;}
   const item=newItem(state.items.at(-1));
   state.items.push(item);
+  activeItemId=item.id;
   render();
   document.querySelector('[data-room-id="'+item.roomId+'"] [data-room-field=location]')?.focus();
 };
@@ -1144,6 +1212,7 @@ $('new-quote').onclick=()=>$('new-dialog').showModal();
 $('cancel-new').onclick=()=>$('new-dialog').close();
 $('confirm-new').onclick=()=>{
   state=fresh();
+  activeItemId='';
   clearEngineCache();
   if(catalog)state.items=[newItem()];
   fillGlobals();
@@ -1203,6 +1272,15 @@ $('receive-use-another').onclick=()=>{
 $('consume-transfer').onclick=consumeSharedVisit;
 
 $('close-copy').onclick=()=>$('copy-dialog').close();
+$('review-measures').onclick=openMeasuresReview;
+$('close-review').onclick=()=>$('review-dialog').close();
+$('review-dialog').addEventListener('click',event=>{
+  const edit=event.target.closest('[data-review-id]');
+  if(!edit)return;
+  const id=edit.dataset.reviewId;
+  $('review-dialog').close();
+  activateItem(id,{scroll:true,focusField:'width'});
+});
 
 function formalDescription(item,index,q){
   const product=q.items?.[index]?.product;
@@ -1452,6 +1530,7 @@ async function connect(){
     });
 
     $('add-item').disabled=false;
+    $('review-measures').disabled=false;
     $('share-visit').disabled=false;
     $('receive-visit').disabled=false;
     fillGlobals();
