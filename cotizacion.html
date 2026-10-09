@@ -969,9 +969,6 @@
                     const isMultiPage = !!(printArea && printBody && printFooter &&
                         ((printBody.scrollHeight || 0) + (printHeader?.offsetHeight || 0) +
                          (printTitle?.offsetHeight || 0) + (printFooter.offsetHeight || 0) > pageHeightPx + 2));
-                    window.__quoteLayoutTrace = {isMultiPage, beforeAreaHeight:printArea?.getBoundingClientRect().height,
-                      bodyHeight:printBody?.scrollHeight, headerHeight:printHeader?.offsetHeight,
-                      footerHeight:printFooter?.offsetHeight, noteText:printArea?.querySelector('#notas')?.textContent?.length};
                     if (isMultiPage) {
                         printArea.style.position = 'relative';
                         printArea.style.display = 'block';
@@ -1002,13 +999,10 @@
                     if (isMultiPage) {
                         printArea.querySelector('.pdf-smart-page-tail')?.remove();
                         const bodyBottom = printBody.getBoundingClientRect().bottom - printArea.getBoundingClientRect().top;
-                        const required = Math.max(2, Math.ceil((bodyBottom + printFooter.offsetHeight + 8) / pageHeightPx));
+                        const required = Math.max(2, Math.ceil((bodyBottom + printFooter.offsetHeight + 4) / pageHeightPx));
                         printArea.style.minHeight = (required * pageHeightPx) + 'px';
                         printArea.style.height = (required * pageHeightPx) + 'px';
                         printArea.dataset.pdfSmartPages = String(required);
-                        window.__quoteLayoutTrace = {...window.__quoteLayoutTrace, bodyBottom, footerY:printFooter.getBoundingClientRect().top-printArea.getBoundingClientRect().top,
-                           computedRequired:required, afterAreaHeight:printArea.getBoundingClientRect().height,
-                           pinned:printFooter.classList.contains('pdf-pinned-footer')};
                     }
                 }
             });
