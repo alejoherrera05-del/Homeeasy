@@ -110,6 +110,19 @@ try{
    [300,400,500,600,700,800].map(weight=>'@font-face{font-family:Montserrat;src:url("http://127.0.0.1:4173/node_modules/@fontsource/montserrat/files/montserrat-latin-'+weight+'-normal.woff2") format("woff2");font-weight:'+weight+';}').join('\n')
   }));
   await page.goto('http://127.0.0.1:4173/cotizacion.html?from=cotizador',{waitUntil:'load',timeout:45000});
+  await page.waitForTimeout(1800);
+  const snapshot=await page.evaluate(()=>({
+    readyState:document.readyState,
+    rows:document.querySelectorAll('#tabla-body tr').length,
+    hasDocs:Boolean(window.HomeEasyDocs),
+    configLoaded:Boolean(window.HomeEasyDocs?.state?.config),
+    documentType:window.HomeEasyDocs?.state?.documentType,
+    loadingGuard:document.documentElement.classList.contains('homeeasy-docs-loading'),
+    hasCore:Boolean(window.HomeEasyCore),
+    hasFinalize:typeof finalizar==='function',
+    bodySnippet:document.body.innerText.slice(0,180)
+  }));
+  console.log('Browser startup '+scenario.label+': '+JSON.stringify(snapshot)+'; JS errors='+JSON.stringify(errors));
   await page.waitForFunction(()=>document.querySelectorAll('#tabla-body tr').length>0 && !document.documentElement.classList.contains('homeeasy-docs-loading'));
   const initial=await page.evaluate(()=>({
    rows:document.querySelectorAll('#tabla-body tr').length,
