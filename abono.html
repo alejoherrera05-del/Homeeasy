@@ -798,89 +798,74 @@
         await new Promise(function(r){ setTimeout(r, 50); });
 
         try {
-            var selectMedio = document.getElementById('medioPago');
-            var textoMedio = selectMedio.options[selectMedio.selectedIndex] ? selectMedio.options[selectMedio.selectedIndex].text : '';
-            var spanReemplazo = document.createElement('span');
-            spanReemplazo.innerText = textoMedio;
-            spanReemplazo.className = selectMedio.className;
-            spanReemplazo.style.display = 'inline-block';
-            spanReemplazo.style.border = 'none';
-            spanReemplazo.style.background = 'transparent';
-            spanReemplazo.id = 'medioPago_span_temp';
-            selectMedio.parentNode.replaceChild(spanReemplazo, selectMedio);
-
+            // Comprobante original: captura independiente de scroll, ancho y dispositivo.
             var areaPdf = document.getElementById('area-pdf');
-            
-            // 🚀 CIRUGÍA: FORZAR ANCHO A TAMAÑO VOUCHER/CELULAR (450px)
             var anchoVoucher = 450;
+            var exportScrollX = window.scrollX;
+            var exportScrollY = window.scrollY;
+            var origBodyPadding = document.body.style.padding;
             var origWidth = areaPdf.style.width;
             var origMaxWidth = areaPdf.style.maxWidth;
             var origMargin = areaPdf.style.margin;
             var origBorderRadius = areaPdf.style.borderRadius;
             var origBoxShadow = areaPdf.style.boxShadow;
             var origOverflow = areaPdf.style.overflow;
-            var origBodyPadding = document.body.style.padding;
-            
-            document.body.style.padding = '0';
-            areaPdf.style.width = anchoVoucher + 'px';
-            areaPdf.style.maxWidth = anchoVoucher + 'px';
-            areaPdf.style.margin = '0';
-            areaPdf.style.borderRadius = '0';
-            areaPdf.style.boxShadow = 'none';
-            areaPdf.style.overflow = 'visible';
-            
-            await new Promise(function(r){ setTimeout(r, 200); });
-            
-            var realHeight = areaPdf.scrollHeight;
+            var canvas;
 
-            var canvas = await html2canvas(areaPdf, { 
-                scale: 3, 
-                useCORS: true, 
-                width: anchoVoucher,
-                height: realHeight,
-                windowWidth: anchoVoucher,
-                scrollX: 0,
-                scrollY: -window.scrollY,
-                x: areaPdf.offsetLeft,
-                y: areaPdf.offsetTop,
-                onclone: function(clonedDoc) {
-                    clonedDoc.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+            try {
+                document.body.style.padding = '0';
+                areaPdf.style.width = anchoVoucher + 'px';
+                areaPdf.style.maxWidth = anchoVoucher + 'px';
+                areaPdf.style.margin = '0';
+                areaPdf.style.borderRadius = '0';
+                areaPdf.style.boxShadow = 'none';
+                areaPdf.style.overflow = 'visible';
 
-                    clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(function(input) {
-                        var span = clonedDoc.createElement('span');
-                        span.innerText = input.value;
-                        span.className = input.className;
-                        span.style.display = 'inline-block';
-                        span.style.border = 'none';
-                        span.style.background = 'transparent';
-                        if(input.id === 'valorAbono' || input.classList.contains('text-end')) span.style.textAlign = 'right';
-                        if(input.classList.contains('text-center') || input.id === 'numeroOP') span.style.textAlign = 'center';
-                        input.parentNode.replaceChild(span, input);
+                window.scrollTo(0, 0);
+                if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                await Promise.all(Array.from(areaPdf.querySelectorAll('img')).map(function(img) {
+                    if (typeof img.decode === 'function') return img.decode().catch(function() {});
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(function(resolve) {
+                        img.addEventListener('load', resolve, { once: true });
+                        img.addEventListener('error', resolve, { once: true });
                     });
-                }
-            });
+                }));
+                await new Promise(function(resolve) {
+                    requestAnimationFrame(function() { requestAnimationFrame(resolve); });
+                });
 
-            // RECORTAR CANVAS AL ANCHO EXACTO VOUCHER (elimina franja blanca)
-            var cropWidth = anchoVoucher * 3; 
-            var cropCanvas = document.createElement('canvas');
-            cropCanvas.width = cropWidth;
-            cropCanvas.height = canvas.height;
-            var cropCtx = cropCanvas.getContext('2d');
-            cropCtx.drawImage(canvas, 0, 0, cropWidth, canvas.height, 0, 0, cropWidth, canvas.height);
-            canvas = cropCanvas;
-
-            // RESTAURAR TODO
-            document.body.style.padding = origBodyPadding;
-            areaPdf.style.width = origWidth || '100%';
-            areaPdf.style.maxWidth = origMaxWidth || '800px';
-            areaPdf.style.margin = origMargin || '0 auto';
-            areaPdf.style.borderRadius = origBorderRadius;
-            areaPdf.style.boxShadow = origBoxShadow;
-            areaPdf.style.overflow = origOverflow;
-            
-            var spanTemp = document.getElementById('medioPago_span_temp');
-            spanTemp.parentNode.replaceChild(selectMedio, spanTemp);
-            document.getElementById('inputs_abono').style.display = '';
+                canvas = await html2canvas(areaPdf, {
+                    scale: 3, useCORS: true, width: anchoVoucher,
+                    windowWidth: anchoVoucher, scrollX: 0, scrollY: 0,
+                    backgroundColor: '#ffffff',
+                    onclone: function(clonedDoc) {
+                        clonedDoc.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+                        clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(function(input) {
+                            var span = clonedDoc.createElement('span');
+                            span.innerText = input.value;
+                            span.className = input.className;
+                            span.style.display = 'inline-block';
+                            span.style.border = 'none';
+                            span.style.background = 'transparent';
+                            if(input.id === 'valorAbono' || input.classList.contains('text-end')) span.style.textAlign = 'right';
+                            if(input.classList.contains('text-center') || input.id === 'numeroOP') span.style.textAlign = 'center';
+                            input.parentNode.replaceChild(span, input);
+                        });
+                    }
+                });
+            } finally {
+                document.body.style.padding = origBodyPadding;
+                areaPdf.style.width = origWidth;
+                areaPdf.style.maxWidth = origMaxWidth;
+                areaPdf.style.margin = origMargin;
+                areaPdf.style.borderRadius = origBorderRadius;
+                areaPdf.style.boxShadow = origBoxShadow;
+                areaPdf.style.overflow = origOverflow;
+                window.scrollTo(exportScrollX, exportScrollY);
+                document.getElementById('inputs_abono').style.display = '';
+            }
+            if (!canvas || !canvas.width || !canvas.height) throw new Error('La captura del recibo está vacía.');
 
             setStep(1, 'check');
             setStep(2, 'active');
