@@ -433,7 +433,10 @@ function moneyField(item,name,label,placeholder='0'){
 }
 
 function ensureActiveItem(){
-  if(!state.items.some(item=>item.id===activeItemId))activeItemId=state.items[0]?.id||'';
+  if(!state.items.some(item=>item.id===activeItemId)){
+    activeItemId=state.items[0]?.id||'';
+    activeItemCollapsed=false;
+  }
 }
 
 function activateItem(itemId,options={}){
@@ -794,6 +797,7 @@ function applyTransferredVisit(payload){
   if(!received.items.length)received.items=[newItem()];
   state=received;
   activeItemId='';
+  activeItemCollapsed=false;
   normalizeRoomIds();
   clearEngineCache();
   fillGlobals();
@@ -1165,7 +1169,10 @@ $('items').addEventListener('click',event=>{
     const removedId=state.items[index].id;
     state.items.splice(index,1);
     if(!state.items.length)state.items.push(newItem());
-    if(activeItemId===removedId)activeItemId=state.items[Math.min(index,state.items.length-1)]?.id||'';
+    if(activeItemId===removedId){
+      activeItemId=state.items[Math.min(index,state.items.length-1)]?.id||'';
+      activeItemCollapsed=false;
+    }
     render();
     $('toast').replaceChildren(document.createTextNode('Persiana eliminada. '));
     const undo=document.createElement('button');
@@ -1176,6 +1183,7 @@ $('items').addEventListener('click',event=>{
       if(emptyAuto)state.items=[];
       state.items.splice(undoItem.index,0,undoItem.item);
       activeItemId=undoItem.item.id;
+      activeItemCollapsed=false;
       undoItem=null;
       render();
       $('toast').textContent='';
@@ -1190,6 +1198,7 @@ $('add-item').onclick=()=>{
   const item=newItem(state.items.at(-1));
   state.items.push(item);
   activeItemId=item.id;
+  activeItemCollapsed=false;
   render();
   document.querySelector('[data-room-id="'+item.roomId+'"] [data-room-field=location]')?.focus();
 };
@@ -1220,6 +1229,7 @@ $('cancel-new').onclick=()=>$('new-dialog').close();
 $('confirm-new').onclick=()=>{
   state=fresh();
   activeItemId='';
+  activeItemCollapsed=false;
   clearEngineCache();
   if(catalog)state.items=[newItem()];
   fillGlobals();
