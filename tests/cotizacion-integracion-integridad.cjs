@@ -14,7 +14,7 @@ const order=load('pedido.html');
 function must(source,fragment,reason){assert(source.includes(fragment),reason+': '+fragment);}
 assert(quote.length>50000&&settings.length>150000&&core.length>30000,'Unexpected truncation in a central app file');
 const fields=[
- 'empresa.nombre_comercial','empresa.nit_formateado','empresa.direccion',
+ 'empresa.nombre_comercial','empresa.nit','empresa.direccion',
  'empresa.ciudad','empresa.telefono','empresa.web','empresa.instagram',
  'documentos.cotizacion.titulo','documentos.cotizacion.validez_dias',
  'documentos.cotizacion.medicion_instalacion','documentos.cotizacion.forma_pago',
