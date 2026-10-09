@@ -312,7 +312,6 @@
         #area-pdf.quote-total-only #desc_row { display:none !important; }
     </style>
     
-    <script src="homeeasy-quote-pdf.js?v=20261009-vector-v1"></script>
     <script src="homeeasy-docs.js?v=4.4"></script>
     <script src="homeeasy-core.js?v=3.5.2"></script>
     <script src="homeeasy-runtime.js?v=11a0"></script>
@@ -489,12 +488,12 @@
         });
     }
     function asegurarLibreriasPdf() {
-        if (window.jspdf) return Promise.resolve();
+        if (window.html2canvas && window.jspdf) return Promise.resolve();
         if (!homeEasyPdfLibrariesPromise) {
-            homeEasyPdfLibrariesPromise = cargarScriptPdf(
-                'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-                () => Boolean(window.jspdf)
-            ).catch(error => { homeEasyPdfLibrariesPromise = null; throw error; });
+            homeEasyPdfLibrariesPromise = Promise.all([
+                cargarScriptPdf('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => Boolean(window.html2canvas)),
+                cargarScriptPdf('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => Boolean(window.jspdf))
+            ]).catch(error => { homeEasyPdfLibrariesPromise = null; throw error; });
         }
         return homeEasyPdfLibrariesPromise;
     }
@@ -868,16 +867,125 @@
         try {
             setStep(1, 'active');
             
-            // PDF vectorial: cada producto y observación se paginan sin cortes;
-            // encabezado, detalle y pie son independientes del tamaño de pantalla.
-            if (!window.HomeEasyQuotePDF || typeof window.HomeEasyQuotePDF.build !== 'function') {
-                throw new Error('El generador de cotizaciones no está disponible. Recarga HomeEasy.');
-            }
-            if (document.fonts && document.fonts.ready) await document.fonts.ready;
-            const pdf = window.HomeEasyQuotePDF.build(document, window.jspdf.jsPDF);
+            const origBodyPadding = document.body.style.padding; 
+            document.body.style.padding = '0';
+            
+            const areaPdf = document.getElementById('area-pdf'); 
+            areaPdf.classList.add('pdf-export-mode');
+            
+            const origBorderRadius = areaPdf.style.borderRadius; 
+            const origBoxShadow = areaPdf.style.boxShadow;
+            areaPdf.style.borderRadius = '0px'; 
+            areaPdf.style.boxShadow = 'none'; 
+            areaPdf.style.width = '800px'; 
+            areaPdf.style.maxWidth = '800px'; 
+            areaPdf.style.margin = '0'; 
 
-            setStep(1, 'check');
+            await new Promise(r => setTimeout(r, 50));
+
+            const canvas = await html2canvas(areaPdf, { 
+                scale: 3, 
+                useCORS: true, 
+                width: 800, 
+                windowWidth: 800, 
+                x: areaPdf.offsetLeft, 
+                y: areaPdf.offsetTop,
+                onclone: function(clonedDoc) {
+                    clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
+                    
+                    clonedDoc.querySelectorAll('#tabla-body tr').forEach(f => { 
+                        const desc = f.querySelector('.row-desc'); 
+                        if(!desc || !desc.value.trim()) f.remove(); 
+                    });
+                    
+                    const descInput = clonedDoc.getElementById('descuento_input'); 
+                    const descRow = clonedDoc.getElementById('desc_row');
+                    if (descInput && descRow) { 
+                        const descVal = parseFloat(descInput.value.replace(/\D/g, "")); 
+                        if (isNaN(descVal) || descVal === 0) { 
+                            descRow.parentNode.removeChild(descRow); 
+                        } else { 
+                            descInput.style.border = 'none'; 
+                        } 
+                    }
+                    
+                    clonedDoc.querySelectorAll('.form-control-compact').forEach(input => { 
+                        input.style.borderBottom = 'none'; 
+                        input.style.background = 'transparent'; 
+                        input.style.color = '#222'; 
+                    });
+                    
+                    clonedDoc.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="number"]').forEach(input => {
+                        const span = clonedDoc.createElement('span'); 
+                        span.innerText = input.value; 
+                        span.className = input.className; 
+                        span.style.display = 'inline-block'; 
+                        span.style.border = 'none'; 
+                        span.style.background = 'transparent';
+                        if(input.classList.contains('text-end')) span.style.textAlign = 'right'; 
+                        if(input.classList.contains('text-center')) span.style.textAlign = 'center';
+                        input.parentNode.replaceChild(span, input);
+                    });
+                    
+                    clonedDoc.querySelectorAll('textarea').forEach(ta => {
+                        const div = clonedDoc.createElement('div'); 
+                        div.innerText = ta.value; 
+                        div.className = ta.className; 
+                        div.id = ta.id || '';
+                        div.style.border = 'none'; 
+                        div.style.background = 'transparent'; 
+                        div.style.whiteSpace = 'pre-wrap';
+                        div.style.overflowWrap = 'anywhere';
+                        div.style.lineHeight = '1.45';
+                        ta.parentNode.replaceChild(div, ta);
+                    });
+
+                    if (window.HomeEasyDocs && typeof window.HomeEasyDocs.preparePaginatedClone === 'function') {
+                        window.HomeEasyDocs.preparePaginatedClone(clonedDoc, {
+                            areaId: 'area-pdf',
+                            tableBodySelector: '#tabla-body',
+                            notesSelector: '#notas',
+                            summarySelector: '.row.g-4.mt-auto',
+                            footerSelector: '.pdf-footer',
+                            pageWidthPx: 800,
+                            repeatTableHeader: true
+                        });
+                    }
+                }
+            });
+
+            setStep(1, 'check'); 
             setStep(2, 'active');
+
+            areaPdf.classList.remove('pdf-export-mode'); 
+            document.body.style.padding = origBodyPadding; 
+            areaPdf.style.borderRadius = origBorderRadius; 
+            areaPdf.style.boxShadow = origBoxShadow; 
+            areaPdf.style.width = '100%'; 
+            areaPdf.style.margin = '0 auto';
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF("p", "mm", "letter"); 
+            const pdfWidth = pdf.internal.pageSize.getWidth(); 
+            const pdfHeight = pdf.internal.pageSize.getHeight(); 
+            const canvasRatio = canvas.width / canvas.height;
+            const finalWidth = pdfWidth; 
+            let finalHeight = finalWidth / canvasRatio; 
+            
+            const imgData = canvas.toDataURL("image/jpeg", 1.0); 
+            let heightLeft = finalHeight; 
+            let position = 0;
+
+            pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); 
+            heightLeft -= pdfHeight;
+            
+            // 🚨 FIX: Tolerancia de 25 píxeles
+            while (heightLeft > 0.5) { 
+                position -= pdfHeight; 
+                pdf.addPage(); 
+                pdf.addImage(imgData, "JPEG", 0, position, finalWidth, finalHeight); 
+                heightLeft -= pdfHeight; 
+            }
             const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
             let descripcionTexto = ""; 
