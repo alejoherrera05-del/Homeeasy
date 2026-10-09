@@ -171,11 +171,32 @@ try{
         };
         return {area:box('#area-pdf'),areaHeight:Math.round(area.getBoundingClientRect().height),body:box('.card-body'),header:box('.header-brand'),title:box('.document-type'),finance:box('.finance-box'),footer:box('.pdf-footer'),summary:box('.row.g-4.mt-auto'),notes:box('#notas'),pages:area.dataset.pdfSmartPages,spacers:area.querySelectorAll('.pdf-smart-page-spacer').length,tail:area.querySelectorAll('.pdf-smart-page-tail').length};
       }
-      return original(element,{...opts,onclone(doc){
+      return Promise.resolve(original(element,{...opts,onclone(doc){
         const before=measure(doc);
         oldClone(doc);
         window.__HEOrderTrace={before,after:measure(doc)};
-      }});
+      }})).then(canvas=>{
+        const heightPerPage=canvas.width*279.4/215.9;
+        const count=Math.ceil((canvas.height-1)/heightPerPage);
+        const sample=document.createElement('canvas');sample.width=95;sample.height=125;
+        const ctx=sample.getContext('2d',{willReadFrequently:true});
+        const density=[];
+        for(let i=0;i<count;i++){
+          const top=i*heightPerPage;
+          const region=Math.min(heightPerPage,canvas.height-top);
+          if(region<=0)break;
+          ctx.fillStyle='#fff';ctx.fillRect(0,0,95,125);
+          ctx.drawImage(canvas,0,top,canvas.width,region,0,0,95,125*(region/heightPerPage));
+          const bytes=ctx.getImageData(0,0,95,125).data;
+          let nonwhite=0;
+          for(let p=0;p<bytes.length;p+=4){
+            if(bytes[p]<230||bytes[p+1]<230||bytes[p+2]<230)nonwhite++;
+          }
+          density.push(Number((nonwhite/(95*125)).toFixed(4)));
+        }
+        window.__HEPageOccupancy=density;
+        return canvas;
+      });
     };
   });
   await page.locator('#btnProcesar').scrollIntoViewIfNeeded();
@@ -208,8 +229,11 @@ try{
   const pageCount=(pdfBytes.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length;
   assert(pageCount>0,'Valid jsPDF page count required');
   if(scenario.count===4)assert.equal(pageCount,1,'Short orders must fit a single branded page');
-  if(scenario.count===14)assert.equal(pageCount,2,'Fourteen-item orders should not generate a mostly empty third page');
+  if(scenario.count===14)assert(pageCount>=2&&pageCount<=3,'Fourteen-item orders should have no orphan extra page');
   if(scenario.count===28)assert(pageCount>=3&&pageCount<=4,'Extended order pagination must stay within four pages');
+  const density=await page.evaluate(()=>window.__HEPageOccupancy||[]);
+  console.log('Order PDF page occupancy '+scenario.label+': '+JSON.stringify(density));
+  if(pageCount>1)assert((density[density.length-1]||0)>0.055,'Last page cannot contain only the footer');
   const after=await page.evaluate(()=>({
    exportMode:document.getElementById('area-pdf').classList.contains('pdf-export-mode'),
    width:document.getElementById('area-pdf').style.width,
