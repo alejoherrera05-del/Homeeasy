@@ -16,19 +16,22 @@ test('live catalog certification registry is complete and deliberately conservat
     certified: summary.certified,
     reviewRequired: summary.reviewRequired,
     unmapped: summary.unmapped
-  }, { total: 452, exactCandidates: 85, ambiguous: 10, noCandidate: 357, certified: 77, reviewRequired: 18, unmapped: 357 });
+  }, { total: 452, exactCandidates: 102, ambiguous: 11, noCandidate: 339, certified: 90, reviewRequired: 23, unmapped: 339 });
   assert.deepEqual(summary.certifiedStrategies, {
-    RATE_M2: 77, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 0, SPECIAL_CONFIGURATION: 0
+    RATE_M2: 90, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 0, SPECIAL_CONFIGURATION: 0
   });
 });
 
 test('One Click accepts only mappings carrying a complete Pentagrama certificate', () => {
   const accepted = INITIAL_MAPPINGS.filter(mappingIsCertified).map(item => item.homeeasyId).sort();
-  assert.equal(accepted.length, 77);
+  assert.equal(accepted.length, 90);
   assert.ok(accepted.includes('onda-0'));
   assert.ok(accepted.includes('onda-77'));
   assert.ok(!accepted.includes('onda-10'));
   assert.ok(!accepted.includes('onda-163'));
+  assert.ok(accepted.includes('vertical-113'));
+  assert.ok(accepted.includes('vertical-129'));
+  assert.ok(!accepted.includes('vertical-111'));
 });
 
 test('Onda Comfort certificate reproduces both normal measures and the billing minimum', () => {
@@ -51,7 +54,7 @@ test('mandatory regression controls remain outside unsafe automatic strategies',
 });
 
 test('Onda expansion keeps one exact ProductCode per certified HomeEasy reference', () => {
-  const certified = registry.products.filter(item => item.status === 'CERTIFIED');
+  const certified = registry.products.filter(item => item.status === 'CERTIFIED' && item.family === 'Onda Serena');
   const codes = certified.map(item => item.productCode);
   assert.equal(certified.length, 77);
   assert.equal(new Set(certified.map(item => item.homeeasyId)).size, 77);
@@ -59,6 +62,31 @@ test('Onda expansion keeps one exact ProductCode per certified HomeEasy referenc
   for (const item of certified) {
     assert.equal(item.groupCode, '1345');
     assert.equal(item.calculationType, 'NormalProduct');
+    assert.equal(item.casesPassed, 3);
+    assert.ok(item.maxDifference <= 0.02);
+  }
+});
+
+test('Vertical certificates preserve the 1.3m2 billing minimum without forcing 1.6m2', () => {
+  const source = { method: 'area', minHeight: 1.3, minArea: 0, promotional: false, extraDiscount: 0 };
+  for (const sample of [
+    { rate: 103411, width: 2, height: 2, portal: 413644 },
+    { rate: 111741, width: 2.4, height: 2.1, portal: 563174.64 },
+    { rate: 111741, width: 1, height: 1, portal: 145263.3 },
+    { rate: 135541, width: 1, height: 1, portal: 176203.3 }
+  ]) assert.ok(Math.abs(homeEasyRateCost(sample.rate, source, sample) - sample.portal) <= 0.02);
+});
+
+test('Vertical expansion certifies only exact one-code mappings', () => {
+  const vertical = registry.products.filter(item => item.family === 'Verticales');
+  const certified = vertical.filter(item => item.status === 'CERTIFIED');
+  assert.equal(vertical.length, 21);
+  assert.equal(certified.length, 13);
+  assert.equal(new Set(certified.map(item => item.productCode)).size, 13);
+  assert.equal(vertical.filter(item => item.status === 'REVIEW_REQUIRED').length, 7);
+  assert.equal(vertical.filter(item => item.status === 'UNMAPPED').length, 1);
+  for (const item of certified) {
+    assert.equal(item.strategy, 'RATE_M2');
     assert.equal(item.casesPassed, 3);
     assert.ok(item.maxDifference <= 0.02);
   }

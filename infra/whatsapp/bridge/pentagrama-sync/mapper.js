@@ -10,7 +10,10 @@ const MAPPING_STATUSES = Object.freeze({
 });
 
 const EXPANDED_CERTIFIED_MAPPINGS = Object.freeze(
-  require('./certification/onda-serena-certified.json').mappings.map(mapping => Object.freeze({
+  [
+    ...require('./certification/onda-serena-certified.json').mappings,
+    ...require('./certification/verticales-certified.json').mappings
+  ].map(mapping => Object.freeze({
     ...mapping,
     destination: Object.freeze({ ...mapping.destination }),
     validationCases: Object.freeze(mapping.validationCases.map(item => Object.freeze({ ...item }))),

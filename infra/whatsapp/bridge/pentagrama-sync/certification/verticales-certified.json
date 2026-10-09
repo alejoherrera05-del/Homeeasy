@@ -1,0 +1,708 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-09T15:24:26Z",
+  "groupEvidence": [
+    {
+      "groupCode": "455",
+      "associationGroup": "VERTELCA",
+      "calculationType": "NormalProduct",
+      "unit": "UND",
+      "casesPassed": 3,
+      "maxDifference": 0
+    },
+    {
+      "groupCode": "438",
+      "associationGroup": "VERTELCA",
+      "calculationType": "NormalProduct",
+      "unit": "UND",
+      "casesPassed": 3,
+      "maxDifference": 0
+    },
+    {
+      "groupCode": "456",
+      "associationGroup": "VERTELCA",
+      "calculationType": "NormalProduct",
+      "unit": "UND",
+      "casesPassed": 3,
+      "maxDifference": 0
+    }
+  ],
+  "mappings": [
+    {
+      "id": "vertical-113-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Tretto 3%",
+      "homeeasyId": "vertical-113",
+      "productCode": "VERSCCADTRE3EBO",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-114-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Tretto 1%",
+      "homeeasyId": "vertical-114",
+      "productCode": "VERSCCADTRE1EBO",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-115-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Lino",
+      "homeeasyId": "vertical-115",
+      "productCode": "VERSCCADLINDUN",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-116-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Difuse",
+      "homeeasyId": "vertical-116",
+      "productCode": "VERSCCADDIFASH",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-117-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Estuco",
+      "homeeasyId": "vertical-117",
+      "productCode": "VERSCCADESAS",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-120-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Eco Crystal",
+      "homeeasyId": "vertical-120",
+      "productCode": "VERSCCADECCRYCRE",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-121-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Jacquard Privas",
+      "homeeasyId": "vertical-121",
+      "productCode": "VERSCCADJACPRICRBR",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-122-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Jacquard Papua",
+      "homeeasyId": "vertical-122",
+      "productCode": "VERSCCADPAPBE",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-123-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Jacquard Queen",
+      "homeeasyId": "vertical-123",
+      "productCode": "VERSCCADJADEQUEBAM",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-124-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Jacquard Sketch",
+      "homeeasyId": "vertical-124",
+      "productCode": "VERCADSCJADESKBRWH",
+      "groupCode": "438",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-127-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Jacquard Stylo",
+      "homeeasyId": "vertical-127",
+      "productCode": "VERSCCASCJASTYCHA",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-128-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Jacquard Nirvana",
+      "homeeasyId": "vertical-128",
+      "productCode": "VERSCMECAD50500277",
+      "groupCode": "456",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-129-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Splendour Style",
+      "homeeasyId": "vertical-129",
+      "productCode": "VERSCCADSPSTCOBR",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    }
+  ]
+}

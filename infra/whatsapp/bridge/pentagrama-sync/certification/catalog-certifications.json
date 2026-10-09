@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T20:45:00Z",
+  "generatedAt": "2026-10-09T15:24:26Z",
   "sources": {
     "homeeasy": "Costos_Pentagrama live export",
     "pentagrama": "authenticated portal catalog and price endpoint/UI"
@@ -3456,7 +3456,11 @@
       "strategy": "RATE_M2",
       "candidate": "AMBIGUOUS",
       "status": "REVIEW_REQUIRED",
-      "reason": "HomeEasy agrega April Showers, Nevada y Sinfonía; el catálogo accesible solo demuestra variantes April."
+      "reason": "HomeEasy agrega April Showers, Nevada y Sinfonia. Pentagrama expone las tres como referencias independientes; no existe un unico ProductCode seguro para auto-apply.",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z"
     },
     {
       "homeeasyId": "vertical-111",
@@ -3464,12 +3468,16 @@
       "family": "Verticales",
       "reference": "Black Out Matte",
       "homeeasyMethod": "area",
-      "strategy": "RATE_M2",
+      "strategy": "SPECIAL_CONFIGURATION",
       "candidate": "EXACT_CANDIDATE",
       "status": "REVIEW_REQUIRED",
       "productCode": "VERBOMATCAD090",
       "groupCode": "446",
-      "reason": "Pentagrama no es lineal en medidas normales; no se puede sustituir la tarifa por una regla proporcional."
+      "reason": "La lama de 9 cm resulta lineal a 87941 COP/m2, distinta de HomeEasy (90732.92), y la configuracion de 13 cm no quedo certificada. No se reduce a RATE_M2 unica.",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z"
     },
     {
       "homeeasyId": "vertical-112",
@@ -3478,8 +3486,13 @@
       "reference": "Screen Tretto 5% y 10%",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "AMBIGUOUS",
+      "status": "REVIEW_REQUIRED",
+      "reason": "HomeEasy agrupa Tretto 5% y 10%, pero Pentagrama usa ProductCode distintos. Ambos deben permanecer separados para detectar futuras divergencias.",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z"
     },
     {
       "homeeasyId": "vertical-113",
@@ -3488,8 +3501,40 @@
       "reference": "Screen Tretto 3%",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADTRE3EBO",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-114",
@@ -3498,8 +3543,40 @@
       "reference": "Screen Tretto 1%",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADTRE1EBO",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-115",
@@ -3508,8 +3585,40 @@
       "reference": "Screen Lino",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADLINDUN",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-116",
@@ -3518,8 +3627,40 @@
       "reference": "Screen Difuse",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADDIFASH",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-117",
@@ -3528,8 +3669,40 @@
       "reference": "Screen Estuco",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADESAS",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-118",
@@ -3538,8 +3711,15 @@
       "reference": "Screen Face Off",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "VERSCCADFAOF3WHBL",
+      "groupCode": "455",
+      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 1581.03 COP; no se certifica sin resolver la tarifa.",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z"
     },
     {
       "homeeasyId": "vertical-119",
@@ -3548,8 +3728,15 @@
       "reference": "Screen Silver Back",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "VERSCCADSIBA5BL",
+      "groupCode": "455",
+      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 47600 COP; no se certifica sin resolver la tarifa.",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z"
     },
     {
       "homeeasyId": "vertical-120",
@@ -3558,8 +3745,40 @@
       "reference": "Screen Eco Crystal",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADECCRYCRE",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-121",
@@ -3568,8 +3787,40 @@
       "reference": "Screen Jacquard Privas",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADJACPRICRBR",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-122",
@@ -3578,8 +3829,40 @@
       "reference": "Screen Jacquard Papua",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADPAPBE",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-123",
@@ -3588,8 +3871,40 @@
       "reference": "Screen Jacquard Queen",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADJADEQUEBAM",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-124",
@@ -3598,8 +3913,40 @@
       "reference": "Screen Jacquard Sketch",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERCADSCJADESKBRWH",
+      "groupCode": "438",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 438",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-125",
@@ -3608,8 +3955,15 @@
       "reference": "Screen Jacquard Provence",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "VERSCCADJADE47604",
+      "groupCode": "455",
+      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 61880 COP; no se certifica sin resolver la tarifa.",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z"
     },
     {
       "homeeasyId": "vertical-126",
@@ -3618,8 +3972,15 @@
       "reference": "Screen Jacquard Desert",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "VERCADSCJADEGRESAN",
+      "groupCode": "438",
+      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 14280 COP; no se certifica sin resolver la tarifa.",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z"
     },
     {
       "homeeasyId": "vertical-127",
@@ -3628,8 +3989,40 @@
       "reference": "Screen Jacquard Stylo",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCASCJASTYCHA",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-128",
@@ -3638,8 +4031,40 @@
       "reference": "Screen Jacquard Nirvana",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCMECAD50500277",
+      "groupCode": "456",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 456",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-129",
@@ -3648,8 +4073,40 @@
       "reference": "Screen Splendour Style",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADSPSTCOBR",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "associationGroup": "VERTELCA",
+      "unit": "UND",
+      "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "sheer-130",
