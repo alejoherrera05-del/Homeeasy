@@ -153,6 +153,31 @@ try{
   assert(initial.logo,scenario.label+': original HomeEasy logo');
   await page.locator('#area-pdf').screenshot({path:path.join(output,scenario.label+'-preview.png')});
   page.on('dialog',async dialog=>{errors.push('Dialog: '+dialog.message());await dialog.dismiss();});
+  await page.waitForFunction(()=>Boolean(window.html2canvas));
+  // Diagnóstico solo en la prueba: mide el DOM clonado; NO modifica pedido.html.
+  await page.evaluate(()=>{
+    const original=window.html2canvas;
+    window.html2canvas=(element,opts)=>{
+      const oldClone=opts.onclone;
+      function measure(doc) {
+        const area=doc.getElementById('area-pdf');
+        if(!area)return null;
+        const origin=area.getBoundingClientRect().top;
+        const box=(sel)=>{
+          const el=area.querySelector(sel);
+          if(!el)return null;
+          const r=el.getBoundingClientRect();
+          return {top:Math.round(r.top-origin),bottom:Math.round(r.bottom-origin),height:Math.round(r.height),scrollHeight:el.scrollHeight};
+        };
+        return {area:box('#area-pdf'),areaHeight:Math.round(area.getBoundingClientRect().height),body:box('.card-body'),header:box('.header-brand'),title:box('.document-type'),finance:box('.finance-box'),footer:box('.pdf-footer'),summary:box('.row.g-4.mt-auto'),notes:box('#notas'),pages:area.dataset.pdfSmartPages,spacers:area.querySelectorAll('.pdf-smart-page-spacer').length,tail:area.querySelectorAll('.pdf-smart-page-tail').length};
+      }
+      return original(element,{...opts,onclone(doc){
+        const before=measure(doc);
+        oldClone(doc);
+        window.__HEOrderTrace={before,after:measure(doc)};
+      }});
+    };
+  });
   await page.locator('#btnProcesar').scrollIntoViewIfNeeded();
   const scrollBefore=await page.evaluate(()=>window.scrollY);
   console.log('Click export at scrollY='+scrollBefore+' for '+scenario.label);
@@ -164,7 +189,7 @@ try{
     hasJsPdf:Boolean(window.jspdf),
     loading:document.getElementById('loading')?.style.display,
     exportMode:document.getElementById('area-pdf')?.classList.contains('pdf-export-mode'),
-    printLayout:window.__quoteLayoutTrace||null
+    printLayout:window.__HEOrderTrace||null
   })))+'; errors='+JSON.stringify(errors));
   await page.waitForFunction(()=>Boolean(window.__QA_PDF_BASE64),null,{timeout:12000});
   const submitted=await page.evaluate(()=>{
