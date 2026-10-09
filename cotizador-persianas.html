@@ -9,10 +9,10 @@
 <title>HomeEasy | Cotizador</title>
 <link rel="icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261002-transfer">
+<link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261009-organizador1">
 <script src="homeeasy-core.js?v=3.5"></script>
 <script src="homeeasy-page-guard.js?v=20261002b"></script>
-<script defer src="homeeasy-cost-calculator.js?v=20261002-enrollablefix"></script>
+<script defer src="homeeasy-cost-calculator.js?v=20261009-organizador1"></script>
   <link rel="stylesheet" href="homeeasy-back.css?v=1.1">
   <script defer src="homeeasy-back.js?v=1.2"></script>
   <link rel="stylesheet" href="homeeasy-header.css?v=2.5">
@@ -81,6 +81,15 @@
       </div>
 
       <div id="items"></div>
+
+       <section class="measure-review" id="measure-review" aria-label="Revisión de medidas">
+         <button class="review-toggle" id="review-toggle" type="button" aria-expanded="false" aria-controls="review-list">
+           <span class="review-toggle-icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
+           <span class="review-toggle-text"><strong>Revisar todas las ventanas</strong><small id="review-count">0 de 0 con medidas</small></span>
+           <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+         </button>
+         <div class="review-list" id="review-list" hidden></div>
+       </section>
 
       <button id="add-item" class="add-item" disabled type="button">
         <i class="fa-solid fa-plus"></i>
