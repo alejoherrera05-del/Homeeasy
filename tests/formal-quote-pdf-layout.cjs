@@ -90,4 +90,14 @@ for(const mode of ['total','individual']){
 const more=builder.build(fixture('total',55,36),PDFMock);
 assert(more.pages.length>=3,'Large documents should flow to additional pages');
 assert(more.pages.every(page=>page.some(line=>line.text.includes('HomeEasy'))));
+
+const {jsPDF}=require('jspdf');
+const realPdf=builder.build(fixture('total',14,14),jsPDF);
+assert(realPdf.internal.getNumberOfPages()>=2,'Real jsPDF must paginate long content');
+assert(realPdf.internal.getNumberOfPages()<=4,'Real jsPDF must not create a blank extra page');
+const bytes=Buffer.from(realPdf.output('arraybuffer'));
+assert.equal(bytes.subarray(0,4).toString(),'%PDF','Real output must be a valid PDF file');
+assert(bytes.length>4000,'Real PDF should contain all items and observations');
+const individualPdf=builder.build(fixture('individual',14,14),jsPDF);
+assert(individualPdf.internal.getNumberOfPages()>=2,'Real itemized PDF must paginate');
 console.log('Cotización PDF vectorial: 14 productos + notas, dos modos, 55 productos y paginación PASS');
