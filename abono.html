@@ -592,7 +592,7 @@
                     tbody.innerHTML = '';
 
                     // Abono inicial (fecha de la orden, # = OP-xxx)
-                    var abonoInicial = data.abonoInicial || 0;
+                    var abonoInicial = Number(data.abonoInicial) || 0;
                     if (abonoInicial > 0) {
                         var tr1 = document.createElement('tr');
                         tr1.innerHTML = '<td>' + (data.fechaOrden || '—') + '</td><td>OP-' + numero + '</td><td>' + fmtCOP(abonoInicial) + '</td>';
@@ -613,9 +613,9 @@
                     if (data.totalOrden) {
                         var totalPagado = abonoInicial;
                         for (var j = 0; j < historialAbonos.length; j++) {
-                            totalPagado += historialAbonos[j].valor;
+                            totalPagado += Number(historialAbonos[j].valor) || 0;
                         }
-                        saldoBase = data.totalOrden - totalPagado;
+                        saldoBase = Number(data.totalOrden) - totalPagado;
                         document.getElementById('saldo_anterior_val').innerText = fmtCOP(saldoBase);
                         document.getElementById('nuevo_saldo_val').innerText = fmtCOP(saldoBase);
                         ordenActual.total = data.totalOrden;
@@ -713,7 +713,7 @@
                 return;
             }
 
-            var saldoReal = check.saldoReal || 0;
+            var saldoReal = Number(check.saldoReal) || 0;
 
             if (saldoReal !== saldoBase) {
                 saldoBase = saldoReal;
@@ -927,6 +927,11 @@
             alert("Error de conexión: " + err.message); 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('inputs_abono').style.display = '';
+            document.getElementById('abono_destacado').style.display = 'none';
+            document.getElementById('concepto_display_box').style.display = 'none';
+            if (trActual && trActual.parentNode) trActual.remove();
+            if (trTotalPagado && trTotalPagado.parentNode) trTotalPagado.remove();
+            if (trSaldo && trSaldo.parentNode) trSaldo.remove();
         } 
     }
 
