@@ -44,7 +44,10 @@ for (const [name, source] of [['cotizacion', cot], ['pedido', pedido]]) {
   assert(!source.includes('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>'), `${name}: jsPDF must not block initial parse`);
   assert(source.includes('asegurarLibreriasPdf'), `${name}: lazy PDF loader missing`);
   assert(source.includes('precalentarLibreriasPdf'), `${name}: idle PDF warmup missing`);
-  assert(source.includes('scale: 3'), `${name}: PDF quality scale changed unexpectedly`);
+  assert(name==='cotizacion'
+    ? source.includes('HomeEasyQuotePDF.build(document, window.jspdf.jsPDF)')
+    : source.includes('scale: 3'),
+    `${name}: PDF output path was unexpectedly changed`);
   assert(source.includes('MAX_CLIENTE_SUGERENCIAS = 10'), `${name}: suggestion bound missing`);
   assert(source.includes('clientesCacheMem'), `${name}: in-memory client cache missing`);
   const inputHandler = between(source, 'document.getElementById("cedula").addEventListener("input"', 'document.addEventListener("click"');
