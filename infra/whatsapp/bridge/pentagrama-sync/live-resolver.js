@@ -10,6 +10,9 @@ const SUPPORTED_PRODUCTS = Object.freeze({
     productCode: 'ENRSTDBOMA3090',
     groupCode: '599',
     associationGroup: 'ENRSTD',
+    primaryGroup: 'ENROLLABLE',
+    system: 'STANDARD/PLATINA SIN CABEZAL',
+    head: '',
     calculationType: 'NormalProduct',
     discount: 0,
     categories: Object.freeze({ Cat1: '4', Cat2: '79', Cat3: '8', Cat4: '118', Cat5: '24' })
@@ -37,11 +40,16 @@ function defaultMap(data) {
   const list = Array.isArray(data) ? data : Array.isArray(data && data.Data) ? data.Data : [];
   const out = {};
   list.forEach(item => {
-    const name = String(item && (item.Name ?? item.name ?? item.AttributeName ?? item.attributeName) || '').trim().toLowerCase();
+    const name = String(item && (item.FriendlyName ?? item.friendlyName ?? item.Name ?? item.name ?? item.AttributeName ?? item.attributeName) || '').trim().toLowerCase();
     const value = String(item && (item.DefaultValue ?? item.defaultValue ?? item.Value ?? item.value) || '').trim();
     if (name && value) out[name] = value;
   });
   return out;
+}
+
+function hasAttributeField(html, id) {
+  const escaped = String(id || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`<select\\b[^>]*\\bid=["']${escaped}["']`, 'i').test(String(html || ''));
 }
 
 function fixedAmount(data) {
@@ -51,9 +59,25 @@ function fixedAmount(data) {
 
 function orientationFor(value) {
   const code = String(value || '').trim().toUpperCase();
+  if (!code) return { code: '', id: '', label: '' };
+  if (code === 'NAN') return { code, id: 'not_manufacturable', label: 'No fabricable' };
+  if (code === 'TANSG') return { code, id: 'atravesada_y_anadida_sin_garantia', label: 'Atravesada y añadida sin garantía' };
+  if (code === 'TATSG') return { code, id: 'atravesada_sin_garantia', label: 'Atravesada sin garantía' };
   if (code === 'TAN') return { code, id: 'atravesada_y_anadida', label: 'Atravesada y añadida' };
   if (code === 'TAT') return { code, id: 'atravesada', label: 'Atravesada' };
-  return { code: code || 'DIN', id: 'normal', label: 'Normal' };
+  if (code === 'DIN') return { code, id: 'normal', label: 'Normal' };
+  return { code, id: code.toLowerCase(), label: code };
+}
+
+function unresolved(reason, details = {}) {
+  return {
+    ok: false,
+    outcome: 'CONFIGURATION_UNRESOLVED',
+    code: 'PENTAGRAMA_CONFIGURATION_UNRESOLVED',
+    reason,
+    ...details,
+    fallback: { allowed: false }
+  };
 }
 
 class PentagramaLiveResolver {
@@ -76,20 +100,77 @@ class PentagramaLiveResolver {
       GroupCode: product.groupCode, calculationType: product.calculationType,
       Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: product.associationGroup
     };
+
+    // Mirrors the portal flow: render the available attributes, validate alerts,
+    // request both product price paths, then resolve SAP defaults for the entered size.
+    const attributes = await this.catalog.attributes({
+      ProductCode: product.productCode,
+      Group: product.associationGroup,
+      GroupCode: product.groupCode,
+      LineNumber: '',
+      PrimaryGroup: product.primaryGroup,
+      Discount: product.discount,
+      CalculationType: product.calculationType,
+      Modified: ''
+    });
+    await this.catalog.alerts({
+      code: product.productCode,
+      AsosiationGroup: product.associationGroup,
+      ancho: width,
+      alto: height,
+      Cat1: product.categories.Cat1,
+      Cat2: product.categories.Cat2,
+      Cat3: product.categories.Cat3,
+      Cat4: product.categories.Cat4,
+      Cat5: product.categories.Cat5,
+      product: false,
+      attribute: []
+    });
+    if (!hasAttributeField(attributes, 'direccion-de-la-tela') || !hasAttributeField(attributes, 'mecanismo')) {
+      return unresolved('Pentagrama did not expose the manufacturing attribute selectors');
+    }
+
+    const fixed = fixedAmount(await this.catalog.fixedPrice({ Code: product.productCode, cantidad: quantity, ancho: width, alto: height }));
+    const quoted = await this.pricing.supplierCost(priceParams, {
+      pricingMode: 'account-discount',
+      productDiscount: product.discount,
+      AssociationGroup: product.associationGroup
+    });
     const defaults = defaultMap(await this.catalog.defaults({
       ProductCode: product.productCode, Quantity: quantity, Width: width, Height: height,
-      Group: product.associationGroup, PrimaryGroup: product.groupCode
+      Group: product.associationGroup, PrimaryGroup: product.primaryGroup
     }));
     const orientation = orientationFor(defaults['direccion-de-la-tela']);
     const mechanism = String(defaults.mecanismo || '').trim().toUpperCase();
     if (!orientation.code || !mechanism) {
-      return { ok: false, outcome: 'NOT_MANUFACTURABLE', code: 'PENTAGRAMA_NOT_MANUFACTURABLE', reason: 'Pentagrama did not return a valid manufacturing configuration', fallback: { allowed: false } };
+      return unresolved('Pentagrama did not resolve Dirección de la tela and Mecanismo');
+    }
+    if (orientation.code === 'NAN') {
+      return { ok: false, outcome: 'NOT_MANUFACTURABLE', code: 'PENTAGRAMA_NOT_MANUFACTURABLE', reason: 'Pentagrama explicitly returned a non-manufacturable direction', fallback: { allowed: false } };
     }
 
-    const fixed = fixedAmount(await this.catalog.fixedPrice({ Code: product.productCode, cantidad: quantity, ancho: width, alto: height }));
+    const head = String(defaults.cabezal || defaults['tipo-de-cabezal'] || product.head || '').trim().toUpperCase();
+    const validation = await this.catalog.validateRoller({
+      codigoProducto: product.productCode,
+      ancho: width,
+      alto: height,
+      cabezal: head,
+      mecanismo: mechanism,
+      cenefa: String(defaults.tipocenefa || defaults['tipo-de-cenefa'] || '').trim(),
+      motor: String(defaults.motor || '').trim()
+    });
+    if (!validation || Number(validation.codigo) !== 100) {
+      return unresolved('Pentagrama did not complete Enrollable manufacturing validation');
+    }
+    if (Number(validation.altMaxEnrollable) !== 1) {
+      return unresolved('Pentagrama rejected the resolved Enrollable configuration', {
+        validation: { code: validation.codigo, message: String(validation.mensajeAlerta || '') }
+      });
+    }
+
     const base = fixed > 0
       ? { basePrice: fixed, distributorDiscount: 0, productDiscount: 0, pricingMode: 'fixed-price', subtotal: fixed, vatRate: this.vatRate, total: roundMoney(fixed * (1 + this.vatRate)) }
-      : await this.pricing.supplierCost(priceParams, { pricingMode: 'account-discount', productDiscount: product.discount, AssociationGroup: product.associationGroup });
+      : quoted;
 
     const selectedComplements = [];
     if (input.coverlight) selectedComplements.push(String(input.coverlight));
@@ -120,13 +201,13 @@ class PentagramaLiveResolver {
       checkedAt: new Date().toISOString(),
       product: { homeeasyId: product.homeeasyId, productCode: product.productCode, groupCode: product.groupCode, reference: product.reference },
       request: { width, height, quantity },
-      configuration: { orientation: orientation.id, orientationCode: orientation.code, mechanism },
+      configuration: { orientation: orientation.id, orientationCode: orientation.code, mechanism, system: product.system, head },
       fabrication: {
         supported: true,
         orientation: orientation.id,
         mechanism,
-        requiresAuthorization: orientation.code === 'TAN',
-        warranty: orientation.code !== 'TAN'
+        requiresAuthorization: orientation.code === 'TAN' || orientation.code.endsWith('SG'),
+        warranty: orientation.code !== 'TAN' && !orientation.code.endsWith('SG')
       },
       pricing: { ...base, complements, subtotal, vatRate: this.vatRate, total },
       alternative: alternative ? { id: orientation.id, label: orientation.label, mechanism, requiresConfirmedCost: false } : null,
@@ -135,4 +216,4 @@ class PentagramaLiveResolver {
   }
 }
 
-module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, COMPLEMENTS, defaultMap, fixedAmount });
+module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, COMPLEMENTS, defaultMap, fixedAmount, hasAttributeField, orientationFor });
