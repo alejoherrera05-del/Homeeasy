@@ -21,7 +21,8 @@ test('scan preserves unmapped products and builds a verified multi-case rate pro
   const service = new PentagramaPhase2({
     store,
     mappings: [{ id: 'v', homeeasyId: 'vertical-111', family: 'Vertical', reference: 'Matte', productCode: 'P', groupCode: 'G', calculationType: 'NormalProduct', width: '1.2', height: '1.3', quantity: 1, productDiscount: 0, pricingMode: 'account-discount', strategy: 'RATE_M2', status: 'CERTIFIED', verifiedAt: '2026-10-08T00:00:00Z', casesPassed: 3, maxDifference: 0, destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }, updateField: 'Tarifa_IVA_COP', special: {}, validationCases: [{ id: 'a', width: '2', height: '2', role: 'derive' }, { id: 'b', width: '2.4', height: '2', role: 'derive' }, { id: 'min', width: '1.2', height: '1.3', role: 'boundary' }] }],
-    homeeasy: { catalog: async () => ({ version: 'x', products: [{ row: 2, id: 'vertical-111', familyName: 'Vertical', reference: 'Matte', method: 'area', rate: 87000, minHeight: 1.3, minArea: 0, promotional: false }, { row: 3, id: 'other', familyName: 'Otra', reference: 'X', rate: 10 }] }) },
+    certificationRegistry: { products: [{ homeeasyId: 'pending', status: 'REVIEW_REQUIRED', strategy: 'RATE_M2', productCode: 'PENDING', reason: 'Falta evidencia de borde.' }] },
+    homeeasy: { catalog: async () => ({ version: 'x', products: [{ row: 2, id: 'vertical-111', familyName: 'Vertical', reference: 'Matte', method: 'area', rate: 87000, minHeight: 1.3, minArea: 0, promotional: false }, { row: 3, id: 'other', familyName: 'Otra', reference: 'X', rate: 10 }, { row: 4, id: 'pending', familyName: 'Panel', reference: 'Pendiente', rate: 20 }] }) },
     gateway: { dispatch: async () => [{ id: 1 }] },
     pricing: { supplierCost: async params => ({ basePrice: Number(params.Width) * Number(params.Height) * 90000, distributorDiscount: 0, productDiscount: 0, vatRate: 0, total: Number(params.Width) * Math.max(Number(params.Height), 1.3) * 90000 }) },
     homeeasyCost: { cost: async item => ({ amount: Number(item.width) * Math.max(Number(item.height), 1.3) * 87000 }) }
@@ -31,9 +32,11 @@ test('scan preserves unmapped products and builds a verified multi-case rate pro
   const scan = store.latestScan();
   assert.equal(scan.counts.INCREASED, 1);
   assert.equal(scan.counts.UNMAPPED, 1);
+  assert.equal(scan.counts.REVIEW_REQUIRED, 1);
+  assert.equal(scan.results.find(item => item.homeeasyId === 'pending').autoApplicable, false);
   assert.equal(scan.results.find(item => item.id === 'v').proposedRate, 90000);
   assert.equal(scan.results.find(item => item.id === 'v').autoApplicable, true);
-  assert.equal(scan.catalogAudit.total, 2);
+  assert.deepEqual({ total: scan.catalogAudit.total, certified: scan.catalogAudit.certified, review: scan.catalogAudit.reviewRequired, unmapped: scan.catalogAudit.unmapped }, { total: 3, certified: 1, review: 1, unmapped: 1 });
 });
 
 test('apply rejects expired scans', () => {

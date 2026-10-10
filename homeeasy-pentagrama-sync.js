@@ -47,17 +47,23 @@
   function deriveOverview(scan, agents) {
     const results = scan && Array.isArray(scan.results) ? scan.results : [];
     const counts = scan && scan.counts || {};
+    const audit = scan && scan.catalogAudit || {};
     const online = (agents || []).filter(item => item.online).length;
     const changes = Number(counts.INCREASED || 0) + Number(counts.DECREASED || 0) + Number(counts.NEW || 0);
     const review = Number(counts.REVIEW_REQUIRED || 0);
     const errors = Number(counts.ERROR || 0);
+    const certified = Number(audit.certified != null ? audit.certified : audit.mapped != null ? audit.mapped : results.filter(item => item.id).length);
+    const unmapped = Number(audit.unmapped != null ? audit.unmapped : counts.UNMAPPED || 0);
+    const total = Number(audit.total != null ? audit.total : results.length);
+    const partial = Boolean(scan && (review || unmapped || certified < total));
     let tone = 'neutral'; let label = 'Sin revisar';
     if (!online) { tone = 'error'; label = 'Sin agente disponible'; }
     else if (errors) { tone = 'error'; label = 'Requiere atención'; }
-    else if (changes || review) { tone = 'pending'; label = 'Cambios pendientes'; }
+    else if (changes) { tone = 'pending'; label = 'Actualizaciones disponibles'; }
+    else if (scan && partial) { tone = 'success'; label = 'Operativo · cobertura parcial'; }
     else if (scan) { tone = 'success'; label = 'Sincronizado'; }
     return { tone, label, online, totalAgents: (agents || []).length, changes, review, errors,
-      checked: results.filter(item => item.status !== 'UNMAPPED').length, unmapped: Number(counts.UNMAPPED || 0) };
+      checked: certified, certified, total, partial, unmapped };
   }
 
   function filterResults(results, filter) {
@@ -106,8 +112,8 @@
       </section>
       <section class="card he-ps-results-card">
         <div class="he-ps-section-head"><div><span class="he-ps-eyebrow">Comparación más reciente</span><h3>Resultados</h3><p id="hePsResultsSummary">Aún no hay información para mostrar.</p></div><button class="he-ps-button primary" id="hePsApply" hidden disabled><i class="fa-solid fa-check"></i><span>Aplicar actualización</span></button></div>
-        <div class="he-ps-success-empty" id="hePsUpToDate" hidden><span><i class="fa-solid fa-check"></i></span><div><strong>Todo está actualizado</strong><p>No se encontraron diferencias entre Pentagrama y HomeEasy.</p></div></div>
-        <div class="he-ps-review-note" id="hePsReviewNote" hidden><i class="fa-solid fa-triangle-exclamation"></i><div><strong>Hay referencias que requieren revisión</strong><p>Estos casos se muestran claramente y nunca se aplican de forma automática.</p></div></div>
+        <div class="he-ps-success-empty" id="hePsUpToDate" hidden><span><i class="fa-solid fa-check"></i></span><div><strong>Todo lo certificado está actualizado</strong><p>Las referencias pendientes o sin mapear permanecen intactas.</p></div></div>
+        <div class="he-ps-review-note" id="hePsReviewNote" hidden><i class="fa-solid fa-circle-info"></i><div><strong>Cobertura parcial</strong><p>Las referencias pendientes se muestran como información y nunca se aplican automáticamente.</p></div></div>
         <div class="he-ps-filters" id="hePsFilters" aria-label="Filtros de resultados"></div>
         <div class="he-ps-table-wrap"><table class="he-ps-table"><thead><tr><th class="he-ps-check-col"><span class="sr-only">Seleccionar</span></th><th>Producto</th><th>Familia</th><th>Anterior</th><th>Nuevo</th><th>Cambio</th><th>Estado</th></tr></thead><tbody id="hePsRows"><tr><td colspan="7" class="he-ps-empty">Ejecuta una actualización para comparar tarifas.</td></tr></tbody></table></div><button class="he-ps-more" id="hePsMore" hidden>Mostrar más resultados</button>
       </section>
@@ -128,11 +134,12 @@
 
   function renderOverview() {
     const agents = state.status && state.status.agents || []; const overview = deriveOverview(state.scan, agents); const dot = $('#hePsStatusDot'); dot.className = `he-ps-status-dot ${overview.tone}`;
+    if (state.error) { overview.tone = 'error'; overview.label = 'Requiere atención'; dot.className = 'he-ps-status-dot error'; }
     $('#hePsStatusLabel').textContent = overview.label;
-    $('#hePsStatusHelp').textContent = overview.tone === 'success' ? 'Las referencias verificadas coinciden con el costo vigente.' : overview.tone === 'pending' ? 'Revisa el resultado antes de aplicar cambios normales.' : overview.tone === 'error' ? 'La operación necesita atención antes de continuar.' : 'Ejecuta una actualización para comparar tarifas.';
+    $('#hePsStatusHelp').textContent = overview.tone === 'success' && overview.partial ? `${overview.certified} certificadas · ${overview.review} pendientes · ${overview.unmapped} sin mapear` : overview.tone === 'success' ? 'Las referencias certificadas coinciden con el costo vigente.' : overview.tone === 'pending' ? 'Hay cambios certificados disponibles; los casos pendientes permanecen intactos.' : overview.tone === 'error' ? 'La operación necesita atención antes de continuar.' : 'Ejecuta una actualización para comparar tarifas.';
     const nextCheck = state.status && state.status.nextScheduledCheck; const lastAuto = state.status && state.status.lastAutomaticCheck; const autoResult = state.status && state.status.automaticResult;
-    const autoHint = autoResult ? (autoResult.event === 'AUTO_SCAN_OK' ? 'Sin cambios' : autoResult.event === 'CHANGES_DETECTED' ? `${Number(autoResult.changes || 0)} cambios pendientes` : 'Falló · requiere atención') : 'Aún no ejecutada';
-    $('#hePsMetrics').innerHTML = [metric('fa-clock', 'Última revisión automática', lastAuto ? dateTime(lastAuto) : 'Sin registros', autoHint), metric('fa-list-check', 'Referencias verificadas', String(overview.checked), `${overview.unmapped} sin mapear`), metric('fa-arrow-right-arrow-left', 'Cambios pendientes', String(overview.changes), overview.review ? `${overview.review} por revisar` : 'Sin anomalías'), metric('fa-computer', 'Agentes disponibles', `${overview.online} de ${overview.totalAgents}`), metric('fa-calendar-check', 'Próxima revisión automática', nextCheck ? dateTime(nextCheck) : 'No programada')].join('');
+    const autoHint = autoResult ? (autoResult.event === 'AUTO_SCAN_OK' ? 'Sin cambios' : autoResult.event === 'CHANGES_DETECTED' && Number(autoResult.changes || 0) ? `${Number(autoResult.changes || 0)} cambios pendientes` : autoResult.event === 'CHANGES_DETECTED' ? 'Cobertura parcial' : 'Falló · requiere atención') : 'Aún no ejecutada';
+    $('#hePsMetrics').innerHTML = [metric('fa-clock', 'Última revisión automática', lastAuto ? dateTime(lastAuto) : 'Sin registros', autoHint), metric('fa-list-check', 'Referencias certificadas', String(overview.certified), `${overview.review} pendientes · ${overview.unmapped} sin mapear`), metric('fa-arrow-right-arrow-left', 'Cambios pendientes', String(overview.changes), overview.review ? `${overview.review} fuera del auto-apply` : 'Sin anomalías'), metric('fa-computer', 'Agentes disponibles', `${overview.online} de ${overview.totalAgents}`), metric('fa-calendar-check', 'Próxima revisión automática', nextCheck ? dateTime(nextCheck) : 'No programada')].join('');
     const alert = $('#hePsAlert');
     if (state.error) { alert.hidden = false; alert.className = 'he-ps-alert error'; alert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i><span>${esc(friendlyError(state.error))}</span>`; }
     else if (!overview.online) { alert.hidden = false; alert.className = 'he-ps-alert error'; alert.innerHTML = `<i class="fa-solid fa-computer"></i><span>${esc(ERROR_MESSAGES.AGENT_OFFLINE)}</span>`; }
@@ -147,8 +154,8 @@
   function renderResults() {
     const scan = state.scan; const results = scan && scan.results || []; const counts = scan && scan.counts || {}; const safeTotal = results.filter(isSafe).length; const pending = Number(counts.INCREASED || 0) + Number(counts.DECREASED || 0) + Number(counts.NEW || 0);
     $('#hePsResultsSummary').textContent = scan ? `${results.length} referencias leídas · ${pending} cambios normales · ${Number(counts.REVIEW_REQUIRED || 0)} por revisar` : 'Aún no hay información para mostrar.';
-    $('#hePsUpToDate').hidden = !(scan && pending === 0 && Number(counts.REVIEW_REQUIRED || 0) === 0 && Number(counts.ERROR || 0) === 0);
-    $('#hePsReviewNote').hidden = !(Number(counts.REVIEW_REQUIRED || 0) || Number(counts.ERROR || 0));
+    $('#hePsUpToDate').hidden = !(scan && pending === 0 && Number(counts.ERROR || 0) === 0);
+    $('#hePsReviewNote').hidden = !Number(counts.REVIEW_REQUIRED || 0);
     $('#hePsFilters').innerHTML = FILTERS.map(([value, label]) => filterButton(value, label, counts)).join('');
     $('#hePsFilters').querySelectorAll('[data-filter]').forEach(button => button.onclick = () => { state.filter = button.dataset.filter; state.limit = 50; renderResults(); });
     const filtered = filterResults(results, state.filter); const visible = filtered.slice(0, state.limit);
@@ -193,7 +200,7 @@
 
   async function scan() {
     if (state.busy) return; state.busy = true; state.error = null; renderAll();
-    try { const started = await request('/api/pentagrama-sync/scan', 'POST', {}); await poll(started.operation.id, 'scan'); await refresh({ resetSelection: true }); const counts = state.scan && state.scan.counts || {}; const safe = selectedSafe(); const review = Number(counts.REVIEW_REQUIRED || 0); if (safe.length) { await apply(true); return; } if (!review && !Number(counts.ERROR || 0)) await Swal.fire({ icon: 'success', title: 'Todo está actualizado', text: `${Number(state.scan && state.scan.catalogAudit && state.scan.catalogAudit.mapped || 0)} referencias verificadas · 0 cambios`, confirmButtonColor: '#a6455a' }); else await Swal.fire({ icon: 'warning', title: 'Revisión necesaria', text: `${review} referencia(s) requieren revisión y no fueron modificadas.`, confirmButtonColor: '#a6455a' }); }
+    try { const started = await request('/api/pentagrama-sync/scan', 'POST', {}); await poll(started.operation.id, 'scan'); await refresh({ resetSelection: true }); const counts = state.scan && state.scan.counts || {}; const safe = selectedSafe(); const review = Number(counts.REVIEW_REQUIRED || 0); if (safe.length) { await apply(true); return; } if (!Number(counts.ERROR || 0)) await Swal.fire({ icon: 'success', title: 'Todo lo certificado está actualizado', text: `${Number(state.scan && state.scan.catalogAudit && (state.scan.catalogAudit.certified != null ? state.scan.catalogAudit.certified : state.scan.catalogAudit.mapped) || 0)} certificadas · ${review} pendientes fuera del auto-apply · 0 cambios`, confirmButtonColor: '#a6455a' }); else await Swal.fire({ icon: 'error', title: 'Requiere atención', text: 'Una o más consultas operativas fallaron. No se modificó ninguna tarifa.', confirmButtonColor: '#a6455a' }); }
     catch (error) { state.error = error; setProgress(null); await Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: friendlyError(error), confirmButtonColor: '#a6455a' }); }
     finally { state.busy = false; renderAll(); }
   }

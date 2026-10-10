@@ -1,11 +1,12 @@
 'use strict';
 
 const crypto = require('crypto');
-const { INITIAL_MAPPINGS, mappingIsReady, pentagramaParamsForCase, homeEasyItemForCase } = require('./mapper');
+const { INITIAL_MAPPINGS, MAPPING_STATUSES, mappingIsReady, mappingIsCertified, pentagramaParamsForCase, homeEasyItemForCase } = require('./mapper');
 const { roundMoney } = require('./comparison');
 const { buildProposal, same } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
+const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
 
@@ -33,6 +34,7 @@ class PentagramaPhase2 {
     this.homeeasy = options.homeeasy || new HomeEasySyncClient(options);
     this.gateway = options.gateway;
     this.mappings = options.mappings || INITIAL_MAPPINGS;
+    this.certificationRegistry = options.certificationRegistry || DEFAULT_CERTIFICATION_REGISTRY;
     this.store = options.store || new Phase2Store(options);
   }
 
@@ -75,8 +77,18 @@ class PentagramaPhase2 {
 
     const results = [];
     const mappedIds = new Set(this.mappings.map(item => item.homeeasyId));
+    const certifiedMappingIds = new Set(this.mappings.filter(mappingIsCertified).map(item => item.homeeasyId));
+    const certificationById = new Map((this.certificationRegistry.products || []).map(item => [item.homeeasyId, item]));
     for (const item of source.products || []) {
-      if (!mappedIds.has(item.id)) results.push({ homeeasyId: item.id, family: item.familyName, reference: item.reference, status: 'UNMAPPED' });
+      if (mappedIds.has(item.id)) continue;
+      const certification = certificationById.get(item.id);
+      if (certification && certification.status === 'REVIEW_REQUIRED') {
+        results.push({ homeeasyId: item.id, family: item.familyName, reference: item.reference,
+          productCode: certification.productCode, strategy: certification.strategy,
+          status: 'REVIEW_REQUIRED', autoApplicable: false, reviewReason: certification.reason || 'Mapping pendiente de certificación.' });
+      } else {
+        results.push({ homeeasyId: item.id, family: item.familyName, reference: item.reference, status: 'UNMAPPED' });
+      }
     }
     this.store.updateOperation(operationId, { stage: 'COMPARING' });
     for (const mapping of this.mappings) {
@@ -89,7 +101,7 @@ class PentagramaPhase2 {
         const oldCost = roundMoney(primary.homeeasy); const newCost = roundMoney(primary.pentagrama.total);
         const difference = roundMoney(newCost - oldCost); const percent = oldCost ? roundMoney((difference / oldCost) * 100) : null;
         let status = statusFor(oldCost, newCost);
-        if (!same(oldCost, newCost) && !validation.autoApplicable) status = 'REVIEW_REQUIRED';
+        if (mapping.status === MAPPING_STATUSES.REVIEW_REQUIRED || (!same(oldCost, newCost) && !validation.autoApplicable)) status = 'REVIEW_REQUIRED';
         results.push({ id: mapping.id, homeeasyId: mapping.homeeasyId, family: mapping.family, reference: mapping.reference,
           productCode: mapping.productCode, oldCost, newCost, difference, percent, status,
           width: mapping.width, height: mapping.height, quantity: mapping.quantity,
@@ -110,9 +122,10 @@ class PentagramaPhase2 {
     const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
     const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary,
-      catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.strategy).length,
+      catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.id).length,
+        certified: results.filter(item => item.id && certifiedMappingIds.has(item.homeeasyId)).length,
         autoUpdatable: results.filter(item => item.autoApplicable).length,
-        reviewRequired: results.filter(item => item.strategy && !item.autoApplicable).length,
+        reviewRequired: results.filter(item => item.status === 'REVIEW_REQUIRED').length,
         unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts },
       expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts, results };
     this.store.addScan(scan);

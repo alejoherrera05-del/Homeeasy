@@ -1,0 +1,1373 @@
+{
+  "checkedAt": "2026-10-10T01:50:08.967Z",
+  "cases": 87,
+  "pass": 58,
+  "fail": 29,
+  "certified": [],
+  "maxCertifiedDifference": 0,
+  "failed": [
+    {
+      "homeeasyId": "panel-78",
+      "productCode": "PANBOMA195",
+      "groupCode": "378",
+      "source": {
+        "row": 80,
+        "reference": "Blackout Matte",
+        "rate": 71281,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 90713.7,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 362854.8,
+          "reproduced": 362854.8,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 457197.05,
+          "reproduced": 457197.05,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 145141.92,
+          "reproduced": 117927.81,
+          "difference": 27214.11
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 27214.11
+    },
+    {
+      "homeeasyId": "panel-79",
+      "productCode": "PANTRCA500",
+      "groupCode": "615",
+      "source": {
+        "row": 81,
+        "reference": "Calais Blanco y Crema",
+        "rate": 76041,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 89214.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 356857.2,
+          "reproduced": 356857.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 449640.07,
+          "reproduced": 449640.07,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 142742.88,
+          "reproduced": 115978.59,
+          "difference": 26764.29
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 26764.29
+    },
+    {
+      "homeeasyId": "panel-81",
+      "productCode": "PANTRRO68609000",
+      "groupCode": "410",
+      "source": {
+        "row": 83,
+        "reference": "Roma",
+        "rate": 97461,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 107207.1,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 428828.4,
+          "reproduced": 428828.4,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 540323.78,
+          "reproduced": 540323.78,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 171531.36,
+          "reproduced": 139369.23,
+          "difference": 32162.13
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 32162.13
+    },
+    {
+      "homeeasyId": "panel-82",
+      "productCode": "PANTRCL22405000",
+      "groupCode": "399",
+      "source": {
+        "row": 84,
+        "reference": "Claire",
+        "rate": 97461,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 117702.9,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 470811.6,
+          "reproduced": 470811.6,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 593222.62,
+          "reproduced": 593222.62,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 188324.64,
+          "reproduced": 153013.77,
+          "difference": 35310.87
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35310.87
+    },
+    {
+      "homeeasyId": "panel-84",
+      "productCode": "PANSCTRE3EBO",
+      "groupCode": "671",
+      "source": {
+        "row": 86,
+        "reference": "Screen Tretto 3%",
+        "rate": 79611,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 113204.7,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 452818.8,
+          "reproduced": 452818.8,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 570551.69,
+          "reproduced": 570551.69,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 181127.52,
+          "reproduced": 147166.11,
+          "difference": 33961.41
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 33961.41
+    },
+    {
+      "homeeasyId": "panel-85",
+      "productCode": "PANSCTRE1EBO",
+      "groupCode": "671",
+      "source": {
+        "row": 87,
+        "reference": "Screen Tretto 1%",
+        "rate": 97461,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 127449,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 509796,
+          "reproduced": 509796,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 642342.96,
+          "reproduced": 642342.96,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 203918.4,
+          "reproduced": 165683.7,
+          "difference": 38234.7
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 38234.7
+    },
+    {
+      "homeeasyId": "panel-86",
+      "productCode": "PANSCLINDUN",
+      "groupCode": "671",
+      "source": {
+        "row": 88,
+        "reference": "Screen Lino",
+        "rate": 98651,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 119202.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 476809.2,
+          "reproduced": 476809.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 600779.59,
+          "reproduced": 600779.59,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 190723.68,
+          "reproduced": 154962.99,
+          "difference": 35760.69
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35760.69
+    },
+    {
+      "homeeasyId": "panel-87",
+      "productCode": "PANSCDIFASH",
+      "groupCode": "671",
+      "source": {
+        "row": 89,
+        "reference": "Screen Difuse",
+        "rate": 98651,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 119202.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 476809.2,
+          "reproduced": 476809.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 600779.59,
+          "reproduced": 600779.59,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 190723.68,
+          "reproduced": 154962.99,
+          "difference": 35760.69
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35760.69
+    },
+    {
+      "homeeasyId": "panel-88",
+      "productCode": "PANSCESAS",
+      "groupCode": "671",
+      "source": {
+        "row": 90,
+        "reference": "Screen Estuco",
+        "rate": 98651,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 119202.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 476809.2,
+          "reproduced": 476809.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 600779.59,
+          "reproduced": 600779.59,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 190723.68,
+          "reproduced": 154962.99,
+          "difference": 35760.69
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35760.69
+    },
+    {
+      "homeeasyId": "panel-89",
+      "productCode": "PANSCFAOF3WHBL",
+      "groupCode": "671",
+      "source": {
+        "row": 91,
+        "reference": "Screen Face Off",
+        "rate": 109361,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 182177.1,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 728708.4,
+          "reproduced": 728708.4,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 918172.58,
+          "reproduced": 918172.58,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 291483.36,
+          "reproduced": 236830.23,
+          "difference": 54653.13
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 54653.13
+    },
+    {
+      "homeeasyId": "panel-90",
+      "productCode": "PANSCSIBA5BL",
+      "groupCode": "671",
+      "source": {
+        "row": 92,
+        "reference": "Screen Silver Back",
+        "rate": 117691,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 143192.7,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 572770.8,
+          "reproduced": 572770.8,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 721691.21,
+          "reproduced": 721691.21,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 229108.32,
+          "reproduced": 186150.51,
+          "difference": 42957.81
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 42957.81
+    },
+    {
+      "homeeasyId": "panel-91",
+      "productCode": "PANSCECCRYCRE",
+      "groupCode": "385",
+      "source": {
+        "row": 93,
+        "reference": "Screen Eco Crystal",
+        "rate": 123641,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 143192.7,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 572770.8,
+          "reproduced": 572770.8,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 721691.21,
+          "reproduced": 721691.21,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 229108.32,
+          "reproduced": 186150.51,
+          "difference": 42957.81
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 42957.81
+    },
+    {
+      "homeeasyId": "panel-92",
+      "productCode": "PANSCJACPRICRBR",
+      "groupCode": "385",
+      "source": {
+        "row": 94,
+        "reference": "Screen Jacquard Privas",
+        "rate": 103411,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 119202.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 476809.2,
+          "reproduced": 476809.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 600779.59,
+          "reproduced": 600779.59,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 190723.68,
+          "reproduced": 154962.99,
+          "difference": 35760.69
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35760.69
+    },
+    {
+      "homeeasyId": "panel-93",
+      "productCode": "PANSCPAPBE",
+      "groupCode": "671",
+      "source": {
+        "row": 95,
+        "reference": "Screen Jacquard Papua",
+        "rate": 104601,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 119202.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 476809.2,
+          "reproduced": 476809.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 600779.59,
+          "reproduced": 600779.59,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 190723.68,
+          "reproduced": 154962.99,
+          "difference": 35760.69
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35760.69
+    },
+    {
+      "homeeasyId": "panel-94",
+      "productCode": "PANSCJADEQUEBAM",
+      "groupCode": "671",
+      "source": {
+        "row": 96,
+        "reference": "Screen Jacquard Queen",
+        "rate": 104601,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 119202.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 476809.2,
+          "reproduced": 476809.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 600779.59,
+          "reproduced": 600779.59,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 190723.68,
+          "reproduced": 154962.99,
+          "difference": 35760.69
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35760.69
+    },
+    {
+      "homeeasyId": "panel-95",
+      "productCode": "PANSCJADEQUEBRWH",
+      "groupCode": "671",
+      "source": {
+        "row": 97,
+        "reference": "Screen Jacquard Sketch",
+        "rate": 104601,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 119202.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 476809.2,
+          "reproduced": 476809.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 600779.59,
+          "reproduced": 600779.59,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 190723.68,
+          "reproduced": 154962.99,
+          "difference": 35760.69
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35760.69
+    },
+    {
+      "homeeasyId": "panel-96",
+      "productCode": "PANSCJAC10047604",
+      "groupCode": "385",
+      "source": {
+        "row": 98,
+        "reference": "Screen Jacquard Provence",
+        "rate": 104601,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 119202.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 476809.2,
+          "reproduced": 476809.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 600779.59,
+          "reproduced": 600779.59,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 190723.68,
+          "reproduced": 154962.99,
+          "difference": 35760.69
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 35760.69
+    },
+    {
+      "homeeasyId": "panel-97",
+      "productCode": "PANSCJAC10047812",
+      "groupCode": "385",
+      "source": {
+        "row": 99,
+        "reference": "Screen Jacquard Expressions",
+        "rate": 109361,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 127449,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 509796,
+          "reproduced": 509796,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 642342.96,
+          "reproduced": 642342.96,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 203918.4,
+          "reproduced": 165683.7,
+          "difference": 38234.7
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 38234.7
+    },
+    {
+      "homeeasyId": "panel-98",
+      "productCode": "PANSCJADEDEGRESAN",
+      "groupCode": "671",
+      "source": {
+        "row": 100,
+        "reference": "Screen Jacquard Desert",
+        "rate": 109361,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 127449,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 509796,
+          "reproduced": 509796,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 642342.96,
+          "reproduced": 642342.96,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 203918.4,
+          "reproduced": 165683.7,
+          "difference": 38234.7
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 38234.7
+    },
+    {
+      "homeeasyId": "panel-99",
+      "productCode": "PANSCJACSTYCHAL",
+      "groupCode": "671",
+      "source": {
+        "row": 101,
+        "reference": "Screen Jacquard Stylo",
+        "rate": 109361,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 127449,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 509796,
+          "reproduced": 509796,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 642342.96,
+          "reproduced": 642342.96,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 203918.4,
+          "reproduced": 165683.7,
+          "difference": 38234.7
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 38234.7
+    },
+    {
+      "homeeasyId": "panel-100",
+      "productCode": "PANSCJAC10047404",
+      "groupCode": "385",
+      "source": {
+        "row": 102,
+        "reference": "Screen Jacquard Nirvana",
+        "rate": 128401,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 149190.3,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 596761.2,
+          "reproduced": 596761.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 751919.11,
+          "reproduced": 751919.11,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 238704.48,
+          "reproduced": 193947.39,
+          "difference": 44757.09
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 44757.09
+    },
+    {
+      "homeeasyId": "panel-101",
+      "productCode": "PANSCSPGLAN",
+      "groupCode": "671",
+      "source": {
+        "row": 103,
+        "reference": "Screen Splendour Glow",
+        "rate": 84371,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 175429.8,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 701719.2,
+          "reproduced": 701719.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 884166.19,
+          "reproduced": 884166.19,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 280687.68,
+          "reproduced": 228058.74,
+          "difference": 52628.94
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 52628.94
+    },
+    {
+      "homeeasyId": "panel-102",
+      "productCode": "PANSCSPSTCOBR",
+      "groupCode": "671",
+      "source": {
+        "row": 104,
+        "reference": "Screen Splendour Style",
+        "rate": 105791,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 273640.5,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1094562,
+          "reproduced": 1094562,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1379148.12,
+          "reproduced": 1379148.12,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 437824.8,
+          "reproduced": 355732.65,
+          "difference": 82092.15
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 82092.15
+    },
+    {
+      "homeeasyId": "panel-103",
+      "productCode": "PANSCSPEXBR",
+      "groupCode": "671",
+      "source": {
+        "row": 105,
+        "reference": "Screen Splendour Explore",
+        "rate": 104601,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 218912.4,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 875649.6,
+          "reproduced": 875649.6,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1103318.5,
+          "reproduced": 1103318.5,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 350259.84,
+          "reproduced": 284586.12,
+          "difference": 65673.72
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 65673.72
+    },
+    {
+      "homeeasyId": "panel-104",
+      "productCode": "PANSCSPBABE",
+      "groupCode": "671",
+      "source": {
+        "row": 106,
+        "reference": "Screen Splendour Bamboo",
+        "rate": 104601,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 218912.4,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 875649.6,
+          "reproduced": 875649.6,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1103318.5,
+          "reproduced": 1103318.5,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 350259.84,
+          "reproduced": 284586.12,
+          "difference": 65673.72
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 65673.72
+    },
+    {
+      "homeeasyId": "panel-105",
+      "productCode": "PANSCULJANOFO",
+      "groupCode": "385",
+      "source": {
+        "row": 107,
+        "reference": "Screen Ultimate Jacquard Novo",
+        "rate": 109361,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 227908.8,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 911635.2,
+          "reproduced": 911635.2,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1148660.35,
+          "reproduced": 1148660.35,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 364654.08,
+          "reproduced": 296281.44,
+          "difference": 68372.64
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 68372.64
+    },
+    {
+      "homeeasyId": "panel-106",
+      "productCode": "PANSCSPNOGO",
+      "groupCode": "671",
+      "source": {
+        "row": 108,
+        "reference": "Screen Splendour Noble",
+        "rate": 123641,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 273640.5,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1094562,
+          "reproduced": 1094562,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1379148.12,
+          "reproduced": 1379148.12,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 437824.8,
+          "reproduced": 355732.65,
+          "difference": 82092.15
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 82092.15
+    },
+    {
+      "homeeasyId": "panel-107",
+      "productCode": "PANSCSPAMMI",
+      "groupCode": "671",
+      "source": {
+        "row": 109,
+        "reference": "Screen Splendour Amazon",
+        "rate": 123641,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 273640.5,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1094562,
+          "reproduced": 1094562,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1379148.12,
+          "reproduced": 1379148.12,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 437824.8,
+          "reproduced": 355732.65,
+          "difference": 82092.15
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 82092.15
+    },
+    {
+      "homeeasyId": "panel-108",
+      "productCode": "PANSCSPGLAPE",
+      "groupCode": "671",
+      "source": {
+        "row": 110,
+        "reference": "Screen Splendour Glamour",
+        "rate": 123641,
+        "minHeight": 1.3,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 273640.5,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1094562,
+          "reproduced": 1094562,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1379148.12,
+          "reproduced": 1379148.12,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 437824.8,
+          "reproduced": 355732.65,
+          "difference": 82092.15
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 82092.15
+    }
+  ]
+}
