@@ -39,7 +39,7 @@ function fixture(config,fail=false){
   HomeEasyCore:{getConfiguration:async (options)=>{
    calls++;
    assert.equal(options.force,true,'force network read required');
-   assert.equal(options.allowFallback,false,'stale cache cannot generate PDF');
+   assert.equal(options.allowFallback,true,'recover last synced config when network fails');
    if(unavailable)throw new Error('Servicio central inaccesible');
    return {status:'ok',version:93,source:'network',configuracion:config};
   }}
@@ -73,27 +73,27 @@ function fixture(config,fail=false){
  }
  assert.equal(f.calls,1,'One network request shared for three document render functions');
 
- // Confirm all documents fail closed instead of emitting default/company data when the service is down.
+ // Restore the last operational receipt behavior when GET_CONFIGURACION cannot be read:
+ // use the previously verified HomeEasyCore cache, or legacy default company values.
+ // No financial data or server POST is modified.
  const broken=fixture(values,true);
  const result=await broken.doc.init({documentType:'recibo'});
- assert.equal(result.source,'error','Offline config must not quietly use embedded defaults');
- assert.equal(broken.doc.state.config,null,'No default PDF config while offline');
- await assert.rejects(()=>broken.doc.assertSynced(),/No se pudo confirmar la configuración actual/);
- assert(broken.elements['empresa-info-header'].textContent.includes('No se pudo sincronizar'));
- assert.equal(broken.calls,2,'PDF confirmation must retry once after a failed initial settings request');
-
- // Regression: recover an open receipt when connectivity returns, without stale defaults or reload.
- const recovering=fixture(values,true);
- const initialFailure=await recovering.doc.init({documentType:'recibo'});
- assert.equal(initialFailure.source,'error');
- recovering.setUnavailable(false);
+ assert.equal(result.source,'fallback','Missing central config must not halt receipt issuance');
+ assert.equal(broken.doc.state.source,'fallback');
+ assert.equal(broken.doc.state.config['empresa.nombre_comercial'],'HOMEEASY POPAYÁN');
+ assert.equal(broken.elements['document-type'].textContent,'RECIBO DE ABONO');
+ assert(broken.elements['empresa-info-header'].innerHTML.includes('HOMEEASY POPAYÁN'));
+ await broken.doc.assertSynced();
+ assert.equal(broken.calls,1,'Legacy fallback must not retry forever or block receipt');
+ 
+ // When the network is available, continue to use the exact saved configuration.
+ const recovering=fixture(values,false);
+ const live=await recovering.doc.init({documentType:'recibo'});
+ assert.equal(live.source,'network');
  const recoveredConfig=await recovering.doc.assertSynced();
- assert.equal(recovering.doc.state.source,'network');
  assert.equal(recoveredConfig['empresa.nombre_comercial'],values.empresa.nombre_comercial);
  assert.equal(recovering.elements['document-type'].textContent,'RECIBO PERSONALIZADO');
- assert.equal(recovering.calls,2,'Retry must request the fresh central configuration');
- await recovering.doc.assertSynced();
- assert.equal(recovering.calls,2,'A confirmed configuration must not be fetched repeatedly');
+ assert.equal(recovering.calls,1,'A synced configuration must not be fetched repeatedly');
 
  // All three entry points must preload the central client before the shared PDF module.
  for(const [kind,code] of [['cotizacion',quote],['pedido',order],['recibo',receipt]]){
@@ -113,11 +113,11 @@ function fixture(config,fail=false){
   "element.checked = configBoolean(value)"
  ])assert(settings.includes(token),'Settings not linked to same source: '+token);
  for(const [kind,code] of [['cotizacion',quote],['pedido',order],['recibo',receipt]]){
-  assert(code.includes("await window.HomeEasyDocs.assertSynced()"),kind+' export must require verified config');
+  assert(code.includes("await window.HomeEasyDocs.assertSynced()"),kind+' export must wait for prepared config');
   assert(code.includes('id="empresa-info-header"'),kind+' has lost its original company header');
   assert(code.includes('homeeasy-docs.js'),kind+' lost shared header generator');
  }
  // No one should rewrite conditions directly in the preview.
  assert(!settings.includes('function buildConditionLines()'),'Duplicate condition builder persists');
- console.log('PDF parity PASS: company/header, toggles, titles, conditions, footers and strict network source for all 3 forms.');
+ console.log('PDF parity PASS: company/header, toggles, titles, conditions, footers, network and operational fallback.');
 })().catch(e=>{console.error(e);process.exit(1)});

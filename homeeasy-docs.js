@@ -228,26 +228,33 @@
         source: data.source || "network"
       };
     }
-    throw new Error("La configuración central no devolvió datos válidos.");
+    return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
   }
 
   function fetchConfig(url) {
-    // La vista previa y los PDF deben usar configuración central confirmada.
-    // Un fallo de red no debe generar un PDF con datos predeterminados/antiguos.
+    // Recuperar el comportamiento operativo del PDF anterior al PR #62:
+    // intentar siempre la fuente central y, si no responde, usar Configuración
+    // previamente guardada por HomeEasyCore o los valores de respaldo históricos.
+    // No modifica los pagos ni el proceso de guardado.
     if (window.HomeEasyCore && typeof window.HomeEasyCore.getConfiguration === "function") {
-      return window.HomeEasyCore.getConfiguration({ force: true, allowFallback: false })
-        .then(normalizeConfigPayload);
+      return window.HomeEasyCore.getConfiguration({ force: true, allowFallback: true })
+        .then(normalizeConfigPayload)
+        .catch(function () {
+          return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
+        });
     }
     const apiUrl = clean(url) || DEFAULT_API_URL;
     return fetch(apiUrl + "?tipo=GET_CONFIGURACION&t=" + Date.now(), { cache: "no-store" })
-      .then(function (response) {
-        if (!response.ok) throw new Error("Error al consultar Configuración.");
-        return response.json();
-      })
+      .then(function (response) { return response.json(); })
       .then(function (data) {
         const status = clean(data && data.status).toLowerCase();
-        if (status !== "ok" && status !== "success") throw new Error("Configuración no disponible.");
-        return normalizeConfigPayload(data);
+        if (data && (status === "ok" || status === "success") && data.configuracion) {
+          return normalizeConfigPayload(data);
+        }
+        return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
+      })
+      .catch(function () {
+        return { config: Object.assign({}, FALLBACK), version: 1, source: "fallback" };
       });
   }
 
@@ -274,7 +281,6 @@
     const kind = opts.documentType || state.documentType || "cotizacion";
     state.documentType = kind;
     state.promise = ensureConfig(url).then(function (payload) {
-      if (payload.source !== "network") throw new Error("No se confirmó la configuración central.");
       state.config = payload.config;
       state.version = payload.version;
       state.source = payload.source;
@@ -299,16 +305,16 @@
 
   function assertSynced() {
     return (state.promise || Promise.resolve(null)).then(async function () {
-      if (!state.config || state.source !== "network") {
-        // El formulario puede haberse abierto durante una caída de conexión.
-        // Reintentar ahora con la fuente central, sin emitir PDF con defaults/cache.
+      if (!state.config) {
+        // Recuperación segura tras un error inesperado de inicialización.
+        state.configPromise = null;
         await init({
           url: window.URL_G || DEFAULT_API_URL,
           documentType: state.documentType || detectDocumentType() || "cotizacion"
         });
       }
-      if (!state.config || state.source !== "network") {
-        throw new Error("No se pudo confirmar la configuración actual. Revisa la conexión e intenta confirmar nuevamente; tus datos permanecen en el formulario.");
+      if (!state.config) {
+        throw new Error("No fue posible preparar los datos del documento. Reintenta antes de confirmar.");
       }
       // Garantiza que lo que se exporta sea la cabecera ya sincronizada del formulario.
       const companyHeader = document.getElementById("empresa-info-header");
