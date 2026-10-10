@@ -252,7 +252,14 @@
   }
 
   function ensureConfig(url) {
-    if (!state.configPromise) state.configPromise = fetchConfig(url);
+    if (!state.configPromise) {
+      // No conservar para siempre un fallo transitorio de red: la siguiente
+      // confirmación debe poder recuperar Configuración sin perder el formulario.
+      state.configPromise = fetchConfig(url).catch(function (error) {
+        state.configPromise = null;
+        throw error;
+      });
+    }
     return state.configPromise;
   }
 
@@ -291,9 +298,17 @@
   }
 
   function assertSynced() {
-    return (state.promise || Promise.resolve(null)).then(function () {
+    return (state.promise || Promise.resolve(null)).then(async function () {
       if (!state.config || state.source !== "network") {
-        throw new Error("No se pudo confirmar la configuración actual. Vuelve a abrir el documento con conexión antes de generar su PDF.");
+        // El formulario puede haberse abierto durante una caída de conexión.
+        // Reintentar ahora con la fuente central, sin emitir PDF con defaults/cache.
+        await init({
+          url: window.URL_G || DEFAULT_API_URL,
+          documentType: state.documentType || detectDocumentType() || "cotizacion"
+        });
+      }
+      if (!state.config || state.source !== "network") {
+        throw new Error("No se pudo confirmar la configuración actual. Revisa la conexión e intenta confirmar nuevamente; tus datos permanecen en el formulario.");
       }
       // Garantiza que lo que se exporta sea la cabecera ya sincronizada del formulario.
       const companyHeader = document.getElementById("empresa-info-header");
@@ -657,7 +672,7 @@
   if (autoType) {
     state.documentType = autoType;
     installLoadingGuard();
-    state.configPromise = fetchConfig(DEFAULT_API_URL); // Empieza antes de que termine de dibujarse el formulario.
+    state.configPromise = ensureConfig(DEFAULT_API_URL); // Prefetch recuperable si la red falla.
     const autoInit = function () {
       init({ url: DEFAULT_API_URL, documentType: autoType });
       if (autoType === "cotizacion" || autoType === "pedido") {
