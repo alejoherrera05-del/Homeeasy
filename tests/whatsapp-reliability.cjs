@@ -23,7 +23,7 @@ for(const mode of ['auth-before-script','auth-before-dom','auth-after-dom'])test
 });
 test('Integraciones no se monta sin autorización',()=>{const f=settings('denied');f.w.eval(code('homeeasy-whatsapp-settings.js'));f.w.dispatchEvent(new f.w.Event('homeeasy:page-auth-ready'));assert.equal(f.w.document.querySelector('#panel-integraciones'),null);f.w.close();});
 
-for(const [version,compatible] of [['0.8.0',true],['0.14.0',true],['0.7.9',false]]) {
+for(const [version,compatible] of [['0.8.0',true],['0.14.1',true],['0.7.9',false]]) {
  test('Bridge '+version+' respeta versión mínima 0.8.0',async()=>{
   const f=settings();const w=f.w;const notices=[];w.scrollTo=()=>{};
   w.Swal={fire:options=>{notices.push(options);return Promise.resolve({});}};

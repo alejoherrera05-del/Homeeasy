@@ -1,0 +1,1232 @@
+{
+  "checkedAt": "2026-10-10T01:52:11.462Z",
+  "cases": 78,
+  "pass": 16,
+  "fail": 62,
+  "certified": [],
+  "maxCertifiedDifference": 0,
+  "failed": [
+    {
+      "homeeasyId": "sheer-131",
+      "productCode": "SHEELESTDSCEBRLI",
+      "groupCode": "1088",
+      "source": {
+        "row": 133,
+        "reference": "Screen Eco",
+        "rate": 83181,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 0,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 259396.2,
+          "reproduced": 0,
+          "difference": 259396.2
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 259396.2
+    },
+    {
+      "homeeasyId": "sheer-132",
+      "productCode": "SHEELESTDSESCCLAL",
+      "groupCode": "1235",
+      "source": {
+        "row": 134,
+        "reference": "Screen Clark",
+        "rate": 84371,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 242617.2,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1018092.6,
+          "reproduced": 970468.8,
+          "difference": 47623.8
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1162784.7,
+          "reproduced": 1222790.69,
+          "difference": 60005.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 315402.36,
+          "difference": 3527.16
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 60005.99
+    },
+    {
+      "homeeasyId": "sheer-133",
+      "productCode": "SHEELESTDSESCDIGR",
+      "groupCode": "1241",
+      "source": {
+        "row": 135,
+        "reference": "Screen Difuse",
+        "rate": 84371,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 0,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 0,
+          "difference": 311875.2
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 311875.2
+    },
+    {
+      "homeeasyId": "sheer-134",
+      "productCode": "SHEELESTDSESCJALOBE",
+      "groupCode": "1238",
+      "source": {
+        "row": 136,
+        "reference": "Screen Loft",
+        "rate": 97461,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 242617.2,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1018092.6,
+          "reproduced": 970468.8,
+          "difference": 47623.8
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1162784.7,
+          "reproduced": 1222790.69,
+          "difference": 60005.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 315402.36,
+          "difference": 3527.16
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 60005.99
+    },
+    {
+      "homeeasyId": "sheer-135",
+      "productCode": "SHEELESTDSCBIWHBR",
+      "groupCode": "1241",
+      "source": {
+        "row": 137,
+        "reference": "Bishop",
+        "rate": 97461,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 0,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 0,
+          "difference": 311875.2
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 311875.2
+    },
+    {
+      "homeeasyId": "sheer-136",
+      "productCode": "SHEELESTDSESCJAALCR",
+      "groupCode": "1238",
+      "source": {
+        "row": 138,
+        "reference": "Allen",
+        "rate": 97461,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 242617.2,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1018092.6,
+          "reproduced": 970468.8,
+          "difference": 47623.8
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1162784.7,
+          "reproduced": 1222790.69,
+          "difference": 60005.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 315402.36,
+          "difference": 3527.16
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 60005.99
+    },
+    {
+      "homeeasyId": "sheer-137",
+      "productCode": "SHEELESTDSESCLOBESI",
+      "groupCode": "1279",
+      "source": {
+        "row": 139,
+        "reference": "London",
+        "rate": 97461,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 0,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 0,
+          "difference": 311875.2
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 311875.2
+    },
+    {
+      "homeeasyId": "sheer-138",
+      "productCode": "SHEELESTDSCGLWHBE",
+      "groupCode": "1090",
+      "source": {
+        "row": 140,
+        "reference": "Glass",
+        "rate": 97461,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 0,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 0,
+          "difference": 311875.2
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 311875.2
+    },
+    {
+      "homeeasyId": "sheer-139",
+      "productCode": "SHEELESTDSESCJASUBE",
+      "groupCode": "1235",
+      "source": {
+        "row": 141,
+        "reference": "Surf",
+        "rate": 97461,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 242617.2,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1018092.6,
+          "reproduced": 970468.8,
+          "difference": 47623.8
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1162784.7,
+          "reproduced": 1222790.69,
+          "difference": 60005.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 315402.36,
+          "difference": 3527.16
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 60005.99
+    },
+    {
+      "homeeasyId": "sheer-140",
+      "productCode": "SHEELESTDSCHYBLA",
+      "groupCode": "1396",
+      "source": {
+        "row": 142,
+        "reference": "Hybrid",
+        "rate": 97461,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 242617.2,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1018092.6,
+          "reproduced": 970468.8,
+          "difference": 47623.8
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1162784.7,
+          "reproduced": 1222790.69,
+          "difference": 60005.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 311875.2,
+          "reproduced": 315402.36,
+          "difference": 3527.16
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 60005.99
+    },
+    {
+      "homeeasyId": "sheer-143",
+      "productCode": "SHEELESTDFECH",
+      "groupCode": "879",
+      "source": {
+        "row": 145,
+        "reference": "Fener",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-144",
+      "productCode": "SHEELESTDFIBEB901035",
+      "groupCode": "880",
+      "source": {
+        "row": 146,
+        "reference": "Fiji",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-145",
+      "productCode": "SHEELESTDGLAGR",
+      "groupCode": "1089",
+      "source": {
+        "row": 147,
+        "reference": "Glamour",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-146",
+      "productCode": "SHEELESTDLEBE",
+      "groupCode": "1313",
+      "source": {
+        "row": 148,
+        "reference": "Levant",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-147",
+      "productCode": "SHEELESTDMARBL",
+      "groupCode": "1096",
+      "source": {
+        "row": 149,
+        "reference": "Marian",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-148",
+      "productCode": "SHEELESTDMA901062",
+      "groupCode": "873",
+      "source": {
+        "row": 150,
+        "reference": "Manchester",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-150",
+      "productCode": "SHEELESTDRO901077",
+      "groupCode": "876",
+      "source": {
+        "row": 152,
+        "reference": "Romantic",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 0,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 0,
+          "difference": 215913.6
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 215913.6
+    },
+    {
+      "homeeasyId": "sheer-151",
+      "productCode": "SHEELESTDSEROBRBL",
+      "groupCode": "883",
+      "source": {
+        "row": 153,
+        "reference": "Romantic Bright",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 0,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 0,
+          "difference": 215913.6
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 215913.6
+    },
+    {
+      "homeeasyId": "sheer-152",
+      "productCode": "SHEELESTDSEROCUBR",
+      "groupCode": "884",
+      "source": {
+        "row": 154,
+        "reference": "Romantic Curves",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 0,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 0,
+          "reproduced": 0,
+          "difference": 0
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 0,
+          "difference": 215913.6
+        }
+      ],
+      "casesPassed": 2,
+      "maxDifference": 215913.6
+    },
+    {
+      "homeeasyId": "sheer-153",
+      "productCode": "SHEELESTDSESPBLSI",
+      "groupCode": "881",
+      "source": {
+        "row": 155,
+        "reference": "Spectra (no Deluxe ni Deluxe Island)",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-154",
+      "productCode": "SHEELESTDSETRSPBE",
+      "groupCode": "885",
+      "source": {
+        "row": 156,
+        "reference": "Trapeze",
+        "rate": 73661,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-156",
+      "productCode": "SHEELESTDDIMBE",
+      "groupCode": "1083",
+      "source": {
+        "row": 158,
+        "reference": "Dimare",
+        "rate": 91511,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-157",
+      "productCode": "SHEELESTDHOIV",
+      "groupCode": "1085",
+      "source": {
+        "row": 159,
+        "reference": "Honey",
+        "rate": 91511,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    },
+    {
+      "homeeasyId": "sheer-158",
+      "productCode": "SHEELSTDBONI90127007",
+      "groupCode": "888",
+      "source": {
+        "row": 160,
+        "reference": "Night B",
+        "rate": 149821,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 283301.81,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1188274.5,
+          "reproduced": 1133207.24,
+          "difference": 55067.26
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1358456.4,
+          "reproduced": 1427841.12,
+          "difference": 69384.72
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 363604.5,
+          "reproduced": 368292.35,
+          "difference": 4687.85
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 69384.72
+    },
+    {
+      "homeeasyId": "sheer-159",
+      "productCode": "SHEELSTDBONI90127003",
+      "groupCode": "887",
+      "source": {
+        "row": 161,
+        "reference": "Night",
+        "rate": 161721,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 283301.81,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 1188274.5,
+          "reproduced": 1133207.24,
+          "difference": 55067.26
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 1358456.4,
+          "reproduced": 1427841.12,
+          "difference": 69384.72
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 363604.5,
+          "reproduced": 368292.35,
+          "difference": 4687.85
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 69384.72
+    },
+    {
+      "homeeasyId": "sheer-160",
+      "productCode": "SHEELSTDBOSEEXNBB",
+      "groupCode": "1352",
+      "source": {
+        "row": 162,
+        "reference": "Extra Night",
+        "rate": 124831,
+        "minHeight": 0,
+        "minArea": 0,
+        "method": "area",
+        "promotional": true,
+        "extraDiscount": 0
+      },
+      "proposedRate": 168547.14,
+      "cases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive",
+          "pentagrama": 706967.1,
+          "reproduced": 674188.56,
+          "difference": 32778.54
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive",
+          "pentagrama": 808176.6,
+          "reproduced": 849477.59,
+          "difference": 41300.99
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary",
+          "pentagrama": 215913.6,
+          "reproduced": 219111.28,
+          "difference": 3197.68
+        }
+      ],
+      "casesPassed": 0,
+      "maxDifference": 41300.99
+    }
+  ]
+}

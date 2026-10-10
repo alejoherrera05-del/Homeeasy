@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T15:24:26Z",
+  "generatedAt": "2026-10-10T01:52:11.462Z",
   "sources": {
     "homeeasy": "Costos_Pentagrama live export",
     "pentagrama": "authenticated portal catalog and price endpoint/UI"
@@ -3134,8 +3134,49 @@
       "reference": "Blackout Matte",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANBOMA195",
+      "groupCode": "378",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 27214.11,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 362854.8,
+            "reproduced": 362854.8,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 457197.05,
+            "reproduced": 457197.05,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 145141.92,
+            "reproduced": 117927.81,
+            "difference": 27214.11
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-79",
@@ -3144,8 +3185,49 @@
       "reference": "Calais Blanco y Crema",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANTRCA500",
+      "groupCode": "615",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 26764.29,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 356857.2,
+            "reproduced": 356857.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 449640.07,
+            "reproduced": 449640.07,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 142742.88,
+            "reproduced": 115978.59,
+            "difference": 26764.29
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-80",
@@ -3154,8 +3236,13 @@
       "reference": "Visualle I y II",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "AMBIGUOUS",
+      "status": "REVIEW_REQUIRED",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "reason": "HomeEasy agrega Visualle I y II; Pentagrama expone ProductCode/GroupCode distintos y no existe un destino unico seguro."
     },
     {
       "homeeasyId": "panel-81",
@@ -3164,8 +3251,49 @@
       "reference": "Roma",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANTRRO68609000",
+      "groupCode": "410",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 32162.13,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 428828.4,
+            "reproduced": 428828.4,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 540323.78,
+            "reproduced": 540323.78,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 171531.36,
+            "reproduced": 139369.23,
+            "difference": 32162.13
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-82",
@@ -3174,8 +3302,49 @@
       "reference": "Claire",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANTRCL22405000",
+      "groupCode": "399",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35310.87,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 470811.6,
+            "reproduced": 470811.6,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 593222.62,
+            "reproduced": 593222.62,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 188324.64,
+            "reproduced": 153013.77,
+            "difference": 35310.87
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-83",
@@ -3184,8 +3353,13 @@
       "reference": "Screen Tretto 5% y 10%",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "AMBIGUOUS",
+      "status": "REVIEW_REQUIRED",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "reason": "HomeEasy agrega Tretto 5% y 10%; Pentagrama los expone como referencias separadas."
     },
     {
       "homeeasyId": "panel-84",
@@ -3194,8 +3368,49 @@
       "reference": "Screen Tretto 3%",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCTRE3EBO",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 33961.41,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 452818.8,
+            "reproduced": 452818.8,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 570551.69,
+            "reproduced": 570551.69,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 181127.52,
+            "reproduced": 147166.11,
+            "difference": 33961.41
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-85",
@@ -3204,8 +3419,49 @@
       "reference": "Screen Tretto 1%",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCTRE1EBO",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 38234.7,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 509796,
+            "reproduced": 509796,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 642342.96,
+            "reproduced": 642342.96,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 203918.4,
+            "reproduced": 165683.7,
+            "difference": 38234.7
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-86",
@@ -3214,8 +3470,49 @@
       "reference": "Screen Lino",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCLINDUN",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35760.69,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 476809.2,
+            "reproduced": 476809.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 600779.59,
+            "reproduced": 600779.59,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 190723.68,
+            "reproduced": 154962.99,
+            "difference": 35760.69
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-87",
@@ -3224,8 +3521,49 @@
       "reference": "Screen Difuse",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCDIFASH",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35760.69,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 476809.2,
+            "reproduced": 476809.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 600779.59,
+            "reproduced": 600779.59,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 190723.68,
+            "reproduced": 154962.99,
+            "difference": 35760.69
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-88",
@@ -3234,8 +3572,49 @@
       "reference": "Screen Estuco",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCESAS",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35760.69,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 476809.2,
+            "reproduced": 476809.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 600779.59,
+            "reproduced": 600779.59,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 190723.68,
+            "reproduced": 154962.99,
+            "difference": 35760.69
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-89",
@@ -3244,8 +3623,49 @@
       "reference": "Screen Face Off",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCFAOF3WHBL",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 54653.13,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 728708.4,
+            "reproduced": 728708.4,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 918172.58,
+            "reproduced": 918172.58,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 291483.36,
+            "reproduced": 236830.23,
+            "difference": 54653.13
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-90",
@@ -3254,8 +3674,49 @@
       "reference": "Screen Silver Back",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCSIBA5BL",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 42957.81,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 572770.8,
+            "reproduced": 572770.8,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 721691.21,
+            "reproduced": 721691.21,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 229108.32,
+            "reproduced": 186150.51,
+            "difference": 42957.81
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-91",
@@ -3264,8 +3725,49 @@
       "reference": "Screen Eco Crystal",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCECCRYCRE",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 42957.81,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 572770.8,
+            "reproduced": 572770.8,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 721691.21,
+            "reproduced": 721691.21,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 229108.32,
+            "reproduced": 186150.51,
+            "difference": 42957.81
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-92",
@@ -3274,8 +3776,49 @@
       "reference": "Screen Jacquard Privas",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCJACPRICRBR",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35760.69,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 476809.2,
+            "reproduced": 476809.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 600779.59,
+            "reproduced": 600779.59,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 190723.68,
+            "reproduced": 154962.99,
+            "difference": 35760.69
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-93",
@@ -3284,8 +3827,49 @@
       "reference": "Screen Jacquard Papua",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCPAPBE",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35760.69,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 476809.2,
+            "reproduced": 476809.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 600779.59,
+            "reproduced": 600779.59,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 190723.68,
+            "reproduced": 154962.99,
+            "difference": 35760.69
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-94",
@@ -3294,8 +3878,49 @@
       "reference": "Screen Jacquard Queen",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCJADEQUEBAM",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35760.69,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 476809.2,
+            "reproduced": 476809.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 600779.59,
+            "reproduced": 600779.59,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 190723.68,
+            "reproduced": 154962.99,
+            "difference": 35760.69
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-95",
@@ -3304,8 +3929,49 @@
       "reference": "Screen Jacquard Sketch",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCJADEQUEBRWH",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35760.69,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 476809.2,
+            "reproduced": 476809.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 600779.59,
+            "reproduced": 600779.59,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 190723.68,
+            "reproduced": 154962.99,
+            "difference": 35760.69
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-96",
@@ -3314,8 +3980,49 @@
       "reference": "Screen Jacquard Provence",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCJAC10047604",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 35760.69,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 476809.2,
+            "reproduced": 476809.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 600779.59,
+            "reproduced": 600779.59,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 190723.68,
+            "reproduced": 154962.99,
+            "difference": 35760.69
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-97",
@@ -3324,8 +4031,49 @@
       "reference": "Screen Jacquard Expressions",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCJAC10047812",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 38234.7,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 509796,
+            "reproduced": 509796,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 642342.96,
+            "reproduced": 642342.96,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 203918.4,
+            "reproduced": 165683.7,
+            "difference": 38234.7
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-98",
@@ -3334,8 +4082,49 @@
       "reference": "Screen Jacquard Desert",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCJADEDEGRESAN",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 38234.7,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 509796,
+            "reproduced": 509796,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 642342.96,
+            "reproduced": 642342.96,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 203918.4,
+            "reproduced": 165683.7,
+            "difference": 38234.7
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-99",
@@ -3344,8 +4133,49 @@
       "reference": "Screen Jacquard Stylo",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCJACSTYCHAL",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 38234.7,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 509796,
+            "reproduced": 509796,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 642342.96,
+            "reproduced": 642342.96,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 203918.4,
+            "reproduced": 165683.7,
+            "difference": 38234.7
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-100",
@@ -3354,8 +4184,49 @@
       "reference": "Screen Jacquard Nirvana",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCJAC10047404",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 44757.09,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 596761.2,
+            "reproduced": 596761.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 751919.11,
+            "reproduced": 751919.11,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 238704.48,
+            "reproduced": 193947.39,
+            "difference": 44757.09
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-101",
@@ -3364,8 +4235,49 @@
       "reference": "Screen Splendour Glow",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCSPGLAN",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 52628.94,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 701719.2,
+            "reproduced": 701719.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 884166.19,
+            "reproduced": 884166.19,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 280687.68,
+            "reproduced": 228058.74,
+            "difference": 52628.94
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-102",
@@ -3374,8 +4286,49 @@
       "reference": "Screen Splendour Style",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCSPSTCOBR",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 82092.15,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1094562,
+            "reproduced": 1094562,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1379148.12,
+            "reproduced": 1379148.12,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 437824.8,
+            "reproduced": 355732.65,
+            "difference": 82092.15
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-103",
@@ -3384,8 +4337,49 @@
       "reference": "Screen Splendour Explore",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCSPEXBR",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 65673.72,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 875649.6,
+            "reproduced": 875649.6,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1103318.5,
+            "reproduced": 1103318.5,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 350259.84,
+            "reproduced": 284586.12,
+            "difference": 65673.72
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-104",
@@ -3394,8 +4388,49 @@
       "reference": "Screen Splendour Bamboo",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCSPBABE",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 65673.72,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 875649.6,
+            "reproduced": 875649.6,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1103318.5,
+            "reproduced": 1103318.5,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 350259.84,
+            "reproduced": 284586.12,
+            "difference": 65673.72
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-105",
@@ -3404,8 +4439,49 @@
       "reference": "Screen Ultimate Jacquard Novo",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCULJANOFO",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 68372.64,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 911635.2,
+            "reproduced": 911635.2,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1148660.35,
+            "reproduced": 1148660.35,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 364654.08,
+            "reproduced": 296281.44,
+            "difference": 68372.64
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-106",
@@ -3414,8 +4490,49 @@
       "reference": "Screen Splendour Noble",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCSPNOGO",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 82092.15,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1094562,
+            "reproduced": 1094562,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1379148.12,
+            "reproduced": 1379148.12,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 437824.8,
+            "reproduced": 355732.65,
+            "difference": 82092.15
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-107",
@@ -3424,8 +4541,49 @@
       "reference": "Screen Splendour Amazon",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCSPAMMI",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 82092.15,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1094562,
+            "reproduced": 1094562,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1379148.12,
+            "reproduced": 1379148.12,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 437824.8,
+            "reproduced": 355732.65,
+            "difference": 82092.15
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-108",
@@ -3434,8 +4592,49 @@
       "reference": "Screen Splendour Glamour",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "PANSCSPGLAPE",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 2,
+      "maxDifference": 82092.15,
+      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1094562,
+            "reproduced": 1094562,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1379148.12,
+            "reproduced": 1379148.12,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 437824.8,
+            "reproduced": 355732.65,
+            "difference": 82092.15
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "panel-109",
@@ -3444,8 +4643,13 @@
       "reference": "Serenade Screen y Screen Eco",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "AMBIGUOUS",
+      "status": "REVIEW_REQUIRED",
+      "calculationType": "NormalProduct",
+      "associationGroup": "PANEL",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "reason": "HomeEasy agrega Serenade Screen y Serenade Eco; Pentagrama usa ProductCode distintos dentro del grupo 582."
     },
     {
       "homeeasyId": "vertical-110",
@@ -4115,8 +5319,13 @@
       "reference": "Screen",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "AMBIGUOUS",
+      "status": "REVIEW_REQUIRED",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "reason": "HomeEasy Screen coincide con mas de un GroupCode STANDARD; falta separar el destino antes de certificar."
     },
     {
       "homeeasyId": "sheer-131",
@@ -4125,8 +5334,49 @@
       "reference": "Screen Eco",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSCEBRLI",
+      "groupCode": "1088",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 2,
+      "maxDifference": 259396.2,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 259396.2,
+            "reproduced": 0,
+            "difference": 259396.2
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-132",
@@ -4135,8 +5385,49 @@
       "reference": "Screen Clark",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSESCCLAL",
+      "groupCode": "1235",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 60005.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1018092.6,
+            "reproduced": 970468.8,
+            "difference": 47623.8
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1162784.7,
+            "reproduced": 1222790.69,
+            "difference": 60005.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 315402.36,
+            "difference": 3527.16
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-133",
@@ -4145,8 +5436,49 @@
       "reference": "Screen Difuse",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSESCDIGR",
+      "groupCode": "1241",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 2,
+      "maxDifference": 311875.2,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 0,
+            "difference": 311875.2
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-134",
@@ -4155,8 +5487,49 @@
       "reference": "Screen Loft",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSESCJALOBE",
+      "groupCode": "1238",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 60005.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1018092.6,
+            "reproduced": 970468.8,
+            "difference": 47623.8
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1162784.7,
+            "reproduced": 1222790.69,
+            "difference": 60005.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 315402.36,
+            "difference": 3527.16
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-135",
@@ -4165,8 +5538,49 @@
       "reference": "Bishop",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSCBIWHBR",
+      "groupCode": "1241",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 2,
+      "maxDifference": 311875.2,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 0,
+            "difference": 311875.2
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-136",
@@ -4175,8 +5589,49 @@
       "reference": "Allen",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSESCJAALCR",
+      "groupCode": "1238",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 60005.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1018092.6,
+            "reproduced": 970468.8,
+            "difference": 47623.8
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1162784.7,
+            "reproduced": 1222790.69,
+            "difference": 60005.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 315402.36,
+            "difference": 3527.16
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-137",
@@ -4185,8 +5640,49 @@
       "reference": "London",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSESCLOBESI",
+      "groupCode": "1279",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 2,
+      "maxDifference": 311875.2,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 0,
+            "difference": 311875.2
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-138",
@@ -4195,8 +5691,49 @@
       "reference": "Glass",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSCGLWHBE",
+      "groupCode": "1090",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 2,
+      "maxDifference": 311875.2,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 0,
+            "difference": 311875.2
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-139",
@@ -4205,8 +5742,49 @@
       "reference": "Surf",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSESCJASUBE",
+      "groupCode": "1235",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 60005.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1018092.6,
+            "reproduced": 970468.8,
+            "difference": 47623.8
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1162784.7,
+            "reproduced": 1222790.69,
+            "difference": 60005.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 315402.36,
+            "difference": 3527.16
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-140",
@@ -4215,8 +5793,49 @@
       "reference": "Hybrid",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSCHYBLA",
+      "groupCode": "1396",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 60005.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1018092.6,
+            "reproduced": 970468.8,
+            "difference": 47623.8
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1162784.7,
+            "reproduced": 1222790.69,
+            "difference": 60005.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 311875.2,
+            "reproduced": 315402.36,
+            "difference": 3527.16
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-141",
@@ -4225,8 +5844,13 @@
       "reference": "Crystal básicos y especiales",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "AMBIGUOUS",
+      "status": "REVIEW_REQUIRED",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "reason": "HomeEasy agrega Crystal basicos y especiales; Pentagrama los separa en grupos 871 y 886."
     },
     {
       "homeeasyId": "sheer-142",
@@ -4235,8 +5859,13 @@
       "reference": "Elegance",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "AMBIGUOUS",
+      "status": "REVIEW_REQUIRED",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "reason": "HomeEasy Elegance corresponde a mas de un GroupCode STANDARD (872 y 1301)."
     },
     {
       "homeeasyId": "sheer-143",
@@ -4245,8 +5874,49 @@
       "reference": "Fener",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDFECH",
+      "groupCode": "879",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-144",
@@ -4255,8 +5925,49 @@
       "reference": "Fiji",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDFIBEB901035",
+      "groupCode": "880",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-145",
@@ -4265,8 +5976,49 @@
       "reference": "Glamour",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDGLAGR",
+      "groupCode": "1089",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-146",
@@ -4275,8 +6027,49 @@
       "reference": "Levant",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDLEBE",
+      "groupCode": "1313",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-147",
@@ -4285,8 +6078,49 @@
       "reference": "Marian",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDMARBL",
+      "groupCode": "1096",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-148",
@@ -4295,8 +6129,49 @@
       "reference": "Manchester",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDMA901062",
+      "groupCode": "873",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-149",
@@ -4305,8 +6180,13 @@
       "reference": "Natural",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "AMBIGUOUS",
+      "status": "REVIEW_REQUIRED",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "reason": "HomeEasy Natural corresponde a referencias STANDARD en grupos 1306 y 874."
     },
     {
       "homeeasyId": "sheer-150",
@@ -4315,8 +6195,49 @@
       "reference": "Romantic",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDRO901077",
+      "groupCode": "876",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 2,
+      "maxDifference": 215913.6,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 0,
+            "difference": 215913.6
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-151",
@@ -4325,8 +6246,49 @@
       "reference": "Romantic Bright",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSEROBRBL",
+      "groupCode": "883",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 2,
+      "maxDifference": 215913.6,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 0,
+            "difference": 215913.6
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-152",
@@ -4335,8 +6297,49 @@
       "reference": "Romantic Curves",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSEROCUBR",
+      "groupCode": "884",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 2,
+      "maxDifference": 215913.6,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 0,
+            "reproduced": 0,
+            "difference": 0
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 0,
+            "difference": 215913.6
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-153",
@@ -4345,8 +6348,49 @@
       "reference": "Spectra (no Deluxe ni Deluxe Island)",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSESPBLSI",
+      "groupCode": "881",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-154",
@@ -4355,8 +6399,49 @@
       "reference": "Trapeze",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELESTDSETRSPBE",
+      "groupCode": "885",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-155",
@@ -4367,7 +6452,11 @@
       "strategy": "RATE_M2",
       "candidate": "AMBIGUOUS",
       "status": "REVIEW_REQUIRED",
-      "reason": "Existe Kosta en Pentagrama, pero en configuración Penta13; HomeEasy declara Standard manual."
+      "reason": "Kosta existe en mas de una estructura/configuracion; no hay un unico ProductCode STANDARD demostrado para el destino HomeEasy.",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z"
     },
     {
       "homeeasyId": "sheer-156",
@@ -4376,9 +6465,49 @@
       "reference": "Dimare",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
+      "candidate": "EXACT_CANDIDATE",
       "status": "REVIEW_REQUIRED",
-      "reason": "Existe Dimare en Pentagrama, pero en configuración Penta13; HomeEasy declara Standard manual."
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "productCode": "SHEELESTDDIMBE",
+      "groupCode": "1083",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-157",
@@ -4387,9 +6516,49 @@
       "reference": "Honey",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
+      "candidate": "EXACT_CANDIDATE",
       "status": "REVIEW_REQUIRED",
-      "reason": "Existe Honey en Pentagrama, pero en configuración Penta13; HomeEasy declara Standard manual."
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "productCode": "SHEELESTDHOIV",
+      "groupCode": "1085",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-158",
@@ -4398,8 +6567,49 @@
       "reference": "Night B",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELSTDBONI90127007",
+      "groupCode": "888",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 69384.72,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1188274.5,
+            "reproduced": 1133207.24,
+            "difference": 55067.26
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1358456.4,
+            "reproduced": 1427841.12,
+            "difference": 69384.72
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 363604.5,
+            "reproduced": 368292.35,
+            "difference": 4687.85
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-159",
@@ -4408,8 +6618,49 @@
       "reference": "Night",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "NO_CANDIDATE",
-      "status": "UNMAPPED"
+      "candidate": "EXACT_CANDIDATE",
+      "status": "REVIEW_REQUIRED",
+      "productCode": "SHEELSTDBONI90127003",
+      "groupCode": "887",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 69384.72,
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 1188274.5,
+            "reproduced": 1133207.24,
+            "difference": 55067.26
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 1358456.4,
+            "reproduced": 1427841.12,
+            "difference": 69384.72
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 363604.5,
+            "reproduced": 368292.35,
+            "difference": 4687.85
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "sheer-160",
@@ -4418,9 +6669,49 @@
       "reference": "Extra Night",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
+      "candidate": "EXACT_CANDIDATE",
       "status": "REVIEW_REQUIRED",
-      "reason": "Existe Extra Night en Pentagrama, pero en configuración Penta13; HomeEasy declara Standard manual."
+      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "productCode": "SHEELSTDBOSEEXNBB",
+      "groupCode": "1352",
+      "calculationType": "NormalProduct",
+      "associationGroup": "SHEERSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-10-10T01:52:11.462Z",
+      "casesPassed": 0,
+      "maxDifference": 41300.99,
+      "evidence": {
+        "source": "Pentagrama authenticated price endpoint",
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "2",
+            "height": "2",
+            "role": "derive",
+            "pentagrama": 706967.1,
+            "reproduced": 674188.56,
+            "difference": 32778.54
+          },
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "derive",
+            "pentagrama": 808176.6,
+            "reproduced": 849477.59,
+            "difference": 41300.99
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1.3",
+            "role": "boundary",
+            "pentagrama": 215913.6,
+            "reproduced": 219111.28,
+            "difference": 3197.68
+          }
+        ]
+      }
     },
     {
       "homeeasyId": "vertesse-161",
