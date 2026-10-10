@@ -32,6 +32,10 @@ class PentagramaCatalog {
   validateRoller(params) {
     return this.client.postForm('/Order/ValidarAltMaxEnrollable', params);
   }
+
+  fixedPrice(params) {
+    return this.client.get('/Order/GetProductFixedPrice', params);
+  }
 }
 
 module.exports = Object.freeze({ PentagramaCatalog });

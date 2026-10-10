@@ -54,7 +54,7 @@ test('heartbeat does not enqueue a Pentagrama login job', async () => {
   assert.equal(poll.job, null);
 });
 
-test('dispatcher sends only allowlisted work and returns getPrice or catalog results', async () => {
+test('dispatcher sends only allowlisted work and returns price, catalog or live resolver results', async () => {
   const gateway = fixture();
   const registration = register(gateway);
   const agent = gateway.authenticate(registration.id, registration.token);
@@ -68,6 +68,11 @@ test('dispatcher sends only allowlisted work and returns getPrice or catalog res
   assert.equal(catalogDelivery.job.type, 'catalog');
   gateway.complete(agent, { jobId: catalogDelivery.job.id, ok: true, result: [{ id: 1 }] });
   assert.deepEqual(await catalogPending, [{ id: 1 }]);
+  const livePending = gateway.dispatch('resolveLivePrice', { homeeasyId: 'matte3' });
+  const liveDelivery = await gateway.poll(agent);
+  assert.equal(liveDelivery.job.type, 'resolveLivePrice');
+  gateway.complete(agent, { jobId: liveDelivery.job.id, ok: true, result: { ok: true, outcome: 'PRICE' } });
+  assert.equal((await livePending).outcome, 'PRICE');
   await assert.rejects(() => gateway.dispatch('shell', {}), error => error.code === 'AGENT_JOB_NOT_ALLOWED');
 });
 

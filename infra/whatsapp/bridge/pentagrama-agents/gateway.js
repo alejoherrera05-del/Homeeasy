@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog']);
+const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice']);
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_TIMEOUT',

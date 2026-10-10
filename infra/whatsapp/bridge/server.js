@@ -14,7 +14,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.14.1';
+const BRIDGE_VERSION = '0.15.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -952,6 +952,15 @@ async function handle(req, res) {
     return json(res, 200, { ok: true, mode: pentagramaSync.mode, result });
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/live-price') {
+    await auth.authorize(req, 'cotizaciones.write');
+    const payload = await readJsonBody(req);
+    const result = await pentagramaAgents.dispatch('resolveLivePrice', payload, {
+      lockKey: `live-price:${crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex')}`
+    });
+    return json(res, result && result.ok ? 200 : 422, { ok: Boolean(result && result.ok), mode: PENTAGRAMA_MODE, result });
+  }
+
   if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/catalog') {
     await auth.authorize(req, 'config.read');
     const payload = await readJsonBody(req);
@@ -1126,7 +1135,7 @@ const server = http.createServer((req, res) => {
   Promise.resolve().then(() => {
     const pathname = new URL(req.url, 'http://bridge.local').pathname;
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) &&
-        !['/api/whatsapp/maintenance', '/api/pentagrama-sync/check', '/api/pentagrama-sync/price'].includes(pathname)) {
+        !['/api/whatsapp/maintenance', '/api/pentagrama-sync/check', '/api/pentagrama-sync/price', '/api/pentagrama-sync/live-price'].includes(pathname)) {
       done = maintenance.track();
     }
     return handle(req, res);
