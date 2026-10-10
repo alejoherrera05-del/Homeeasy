@@ -66,9 +66,12 @@ try {
    },{settings:{...config,documentos:{...config.documentos,mostrar_web:scenario.webEnabled}},history:historical,initial:scenario.initial,totalOrder,pending:expectedPending});
    await page.route('**/homeeasy-core.js*',route=>route.fulfill({
      status:200,contentType:'application/javascript',
-     body:'window.HomeEasyCore={getConfiguration:async()=>({status:"ok",source:"network",version:4,configuracion:window.__QA_CONFIG})};'
+     body:'window.HomeEasyCore={getConfiguration:async()=>{if(!window.__QA_GUARD_INSTALLED)throw Error("QA_CONFIG_CALLED_BEFORE_AUTH_GUARD");return {status:"ok",source:"network",version:4,configuracion:window.__QA_CONFIG};}};'
    }));
-   for(const stub of ['homeeasy-page-guard.js','homeeasy-back.js','homeeasy-header.js'])
+   await page.route('**/homeeasy-page-guard.js*',route=>route.fulfill({
+     status:200,contentType:'application/javascript',body:'window.__QA_GUARD_INSTALLED=true;'
+   }));
+   for(const stub of ['homeeasy-back.js','homeeasy-header.js'])
      await page.route('**/'+stub+'*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'// disabled in isolated browser QA'}));
    await page.route('**/sweetalert2@11*',route=>route.fulfill({
      status:200,contentType:'application/javascript',
@@ -97,6 +100,8 @@ try {
    }));
    await page.goto('http://127.0.0.1:4173/abono.html',{waitUntil:'load',timeout:45000});
    await page.waitForFunction(()=>Boolean(window.HomeEasyDocs?.state?.config)&&typeof finalizarAbono==='function'&&document.getElementById('n_recibo_display').innerText==='612');
+   assert(await page.evaluate(()=>window.__QA_GUARD_INSTALLED===true),
+     'Session/auth bridge must load before the configuration request');
    await page.locator('#numeroOP').fill('174');
    await page.evaluate(()=>buscarOrden());
    await page.waitForFunction(count=>document.getElementById('seccion_historial').style.display==='block'&&document.querySelectorAll('#tbody_pagos tr').length===count,

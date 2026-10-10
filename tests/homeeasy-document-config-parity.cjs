@@ -98,8 +98,10 @@ function fixture(config,fail=false){
  // All three entry points must preload the central client before the shared PDF module.
  for(const [kind,code] of [['cotizacion',quote],['pedido',order],['recibo',receipt]]){
   const core=code.indexOf('src="homeeasy-core.js');
+  const guard=code.indexOf('src="homeeasy-page-guard.js');
   const docs=code.indexOf('src="homeeasy-docs.js');
-  assert(core>=0 && docs>core,kind+' must load HomeEasyCore before initial PDF config prefetch');
+  assert(core>=0 && guard>core && docs>guard,
+    kind+' must install auth/session fetch bridge BEFORE initial PDF config prefetch');
  }
 
  // Shared source of truth: Configuración preview must call exactly the renderer used by all PDF forms.
