@@ -22,6 +22,7 @@ const values={
 };
 function fixture(config,fail=false){
  let calls=0;
+ let unavailable=fail;
  const ids=['empresa-info-header','document-type','footer-creds','footer-system-line','condiciones-comerciales','pedido-condiciones'];
  const elements=Object.fromEntries(ids.map(id=>[id,{
   innerHTML:'',textContent:'',attrs:{},setAttribute(k,v){this.attrs[k]=v;}
@@ -39,12 +40,12 @@ function fixture(config,fail=false){
    calls++;
    assert.equal(options.force,true,'force network read required');
    assert.equal(options.allowFallback,false,'stale cache cannot generate PDF');
-   if(fail)throw new Error('Servicio central inaccesible');
+   if(unavailable)throw new Error('Servicio central inaccesible');
    return {status:'ok',version:93,source:'network',configuracion:config};
   }}
  };
  vm.runInNewContext(source,{window:win,document,console,fetch:async()=>{throw Error('Unexpected direct request')}},{filename:'homeeasy-docs.js'});
- return {win,doc:win.HomeEasyDocs,elements,get calls(){return calls}};
+ return {win,doc:win.HomeEasyDocs,elements,setUnavailable(value){unavailable=Boolean(value)},get calls(){return calls}};
 }
 (async()=>{
  const f=fixture(values);
@@ -79,6 +80,27 @@ function fixture(config,fail=false){
  assert.equal(broken.doc.state.config,null,'No default PDF config while offline');
  await assert.rejects(()=>broken.doc.assertSynced(),/No se pudo confirmar la configuración actual/);
  assert(broken.elements['empresa-info-header'].textContent.includes('No se pudo sincronizar'));
+ assert.equal(broken.calls,2,'PDF confirmation must retry once after a failed initial settings request');
+
+ // Regression: recover an open receipt when connectivity returns, without stale defaults or reload.
+ const recovering=fixture(values,true);
+ const initialFailure=await recovering.doc.init({documentType:'recibo'});
+ assert.equal(initialFailure.source,'error');
+ recovering.setUnavailable(false);
+ const recoveredConfig=await recovering.doc.assertSynced();
+ assert.equal(recovering.doc.state.source,'network');
+ assert.equal(recoveredConfig['empresa.nombre_comercial'],values.empresa.nombre_comercial);
+ assert.equal(recovering.elements['document-type'].textContent,'RECIBO PERSONALIZADO');
+ assert.equal(recovering.calls,2,'Retry must request the fresh central configuration');
+ await recovering.doc.assertSynced();
+ assert.equal(recovering.calls,2,'A confirmed configuration must not be fetched repeatedly');
+
+ // All three entry points must preload the central client before the shared PDF module.
+ for(const [kind,code] of [['cotizacion',quote],['pedido',order],['recibo',receipt]]){
+  const core=code.indexOf('src="homeeasy-core.js');
+  const docs=code.indexOf('src="homeeasy-docs.js');
+  assert(core>=0 && docs>core,kind+' must load HomeEasyCore before initial PDF config prefetch');
+ }
 
  // Shared source of truth: Configuración preview must call exactly the renderer used by all PDF forms.
  for(const token of [
