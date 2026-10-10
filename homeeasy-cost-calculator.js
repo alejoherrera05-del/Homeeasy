@@ -3,6 +3,8 @@
 
 const $=id=>document.getElementById(id);
 const API_URL=String(window.HomeEasyCore&&window.HomeEasyCore.API_URL||'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
+const PENTAGRAMA_LIVE_URL='https://api.homeeasy.com.co/api/pentagrama-sync/live-price';
+const PENTAGRAMA_LIVE_PRODUCTS=new Set(['enrollable-blackout-matte3']);
 const familyLabels={onda:'Onda Serena',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales',enrollable:'Enrollable'};
 const FORMAL_QUOTE_TRANSFER_KEY='homeeasy.cost-to-formal.v1';
 const familyOrder=['onda','sheer','vertesse','panel','vertical','enrollable'];
@@ -74,8 +76,13 @@ function engineSignature(){
   });
 }
 
+function hasPentagramaLiveItems(){
+  return (state.items||[]).some(item=>PENTAGRAMA_LIVE_PRODUCTS.has(item.product)&&item.mode!=='manual');
+}
+
 function saveEngineCache(){
   if(!engineCacheKey||!catalog?.version||!lastEngineQuote?.ok||lastEngineSignature!==engineSignature())return;
+  if(hasPentagramaLiveItems()||lastEngineQuote.items?.some(item=>item?.providerSource==='pentagrama-live'))return;
   try{
     sessionStorage.setItem(engineCacheKey,JSON.stringify({
       version:catalog.version,
@@ -88,9 +95,11 @@ function saveEngineCache(){
 
 function restoreEngineCache(){
   if(!engineCacheKey||!catalog?.version)return false;
+  if(hasPentagramaLiveItems())return false;
   try{
     const cached=JSON.parse(sessionStorage.getItem(engineCacheKey));
     if(!cached||cached.version!==catalog.version||cached.signature!==engineSignature()||!cached.quote?.ok)return false;
+    if(cached.quote.items?.some(item=>item?.providerSource==='pentagrama-live'))return false;
     if(Date.now()-Number(cached.savedAt||0)>12*60*60*1000)return false;
     lastEngineQuote=cached.quote;
     lastEngineSignature=cached.signature;
@@ -852,6 +861,76 @@ async function post(tipo,payload={}){
   }
 }
 
+function liveDeviceHeaders(){
+  const auth=window.HomeEasyAuth;
+  const meta=auth?.buildMeta?.({pagina:'cotizador-pentagrama-live'})||{};
+  const headers={};
+  if(meta.dispositivoId)headers['X-HomeEasy-Device-Id']=encodeURIComponent(meta.dispositivoId);
+  if(meta.dispositivoNombre)headers['X-HomeEasy-Device-Name']=encodeURIComponent(meta.dispositivoNombre);
+  if(meta.plataforma)headers['X-HomeEasy-Platform']=encodeURIComponent(meta.plataforma);
+  if(meta.navegador)headers['X-HomeEasy-Browser']=encodeURIComponent(meta.navegador);
+  return headers;
+}
+
+async function requestPentagramaLive(item){
+  const token=String(window.HomeEasyAuth?.getAppSessionToken?.()||'').trim();
+  if(!token)throw Error('La sesión no está lista para consultar Pentagrama en vivo.');
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),45000);
+  try{
+    const response=await fetch(PENTAGRAMA_LIVE_URL,{
+      method:'POST',mode:'cors',cache:'no-store',signal:controller.signal,
+      headers:{'Accept':'application/json','Content-Type':'application/json','X-HomeEasy-Session':token,...liveDeviceHeaders()},
+      body:JSON.stringify({
+        homeeasyId:item.product,width:item.width,height:item.height,quantity:item.quantity||'1',
+        configuration:item.configuration||'standard',coverlight:item.coverlight||'',addons:Array.isArray(item.addons)?item.addons:[]
+      })
+    });
+    const payload=await response.json().catch(()=>null);
+    if(!response.ok||!payload?.result)throw Error(payload?.error||payload?.result?.reason||'Pentagrama no devolvió un precio válido.');
+    return payload.result;
+  }catch(error){
+    if(error?.name==='AbortError')throw Error('Pentagrama tardó demasiado en responder.');
+    throw error;
+  }finally{clearTimeout(timer);}
+}
+
+function liveItemResult(item,live,previous){
+  const quantity=Math.max(1,Number(item.quantity)||1);
+  const unit=Math.round(Number(live.pricing?.total||0)*100);
+  if(!live.ok||!unit)throw Error(live.reason||'Pentagrama no devolvió un costo vigente.');
+  return {
+    ...(previous||{}),ok:true,unit,total:unit*quantity,quantity,
+    providerSource:'pentagrama-live',providerCheckedAt:live.checkedAt,
+    fabrication:live.fabrication,
+    requiresAlternative:live.outcome==='ALTERNATIVE',
+    alternatives:live.alternative?[live.alternative]:[],
+    reason:live.alternative?'Pentagrama indicó una configuración de fabricación alternativa para esta medida.':'',
+    product:{...(previous?.product||{}),id:item.product,name:live.product?.reference||previous?.product?.name||item.product},
+    widthMm:Math.round(Number(String(item.width).replace(',','.'))*1000),
+    heightMm:Math.round(Number(String(item.height).replace(',','.'))*1000)
+  };
+}
+
+async function applyPentagramaLive(rawQuote){
+  const quote=rawQuote&&typeof rawQuote==='object'?{...rawQuote}:{};
+  const items=Array.isArray(quote.items)?quote.items.slice():state.items.map(()=>null);
+  await Promise.all(state.items.map(async(item,index)=>{
+    if(!PENTAGRAMA_LIVE_PRODUCTS.has(item.product)||item.mode==='manual')return;
+    try{items[index]=liveItemResult(item,await requestPentagramaLive(item),items[index]);}
+    catch(error){items[index]={...(items[index]||{}),ok:false,error:error?.message||'No se pudo consultar Pentagrama.',providerSource:'pentagrama-live'};}
+  }));
+  quote.items=items;
+  quote.ok=items.length>0&&items.every(item=>item?.ok);
+  if(quote.ok){
+    quote.products=items.reduce((sum,item)=>sum+Number(item.total||0),0);
+    quote.installation=items.reduce((sum,item)=>sum+Number(item.installation||0),0);
+    quote.transport=0;
+    quote.cost=quote.products+quote.installation;
+  }else quote.error='Completa las persianas pendientes para calcular el total.';
+  return quote;
+}
+
 function commercialQuote(q){
   if(!q?.ok)return q;
   const installation=Number(rawPesos(state.installationTotal))*100;
@@ -930,7 +1009,7 @@ function scheduleQuote(delay=180){
   clearTimeout(quoteTimer);
   if(!catalog)return;
   const signature=engineSignature();
-  if(lastEngineQuote?.ok&&lastEngineSignature===signature){
+  if(!hasPentagramaLiveItems()&&lastEngineQuote?.ok&&lastEngineSignature===signature){
     renderCommercial();
     return;
   }
@@ -949,11 +1028,12 @@ async function runQuote(seq,signature){
       installMode:'common',
       promotions:state.promotions
     });
+    const quote=await applyPentagramaLive(data.quote);
     if(seq!==requestSeq||signature!==engineSignature())return;
-    applyQuote(data.quote,data.status==='ok'?'':data.msg,signature);
+    applyQuote(quote,quote.ok?'':(quote.error||data.msg),signature);
   }catch(e){
     if(seq!==requestSeq)return;
-    if(lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
+    if(!hasPentagramaLiveItems()&&lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
       renderCommercial('No se pudo actualizar ahora. Conservamos el último cálculo válido.');
     }else{
       applyQuote(null,'No se pudo calcular ahora. Revisa tu conexión e intenta nuevamente.','');
@@ -1588,7 +1668,7 @@ function resumeCalculator(){
     return;
   }
 
-  if(lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
+  if(!hasPentagramaLiveItems()&&lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
     renderCommercial();
     return;
   }
@@ -1621,6 +1701,7 @@ window.addEventListener('pagehide',()=>{
 });
 window.addEventListener('pageshow',event=>{
   if(event.persisted)resumeCalculator();
+  else if(catalog&&hasPentagramaLiveItems())scheduleQuote(0);
   else if(catalog&&lastEngineQuote?.ok&&lastEngineSignature===engineSignature())renderCommercial();
 });
 start();
