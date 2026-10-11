@@ -22,9 +22,14 @@ function statusFor(oldCost, newCost) {
 }
 
 function operationContext(req) {
+  const internal = Boolean(req.headers['x-homeeasy-token']);
   return {
-    sessionToken: req.headers['x-homeeasy-session'], deviceId: req.headers['x-homeeasy-device-id'],
-    deviceName: req.headers['x-homeeasy-device-name'], platform: req.headers['x-homeeasy-platform'], browser: req.headers['x-homeeasy-browser']
+    sessionToken: req.headers['x-homeeasy-session'],
+    serviceKey: internal ? process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY : '',
+    deviceId: req.headers['x-homeeasy-device-id'] || (internal ? 'PENTAGRAMA_VPS' : ''),
+    deviceName: req.headers['x-homeeasy-device-name'] || (internal ? 'Pentagrama VPS' : ''),
+    platform: req.headers['x-homeeasy-platform'] || (internal ? 'VPS' : ''),
+    browser: req.headers['x-homeeasy-browser'] || (internal ? 'HTTP interno' : '')
   };
 }
 

@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { PentagramaPhase2, statusFor } = require('./phase2');
+const { PentagramaPhase2, statusFor, operationContext } = require('./phase2');
 const { Phase2Store } = require('./phase2-store');
 
 test('change classifier enforces unchanged and review thresholds', () => {
@@ -13,6 +13,24 @@ test('change classifier enforces unchanged and review thresholds', () => {
   assert.equal(statusFor(100, 114.99), 'INCREASED');
   assert.equal(statusFor(100, 70), 'REVIEW_REQUIRED');
   assert.equal(statusFor(100, 130), 'REVIEW_REQUIRED');
+});
+
+test('internal operation context reuses the configured sync service key', () => {
+  const previous = process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY;
+  process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY = 'test-service-key';
+  try {
+    assert.deepEqual(operationContext({ headers: { 'x-homeeasy-token': 'internal' } }), {
+      sessionToken: undefined,
+      serviceKey: 'test-service-key',
+      deviceId: 'PENTAGRAMA_VPS',
+      deviceName: 'Pentagrama VPS',
+      platform: 'VPS',
+      browser: 'HTTP interno'
+    });
+  } finally {
+    if (previous === undefined) delete process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY;
+    else process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY = previous;
+  }
 });
 
 test('scan preserves unmapped products and builds a verified multi-case rate proposal', async () => {
