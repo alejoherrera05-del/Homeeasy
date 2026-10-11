@@ -77,7 +77,12 @@ class PentagramaPhase2 {
       try {
         localModelCandidate = await this.gateway.dispatch('buildLocalEnrollablesSnapshot', { source }, { lockKey: `local-enrollables:${source.version}` });
       } catch (error) {
-        localModelError = { code: String(error.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED'), message: String(error.message || 'Local model candidate failed').slice(0, 300) };
+        localModelError = {
+          code: String(error.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED'),
+          message: String(error.message || 'Local model candidate failed').slice(0, 300),
+          failures: Array.isArray(error.failures) ? error.failures.slice(0, 50) : [],
+          missing: Array.isArray(error.missing) ? error.missing.slice(0, 300) : []
+        };
       }
     }
     const catalogSummary = { categories: null };
@@ -110,7 +115,9 @@ class PentagramaPhase2 {
         reviewReason: null, severity: 'normal', destination: { sheet: 'Costos_Pentagrama*', field: 'snapshot-atómico' } });
     } else if (hasEnrollables) {
       results.push({ id: 'enrollables-local-model', homeeasyId: '__enrollables_local_model__', family: 'Enrollable', reference: '279 Enrollables',
-        strategy: 'LOCAL_MODEL', status: 'ERROR', autoApplicable: false, error: localModelError && localModelError.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED' });
+        strategy: 'LOCAL_MODEL', status: 'ERROR', autoApplicable: false,
+        error: localModelError && localModelError.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED',
+        diagnostics: localModelError });
     }
     this.store.updateOperation(operationId, { stage: 'COMPARING' });
     for (const mapping of this.mappings.filter(item => !ENROLLABLE_IDS.has(item.homeeasyId))) {

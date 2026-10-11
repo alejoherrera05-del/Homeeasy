@@ -88,11 +88,16 @@ function authHeaders(agentIdentity, secrets) {
 
 function publicError(error) {
   const code = String(error && error.code || 'AGENT_JOB_FAILED');
-  return {
+  const result = {
     code,
     message: String(error && error.message || 'Agent job failed').slice(0, 300),
     infrastructure: ['PENTAGRAMA_ACCESS_BLOCKED', 'PENTAGRAMA_UNEXPECTED_RESPONSE', 'AGENT_TRANSPORT_ERROR', 'UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND'].includes(code)
   };
+  if (code.startsWith('PENTAGRAMA_LOCAL_MODEL_')) {
+    if (Array.isArray(error && error.failures)) result.failures = error.failures.slice(0, 50);
+    if (Array.isArray(error && error.missing)) result.missing = error.missing.slice(0, 300);
+  }
+  return result;
 }
 
 const CATALOG_OPERATIONS = Object.freeze({
