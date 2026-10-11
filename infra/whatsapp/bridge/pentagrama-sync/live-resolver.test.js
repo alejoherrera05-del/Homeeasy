@@ -2,14 +2,14 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { PentagramaLiveResolver } = require('./live-resolver');
+const { PentagramaLiveResolver, SUPPORTED_PRODUCTS } = require('./live-resolver');
 
 function fixture(options = {}) {
   const calls = [];
   const catalog = {
     attributes: async params => {
       calls.push(['attributes', params]);
-      return '<select id="direccion-de-la-tela"><option value="DIN">Normal</option></select><select id="mecanismo"><option value="M03">VTX15B / CLIC M</option></select>';
+      return '<select id="direccion-de-la-tela"><option value="DIN">Normal</option></select><select id="mecanismo"><option value="M03">VTX15B / CLIC M</option></select><select id="cenefa" idAttribute="2482"><option value="CP13BLA" idattributevalues="30328" itemcode="CENPEN13BLA" calculationtype="DimensionsWidth">PENTA13 BLANCA</option></select>';
     },
     alerts: async params => {
       calls.push(['alerts', params]);
@@ -30,6 +30,10 @@ function fixture(options = {}) {
     validateRoller: async params => {
       calls.push(['validateRoller', params]);
       return { codigo: 100, altMaxEnrollable: 1, mensajeAlerta: '' };
+    },
+    dependencies: async params => {
+      calls.push(['dependencies', params]);
+      return { codigo: 100, ProductAttributeList: [] };
     },
     ...options.catalog
   };
@@ -60,6 +64,14 @@ test('live resolver reproduces fixed-price Matte 3 and returns portal defaults',
   assert.equal(boundary.pricing.total, 70091);
 });
 
+test('live resolver exposes the complete exact HomeEasy Enrollables crosswalk', () => {
+  assert.equal(Object.keys(SUPPORTED_PRODUCTS).length, 279);
+  assert.equal(SUPPORTED_PRODUCTS['enrollable-serenade-serenadebavaro'].productCode, 'ENRSTDTRSEBABRO');
+  assert.equal(SUPPORTED_PRODUCTS['enrollable-dimout-bloom'].groupCode.length > 0, true);
+  assert.equal(SUPPORTED_PRODUCTS['enrollable-soltis-soltisw96'].categories.Cat3, '454');
+  assert.equal(SUPPORTED_PRODUCTS['enrollable-lona-lonatransparentecristaltec'].categories.Cat3, '499');
+});
+
 test('live resolver reports portal manufacturing alternatives with exact prices', async () => {
   const { resolver } = fixture();
   const crossed = await resolver.resolve({ homeeasyId: 'enrollable-blackout-matte3', width: 3.5, height: 2, quantity: 1 });
@@ -72,6 +84,18 @@ test('live resolver reports portal manufacturing alternatives with exact prices'
   assert.equal(joined.configuration.orientationCode, 'TAN');
   assert.equal(joined.pricing.total, 1009310.4);
   assert.equal(joined.fabrication.requiresAuthorization, true);
+});
+
+test('live resolver prices Penta13 from the real portal option instead of hardcoding its codes', async () => {
+  const { resolver, calls } = fixture();
+  const result = await resolver.resolve({ homeeasyId: 'enrollable-blackout-matte3', width: 1.83, height: 2.2, configuration: 'penta13' });
+  assert.equal(result.ok, true);
+  assert.equal(result.configuration.head, 'PENTA13 BLANCA');
+  assert.equal(result.pricing.complements[0].productCode, 'CENPEN13BLA');
+  assert.equal(result.pricing.subtotal, 237231.4);
+  assert.deepEqual(calls.find(call => call[0] === 'dependencies')[1], {
+    idAttribute: '2482', idValueSelected: 'CP13BLA', productCode: 'ENRSTDBOMA3090', idAttributeValue: '30328'
+  });
 });
 
 test('live resolver adds only explicitly mapped complements through Pentagrama', async () => {
@@ -118,6 +142,6 @@ test('live resolver separates unresolved configuration from explicit non-manufac
     }
   });
   const validationResult = await validationFixture.resolver.resolve({ homeeasyId: 'enrollable-blackout-matte3', width: 1.83, height: 2.2 });
-  assert.equal(validationResult.outcome, 'CONFIGURATION_UNRESOLVED');
-  assert.equal(validationResult.code, 'PENTAGRAMA_CONFIGURATION_UNRESOLVED');
+  assert.equal(validationResult.outcome, 'NOT_MANUFACTURABLE');
+  assert.equal(validationResult.code, 'PENTAGRAMA_NOT_MANUFACTURABLE');
 });

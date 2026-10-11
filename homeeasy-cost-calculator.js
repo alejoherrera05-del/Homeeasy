@@ -4,7 +4,7 @@
 const $=id=>document.getElementById(id);
 const API_URL=String(window.HomeEasyCore&&window.HomeEasyCore.API_URL||'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
 const PENTAGRAMA_LIVE_URL='https://api.homeeasy.com.co/api/pentagrama-sync/live-price';
-const PENTAGRAMA_LIVE_PRODUCTS=new Set(['enrollable-blackout-matte3']);
+const isPentagramaLiveProduct=id=>String(id||'').startsWith('enrollable-');
 const familyLabels={onda:'Onda Serena',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales',enrollable:'Enrollable'};
 const FORMAL_QUOTE_TRANSFER_KEY='homeeasy.cost-to-formal.v1';
 const familyOrder=['onda','sheer','vertesse','panel','vertical','enrollable'];
@@ -77,7 +77,7 @@ function engineSignature(){
 }
 
 function hasPentagramaLiveItems(){
-  return (state.items||[]).some(item=>PENTAGRAMA_LIVE_PRODUCTS.has(item.product)&&item.mode!=='manual');
+  return (state.items||[]).some(item=>isPentagramaLiveProduct(item.product)&&item.mode!=='manual');
 }
 
 function saveEngineCache(){
@@ -887,7 +887,11 @@ async function requestPentagramaLive(item){
       })
     });
     const payload=await response.json().catch(()=>null);
-    if(!response.ok||!payload?.result)throw Error(payload?.error||payload?.result?.reason||'Pentagrama no devolvió un precio válido.');
+    if(!response.ok||!payload?.result){
+      const error=Error(payload?.error||payload?.result?.reason||'Pentagrama no devolvió un precio válido.');
+      error.liveResult=payload?.result||null;
+      throw error;
+    }
     return payload.result;
   }catch(error){
     if(error?.name==='AbortError')throw Error('Pentagrama tardó demasiado en responder.');
@@ -916,9 +920,15 @@ async function applyPentagramaLive(rawQuote){
   const quote=rawQuote&&typeof rawQuote==='object'?{...rawQuote}:{};
   const items=Array.isArray(quote.items)?quote.items.slice():state.items.map(()=>null);
   await Promise.all(state.items.map(async(item,index)=>{
-    if(!PENTAGRAMA_LIVE_PRODUCTS.has(item.product)||item.mode==='manual')return;
+    if(!isPentagramaLiveProduct(item.product)||item.mode==='manual')return;
     try{items[index]=liveItemResult(item,await requestPentagramaLive(item),items[index]);}
-    catch(error){items[index]={...(items[index]||{}),ok:false,error:error?.message||'No se pudo consultar Pentagrama.',providerSource:'pentagrama-live'};}
+    catch(error){
+      if(error?.liveResult?.fallback?.allowed&&items[index]?.ok){
+        items[index]={...items[index],providerSource:'homeeasy-certified-fallback',providerWarning:error?.message||'Pentagrama no respondió; se usó el mapping local certificado.'};
+        return;
+      }
+      items[index]={...(items[index]||{}),ok:false,error:error?.message||'No se pudo consultar Pentagrama.',providerSource:'pentagrama-live'};
+    }
   }));
   quote.items=items;
   quote.ok=items.length>0&&items.every(item=>item?.ok);
