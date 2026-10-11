@@ -1,23 +1,15 @@
 'use strict';
 
 const { decimalFraction } = require('./pricing');
+const liveInventory = require('./enrollables-live-products.json');
+const certificationRegistry = require('./certification/catalog-certifications.json');
 
-const SUPPORTED_PRODUCTS = Object.freeze({
-  'enrollable-blackout-matte3': Object.freeze({
-    homeeasyId: 'enrollable-blackout-matte3',
-    family: 'Enrollable',
-    reference: 'Matte 3',
-    productCode: 'ENRSTDBOMA3090',
-    groupCode: '599',
-    associationGroup: 'ENRSTD',
-    primaryGroup: 'ENROLLABLE',
-    system: 'STANDARD/PLATINA SIN CABEZAL',
-    head: '',
-    calculationType: 'NormalProduct',
-    discount: 0,
-    categories: Object.freeze({ Cat1: '4', Cat2: '79', Cat3: '8', Cat4: '118', Cat5: '24' })
-  })
-});
+const SUPPORTED_PRODUCTS = Object.freeze(Object.fromEntries(
+  Object.entries(liveInventory.products || {}).map(([id, product]) => [id, Object.freeze({ ...product, categories: Object.freeze({ ...product.categories }) })])
+));
+const CERTIFIED_FALLBACKS = new Set((certificationRegistry.products || [])
+  .filter(product => product.status === 'CERTIFIED')
+  .map(product => product.homeeasyId));
 
 const COMPLEMENTS = Object.freeze({
   'coverlight-standard': Object.freeze({ productCode: 'KITPERCOLIBLA', groupCode: '616', calculationType: 'DimensionsHeight' }),
@@ -52,6 +44,28 @@ function hasAttributeField(html, id) {
   return new RegExp(`<select\\b[^>]*\\bid=["']${escaped}["']`, 'i').test(String(html || ''));
 }
 
+function attributeOption(html, selectId, labelPattern) {
+  const source = String(html || '');
+  const escaped = String(selectId || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const select = source.match(new RegExp(`<select\\b([^>]*)\\bid=["']${escaped}["']([^>]*)>([\\s\\S]*?)<\\/select>`, 'i'));
+  if (!select) return null;
+  const selectAttributes = `${select[1]} ${select[2]}`;
+  const idAttribute = (selectAttributes.match(/\bidattribute=["']([^"']*)["']/i) || [])[1] || '';
+  for (const option of select[3].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/gi)) {
+    const label = option[2].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+    if (!labelPattern.test(label)) continue;
+    const attrs = option[1];
+    const value = (attrs.match(/\bvalue=["']([^"']*)["']/i) || [])[1] || '';
+    const itemCode = (attrs.match(/\bitemcode=["']([^"']*)["']/i) || [])[1] || '';
+    const calculationType = (attrs.match(/\bcalculationtype=["']([^"']*)["']/i) || [])[1] || '';
+    const idAttributeValue = (attrs.match(/\bidattributevalues=["']([^"']*)["']/i) || [])[1] || '';
+    return value && itemCode && calculationType && idAttributeValue && idAttribute
+      ? { idAttribute, idAttributeValue, value, itemCode, calculationType, label }
+      : null;
+  }
+  return null;
+}
+
 function fixedAmount(data) {
   const number = typeof data === 'number' ? data : Number(data && (data.Price ?? data.price ?? data.Value ?? data.value));
   return Number.isFinite(number) && number > 0 ? number : 0;
@@ -80,6 +94,11 @@ function unresolved(reason, details = {}) {
   };
 }
 
+function fallbackFor(homeeasyId) {
+  const allowed = CERTIFIED_FALLBACKS.has(homeeasyId);
+  return { allowed, reason: allowed ? 'HomeEasy local mapping is CERTIFIED' : 'HomeEasy local mapping is not CERTIFIED' };
+}
+
 class PentagramaLiveResolver {
   constructor({ catalog, pricing, vatRate = 0.19 } = {}) {
     this.catalog = catalog;
@@ -90,7 +109,8 @@ class PentagramaLiveResolver {
   async resolve(input = {}) {
     const product = SUPPORTED_PRODUCTS[String(input.homeeasyId || input.product || '').trim()];
     if (!product) {
-      return { ok: false, outcome: 'UNSUPPORTED', code: 'PENTAGRAMA_LIVE_PRODUCT_UNSUPPORTED', fallback: { allowed: false, reason: 'Product has no live resolver mapping' } };
+      const homeeasyId = String(input.homeeasyId || input.product || '').trim();
+      return { ok: false, outcome: 'UNSUPPORTED', code: 'PENTAGRAMA_LIVE_PRODUCT_UNSUPPORTED', fallback: fallbackFor(homeeasyId) };
     }
     const width = requiredNumber(input.width, 'width');
     const height = requiredNumber(input.height, 'height');
@@ -100,6 +120,7 @@ class PentagramaLiveResolver {
       GroupCode: product.groupCode, calculationType: product.calculationType,
       Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: product.associationGroup
     };
+    const requestedConfiguration = String(input.configuration || 'standard').trim().toLowerCase();
 
     // Mirrors the portal flow: render the available attributes, validate alerts,
     // request both product price paths, then resolve SAP defaults for the entered size.
@@ -163,20 +184,56 @@ class PentagramaLiveResolver {
       return unresolved('Pentagrama did not complete Enrollable manufacturing validation');
     }
     if (Number(validation.altMaxEnrollable) !== 1) {
-      return unresolved('Pentagrama rejected the resolved Enrollable configuration', {
-        validation: { code: validation.codigo, message: String(validation.mensajeAlerta || '') }
-      });
+      return {
+        ok: false,
+        outcome: 'NOT_MANUFACTURABLE',
+        code: 'PENTAGRAMA_NOT_MANUFACTURABLE',
+        reason: String(validation.mensajeAlerta || 'Pentagrama rejected the resolved Enrollable configuration'),
+        validation: { code: validation.codigo, message: String(validation.mensajeAlerta || '') },
+        fallback: { allowed: false }
+      };
     }
 
     const base = fixed > 0
       ? { basePrice: fixed, distributorDiscount: 0, productDiscount: 0, pricingMode: 'fixed-price', subtotal: fixed, vatRate: this.vatRate, total: roundMoney(fixed * (1 + this.vatRate)) }
       : quoted;
 
+    let configuredHead = null;
+    if (requestedConfiguration.includes('penta13')) {
+      configuredHead = attributeOption(attributes, 'cenefa', /^PENTA\s*13\b/i);
+      if (!configuredHead) return unresolved('Pentagrama did not expose a Penta13 option for this product');
+      const dependency = await this.catalog.dependencies({
+        idAttribute: configuredHead.idAttribute,
+        idValueSelected: configuredHead.value,
+        productCode: product.productCode,
+        idAttributeValue: configuredHead.idAttributeValue
+      });
+      if (!dependency || Number(dependency.codigo) !== 100) {
+        return unresolved('Pentagrama did not resolve the Penta13 dependencies');
+      }
+    }
+
     const selectedComplements = [];
     if (input.coverlight) selectedComplements.push(String(input.coverlight));
     if (Array.isArray(input.addons)) selectedComplements.push(...input.addons.map(String));
     let complementsSubtotal = 0;
     const complements = [];
+    if (configuredHead) {
+      const cost = await this.pricing.supplierCost({
+        ProductCode: configuredHead.itemCode,
+        Quantity: quantity,
+        Width: width,
+        Height: height,
+        calculationType: configuredHead.calculationType,
+        Degrees: '',
+        Panels: 0,
+        Cabezal: '',
+        ItemCodeFather: product.productCode,
+        AssociationGroup: product.associationGroup
+      }, { pricingMode: 'account-discount', AssociationGroup: product.associationGroup });
+      complementsSubtotal += cost.subtotal;
+      complements.push({ id: 'penta13', productCode: configuredHead.itemCode, subtotal: cost.subtotal, total: cost.total });
+    }
     for (const id of selectedComplements) {
       const complement = COMPLEMENTS[id];
       if (!complement) {
@@ -201,7 +258,7 @@ class PentagramaLiveResolver {
       checkedAt: new Date().toISOString(),
       product: { homeeasyId: product.homeeasyId, productCode: product.productCode, groupCode: product.groupCode, reference: product.reference },
       request: { width, height, quantity },
-      configuration: { orientation: orientation.id, orientationCode: orientation.code, mechanism, system: product.system, head },
+      configuration: { orientation: orientation.id, orientationCode: orientation.code, mechanism, system: product.system, head: configuredHead ? configuredHead.label : head },
       fabrication: {
         supported: true,
         orientation: orientation.id,
@@ -211,9 +268,9 @@ class PentagramaLiveResolver {
       },
       pricing: { ...base, complements, subtotal, vatRate: this.vatRate, total },
       alternative: alternative ? { id: orientation.id, label: orientation.label, mechanism, requiresConfirmedCost: false } : null,
-      fallback: { allowed: false, reason: 'Matte 3 local mapping is not CERTIFIED' }
+      fallback: fallbackFor(product.homeeasyId)
     };
   }
 }
 
-module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, COMPLEMENTS, defaultMap, fixedAmount, hasAttributeField, orientationFor });
+module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, CERTIFIED_FALLBACKS, COMPLEMENTS, attributeOption, defaultMap, fixedAmount, hasAttributeField, orientationFor });
