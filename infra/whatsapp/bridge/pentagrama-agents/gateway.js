@@ -196,11 +196,16 @@ class PentagramaAgentGateway {
     job.state = body.ok === true ? 'completed' : 'failed';
     job.completedAt = new Date().toISOString();
     job.result = body.ok === true ? body.result : null;
+    const errorCode = String(body.error && body.error.code || 'AGENT_JOB_FAILED').slice(0, 100);
     job.error = body.ok === true ? null : {
-      code: String(body.error && body.error.code || 'AGENT_JOB_FAILED').slice(0, 100),
+      code: errorCode,
       message: String(body.error && body.error.message || 'Agent job failed').slice(0, 300),
       infrastructure: body.error && body.error.infrastructure === true
     };
+    if (job.error && errorCode.startsWith('PENTAGRAMA_LOCAL_MODEL_')) {
+      if (Array.isArray(body.error && body.error.failures)) job.error.failures = body.error.failures.slice(0, 50);
+      if (Array.isArray(body.error && body.error.missing)) job.error.missing = body.error.missing.slice(0, 300);
+    }
     agent.lastSeen = job.completedAt;
     agent.lastJob = { id: job.id, type: job.type, state: job.state, at: job.completedAt };
     if (body.pentagrama) agent.pentagrama = body.pentagrama;
