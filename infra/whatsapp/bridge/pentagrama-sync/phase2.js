@@ -7,6 +7,7 @@ const { buildProposal, same } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
+const ENROLLABLE_IDS = new Set(Object.keys(require('./enrollables-live-products.json').products || {}));
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
 
@@ -69,6 +70,16 @@ class PentagramaPhase2 {
     this.store.updateOperation(operationId, { state: 'running', stage: 'READING_HOMEEASY' });
     const source = await this.homeeasy.catalog(context);
     this.store.updateOperation(operationId, { stage: 'READING_PENTAGRAMA' });
+    const hasEnrollables = (source.products || []).some(item => ENROLLABLE_IDS.has(item.id));
+    let localModelCandidate = null;
+    let localModelError = null;
+    if (hasEnrollables) {
+      try {
+        localModelCandidate = await this.gateway.dispatch('buildLocalEnrollablesSnapshot', { source }, { lockKey: `local-enrollables:${source.version}` });
+      } catch (error) {
+        localModelError = { code: String(error.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED'), message: String(error.message || 'Local model candidate failed').slice(0, 300) };
+      }
+    }
     const catalogSummary = { categories: null };
     try {
       const categories = await this.gateway.dispatch('catalog', { operation: 'categories', params: {} }, { lockKey: 'catalog:categories' });
@@ -76,8 +87,8 @@ class PentagramaPhase2 {
     } catch (error) { catalogSummary.error = String(error.code || 'CATALOG_UNAVAILABLE'); }
 
     const results = [];
-    const mappedIds = new Set(this.mappings.map(item => item.homeeasyId));
-    const certifiedMappingIds = new Set(this.mappings.filter(mappingIsCertified).map(item => item.homeeasyId));
+    const mappedIds = new Set([...this.mappings.map(item => item.homeeasyId), ...ENROLLABLE_IDS]);
+    const certifiedMappingIds = new Set([...this.mappings.filter(mappingIsCertified).map(item => item.homeeasyId), ...(localModelCandidate ? ENROLLABLE_IDS : [])]);
     const certificationById = new Map((this.certificationRegistry.products || []).map(item => [item.homeeasyId, item]));
     for (const item of source.products || []) {
       if (mappedIds.has(item.id)) continue;
@@ -90,8 +101,19 @@ class PentagramaPhase2 {
         results.push({ homeeasyId: item.id, family: item.familyName, reference: item.reference, status: 'UNMAPPED' });
       }
     }
+    if (localModelCandidate) {
+      const changed = Number(localModelCandidate.summary && localModelCandidate.summary.changed || 0);
+      results.push({ id: 'enrollables-local-model', homeeasyId: '__enrollables_local_model__', family: 'Enrollable',
+        reference: `${localModelCandidate.summary.enrollables} Enrollables · modelo local ${localModelCandidate.version}`,
+        strategy: 'LOCAL_MODEL', status: changed ? 'NEW' : 'UNCHANGED', autoApplicable: changed > 0,
+        oldCost: 0, newCost: changed, difference: changed, percent: null,
+        reviewReason: null, severity: 'normal', destination: { sheet: 'Costos_Pentagrama*', field: 'snapshot-atómico' } });
+    } else if (hasEnrollables) {
+      results.push({ id: 'enrollables-local-model', homeeasyId: '__enrollables_local_model__', family: 'Enrollable', reference: '279 Enrollables',
+        strategy: 'LOCAL_MODEL', status: 'ERROR', autoApplicable: false, error: localModelError && localModelError.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED' });
+    }
     this.store.updateOperation(operationId, { stage: 'COMPARING' });
-    for (const mapping of this.mappings) {
+    for (const mapping of this.mappings.filter(item => !ENROLLABLE_IDS.has(item.homeeasyId))) {
       const sourceItem = (source.products || []).find(item => item.id === mapping.homeeasyId);
       if (!sourceItem) { results.push({ homeeasyId: mapping.homeeasyId, family: mapping.family, reference: mapping.reference, status: 'UNMAPPED' }); continue; }
       try {
@@ -121,9 +143,9 @@ class PentagramaPhase2 {
     }
     const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
-    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary,
+    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary, localModelCandidate,
       catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.id).length,
-        certified: results.filter(item => item.id && certifiedMappingIds.has(item.homeeasyId)).length,
+        certified: (source.products || []).filter(item => certifiedMappingIds.has(item.id)).length,
         autoUpdatable: results.filter(item => item.autoApplicable).length,
         reviewRequired: results.filter(item => item.status === 'REVIEW_REQUIRED').length,
         unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts },
@@ -144,6 +166,11 @@ class PentagramaPhase2 {
   }
 
   async runApply(operationId, scan, changes, context) {
+    const localChanges = changes.filter(item => item.strategy === 'LOCAL_MODEL');
+    if (localChanges.length) {
+      if (localChanges.length !== 1 || changes.length !== 1 || !scan.localModelCandidate) throw Object.assign(new Error('Local model must be published as one isolated atomic batch'), { code: 'PENTAGRAMA_LOCAL_MODEL_BATCH_REQUIRED' });
+      return this.runLocalModelApply(operationId, scan, localChanges[0], context);
+    }
     this.store.updateOperation(operationId, { state: 'running', stage: 'PREWRITE_VALIDATION' });
     const verified = [];
     for (const item of changes) {
@@ -193,6 +220,33 @@ class PentagramaPhase2 {
     this.store.addScan(verifiedScan);
     const entry = { id: applied.historyId, type: 'APPLY', at: new Date().toISOString(), scanId: scan.id, verifiedScanId: verifiedScan.id,
       changed: changes.length, qa, actor: this.store.operationById(operationId).actor };
+    this.store.addHistory(entry);
+    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result: entry });
+  }
+
+  async runLocalModelApply(operationId, scan, change, context) {
+    this.store.updateOperation(operationId, { state: 'running', stage: 'PREWRITE_VALIDATION' });
+    const candidate = scan.localModelCandidate;
+    if (!candidate || candidate.summary.fail !== 0 || candidate.summary.enrollables !== 279 || candidate.summary.maxDifference > 0.02) {
+      throw Object.assign(new Error('The local Enrollables candidate is not certified'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+    }
+    this.store.updateOperation(operationId, { stage: 'SNAPSHOT' });
+    this.store.updateOperation(operationId, { stage: 'WRITING_SHEET' });
+    const applied = await this.homeeasy.applyLocalModel(scan, candidate, context);
+    this.store.updateOperation(operationId, { stage: 'QA' });
+    if (!applied.qa || applied.qa.ok !== true || Number(applied.qa.maxDifference) > 0.02) {
+      throw Object.assign(new Error('Local model post-write QA failed and was rolled back by HomeEasy'), { code: 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK' });
+    }
+    const verifiedResults = scan.results.map(item => item.id === change.id ? { ...item, status: 'UNCHANGED', autoApplicable: false, difference: 0,
+      appliedAt: new Date().toISOString() } : item);
+    const verifiedCounts = verifiedResults.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
+    const verifiedScan = { ...scan, id: crypto.randomUUID(), parentScanId: scan.id, checkedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts: verifiedCounts, results: verifiedResults,
+      localModelCandidate: null, localModelVersion: applied.version };
+    this.store.addScan(verifiedScan);
+    const entry = { id: applied.historyId, type: 'LOCAL_MODEL_APPLY', at: new Date().toISOString(), scanId: scan.id,
+      verifiedScanId: verifiedScan.id, changed: Number(candidate.summary.changed || 0), qa: applied.qa, version: applied.version,
+      actor: this.store.operationById(operationId).actor };
     this.store.addHistory(entry);
     this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result: entry });
   }

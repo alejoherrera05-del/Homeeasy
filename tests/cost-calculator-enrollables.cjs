@@ -27,8 +27,8 @@ const sizePolicy={id:sizeRuleId,source:'Tabla de cabezales Pentagrama Nov 2025',
   '5B':[{maxWidthMm:2600,maxHeightMm:3500,mechanism:'Clic L',tube:'T63'},{maxWidthMm:3500,maxHeightMm:2800,mechanism:'Clic L',tube:'T63'}]
  }}
 }};
-const rules={minWidthMm:250,minHeightMm:400,sizeRuleId,sizeGroup:'5',rollWidthMm:3000,canRotate:true,coverlightIds:['cover'],addonIds:['out'],configurations:[{id:'motor',label:'Motorizada',method:'manual'}]};
-const products=[{...base,id:'blackout-test',name:'Tela ficticia',rules},{...base,id:'screen-test',name:'Screen ficticio',type:'Screen',rules:{...rules,sizeGroup:'3',coverlightIds:[]}},{...base,id:'cover',name:'Coverlight ficticio',family:'complemento-enrollable',method:'linear-height',rateCents:1000,rules:{maxHeightMm:4870}},{...base,id:'out',name:'Perfil ficticio',family:'complemento-enrollable',method:'linear-width',rateCents:2000,rules:{}}];
+const rules={minWidthMm:250,minHeightMm:400,sizeRuleId,sizeGroup:'5',rollWidthMm:3000,canRotate:true,coverlightIds:['cover'],addonIds:['out'],configurations:[{id:'motor',label:'Motorizada',method:'manual'},{id:'penta13',label:'Penta13',supplementId:'penta13-test'}]};
+const products=[{...base,id:'blackout-test',name:'Tela ficticia',rules},{...base,id:'screen-test',name:'Screen ficticio',type:'Screen',rules:{...rules,sizeGroup:'3',coverlightIds:[]}},{...base,id:'cover',name:'Coverlight ficticio',family:'complemento-enrollable',method:'linear-height',rateCents:1000,rules:{maxHeightMm:4870}},{...base,id:'out',name:'Perfil ficticio',family:'complemento-enrollable',method:'linear-width',rateCents:2000,rules:{}},{...base,id:'penta13-test',name:'Penta13 ficticio',family:'complemento-enrollable',method:'linear-width',rateCents:1000,rules:{}}];
 const catalog={version:'test',validThrough:'2026-10-31',currency:'COP',pricesIncludeVat:true,matrixCount:0,products,enrollableSizeRules:sizePolicy};
 const opts={today:'2026-10-02',promotions:true,installMode:'common',installation:'0'};
 const item={product:'blackout-test',width:'1.8',height:'2.3',quantity:'2',extras:'0'};
@@ -57,6 +57,7 @@ assert.equal(run({height:'0.3'}).ok,false);
 assert.equal(run({}, {today:'2026-11-01'}).ok,false);
 assert.equal(run({}, {promotions:false}).ok,false);
 assert.equal(run({configuration:'motor',manualCost:'200'}).unit,20000);
+assert.equal(run({configuration:'penta13'}).unit,43200);
 assert.equal(run({mode:'manual',manualCost:'200',coverlight:'cover'}).ok,false);
 assert.equal(run({width:'2',height:'3.2'}).fabrication.tube,'T50');
 assert.equal(run({width:'2',height:'3.2'}).fabrication.orientation,'normal');
@@ -98,10 +99,10 @@ assert.equal(impossible.requiresAlternative,false);
 const coverSpecial=ctx.calcularItemCostos10B_({product:'matte3-real',width:'2',height:'3.2',quantity:'1',extras:'0',coverlight:'cover'},extendedCatalog,opts);
 assert.equal(coverSpecial.unit,44864640);
 const sh={getSheetByName(){throw Error('No debe leer Sheets con cache íntegra');}};
-store.set('HOMEEASY_COST_CATALOG_V4_SIZE_RULES',JSON.stringify({chunks:2,generation:'test'}));
+store.set('HOMEEASY_COST_CATALOG_V5_LOCAL_FIRST',JSON.stringify({chunks:2,generation:'test'}));
 const serialized=JSON.stringify(catalog),mid=Math.floor(serialized.length/2);
-store.set('HOMEEASY_COST_CATALOG_V4_SIZE_RULES:test:0',serialized.slice(0,mid));
-store.set('HOMEEASY_COST_CATALOG_V4_SIZE_RULES:test:1',serialized.slice(mid));
+store.set('HOMEEASY_COST_CATALOG_V5_LOCAL_FIRST:test:0',serialized.slice(0,mid));
+store.set('HOMEEASY_COST_CATALOG_V5_LOCAL_FIRST:test:1',serialized.slice(mid));
 const options=ctx.obtenerOpcionesCostos10B_(sh);
 const originalLoader=ctx.cargarCatalogoCostos10B_;
 ctx.cargarCatalogoCostos10B_=()=>({...catalog,products:[...products,{...base,id:'pending',name:'Pendiente',method:'manual'},{...base,id:'institutional',name:'Tela Institucional (Más de 30m2)',rules},{...base,id:'no-price',name:'Sin tarifa',rateCents:0}]});
@@ -109,10 +110,10 @@ assert.equal(ctx.obtenerOpcionesCostos10B_(sh).products.length,2);
 ctx.cargarCatalogoCostos10B_=originalLoader;
 assert.equal(options.products.length,2);
 assert.equal(options.products[0].coverlight[0].id,'cover');
-assert.equal('configurations' in options.products[0],false);
+assert.equal(options.products[0].configurations.some(item=>item.id==='penta13'),true);
 assert.equal('configuration' in options.products[0],false);
 assert.equal('addons' in options.products[0],false);
 for(const p of options.products){assert.equal('rateCents' in p,false);assert.equal('rules' in p,false);}
-store.delete('HOMEEASY_COST_CATALOG_V4_SIZE_RULES:test:1');
+store.delete('HOMEEASY_COST_CATALOG_V5_LOCAL_FIRST:test:1');
 assert.throws(()=>ctx.cargarCatalogoCostos10B_(sh,false),/No debe leer/);
 console.log('Enrollables: bandas Pentagrama, orientación, alternativas, mínimos, IVA, complementos, privacidad y cache OK');

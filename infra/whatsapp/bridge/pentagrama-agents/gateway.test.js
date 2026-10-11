@@ -73,6 +73,11 @@ test('dispatcher sends only allowlisted work and returns price, catalog or live 
   assert.equal(liveDelivery.job.type, 'resolveLivePrice');
   gateway.complete(agent, { jobId: liveDelivery.job.id, ok: true, result: { ok: true, outcome: 'PRICE' } });
   assert.equal((await livePending).outcome, 'PRICE');
+  const localPending = gateway.dispatch('buildLocalEnrollablesSnapshot', { source: { products: [] } });
+  const localDelivery = await gateway.poll(agent);
+  assert.equal(localDelivery.job.type, 'buildLocalEnrollablesSnapshot');
+  gateway.complete(agent, { jobId: localDelivery.job.id, ok: true, result: { products: [] } });
+  assert.equal((await localPending).products.length, 0);
   await assert.rejects(() => gateway.dispatch('shell', {}), error => error.code === 'AGENT_JOB_NOT_ALLOWED');
 });
 

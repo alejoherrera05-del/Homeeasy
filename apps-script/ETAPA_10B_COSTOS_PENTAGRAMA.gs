@@ -12,11 +12,11 @@
  *********************************************************/
 
 const HOMEEASY_COST_STAGE = "10B";
-const HOMEEASY_COST_SCHEMA_VERSION = 2;
+const HOMEEASY_COST_SCHEMA_VERSION = 3;
 const HOMEEASY_COST_SHEET = "Costos_Pentagrama";
 const HOMEEASY_COST_MATRIX_SHEET = "Costos_Pentagrama_Matrices";
 const HOMEEASY_COST_CONFIG_SHEET = "Costos_Pentagrama_Config";
-const HOMEEASY_COST_CACHE_KEY = "HOMEEASY_COST_CATALOG_V4_SIZE_RULES";
+const HOMEEASY_COST_CACHE_KEY = "HOMEEASY_COST_CATALOG_V5_LOCAL_FIRST";
 const HOMEEASY_COST_CACHE_SECONDS = 300;
 const HOMEEASY_COST_PERMISSION = "cotizaciones.write";
 
@@ -184,7 +184,9 @@ function obtenerEstadoCostos10B_(ss) {
     version: catalog.version, validThrough: catalog.validThrough, currency: catalog.currency,
     pricesIncludeVat: catalog.pricesIncludeVat, products: catalog.products.length,
     matrixCells: catalog.matrixCount, expired: fechaBogota10B_() > catalog.validThrough,
-    source: "Costos_Pentagrama", legacyTarifas: false, vps: false
+    source: "Costos_Pentagrama", legacyTarifas: false, vps: false,
+    pentagramaUpdatedAt: String(catalog.config && catalog.config.PENTAGRAMA_LAST_UPDATED_AT || ""),
+    localModel: String(catalog.config && catalog.config.PENTAGRAMA_LOCAL_MODEL || "")
   };
 }
 
@@ -199,6 +201,7 @@ function obtenerOpcionesCostos10B_(ss) {
     if (p.family === "enrollable") return {
       id: p.id, family: p.family, familyName: p.familyName, name: nombreEnrollable10B_(p), type: p.type,
       method: p.method, manual: false, coverlight: opcionesComplementos10B_(catalog, rules.coverlightIds || []),
+      configurations: (rules.configurations || []).map(function(c) { return { id: c.id, label: c.label, manual: c.method === "manual" }; }),
       limits: { minWidthMm: rules.minWidthMm, minHeightMm: rules.minHeightMm,
         maxWidthMm: rules.maxWidthMm, maxHeightMm: rules.maxHeightMm, maxRatio: rules.maxRatio }
     };
@@ -214,7 +217,9 @@ function obtenerOpcionesCostos10B_(ss) {
   return {
     status: "ok", etapa: HOMEEASY_COST_STAGE, version: catalog.version,
     validThrough: catalog.validThrough, currency: catalog.currency,
-    pricesIncludeVat: catalog.pricesIncludeVat, products: products
+    pricesIncludeVat: catalog.pricesIncludeVat, products: products,
+    pentagramaUpdatedAt: String(catalog.config && catalog.config.PENTAGRAMA_LAST_UPDATED_AT || ""),
+    localModel: String(catalog.config && catalog.config.PENTAGRAMA_LOCAL_MODEL || "")
   };
 }
 
@@ -325,7 +330,8 @@ function cargarCatalogoCostos10B_(ss, forceRefresh) {
     pricesIncludeVat: boolCostos10B_(config.PRECIOS_INCLUYEN_IVA, true),
     products: products,
     matrixCount: matrixRows.length,
-    enrollableSizeRules: enrollableSizeRules
+    enrollableSizeRules: enrollableSizeRules,
+    config: config
   };
   if (!catalog.version || !catalog.validThrough || catalog.currency !== "COP" || catalog.pricesIncludeVat !== true) {
     throw new Error("La configuración de Costos Pentagrama está incompleta o no es compatible.");
@@ -389,6 +395,7 @@ function calcularItemCostos10B_(item, catalog, options) {
         throw new Error("Esta configuración requiere costo confirmado por Pentagrama.");
       }
       const rules = product.rules || {};
+      if (product.selectedSupplementId) unit += calcularComplemento10B_(product.selectedSupplementId, catalog, width, height, options.today, 1);
       const coverlightId = item.coverlight ? String(item.coverlight) : "";
       if (coverlightId) {
         if ((rules.coverlightIds || []).indexOf(coverlightId) < 0) throw new Error("Coverlight no es compatible con esta configuración.");
@@ -462,12 +469,16 @@ function configurarProductoCostos10B_(product, configuration) {
   const variant = ((product.rules || {}).configurations || []).find(function(c) { return c.id === id; });
   if (!variant) throw new Error("Elige una configuración disponible.");
   return Object.assign({}, product, {
-    method: variant.method,
-    rateCents: copACentavos10B_(variant.rateCOP || 0),
+    method: variant.method || product.method,
+    rateCents: variant.rateCOP === undefined ? product.rateCents : copACentavos10B_(variant.rateCOP || 0),
     promotional: Boolean(variant.promotional),
     extraDiscount: numeroCostos10B_(variant.extraDiscount, 0),
     configuration: variant.label,
-    rules: Object.assign({}, product.rules, { coverlightIds: variant.coverlightIds || [], addonIds: variant.addonIds || [] })
+    selectedSupplementId: String(variant.supplementId || ""),
+    rules: Object.assign({}, product.rules, {
+      coverlightIds: variant.coverlightIds || (product.rules && product.rules.coverlightIds) || [],
+      addonIds: variant.addonIds || (product.rules && product.rules.addonIds) || []
+    })
   });
 }
 

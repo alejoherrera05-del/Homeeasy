@@ -106,8 +106,44 @@ class PentagramaLiveResolver {
     this.vatRate = decimalFraction(vatRate);
   }
 
+  product(input = {}) {
+    return SUPPORTED_PRODUCTS[String(input.homeeasyId || input.product || '').trim()] || null;
+  }
+
+  priceParams(product, width, height, quantity) {
+    return {
+      ProductCode: product.productCode, Quantity: quantity, Width: width, Height: height,
+      GroupCode: product.groupCode, calculationType: product.calculationType,
+      Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: product.associationGroup
+    };
+  }
+
+  async quoteBase(input = {}) {
+    const product = this.product(input);
+    if (!product) throw Object.assign(new Error('Live product is not supported'), { code: 'PENTAGRAMA_LIVE_PRODUCT_UNSUPPORTED' });
+    const width = requiredNumber(input.width, 'width');
+    const height = requiredNumber(input.height, 'height');
+    const quantity = Math.trunc(requiredNumber(input.quantity === undefined ? 1 : input.quantity, 'quantity', 1));
+    const fixed = fixedAmount(await this.catalog.fixedPrice({ Code: product.productCode, cantidad: quantity, ancho: width, alto: height }));
+    if (fixed > 0) return { basePrice: fixed, distributorDiscount: 0, productDiscount: 0, pricingMode: 'fixed-price', subtotal: fixed, vatRate: this.vatRate, total: roundMoney(fixed * (1 + this.vatRate)) };
+    return this.pricing.supplierCost(this.priceParams(product, width, height, quantity), {
+      pricingMode: 'account-discount', productDiscount: product.discount, AssociationGroup: product.associationGroup
+    });
+  }
+
+  async configurationOptions(input = {}) {
+    const product = this.product(input);
+    if (!product) throw Object.assign(new Error('Live product is not supported'), { code: 'PENTAGRAMA_LIVE_PRODUCT_UNSUPPORTED' });
+    const html = await this.catalog.attributes({
+      ProductCode: product.productCode, Group: product.associationGroup, GroupCode: product.groupCode,
+      LineNumber: '', PrimaryGroup: product.primaryGroup, Discount: product.discount,
+      CalculationType: product.calculationType, Modified: ''
+    });
+    return { penta13: attributeOption(html, 'cenefa', /^PENTA\s*13\b/i) };
+  }
+
   async resolve(input = {}) {
-    const product = SUPPORTED_PRODUCTS[String(input.homeeasyId || input.product || '').trim()];
+    const product = this.product(input);
     if (!product) {
       const homeeasyId = String(input.homeeasyId || input.product || '').trim();
       return { ok: false, outcome: 'UNSUPPORTED', code: 'PENTAGRAMA_LIVE_PRODUCT_UNSUPPORTED', fallback: fallbackFor(homeeasyId) };
@@ -115,11 +151,7 @@ class PentagramaLiveResolver {
     const width = requiredNumber(input.width, 'width');
     const height = requiredNumber(input.height, 'height');
     const quantity = Math.trunc(requiredNumber(input.quantity === undefined ? 1 : input.quantity, 'quantity', 1));
-    const priceParams = {
-      ProductCode: product.productCode, Quantity: quantity, Width: width, Height: height,
-      GroupCode: product.groupCode, calculationType: product.calculationType,
-      Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: product.associationGroup
-    };
+    const priceParams = this.priceParams(product, width, height, quantity);
     const requestedConfiguration = String(input.configuration || 'standard').trim().toLowerCase();
 
     // Mirrors the portal flow: render the available attributes, validate alerts,

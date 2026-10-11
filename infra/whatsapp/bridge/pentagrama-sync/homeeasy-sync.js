@@ -37,6 +37,7 @@ class HomeEasySyncClient {
 
   catalog(context) { return this.request('COSTOS_SYNC_READ', {}, context); }
   apply(scan, changes, context) { return this.request('COSTOS_SYNC_APPLY', { scanId: scan.id, scannedAt: scan.checkedAt, changes }, context); }
+  applyLocalModel(scan, candidate, context) { return this.request('COSTOS_SYNC_APPLY', { scanId: scan.id, scannedAt: scan.checkedAt, modelCandidate: candidate }, context); }
   rollback(historyId, context) { return this.request('COSTOS_SYNC_ROLLBACK', { historyId }, context); }
   history(context) { return this.request('COSTOS_SYNC_HISTORY', {}, context); }
 }

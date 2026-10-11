@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice']);
+const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'buildLocalEnrollablesSnapshot']);
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_TIMEOUT',
@@ -216,7 +216,7 @@ class PentagramaAgentGateway {
       .sort((a, b) => (Date.parse(a.lastJob && a.lastJob.at || '') || 0) - (Date.parse(b.lastJob && b.lastJob.at || '') || 0));
   }
 
-  runOnAgent(agent, type, payload) {
+  runOnAgent(agent, type, payload, timeoutMs) {
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
       const job = { id, agentId: agent.installationId, type, payload, state: 'queued', createdAt: new Date().toISOString() };
@@ -234,7 +234,7 @@ class PentagramaAgentGateway {
       timer = setTimeout(() => {
         this.jobs.delete(id);
         reject(Object.assign(new Error('Pentagrama Agent timed out'), { code: 'AGENT_TIMEOUT', infrastructure: true }));
-      }, this.jobTimeoutMs);
+      }, Math.max(this.jobTimeoutMs, Number(timeoutMs || 0)));
     });
   }
 
@@ -255,7 +255,7 @@ class PentagramaAgentGateway {
       if (!agent) break;
       excluded.add(agent.installationId);
       try {
-        return await this.runOnAgent(agent, type, payload);
+        return await this.runOnAgent(agent, type, payload, type === 'buildLocalEnrollablesSnapshot' ? 30 * 60 * 1000 : 0);
       } catch (error) {
         lastError = error;
         const infrastructure = error.infrastructure === true || INFRASTRUCTURE_CODES.has(error.code);
