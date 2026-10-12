@@ -494,6 +494,47 @@ function validarMedidasEnrollable10B_(product, width, height, catalog) {
   if (product.family !== "enrollable" && product.family !== "complemento-enrollable") return;
   if ((r.minWidthMm && width < r.minWidthMm) || (r.minHeightMm && height < r.minHeightMm)) throw new Error("Estas medidas están por debajo del mínimo de fabricación.");
 
+  const portalProfile = r.fabricationProfile;
+  if (product.family === "enrollable" && portalProfile && Array.isArray(portalProfile.mechanismBands)) {
+    const rollWidth = numeroCostos10B_(portalProfile.rollWidthMm, 0);
+    let orientation = "normal";
+    let orientationCode = "DIN";
+    let requiresAuthorization = false;
+    let warranty = true;
+    if (rollWidth && width > rollWidth) {
+      if (height <= rollWidth) {
+        orientation = "atravesada";
+        orientationCode = "TAT";
+      } else {
+        orientation = "atravesada_y_anadida";
+        orientationCode = "TAN";
+        requiresAuthorization = true;
+        warranty = false;
+      }
+    }
+    const mechanismBand = portalProfile.mechanismBands.find(function(band) {
+      const maxWidth = numeroCostos10B_(band.maxWidthMm, 0);
+      const maxHeight = numeroCostos10B_(band.maxHeightMm, 0);
+      return (!maxWidth || width <= maxWidth) && (!maxHeight || height <= maxHeight);
+    });
+    if (!mechanismBand || !String(mechanismBand.mechanism || "")) {
+      throw errorFabricacionEnrollable10B_("El perfil certificado de Pentagrama no resolvió un mecanismo para estas medidas.", []);
+    }
+    return {
+      supported: true,
+      ruleId: String(r.sizeRuleId || ""),
+      sizeGroup: String(portalProfile.sizeGroup || r.sizeGroup || ""),
+      configuration: "standard",
+      orientation: orientation,
+      orientationCode: orientationCode,
+      requiresAuthorization: requiresAuthorization,
+      warranty: warranty,
+      mechanism: String(mechanismBand.mechanism),
+      tube: "",
+      source: String(portalProfile.source || "Pentagrama GetAttributesDefaultValues")
+    };
+  }
+
   const sizePolicy = catalog && catalog.enrollableSizeRules || {};
   const sizeRuleId = String(r.sizeRuleId || "");
   const group = String(r.sizeGroup || "");

@@ -2,6 +2,7 @@
 
 const crypto = require('crypto');
 const inventory = require('./enrollables-live-products.json');
+const structuralProfiles = require('./enrollables-structural-profiles.json');
 const { COMPLEMENTS } = require('./live-resolver');
 
 const TOLERANCE = 0.02;
@@ -32,6 +33,58 @@ function same(left, right) { return Math.abs(Number(left) - Number(right)) <= TO
 function normalizeRules(value) { return value && typeof value === 'object' && !Array.isArray(value) ? JSON.parse(JSON.stringify(value)) : {}; }
 function slug(value) { return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 55); }
 
+const PORTAL_MECHANISM_BANDS = Object.freeze({
+  GROUP_5: Object.freeze([
+    Object.freeze({ maxWidthMm: 1300, maxHeightMm: 2200, mechanism: 'M01' }),
+    Object.freeze({ maxWidthMm: 1300, maxHeightMm: 3500, mechanism: 'M05' }),
+    Object.freeze({ maxWidthMm: 1900, maxHeightMm: 3200, mechanism: 'M05' }),
+    Object.freeze({ maxWidthMm: 2600, maxHeightMm: 3200, mechanism: 'M03' }),
+    Object.freeze({ maxWidthMm: 3000, maxHeightMm: 2800, mechanism: 'M05' })
+  ]),
+  GROUP_5B: Object.freeze([
+    Object.freeze({ maxWidthMm: 1300, maxHeightMm: 2200, mechanism: 'M01' }),
+    Object.freeze({ maxWidthMm: 1300, maxHeightMm: 3500, mechanism: 'M03' }),
+    Object.freeze({ maxWidthMm: 1900, maxHeightMm: 3200, mechanism: 'M03' }),
+    Object.freeze({ maxWidthMm: 2600, maxHeightMm: 3200, mechanism: 'M08' }),
+    Object.freeze({ maxWidthMm: 3000, maxHeightMm: 2800, mechanism: 'M08' })
+  ]),
+  MIMO_5B: Object.freeze([
+    Object.freeze({ maxWidthMm: 1300, maxHeightMm: 2200, mechanism: 'M01' }),
+    Object.freeze({ maxWidthMm: 1300, maxHeightMm: 3500, mechanism: 'M03' }),
+    Object.freeze({ maxWidthMm: 1900, maxHeightMm: 3200, mechanism: 'M03' }),
+    Object.freeze({ maxWidthMm: 2600, maxHeightMm: 3200, mechanism: 'M03' }),
+    Object.freeze({ maxWidthMm: 3000, maxHeightMm: 2800, mechanism: 'M05' })
+  ])
+});
+
+function portalFabricationProfile(definition) {
+  if (!definition) return null;
+  const bands = PORTAL_MECHANISM_BANDS[definition.mechanismProfile];
+  if (!bands) return null;
+  return {
+    id: definition.id,
+    source: structuralProfiles.source,
+    verifiedAt: structuralProfiles.verifiedAt,
+    casesPassed: 5,
+    maxDifference: 0,
+    sizeGroup: definition.sizeGroup,
+    rollWidthMm: Number(definition.rollWidthMm),
+    canRotate: true,
+    mechanismBands: [
+      ...bands.map(item => ({ ...item })),
+      { maxWidthMm: Number(definition.maxM08WidthMm), maxHeightMm: 3500, mechanism: 'M08' },
+      { maxWidthMm: null, maxHeightMm: null, mechanism: 'NA' }
+    ]
+  };
+}
+
+function profileForGroup(group, sizePolicy) {
+  const stored = group && group.product && group.product.rules && group.product.rules.fabricationProfile;
+  if (stored && stored.id) return normalizeRules(stored);
+  if (!sizePolicy || String(sizePolicy.id || '') !== structuralProfiles.sourceRuleId) return null;
+  return portalFabricationProfile(structuralProfiles.profiles[group.liveProduct.homeeasyId]);
+}
+
 function structureKey(product, liveProduct) {
   const rules = product.rules || {};
   return JSON.stringify(stable({
@@ -41,7 +94,7 @@ function structureKey(product, liveProduct) {
     rollWidthMm: Number(rules.rollWidthMm || 0), canRotate: Boolean(rules.canRotate),
     minWidthMm: Number(rules.minWidthMm || 0), minHeightMm: Number(rules.minHeightMm || 0),
     maxWidthMm: Number(rules.maxWidthMm || 0), maxHeightMm: Number(rules.maxHeightMm || 0),
-    maxRatio: Number(rules.maxRatio || 0)
+    maxRatio: Number(rules.maxRatio || 0), fabricationProfile: rules.fabricationProfile && rules.fabricationProfile.id || ''
   }));
 }
 
@@ -50,9 +103,24 @@ function localFabrication(product, sample, sizePolicy) {
   if ((rules.minWidthMm && sample.width * 1000 < rules.minWidthMm) || (rules.minHeightMm && sample.height * 1000 < rules.minHeightMm)) {
     return { outcome: 'NOT_MANUFACTURABLE', orientationCode: 'NAN', mechanism: '' };
   }
+  const widthMm = sample.width * 1000; const heightMm = sample.height * 1000;
+  const profile = rules.fabricationProfile;
+  if (profile && Array.isArray(profile.mechanismBands)) {
+    const rollWidth = Number(profile.rollWidthMm || 0);
+    let orientationCode = 'DIN';
+    if (rollWidth && widthMm > rollWidth) orientationCode = heightMm <= rollWidth ? 'TAT' : 'TAN';
+    const mechanismBand = profile.mechanismBands.find(item =>
+      (!Number(item.maxWidthMm) || widthMm <= Number(item.maxWidthMm)) &&
+      (!Number(item.maxHeightMm) || heightMm <= Number(item.maxHeightMm))
+    );
+    return {
+      outcome: orientationCode === 'DIN' ? 'PRICE' : 'ALTERNATIVE',
+      orientationCode,
+      mechanism: String(mechanismBand && mechanismBand.mechanism || '')
+    };
+  }
   const configurations = sizePolicy && sizePolicy.configurations || {};
   const bands = configurations.standard && configurations.standard.groups && configurations.standard.groups[rules.sizeGroup] || [];
-  const widthMm = sample.width * 1000; const heightMm = sample.height * 1000;
   const band = bands.find(item => widthMm <= Number(item.maxWidthMm || 0) && heightMm <= Number(item.maxHeightMm || 0));
   if (!band && rules.sizeRuleId && sizePolicy && rules.sizeRuleId === sizePolicy.id) return { outcome: 'NOT_MANUFACTURABLE', orientationCode: 'NAN', mechanism: '' };
   const rollWidth = Number(rules.rollWidthMm || 0);
@@ -117,10 +185,22 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   if (failures.length) throw Object.assign(new Error(`${failures.length} Enrollables are not reproducible with an exact local area rate`), { code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED', failures });
 
   for (const group of groups.values()) {
+    const profile = profileForGroup(group, source.enrollableSizeRules || {});
+    if (profile) {
+      group.members.forEach(homeeasyId => {
+        const memberPatch = productPatches.find(item => item.homeeasyId === homeeasyId);
+        if (!memberPatch) return;
+        memberPatch.rules.fabricationProfile = normalizeRules(profile);
+        memberPatch.rules.rollWidthMm = profile.rollWidthMm;
+        memberPatch.rules.canRotate = true;
+        memberPatch.rules.sizeGroup = profile.sizeGroup;
+      });
+    }
     const patch = productPatches.find(item => item.homeeasyId === group.product.id);
+    const localProduct = { ...group.product, rules: patch.rules };
     for (const sample of STRUCTURE_CASES) {
       const live = await options.resolveLive({ homeeasyId: group.product.id, width: sample.width, height: sample.height, quantity: 1, configuration: 'standard' });
-      const localFab = localFabrication(group.product, sample, source.enrollableSizeRules || {});
+      const localFab = localFabrication(localProduct, sample, source.enrollableSizeRules || {});
       if (!live || live.ok !== true) {
         if (!(live && live.outcome === 'NOT_MANUFACTURABLE' && localFab.outcome === 'NOT_MANUFACTURABLE')) {
           failures.push({ homeeasyId: group.product.id, caseId: sample.id, code: String(live && live.code || 'LIVE_UNRESOLVED') });
@@ -226,4 +306,4 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   };
 }
 
-module.exports = Object.freeze({ TOLERANCE, BASE_CASES, STRUCTURE_CASES, effectiveArea, localTotal, localFabrication, structureKey, buildEnrollablesLocalCandidate, hash, same });
+module.exports = Object.freeze({ TOLERANCE, BASE_CASES, STRUCTURE_CASES, effectiveArea, localTotal, localFabrication, portalFabricationProfile, structureKey, buildEnrollablesLocalCandidate, hash, same });

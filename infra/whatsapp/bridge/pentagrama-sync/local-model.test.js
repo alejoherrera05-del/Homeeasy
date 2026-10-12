@@ -3,8 +3,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const liveInventory = require('./enrollables-live-products.json');
+const structuralProfiles = require('./enrollables-structural-profiles.json');
 const { COMPLEMENTS } = require('./live-resolver');
-const { buildEnrollablesLocalCandidate, localFabrication } = require('./local-model');
+const { buildEnrollablesLocalCandidate, localFabrication, portalFabricationProfile } = require('./local-model');
 
 function fixture() {
   const products = Object.values(liveInventory.products);
@@ -64,4 +65,30 @@ test('rejects a non-linear product instead of approximating its rate', async () 
     return quote;
   };
   await assert.rejects(() => buildEnrollablesLocalCandidate(options), error => error.code === 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED');
+});
+
+test('reproduces certified Pentagrama orientation and mechanism profiles', () => {
+  const cases = [
+    ['enrollable-blackout-angora', [
+      [0.8, 1, 'DIN', 'M01'], [2.5, 2.2, 'DIN', 'M03'], [3.5, 2, 'TAT', 'M08'], [4.5, 3.2, 'TAN', 'NA']
+    ]],
+    ['enrollable-blackout-castleblackout', [
+      [0.8, 1, 'DIN', 'M01'], [2.5, 2.2, 'DIN', 'M08'], [3.5, 2, 'TAT', 'M08'], [4.5, 3.2, 'TAN', 'NA']
+    ]],
+    ['enrollable-blackout-florenceblackout', [
+      [0.8, 1, 'DIN', 'M01'], [2.5, 2.2, 'TAN', 'M03'], [3.5, 2, 'TAN', 'M08'], [4.5, 3.2, 'TAN', 'NA']
+    ]],
+    ['enrollable-blackout-mimoblackout', [
+      [0.8, 1, 'DIN', 'M01'], [2.5, 2.2, 'TAT', 'M03'], [3.5, 2, 'TAT', 'M08'], [4.5, 3.2, 'TAN', 'NA']
+    ]]
+  ];
+  for (const [homeeasyId, samples] of cases) {
+    const profile = portalFabricationProfile(structuralProfiles.profiles[homeeasyId]);
+    const product = { rules: { fabricationProfile: profile } };
+    for (const [width, height, orientationCode, mechanism] of samples) {
+      const result = localFabrication(product, { width, height }, {});
+      assert.equal(result.orientationCode, orientationCode, `${homeeasyId}/${width}x${height} orientation`);
+      assert.equal(result.mechanism, mechanism, `${homeeasyId}/${width}x${height} mechanism`);
+    }
+  }
 });

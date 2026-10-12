@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "sourceRuleId": "pentagrama-standard-manual-nov2025",
+  "source": "Pentagrama ProductAttributes + GetAttributesDefaultValues",
+  "verifiedAt": "2026-10-12T03:15:00.000Z",
+  "profiles": {
+    "enrollable-blackout-angora": { "id": "portal-angora-3000", "sizeGroup": "5", "rollWidthMm": 3000, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-bohemian": { "id": "portal-bohemian-2800", "sizeGroup": "5", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-castleblackout": { "id": "portal-castle-2800", "sizeGroup": "5B", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-delcarmenblackout": { "id": "portal-del-carmen-3000", "sizeGroup": "5B", "rollWidthMm": 3000, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-estucoblackout": { "id": "portal-estuco-2800", "sizeGroup": "5B", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-felice": { "id": "portal-felice-2800", "sizeGroup": "5", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-florenceblackout": { "id": "portal-florence-1830", "sizeGroup": "5", "rollWidthMm": 1830, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-hiker": { "id": "portal-hiker-2800", "sizeGroup": "5", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-imagineblackout": { "id": "portal-imagine-2900", "sizeGroup": "5B", "rollWidthMm": 2900, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-linkblackout": { "id": "portal-link-2500", "sizeGroup": "5B", "rollWidthMm": 2500, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-mattebasico183": { "id": "portal-matte-basico-183-2500", "sizeGroup": "5", "rollWidthMm": 2500, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-mattebasico250": { "id": "portal-matte-basico-250-2500", "sizeGroup": "5", "rollWidthMm": 2500, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
+    "enrollable-blackout-mimoblackout": { "id": "portal-mimo-2400", "sizeGroup": "5B", "rollWidthMm": 2400, "mechanismProfile": "MIMO_5B", "maxM08WidthMm": 4000 },
+    "enrollable-blackout-tercio": { "id": "portal-tercio-2850", "sizeGroup": "5B", "rollWidthMm": 2850, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 }
+  }
+}
