@@ -1,22 +1,4284 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "sourceRuleId": "pentagrama-standard-manual-nov2025",
-  "source": "Pentagrama ProductAttributes + GetAttributesDefaultValues",
-  "verifiedAt": "2026-10-12T03:15:00.000Z",
+  "source": "Pentagrama Live structural matrix (Direction + Mechanism + outcome)",
+  "verifiedAt": "2026-10-12T13:36:35.574Z",
+  "structureKeys": 85,
+  "behaviorProfiles": 9,
   "profiles": {
-    "enrollable-blackout-angora": { "id": "portal-angora-3000", "sizeGroup": "5", "rollWidthMm": 3000, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-bohemian": { "id": "portal-bohemian-2800", "sizeGroup": "5", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-castleblackout": { "id": "portal-castle-2800", "sizeGroup": "5B", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-delcarmenblackout": { "id": "portal-del-carmen-3000", "sizeGroup": "5B", "rollWidthMm": 3000, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-estucoblackout": { "id": "portal-estuco-2800", "sizeGroup": "5B", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-felice": { "id": "portal-felice-2800", "sizeGroup": "5", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-florenceblackout": { "id": "portal-florence-1830", "sizeGroup": "5", "rollWidthMm": 1830, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-hiker": { "id": "portal-hiker-2800", "sizeGroup": "5", "rollWidthMm": 2800, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-imagineblackout": { "id": "portal-imagine-2900", "sizeGroup": "5B", "rollWidthMm": 2900, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-linkblackout": { "id": "portal-link-2500", "sizeGroup": "5B", "rollWidthMm": 2500, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-mattebasico183": { "id": "portal-matte-basico-183-2500", "sizeGroup": "5", "rollWidthMm": 2500, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-mattebasico250": { "id": "portal-matte-basico-250-2500", "sizeGroup": "5", "rollWidthMm": 2500, "mechanismProfile": "GROUP_5", "maxM08WidthMm": 3800 },
-    "enrollable-blackout-mimoblackout": { "id": "portal-mimo-2400", "sizeGroup": "5B", "rollWidthMm": 2400, "mechanismProfile": "MIMO_5B", "maxM08WidthMm": 4000 },
-    "enrollable-blackout-tercio": { "id": "portal-tercio-2850", "sizeGroup": "5B", "rollWidthMm": 2850, "mechanismProfile": "GROUP_5B", "maxM08WidthMm": 3800 }
+    "enrollable-blackout-angora": {
+      "id": "portal-angora-3000",
+      "sizeGroup": "5",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "GROUP_5",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-angora",
+        "enrollable-blackout-matte3",
+        "enrollable-blackout-matte3institucionalmasde30m2",
+        "enrollable-blackout-pexels",
+        "enrollable-blackout-star",
+        "enrollable-blackout-tracker",
+        "enrollable-blackout-weave"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-bohemian": {
+      "id": "portal-bohemian-2800",
+      "sizeGroup": "5",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "GROUP_5",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-bohemian",
+        "enrollable-blackout-porto"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-castleblackout": {
+      "id": "portal-castle-2800",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "GROUP_5B",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-castleblackout",
+        "enrollable-blackout-suedeblackout"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-delcarmenblackout": {
+      "id": "portal-del-carmen-3000",
+      "sizeGroup": "5B",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "GROUP_5B",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-delcarmenblackout",
+        "enrollable-blackout-foamy",
+        "enrollable-blackout-holboxblackout",
+        "enrollable-blackout-matrix",
+        "enrollable-blackout-oaxacablackout",
+        "enrollable-blackout-rooblackout",
+        "enrollable-blackout-selva",
+        "enrollable-blackout-sunlessblackout",
+        "enrollable-blackout-sunscreen",
+        "enrollable-blackout-ziame"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-estucoblackout": {
+      "id": "portal-estuco-2800",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "GROUP_5B",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-estucoblackout",
+        "enrollable-blackout-irisblackoutfr",
+        "enrollable-blackout-magesticii"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-felice": {
+      "id": "portal-felice-2800",
+      "sizeGroup": "5",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "GROUP_5",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-felice"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-florenceblackout": {
+      "id": "portal-florence-1830",
+      "sizeGroup": "5",
+      "rollWidthMm": 1830,
+      "mechanismProfile": "GROUP_5",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-florenceblackout",
+        "enrollable-blackout-jersey",
+        "enrollable-blackout-marmol",
+        "enrollable-blackout-matte",
+        "enrollable-blackout-matteinstitucionalmasde30m2",
+        "enrollable-blackout-moireblackout",
+        "enrollable-blackout-napoli",
+        "enrollable-blackout-nocheblackout",
+        "enrollable-blackout-sicilia"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-hiker": {
+      "id": "portal-hiker-2800",
+      "sizeGroup": "5",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "GROUP_5",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-hiker"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-imagineblackout": {
+      "id": "portal-imagine-2900",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2900,
+      "mechanismProfile": "GROUP_5B",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-imagineblackout"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-linkblackout": {
+      "id": "portal-link-2500",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "GROUP_5B",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-linkblackout",
+        "enrollable-blackout-mistblackout",
+        "enrollable-blackout-noliteiiblackout",
+        "enrollable-blackout-printedblackout",
+        "enrollable-blackout-solionblackout"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-mattebasico183": {
+      "id": "portal-matte-basico-183-2500",
+      "sizeGroup": "5",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "GROUP_5",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-mattebasico183"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-mattebasico250": {
+      "id": "portal-matte-basico-250-2500",
+      "sizeGroup": "5",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "GROUP_5",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-mattebasico250"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-mimoblackout": {
+      "id": "portal-mimo-2400",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2400,
+      "mechanismProfile": "MIMO_5B",
+      "maxM08WidthMm": 4000,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-mimoblackout",
+        "enrollable-blackout-velvetblackout"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-blackout-tercio": {
+      "id": "portal-tercio-2850",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2850,
+      "mechanismProfile": "GROUP_5B",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-blackout-tercio"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screen32020%": {
+      "id": "portal-screen-screen32020%",
+      "sizeGroup": "3",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screen32020%",
+        "enrollable-screen-screendifuse",
+        "enrollable-screen-screenecocrystal",
+        "enrollable-screen-screenessential30011%",
+        "enrollable-screen-screenessential30011%institucionalmasde30m2",
+        "enrollable-screen-screenessential30033%",
+        "enrollable-screen-screenessential30033%institucionalmasde30m2",
+        "enrollable-screen-screenessential30055%",
+        "enrollable-screen-screenessential30055%institucionalmasde30m2",
+        "enrollable-screen-screenfaceoff3%",
+        "enrollable-screen-screenjacquarddecorativesketch",
+        "enrollable-screen-screenjacquarddecorativedesert",
+        "enrollable-screen-screenjacquarddecorativepapua",
+        "enrollable-screen-screenjacquarddecorativesilvery",
+        "enrollable-screen-screenjacquarddecorativestylo",
+        "enrollable-screen-screenlino",
+        "enrollable-screen-screensilverback5%",
+        "enrollable-screen-screensplendourbamboo",
+        "enrollable-screen-screensplendourglow",
+        "enrollable-screen-screensplendourstyle",
+        "enrollable-screen-screentretto1%lagrima",
+        "enrollable-screen-screentretto1%lagrimainstitucionalmasde30m2",
+        "enrollable-screen-screentretto1%platina",
+        "enrollable-screen-screentretto1%platinainstitucionalmasde30m2",
+        "enrollable-screen-screentretto10%lagrima",
+        "enrollable-screen-screentretto10%lagrimainstitucionalmasde30m2",
+        "enrollable-screen-screentretto10%platina",
+        "enrollable-screen-screentretto10%platinainstitucionalmasde30m2",
+        "enrollable-screen-screentretto3%lagrima",
+        "enrollable-screen-screentretto3%lagrimainstitucionalmasde30m2",
+        "enrollable-screen-screentretto3%platina",
+        "enrollable-screen-screentretto3%platinainstitucionalmasde30m2",
+        "enrollable-screen-screentretto5%lagrima",
+        "enrollable-screen-screentretto5%lagrimainstitucionalmasde30m2",
+        "enrollable-screen-screentretto5%platina",
+        "enrollable-screen-screentretto5%platinainstitucionalmasde30m2",
+        "enrollable-screen-screentril",
+        "enrollable-screen-screenvision35010%",
+        "enrollable-screen-screenvision350institucionalmasde30m2"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenecovision1000": {
+      "id": "portal-screen-screenecovision1000",
+      "sizeGroup": "2",
+      "rollWidthMm": 2700,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenecovision1000"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenecovision3000": {
+      "id": "portal-screen-screenecovision3000",
+      "sizeGroup": "",
+      "rollWidthMm": 2700,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenecovision3000",
+        "enrollable-screen-screenvision350styles10%",
+        "enrollable-screen-screenvisioncalicoii"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenessential301010%": {
+      "id": "portal-screen-screenessential301010%",
+      "sizeGroup": "2",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenessential301010%",
+        "enrollable-screen-screenessential301010%institucionalmasde30m2",
+        "enrollable-screen-screenparket"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenestuco": {
+      "id": "portal-screen-screenestuco",
+      "sizeGroup": "4A",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenestuco"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenjacquarddecorativebastia": {
+      "id": "portal-screen-screenjacquarddecorativebastia",
+      "sizeGroup": "4",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenjacquarddecorativebastia",
+        "enrollable-screen-screenjacquarddecorativeprovence",
+        "enrollable-screen-screenjacquarddecorativeastor",
+        "enrollable-screen-screenjacquarddecorativecrystal",
+        "enrollable-screen-screenultimatejacquardlinen",
+        "enrollable-screen-screenultimatejacquardnature",
+        "enrollable-screen-screenultimatejacquardnovo",
+        "enrollable-screen-screenvision5977%",
+        "enrollable-screen-screenvision6503%",
+        "enrollable-screen-screenvisioncrystal550",
+        "enrollable-screen-screenvisiondesignerscollection",
+        "enrollable-screen-screenvisionspice"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenjacquarddecorativebiagio": {
+      "id": "portal-screen-screenjacquarddecorativebiagio",
+      "sizeGroup": "3",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenjacquarddecorativebiagio",
+        "enrollable-screen-screenjacquarddecorativeexpressions",
+        "enrollable-screen-screenjacquarddecorativequeen",
+        "enrollable-screen-screenjacquarddecorativerains",
+        "enrollable-screen-screenjacquarddecorativetreasures",
+        "enrollable-screen-screenjacquarddecorativewaves",
+        "enrollable-screen-screenvision31414%",
+        "enrollable-screen-screenvision314silver",
+        "enrollable-screen-screenvision3511%",
+        "enrollable-screen-screenvisionbali",
+        "enrollable-screen-screenvisionconstellation"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenjacquarddecorativecorcega": {
+      "id": "portal-screen-screenjacquarddecorativecorcega",
+      "sizeGroup": "3",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenjacquarddecorativecorcega"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenjacquarddecorativenirvana": {
+      "id": "portal-screen-screenjacquarddecorativenirvana",
+      "sizeGroup": "4",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenjacquarddecorativenirvana"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenjacquarddecorativeprivas": {
+      "id": "portal-screen-screenjacquarddecorativeprivas",
+      "sizeGroup": "4",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenjacquarddecorativeprivas",
+        "enrollable-screen-screensplendouramazon",
+        "enrollable-screen-screensplendourexplore",
+        "enrollable-screen-screensplendourglamour",
+        "enrollable-screen-screenvision5505%",
+        "enrollable-screen-screenvision550institucionalmasde30m2"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenjacquarddecorativeyork": {
+      "id": "portal-screen-screenjacquarddecorativeyork",
+      "sizeGroup": "4",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenjacquarddecorativeyork",
+        "enrollable-screen-screenvisionsienna"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screensplendournoble": {
+      "id": "portal-screen-screensplendournoble",
+      "sizeGroup": "6",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screensplendournoble"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenultimatecouture": {
+      "id": "portal-screen-screenultimatecouture",
+      "sizeGroup": "3",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": true,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenultimatecouture"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenultimatejacquardfine": {
+      "id": "portal-screen-screenultimatejacquardfine",
+      "sizeGroup": "2",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenultimatejacquardfine"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenvisioncalicoi": {
+      "id": "portal-screen-screenvisioncalicoi",
+      "sizeGroup": "",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenvisioncalicoi"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-screen-screenvisionreflective": {
+      "id": "portal-screen-screenvisionreflective",
+      "sizeGroup": "3",
+      "rollWidthMm": 2400,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-screen-screenvisionreflective"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-alamo": {
+      "id": "portal-trasluz-alamo",
+      "sizeGroup": "2",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-alamo",
+        "enrollable-trasluz-astoria",
+        "enrollable-trasluz-audrey",
+        "enrollable-trasluz-buckingham",
+        "enrollable-trasluz-freshlinen",
+        "enrollable-trasluz-grace",
+        "enrollable-trasluz-iconic",
+        "enrollable-trasluz-leopard",
+        "enrollable-trasluz-palace",
+        "enrollable-trasluz-pretaporter",
+        "enrollable-trasluz-spider"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-angkor": {
+      "id": "portal-trasluz-angkor",
+      "sizeGroup": "3",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-angkor"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-anirak": {
+      "id": "portal-trasluz-anirak",
+      "sizeGroup": "2",
+      "rollWidthMm": 2400,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-anirak",
+        "enrollable-trasluz-bordeaux",
+        "enrollable-trasluz-fantasy",
+        "enrollable-trasluz-niza",
+        "enrollable-trasluz-riatrevira",
+        "enrollable-trasluz-rialto",
+        "enrollable-trasluz-trevirafrankfurt"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-baya": {
+      "id": "portal-trasluz-baya",
+      "sizeGroup": "2",
+      "rollWidthMm": 2150,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-baya"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-bliss": {
+      "id": "portal-trasluz-bliss",
+      "sizeGroup": "2",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-bliss",
+        "enrollable-trasluz-cersei",
+        "enrollable-trasluz-gracemonalisa",
+        "enrollable-trasluz-gracestone",
+        "enrollable-trasluz-printedtrasluzgrace"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-bridatrevira": {
+      "id": "portal-trasluz-bridatrevira",
+      "sizeGroup": "1",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-bridatrevira",
+        "enrollable-trasluz-fortalezatrevira"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-brisa": {
+      "id": "portal-trasluz-brisa",
+      "sizeGroup": "2",
+      "rollWidthMm": 2600,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-brisa",
+        "enrollable-trasluz-otono",
+        "enrollable-trasluz-real"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-calais-blanco-crema": {
+      "id": "portal-trasluz-calais-blanco-crema",
+      "sizeGroup": "3",
+      "rollWidthMm": 2000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-calais-blanco-crema",
+        "enrollable-trasluz-calais-otros",
+        "enrollable-trasluz-exquisitei"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-capadoccia": {
+      "id": "portal-trasluz-capadoccia",
+      "sizeGroup": "1",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-capadoccia",
+        "enrollable-trasluz-magic",
+        "enrollable-trasluz-urbanstripe",
+        "enrollable-trasluz-versalles"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-claire": {
+      "id": "portal-trasluz-claire",
+      "sizeGroup": "2",
+      "rollWidthMm": 2000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-claire",
+        "enrollable-trasluz-hivetrasluz",
+        "enrollable-trasluz-luna",
+        "enrollable-trasluz-printedtrasluzabcdef",
+        "enrollable-trasluz-printedtrasluz2012",
+        "enrollable-trasluz-tulum",
+        "enrollable-trasluz-visuallei"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-edimburg": {
+      "id": "portal-trasluz-edimburg",
+      "sizeGroup": "",
+      "rollWidthMm": 2000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-edimburg",
+        "enrollable-trasluz-elysee",
+        "enrollable-trasluz-impetuguaduales",
+        "enrollable-trasluz-linen",
+        "enrollable-trasluz-matiz",
+        "enrollable-trasluz-miamispice",
+        "enrollable-trasluz-neoclassic",
+        "enrollable-trasluz-pebbles",
+        "enrollable-trasluz-proctor",
+        "enrollable-trasluz-vitale"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-exquisitteii": {
+      "id": "portal-trasluz-exquisitteii",
+      "sizeGroup": "2",
+      "rollWidthMm": 2000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-exquisitteii",
+        "enrollable-trasluz-graphic",
+        "enrollable-trasluz-impetu",
+        "enrollable-trasluz-visualleii"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-ferrara": {
+      "id": "portal-trasluz-ferrara",
+      "sizeGroup": "3",
+      "rollWidthMm": 2300,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-ferrara"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-galway": {
+      "id": "portal-trasluz-galway",
+      "sizeGroup": "4",
+      "rollWidthMm": 2000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-galway"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-garden": {
+      "id": "portal-trasluz-garden",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-garden"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-imaginebright": {
+      "id": "portal-trasluz-imaginebright",
+      "sizeGroup": "1",
+      "rollWidthMm": 2000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-imaginebright"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-knox": {
+      "id": "portal-trasluz-knox",
+      "sizeGroup": "2",
+      "rollWidthMm": 2350,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-knox"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-lanister": {
+      "id": "portal-trasluz-lanister",
+      "sizeGroup": "2",
+      "rollWidthMm": 2380,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-lanister"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-liatris": {
+      "id": "portal-trasluz-liatris",
+      "sizeGroup": "1",
+      "rollWidthMm": 2400,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-liatris",
+        "enrollable-trasluz-salvadortrevira"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-linio": {
+      "id": "portal-trasluz-linio",
+      "sizeGroup": "2",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-linio",
+        "enrollable-trasluz-louis",
+        "enrollable-trasluz-petra",
+        "enrollable-trasluz-precious",
+        "enrollable-trasluz-tapiz",
+        "enrollable-trasluz-winchestertrevira"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-linktrasluz": {
+      "id": "portal-trasluz-linktrasluz",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-linktrasluz"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-liverpool": {
+      "id": "portal-trasluz-liverpool",
+      "sizeGroup": "3",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-liverpool",
+        "enrollable-trasluz-windsor"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-look": {
+      "id": "portal-trasluz-look",
+      "sizeGroup": "3",
+      "rollWidthMm": 2600,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-look"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-matiztrasluzii": {
+      "id": "portal-trasluz-matiztrasluzii",
+      "sizeGroup": "2",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-matiztrasluzii",
+        "enrollable-trasluz-printedmodern",
+        "enrollable-trasluz-renaissance"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-oxford": {
+      "id": "portal-trasluz-oxford",
+      "sizeGroup": "2",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-oxford",
+        "enrollable-trasluz-summer",
+        "enrollable-trasluz-welch"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-planet": {
+      "id": "portal-trasluz-planet",
+      "sizeGroup": "2",
+      "rollWidthMm": 2700,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-planet",
+        "enrollable-trasluz-roma"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-primi": {
+      "id": "portal-trasluz-primi",
+      "sizeGroup": "2",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-primi"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-printedecovision3000": {
+      "id": "portal-trasluz-printedecovision3000",
+      "sizeGroup": "",
+      "rollWidthMm": 2900,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-printedecovision3000"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-printedtrasluzmasterpiece": {
+      "id": "portal-trasluz-printedtrasluzmasterpiece",
+      "sizeGroup": "1",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-printedtrasluzmasterpiece"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-richmondtrevira": {
+      "id": "portal-trasluz-richmondtrevira",
+      "sizeGroup": "3",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-richmondtrevira"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-scarlet": {
+      "id": "portal-trasluz-scarlet",
+      "sizeGroup": "1",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-scarlet"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-trasluz-ziame": {
+      "id": "portal-trasluz-ziame",
+      "sizeGroup": "5B",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-trasluz-ziame"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-dimout-autum": {
+      "id": "portal-dimout-autum",
+      "sizeGroup": "5B",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-dimout-autum",
+        "enrollable-dimout-bloom",
+        "enrollable-dimout-botanic",
+        "enrollable-dimout-dalia",
+        "enrollable-dimout-winter"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-dimout-lotus": {
+      "id": "portal-dimout-lotus",
+      "sizeGroup": "2",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-dimout-lotus"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-lona-lonatransparentecristaltec": {
+      "id": "portal-lona-lonatransparentecristaltec",
+      "sizeGroup": "4",
+      "rollWidthMm": 1370,
+      "mechanismProfile": "LONA_CRISTAL",
+      "maxM08WidthMm": 0,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-lona-lonatransparentecristaltec"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M05"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-soltis-soltisw96": {
+      "id": "portal-soltis-soltisw96",
+      "sizeGroup": "3",
+      "rollWidthMm": 2670,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-soltis-soltisw96"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-soltis-soltis96": {
+      "id": "portal-soltis-soltis96",
+      "sizeGroup": "2",
+      "rollWidthMm": 2670,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-soltis-soltis96"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadealamo": {
+      "id": "portal-serenade-serenadealamo",
+      "sizeGroup": "3",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadealamo",
+        "enrollable-serenade-serenadearcadia",
+        "enrollable-serenade-serenademanchester",
+        "enrollable-serenade-serenadenightpuntacana"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadebamboo": {
+      "id": "portal-serenade-serenadebamboo",
+      "sizeGroup": "4",
+      "rollWidthMm": 2600,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadebamboo"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadebavaro": {
+      "id": "portal-serenade-serenadebavaro",
+      "sizeGroup": "1",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadebavaro",
+        "enrollable-serenade-serenadecezanemagic",
+        "enrollable-serenade-serenadecrystalbasicos",
+        "enrollable-serenade-serenadecrystalespeciales"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadeborabora": {
+      "id": "portal-serenade-serenadeborabora",
+      "sizeGroup": "4",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadeborabora",
+        "enrollable-serenade-serenaderomantic"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadeboucle": {
+      "id": "portal-serenade-serenadeboucle",
+      "sizeGroup": "3",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadeboucle",
+        "enrollable-serenade-serenadefener",
+        "enrollable-serenade-serenadenatural",
+        "enrollable-serenade-serenadenightb",
+        "enrollable-serenade-serenadenightkaribo",
+        "enrollable-serenade-serenadenightturin"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadecezane": {
+      "id": "portal-serenade-serenadecezane",
+      "sizeGroup": "2",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadecezane",
+        "enrollable-serenade-serenadedimare",
+        "enrollable-serenade-serenadehoney",
+        "enrollable-serenade-serenadekosta",
+        "enrollable-serenade-serenadeleopard",
+        "enrollable-serenade-serenadelevant",
+        "enrollable-serenade-serenademarian"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadeelegance": {
+      "id": "portal-serenade-serenadeelegance",
+      "sizeGroup": "3",
+      "rollWidthMm": 2750,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadeelegance"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadefiji": {
+      "id": "portal-serenade-serenadefiji",
+      "sizeGroup": "1",
+      "rollWidthMm": 2750,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadefiji"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadeglamour": {
+      "id": "portal-serenade-serenadeglamour",
+      "sizeGroup": "2",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadeglamour"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadenight": {
+      "id": "portal-serenade-serenadenight",
+      "sizeGroup": "3",
+      "rollWidthMm": 2600,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadenight"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenaderomanticbright": {
+      "id": "portal-serenade-serenaderomanticbright",
+      "sizeGroup": "4",
+      "rollWidthMm": 2750,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TATSG",
+      "orientationAddedCode": "TANSG",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenaderomanticbright",
+        "enrollable-serenade-serenaderomanticcurves"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TATSG",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TANSG",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadescreen": {
+      "id": "portal-serenade-serenadescreen",
+      "sizeGroup": "4",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadescreen"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadescreenclark": {
+      "id": "portal-serenade-serenadescreenclark",
+      "sizeGroup": "4",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadescreenclark",
+        "enrollable-serenade-serenadescreendifuse",
+        "enrollable-serenade-serenadescreeneco",
+        "enrollable-serenade-serenadescreenjacquardallen",
+        "enrollable-serenade-serenadescreenjacquardloft",
+        "enrollable-serenade-serenadescreenjacquardsurf"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadescreenglass": {
+      "id": "portal-serenade-serenadescreenglass",
+      "sizeGroup": "4",
+      "rollWidthMm": 2500,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadescreenglass"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadescreenhybrid": {
+      "id": "portal-serenade-serenadescreenhybrid",
+      "sizeGroup": "",
+      "rollWidthMm": 3000,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadescreenhybrid",
+        "enrollable-serenade-serenadescreenjacquardbishop",
+        "enrollable-serenade-serenadescreenlondon"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadescreennice": {
+      "id": "portal-serenade-serenadescreennice",
+      "sizeGroup": "",
+      "rollWidthMm": 2200,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadescreennice"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadespectra": {
+      "id": "portal-serenade-serenadespectra",
+      "sizeGroup": "",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadespectra",
+        "enrollable-serenade-serenadespectradeluxe",
+        "enrollable-serenade-serenadespectradeluxeisland",
+        "enrollable-serenade-serenadetrapeze",
+        "enrollable-serenade-serenadetroyes"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    },
+    "enrollable-serenade-serenadevenecia": {
+      "id": "portal-serenade-serenadevenecia",
+      "sizeGroup": "",
+      "rollWidthMm": 2800,
+      "mechanismProfile": "STANDARD",
+      "maxM08WidthMm": 3800,
+      "orientationAcrossCode": "TAT",
+      "orientationAddedCode": "TAN",
+      "rotateAtRollWidth": false,
+      "casesPassed": 4,
+      "members": [
+        "enrollable-serenade-serenadevenecia",
+        "enrollable-serenade-serenadewaves"
+      ],
+      "evidence": [
+        {
+          "id": "limit",
+          "width": 0.8,
+          "height": 1,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M01"
+        },
+        {
+          "id": "width-250",
+          "width": 2.5,
+          "height": 2.2,
+          "outcome": "PRICE",
+          "orientationCode": "DIN",
+          "mechanism": "M03"
+        },
+        {
+          "id": "tat",
+          "width": 3.5,
+          "height": 2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAT",
+          "mechanism": "M08"
+        },
+        {
+          "id": "tan",
+          "width": 4.5,
+          "height": 3.2,
+          "outcome": "ALTERNATIVE",
+          "orientationCode": "TAN",
+          "mechanism": "NA"
+        }
+      ]
+    }
   }
 }

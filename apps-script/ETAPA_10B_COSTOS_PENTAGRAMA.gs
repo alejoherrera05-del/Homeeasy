@@ -501,13 +501,14 @@ function validarMedidasEnrollable10B_(product, width, height, catalog) {
     let orientationCode = "DIN";
     let requiresAuthorization = false;
     let warranty = true;
-    if (rollWidth && width > rollWidth) {
+    const crossesRoll = rollWidth && (portalProfile.rotateAtRollWidth ? width >= rollWidth : width > rollWidth);
+    if (crossesRoll) {
       if (height <= rollWidth) {
         orientation = "atravesada";
-        orientationCode = "TAT";
+        orientationCode = String(portalProfile.orientationAcrossCode || "TAT");
       } else {
         orientation = "atravesada_y_anadida";
-        orientationCode = "TAN";
+        orientationCode = String(portalProfile.orientationAddedCode || "TAN");
         requiresAuthorization = true;
         warranty = false;
       }

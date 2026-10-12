@@ -34,6 +34,11 @@ function normalizeRules(value) { return value && typeof value === 'object' && !A
 function slug(value) { return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 55); }
 
 const PORTAL_MECHANISM_BANDS = Object.freeze({
+  STANDARD: Object.freeze([
+    Object.freeze({ maxWidthMm: 1600, maxHeightMm: 2200, mechanism: 'M01' }),
+    Object.freeze({ maxWidthMm: 2600, maxHeightMm: 3200, mechanism: 'M03' }),
+    Object.freeze({ maxWidthMm: 3200, maxHeightMm: 3100, mechanism: 'M05' })
+  ]),
   GROUP_5: Object.freeze([
     Object.freeze({ maxWidthMm: 1300, maxHeightMm: 2200, mechanism: 'M01' }),
     Object.freeze({ maxWidthMm: 1300, maxHeightMm: 3500, mechanism: 'M05' }),
@@ -54,6 +59,10 @@ const PORTAL_MECHANISM_BANDS = Object.freeze({
     Object.freeze({ maxWidthMm: 1900, maxHeightMm: 3200, mechanism: 'M03' }),
     Object.freeze({ maxWidthMm: 2600, maxHeightMm: 3200, mechanism: 'M03' }),
     Object.freeze({ maxWidthMm: 3000, maxHeightMm: 2800, mechanism: 'M05' })
+  ]),
+  LONA_CRISTAL: Object.freeze([
+    Object.freeze({ maxWidthMm: 1370, maxHeightMm: 3500, mechanism: 'M05' }),
+    Object.freeze({ maxWidthMm: 3000, maxHeightMm: 3500, mechanism: 'M08' })
   ])
 });
 
@@ -65,14 +74,19 @@ function portalFabricationProfile(definition) {
     id: definition.id,
     source: structuralProfiles.source,
     verifiedAt: structuralProfiles.verifiedAt,
-    casesPassed: 5,
+    casesPassed: Number(definition.casesPassed || 4),
     maxDifference: 0,
     sizeGroup: definition.sizeGroup,
     rollWidthMm: Number(definition.rollWidthMm),
     canRotate: true,
+    rotateAtRollWidth: Boolean(definition.rotateAtRollWidth),
+    orientationAcrossCode: String(definition.orientationAcrossCode || 'TAT'),
+    orientationAddedCode: String(definition.orientationAddedCode || 'TAN'),
     mechanismBands: [
       ...bands.map(item => ({ ...item })),
-      { maxWidthMm: Number(definition.maxM08WidthMm), maxHeightMm: 3500, mechanism: 'M08' },
+      ...(Number(definition.maxM08WidthMm) > 0
+        ? [{ maxWidthMm: Number(definition.maxM08WidthMm), maxHeightMm: 3500, mechanism: 'M08' }]
+        : []),
       { maxWidthMm: null, maxHeightMm: null, mechanism: 'NA' }
     ]
   };
@@ -108,7 +122,10 @@ function localFabrication(product, sample, sizePolicy) {
   if (profile && Array.isArray(profile.mechanismBands)) {
     const rollWidth = Number(profile.rollWidthMm || 0);
     let orientationCode = 'DIN';
-    if (rollWidth && widthMm > rollWidth) orientationCode = heightMm <= rollWidth ? 'TAT' : 'TAN';
+    const crossesRoll = rollWidth && (profile.rotateAtRollWidth ? widthMm >= rollWidth : widthMm > rollWidth);
+    if (crossesRoll) orientationCode = heightMm <= rollWidth
+      ? String(profile.orientationAcrossCode || 'TAT')
+      : String(profile.orientationAddedCode || 'TAN');
     const mechanismBand = profile.mechanismBands.find(item =>
       (!Number(item.maxWidthMm) || widthMm <= Number(item.maxWidthMm)) &&
       (!Number(item.maxHeightMm) || heightMm <= Number(item.maxHeightMm))

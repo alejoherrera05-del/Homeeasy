@@ -92,3 +92,20 @@ test('reproduces certified Pentagrama orientation and mechanism profiles', () =>
     }
   }
 });
+
+test('reproduces the complete Pentagrama structural matrix', () => {
+  assert.equal(structuralProfiles.structureKeys, 85);
+  assert.equal(structuralProfiles.behaviorProfiles, 9);
+  assert.equal(Object.keys(structuralProfiles.profiles).length, 85);
+  for (const [homeeasyId, definition] of Object.entries(structuralProfiles.profiles)) {
+    const profile = portalFabricationProfile(definition);
+    const product = { rules: { fabricationProfile: profile } };
+    assert.equal(definition.evidence.length, 4, `${homeeasyId} evidence count`);
+    for (const sample of definition.evidence) {
+      const result = localFabrication(product, sample, {});
+      assert.equal(result.outcome, sample.outcome, `${homeeasyId}/${sample.id} outcome`);
+      assert.equal(result.orientationCode, sample.orientationCode, `${homeeasyId}/${sample.id} orientation`);
+      assert.equal(result.mechanism, sample.mechanism, `${homeeasyId}/${sample.id} mechanism`);
+    }
+  }
+});
