@@ -49,6 +49,10 @@ class PentagramaAgentGateway {
     this.baseUrl = String(options.baseUrl || process.env.PENTAGRAMA_BASE_URL || 'https://pedidos.persianaspentagrama.com');
     this.onlineMs = Math.max(15000, Number(options.onlineMs || 45000));
     this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || 45000));
+    this.localModelJobTimeoutMs = Math.max(
+      30 * 60 * 1000,
+      Number(options.localModelJobTimeoutMs || process.env.PENTAGRAMA_LOCAL_MODEL_JOB_TIMEOUT_MS || 4 * 60 * 60 * 1000)
+    );
     this.pollTimeoutMs = Math.max(5000, Number(options.pollTimeoutMs || 25000));
     this.latestVersion = String(options.latestVersion || process.env.PENTAGRAMA_AGENT_LATEST_VERSION || '1.0.0');
     this.agents = new Map();
@@ -260,7 +264,7 @@ class PentagramaAgentGateway {
       if (!agent) break;
       excluded.add(agent.installationId);
       try {
-        return await this.runOnAgent(agent, type, payload, type === 'buildLocalEnrollablesSnapshot' ? 30 * 60 * 1000 : 0);
+        return await this.runOnAgent(agent, type, payload, type === 'buildLocalEnrollablesSnapshot' ? this.localModelJobTimeoutMs : 0);
       } catch (error) {
         lastError = error;
         const infrastructure = error.infrastructure === true || INFRASTRUCTURE_CODES.has(error.code);

@@ -81,6 +81,20 @@ test('dispatcher sends only allowlisted work and returns price, catalog or live 
   await assert.rejects(() => gateway.dispatch('shell', {}), error => error.code === 'AGENT_JOB_NOT_ALLOWED');
 });
 
+test('local snapshot jobs use the dedicated long-running timeout', async () => {
+  const gateway = fixture({ localModelJobTimeoutMs: 75 * 60 * 1000 });
+  const registration = register(gateway);
+  gateway.authenticate(registration.id, registration.token);
+  let observedTimeout = null;
+  gateway.runOnAgent = async (_agent, type, _payload, timeoutMs) => {
+    assert.equal(type, 'buildLocalEnrollablesSnapshot');
+    observedTimeout = timeoutMs;
+    return { ok: true };
+  };
+  assert.equal((await gateway.dispatch('buildLocalEnrollablesSnapshot', {})).ok, true);
+  assert.equal(observedTimeout, 75 * 60 * 1000);
+});
+
 test('functional errors stop while infrastructure errors fail over once', async () => {
   const gateway = fixture();
   const first = register(gateway);
