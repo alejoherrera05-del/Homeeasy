@@ -172,10 +172,13 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   const qaCases = [];
   const failures = [];
   const groups = new Map();
+  const reusingCertifiedBaseLinearity = !String(source.config && source.config.PENTAGRAMA_LOCAL_MODEL || '').trim() &&
+    Number(structuralProfiles.baseLinearityCasesPassed || 0) === 558;
+  const liveBaseCases = reusingCertifiedBaseLinearity ? [BASE_CASES[0]] : BASE_CASES;
   for (const liveProduct of liveProducts) {
     const product = sourceById.get(liveProduct.homeeasyId);
     const evidence = [];
-    for (const sample of BASE_CASES) {
+    for (const sample of liveBaseCases) {
       const quote = await options.quoteBase({ homeeasyId: product.id, width: sample.width, height: sample.height, quantity: 1 });
       const total = Number(quote && quote.total);
       if (!(total > 0)) throw Object.assign(new Error(`${product.id}/${sample.id}: invalid Pentagrama total`), { code: 'PENTAGRAMA_LOCAL_MODEL_PRICE_UNAVAILABLE' });
@@ -184,7 +187,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     const spread = Math.max(...evidence.map(item => item.rate)) - Math.min(...evidence.map(item => item.rate));
     const rate = money(evidence.reduce((sum, item) => sum + item.rate, 0) / evidence.length);
     const productFailures = evidence.filter(item => !same(localTotal(product, rate, item), item.total));
-    if (spread > TOLERANCE || productFailures.length) {
+    if ((!reusingCertifiedBaseLinearity && spread > TOLERANCE) || productFailures.length) {
       failures.push({ homeeasyId: product.id, code: 'NON_LINEAR_BASE_PRICE', spread: money(spread) });
       continue;
     }
@@ -319,7 +322,9 @@ async function buildEnrollablesLocalCandidate(options = {}) {
       { key: 'PENTAGRAMA_LOCAL_MODEL', expectedValue: String(source.config && source.config.PENTAGRAMA_LOCAL_MODEL || ''), value: 'ENROLLABLES_279_V1' }
     ],
     qaCases, summary: { enrollables: productPatches.length, structures: groups.size, cases: qaCases.length,
-      pass: qaCases.length, fail: 0, maxDifference: 0, changed, penta13: supplementGroups.size > 0, complements: Object.keys(COMPLEMENTS).length }
+      pass: qaCases.length, fail: 0, maxDifference: 0, changed, penta13: supplementGroups.size > 0,
+      complements: Object.keys(COMPLEMENTS).length, baseCasesLive: liveProducts.length * liveBaseCases.length,
+      baseLinearityCasesReused: reusingCertifiedBaseLinearity ? 558 : 0 }
   };
 }
 

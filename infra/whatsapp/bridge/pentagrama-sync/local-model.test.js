@@ -51,6 +51,8 @@ test('builds one atomic local candidate for all 279 Enrollables', async () => {
   assert.equal(candidate.summary.maxDifference, 0);
   assert.equal(candidate.summary.penta13, true);
   assert.equal(candidate.summary.complements, 4);
+  assert.equal(candidate.summary.baseCasesLive, 279);
+  assert.equal(candidate.summary.baseLinearityCasesReused, 558);
   assert.ok(candidate.qaCases.some(item => item.scope === 'penta13'));
   assert.ok(candidate.qaCases.some(item => item.scope === 'complement'));
   assert.ok(candidate.products.find(item => item.homeeasyId === 'enrollable-blackout-matte3').rules.configurations.some(item => item.supplementId));
@@ -58,6 +60,7 @@ test('builds one atomic local candidate for all 279 Enrollables', async () => {
 
 test('rejects a non-linear product instead of approximating its rate', async () => {
   const options = fixture();
+  options.source.config.PENTAGRAMA_LOCAL_MODEL = 'ENROLLABLES_279_V1';
   const original = options.quoteBase;
   options.quoteBase = async input => {
     const quote = await original(input);

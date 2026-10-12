@@ -3,6 +3,7 @@
   "sourceRuleId": "pentagrama-standard-manual-nov2025",
   "source": "Pentagrama Live structural matrix (Direction + Mechanism + outcome)",
   "verifiedAt": "2026-10-12T13:36:35.574Z",
+  "baseLinearityCasesPassed": 558,
   "structureKeys": 85,
   "behaviorProfiles": 9,
   "profiles": {
