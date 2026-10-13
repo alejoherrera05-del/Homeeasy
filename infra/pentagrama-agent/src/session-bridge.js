@@ -100,7 +100,16 @@ class PentagramaSessionBridge {
   }
 
   _allowed(req) {
-    return Boolean(this.allowedOrigin && String(req.headers.origin || '') === this.allowedOrigin);
+    const origin = String(req.headers.origin || '').trim();
+    const marker = String(req.headers['x-homeeasy-session-bridge'] || '').trim();
+
+    // Manifest V3 service workers can issue localhost fetches without an Origin
+    // header. Browser pages normally include Origin and are still restricted to
+    // the known HomeEasy extension origin. The custom marker forces a CORS
+    // preflight for ordinary web pages, so originless extension-worker calls can
+    // be accepted without opening the endpoint to arbitrary sites.
+    const originAllowed = !origin || origin === this.allowedOrigin;
+    return Boolean(this.allowedOrigin && originAllowed && marker === '1');
   }
 
   _wake() {
