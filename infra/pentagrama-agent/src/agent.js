@@ -7,6 +7,7 @@ const path = require('path');
 const { AgentApi } = require('./api');
 const { Logger } = require('./logger');
 const dpapi = require('./dpapi');
+const { browserSessionBootstrap } = require('./browser-session');
 let createPentagramaSync;
 try {
   ({ createPentagramaSync } = require('../core'));
@@ -135,7 +136,8 @@ async function main() {
   const sync = createPentagramaSync({
     login: secrets.pentagrama.login,
     password: secrets.pentagrama.password,
-    baseUrl: secrets.pentagrama.baseUrl
+    baseUrl: secrets.pentagrama.baseUrl,
+    sessionBootstrap: browserSessionBootstrap
   });
   const headers = authHeaders(agentIdentity, secrets);
   let pentagrama = { status: 'unknown', checkedAt: null };
