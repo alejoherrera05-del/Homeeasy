@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "HomeEasy Pentagrama Session Bridge",
+  "version": "1.0.0",
+  "description": "Puente local seguro entre la sesión real de Pentagrama en Brave y HomeEasy.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApy+Dc9PeXRN8Rr8trbx0Ib68qaf4BTVofoQOaETt554QfhOQaC/HO3dRnXt5KdwPF7e144g0qLqI6HBYs6Z8XouoLuaaH0pAdZp/tgxJbPSVFl3yItKSG1JbBM3HPaRr+CnqTX8tus9YtWW4bvsEkma4jTw/9YXi7OYT9zAde49nDEDnDX3g+S/CaWd51xt8pPpYK5QJVDE4aY/nMctk6OazvAfIshZ2hhzKP0wmTrmVY2DDGfoIZHimvRWC6WA8xB3HMoUvVj0LLGeRLRJkP1WR1LrgN5Dsppg7TaAIztOLcBjxF3YYuhWfBNsVVsKsTeqHGjtLYsJToEm25eBVNwIDAQAB",
+  "permissions": ["cookies", "alarms", "tabs"],
+  "host_permissions": [
+    "https://pedidos.persianaspentagrama.com/*",
+    "http://127.0.0.1:38461/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://pedidos.persianaspentagrama.com/Login*",
+        "https://pedidos.persianaspentagrama.com/User/Login*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "HomeEasy Pentagrama Session Bridge"
+  }
+}
