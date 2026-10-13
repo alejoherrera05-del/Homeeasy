@@ -48,3 +48,28 @@ test('credentials are only available when bridge is configured', () => {
   assert.equal(credentials.password, 'pass');
   assert.match(credentials.loginUrl, /homeeasy=1/);
 });
+
+
+test('session bridge accepts originless MV3 worker call only with marker', () => {
+  const bridge = new PentagramaSessionBridge({
+    extensionId: 'cmijhfckibhbdhneapoknlbmfadfmogn',
+    login: 'user',
+    password: 'pass'
+  });
+  assert.equal(bridge._allowed({ headers: { 'x-homeeasy-session-bridge': '1' } }), true);
+  assert.equal(bridge._allowed({ headers: {} }), false);
+});
+
+test('session bridge rejects foreign browser origins', () => {
+  const bridge = new PentagramaSessionBridge({
+    extensionId: 'cmijhfckibhbdhneapoknlbmfadfmogn',
+    login: 'user',
+    password: 'pass'
+  });
+  assert.equal(bridge._allowed({
+    headers: {
+      origin: 'https://example.com',
+      'x-homeeasy-session-bridge': '1'
+    }
+  }), false);
+});
