@@ -5,6 +5,7 @@ const LOGIN_URL = 'https://pedidos.persianaspentagrama.com/Login?ReturnUrl=%2f&h
 const AGENT = 'http://127.0.0.1:38461';
 const COOKIE_NAMES = new Set(['.ASPXAUTH', 'ASP.NET_SessionId', 'cf_clearance']);
 let loginInFlight = null;
+let loginTabId = null;
 
 async function agent(path, options = {}) {
   const response = await fetch(AGENT + path, {
@@ -56,9 +57,10 @@ async function publishSession(cookies = null) {
 async function closeTab(tabId) {
   if (!tabId) return;
   try { await chrome.tabs.remove(tabId); } catch (_) {}
+  if (loginTabId === tabId) loginTabId = null;
 }
 
-async function waitForAuth(tabId, timeoutMs = 30000) {
+async function waitForAuth(tabId, timeoutMs = 45000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const cookies = await portalCookies();
@@ -70,6 +72,7 @@ async function waitForAuth(tabId, timeoutMs = 30000) {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
   await chrome.action.setBadgeText({ text: '!' });
+  await closeTab(tabId);
   return false;
 }
 
@@ -83,7 +86,30 @@ async function ensureAuthenticated() {
     }
 
     await agent('/v1/credentials');
+
+    if (loginTabId) {
+      try {
+        const existing = await chrome.tabs.get(loginTabId);
+        if (existing) return waitForAuth(existing.id);
+      } catch (_) {
+        loginTabId = null;
+      }
+    }
+
+    const existingTabs = await chrome.tabs.query({
+      url: [
+        'https://pedidos.persianaspentagrama.com/Login*',
+        'https://pedidos.persianaspentagrama.com/User/Login*'
+      ]
+    });
+    const existingHomeEasy = existingTabs.find(tab => String(tab.url || '').includes('homeeasy=1'));
+    if (existingHomeEasy) {
+      loginTabId = existingHomeEasy.id;
+      return waitForAuth(existingHomeEasy.id);
+    }
+
     const tab = await chrome.tabs.create({ url: LOGIN_URL, active: false });
+    loginTabId = tab.id;
     return waitForAuth(tab.id);
   })().finally(() => { loginInFlight = null; });
   return loginInFlight;
@@ -97,7 +123,8 @@ async function reconcile() {
       await publishSession(cookies);
       return;
     }
-    if (status.needsSession) await ensureAuthenticated();
+    if (status.loginRequested) await ensureAuthenticated();
+    else await chrome.action.setBadgeText({ text: '' });
   } catch (_) {
     await chrome.action.setBadgeText({ text: '?' });
   }
