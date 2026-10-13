@@ -39,6 +39,10 @@ class CookieJar {
   delete(name) {
     this.cookies.delete(name);
   }
+
+  clear() {
+    this.cookies.clear();
+  }
 }
 
 class PentagramaAuth {
@@ -50,6 +54,7 @@ class PentagramaAuth {
     this.timeoutMs = Math.max(3000, Number(options.timeoutMs || process.env.PENTAGRAMA_TIMEOUT_MS || 20000));
     this.jar = options.jar || new CookieJar();
     this.pendingLogin = null;
+    this.authenticated = false;
   }
 
   configured() {
@@ -57,11 +62,12 @@ class PentagramaAuth {
   }
 
   clearSession() {
-    this.jar.delete('.ASPXAUTH');
+    this.jar.clear();
+    this.authenticated = false;
   }
 
   async ensureSession() {
-    if (this.jar.has('.ASPXAUTH')) return;
+    if (this.authenticated) return;
     await this.authenticate();
   }
 
@@ -116,9 +122,10 @@ class PentagramaAuth {
     if (!response.ok && ![301, 302, 303, 307, 308].includes(response.status)) {
       throw new UpstreamResponseError(`Pentagrama login failed with HTTP ${response.status}`, { status: response.status });
     }
-    if (!this.jar.has('.ASPXAUTH') || /\/(?:User\/)?Login/i.test(location)) {
+    if (/\/(?:User\/)?Login/i.test(location) || (!this.jar.header() && !location)) {
       throw new SessionExpiredError('Pentagrama rejected the configured credentials');
     }
+    this.authenticated = true;
   }
 }
 
