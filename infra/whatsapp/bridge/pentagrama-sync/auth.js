@@ -82,7 +82,7 @@ class PentagramaAuth {
     });
     let response;
     try {
-      response = await this.fetch(`${this.baseUrl}/User/Login`, {
+      response = await this.fetch(`${this.baseUrl}/Login?ReturnUrl=%2f`, {
         method: 'POST',
         headers: {
           'Accept': 'text/html,application/xhtml+xml',
@@ -103,7 +103,7 @@ class PentagramaAuth {
     if (!response.ok && ![301, 302, 303, 307, 308].includes(response.status)) {
       throw new UpstreamResponseError(`Pentagrama login failed with HTTP ${response.status}`, { status: response.status });
     }
-    if (!this.jar.has('.ASPXAUTH') || /\/User\/Login/i.test(location)) {
+    if (!this.jar.has('.ASPXAUTH') || /\/(?:User\/)?Login/i.test(location)) {
       throw new SessionExpiredError('Pentagrama rejected the configured credentials');
     }
   }

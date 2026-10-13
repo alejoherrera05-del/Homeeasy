@@ -40,7 +40,7 @@ test('JSON request renews an expired session once', async () => {
   let prices = 0;
   const fetch = async (url) => {
     const path = new URL(url).pathname;
-    if (path === '/User/Login') {
+    if (path === '/Login') {
       logins += 1;
       return response('', { status: 302, headers: { Location: '/', 'Set-Cookie': `.ASPXAUTH=session-${logins}; path=/; HttpOnly` } });
     }
