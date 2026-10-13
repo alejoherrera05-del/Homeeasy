@@ -78,6 +78,7 @@ class PentagramaSessionBridge {
     this.updatedAt = null;
     this.browser = null;
     this.needsSession = true;
+    this.loginRequested = false;
     this.reason = 'STARTUP';
     this.server = null;
     this.waiters = new Set();
@@ -92,6 +93,7 @@ class PentagramaSessionBridge {
       ok: true,
       configured: this.configured(),
       needsSession: this.needsSession || !hasAuth(this.cookies),
+      loginRequested: this.loginRequested,
       hasAuth: hasAuth(this.cookies),
       updatedAt: this.updatedAt,
       browser: this.browser,
@@ -126,6 +128,7 @@ class PentagramaSessionBridge {
     this.updatedAt = new Date().toISOString();
     this.browser = payload.browser ? String(payload.browser).slice(0, 120) : null;
     this.needsSession = false;
+    this.loginRequested = false;
     this.reason = null;
     this._wake();
     return this.status();
@@ -135,6 +138,7 @@ class PentagramaSessionBridge {
     this.cookies = [];
     this.updatedAt = null;
     this.needsSession = true;
+    this.loginRequested = false;
     this.reason = String(reason || 'SESSION_EXPIRED').slice(0, 120);
   }
 
@@ -143,6 +147,8 @@ class PentagramaSessionBridge {
     if (hasAuth(this.cookies) && !this.needsSession) return { cookies: this.cookies.slice(), source: 'browser-session-bridge' };
 
     this.needsSession = true;
+    this.loginRequested = true;
+    this.reason = 'SESSION_REQUESTED';
     if (timeoutMs > 0) {
       await new Promise(resolve => {
         let finished = false;
@@ -159,6 +165,8 @@ class PentagramaSessionBridge {
     }
 
     if (hasAuth(this.cookies) && !this.needsSession) return { cookies: this.cookies.slice(), source: 'browser-session-bridge' };
+    this.loginRequested = false;
+    this.reason = 'SESSION_TIMEOUT';
     throw Object.assign(new Error('Pentagrama browser session is required on an Agent computer'), {
       code: 'PENTAGRAMA_BROWSER_SESSION_REQUIRED',
       infrastructure: true
