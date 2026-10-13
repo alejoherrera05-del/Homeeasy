@@ -1,0 +1,50 @@
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { PentagramaSessionBridge, normalizeCookies } = require('../src/session-bridge');
+
+test('normalizeCookies only keeps Pentagrama session cookies', () => {
+  const cookies = normalizeCookies([
+    { name: '.ASPXAUTH', value: 'auth', httpOnly: true },
+    { name: 'ASP.NET_SessionId', value: 'session' },
+    { name: 'cf_clearance', value: 'clearance' },
+    { name: 'other', value: 'ignore' }
+  ]);
+  assert.deepEqual(cookies.map(cookie => cookie.name).sort(), ['.ASPXAUTH', 'ASP.NET_SessionId', 'cf_clearance'].sort());
+});
+
+test('session bridge accepts a real auth session and invalidates it', async () => {
+  const bridge = new PentagramaSessionBridge({
+    port: 0,
+    extensionId: 'cmijhfckibhbdhneapoknlbmfadfmogn',
+    login: 'user',
+    password: 'pass'
+  });
+  bridge.updateSession({
+    browser: 'Brave',
+    cookies: [
+      { name: '.ASPXAUTH', value: 'auth' },
+      { name: 'ASP.NET_SessionId', value: 'session' },
+      { name: 'cf_clearance', value: 'clearance' }
+    ]
+  });
+  const session = await bridge.session({ timeoutMs: 1 });
+  assert.equal(session.source, 'browser-session-bridge');
+  assert.equal(session.cookies.some(cookie => cookie.name === '.ASPXAUTH'), true);
+  bridge.invalidate('TEST');
+  assert.equal(bridge.status().needsSession, true);
+  await assert.rejects(() => bridge.session({ timeoutMs: 1 }), error => error.code === 'PENTAGRAMA_BROWSER_SESSION_REQUIRED');
+});
+
+test('credentials are only available when bridge is configured', () => {
+  const bridge = new PentagramaSessionBridge({
+    extensionId: 'cmijhfckibhbdhneapoknlbmfadfmogn',
+    login: 'user',
+    password: 'pass'
+  });
+  const credentials = bridge.credentials();
+  assert.equal(credentials.login, 'user');
+  assert.equal(credentials.password, 'pass');
+  assert.match(credentials.loginUrl, /homeeasy=1/);
+});
