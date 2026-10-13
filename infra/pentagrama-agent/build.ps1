@@ -43,6 +43,7 @@ Copy-Item -LiteralPath (Join-Path $agentRoot 'service\HomeEasyPentagramaAgent.xm
 
 Copy-Item -LiteralPath (Join-Path $agentRoot 'package.json') -Destination $appStage
 Copy-Item -LiteralPath (Join-Path $agentRoot 'src') -Destination $appStage -Recurse
+Copy-Item -LiteralPath (Join-Path $agentRoot 'session-bridge-extension') -Destination (Join-Path $appStage 'session-bridge-extension') -Recurse
 Copy-Item -LiteralPath (Join-Path $repoRoot 'infra\whatsapp\bridge\pentagrama-sync') -Destination (Join-Path $appStage 'core') -Recurse
 Copy-Item -LiteralPath $CertificatePath -Destination (Join-Path $appStage 'server.crt')
 @{ serverUrl = $ServerUrl; caFile = 'server.crt' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $appStage 'config.json') -Encoding utf8NoBOM
