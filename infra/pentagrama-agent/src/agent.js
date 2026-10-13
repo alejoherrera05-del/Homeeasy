@@ -35,7 +35,7 @@ function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 async function authenticateFreshForSnapshot(sync, options = {}) {
   const auth = sync && sync.client && sync.client.auth;
   if (!auth || typeof auth.clearSession !== 'function' || typeof auth.authenticate !== 'function') return;
-  const attempts = Math.max(1, Number(options.attempts || 3));
+  const attempts = Math.max(1, Number(options.attempts || 5));
   const retryDelayMs = Math.max(0, Number(options.retryDelayMs ?? 750));
   let lastError;
   auth.clearSession();

@@ -68,12 +68,12 @@ test('snapshot authentication retries a transient Pentagrama session rejection o
     clearSession() { clears += 1; },
     async authenticate() {
       attempts += 1;
-      if (attempts < 3) throw Object.assign(new Error('transient rejection'), { code: 'PENTAGRAMA_SESSION_EXPIRED' });
+      if (attempts < 5) throw Object.assign(new Error('transient rejection'), { code: 'PENTAGRAMA_SESSION_EXPIRED' });
     }
   } } };
-  await authenticateFreshForSnapshot(sync, { attempts: 3, retryDelayMs: 0 });
-  assert.equal(attempts, 3);
-  assert.equal(clears, 3);
+  await authenticateFreshForSnapshot(sync, { attempts: 5, retryDelayMs: 0 });
+  assert.equal(attempts, 5);
+  assert.equal(clears, 5);
 
   const blocked = { client: { auth: {
     clearSession() {},
