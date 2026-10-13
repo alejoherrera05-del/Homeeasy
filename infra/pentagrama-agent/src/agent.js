@@ -92,7 +92,7 @@ function publicError(error) {
   const result = {
     code,
     message: String(error && error.message || 'Agent job failed').slice(0, 300),
-    infrastructure: ['PENTAGRAMA_ACCESS_BLOCKED', 'PENTAGRAMA_UNEXPECTED_RESPONSE', 'AGENT_TRANSPORT_ERROR', 'UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND'].includes(code)
+    infrastructure: ['PENTAGRAMA_ACCESS_BLOCKED', 'PENTAGRAMA_UNEXPECTED_RESPONSE', 'PENTAGRAMA_BROWSER_SESSION_REQUIRED', 'AGENT_TRANSPORT_ERROR', 'UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND'].includes(code)
   };
   if (code.startsWith('PENTAGRAMA_LOCAL_MODEL_')) {
     if (Array.isArray(error && error.failures)) result.failures = error.failures.slice(0, 50);
