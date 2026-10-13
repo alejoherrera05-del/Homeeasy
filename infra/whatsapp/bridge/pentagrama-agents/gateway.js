@@ -10,7 +10,8 @@ const INFRASTRUCTURE_CODES = new Set([
   'AGENT_TIMEOUT',
   'AGENT_TRANSPORT_ERROR',
   'PENTAGRAMA_ACCESS_BLOCKED',
-  'PENTAGRAMA_UNEXPECTED_RESPONSE'
+  'PENTAGRAMA_UNEXPECTED_RESPONSE',
+  'PENTAGRAMA_BROWSER_SESSION_REQUIRED'
 ]);
 
 function safeEqual(left, right) {
@@ -269,7 +270,7 @@ class PentagramaAgentGateway {
 
   async _dispatch(type, payload) {
     const excluded = new Set();
-    const minimumVersion = type === 'buildLocalEnrollablesSnapshot' ? '1.4.7' : '';
+    const minimumVersion = '1.5.0';
     let lastError;
     while (excluded.size < 2) {
       const agent = this.onlineAgents(excluded, minimumVersion)[0];
