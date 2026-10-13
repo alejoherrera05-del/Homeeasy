@@ -82,6 +82,10 @@ class PentagramaAuth {
 
   async _authenticate() {
     const loginUrl = `${this.baseUrl}/Login?ReturnUrl=%2f`;
+    const browserHeaders = {
+      'Accept-Language': 'es-CO,es;q=0.9,en;q=0.8',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
+    };
     const form = new URLSearchParams({
       Login: this.login,
       Password: this.password,
@@ -91,7 +95,7 @@ class PentagramaAuth {
     try {
       const preflight = await this.fetch(loginUrl, {
         method: 'GET',
-        headers: { 'Accept': 'text/html,application/xhtml+xml' },
+        headers: { ...browserHeaders, 'Accept': 'text/html,application/xhtml+xml' },
         redirect: 'manual',
         signal: AbortSignal.timeout(this.timeoutMs)
       });
@@ -103,6 +107,9 @@ class PentagramaAuth {
         method: 'POST',
         headers: {
           'Accept': 'text/html,application/xhtml+xml',
+          ...browserHeaders,
+          'Origin': this.baseUrl,
+          'Referer': loginUrl,
           'Content-Type': 'application/x-www-form-urlencoded',
           ...(this.jar.header() ? { Cookie: this.jar.header() } : {})
         },
