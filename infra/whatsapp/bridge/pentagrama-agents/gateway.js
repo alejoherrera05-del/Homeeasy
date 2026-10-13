@@ -270,7 +270,7 @@ class PentagramaAgentGateway {
 
   async _dispatch(type, payload) {
     const excluded = new Set();
-    const minimumVersion = '1.5.0';
+    const minimumVersion = '1.5.1';
     let lastError;
     while (excluded.size < 2) {
       const agent = this.onlineAgents(excluded, minimumVersion)[0];
