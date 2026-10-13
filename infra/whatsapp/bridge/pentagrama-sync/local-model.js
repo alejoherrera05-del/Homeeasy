@@ -174,6 +174,10 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   const groups = new Map();
   const reusingCertifiedBaseLinearity = !String(source.config && source.config.PENTAGRAMA_LOCAL_MODEL || '').trim() &&
     Number(structuralProfiles.baseLinearityCasesPassed || 0) === 558;
+  const reusingCertifiedStructureMatrix = reusingCertifiedBaseLinearity &&
+    Number(structuralProfiles.schemaVersion || 0) >= 2 &&
+    Number(structuralProfiles.structureKeys || 0) === Object.keys(structuralProfiles.profiles || {}).length &&
+    String(source.enrollableSizeRules && source.enrollableSizeRules.id || '') === String(structuralProfiles.sourceRuleId || '');
   const liveBaseCases = reusingCertifiedBaseLinearity ? [BASE_CASES[0]] : BASE_CASES;
   for (const liveProduct of liveProducts) {
     const product = sourceById.get(liveProduct.homeeasyId);
@@ -205,6 +209,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   if (failures.length) throw Object.assign(new Error(`${failures.length} Enrollables are not reproducible with an exact local area rate`), { code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED', failures });
 
   for (const group of groups.values()) {
+    const certifiedDefinition = structuralProfiles.profiles[group.liveProduct.homeeasyId];
     const profile = profileForGroup(group, source.enrollableSizeRules || {});
     if (profile) {
       group.members.forEach(homeeasyId => {
@@ -218,6 +223,24 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     }
     const patch = productPatches.find(item => item.homeeasyId === group.product.id);
     const localProduct = { ...group.product, rules: patch.rules };
+    if (reusingCertifiedStructureMatrix && certifiedDefinition &&
+        Number(certifiedDefinition.casesPassed || 0) === STRUCTURE_CASES.length &&
+        Array.isArray(certifiedDefinition.evidence) && certifiedDefinition.evidence.length === STRUCTURE_CASES.length) {
+      for (const sample of certifiedDefinition.evidence) {
+        const localFab = localFabrication(localProduct, sample, source.enrollableSizeRules || {});
+        if (localFab.outcome !== sample.outcome || localFab.orientationCode !== sample.orientationCode || localFab.mechanism !== sample.mechanism) {
+          failures.push({ homeeasyId: group.product.id, caseId: sample.id, code: 'CERTIFIED_STRUCTURE_MISMATCH',
+            expectedOutcome: sample.outcome, actualOutcome: localFab.outcome,
+            liveOrientation: sample.orientationCode, localOrientation: localFab.orientationCode,
+            liveMechanism: sample.mechanism, localMechanism: localFab.mechanism });
+        }
+        qaCases.push({ id: `${group.product.id}:${sample.id}`, homeeasyId: group.product.id, width: sample.width, height: sample.height,
+          configuration: 'standard', expected: localTotal(group.product, patch.proposedRate, sample), expectedOutcome: sample.outcome,
+          expectedOrientation: sample.orientationCode, expectedMechanism: sample.mechanism, scope: 'structure',
+          evidenceSource: structuralProfiles.source, evidenceVerifiedAt: structuralProfiles.verifiedAt });
+      }
+      continue;
+    }
     for (const sample of STRUCTURE_CASES) {
       const live = await options.resolveLive({ homeeasyId: group.product.id, width: sample.width, height: sample.height, quantity: 1, configuration: 'standard' });
       const localFab = localFabrication(localProduct, sample, source.enrollableSizeRules || {});
@@ -324,7 +347,8 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     qaCases, summary: { enrollables: productPatches.length, structures: groups.size, cases: qaCases.length,
       pass: qaCases.length, fail: 0, maxDifference: 0, changed, penta13: supplementGroups.size > 0,
       complements: Object.keys(COMPLEMENTS).length, baseCasesLive: liveProducts.length * liveBaseCases.length,
-      baseLinearityCasesReused: reusingCertifiedBaseLinearity ? 558 : 0 }
+      baseLinearityCasesReused: reusingCertifiedBaseLinearity ? 558 : 0,
+      structureCasesReused: reusingCertifiedStructureMatrix ? groups.size * STRUCTURE_CASES.length : 0 }
   };
 }
 

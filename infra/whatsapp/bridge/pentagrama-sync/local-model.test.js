@@ -53,6 +53,7 @@ test('builds one atomic local candidate for all 279 Enrollables', async () => {
   assert.equal(candidate.summary.complements, 4);
   assert.equal(candidate.summary.baseCasesLive, 279);
   assert.equal(candidate.summary.baseLinearityCasesReused, 558);
+  assert.equal(candidate.summary.structureCasesReused, 0);
   assert.ok(candidate.qaCases.some(item => item.scope === 'penta13'));
   assert.ok(candidate.qaCases.some(item => item.scope === 'complement'));
   assert.ok(candidate.products.find(item => item.homeeasyId === 'enrollable-blackout-matte3').rules.configurations.some(item => item.supplementId));
