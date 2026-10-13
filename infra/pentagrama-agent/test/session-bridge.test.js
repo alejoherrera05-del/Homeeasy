@@ -73,3 +73,31 @@ test('session bridge rejects foreign browser origins', () => {
     }
   }), false);
 });
+
+
+test('session bridge relays a browser request and response', async () => {
+  const bridge = new PentagramaSessionBridge({
+    extensionId: 'cmijhfckibhbdhneapoknlbmfadfmogn',
+    login: 'user',
+    password: 'pass'
+  });
+
+  const pending = bridge.browserRequest({ url: 'https://pedidos.persianaspentagrama.com/Order/GetJsonCategoryList', method: 'GET' }, 1000);
+  const request = await bridge.nextBrowserRequest(10);
+  assert.ok(request && request.id);
+  assert.equal(request.payload.method, 'GET');
+
+  bridge.resolveBrowserRequest(request.id, {
+    ok: true,
+    result: {
+      status: 200,
+      url: request.payload.url,
+      headers: { 'content-type': 'application/json' },
+      text: '[]'
+    }
+  });
+
+  const result = await pending;
+  assert.equal(result.status, 200);
+  assert.equal(result.text, '[]');
+});
