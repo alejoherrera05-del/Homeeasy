@@ -59,6 +59,22 @@ test('builds one atomic local candidate for all 279 Enrollables', async () => {
   assert.ok(candidate.products.find(item => item.homeeasyId === 'enrollable-blackout-matte3').rules.configurations.some(item => item.supplementId));
 });
 
+test('recovers only missing persisted rates without repeating certified base QA', async () => {
+  const options = fixture();
+  const missing = options.source.products.find(item => item.id === 'enrollable-blackout-felice');
+  missing.rate = 0;
+  missing.method = 'manual';
+  let baseCalls = 0;
+  const quoteBase = options.quoteBase;
+  options.quoteBase = async input => { baseCalls++; return quoteBase(input); };
+  const candidate = await buildEnrollablesLocalCandidate({ ...options, now: '2026-10-11T05:00:00.000Z' });
+  const patch = candidate.products.find(item => item.homeeasyId === missing.id);
+  assert.equal(baseCalls, 1);
+  assert.ok(patch.proposedRate > 0);
+  assert.equal(candidate.summary.baseCasesLive, 1);
+  assert.equal(candidate.summary.baseLinearityCasesReused, 558);
+});
+
 test('rejects a non-linear product instead of approximating its rate', async () => {
   const options = fixture();
   options.source.config.PENTAGRAMA_LOCAL_MODEL = 'ENROLLABLES_279_V1';
