@@ -152,7 +152,7 @@ function borrarCacheCostos10B_() {
 
 function autorizarRutaCostos10B_(ss, data, permission) {
   const tipo = String(data && data.tipo || "").trim();
-  if ((tipo === "COSTOS_SYNC_READ" || tipo === "COSTOS_SYNC_COST") && autorizarServicioPentagramaSync10D_(data)) {
+  if (/^COSTOS_SYNC_(READ|COST|APPLY|ROLLBACK|HISTORY)$/.test(tipo) && autorizarServicioPentagramaSync10D_(data)) {
     return { ok: true, validation: { usuario: "Pentagrama Scheduler", email: "scheduler@homeeasy", userId: "PENTAGRAMA_SCHEDULER" } };
   }
   if (typeof validarPermisoSesionAuth9B_ !== "function") {
