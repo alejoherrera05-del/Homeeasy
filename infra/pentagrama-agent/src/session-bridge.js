@@ -82,6 +82,10 @@ class PentagramaSessionBridge {
     this.reason = 'STARTUP';
     this.server = null;
     this.waiters = new Set();
+    this.browserQueue = [];
+    this.browserPending = new Map();
+    this.browserPollWaiters = new Set();
+    this.browserOnlineAt = null;
   }
 
   configured() {
@@ -97,7 +101,9 @@ class PentagramaSessionBridge {
       hasAuth: hasAuth(this.cookies),
       updatedAt: this.updatedAt,
       browser: this.browser,
-      reason: this.reason
+      reason: this.reason,
+      browserTransportOnline: Boolean(this.browserOnlineAt && (Date.now() - Date.parse(this.browserOnlineAt)) < 45000),
+      browserTransportSeenAt: this.browserOnlineAt
     };
   }
 
@@ -117,6 +123,66 @@ class PentagramaSessionBridge {
   _wake() {
     for (const finish of Array.from(this.waiters)) finish();
     this.waiters.clear();
+  }
+
+  _wakeBrowserPoll() {
+    for (const finish of Array.from(this.browserPollWaiters)) finish();
+    this.browserPollWaiters.clear();
+  }
+
+  async browserRequest(payload = {}, timeoutMs = 60000) {
+    const id = require('crypto').randomUUID();
+    const deadlineMs = Math.max(5000, Math.min(120000, Number(timeoutMs || 60000)));
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.browserPending.delete(id);
+        reject(Object.assign(new Error('Pentagrama browser transport timed out'), {
+          code: 'PENTAGRAMA_BROWSER_SESSION_REQUIRED',
+          infrastructure: true
+        }));
+      }, deadlineMs);
+      this.browserPending.set(id, {
+        resolve: value => { clearTimeout(timer); this.browserPending.delete(id); resolve(value); },
+        reject: error => { clearTimeout(timer); this.browserPending.delete(id); reject(error); }
+      });
+      this.browserQueue.push({ id, payload, createdAt: new Date().toISOString() });
+      this._wakeBrowserPoll();
+    });
+  }
+
+  async nextBrowserRequest(waitMs = 25000) {
+    this.browserOnlineAt = new Date().toISOString();
+    if (this.browserQueue.length) return this.browserQueue.shift();
+    const timeout = Math.max(1000, Math.min(30000, Number(waitMs || 25000)));
+    await new Promise(resolve => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        this.browserPollWaiters.delete(finish);
+        resolve();
+      };
+      const timer = setTimeout(finish, timeout);
+      this.browserPollWaiters.add(finish);
+    });
+    this.browserOnlineAt = new Date().toISOString();
+    return this.browserQueue.length ? this.browserQueue.shift() : null;
+  }
+
+  resolveBrowserRequest(id, payload = {}) {
+    this.browserOnlineAt = new Date().toISOString();
+    const pending = this.browserPending.get(String(id || ''));
+    if (!pending) return false;
+    if (payload && payload.ok === false) {
+      pending.reject(Object.assign(new Error(String(payload.error || 'Pentagrama browser request failed')), {
+        code: String(payload.code || 'PENTAGRAMA_BROWSER_REQUEST_FAILED'),
+        infrastructure: Boolean(payload.infrastructure)
+      }));
+      return true;
+    }
+    pending.resolve(payload && payload.result ? payload.result : payload);
+    return true;
   }
 
   updateSession(payload = {}) {
@@ -204,6 +270,24 @@ class PentagramaSessionBridge {
     }
 
     if (req.method === 'GET' && req.url === '/v1/status') return json(res, 200, this.status(), origin);
+
+    if (req.method === 'GET' && req.url.startsWith('/v1/browser/request')) {
+      const wait = Number(new URL(req.url, 'http://127.0.0.1').searchParams.get('wait') || 25000);
+      const request = await this.nextBrowserRequest(wait);
+      return json(res, 200, { ok: true, request }, origin);
+    }
+
+    if (req.method === 'POST' && /^\/v1\/browser\/request\/[^/]+\/result$/.test(req.url)) {
+      try {
+        const id = decodeURIComponent(req.url.split('/')[4] || '');
+        const body = await readBody(req, 2 * 1024 * 1024);
+        const accepted = this.resolveBrowserRequest(id, body);
+        return json(res, accepted ? 200 : 404, { ok: accepted }, origin);
+      } catch (error) {
+        return json(res, 400, { ok: false, code: error.code || 'SESSION_BRIDGE_INVALID_BROWSER_RESULT', error: error.message }, origin);
+      }
+    }
+
     if (req.method === 'GET' && req.url === '/v1/credentials') {
       try { return json(res, 200, this.credentials(), origin); }
       catch (error) { return json(res, 503, { ok: false, code: error.code, error: error.message }, origin); }
