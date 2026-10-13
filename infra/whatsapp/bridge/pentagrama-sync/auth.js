@@ -61,6 +61,8 @@ class PentagramaAuth {
     this.fetch = options.fetch || globalThis.fetch;
     this.timeoutMs = Math.max(3000, Number(options.timeoutMs || process.env.PENTAGRAMA_TIMEOUT_MS || 20000));
     this.jar = options.jar || new CookieJar();
+    this.sessionProvider = typeof options.sessionProvider === 'function' ? options.sessionProvider : null;
+    this.sessionInvalidator = typeof options.sessionInvalidator === 'function' ? options.sessionInvalidator : null;
     this.sessionBootstrap = typeof options.sessionBootstrap === 'function' ? options.sessionBootstrap : null;
     this.pendingLogin = null;
     this.authenticated = false;
@@ -73,6 +75,11 @@ class PentagramaAuth {
   clearSession() {
     this.jar.clear();
     this.authenticated = false;
+  }
+
+  async invalidateSession(reason = 'SESSION_EXPIRED') {
+    this.clearSession();
+    if (this.sessionInvalidator) await this.sessionInvalidator(reason);
   }
 
   async ensureSession() {
@@ -90,6 +97,21 @@ class PentagramaAuth {
   }
 
   async _authenticate() {
+    if (this.sessionProvider) {
+      const supplied = await this.sessionProvider({
+        baseUrl: this.baseUrl,
+        timeoutMs: Math.max(this.timeoutMs, 45000)
+      });
+      const cookies = Array.isArray(supplied && supplied.cookies) ? supplied.cookies : [];
+      for (const cookie of cookies) this.jar.set(cookie && cookie.name, cookie && cookie.value);
+      if (this.jar.has('.ASPXAUTH')) {
+        this.authenticated = true;
+        return;
+      }
+      this.clearSession();
+      throw new SessionExpiredError('Pentagrama browser session did not include .ASPXAUTH');
+    }
+
     const loginUrl = `${this.baseUrl}/Login?ReturnUrl=%2f`;
     const browserHeaders = {
       'Accept-Language': 'es-CO,es;q=0.9,en;q=0.8',
