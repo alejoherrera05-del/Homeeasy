@@ -23,6 +23,15 @@ function sha256(value) {
   return crypto.createHash('sha256').update(String(value || '')).digest('hex');
 }
 
+function versionAtLeast(value, minimum) {
+  const current = String(value || '').split('.').map(part => Number(part) || 0);
+  const required = String(minimum || '').split('.').map(part => Number(part) || 0);
+  for (let index = 0; index < Math.max(current.length, required.length); index++) {
+    if ((current[index] || 0) !== (required[index] || 0)) return (current[index] || 0) > (required[index] || 0);
+  }
+  return true;
+}
+
 function publicAgent(agent, now = Date.now(), onlineMs = 45000) {
   const lastSeenMs = Date.parse(agent.lastSeen || '') || 0;
   return {
@@ -218,10 +227,12 @@ class PentagramaAgentGateway {
     return { ok: true };
   }
 
-  onlineAgents(excluded = new Set()) {
+  onlineAgents(excluded = new Set(), minimumVersion = '') {
     const now = Date.now();
     return Array.from(this.agents.values())
-      .filter(agent => !excluded.has(agent.installationId) && now - (Date.parse(agent.lastSeen || '') || 0) <= this.onlineMs)
+      .filter(agent => !excluded.has(agent.installationId) &&
+        now - (Date.parse(agent.lastSeen || '') || 0) <= this.onlineMs &&
+        (!minimumVersion || versionAtLeast(agent.version, minimumVersion)))
       .sort((a, b) => (Date.parse(a.lastJob && a.lastJob.at || '') || 0) - (Date.parse(b.lastJob && b.lastJob.at || '') || 0));
   }
 
@@ -258,9 +269,10 @@ class PentagramaAgentGateway {
 
   async _dispatch(type, payload) {
     const excluded = new Set();
+    const minimumVersion = type === 'buildLocalEnrollablesSnapshot' ? '1.4.7' : '';
     let lastError;
     while (excluded.size < 2) {
-      const agent = this.onlineAgents(excluded)[0];
+      const agent = this.onlineAgents(excluded, minimumVersion)[0];
       if (!agent) break;
       excluded.add(agent.installationId);
       try {

@@ -9,7 +9,7 @@ class HomeEasySyncClient {
     this.timeoutMs = Math.max(5000, Number(options.timeoutMs || 30000));
   }
 
-  async request(tipo, payload, context) {
+  async request(tipo, payload, context, options = {}) {
     const token = String(context && context.sessionToken || '');
     const deviceId = String(context && context.deviceId || '');
     const serviceKey = String(context && context.serviceKey || '');
@@ -22,7 +22,7 @@ class HomeEasySyncClient {
           dispositivoId: deviceId, dispositivoNombre: String(context.deviceName || 'Pentagrama Sync').slice(0, 120),
           plataforma: String(context.platform || 'VPS').slice(0, 80), navegador: String(context.browser || 'HTTP').slice(0, 80),
           pagina: 'pentagrama-sync', versionApp: '2.0.0', origen: 'HomeEasy Pentagrama Sync'
-        }}), redirect: 'follow', signal: AbortSignal.timeout(this.timeoutMs)
+        }}), redirect: 'follow', signal: AbortSignal.timeout(Math.max(this.timeoutMs, Number(options.timeoutMs || 0)))
       });
     } catch (_) { throw new SyncError('HomeEasy sync backend is unavailable', { code: 'HOMEEASY_SYNC_UPSTREAM_UNAVAILABLE', statusCode: 502 }); }
     const text = await response.text().catch(() => '');
@@ -37,7 +37,9 @@ class HomeEasySyncClient {
 
   catalog(context) { return this.request('COSTOS_SYNC_READ', {}, context); }
   apply(scan, changes, context) { return this.request('COSTOS_SYNC_APPLY', { scanId: scan.id, scannedAt: scan.checkedAt, changes }, context); }
-  applyLocalModel(scan, candidate, context) { return this.request('COSTOS_SYNC_APPLY', { scanId: scan.id, scannedAt: scan.checkedAt, modelCandidate: candidate }, context); }
+  applyLocalModel(scan, candidate, context) {
+    return this.request('COSTOS_SYNC_APPLY', { scanId: scan.id, scannedAt: scan.checkedAt, modelCandidate: candidate }, context, { timeoutMs: 180000 });
+  }
   rollback(historyId, context) { return this.request('COSTOS_SYNC_ROLLBACK', { historyId }, context); }
   history(context) { return this.request('COSTOS_SYNC_HISTORY', {}, context); }
 }

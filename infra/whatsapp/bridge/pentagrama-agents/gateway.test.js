@@ -21,10 +21,10 @@ function fixture(options = {}) {
   });
 }
 
-function register(gateway, id = crypto.randomUUID()) {
+function register(gateway, id = crypto.randomUUID(), version = '1.0.0') {
   const keys = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
   const body = gateway.register('bootstrap-test', {
-    identity: { installationId: id, hostname: 'TEST-PC', version: '1.0.0', platform: 'win32-x64', installedAt: new Date().toISOString() },
+    identity: { installationId: id, hostname: 'TEST-PC', version, platform: 'win32-x64', installedAt: new Date().toISOString() },
     publicKey: keys.publicKey.export({ type: 'spki', format: 'pem' })
   });
   const contentKey = crypto.privateDecrypt({ key: keys.privateKey, oaepHash: 'sha256' }, Buffer.from(body.sealed.key, 'base64'));
@@ -56,7 +56,7 @@ test('heartbeat does not enqueue a Pentagrama login job', async () => {
 
 test('dispatcher sends only allowlisted work and returns price, catalog or live resolver results', async () => {
   const gateway = fixture();
-  const registration = register(gateway);
+  const registration = register(gateway, crypto.randomUUID(), '1.4.7');
   const agent = gateway.authenticate(registration.id, registration.token);
   const pending = gateway.dispatch('getPrice', { params: { ProductCode: 'TEST' } });
   const delivery = await gateway.poll(agent);
@@ -83,7 +83,7 @@ test('dispatcher sends only allowlisted work and returns price, catalog or live 
 
 test('local snapshot jobs use the dedicated long-running timeout', async () => {
   const gateway = fixture({ localModelJobTimeoutMs: 75 * 60 * 1000 });
-  const registration = register(gateway);
+  const registration = register(gateway, crypto.randomUUID(), '1.4.7');
   gateway.authenticate(registration.id, registration.token);
   let observedTimeout = null;
   gateway.runOnAgent = async (_agent, type, _payload, timeoutMs) => {
@@ -93,6 +93,18 @@ test('local snapshot jobs use the dedicated long-running timeout', async () => {
   };
   assert.equal((await gateway.dispatch('buildLocalEnrollablesSnapshot', {})).ok, true);
   assert.equal(observedTimeout, 75 * 60 * 1000);
+});
+
+test('local snapshot jobs skip legacy agents that cannot execute the model builder', async () => {
+  const gateway = fixture();
+  register(gateway, crypto.randomUUID(), '1.2.1');
+  const current = register(gateway, crypto.randomUUID(), '1.4.7');
+  const agent = gateway.authenticate(current.id, current.token);
+  const pending = gateway.dispatch('buildLocalEnrollablesSnapshot', {});
+  const delivery = await gateway.poll(agent);
+  assert.equal(delivery.job.type, 'buildLocalEnrollablesSnapshot');
+  gateway.complete(agent, { jobId: delivery.job.id, ok: true, result: { ok: true } });
+  assert.equal((await pending).ok, true);
 });
 
 test('functional errors stop while infrastructure errors fail over once', async () => {
