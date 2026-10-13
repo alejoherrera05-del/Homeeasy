@@ -3,7 +3,6 @@
 const http = require('http');
 
 const DEFAULT_PORT = 38461;
-const BRIDGE_REQUEST_TOKEN = 'HE-SB-v1-rT9mQ4kX2pL7sN5wC8zF3aJ6uV1yB0dE';
 const SESSION_COOKIE_NAMES = new Set(['.ASPXAUTH', 'ASP.NET_SessionId', 'cf_clearance']);
 
 function normalizeCookies(value) {
@@ -101,11 +100,7 @@ class PentagramaSessionBridge {
   }
 
   _allowed(req) {
-    const origin = String(req.headers.origin || '').trim();
-    const token = String(req.headers['x-homeeasy-session-bridge'] || '');
-    const trustedCaller = token === BRIDGE_REQUEST_TOKEN;
-    const trustedOrigin = !origin || origin === this.allowedOrigin;
-    return Boolean(this.allowedOrigin && trustedCaller && trustedOrigin);
+    return Boolean(this.allowedOrigin && String(req.headers.origin || '') === this.allowedOrigin);
   }
 
   _wake() {
@@ -187,8 +182,8 @@ class PentagramaSessionBridge {
       return res.end();
     }
 
-    if (!this._allowed(req)) {
-      return json(res, 403, { ok: false, code: 'SESSION_BRIDGE_CALLER_REJECTED' });
+    if (!this._allowed(req) || String(req.headers['x-homeeasy-session-bridge'] || '') !== '1') {
+      return json(res, 403, { ok: false, code: 'SESSION_BRIDGE_ORIGIN_REJECTED' });
     }
 
     if (req.method === 'GET' && req.url === '/v1/status') return json(res, 200, this.status(), origin);
@@ -234,7 +229,6 @@ class PentagramaSessionBridge {
 
 module.exports = Object.freeze({
   DEFAULT_PORT,
-  BRIDGE_REQUEST_TOKEN,
   SESSION_COOKIE_NAMES,
   PentagramaSessionBridge,
   normalizeCookies,
