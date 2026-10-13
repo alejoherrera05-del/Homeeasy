@@ -50,6 +50,42 @@ class PentagramaPhase2 {
     return operation;
   }
 
+  startResumeLocalModel(actor, payload) {
+    const scan = this.store.scan(String(payload && payload.scanId || ''));
+    const source = payload && payload.source;
+    if (!scan) throw Object.assign(new Error('Scan is missing'), { statusCode: 404, code: 'PENTAGRAMA_SCAN_NOT_FOUND' });
+    if (!source || !Array.isArray(source.products) || String(source.version || '') !== String(scan.sourceVersion || '')) {
+      throw Object.assign(new Error('Persisted HomeEasy evidence does not match the scan'), { statusCode: 409, code: 'PENTAGRAMA_RESUME_EVIDENCE_MISMATCH' });
+    }
+    const operation = this.store.operation('resume-local-model', actor);
+    setImmediate(() => this.runResumeLocalModel(operation.id, scan, source).catch(error => this.fail(operation.id, error)));
+    return operation;
+  }
+
+  async runResumeLocalModel(operationId, scan, source) {
+    this.store.updateOperation(operationId, { state: 'running', stage: 'BUILDING_LOCAL_MODEL' });
+    const candidate = await this.gateway.dispatch('buildLocalEnrollablesSnapshot', { source }, { lockKey: `local-enrollables-resume:${scan.id}` });
+    if (!candidate || Number(candidate.summary && candidate.summary.enrollables) !== 279 || Number(candidate.summary && candidate.summary.fail) !== 0) {
+      throw Object.assign(new Error('Resumed local model candidate is not certified'), { code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED' });
+    }
+    const changed = Number(candidate.summary.changed || 0);
+    const localResult = { id: 'enrollables-local-model', homeeasyId: '__enrollables_local_model__', family: 'Enrollable',
+      reference: `${candidate.summary.enrollables} Enrollables · modelo local ${candidate.version}`,
+      strategy: 'LOCAL_MODEL', status: changed ? 'NEW' : 'UNCHANGED', autoApplicable: changed > 0,
+      oldCost: 0, newCost: changed, difference: changed, percent: null, reviewReason: null, severity: 'normal',
+      destination: { sheet: 'Costos_Pentagrama*', field: 'snapshot-atómico' } };
+    const results = scan.results.map(item => item.id === 'enrollables-local-model' ? localResult : item);
+    if (!results.some(item => item.id === 'enrollables-local-model')) results.push(localResult);
+    const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
+    const resumed = { ...scan, id: crypto.randomUUID(), parentScanId: scan.id, checkedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), localModelCandidate: candidate, results, counts,
+      catalogAudit: { ...(scan.catalogAudit || {}), certified: Number(scan.catalogAudit && scan.catalogAudit.certified || 0) + 279,
+        autoUpdatable: Number(scan.catalogAudit && scan.catalogAudit.autoUpdatable || 0) + (changed > 0 ? 1 : 0) } };
+    this.store.addScan(resumed);
+    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', scanId: resumed.id,
+      result: { scanId: resumed.id, parentScanId: scan.id, counts, candidateSummary: candidate.summary } });
+  }
+
   validationCases(mapping) {
     const cases = Array.isArray(mapping.validationCases) ? mapping.validationCases.slice() : [];
     if (!cases.some(item => String(item.width) === String(mapping.width) && String(item.height) === String(mapping.height))) {

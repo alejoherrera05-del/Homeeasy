@@ -65,6 +65,27 @@ test('apply rejects expired scans', () => {
   assert.throws(() => service.startApply({}, {}, { scanId: 'old' }), error => error.code === 'PENTAGRAMA_SCAN_EXPIRED');
 });
 
+test('resumes only the failed local candidate from persisted scan evidence', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-resume-'));
+  const store = new Phase2Store({ dataDir: directory });
+  store.addScan({ id: 'failed-scan', checkedAt: new Date(0).toISOString(), expiresAt: new Date(1).toISOString(), sourceVersion: 'v1',
+    catalogAudit: { certified: 90, autoUpdatable: 2 }, counts: { ERROR: 1 },
+    results: [{ id: 'enrollables-local-model', status: 'ERROR', autoApplicable: false }] });
+  let dispatched = 0;
+  const service = new PentagramaPhase2({ store, mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {
+    dispatch: async (type, payload) => { dispatched += 1; assert.equal(type, 'buildLocalEnrollablesSnapshot'); assert.equal(payload.source.version, 'v1');
+      return { version: 'candidate-v2', summary: { enrollables: 279, fail: 0, changed: 279, cases: 614, pass: 614, maxDifference: 0 } }; }
+  }});
+  const operation = service.startResumeLocalModel({ email: 'test@example.com' }, { scanId: 'failed-scan', source: { version: 'v1', products: [{}] } });
+  for (let i = 0; i < 30 && store.operationById(operation.id).state !== 'completed'; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  const resumed = store.latestScan();
+  assert.equal(dispatched, 1);
+  assert.equal(resumed.parentScanId, 'failed-scan');
+  assert.equal(resumed.localModelCandidate.version, 'candidate-v2');
+  assert.equal(resumed.results.find(item => item.id === 'enrollables-local-model').status, 'NEW');
+  assert.equal(resumed.catalogAudit.certified, 369);
+});
+
 test('post-apply mismatch rolls back the affected batch automatically', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-rollback-'));
   const store = new Phase2Store({ dataDir: directory }); let rolledBack = null;
