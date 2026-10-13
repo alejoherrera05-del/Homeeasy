@@ -125,8 +125,9 @@ async function browserSessionBootstrap(options = {}) {
   const timeoutMs = Math.max(30000, Number(options.timeoutMs || 45000));
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-pentagrama-browser-'));
   const devtoolsFile = path.join(profile, 'DevToolsActivePort');
+  const headed = options.headless === false || process.env.PENTAGRAMA_BROWSER_HEADLESS === '0';
   const args = [
-    '--headless=new',
+    ...(headed ? ['--window-position=-32000,-32000', '--window-size=900,700'] : ['--headless=new']),
     '--disable-gpu',
     '--no-first-run',
     '--no-default-browser-check',
