@@ -120,7 +120,13 @@ async function runJob(job, sync) {
     return sync.catalog[method](payload.params || {});
   }
   if (job.type === 'resolveLivePrice') return sync.liveResolver.resolve(payload);
-  if (job.type === 'buildLocalEnrollablesSnapshot') return sync.localModel.build(payload.source || {});
+  if (job.type === 'buildLocalEnrollablesSnapshot') {
+    if (sync.client && sync.client.auth && typeof sync.client.auth.clearSession === 'function' && typeof sync.client.auth.authenticate === 'function') {
+      sync.client.auth.clearSession();
+      await sync.client.auth.authenticate();
+    }
+    return sync.localModel.build(payload.source || {});
+  }
   return sync.pricing.supplierCost(payload.params || {}, payload.options || {});
 }
 

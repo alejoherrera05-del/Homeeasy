@@ -26,8 +26,12 @@ test('agent decrypts the hybrid registration envelope', () => {
 });
 
 test('agent executes only allowlisted health, price, catalog and live resolver jobs', async () => {
+  let freshLogins = 0;
   const sync = {
-    client: { get: async route => route === '/Order/GetJsonCategoryList' ? [] : null },
+    client: {
+      get: async route => route === '/Order/GetJsonCategoryList' ? [] : null,
+      auth: { clearSession() {}, async authenticate() { freshLogins += 1; } }
+    },
     catalog: { categories: async params => [{ id: params.scope }] },
     pricing: { supplierCost: async () => ({ basePrice: 244800, total: 244800 }) },
     liveResolver: { resolve: async payload => ({ ok: true, outcome: 'PRICE', product: payload.homeeasyId }) },
@@ -38,6 +42,7 @@ test('agent executes only allowlisted health, price, catalog and live resolver j
   assert.deepEqual(await runJob({ type: 'catalog', payload: { operation: 'categories', params: { scope: 7 } } }, sync), [{ id: 7 }]);
   assert.equal((await runJob({ type: 'resolveLivePrice', payload: { homeeasyId: 'matte3' } }, sync)).outcome, 'PRICE');
   assert.equal((await runJob({ type: 'buildLocalEnrollablesSnapshot', payload: { source: { products: [1] } } }, sync)).products.length, 1);
+  assert.equal(freshLogins, 1);
   await assert.rejects(() => runJob({ type: 'catalog', payload: { operation: 'requestAnyUrl' } }, sync), error => error.code === 'AGENT_CATALOG_OPERATION_NOT_ALLOWED');
   await assert.rejects(() => runJob({ type: 'shell' }, sync), error => error.code === 'AGENT_JOB_NOT_ALLOWED');
 });
