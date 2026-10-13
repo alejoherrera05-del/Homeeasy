@@ -7,7 +7,7 @@ const path = require('path');
 const { AgentApi } = require('./api');
 const { Logger } = require('./logger');
 const dpapi = require('./dpapi');
-const { browserSessionBootstrap } = require('./browser-session');
+const { PentagramaSessionBridge } = require('./session-bridge');
 let createPentagramaSync;
 try {
   ({ createPentagramaSync } = require('../core'));
@@ -133,11 +133,20 @@ async function main() {
   const agentIdentity = identity();
   const api = new AgentApi({ serverUrl: config.serverUrl, caPath: path.resolve(path.dirname(CONFIG_PATH), config.caFile || 'server.crt') });
   const secrets = await provision(api, agentIdentity);
+  const sessionBridge = new PentagramaSessionBridge({
+    extensionId: 'cmijhfckibhbdhneapoknlbmfadfmogn',
+    login: secrets.pentagrama.login,
+    password: secrets.pentagrama.password,
+    baseUrl: secrets.pentagrama.baseUrl
+  });
+  await sessionBridge.start();
+
   const sync = createPentagramaSync({
     login: secrets.pentagrama.login,
     password: secrets.pentagrama.password,
     baseUrl: secrets.pentagrama.baseUrl,
-    sessionBootstrap: browserSessionBootstrap
+    sessionProvider: options => sessionBridge.session(options),
+    sessionInvalidator: reason => sessionBridge.invalidate(reason)
   });
   const headers = authHeaders(agentIdentity, secrets);
   let pentagrama = { status: 'unknown', checkedAt: null };
@@ -169,6 +178,7 @@ async function main() {
       await delay(Math.min(60000, 1000 * (2 ** Math.min(failures, 6))));
     }
   }
+  await sessionBridge.stop().catch(() => {});
   logger.info('stopped');
 }
 
