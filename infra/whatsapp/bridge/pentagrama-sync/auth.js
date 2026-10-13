@@ -75,6 +75,7 @@ class PentagramaAuth {
   }
 
   async _authenticate() {
+    const loginUrl = `${this.baseUrl}/Login?ReturnUrl=%2f`;
     const form = new URLSearchParams({
       Login: this.login,
       Password: this.password,
@@ -82,17 +83,29 @@ class PentagramaAuth {
     });
     let response;
     try {
-      response = await this.fetch(`${this.baseUrl}/Login?ReturnUrl=%2f`, {
+      const preflight = await this.fetch(loginUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'text/html,application/xhtml+xml' },
+        redirect: 'manual',
+        signal: AbortSignal.timeout(this.timeoutMs)
+      });
+      this.jar.absorb(preflight.headers);
+      if (preflight.status === 403 && /cloudflare/i.test(String(preflight.headers.get('server') || ''))) {
+        throw new AccessBlockedError();
+      }
+      response = await this.fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Accept': 'text/html,application/xhtml+xml',
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/x-www-form-urlencoded',
+          ...(this.jar.header() ? { Cookie: this.jar.header() } : {})
         },
         body: form.toString(),
         redirect: 'manual',
         signal: AbortSignal.timeout(this.timeoutMs)
       });
-    } catch (_) {
+    } catch (error) {
+      if (error && error.code) throw error;
       throw new UpstreamResponseError('Pentagrama login is unavailable');
     }
     this.jar.absorb(response.headers);

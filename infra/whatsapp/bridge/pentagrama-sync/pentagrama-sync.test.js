@@ -23,24 +23,27 @@ test('auth captures .ASPXAUTH without exposing credentials', async () => {
     password: 'private-password',
     fetch: async (url, options) => {
       requests.push({ url: String(url), options });
+      if (options.method === 'GET') return response('', { headers: { 'Set-Cookie': 'ASP.NET_SessionId=preflight; path=/; HttpOnly' } });
       return response('', { status: 302, headers: { Location: '/Order/SearchProduct', 'Set-Cookie': '.ASPXAUTH=session-one; path=/; HttpOnly' } });
     }
   });
   await auth.authenticate();
   assert.equal(auth.jar.has('.ASPXAUTH'), true);
-  assert.match(auth.jar.header(), /^\.ASPXAUTH=/);
-  assert.equal(requests.length, 1);
-  assert.equal(requests[0].options.redirect, 'manual');
-  assert.match(requests[0].options.body, /Login=private-user/);
-  assert.match(requests[0].options.body, /Password=private-password/);
+  assert.match(auth.jar.header(), /(?:^|; )\.ASPXAUTH=/);
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1].options.redirect, 'manual');
+  assert.match(requests[1].options.headers.Cookie, /ASP\.NET_SessionId=preflight/);
+  assert.match(requests[1].options.body, /Login=private-user/);
+  assert.match(requests[1].options.body, /Password=private-password/);
 });
 
 test('JSON request renews an expired session once', async () => {
   let logins = 0;
   let prices = 0;
-  const fetch = async (url) => {
+  const fetch = async (url, options = {}) => {
     const path = new URL(url).pathname;
     if (path === '/Login') {
+      if (options.method === 'GET') return response('', { headers: { 'Set-Cookie': 'ASP.NET_SessionId=preflight; path=/; HttpOnly' } });
       logins += 1;
       return response('', { status: 302, headers: { Location: '/', 'Set-Cookie': `.ASPXAUTH=session-${logins}; path=/; HttpOnly` } });
     }
