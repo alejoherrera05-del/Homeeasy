@@ -145,8 +145,7 @@ async function main() {
     login: secrets.pentagrama.login,
     password: secrets.pentagrama.password,
     baseUrl: secrets.pentagrama.baseUrl,
-    sessionProvider: options => sessionBridge.session(options),
-    sessionInvalidator: reason => sessionBridge.invalidate(reason)
+    browserTransport: request => sessionBridge.browserRequest(request, Math.max(60000, Number(request && request.timeoutMs || 0)))
   });
   const headers = authHeaders(agentIdentity, secrets);
   let pentagrama = { status: 'unknown', checkedAt: null };
