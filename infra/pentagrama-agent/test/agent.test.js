@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 process.env.HOMEEASY_AGENT_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-agent-test-'));
-const { decryptEnvelope, publicError, runJob } = require('../src/agent');
+const { decryptEnvelope, publicError, runJob, authenticateFreshForSnapshot } = require('../src/agent');
 const { Logger } = require('../src/logger');
 
 test('agent decrypts the hybrid registration envelope', () => {
@@ -59,4 +59,25 @@ test('logs redact secret-shaped fields and rotate safely', () => {
 test('error classification marks transport failures but not credential rejection', () => {
   assert.equal(publicError({ code: 'ETIMEDOUT', message: 'timeout' }).infrastructure, true);
   assert.equal(publicError({ code: 'PENTAGRAMA_SESSION_EXPIRED', message: 'bad credentials' }).infrastructure, false);
+});
+
+test('snapshot authentication retries a transient Pentagrama session rejection only', async () => {
+  let attempts = 0;
+  let clears = 0;
+  const sync = { client: { auth: {
+    clearSession() { clears += 1; },
+    async authenticate() {
+      attempts += 1;
+      if (attempts < 3) throw Object.assign(new Error('transient rejection'), { code: 'PENTAGRAMA_SESSION_EXPIRED' });
+    }
+  } } };
+  await authenticateFreshForSnapshot(sync, { attempts: 3, retryDelayMs: 0 });
+  assert.equal(attempts, 3);
+  assert.equal(clears, 3);
+
+  const blocked = { client: { auth: {
+    clearSession() {},
+    async authenticate() { throw Object.assign(new Error('blocked'), { code: 'PENTAGRAMA_ACCESS_BLOCKED' }); }
+  } } };
+  await assert.rejects(() => authenticateFreshForSnapshot(blocked, { attempts: 3, retryDelayMs: 0 }), error => error.code === 'PENTAGRAMA_ACCESS_BLOCKED');
 });

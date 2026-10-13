@@ -32,6 +32,27 @@ function writePrivate(file, value) {
 }
 function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+async function authenticateFreshForSnapshot(sync, options = {}) {
+  const auth = sync && sync.client && sync.client.auth;
+  if (!auth || typeof auth.clearSession !== 'function' || typeof auth.authenticate !== 'function') return;
+  const attempts = Math.max(1, Number(options.attempts || 3));
+  const retryDelayMs = Math.max(0, Number(options.retryDelayMs ?? 750));
+  let lastError;
+  auth.clearSession();
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await auth.authenticate();
+      return;
+    } catch (error) {
+      lastError = error;
+      if (String(error && error.code || '') !== 'PENTAGRAMA_SESSION_EXPIRED' || attempt === attempts) throw error;
+      auth.clearSession();
+      if (retryDelayMs) await delay(retryDelayMs * attempt);
+    }
+  }
+  throw lastError;
+}
+
 function identity() {
   try { return readJson(IDENTITY_PATH); } catch (_) {}
   const value = {
@@ -121,10 +142,7 @@ async function runJob(job, sync) {
   }
   if (job.type === 'resolveLivePrice') return sync.liveResolver.resolve(payload);
   if (job.type === 'buildLocalEnrollablesSnapshot') {
-    if (sync.client && sync.client.auth && typeof sync.client.auth.clearSession === 'function' && typeof sync.client.auth.authenticate === 'function') {
-      sync.client.auth.clearSession();
-      await sync.client.auth.authenticate();
-    }
+    await authenticateFreshForSnapshot(sync);
     return sync.localModel.build(payload.source || {});
   }
   return sync.pricing.supplierCost(payload.params || {}, payload.options || {});
@@ -183,4 +201,4 @@ if (require.main === module) {
   main().catch(error => { logger.error('startup_failed', { code: error.code || 'STARTUP_FAILED', message: error.message }); process.exit(1); });
 }
 
-module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, CATALOG_OPERATIONS });
+module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, authenticateFreshForSnapshot, CATALOG_OPERATIONS });
