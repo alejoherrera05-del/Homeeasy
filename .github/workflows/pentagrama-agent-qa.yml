@@ -28,7 +28,9 @@ jobs:
       - name: Syntax checks
         run: |
           node --check infra/pentagrama-agent/src/agent.js
-          node --check infra/pentagrama-agent/src/browser-session.js
+          node --check infra/pentagrama-agent/src/session-bridge.js
+          node --check infra/pentagrama-agent/session-bridge-extension/background.js
+          node --check infra/pentagrama-agent/session-bridge-extension/content.js
           node --check infra/whatsapp/bridge/pentagrama-sync/auth.js
       - name: Agent unit tests
         run: node --test infra/pentagrama-agent/test/*.test.js
