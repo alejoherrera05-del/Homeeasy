@@ -115,16 +115,187 @@ async function ensureAuthenticated() {
   return loginInFlight;
 }
 
+let portalTabId = null;
+let browserPollRunning = false;
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function tabState(tabId) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: 'MAIN',
+      func: () => ({
+        url: location.href,
+        readyState: document.readyState,
+        hasLogin: !!document.querySelector('input[name="Login"]') && !!document.querySelector('input[name="Password"]')
+      })
+    });
+    return results && results[0] && results[0].result || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function waitTabReady(tabId, timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    if (tab && tab.status === 'complete') {
+      const state = await tabState(tabId);
+      if (state && state.readyState === 'complete') return state;
+    }
+    await sleep(250);
+  }
+  throw Object.assign(new Error('Pentagrama tab did not become ready'), { code: 'PENTAGRAMA_BROWSER_TAB_TIMEOUT' });
+}
+
+async function ensurePortalTab() {
+  if (portalTabId) {
+    const existing = await chrome.tabs.get(portalTabId).catch(() => null);
+    if (existing) return portalTabId;
+    portalTabId = null;
+  }
+
+  const tabs = await chrome.tabs.query({ url: 'https://pedidos.persianaspentagrama.com/*' });
+  const normal = tabs.find(tab => !tab.incognito);
+  if (normal) {
+    portalTabId = normal.id;
+    return portalTabId;
+  }
+
+  const tab = await chrome.tabs.create({ url: PORTAL, active: false });
+  portalTabId = tab.id;
+  await waitTabReady(portalTabId);
+  return portalTabId;
+}
+
+async function ensurePortalAuthenticated(tabId) {
+  let state = await waitTabReady(tabId, 20000).catch(() => null);
+  if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) return true;
+
+  const credentials = await agent('/v1/credentials');
+  await chrome.tabs.update(tabId, { url: credentials.loginUrl, active: false });
+  const deadline = Date.now() + 45000;
+  while (Date.now() < deadline) {
+    state = await waitTabReady(tabId, 5000).catch(() => null);
+    if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) return true;
+    await sleep(350);
+  }
+  throw Object.assign(new Error('Pentagrama login did not complete in Brave'), { code: 'PENTAGRAMA_BROWSER_SESSION_REQUIRED' });
+}
+
+async function executePortalRequest(tabId, spec) {
+  const results = await chrome.scripting.executeScript({
+    target: { tabId },
+    world: 'MAIN',
+    args: [spec],
+    func: async request => {
+      try {
+        const response = await fetch(request.url, {
+          method: request.method || 'GET',
+          headers: request.headers || {},
+          body: request.body || undefined,
+          credentials: 'include',
+          redirect: 'follow',
+          cache: 'no-store'
+        });
+        const text = await response.text();
+        const headers = {};
+        for (const [key, value] of response.headers.entries()) headers[key] = value;
+        return {
+          ok: true,
+          result: {
+            status: response.status,
+            url: response.url,
+            headers,
+            text
+          }
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          code: 'PENTAGRAMA_BROWSER_REQUEST_FAILED',
+          error: String(error && error.message || error || 'Browser request failed')
+        };
+      }
+    }
+  });
+  return results && results[0] && results[0].result || {
+    ok: false,
+    code: 'PENTAGRAMA_BROWSER_REQUEST_FAILED',
+    error: 'Brave did not return a request result'
+  };
+}
+
+function resultLooksLoggedOut(value) {
+  const result = value && value.result;
+  if (!result) return false;
+  const url = String(result.url || '');
+  const text = String(result.text || '');
+  return /\/(?:User\/)?Login/i.test(url) ||
+    (/name=["']Login["']/i.test(text) && /name=["']Password["']/i.test(text));
+}
+
+async function runBrowserRequest(request) {
+  const tabId = await ensurePortalTab();
+  await ensurePortalAuthenticated(tabId);
+
+  let result = await executePortalRequest(tabId, request.payload || {});
+  if (resultLooksLoggedOut(result)) {
+    await chrome.tabs.update(tabId, { url: LOGIN_URL, active: false });
+    await ensurePortalAuthenticated(tabId);
+    result = await executePortalRequest(tabId, request.payload || {});
+  }
+  return result;
+}
+
+async function browserPollLoop() {
+  if (browserPollRunning) return;
+  browserPollRunning = true;
+  try {
+    while (true) {
+      let envelope;
+      try {
+        envelope = await agent('/v1/browser/request?wait=25000');
+      } catch (_) {
+        await sleep(1500);
+        continue;
+      }
+      const request = envelope && envelope.request;
+      if (!request) continue;
+
+      let result;
+      try {
+        result = await runBrowserRequest(request);
+      } catch (error) {
+        result = {
+          ok: false,
+          code: String(error && error.code || 'PENTAGRAMA_BROWSER_REQUEST_FAILED'),
+          error: String(error && error.message || 'Browser request failed'),
+          infrastructure: true
+        };
+      }
+
+      try {
+        await agent('/v1/browser/request/' + encodeURIComponent(request.id) + '/result', {
+          method: 'POST',
+          body: JSON.stringify(result)
+        });
+      } catch (_) {}
+    }
+  } finally {
+    browserPollRunning = false;
+  }
+}
+
 async function reconcile() {
   try {
-    const status = await agent('/v1/status');
-    const cookies = await portalCookies();
-    if (hasAuth(cookies)) {
-      await publishSession(cookies);
-      return;
-    }
-    if (status.loginRequested) await ensureAuthenticated();
-    else await chrome.action.setBadgeText({ text: '' });
+    await agent('/v1/status');
+    await chrome.action.setBadgeText({ text: '' });
+    browserPollLoop();
   } catch (_) {
     await chrome.action.setBadgeText({ text: '?' });
   }
