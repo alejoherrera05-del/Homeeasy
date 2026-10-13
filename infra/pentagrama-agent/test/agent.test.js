@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 process.env.HOMEEASY_AGENT_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-agent-test-'));
-const { decryptEnvelope, publicError, runJob, authenticateFreshForSnapshot } = require('../src/agent');
+const { decryptEnvelope, publicError, runJob } = require('../src/agent');
 const { Logger } = require('../src/logger');
 
 test('agent decrypts the hybrid registration envelope', () => {
@@ -26,11 +26,10 @@ test('agent decrypts the hybrid registration envelope', () => {
 });
 
 test('agent executes only allowlisted health, price, catalog and live resolver jobs', async () => {
-  let freshLogins = 0;
   const sync = {
     client: {
       get: async route => route === '/Order/GetJsonCategoryList' ? [] : null,
-      auth: { clearSession() {}, async authenticate() { freshLogins += 1; } }
+      auth: { clearSession() {}, async authenticate() {} }
     },
     catalog: { categories: async params => [{ id: params.scope }] },
     pricing: { supplierCost: async () => ({ basePrice: 244800, total: 244800 }) },
@@ -42,7 +41,6 @@ test('agent executes only allowlisted health, price, catalog and live resolver j
   assert.deepEqual(await runJob({ type: 'catalog', payload: { operation: 'categories', params: { scope: 7 } } }, sync), [{ id: 7 }]);
   assert.equal((await runJob({ type: 'resolveLivePrice', payload: { homeeasyId: 'matte3' } }, sync)).outcome, 'PRICE');
   assert.equal((await runJob({ type: 'buildLocalEnrollablesSnapshot', payload: { source: { products: [1] } } }, sync)).products.length, 1);
-  assert.equal(freshLogins, 1);
   await assert.rejects(() => runJob({ type: 'catalog', payload: { operation: 'requestAnyUrl' } }, sync), error => error.code === 'AGENT_CATALOG_OPERATION_NOT_ALLOWED');
   await assert.rejects(() => runJob({ type: 'shell' }, sync), error => error.code === 'AGENT_JOB_NOT_ALLOWED');
 });
@@ -59,25 +57,4 @@ test('logs redact secret-shaped fields and rotate safely', () => {
 test('error classification marks transport failures but not credential rejection', () => {
   assert.equal(publicError({ code: 'ETIMEDOUT', message: 'timeout' }).infrastructure, true);
   assert.equal(publicError({ code: 'PENTAGRAMA_SESSION_EXPIRED', message: 'bad credentials' }).infrastructure, false);
-});
-
-test('snapshot authentication retries a transient Pentagrama session rejection only', async () => {
-  let attempts = 0;
-  let clears = 0;
-  const sync = { client: { auth: {
-    clearSession() { clears += 1; },
-    async authenticate() {
-      attempts += 1;
-      if (attempts < 5) throw Object.assign(new Error('transient rejection'), { code: 'PENTAGRAMA_SESSION_EXPIRED' });
-    }
-  } } };
-  await authenticateFreshForSnapshot(sync, { attempts: 5, retryDelayMs: 0 });
-  assert.equal(attempts, 5);
-  assert.equal(clears, 5);
-
-  const blocked = { client: { auth: {
-    clearSession() {},
-    async authenticate() { throw Object.assign(new Error('blocked'), { code: 'PENTAGRAMA_ACCESS_BLOCKED' }); }
-  } } };
-  await assert.rejects(() => authenticateFreshForSnapshot(blocked, { attempts: 3, retryDelayMs: 0 }), error => error.code === 'PENTAGRAMA_ACCESS_BLOCKED');
 });

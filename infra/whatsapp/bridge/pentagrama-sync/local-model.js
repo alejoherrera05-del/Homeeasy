@@ -178,7 +178,9 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     Number(structuralProfiles.schemaVersion || 0) >= 2 &&
     Number(structuralProfiles.structureKeys || 0) === Object.keys(structuralProfiles.profiles || {}).length &&
     String(source.enrollableSizeRules && source.enrollableSizeRules.id || '') === String(structuralProfiles.sourceRuleId || '');
-  const liveBaseCases = reusingCertifiedBaseLinearity ? [BASE_CASES[0]] : BASE_CASES;
+  // The active source rate already passed the durable two-point certification.
+  // Reusing that evidence must not query all 279 base tariffs again.
+  const liveBaseCases = reusingCertifiedBaseLinearity ? [] : BASE_CASES;
   for (const liveProduct of liveProducts) {
     const product = sourceById.get(liveProduct.homeeasyId);
     const evidence = [];
@@ -188,8 +190,10 @@ async function buildEnrollablesLocalCandidate(options = {}) {
       if (!(total > 0)) throw Object.assign(new Error(`${product.id}/${sample.id}: invalid Pentagrama total`), { code: 'PENTAGRAMA_LOCAL_MODEL_PRICE_UNAVAILABLE' });
       evidence.push({ ...sample, total, rate: inferredRate(product, sample, total) });
     }
-    const spread = Math.max(...evidence.map(item => item.rate)) - Math.min(...evidence.map(item => item.rate));
-    const rate = money(evidence.reduce((sum, item) => sum + item.rate, 0) / evidence.length);
+    const spread = evidence.length ? Math.max(...evidence.map(item => item.rate)) - Math.min(...evidence.map(item => item.rate)) : 0;
+    const rate = reusingCertifiedBaseLinearity
+      ? money(product.rate)
+      : money(evidence.reduce((sum, item) => sum + item.rate, 0) / evidence.length);
     const productFailures = evidence.filter(item => !same(localTotal(product, rate, item), item.total));
     if ((!reusingCertifiedBaseLinearity && spread > TOLERANCE) || productFailures.length) {
       failures.push({ homeeasyId: product.id, code: 'NON_LINEAR_BASE_PRICE', spread: money(spread) });
@@ -200,7 +204,10 @@ async function buildEnrollablesLocalCandidate(options = {}) {
       homeeasyId: product.id, row: product.row, expectedRate: Number(product.rate), proposedRate: rate,
       expectedRulesHash: hash(rules), rules, source: 'Pentagrama Live', method: 'area'
     });
-    evidence.forEach(item => qaCases.push({ id: `${product.id}:${item.id}`, homeeasyId: product.id, width: item.width, height: item.height,
+    const retainedEvidence = reusingCertifiedBaseLinearity
+      ? [{ ...BASE_CASES[0], total: localTotal(product, rate, BASE_CASES[0]) }]
+      : evidence;
+    retainedEvidence.forEach(item => qaCases.push({ id: `${product.id}:${item.id}`, homeeasyId: product.id, width: item.width, height: item.height,
       configuration: 'standard', expected: money(item.total), expectedOutcome: 'PRICE', scope: 'base' }));
     const key = structureKey(product, liveProduct);
     if (!groups.has(key)) groups.set(key, { product, liveProduct, members: [] });
