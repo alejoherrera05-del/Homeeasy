@@ -82,3 +82,38 @@ test('Pentagrama auth still fails if browser bootstrap cannot obtain auth cookie
   await assert.rejects(() => auth.authenticate(), error => error instanceof SessionExpiredError);
   assert.equal(auth.authenticated, false);
 });
+
+
+test('Pentagrama auth trusts a browser session provider before form login', async () => {
+  let fetchCalls = 0;
+  const auth = new PentagramaAuth({
+    login: 'user',
+    password: 'pass',
+    fetch: async () => { fetchCalls += 1; throw new Error('HTTP login should not run'); },
+    sessionProvider: async () => ({
+      cookies: [
+        { name: 'cf_clearance', value: 'clearance' },
+        { name: 'ASP.NET_SessionId', value: 'session' },
+        { name: '.ASPXAUTH', value: 'auth' }
+      ]
+    })
+  });
+  await auth.authenticate();
+  assert.equal(auth.authenticated, true);
+  assert.equal(auth.jar.has('.ASPXAUTH'), true);
+  assert.equal(fetchCalls, 0);
+});
+
+test('Pentagrama auth invalidation notifies the browser session bridge', async () => {
+  const reasons = [];
+  const auth = new PentagramaAuth({
+    login: 'user',
+    password: 'pass',
+    sessionProvider: async () => ({ cookies: [{ name: '.ASPXAUTH', value: 'auth' }] }),
+    sessionInvalidator: async reason => reasons.push(reason)
+  });
+  await auth.authenticate();
+  await auth.invalidateSession('EXPIRED');
+  assert.equal(auth.authenticated, false);
+  assert.deepEqual(reasons, ['EXPIRED']);
+});
