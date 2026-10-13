@@ -13,11 +13,20 @@ class PentagramaClient {
   constructor(options = {}) {
     this.auth = options.auth || new PentagramaAuth(options);
     this.fetch = options.fetch || this.auth.fetch || globalThis.fetch;
+    this.browserTransport = typeof options.browserTransport === 'function' ? options.browserTransport : null;
     this.baseUrl = this.auth.baseUrl;
     this.timeoutMs = this.auth.timeoutMs;
   }
 
   async request(route, options = {}) {
+    if (this.browserTransport) {
+      const result = await this._browserRequest(route, options);
+      if (this._isExpired(result, options.expect || 'json')) {
+        throw new SessionExpiredError('Pentagrama browser session is not authenticated');
+      }
+      return this._decode(result, options.expect || 'json');
+    }
+
     await this.auth.ensureSession();
     const first = await this._request(route, options);
     if (!this._isExpired(first, options.expect || 'json')) return this._decode(first, options.expect || 'json');
@@ -32,6 +41,61 @@ class PentagramaClient {
       throw new SessionExpiredError('Pentagrama session could not be renewed');
     }
     return this._decode(second, options.expect || 'json');
+  }
+
+  async _browserRequest(route, options) {
+    const method = String(options.method || 'GET').toUpperCase();
+    const url = new URL(route, `${this.baseUrl}/`);
+    if (options.query) {
+      for (const [key, value] of Object.entries(options.query)) {
+        if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+      }
+    }
+    const headers = {
+      'Accept': options.expect === 'html' ? 'text/html,application/xhtml+xml' : 'application/json, text/javascript, */*; q=0.01',
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(options.headers || {})
+    };
+    let body;
+    if (options.json !== undefined) {
+      headers['Content-Type'] = 'application/json; charset=UTF-8';
+      body = JSON.stringify(options.json);
+    } else if (options.form !== undefined) {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
+      body = new URLSearchParams(options.form).toString();
+    }
+
+    let transported;
+    try {
+      transported = await this.browserTransport({
+        url: url.toString(),
+        route: url.pathname,
+        method,
+        headers,
+        body,
+        expect: options.expect || 'json',
+        timeoutMs: this.timeoutMs
+      });
+    } catch (error) {
+      if (error && error.code) throw error;
+      throw new UpstreamResponseError('Pentagrama browser transport is unavailable', { route: url.pathname });
+    }
+
+    const headerMap = new Map(Object.entries((transported && transported.headers) || {}).map(([key, value]) => [String(key).toLowerCase(), String(value)]));
+    const status = Number(transported && transported.status || 0);
+    const response = {
+      status,
+      ok: status >= 200 && status < 300,
+      url: String(transported && transported.url || url),
+      headers: {
+        get(name) { return headerMap.get(String(name || '').toLowerCase()) || null; }
+      }
+    };
+    return {
+      response,
+      text: String(transported && transported.text || ''),
+      route: url.pathname
+    };
   }
 
   async _request(route, options) {
