@@ -22,11 +22,13 @@ class PentagramaClient {
     const first = await this._request(route, options);
     if (!this._isExpired(first, options.expect || 'json')) return this._decode(first, options.expect || 'json');
 
-    this.auth.clearSession();
+    if (typeof this.auth.invalidateSession === 'function') await this.auth.invalidateSession('UPSTREAM_SESSION_EXPIRED');
+    else this.auth.clearSession();
     await this.auth.authenticate();
     const second = await this._request(route, options);
     if (this._isExpired(second, options.expect || 'json')) {
-      this.auth.clearSession();
+      if (typeof this.auth.invalidateSession === 'function') await this.auth.invalidateSession('UPSTREAM_SESSION_RENEWAL_FAILED');
+      else this.auth.clearSession();
       throw new SessionExpiredError('Pentagrama session could not be renewed');
     }
     return this._decode(second, options.expect || 'json');
