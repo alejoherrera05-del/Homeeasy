@@ -81,7 +81,7 @@ class PentagramaAuth {
   }
 
   async _authenticate() {
-    const loginUrl = `${this.baseUrl}/Login?ReturnUrl=%2f`;
+    const loginUrl = `${this.baseUrl}/User/Login`;
     const browserHeaders = {
       'Accept-Language': 'es-CO,es;q=0.9,en;q=0.8',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
@@ -92,6 +92,7 @@ class PentagramaAuth {
       LoginButton: 'Ingresar'
     });
     let response;
+    let responseText = '';
     try {
       const preflight = await this.fetch(loginUrl, {
         method: 'GET',
@@ -117,6 +118,7 @@ class PentagramaAuth {
         redirect: 'manual',
         signal: AbortSignal.timeout(this.timeoutMs)
       });
+      responseText = await response.text().catch(() => '');
     } catch (error) {
       if (error && error.code) throw error;
       throw new UpstreamResponseError('Pentagrama login is unavailable');
@@ -129,7 +131,12 @@ class PentagramaAuth {
     if (!response.ok && ![301, 302, 303, 307, 308].includes(response.status)) {
       throw new UpstreamResponseError(`Pentagrama login failed with HTTP ${response.status}`, { status: response.status });
     }
-    if (/\/(?:User\/)?Login/i.test(location) || (!this.jar.header() && !location)) {
+
+    const returnedLoginForm = /<form[^>]+action=["']?\/User\/Login/i.test(responseText) ||
+      (/name=["']Login["']/i.test(responseText) && /name=["']Password["']/i.test(responseText));
+    const redirectedBackToLogin = /\/(?:User\/)?Login/i.test(location);
+    if (redirectedBackToLogin || returnedLoginForm || !this.jar.has('.ASPXAUTH')) {
+      this.clearSession();
       throw new SessionExpiredError('Pentagrama rejected the configured credentials');
     }
     this.authenticated = true;
