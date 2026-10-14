@@ -759,6 +759,27 @@ async function buildEnrollablesLocalCandidate(options = {}) {
 
     for (const sample of initialSamples) await capture(sample);
 
+    const hasBroadMechanismCoverage = () => {
+      const widths = new Set(records.map(item => Math.round(Number(item.width) * 1000)));
+      const heights = new Set(records.map(item => Math.round(Number(item.height) * 1000)));
+      return records.length >= 6 && widths.size >= 3 && heights.size >= 3;
+    };
+
+    if (!hasBroadMechanismCoverage()) {
+      for (const probe of genericMechanismProbes(records)) {
+        if (await capture(probe)) ambiguityProbeCount++;
+        if (hasBroadMechanismCoverage()) break;
+      }
+    }
+
+    if (!hasBroadMechanismCoverage()) {
+      ambiguousProfileLabels.add(label);
+      throw Object.assign(new Error(`${label}: insufficient Live coverage to certify a special mechanism profile`), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_MECHANISM_PROFILE_AMBIGUOUS',
+        evidence: records
+      });
+    }
+
     let bands = null;
     for (let attempt = 0; attempt < 24 && !bands; attempt++) {
       try {
