@@ -126,12 +126,253 @@ class PentagramaPhase2 {
     };
   }
 
+
+  async buildCatalogActions(source, inventory) {
+    const sourceProducts = Array.isArray(source && source.products) ? source.products : [];
+    const sourceById = new Map(sourceProducts.map(item => [String(item.id), item]));
+    const sourceIds = new Set(sourceProducts.map(item => String(item.id)));
+    const bindingState = buildCatalogBindings(sourceProducts, {
+      mappings: this.mappings,
+      enrollables: this.enrollablesRegistry
+    });
+    const comparison = compareInventory(bindingState.bindings, inventory && inventory.products || [], {
+      nameResolver: (live, binding) => {
+        if ((binding && String(binding.family || '').toLowerCase() === 'ring') || isRing(live)) return referenceName(live);
+        return live && live.name;
+      }
+    });
+    const actions = [];
+
+    for (const item of comparison.results) {
+      const sourceItem = sourceById.get(String(item.homeeasyId || '')) || null;
+      const sourceIsRing = Boolean(sourceItem && (
+        String(sourceItem.family || '').toLowerCase() === 'ring' ||
+        /Cortina\s+Ring/i.test(String(sourceItem.familyName || '')) ||
+        String(sourceItem.external && sourceItem.external.associationGroup || '').toUpperCase() === 'RIECORIN'
+      ));
+
+      if (item.status === 'NEW' && item.live && isRing(item.live)) {
+        if (isRenueva(item.live)) continue;
+        try {
+          const certified = await this.catalogCertifier.certifyRing(item.live, source);
+          if (!certified.ok) {
+            actions.push({
+              id: 'catalog-review:' + item.externalKey,
+              kind: 'REVIEW',
+              status: 'REVIEW_REQUIRED',
+              autoApplicable: false,
+              certified: false,
+              productCode: item.productCode,
+              reference: item.newName,
+              reason: certified.reason || 'La referencia nueva no pudo certificarse.'
+            });
+            continue;
+          }
+          if (sourceIds.has(certified.homeeasyId)) {
+            actions.push({
+              id: 'catalog-review:' + item.externalKey,
+              kind: 'REVIEW',
+              status: 'REVIEW_REQUIRED',
+              autoApplicable: false,
+              certified: false,
+              productCode: item.productCode,
+              reference: certified.reference,
+              reason: 'El ID calculado para la nueva referencia ya existe en HomeEasy.'
+            });
+            continue;
+          }
+          actions.push({
+            id: 'catalog-add:' + item.externalKey,
+            kind: 'ADD',
+            status: 'NEW',
+            autoApplicable: true,
+            certified: true,
+            homeeasyId: certified.homeeasyId,
+            externalKey: item.externalKey,
+            productCode: item.productCode,
+            reference: certified.reference,
+            proposedRate: certified.rate,
+            evidence: certified.evidence,
+            mutation: {
+              kind: 'ADD',
+              certified: true,
+              homeeasyId: certified.homeeasyId,
+              expectedExternalKey: '',
+              rowValues: certified.rowValues,
+              qaCases: certified.qaCases
+            }
+          });
+        } catch (error) {
+          actions.push({
+            id: 'catalog-review:' + item.externalKey,
+            kind: 'REVIEW',
+            status: 'ERROR',
+            autoApplicable: false,
+            certified: false,
+            productCode: item.productCode,
+            reference: item.newName,
+            reason: String(error.code || error.message || 'PENTAGRAMA_RING_CERTIFICATION_FAILED')
+          });
+        }
+        continue;
+      }
+
+      if (item.status === 'DISCONTINUED' && sourceIsRing && sourceItem) {
+        const externalKey = String(item.externalKey || '');
+        if (!externalKey || isRenueva({ name: sourceItem.reference, path: [] })) continue;
+        actions.push({
+          id: 'catalog-deactivate:' + externalKey,
+          kind: 'DEACTIVATE',
+          status: 'DISCONTINUED',
+          autoApplicable: true,
+          certified: true,
+          homeeasyId: String(sourceItem.id),
+          externalKey,
+          productCode: String(sourceItem.external && sourceItem.external.productCode || item.productCode || ''),
+          reference: String(sourceItem.reference || item.oldName || ''),
+          mutation: {
+            kind: 'DEACTIVATE',
+            certified: true,
+            homeeasyId: String(sourceItem.id),
+            expectedExternalKey: externalKey,
+            rowValues: sourceRowValues(sourceItem, source, { active: false, status: 'DESCONTINUADO' }),
+            qaCases: []
+          }
+        });
+        continue;
+      }
+
+      if (!sourceIsRing || !sourceItem || !item.live || !isRing(item.live) || isRenueva(item.live)) continue;
+      if (!['PRESENT', 'RENAMED'].includes(item.status)) continue;
+
+      try {
+        const probe = await this.catalogCertifier.probeRing(item.live);
+        if (!probe.ok) {
+          actions.push({
+            id: 'catalog-review:' + item.externalKey,
+            kind: 'REVIEW',
+            status: 'REVIEW_REQUIRED',
+            autoApplicable: false,
+            certified: false,
+            homeeasyId: String(sourceItem.id),
+            externalKey: item.externalKey,
+            productCode: item.productCode,
+            reference: probe.reference || item.newName || item.oldName,
+            reason: probe.reason || 'Pentagrama no devolvió un precio válido.'
+          });
+          continue;
+        }
+
+        const currentRate = Number(sourceItem.rate || 0);
+        const priceChanged = Math.abs(roundMoney(probe.rate - currentRate)) > 0.02;
+        if (priceChanged) {
+          const certified = await this.catalogCertifier.certifyRing(item.live, source);
+          if (!certified.ok) {
+            actions.push({
+              id: 'catalog-review:' + item.externalKey,
+              kind: 'REVIEW',
+              status: 'REVIEW_REQUIRED',
+              autoApplicable: false,
+              certified: false,
+              homeeasyId: String(sourceItem.id),
+              externalKey: item.externalKey,
+              productCode: item.productCode,
+              reference: certified.reference || probe.reference || item.newName,
+              reason: certified.reason || 'El nuevo precio no pudo certificarse.'
+            });
+            continue;
+          }
+          const priceStatus = statusFor(currentRate, certified.rate);
+          const safeVariation = priceStatus !== 'REVIEW_REQUIRED' && priceStatus !== 'ERROR';
+          const qaCases = certified.qaCases.map(testCase => ({
+            ...testCase,
+            homeeasy: { ...testCase.homeeasy, product: String(sourceItem.id) }
+          }));
+          actions.push({
+            id: 'catalog-rate:' + item.externalKey,
+            kind: 'UPDATE_RATE',
+            status: safeVariation ? priceStatus : 'REVIEW_REQUIRED',
+            autoApplicable: safeVariation,
+            certified: safeVariation,
+            homeeasyId: String(sourceItem.id),
+            externalKey: item.externalKey,
+            productCode: item.productCode,
+            reference: certified.reference,
+            oldRate: currentRate,
+            proposedRate: certified.rate,
+            difference: roundMoney(certified.rate - currentRate),
+            percent: currentRate ? roundMoney(((certified.rate - currentRate) / currentRate) * 100) : null,
+            evidence: certified.evidence,
+            reason: safeVariation ? null : 'La variación certificada supera el umbral de seguridad del 30 %.',
+            mutation: safeVariation ? {
+              kind: 'UPDATE_RATE',
+              certified: true,
+              homeeasyId: String(sourceItem.id),
+              expectedExternalKey: item.externalKey,
+              expectedRate: currentRate,
+              proposedRate: certified.rate,
+              rowValues: sourceRowValues(sourceItem, source, {
+                rate: certified.rate,
+                reference: certified.reference,
+                type: certified.type,
+                active: true,
+                status: 'VIGENTE',
+                rules: certified.rules
+              }),
+              qaCases
+            } : null
+          });
+          continue;
+        }
+
+        if (item.status === 'RENAMED' && probe.reference && probe.reference !== String(sourceItem.reference || '')) {
+          actions.push({
+            id: 'catalog-rename:' + item.externalKey,
+            kind: 'RENAME',
+            status: 'RENAMED',
+            autoApplicable: true,
+            certified: true,
+            homeeasyId: String(sourceItem.id),
+            externalKey: item.externalKey,
+            productCode: item.productCode,
+            reference: probe.reference,
+            mutation: {
+              kind: 'RENAME',
+              certified: true,
+              homeeasyId: String(sourceItem.id),
+              expectedExternalKey: item.externalKey,
+              newReference: probe.reference,
+              rowValues: sourceRowValues(sourceItem, source, { reference: probe.reference }),
+              qaCases: []
+            }
+          });
+        }
+      } catch (error) {
+        actions.push({
+          id: 'catalog-review:' + item.externalKey,
+          kind: 'REVIEW',
+          status: 'ERROR',
+          autoApplicable: false,
+          certified: false,
+          homeeasyId: String(sourceItem.id),
+          externalKey: item.externalKey,
+          productCode: item.productCode,
+          reference: item.newName || item.oldName,
+          reason: String(error.code || error.message || 'PENTAGRAMA_RING_PRICE_CHECK_FAILED')
+        });
+      }
+    }
+
+    return actions;
+  }
+
   async runScan(operationId, context) {
     this.store.updateOperation(operationId, { state: 'running', stage: 'READING_HOMEEASY' });
     const source = await this.homeeasy.catalog(context);
     this.store.updateOperation(operationId, { stage: 'READING_PENTAGRAMA' });
     const inventory = await this.fullCatalogInventory();
     const catalogInventoryAudit = this.inventoryAudit(source.products || [], inventory);
+    const catalogActions = await this.buildCatalogActions(source, inventory);
     const catalogSummary = {
       categories: Number(inventory && inventory.counts && inventory.counts.roots || inventory && inventory.roots || 0),
       leaves: Number(inventory && inventory.counts && inventory.counts.leaves || inventory && inventory.leaves || 0),
@@ -188,6 +429,7 @@ class PentagramaPhase2 {
     const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary,
       catalogInventoryAudit,
       catalogChanges: catalogInventoryAudit.changes,
+      catalogActions,
       catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.id).length,
         certified: results.filter(item => item.id && certifiedMappingIds.has(item.homeeasyId)).length,
         autoUpdatable: results.filter(item => item.autoApplicable).length,
@@ -198,7 +440,9 @@ class PentagramaPhase2 {
         discontinued: Number(catalogInventoryAudit.counts.DISCONTINUED || 0),
         renamed: Number(catalogInventoryAudit.counts.RENAMED || 0),
         structureChanged: Number(catalogInventoryAudit.counts.STRUCTURE_CHANGED || 0),
-        bindingConflicts: catalogInventoryAudit.bindingConflicts.length },
+        bindingConflicts: catalogInventoryAudit.bindingConflicts.length,
+        catalogAutoApplicable: catalogActions.filter(item => item.autoApplicable === true).length,
+        catalogReviewRequired: catalogActions.filter(item => item.autoApplicable !== true).length },
       expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts, results };
     this.store.addScan(scan);
     this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', scanId: scan.id, result: { scanId: scan.id, counts } });
