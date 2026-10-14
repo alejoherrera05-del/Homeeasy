@@ -3,9 +3,9 @@
 
 const $=id=>document.getElementById(id);
 const API_URL=String(window.HomeEasyCore&&window.HomeEasyCore.API_URL||'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
-const familyLabels={onda:'Onda Serena',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales',enrollable:'Enrollable'};
+const familyLabels={onda:'Onda Serena',ring:'Cortina Ring',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales',enrollable:'Enrollable'};
 const FORMAL_QUOTE_TRANSFER_KEY='homeeasy.cost-to-formal.v1';
-const familyOrder=['onda','sheer','vertesse','panel','vertical','enrollable'];
+const familyOrder=['onda','ring','sheer','vertesse','panel','vertical','enrollable'];
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cop=cents=>'COP $'+new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Math.round((Number(cents)||0)/100));
 const formatPesos=raw=>new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Number(String(raw||'0').replace(/\D/g,''))||0);
@@ -191,7 +191,7 @@ function familyInstallationFields(family){
   return {
     mount:true,
     control:['enrollable','sheer','vertesse','panel','vertical'].includes(family),
-    opening:['onda','vertesse','panel','vertical'].includes(family)
+    opening:['onda','ring','vertesse','panel','vertical'].includes(family)
   };
 }
 
