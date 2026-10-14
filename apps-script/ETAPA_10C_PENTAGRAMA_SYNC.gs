@@ -56,6 +56,10 @@ function leerCatalogoPentagramaSync10C_(ss) {
       status: String(product.status || ""),
       destination: stored ? { sheet: HOMEEASY_COST_SHEET, row: stored.row, field: "Tarifa_IVA_COP" } : null,
       updatedAt: stored && row[19] instanceof Date ? row[19].toISOString() : stored ? String(row[19] || "") : "",
+      rules: rules,
+      pricesIncludeVat: product.pricesIncludeVat === true,
+      currency: String(product.currency || "COP"),
+      validThrough: String(product.validThrough || catalog.validThrough || ""),
       external: {
         productCode: String(rules.productCode || ""),
         groupCode: String(rules.groupCode || ""),
@@ -68,7 +72,14 @@ function leerCatalogoPentagramaSync10C_(ss) {
       }
     };
   });
-  return { status: "ok", version: catalog.version, validThrough: catalog.validThrough, products: products };
+  return {
+    status: "ok",
+    version: catalog.version,
+    validThrough: catalog.validThrough,
+    products: products,
+    config: catalog.config || {},
+    enrollableSizeRules: catalog.enrollableSizeRules || {}
+  };
 }
 
 function aplicarPentagramaSync10C_(ss, data, authValidation) {
