@@ -22,6 +22,15 @@
     password.dispatchEvent(new Event('change', { bubbles: true }));
 
     await new Promise(resolve => setTimeout(resolve, 250));
+
+    const captcha = document.querySelector('#CaptchaValue, input[name="CaptchaValue"]');
+    const captchaVisible = Boolean(captcha && captcha.getClientRects().length && getComputedStyle(captcha).visibility !== 'hidden');
+    if (captchaVisible) {
+      try { captcha.focus(); } catch (_) {}
+      await chrome.runtime.sendMessage({ type: 'HOMEEASY_CAPTCHA_REQUIRED' }).catch(() => null);
+      return;
+    }
+
     button.click();
   } catch (_) {}
 })();
