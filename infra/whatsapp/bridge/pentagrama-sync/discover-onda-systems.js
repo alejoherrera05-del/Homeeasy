@@ -175,7 +175,7 @@ async function main() {
   console.log();
   console.log('=== PRODUCTOS ONDA SERENA ===');
   console.log('Total unicos:', unique.length);
-  console.log(unique.map(product => ({
+  console.log('Muestra:', unique.slice(0, 12).map(product => ({
     path: product.path.join(' > '),
     name: product.name,
     productCode: product.productCode,
@@ -205,12 +205,14 @@ async function main() {
   console.log('=== ATRIBUTOS REPRESENTATIVOS ===');
   const representative = [];
   const familySeen = new Set();
+  const knownCurrent = unique.find(product => product.productCode === 'CORONSEVECORWH2.8');
+  if (knownCurrent) representative.push(knownCurrent);
   for (const product of unique) {
-    const familyKey = product.path.slice(0, 3).join('|') || product.name.split(/\s+/).slice(0, 3).join(' ');
-    if (familySeen.has(familyKey)) continue;
+    const familyKey = product.path.join('|') || product.name.split(/\s+/).slice(0, 4).join(' ');
+    if (familySeen.has(familyKey) || representative.some(item => item.productCode === product.productCode)) continue;
     familySeen.add(familyKey);
     representative.push(product);
-    if (representative.length >= 10) break;
+    if (representative.length >= 12) break;
   }
 
   for (const product of representative) {
