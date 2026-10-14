@@ -8,12 +8,19 @@ on:
       - 'homeeasy-pentagrama-sync.js'
       - 'homeeasy-pentagrama-sync.css'
       - 'configuracion.html'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/live-resolver.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/live-resolver.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model-learned.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-structural-profiles.json'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
@@ -30,10 +37,19 @@ on:
       - 'homeeasy-pentagrama-sync.js'
       - 'homeeasy-pentagrama-sync.css'
       - 'configuracion.html'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/live-resolver.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/live-resolver.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model-learned.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-structural-profiles.json'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
@@ -51,7 +67,7 @@ permissions:
 jobs:
   catalog-sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -60,9 +76,12 @@ jobs:
       - name: Syntax checks
         run: |
           node --check homeeasy-pentagrama-sync.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/catalog.js
           node --check infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js
           node --check infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js
           node --check infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/live-resolver.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/local-model.js
           node --check infra/whatsapp/bridge/pentagrama-sync/phase2.js
           node --check infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js
           node --check infra/whatsapp/bridge/pentagrama-sync/index.js
@@ -78,9 +97,17 @@ jobs:
         run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js
       - name: Catalog certifier tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.test.js
+      - name: Live resolver tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/live-resolver.test.js
+      - name: Enrollables local model tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/local-model.test.js
+      - name: Learned Enrollables model tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/local-model-learned.test.js
       - name: Phase 2 tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/phase2.test.js
       - name: Agent tests
         run: node --test infra/pentagrama-agent/test/agent.test.js
       - name: Existing cotizador Ring regression
         run: node tests/cost-calculator-ring.cjs
+      - name: Existing Enrollables calculator regression
+        run: node tests/cost-calculator-enrollables.cjs
