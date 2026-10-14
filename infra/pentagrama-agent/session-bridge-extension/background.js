@@ -193,6 +193,9 @@ async function executePortalRequest(tabId, spec) {
     world: 'MAIN',
     args: [spec],
     func: async request => {
+      const timeoutMs = Math.max(8000, Math.min(30000, Number(request && request.timeoutMs || 20000)));
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const response = await fetch(request.url, {
           method: request.method || 'GET',
@@ -200,7 +203,8 @@ async function executePortalRequest(tabId, spec) {
           body: request.body || undefined,
           credentials: 'include',
           redirect: 'follow',
-          cache: 'no-store'
+          cache: 'no-store',
+          signal: controller.signal
         });
         const text = await response.text();
         const headers = {};
@@ -215,11 +219,15 @@ async function executePortalRequest(tabId, spec) {
           }
         };
       } catch (error) {
+        const timedOut = error && (error.name === 'AbortError' || error.name === 'TimeoutError');
         return {
           ok: false,
-          code: 'PENTAGRAMA_BROWSER_REQUEST_FAILED',
-          error: String(error && error.message || error || 'Browser request failed')
+          code: timedOut ? 'PENTAGRAMA_BROWSER_REQUEST_TIMEOUT' : 'PENTAGRAMA_BROWSER_REQUEST_FAILED',
+          error: timedOut ? 'Pentagrama browser request timed out' : String(error && error.message || error || 'Browser request failed'),
+          infrastructure: timedOut
         };
+      } finally {
+        clearTimeout(timer);
       }
     }
   });
@@ -241,15 +249,33 @@ function resultLooksLoggedOut(value) {
 
 async function runBrowserRequest(request) {
   const tabId = await ensurePortalTab();
-  await ensurePortalAuthenticated(tabId);
+  const maxAttempts = 3;
+  let lastResult = null;
 
-  let result = await executePortalRequest(tabId, request.payload || {});
-  if (resultLooksLoggedOut(result)) {
-    await chrome.tabs.update(tabId, { url: LOGIN_URL, active: false });
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     await ensurePortalAuthenticated(tabId);
-    result = await executePortalRequest(tabId, request.payload || {});
+
+    let result = await executePortalRequest(tabId, request.payload || {});
+    if (resultLooksLoggedOut(result)) {
+      await chrome.tabs.update(tabId, { url: LOGIN_URL, active: false });
+      await ensurePortalAuthenticated(tabId);
+      result = await executePortalRequest(tabId, request.payload || {});
+    }
+
+    lastResult = result;
+    if (result && result.ok !== false) return result;
+
+    const transient = result && ['PENTAGRAMA_BROWSER_REQUEST_TIMEOUT', 'PENTAGRAMA_BROWSER_REQUEST_FAILED'].includes(String(result.code || ''));
+    if (!transient || attempt >= maxAttempts) return result;
+
+    await sleep(350 * attempt);
   }
-  return result;
+
+  return lastResult || {
+    ok: false,
+    code: 'PENTAGRAMA_BROWSER_REQUEST_FAILED',
+    error: 'Pentagrama browser request did not return a result'
+  };
 }
 
 async function browserPollLoop() {
