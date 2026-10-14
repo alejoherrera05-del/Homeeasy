@@ -442,6 +442,9 @@ class PentagramaPhase2 {
         structureChanged: Number(catalogInventoryAudit.counts.STRUCTURE_CHANGED || 0),
         bindingConflicts: catalogInventoryAudit.bindingConflicts.length,
         catalogAutoApplicable: catalogActions.filter(item => item.autoApplicable === true).length,
+        catalogRateChanges: catalogActions.filter(item => item.kind === 'UPDATE_RATE' && item.autoApplicable === true).length,
+        catalogCertifiedAdditions: catalogActions.filter(item => item.kind === 'ADD' && item.autoApplicable === true).length,
+        catalogCertifiedDeactivations: catalogActions.filter(item => item.kind === 'DEACTIVATE' && item.autoApplicable === true).length,
         catalogReviewRequired: catalogActions.filter(item => item.autoApplicable !== true).length },
       expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts, results };
     this.store.addScan(scan);
