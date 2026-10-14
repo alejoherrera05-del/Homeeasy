@@ -9,7 +9,10 @@ const source=fs.readFileSync(path.join(__dirname,'../apps-script/ETAPA_10B_COSTO
 const Utilities={
   formatDate:()=> '2026-10-14',
   base64Decode:value=>Buffer.from(String(value),'base64'),
-  newBlob:bytes=>({bytes:Buffer.from(bytes)}),
+  newBlob:(bytes,contentType)=>{
+    assert.equal(contentType,'application/gzip');
+    return {bytes:Buffer.from(bytes)};
+  },
   ungzip:blob=>({
     getDataAsString:()=>zlib.gunzipSync(blob.bytes).toString('utf8')
   })

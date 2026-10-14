@@ -25,7 +25,7 @@ let HOMEEASY_RING_ROWS_CACHE_10B_ = null;
 function filasRingCertificadas10B_() {
   if (HOMEEASY_RING_ROWS_CACHE_10B_) return HOMEEASY_RING_ROWS_CACHE_10B_;
   const bytes = Utilities.base64Decode(HOMEEASY_RING_CATALOG_GZIP_B64_10B);
-  const json = Utilities.ungzip(Utilities.newBlob(bytes)).getDataAsString("UTF-8");
+  const json = Utilities.ungzip(Utilities.newBlob(bytes, "application/gzip")).getDataAsString("UTF-8");
   const rows = JSON.parse(json);
   if (!Array.isArray(rows) || rows.length !== 238) throw new Error("El catálogo certificado de Cortina Ring está incompleto.");
   HOMEEASY_RING_ROWS_CACHE_10B_ = rows;
