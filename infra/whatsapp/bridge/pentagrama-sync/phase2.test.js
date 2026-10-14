@@ -106,3 +106,133 @@ test('inventory audit records real catalog additions and discontinuations withou
   assert.equal(audit.changes.length, 2);
   assert.ok(audit.changes.every(item => ['NEW', 'DISCONTINUED'].includes(item.status)));
 });
+
+
+test('certified 279-Enrollables model is applied as one upstream batch and recorded in composite history', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-local-model-apply-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const candidate = {
+    version: 'pentagrama-local-v1',
+    sourceVersion: 'sheet-v1',
+    summary: {
+      enrollables: 279,
+      fail: 0,
+      maxDifference: 0,
+      monetaryExpectedSelfReferential: 0,
+      changed: 12
+    }
+  };
+  let appliedCandidate = null;
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [],
+    enrollablesRegistry: { products: {} },
+    pricing: {},
+    homeeasyCost: {},
+    homeeasy: {
+      catalog: async () => ({ version: 'sheet-v1', products: [] }),
+      applyLocalModel: async (_scan, model) => {
+        appliedCandidate = model;
+        return { historyId: 'local-history', version: model.version, qa: { ok: true, checked: 500, maxDifference: 0 } };
+      },
+      rollback: async () => ({ historyId: 'rollback-local', qa: { ok: true } })
+    }
+  });
+  const operation = store.operation('apply', { email: 'test@example.com' });
+  const scan = {
+    id: 'scan-local',
+    sourceVersion: 'sheet-v1',
+    localModelCandidate: candidate,
+    results: [{
+      id: 'enrollables-local-model',
+      homeeasyId: '__enrollables_local_model__',
+      strategy: 'LOCAL_MODEL',
+      status: 'NEW',
+      autoApplicable: true,
+      oldCost: 0,
+      newCost: 12,
+      difference: 12
+    }],
+    catalogChanges: [],
+    catalogActions: [],
+    catalogAudit: {},
+    counts: { NEW: 1 }
+  };
+  await service.runApply(operation.id, scan, [scan.results[0]], [], {});
+  assert.equal(appliedCandidate.version, 'pentagrama-local-v1');
+  const completed = store.operationById(operation.id);
+  assert.equal(completed.state, 'completed');
+  assert.equal(completed.result.localModelChanges, 1);
+  assert.deepEqual(completed.result.upstreamHistoryIds, ['local-history']);
+  assert.equal(completed.result.qa.ok, true);
+  assert.equal(store.latestScan().localModelCandidate, null);
+  assert.equal(store.latestScan().localModelVersion, 'pentagrama-local-v1');
+});
+
+test('a later QA failure compensates a successfully applied Enrollables batch', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-local-model-rollback-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const rolledBack = [];
+  const mapping = {
+    id: 'v', homeeasyId: 'vertical-111', family: 'Vertical', reference: 'Matte',
+    productCode: 'P', groupCode: 'G', calculationType: 'NormalProduct',
+    width: '2', height: '2', quantity: 1, productDiscount: 0, pricingMode: 'account-discount',
+    strategy: 'RATE_M2', status: 'CERTIFIED', verifiedAt: '2026-10-08T00:00:00Z',
+    casesPassed: 3, maxDifference: 0,
+    destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' },
+    updateField: 'Tarifa_IVA_COP', special: {},
+    validationCases: [{ id: 'a', width: '2', height: '2', role: 'derive' }, { id: 'b', width: '2.4', height: '2', role: 'derive' }]
+  };
+  const candidate = {
+    version: 'pentagrama-local-v2',
+    sourceVersion: 'sheet-v1',
+    summary: { enrollables: 279, fail: 0, maxDifference: 0, monetaryExpectedSelfReferential: 0, changed: 1 }
+  };
+  let currentCalls = 0;
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [mapping],
+    enrollablesRegistry: { products: {} },
+    pricing: { supplierCost: async params => ({ total: Number(params.Width) * Number(params.Height) * 100000 }) },
+    homeeasyCost: {
+      cost: async item => {
+        currentCalls += 1;
+        const rate = currentCalls <= 2 ? 99000 : 98000;
+        return { amount: Number(item.width) * Number(item.height) * rate };
+      }
+    },
+    homeeasy: {
+      catalog: async () => ({ version: 'sheet-v1', products: [] }),
+      apply: async () => ({ historyId: 'price-history', qa: { ok: true } }),
+      applyLocalModel: async () => ({ historyId: 'local-history', version: 'pentagrama-local-v2', qa: { ok: true, checked: 500, maxDifference: 0 } }),
+      rollback: async id => { rolledBack.push(id); return { historyId: 'rollback-' + id, qa: { ok: true } }; }
+    }
+  });
+  const operation = store.operation('apply', { email: 'test@example.com' });
+  const priceChange = {
+    id: 'v', homeeasyId: 'vertical-111', sourceRow: 2, updateField: 'Tarifa_IVA_COP',
+    expectedRate: 99000, proposedRate: 100000, oldCost: 396000, newCost: 400000,
+    difference: 4000, percent: 1.01, width: '2', height: '2', quantity: 1,
+    strategy: 'RATE_M2', destination: mapping.destination,
+    sourceModel: { method: 'area', minHeight: 0, minArea: 0, promotional: false }
+  };
+  const localChange = {
+    id: 'enrollables-local-model', homeeasyId: '__enrollables_local_model__',
+    strategy: 'LOCAL_MODEL', status: 'NEW', autoApplicable: true, oldCost: 0, newCost: 1
+  };
+  const scan = {
+    id: 'scan-composite',
+    sourceVersion: 'sheet-v1',
+    localModelCandidate: candidate,
+    results: [priceChange, localChange],
+    catalogChanges: [],
+    catalogActions: [],
+    catalogAudit: {},
+    counts: { INCREASED: 1, NEW: 1 }
+  };
+  await assert.rejects(
+    service.runApply(operation.id, scan, [priceChange, localChange], [], {}),
+    error => error.code === 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK'
+  );
+  assert.deepEqual(rolledBack, ['local-history', 'price-history']);
+});
