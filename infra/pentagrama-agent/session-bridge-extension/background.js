@@ -172,12 +172,19 @@ async function ensurePortalTab() {
   return portalTabId;
 }
 
+function freshLoginUrl(baseUrl) {
+  const url = new URL(baseUrl || LOGIN_URL);
+  url.searchParams.set('homeeasy', '1');
+  url.searchParams.set('ha', String(Date.now()));
+  return url.toString();
+}
+
 async function ensurePortalAuthenticated(tabId) {
   let state = await waitTabReady(tabId, 20000).catch(() => null);
   if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) return true;
 
   const credentials = await agent('/v1/credentials');
-  await chrome.tabs.update(tabId, { url: credentials.loginUrl, active: false });
+  await chrome.tabs.update(tabId, { url: freshLoginUrl(credentials.loginUrl), active: false });
   const deadline = Date.now() + 45000;
   while (Date.now() < deadline) {
     state = await waitTabReady(tabId, 5000).catch(() => null);
@@ -257,7 +264,7 @@ async function runBrowserRequest(request) {
 
     let result = await executePortalRequest(tabId, request.payload || {});
     if (resultLooksLoggedOut(result)) {
-      await chrome.tabs.update(tabId, { url: LOGIN_URL, active: false });
+      await chrome.tabs.update(tabId, { url: freshLoginUrl(LOGIN_URL), active: false });
       await ensurePortalAuthenticated(tabId);
       result = await executePortalRequest(tabId, request.payload || {});
     }
