@@ -41,7 +41,7 @@ class PentagramaPhase2 {
     this.certificationRegistry = options.certificationRegistry || DEFAULT_CERTIFICATION_REGISTRY;
     this.enrollablesRegistry = options.enrollablesRegistry || DEFAULT_ENROLLABLES_REGISTRY;
     this.inventory = options.inventory || (this.gateway ? new PentagramaCatalogInventory({ gateway: this.gateway }) : null);
-    this.catalogCertifier = options.catalogCertifier || new CatalogCertifier({ pricing: this.pricing });
+    this.catalogCertifier = options.catalogCertifier || (this.pricing && typeof this.pricing.supplierCost === 'function' ? new CatalogCertifier({ pricing: this.pricing }) : null);
     this.store = options.store || new Phase2Store(options);
   }
 
@@ -128,6 +128,7 @@ class PentagramaPhase2 {
 
 
   async buildCatalogActions(source, inventory) {
+    if (!this.catalogCertifier) return [];
     const sourceProducts = Array.isArray(source && source.products) ? source.products : [];
     const sourceById = new Map(sourceProducts.map(item => [String(item.id), item]));
     const sourceIds = new Set(sourceProducts.map(item => String(item.id)));
