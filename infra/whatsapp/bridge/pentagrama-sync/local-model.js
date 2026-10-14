@@ -797,33 +797,48 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   };
 
   for (const supplement of supplementGroups.values()) {
-    const parentId = supplement.parents[0];
-    const special = await resolveSpecialMechanism({
-      label: `${parentId}/penta13`,
-      parentId,
-      configuration: 'penta13',
-      initialSamples: [{ width: 1.83, height: 2.2 }, { width: 2.5, height: 2.2 }],
-      scope: 'penta13',
-      denominator: sample => Number(sample.width)
-    });
-    const specialMechanismBands = special.bands;
-    const rate = special.rate;
-    const existing = sourceById.get(supplement.id);
-    complementPatches.push({ homeeasyId: supplement.id, row: existing && existing.row || null, expectedRate: existing ? Number(existing.rate) : null,
-      proposedRate: rate, expectedRulesHash: hash(existing && existing.rules || {}), rules: { fabricationMechanismBands: specialMechanismBands }, method: 'linear-width',
-      family: 'complemento-enrollable', familyName: 'Complementos Enrollable', reference: supplement.option.label,
-      type: 'Penta13', configuration: supplement.option.itemCode, source: 'Pentagrama Live current run' });
-    supplement.parents.forEach(id => {
-      const patch = productPatches.find(item => item.homeeasyId === id);
+    const parentSpecials = [];
+    for (const parentId of supplement.parents) {
+      const special = await resolveSpecialMechanism({
+        label: `${parentId}/penta13`,
+        parentId,
+        configuration: 'penta13',
+        initialSamples: [{ width: 1.83, height: 2.2 }, { width: 2.5, height: 2.2 }],
+        scope: 'penta13',
+        denominator: sample => Number(sample.width)
+      });
+      parentSpecials.push({ parentId, ...special });
+
+      const patch = productPatches.find(item => item.homeeasyId === parentId);
       const configs = Array.isArray(patch.rules.configurations) ? patch.rules.configurations.filter(item => item.id !== 'penta13') : [];
       configs.push({
         id: 'penta13',
         label: supplement.option.label,
         supplementId: supplement.id,
-        fabricationMechanismBands: specialMechanismBands.map(item => ({ ...item }))
+        fabricationMechanismBands: special.bands.map(item => ({ ...item }))
       });
       patch.rules.configurations = configs;
-    });
+    }
+
+    const rates = parentSpecials.map(item => Number(item.rate));
+    if (!rates.length || Math.max(...rates) - Math.min(...rates) > TOLERANCE) {
+      throw Object.assign(new Error(`${supplement.id} Penta13 rate differs across parent products`), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED',
+        rates: parentSpecials.map(item => ({ parentId: item.parentId, rate: item.rate }))
+      });
+    }
+
+    const rate = money(rates.reduce((sum, value) => sum + value, 0) / rates.length);
+    const existing = sourceById.get(supplement.id);
+    const bandHashes = new Set(parentSpecials.map(item => hash(item.bands)));
+    const commonBands = bandHashes.size === 1 && parentSpecials.length
+      ? parentSpecials[0].bands.map(item => ({ ...item }))
+      : [];
+
+    complementPatches.push({ homeeasyId: supplement.id, row: existing && existing.row || null, expectedRate: existing ? Number(existing.rate) : null,
+      proposedRate: rate, expectedRulesHash: hash(existing && existing.rules || {}), rules: commonBands.length ? { fabricationMechanismBands: commonBands } : {}, method: 'linear-width',
+      family: 'complemento-enrollable', familyName: 'Complementos Enrollable', reference: supplement.option.label,
+      type: 'Penta13', configuration: supplement.option.itemCode, source: 'Pentagrama Live current run' });
   }
 
   for (const [id, definition] of Object.entries(COMPLEMENTS)) {
