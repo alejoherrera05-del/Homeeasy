@@ -7,6 +7,7 @@ const { HomeEasyCostClient } = require('./homeeasy');
 const { PentagramaComparison } = require('./comparison');
 const { INITIAL_MAPPINGS } = require('./mapper');
 const { PentagramaLiveResolver } = require('./live-resolver');
+const { PentagramaCatalogInventory } = require('./catalog-inventory');
 
 function createPentagramaSync(options = {}) {
   const client = options.client || new PentagramaClient(options);
@@ -18,7 +19,8 @@ function createPentagramaSync(options = {}) {
   const homeeasy = options.homeeasy || new HomeEasyCostClient(options);
   const comparison = options.comparison || new PentagramaComparison({ pricing, homeeasy, mappings: options.mappings || INITIAL_MAPPINGS });
   const liveResolver = options.liveResolver || new PentagramaLiveResolver({ catalog, pricing, vatRate: options.vatRate });
-  return Object.freeze({ mode, client, catalog, pricing, homeeasy, comparison, liveResolver });
+  const catalogInventory = options.catalogInventory || new PentagramaCatalogInventory({ catalog });
+  return Object.freeze({ mode, client, catalog, pricing, homeeasy, comparison, liveResolver, catalogInventory });
 }
 
 module.exports = Object.freeze({ createPentagramaSync });
