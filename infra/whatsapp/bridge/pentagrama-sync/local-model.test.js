@@ -5,11 +5,13 @@ const assert = require('node:assert/strict');
 const liveInventory = require('./enrollables-live-products.json');
 const structuralProfiles = require('./enrollables-structural-profiles.json');
 const { COMPLEMENTS } = require('./live-resolver');
-const { STRUCTURE_CASES, buildEnrollablesLocalCandidate, localFabrication, portalFabricationProfile, serializedCandidateQa } = require('./local-model');
+const { STRUCTURE_CASES, buildEnrollablesLocalCandidate, localFabrication, portalFabricationProfile, serializedCandidateQa,
+  deriveMechanismBands, deriveFabricationProfile } = require('./local-model');
 
 function fixture() {
   const products = Object.values(liveInventory.products);
   const rates = new Map(products.map((item, index) => [item.homeeasyId, 70000 + index * 10]));
+  const currentRates = new Map(rates);
   const rules = { sizeRuleId: 'ROLLER_V1', sizeGroup: 'STD', rollWidthMm: 3000, canRotate: true,
     minWidthMm: 500, minHeightMm: 500, coverlightIds: Object.keys(COMPLEMENTS) };
   const sourceProducts = products.map((item, index) => ({
@@ -21,7 +23,7 @@ function fixture() {
     family: 'complemento-enrollable', familyName: 'Complementos Enrollable', reference: id, type: 'Coverlight',
     method: 'linear-height', rate: 10000 + index * 1000, minHeight: 0, minArea: 0, rules: {}, pricesIncludeVat: true, currency: 'COP' }));
   const sizePolicy = { id: 'ROLLER_V1', configurations: { standard: { groups: { STD: [{ maxWidthMm: 5000, maxHeightMm: 4000, mechanism: 'M03', tube: 'STD' }] } } } };
-  const base = (id, width, height) => Math.round(Math.max(width * height, 1) * rates.get(id) * 100) / 100;
+  const base = (id, width, height) => Math.round(Math.max(width * height, 1) * currentRates.get(id) * 100) / 100;
   const resolveLive = async input => {
     let total = base(input.homeeasyId, Number(input.width), Number(input.height));
     if (input.configuration === 'penta13') total += 150000 * Number(input.width);
@@ -34,6 +36,7 @@ function fixture() {
   };
   return {
     source: { version: 'old', validThrough: '2027-12-31', products: sourceProducts, enrollableSizeRules: sizePolicy, config: {} },
+    currentRates,
     quoteBase: async input => ({ total: base(input.homeeasyId, Number(input.width), Number(input.height)) }),
     resolveLive,
     configurationOptions: async input => ({ penta13: input.homeeasyId === 'enrollable-blackout-matte3'
@@ -55,12 +58,16 @@ test('builds one atomic local candidate for all 279 Enrollables', async () => {
   assert.equal(candidate.summary.maxDifference, 0);
   assert.equal(candidate.summary.penta13, true);
   assert.equal(candidate.summary.complements, 4);
-  assert.equal(candidate.summary.baseCasesLive, 0);
-  assert.equal(candidate.summary.baseLinearityCasesReused, 558);
+  assert.equal(candidate.summary.baseCasesLive, 279);
+  assert.equal(candidate.summary.baseCurrentLiveChecks, 279);
+  assert.equal(candidate.summary.baseLinearityCasesReused, 279);
+  assert.equal(candidate.summary.currentTariffChanges, 0);
+  assert.equal(candidate.summary.monetaryExpectedSelfReferential, 0);
+  assert.equal(candidate.summary.boundaryPrecisionMm, 1);
   assert.equal(candidate.summary.structureCasesReused, 0);
   assert.equal(candidate.summary.structureCasesLive > candidate.summary.structures * STRUCTURE_CASES.length, true);
   assert.equal(liveCalls >= candidate.summary.structureCasesLive, true);
-  assert.equal(candidate.qaCases.filter(item => item.scope === 'structure').every(item => item.evidenceSource === 'Pentagrama Live current run'), true);
+  assert.equal(candidate.qaCases.filter(item => Number(item.expected) > 0).every(item => item.evidenceSource === 'Pentagrama Live current run'), true);
   assert.ok(candidate.qaCases.some(item => item.scope === 'penta13'));
   assert.ok(candidate.qaCases.some(item => item.scope === 'complement'));
   assert.ok(candidate.products.find(item => item.homeeasyId === 'enrollable-blackout-matte3').rules.configurations.some(item => item.supplementId));
@@ -89,9 +96,10 @@ test('current Live evidence replaces stale Angora/Moire profiles and certifies e
     assert.equal(localFabrication(withCoverlight, { width: 1.83, height: 1.2 }, {}).mechanism, 'M03');
     assert.equal(localFabrication(withCoverlight, { width: 1.83, height: 2.2 }, {}).mechanism, 'M03');
   }
-  assert.ok(candidate.qaCases.find(item => item.id === 'enrollable-blackout-matte3:penta13-1.83'));
-  assert.ok(candidate.qaCases.find(item => item.id === 'coverlight-standard:1.2'));
-  assert.ok(candidate.qaCases.find(item => item.id === 'coverlight-standard:2.2'));
+  assert.ok(candidate.qaCases.find(item => item.scope === 'penta13' && item.homeeasyId === 'enrollable-blackout-matte3'));
+  assert.ok(candidate.qaCases.find(item => item.scope === 'complement' && item.coverlight === 'coverlight-standard'));
+  assert.equal(candidate.qaCases.filter(item => ['penta13', 'complement'].includes(item.scope))
+    .every(item => item.evidenceSource === 'Pentagrama Live current run'), true);
 });
 
 test('serialized pre-Apply QA rejects mechanism drift instead of counting qaCases blindly', () => {
@@ -101,7 +109,8 @@ test('serialized pre-Apply QA rejects mechanism drift instead of counting qaCase
   } } };
   const result = serializedCandidateQa(new Map([['p', source]]), [{ homeeasyId: 'p', proposedRate: 100, rules: source.rules }], [], [{
     id: 'p:1.83', homeeasyId: 'p', width: 1.83, height: 2.2, configuration: 'standard', expected: 402.6,
-    expectedOutcome: 'PRICE', expectedOrientation: 'DIN', expectedMechanism: 'M03'
+    expectedOutcome: 'PRICE', expectedOrientation: 'DIN', expectedMechanism: 'M03',
+    evidenceSource: 'Pentagrama Live current run'
   }], {});
   assert.equal(result.pass, 0);
   assert.equal(result.fail, 1);
@@ -109,7 +118,7 @@ test('serialized pre-Apply QA rejects mechanism drift instead of counting qaCase
   assert.equal(result.failures[0].expectedMechanism, 'M03');
 });
 
-test('recovers only missing persisted rates without repeating certified base QA', async () => {
+test('checks every current base tariff Live and uses a second point when persisted rate cannot be reused', async () => {
   const options = fixture();
   const missing = options.source.products.find(item => item.id === 'enrollable-blackout-felice');
   missing.rate = 0;
@@ -119,10 +128,10 @@ test('recovers only missing persisted rates without repeating certified base QA'
   options.quoteBase = async input => { baseCalls++; return quoteBase(input); };
   const candidate = await buildEnrollablesLocalCandidate({ ...options, now: '2026-10-11T05:00:00.000Z' });
   const patch = candidate.products.find(item => item.homeeasyId === missing.id);
-  assert.equal(baseCalls, 1);
+  assert.equal(baseCalls, 280);
   assert.ok(patch.proposedRate > 0);
-  assert.equal(candidate.summary.baseCasesLive, 1);
-  assert.equal(candidate.summary.baseLinearityCasesReused, 558);
+  assert.equal(candidate.summary.baseCurrentLiveChecks, 280);
+  assert.equal(candidate.summary.baseLinearityCasesReused, 278);
 });
 
 test('rejects a non-linear product instead of approximating its rate', async () => {
@@ -135,6 +144,97 @@ test('rejects a non-linear product instead of approximating its rate', async () 
     return quote;
   };
   await assert.rejects(() => buildEnrollablesLocalCandidate(options), error => error.code === 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED');
+});
+
+test('updates a stale persisted tariff from current Pentagrama Live instead of self-certifying the old rate', async () => {
+  const options = fixture();
+  const id = 'enrollable-blackout-angora';
+  const source = options.source.products.find(item => item.id === id);
+  assert.equal(source.rate, 70000);
+  options.currentRates.set(id, 74000);
+
+  const candidate = await buildEnrollablesLocalCandidate({ ...options, now: '2026-10-11T05:00:00.000Z' });
+  const patch = candidate.products.find(item => item.homeeasyId === id);
+
+  assert.equal(patch.proposedRate, 74000);
+  assert.equal(candidate.summary.currentTariffChanges, 1);
+  assert.equal(candidate.summary.baseCurrentLiveChecks, 280);
+  assert.equal(candidate.summary.monetaryExpectedSelfReferential, 0);
+  assert.equal(candidate.qaCases.filter(item => item.homeeasyId === id && item.scope === 'base').length, 2);
+});
+
+test('serialized pre-Apply QA rejects a monetary expected value without current Live evidence', () => {
+  const source = { id: 'p', minArea: 1, minHeight: 0, rules: { fabricationProfile: {
+    rollWidthMm: 3000, orientationAcrossCode: 'TAT', orientationAddedCode: 'TAN',
+    mechanismBands: [{ maxWidthMm: null, maxHeightMm: null, mechanism: 'M03' }]
+  } } };
+  const result = serializedCandidateQa(new Map([['p', source]]), [{ homeeasyId: 'p', proposedRate: 100, rules: source.rules }], [], [{
+    id: 'p:self', homeeasyId: 'p', width: 2, height: 2, configuration: 'standard', expected: 400,
+    expectedOutcome: 'PRICE', expectedOrientation: 'DIN', expectedMechanism: 'M03'
+  }], {});
+  assert.equal(result.fail, 1);
+  assert.equal(result.failures[0].code, 'SERIALIZED_EXPECTED_PRICE_NOT_LIVE_CURRENT');
+});
+
+test('ambiguous mechanism profiles request discriminating Live probes instead of choosing the first match', () => {
+  assert.throws(() => deriveMechanismBands([
+    { width: 1.83, height: 2.2, outcome: 'PRICE', mechanism: 'M03' },
+    { width: 2.5, height: 2.2, outcome: 'PRICE', mechanism: 'M03' }
+  ], null, 'ambiguous-special'), error => {
+    assert.equal(error.code, 'PENTAGRAMA_LOCAL_MODEL_MECHANISM_PROFILE_AMBIGUOUS');
+    assert.ok(Array.isArray(error.ambiguityProbes));
+    assert.ok(error.ambiguityProbes.length > 0);
+    return true;
+  });
+});
+
+test('fabrication profile resolves an orientation boundary at one-millimeter precision', () => {
+  const group = { product: { id: 'boundary-product', rules: { sizeGroup: 'STD' } } };
+  const evidence = [
+    { width: 0.8, height: 1, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M01' },
+    { width: 1.6, height: 2.2, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M01' },
+    { width: 1.601, height: 2.2, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M03' },
+    { width: 1.829, height: 2.2, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M03' },
+    { width: 1.83, height: 2.2, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M03' },
+    { width: 1.831, height: 2.2, outcome: 'ALTERNATIVE', orientationCode: 'TAN', mechanism: 'M03' },
+    { width: 2.5, height: 2.2, outcome: 'ALTERNATIVE', orientationCode: 'TAN', mechanism: 'M03' },
+    { width: 3, height: 2.8, outcome: 'ALTERNATIVE', orientationCode: 'TAN', mechanism: 'M05' }
+  ];
+  const profile = deriveFabricationProfile(group, evidence, null);
+  assert.equal(profile.rollWidthMm, 1830);
+  assert.equal(profile.rotateAtRollWidth, false);
+  const product = { rules: { fabricationProfile: profile } };
+  assert.equal(localFabrication(product, { width: 1.83, height: 2.2 }, {}).orientationCode, 'DIN');
+  assert.equal(localFabrication(product, { width: 1.831, height: 2.2 }, {}).orientationCode, 'TAN');
+});
+
+test('Penta13 may use a mechanism profile different from its parent and remains serialized-QA safe', async () => {
+  const options = fixture();
+  const original = options.resolveLive;
+  options.resolveLive = async input => {
+    const result = await original(input);
+    if (input.configuration === 'penta13') result.configuration.mechanism = 'M05';
+    return result;
+  };
+  const candidate = await buildEnrollablesLocalCandidate({ ...options, now: '2026-10-11T05:00:00.000Z' });
+  const matte = candidate.products.find(item => item.homeeasyId === 'enrollable-blackout-matte3');
+  const penta13 = matte.rules.configurations.find(item => item.id === 'penta13');
+  assert.deepEqual([...new Set(penta13.fabricationMechanismBands.map(item => item.mechanism))], ['M05']);
+  assert.equal(candidate.summary.fail, 0);
+});
+
+test('Coverlight may use a mechanism profile different from its parent and remains serialized-QA safe', async () => {
+  const options = fixture();
+  const original = options.resolveLive;
+  options.resolveLive = async input => {
+    const result = await original(input);
+    if (input.coverlight === 'coverlight-standard') result.configuration.mechanism = 'M05';
+    return result;
+  };
+  const candidate = await buildEnrollablesLocalCandidate({ ...options, now: '2026-10-11T05:00:00.000Z' });
+  const matte = candidate.products.find(item => item.homeeasyId === 'enrollable-blackout-matte3');
+  assert.deepEqual([...new Set(matte.rules.coverlightMechanismBands['coverlight-standard'].map(item => item.mechanism))], ['M05']);
+  assert.equal(candidate.summary.fail, 0);
 });
 
 test('reproduces certified Pentagrama orientation and mechanism profiles', () => {
