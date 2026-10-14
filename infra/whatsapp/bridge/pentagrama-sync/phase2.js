@@ -10,6 +10,7 @@ const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certific
 const { PentagramaCatalogInventory, compareInventory } = require('./catalog-inventory');
 const { buildCatalogBindings } = require('./catalog-bindings');
 const DEFAULT_ENROLLABLES_REGISTRY = require('./enrollables-live-products.json');
+const { CatalogCertifier, isRing, isRenueva, referenceName, sourceRowValues } = require('./catalog-certifier');
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
 
@@ -40,6 +41,7 @@ class PentagramaPhase2 {
     this.certificationRegistry = options.certificationRegistry || DEFAULT_CERTIFICATION_REGISTRY;
     this.enrollablesRegistry = options.enrollablesRegistry || DEFAULT_ENROLLABLES_REGISTRY;
     this.inventory = options.inventory || (this.gateway ? new PentagramaCatalogInventory({ gateway: this.gateway }) : null);
+    this.catalogCertifier = options.catalogCertifier || new CatalogCertifier({ pricing: this.pricing });
     this.store = options.store || new Phase2Store(options);
   }
 
