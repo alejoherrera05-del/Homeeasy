@@ -40,7 +40,7 @@ class PentagramaPhase2 {
     this.mappings = options.mappings || INITIAL_MAPPINGS;
     this.certificationRegistry = options.certificationRegistry || DEFAULT_CERTIFICATION_REGISTRY;
     this.enrollablesRegistry = options.enrollablesRegistry || DEFAULT_ENROLLABLES_REGISTRY;
-    this.inventory = options.inventory || (this.gateway ? new PentagramaCatalogInventory({ gateway: this.gateway }) : null);
+    this.inventory = options.inventory || (this.gateway && typeof this.gateway.dispatch === 'function' ? new PentagramaCatalogInventory({ gateway: this.gateway }) : null);
     this.catalogCertifier = options.catalogCertifier || (this.pricing && typeof this.pricing.supplierCost === 'function' ? new CatalogCertifier({ pricing: this.pricing }) : null);
     this.store = options.store || new Phase2Store(options);
   }
