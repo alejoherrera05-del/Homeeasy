@@ -426,7 +426,7 @@ class PentagramaPhase2 {
     }
     const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
-    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary,
+    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, sourceValidThrough: source.validThrough, catalogSummary,
       catalogInventoryAudit,
       catalogChanges: catalogInventoryAudit.changes,
       catalogActions,
@@ -451,15 +451,94 @@ class PentagramaPhase2 {
   startApply(actor, context, payload) {
     const scan = this.store.scan(String(payload.scanId || ''));
     if (!scan || Date.parse(scan.expiresAt) < Date.now()) throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
-    const requested = Array.isArray(payload.changeIds) ? new Set(payload.changeIds.map(String)) : null;
-    const changes = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && (!requested || requested.has(item.id)));
-    if (!changes.length) throw Object.assign(new Error('No verified changes were selected'), { statusCode: 409, code: 'PENTAGRAMA_NO_APPLICABLE_CHANGES' });
+    const requested = Array.isArray(payload.changeIds) ? new Set(payload.changeIds.map(String)) : new Set();
+    const requestedCatalog = Array.isArray(payload.catalogActionIds) ? new Set(payload.catalogActionIds.map(String)) : new Set();
+    const changes = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && requested.has(String(item.id)));
+    const catalogActions = (scan.catalogActions || []).filter(item => item.autoApplicable === true && requestedCatalog.has(String(item.id)));
+    if (!changes.length && !catalogActions.length) throw Object.assign(new Error('No verified changes were selected'), { statusCode: 409, code: 'PENTAGRAMA_NO_APPLICABLE_CHANGES' });
     const operation = this.store.operation('apply', actor);
-    setImmediate(() => this.runApply(operation.id, scan, changes, context).catch(error => this.fail(operation.id, error)));
+    setImmediate(() => this.runApply(operation.id, scan, changes, catalogActions, context).catch(error => this.fail(operation.id, error)));
     return operation;
   }
 
-  async runApply(operationId, scan, changes, context) {
+  async verifyCatalogActions(scan, actions) {
+    if (!actions.length) return [];
+    const inventory = await this.fullCatalogInventory();
+    const liveByKey = new Map((inventory.products || []).map(item => [String(item.externalKey || ''), item]));
+    const verified = [];
+
+    for (const action of actions) {
+      const kind = String(action.kind || '');
+      const key = String(action.externalKey || '');
+      if (kind === 'DEACTIVATE') {
+        if (liveByKey.has(key)) throw Object.assign(new Error('La referencia reapareció en Pentagrama antes de aplicar.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        verified.push({ ...action, mutation: { ...action.mutation, certified: true } });
+        continue;
+      }
+
+      const live = liveByKey.get(key);
+      if (!live || isRenueva(live)) throw Object.assign(new Error('La referencia cambió o dejó de estar disponible antes de aplicar.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+      if (!isRing(live)) throw Object.assign(new Error('La identidad técnica de Cortina Ring cambió antes de aplicar.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+
+      if (kind === 'RENAME') {
+        const currentName = referenceName(live);
+        if (!currentName || currentName !== String(action.reference || '')) throw Object.assign(new Error('El nombre cambió nuevamente antes de aplicar.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        verified.push({ ...action, mutation: { ...action.mutation, certified: true, newReference: currentName } });
+        continue;
+      }
+
+      if (kind === 'ADD' || kind === 'UPDATE_RATE') {
+        const certified = await this.catalogCertifier.certifyRing(live, {
+          version: scan.sourceVersion,
+          validThrough: scan.sourceValidThrough
+        });
+        if (!certified.ok || Math.abs(Number(certified.rate) - Number(action.proposedRate)) > 0.005) {
+          throw Object.assign(new Error('La tarifa dejó de coincidir con la evidencia del escaneo.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        }
+        if (kind === 'ADD' && String(certified.homeeasyId) !== String(action.homeeasyId)) {
+          throw Object.assign(new Error('La identidad HomeEasy de la referencia nueva cambió.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        }
+        if (kind === 'ADD') {
+          verified.push({
+            ...action,
+            mutation: {
+              ...action.mutation,
+              certified: true,
+              rowValues: certified.rowValues,
+              qaCases: certified.qaCases
+            }
+          });
+        } else {
+          const rowValues = Array.isArray(action.mutation && action.mutation.rowValues) ? action.mutation.rowValues.slice() : [];
+          if (rowValues.length !== 21) throw Object.assign(new Error('La fila certificada de tarifa está incompleta.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+          rowValues[3] = certified.reference;
+          rowValues[4] = certified.type;
+          rowValues[6] = certified.rate;
+          rowValues[20] = JSON.stringify(certified.rules);
+          const qaCases = certified.qaCases.map(testCase => ({
+            ...testCase,
+            homeeasy: { ...testCase.homeeasy, product: String(action.homeeasyId) }
+          }));
+          verified.push({
+            ...action,
+            mutation: {
+              ...action.mutation,
+              certified: true,
+              proposedRate: certified.rate,
+              rowValues,
+              qaCases
+            }
+          });
+        }
+        continue;
+      }
+
+      throw Object.assign(new Error('Acción de catálogo no soportada.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+    }
+    return verified;
+  }
+
+  async runApply(operationId, scan, changes, catalogActions, context) {
     this.store.updateOperation(operationId, { state: 'running', stage: 'PREWRITE_VALIDATION' });
     const verified = [];
     for (const item of changes) {
@@ -471,46 +550,95 @@ class PentagramaPhase2 {
       }
       verified.push({ item, mapping, validation });
     }
+    const verifiedCatalog = await this.verifyCatalogActions(scan, catalogActions || []);
     this.store.updateOperation(operationId, { stage: 'SNAPSHOT' });
     this.store.updateOperation(operationId, { stage: 'WRITING_SHEET' });
-    const applied = await this.homeeasy.apply(scan, verified.map(({ item, mapping, validation }) => ({
-      id: item.id, homeeasyId: item.homeeasyId, row: item.sourceRow, field: item.updateField,
-      expectedRate: item.expectedRate, proposedRate: item.proposedRate, oldCost: item.oldCost, newCost: item.newCost,
-      difference: item.difference, percent: item.percent, width: item.width, height: item.height, quantity: item.quantity,
-      strategy: item.strategy, destination: item.destination,
-      qaCases: validation.evidence.map(sample => ({ id: sample.id, width: sample.width, height: sample.height,
-        quantity: item.quantity, expected: roundMoney(sample.pentagrama.total), homeeasy: homeEasyItemForCase(mapping, sample) }))
-    })), context);
-    this.store.updateOperation(operationId, { stage: 'QA' });
-    const postQa = [];
-    for (const { item, mapping } of verified) {
-      for (const sample of this.validationCases(mapping)) {
-        const [pentagrama, current] = await Promise.all([
-          this.pricing.supplierCost(pentagramaParamsForCase(mapping, sample), { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }),
-          this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context)
-        ]);
-        postQa.push({ mappingId: item.id, caseId: sample.id, expected: roundMoney(pentagrama.total), actual: roundMoney(current.amount),
-          difference: roundMoney(current.amount - pentagrama.total) });
+
+    let appliedPrices = null;
+    let appliedCatalog = null;
+    try {
+      if (verified.length) {
+        appliedPrices = await this.homeeasy.apply(scan, verified.map(({ item, mapping, validation }) => ({
+          id: item.id, homeeasyId: item.homeeasyId, row: item.sourceRow, field: item.updateField,
+          expectedRate: item.expectedRate, proposedRate: item.proposedRate, oldCost: item.oldCost, newCost: item.newCost,
+          difference: item.difference, percent: item.percent, width: item.width, height: item.height, quantity: item.quantity,
+          strategy: item.strategy, destination: item.destination,
+          qaCases: validation.evidence.map(sample => ({ id: sample.id, width: sample.width, height: sample.height,
+            quantity: item.quantity, expected: roundMoney(sample.pentagrama.total), homeeasy: homeEasyItemForCase(mapping, sample) }))
+        })), context);
       }
+      if (verifiedCatalog.length) {
+        appliedCatalog = await this.homeeasy.applyCatalog(scan, verifiedCatalog.map(item => item.mutation), context);
+      }
+
+      this.store.updateOperation(operationId, { stage: 'QA' });
+      const postQa = [];
+      for (const { item, mapping } of verified) {
+        for (const sample of this.validationCases(mapping)) {
+          const [pentagrama, current] = await Promise.all([
+            this.pricing.supplierCost(pentagramaParamsForCase(mapping, sample), { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }),
+            this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context)
+          ]);
+          postQa.push({ mappingId: item.id, caseId: sample.id, expected: roundMoney(pentagrama.total), actual: roundMoney(current.amount),
+            difference: roundMoney(current.amount - pentagrama.total) });
+        }
+      }
+      if (postQa.some(item => Math.abs(item.difference) > 0.02)) {
+        throw Object.assign(new Error('Post-apply Pentagrama QA failed'), { code: 'PENTAGRAMA_POST_APPLY_QA_FAILED' });
+      }
+
+      const qa = {
+        ok: true,
+        checked: postQa.length + Number(appliedCatalog && appliedCatalog.qa && appliedCatalog.qa.checked || 0),
+        maxDifference: postQa.reduce((max, item) => Math.max(max, Math.abs(item.difference)), 0),
+        cases: postQa,
+        priceSheet: appliedPrices && appliedPrices.qa || null,
+        catalogSheet: appliedCatalog && appliedCatalog.qa || null
+      };
+      const changedIds = new Set(changes.map(item => item.id));
+      const appliedCatalogIds = new Set(verifiedCatalog.map(item => item.id));
+      const appliedExternalKeys = new Set(verifiedCatalog.map(item => item.externalKey).filter(Boolean));
+      const verifiedResults = scan.results.map(item => changedIds.has(item.id) ? { ...item, status: 'UNCHANGED', oldCost: item.newCost,
+        difference: 0, percent: 0, appliedAt: new Date().toISOString() } : item);
+      const verifiedCounts = verifiedResults.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
+      const remainingCatalogChanges = (scan.catalogChanges || []).filter(item => !appliedExternalKeys.has(item.externalKey));
+      const remainingCatalogActions = (scan.catalogActions || []).map(item => appliedCatalogIds.has(item.id)
+        ? { ...item, autoApplicable: false, appliedAt: new Date().toISOString(), status: 'UNCHANGED' }
+        : item);
+      const catalogAudit = { ...(scan.catalogAudit || {}) };
+      catalogAudit.newReferences = remainingCatalogChanges.filter(item => item.status === 'NEW').length;
+      catalogAudit.discontinued = remainingCatalogChanges.filter(item => item.status === 'DISCONTINUED').length;
+      catalogAudit.renamed = remainingCatalogChanges.filter(item => item.status === 'RENAMED').length;
+      catalogAudit.structureChanged = remainingCatalogChanges.filter(item => item.status === 'STRUCTURE_CHANGED').length;
+      catalogAudit.catalogAutoApplicable = remainingCatalogActions.filter(item => item.autoApplicable === true).length;
+      catalogAudit.catalogReviewRequired = remainingCatalogActions.filter(item => item.autoApplicable !== true && item.status !== 'UNCHANGED').length;
+      const verifiedScan = { ...scan, id: crypto.randomUUID(), parentScanId: scan.id, checkedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts: verifiedCounts, results: verifiedResults,
+        catalogChanges: remainingCatalogChanges, catalogActions: remainingCatalogActions, catalogAudit };
+      this.store.addScan(verifiedScan);
+
+      const upstreamHistoryIds = [appliedPrices && appliedPrices.historyId, appliedCatalog && appliedCatalog.historyId].filter(Boolean);
+      const entry = { id: crypto.randomUUID(), type: 'APPLY', at: new Date().toISOString(), scanId: scan.id, verifiedScanId: verifiedScan.id,
+        changed: changes.length + verifiedCatalog.length, priceChanges: changes.length, catalogChanges: verifiedCatalog.length,
+        upstreamHistoryIds, qa, actor: this.store.operationById(operationId).actor };
+      this.store.addHistory(entry);
+      this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result: entry });
+    } catch (error) {
+      const rollbackResults = [];
+      for (const historyId of [appliedCatalog && appliedCatalog.historyId, appliedPrices && appliedPrices.historyId].filter(Boolean)) {
+        try { rollbackResults.push(await this.homeeasy.rollback(historyId, context)); } catch (rollbackError) {
+          rollbackResults.push({ status: 'error', historyId, error: String(rollbackError.code || rollbackError.message || rollbackError) });
+        }
+      }
+      if (rollbackResults.length) {
+        throw Object.assign(new Error('La transacción no pasó QA y HomeEasy intentó restaurar todos los cambios.'), {
+          code: 'PENTAGRAMA_TRANSACTION_ROLLED_BACK',
+          causeCode: String(error.code || 'PENTAGRAMA_SYNC_FAILED'),
+          rollbackResults
+        });
+      }
+      throw error;
     }
-    if (postQa.some(item => Math.abs(item.difference) > 0.02)) {
-      const rollback = await this.homeeasy.rollback(applied.historyId, context);
-      throw Object.assign(new Error('Post-apply Pentagrama QA failed; the batch was rolled back'), {
-        code: 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK', rollbackHistoryId: rollback.historyId
-      });
-    }
-    const qa = { ok: true, checked: postQa.length, maxDifference: postQa.reduce((max, item) => Math.max(max, Math.abs(item.difference)), 0), cases: postQa, sheet: applied.qa };
-    const changedIds = new Set(changes.map(item => item.id));
-    const verifiedResults = scan.results.map(item => changedIds.has(item.id) ? { ...item, status: 'UNCHANGED', oldCost: item.newCost,
-      difference: 0, percent: 0, appliedAt: new Date().toISOString() } : item);
-    const verifiedCounts = verifiedResults.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
-    const verifiedScan = { ...scan, id: crypto.randomUUID(), parentScanId: scan.id, checkedAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts: verifiedCounts, results: verifiedResults };
-    this.store.addScan(verifiedScan);
-    const entry = { id: applied.historyId, type: 'APPLY', at: new Date().toISOString(), scanId: scan.id, verifiedScanId: verifiedScan.id,
-      changed: changes.length, qa, actor: this.store.operationById(operationId).actor };
-    this.store.addHistory(entry);
-    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result: entry });
   }
 
   startRollback(actor, context, payload) {
