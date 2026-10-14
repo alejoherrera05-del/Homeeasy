@@ -6,6 +6,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
+const localModelSource = fs.readFileSync(path.join(root, 'infra', 'whatsapp', 'bridge', 'pentagrama-sync', 'local-model.js'), 'utf8');
+const costs10B = fs.readFileSync(path.join(root, 'apps-script', 'ETAPA_10B_COSTOS_PENTAGRAMA.gs'), 'utf8');
 const calculator = fs.readFileSync(path.join(root, 'homeeasy-cost-calculator.js'), 'utf8');
 const costs = fs.readFileSync(path.join(root, 'apps-script', 'ETAPA_10B_COSTOS_PENTAGRAMA.gs'), 'utf8');
 const sync = fs.readFileSync(path.join(root, 'apps-script', 'ETAPA_10C_PENTAGRAMA_SYNC.gs'), 'utf8');
@@ -35,6 +37,13 @@ test('10C QA compares certified portal orientationCode instead of collapsing TAT
   assert.match(sync, /fabrication\.orientationCode/);
   assert.match(sync, /orientaciónEsperada/);
   assert.match(sync, /mecanismoEsperado/);
+});
+
+test('special Penta13 and Coverlight mechanisms are persisted and consumed locally', () => {
+  assert.match(localModelSource, /fabricationMechanismBands/);
+  assert.match(localModelSource, /assertSpecialMechanism/);
+  assert.match(costs10B, /aplicarPerfilFabricacionComplementos10B_/);
+  assert.match(costs10B, /fabricationMechanismBands/);
 });
 
 test('the local-first inventory remains exactly the 279 certified Enrollables', () => {
