@@ -353,7 +353,12 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     supplement.parents.forEach(id => {
       const patch = productPatches.find(item => item.homeeasyId === id);
       const configs = Array.isArray(patch.rules.configurations) ? patch.rules.configurations.filter(item => item.id !== 'penta13') : [];
-      configs.push({ id: 'penta13', label: supplement.option.label, supplementId: supplement.id });
+      configs.push({
+        id: 'penta13',
+        label: supplement.option.label,
+        supplementId: supplement.id,
+        fabricationMechanismBands: specialMechanismBands.map(item => ({ ...item }))
+      });
       patch.rules.configurations = configs;
     });
   }
@@ -382,6 +387,9 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     if (Math.max(...rates) - Math.min(...rates) > TOLERANCE) throw Object.assign(new Error(`${id} is not linear by height`), { code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED' });
     const complementRules = normalizeRules(existing.rules);
     complementRules.fabricationMechanismBands = specialMechanismBands;
+    const coverlightMechanismBands = normalizeRules(mattePatch.rules.coverlightMechanismBands);
+    coverlightMechanismBands[id] = specialMechanismBands.map(item => ({ ...item }));
+    mattePatch.rules.coverlightMechanismBands = coverlightMechanismBands;
     complementPatches.push({ homeeasyId: id, row: existing.row, expectedRate: Number(existing.rate), proposedRate: rate,
       expectedRulesHash: hash(existing.rules || {}), rules: complementRules, method: 'linear-height',
       family: existing.family, familyName: existing.familyName, reference: existing.reference, type: existing.type,
