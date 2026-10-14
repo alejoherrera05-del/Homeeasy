@@ -57,7 +57,8 @@
     const unmapped = Number(audit.unmapped != null ? audit.unmapped : counts.UNMAPPED || 0);
     const total = Number(audit.total != null ? audit.total : results.length);
     const catalogPending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) +
-      Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0);
+      Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0) +
+      Number(audit.catalogRateChanges || 0);
     const partial = Boolean(scan && (review || unmapped || certified < total || catalogPending));
     let tone = 'neutral'; let label = 'Sin revisar';
     if (!online) { tone = 'error'; label = 'Sin agente disponible'; }
@@ -160,6 +161,7 @@
 
   function isSafe(item) { return Boolean(item && item.id && SAFE_STATUSES.has(item.status) && item.autoApplicable === true); }
   function selectedSafe() { return (state.scan && state.scan.results || []).filter(item => isSafe(item) && state.selected.has(item.id)); }
+  function safeCatalogActions() { return (state.scan && state.scan.catalogActions || []).filter(item => item.autoApplicable === true && item.certified === true); }
   function filterButton(value, label, counts) { const count = value === 'ALL' ? (state.scan && state.scan.results || []).length : Number(counts[value] || 0); return `<button class="he-ps-filter${state.filter === value ? ' active' : ''}" data-filter="${value}">${esc(label)}<span>${count}</span></button>`; }
 
   function renderResults() {
@@ -178,9 +180,16 @@
     const more = $('#hePsMore'); more.hidden = filtered.length <= state.limit; more.textContent = `Mostrar más (${Math.max(0, filtered.length - state.limit)})`; renderApplyButton(safeTotal);
   }
 
-  function catalogAction(status) {
+  function catalogAction(status, action) {
+    if (action && action.autoApplicable === true) {
+      if (action.kind === 'ADD') return 'Certificada · alta automática';
+      if (action.kind === 'DEACTIVATE') return 'Confirmada · desactivación segura';
+      if (action.kind === 'UPDATE_RATE') return 'Precio real certificado · actualización automática';
+      if (action.kind === 'RENAME') return 'Identidad confirmada · cambio de nombre';
+    }
+    if (action && action.reason) return action.reason;
     if (status === 'NEW') return 'Pendiente de certificar';
-    if (status === 'DISCONTINUED') return 'Pendiente de desactivar';
+    if (status === 'DISCONTINUED') return 'Pendiente de confirmar baja';
     if (status === 'RENAMED') return 'Revisar nombre';
     if (status === 'STRUCTURE_CHANGED') return 'Revisar identidad técnica';
     return 'Revisión requerida';
@@ -189,29 +198,53 @@
   function renderCatalogChanges() {
     const scan = state.scan;
     const changes = scan && Array.isArray(scan.catalogChanges) ? scan.catalogChanges : [];
+    const actions = scan && Array.isArray(scan.catalogActions) ? scan.catalogActions : [];
+    const actionByKey = new Map(actions.filter(item => item.externalKey).map(item => [item.externalKey, item]));
     const audit = scan && scan.catalogAudit || {};
     const counts = {
       NEW: Number(audit.newReferences || 0),
       DISCONTINUED: Number(audit.discontinued || 0),
       RENAMED: Number(audit.renamed || 0),
       STRUCTURE_CHANGED: Number(audit.structureChanged || 0),
+      RATE: Number(audit.catalogRateChanges || 0),
       CONFLICT: Number(audit.bindingConflicts || 0)
     };
-    const total = counts.NEW + counts.DISCONTINUED + counts.RENAMED + counts.STRUCTURE_CHANGED + counts.CONFLICT;
+    const safe = safeCatalogActions();
+    const structuralTotal = counts.NEW + counts.DISCONTINUED + counts.RENAMED + counts.STRUCTURE_CHANGED + counts.CONFLICT;
+    const total = structuralTotal + counts.RATE;
     $('#hePsCatalogSummary').textContent = scan
-      ? `${Number(audit.pentagramaProducts || 0)} referencias vistas en Pentagrama · ${counts.NEW} nuevas · ${counts.DISCONTINUED} descontinuadas · ${counts.RENAMED} renombradas · ${counts.STRUCTURE_CHANGED} cambios técnicos`
+      ? `${Number(audit.pentagramaProducts || 0)} referencias vistas en Pentagrama · ${counts.NEW} nuevas · ${counts.DISCONTINUED} descontinuadas · ${counts.RATE} precios Ring cambiados · ${safe.length} cambio(s) certificado(s)`
       : 'Aún no se ha comparado el catálogo completo.';
     $('#hePsCatalogNote').hidden = !(scan && total);
     $('#hePsCatalogUpToDate').hidden = !(scan && total === 0);
-    const visible = changes.slice(0, 200);
+
+    const represented = new Set(changes.map(item => item.externalKey).filter(Boolean));
+    const rateRows = actions
+      .filter(item => item.kind === 'UPDATE_RATE' && !represented.has(item.externalKey))
+      .map(item => ({
+        status: item.status,
+        externalKey: item.externalKey,
+        homeeasyId: item.homeeasyId,
+        productCode: item.productCode,
+        oldName: item.reference,
+        newName: item.reference,
+        oldRate: item.oldRate,
+        proposedRate: item.proposedRate,
+        action: item
+      }));
+    const visible = [...changes.map(item => ({ ...item, action: actionByKey.get(item.externalKey) || null })), ...rateRows].slice(0, 250);
     $('#hePsCatalogRows').innerHTML = visible.length ? visible.map(item => {
       const live = item.live || {};
       const route = Array.isArray(live.path) ? live.path.join(' › ') : '';
-      return `<tr class="he-ps-row ${esc(item.status)}"><td data-label="Estado"><span class="he-ps-pill ${esc(item.status)}">${esc(STATUS_LABELS[item.status] || item.status)}</span><small>${esc(catalogAction(item.status))}</small></td><td data-label="Referencia"><strong>${esc(item.newName || item.oldName || '—')}</strong>${item.oldName && item.newName && item.oldName !== item.newName ? `<small>Antes: ${esc(item.oldName)}</small>` : ''}</td><td data-label="Código"><strong>${esc(item.productCode || '—')}</strong><small>${esc(item.externalKey || '')}</small></td><td data-label="Ruta">${esc(route || '—')}</td><td data-label="HomeEasy"><strong>${esc(item.homeeasyId || 'Sin vincular')}</strong><small>${esc(item.status === 'NEW' ? 'No se activará hasta certificar precio y reglas.' : catalogAction(item.status))}</small></td></tr>`;
+      const action = item.action || actionByKey.get(item.externalKey) || null;
+      const rateNote = Number.isFinite(item.oldRate) && Number.isFinite(item.proposedRate)
+        ? `<small>${money(item.oldRate)} → ${money(item.proposedRate)}</small>`
+        : '';
+      return `<tr class="he-ps-row ${esc(item.status)}"><td data-label="Estado"><span class="he-ps-pill ${esc(item.status)}">${esc(STATUS_LABELS[item.status] || item.status)}</span><small>${esc(catalogAction(item.status, action))}</small></td><td data-label="Referencia"><strong>${esc(item.newName || item.oldName || (action && action.reference) || '—')}</strong>${item.oldName && item.newName && item.oldName !== item.newName ? `<small>Antes: ${esc(item.oldName)}</small>` : ''}${rateNote}</td><td data-label="Código"><strong>${esc(item.productCode || (action && action.productCode) || '—')}</strong><small>${esc(item.externalKey || '')}</small></td><td data-label="Ruta">${esc(route || (action && action.kind === 'UPDATE_RATE' ? 'Cortina Ring · tarifa certificada' : '—'))}</td><td data-label="HomeEasy"><strong>${esc(item.homeeasyId || (action && action.homeeasyId) || 'Sin vincular')}</strong><small>${esc(catalogAction(item.status, action))}</small></td></tr>`;
     }).join('') : '<tr><td colspan="5" class="he-ps-empty">No se detectaron novedades de catálogo.</td></tr>';
   }
 
-  function renderApplyButton(safeTotal) { const button = $('#hePsApply'); const selected = selectedSafe().length; const available = Number.isFinite(safeTotal) ? safeTotal : (state.scan && state.scan.results || []).filter(isSafe).length; button.disabled = state.busy || !can('config.write') || !selected; button.querySelector('span').textContent = selected ? `Aplicar actualización (${selected})` : available ? 'Selecciona cambios' : 'Sin cambios aplicables'; }
+  function renderApplyButton(safeTotal) { const button = $('#hePsApply'); const selected = selectedSafe().length; const catalog = safeCatalogActions().length; const availablePrices = Number.isFinite(safeTotal) ? safeTotal : (state.scan && state.scan.results || []).filter(isSafe).length; const available = availablePrices + catalog; const total = selected + catalog; button.hidden = !available; button.disabled = state.busy || !can('config.write') || !total; button.querySelector('span').textContent = total ? `Aplicar actualización (${total})` : available ? 'Selecciona cambios' : 'Sin cambios aplicables'; }
   function pentagramaStatus(agent) { const value = agent && agent.pentagrama && agent.pentagrama.status || 'unknown'; if (value === 'ready') return ['Pentagrama disponible', 'ready']; if (value === 'error') return [friendlyError(agent.pentagrama.code), 'error']; return ['Pentagrama sin comprobar', 'unknown']; }
   function renderAgents(items) { $('#hePsAgents').innerHTML = (items || []).map(agent => { const portal = pentagramaStatus(agent); return `<div class="he-ps-list-row agent"><span class="he-ps-agent-icon ${agent.online ? 'online' : 'offline'}"><i class="fa-solid fa-computer"></i></span><div class="he-ps-list-copy"><strong>${esc(agent.hostname || agent.installationId)}</strong><span><b class="he-ps-presence ${agent.online ? 'online' : 'offline'}">${agent.online ? 'Online' : 'Offline'}</b> · v${esc(agent.version || '—')}</span><small>${esc(portal[0])} · Última conexión ${esc(dateTime(agent.lastSeen))}</small></div></div>`; }).join('') || '<div class="he-ps-empty"><i class="fa-solid fa-computer"></i><strong>No hay agentes registrados</strong><span>Instala o enciende un agente para consultar Pentagrama.</span></div>'; }
   function historyAgent() { const agents = state.status && state.status.agents || []; return agents.length === 1 ? agents[0].hostname || agents[0].installationId : 'No registrado'; }
@@ -238,22 +271,22 @@
     const scanStages = ['QUEUED', 'READING_HOMEEASY', 'READING_PENTAGRAMA', 'COMPARING']; const applyStages = type === 'rollback' ? ['ROLLING_BACK'] : ['PREWRITE_VALIDATION', 'SNAPSHOT', 'WRITING_SHEET', 'QA']; const stages = type === 'scan' ? scanStages : applyStages; const currentIndex = Math.max(0, stages.indexOf(stage));
     box.hidden = false; $('#hePsProgressTitle').textContent = STAGES[stage] || stage; $('#hePsProgressSteps').innerHTML = stages.map((value, index) => `<span class="${index < currentIndex ? 'done' : index === currentIndex ? 'current' : ''}"><i class="fa-solid ${index < currentIndex ? 'fa-check' : 'fa-circle'}"></i>${esc(STAGES[value].replace('…', ''))}</span>`).join('');
   }
-  async function poll(id, type) { for (let index = 0; index < 180; index += 1) { const data = await request('/api/pentagrama-sync/operations/' + encodeURIComponent(id)); const operation = data.operation; setProgress(operation.stage, type || operation.type); if (operation.state === 'completed') { setProgress(null); return operation; } if (operation.state === 'failed') { const error = new Error(operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED'); error.code = operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED'; throw error; } await new Promise(resolve => setTimeout(resolve, 1000)); } const error = new Error('AGENT_TIMEOUT'); error.code = 'AGENT_TIMEOUT'; throw error; }
+  async function poll(id, type) { const maxPolls = type === 'scan' ? 1200 : 600; for (let index = 0; index < maxPolls; index += 1) { const data = await request('/api/pentagrama-sync/operations/' + encodeURIComponent(id)); const operation = data.operation; setProgress(operation.stage, type || operation.type); if (operation.state === 'completed') { setProgress(null); return operation; } if (operation.state === 'failed') { const error = new Error(operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED'); error.code = operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED'; throw error; } await new Promise(resolve => setTimeout(resolve, 1000)); } const error = new Error('AGENT_TIMEOUT'); error.code = 'AGENT_TIMEOUT'; throw error; }
   function selectSafeDefaults() { state.selected = new Set((state.scan && state.scan.results || []).filter(isSafe).map(item => item.id)); }
   async function refresh(options = {}) { try { const [status, history] = await Promise.all([request('/api/pentagrama-sync/status'), request('/api/pentagrama-sync/history')]); state.status = status; state.scan = status.latestScan; state.history = history.items || []; state.error = null; if (options.resetSelection) selectSafeDefaults(); renderAll(); } catch (error) { state.error = error; renderOverview(); } }
 
   async function scan() {
     if (state.busy) return; state.busy = true; state.error = null; renderAll();
-    try { const started = await request('/api/pentagrama-sync/scan', 'POST', {}); await poll(started.operation.id, 'scan'); await refresh({ resetSelection: true }); const counts = state.scan && state.scan.counts || {}; const audit = state.scan && state.scan.catalogAudit || {}; const safe = selectedSafe(); const review = Number(counts.REVIEW_REQUIRED || 0); const catalogPending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0); if (safe.length) { await apply(true); return; } if (!Number(counts.ERROR || 0) && catalogPending) await Swal.fire({ icon: 'info', title: 'Pentagrama revisado', text: `Los precios certificados están al día. Se detectaron ${catalogPending} novedad(es) de catálogo que permanecerán bloqueadas hasta ser certificadas.`, confirmButtonColor: '#a6455a' }); else if (!Number(counts.ERROR || 0)) await Swal.fire({ icon: 'success', title: 'Todo lo certificado está actualizado', text: `${Number(audit.certified != null ? audit.certified : audit.mapped || 0)} certificadas · ${review} pendientes fuera del auto-apply · catálogo sin novedades`, confirmButtonColor: '#a6455a' }); else await Swal.fire({ icon: 'error', title: 'Requiere atención', text: 'Una o más consultas operativas fallaron. No se modificó ninguna tarifa.', confirmButtonColor: '#a6455a' }); }
+    try { const started = await request('/api/pentagrama-sync/scan', 'POST', {}); await poll(started.operation.id, 'scan'); await refresh({ resetSelection: true }); const counts = state.scan && state.scan.counts || {}; const audit = state.scan && state.scan.catalogAudit || {}; const safe = selectedSafe(); const safeCatalog = safeCatalogActions(); const review = Number(counts.REVIEW_REQUIRED || 0); const catalogPending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0); if (safe.length || safeCatalog.length) { await apply(true); return; } if (!Number(counts.ERROR || 0) && catalogPending) await Swal.fire({ icon: 'info', title: 'Pentagrama revisado', text: `Los precios certificados están al día. Se detectaron ${catalogPending} novedad(es) de catálogo que permanecerán bloqueadas hasta ser certificadas.`, confirmButtonColor: '#a6455a' }); else if (!Number(counts.ERROR || 0)) await Swal.fire({ icon: 'success', title: 'Todo lo certificado está actualizado', text: `${Number(audit.certified != null ? audit.certified : audit.mapped || 0)} certificadas · ${review} pendientes fuera del auto-apply · catálogo sin novedades`, confirmButtonColor: '#a6455a' }); else await Swal.fire({ icon: 'error', title: 'Requiere atención', text: 'Una o más consultas operativas fallaron. No se modificó ninguna tarifa.', confirmButtonColor: '#a6455a' }); }
     catch (error) { state.error = error; setProgress(null); await Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: friendlyError(error), confirmButtonColor: '#a6455a' }); }
     finally { state.busy = false; renderAll(); }
   }
 
   async function apply(automatic) {
-    const changes = selectedSafe(); if (!changes.length) return;
-    if (!automatic) { const result = await Swal.fire({ icon: 'warning', title: `Aplicar ${changes.length} cambio(s)`, html: 'Se creará un respaldo, se actualizará la Sheet, se refrescará la caché y se ejecutará QA.<br><b>Los casos “Revisar” no se aplicarán.</b>', showCancelButton: true, confirmButtonText: 'Crear respaldo y aplicar', cancelButtonText: 'Cancelar', confirmButtonColor: '#a6455a' }); if (!result.isConfirmed) return; }
+    const changes = selectedSafe(); const catalogChanges = safeCatalogActions(); const totalChanges = changes.length + catalogChanges.length; if (!totalChanges) return;
+    if (!automatic) { const result = await Swal.fire({ icon: 'warning', title: `Aplicar ${totalChanges} cambio(s)`, html: 'Se creará respaldo transaccional, se actualizará la Sheet, se refrescará la caché y se ejecutará QA contra Pentagrama.<br><b>Los casos “Revisar” nunca se aplicarán automáticamente.</b>', showCancelButton: true, confirmButtonText: 'Crear respaldo y aplicar', cancelButtonText: 'Cancelar', confirmButtonColor: '#a6455a' }); if (!result.isConfirmed) return; }
     state.busy = true; state.error = null; renderAll();
-    try { const started = await request('/api/pentagrama-sync/apply', 'POST', { scanId: state.scan.id, changeIds: changes.map(item => item.id) }); const operation = await poll(started.operation.id, 'apply'); await refresh({ resetSelection: true }); const qa = operation.result && operation.result.qa; if (!qa || qa.ok !== true) throw Object.assign(new Error('QA_FAILED'), { code: 'QA_FAILED' }); const review = Number(state.scan && state.scan.counts && state.scan.counts.REVIEW_REQUIRED || 0); const audit = state.scan && state.scan.catalogAudit || {}; const catalogPending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0); await Swal.fire({ icon: 'success', title: 'HomeEasy actualizado correctamente', text: `${changes.length} tarifa(s) actualizadas${review ? ` · ${review} requiere(n) revisión` : ''}${catalogPending ? ` · ${catalogPending} novedad(es) de catálogo bloqueadas para certificación` : ''}. QA contra Pentagrama: PASS.`, confirmButtonColor: '#a6455a' }); }
+    try { const started = await request('/api/pentagrama-sync/apply', 'POST', { scanId: state.scan.id, changeIds: changes.map(item => item.id), catalogActionIds: catalogChanges.map(item => item.id) }); const operation = await poll(started.operation.id, 'apply'); await refresh({ resetSelection: true }); const qa = operation.result && operation.result.qa; if (!qa || qa.ok !== true) throw Object.assign(new Error('QA_FAILED'), { code: 'QA_FAILED' }); const review = Number(state.scan && state.scan.counts && state.scan.counts.REVIEW_REQUIRED || 0); const audit = state.scan && state.scan.catalogAudit || {}; const catalogPending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0); await Swal.fire({ icon: 'success', title: 'HomeEasy actualizado correctamente', text: `${Number(operation.result && operation.result.priceChanges || 0)} tarifa(s) estándar + ${Number(operation.result && operation.result.catalogChanges || 0)} cambio(s) de catálogo aplicados${review ? ` · ${review} requiere(n) revisión` : ''}${catalogPending ? ` · ${catalogPending} novedad(es) pendientes` : ''}. QA contra Pentagrama: PASS.`, confirmButtonColor: '#a6455a' }); }
     catch (error) { state.error = error; setProgress(null); const rolledBack = /QA/i.test(String(error.code || error.message || '')); await Swal.fire({ icon: 'error', title: 'La actualización no fue aplicada', text: rolledBack ? 'El QA no pasó. HomeEasy fue restaurado al estado anterior.' : friendlyError(error), confirmButtonColor: '#a6455a' }); }
     finally { state.busy = false; renderAll(); }
   }
