@@ -154,9 +154,13 @@ function deriveMechanismBands(evidence, seedProfile, label) {
 
 function deriveFabricationProfile(group, evidence, seedProfile) {
   const sourceRules = group.product.rules || {};
+  const normalWidthsMm = evidence.filter(item => Number(item.height) === 2.2 && item.orientationCode === 'DIN').map(item => Math.round(Number(item.width) * 1000));
+  const observedWidthsMm = evidence.filter(item => Number(item.height) === 2.2 && item.orientationCode).map(item => Math.round(Number(item.width) * 1000));
   const rollCandidates = [...new Set([
     Number(sourceRules.rollWidthMm || 0),
     Number(seedProfile && seedProfile.rollWidthMm || 0),
+    normalWidthsMm.length ? Math.max(...normalWidthsMm) : 0,
+    ...observedWidthsMm,
     1300, 1830, 2000, 2500, 2800, 3000, 3200
   ].filter(value => value > 0))];
   const acrossCodes = [...new Set(evidence.filter(item => item.orientationCode && item.orientationCode !== 'DIN' && !item.orientationCode.startsWith('TAN')).map(item => item.orientationCode))];
@@ -449,7 +453,11 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     const patch = productPatches.find(item => item.homeeasyId === group.product.id);
     const evidence = [];
     const failureCountBefore = failures.length;
-    for (const sample of uniqueStructureCases(seedProfile, group.product.rules || {})) {
+    const captured = new Set();
+    const captureStructure = async sample => {
+      const sampleKey = `${Number(sample.width).toFixed(3)}:${Number(sample.height).toFixed(3)}`;
+      if (captured.has(sampleKey)) return;
+      captured.add(sampleKey);
       const live = await options.resolveLive({ homeeasyId: group.product.id, width: sample.width, height: sample.height, quantity: 1, configuration: 'standard' });
       if (!live || live.ok !== true) {
         if (live && live.outcome === 'NOT_MANUFACTURABLE' && live.code === 'PENTAGRAMA_NOT_MANUFACTURABLE') {
@@ -461,7 +469,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
         } else {
           failures.push({ homeeasyId: group.product.id, caseId: sample.id, code: String(live && live.code || 'LIVE_UNRESOLVED'), outcome: live && live.outcome });
         }
-        continue;
+        return;
       }
       const expected = assertLivePrice(live, `${group.product.id}/${sample.id}`);
       const fabrication = fabricationFromLive(live);
@@ -470,6 +478,26 @@ async function buildEnrollablesLocalCandidate(options = {}) {
         configuration: 'standard', expected: money(expected), expectedOutcome: fabrication.outcome, expectedOrientation: fabrication.orientationCode,
         expectedMechanism: fabrication.mechanism, expectedRequiresAuthorization: fabrication.requiresAuthorization,
         expectedWarranty: fabrication.warranty, scope: 'structure', evidenceSource: 'Pentagrama Live current run' });
+    };
+    for (const sample of uniqueStructureCases(seedProfile, group.product.rules || {})) {
+      await captureStructure(sample);
+    }
+    if (failures.length === failureCountBefore) {
+      let low = Math.max(...evidence.filter(item => Number(item.height) === 2.2 && item.orientationCode === 'DIN').map(item => Number(item.width)), -Infinity);
+      let high = Math.min(...evidence.filter(item => Number(item.height) === 2.2 && item.orientationCode && item.orientationCode !== 'DIN').map(item => Number(item.width)), Infinity);
+      let probe = 0;
+      while (Number.isFinite(low) && Number.isFinite(high) && high - low > 0.011 && probe < 12) {
+        const width = Math.round(((low + high) / 2) * 1000) / 1000;
+        await captureStructure({ id: `roll-search-${++probe}`, width, height: 2.2 });
+        const found = evidence.find(item => Number(item.width) === width && Number(item.height) === 2.2);
+        if (!found) break;
+        if (found.orientationCode === 'DIN') low = width;
+        else high = width;
+      }
+      if (Number.isFinite(low) && Number.isFinite(high)) {
+        const boundaryMm = Math.round(((low + high) / 2) * 100) * 10;
+        await captureStructure({ id: 'roll-boundary-confirm', width: boundaryMm / 1000, height: 2.2 });
+      }
     }
     if (failures.length > failureCountBefore) continue;
     if (seedProfile) {
