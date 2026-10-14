@@ -3,13 +3,18 @@ name: Pentagrama Catalog Sync QA
 on:
   push:
     paths:
+      - 'apps-script/ETAPA_10B_COSTOS_PENTAGRAMA.gs'
       - 'apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs'
+      - 'homeeasy-pentagrama-sync.js'
+      - 'homeeasy-pentagrama-sync.css'
+      - 'configuracion.html'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/pentagrama-agent/src/agent.js'
@@ -18,13 +23,18 @@ on:
       - '.github/workflows/pentagrama-catalog-sync-qa.yml'
   pull_request:
     paths:
+      - 'apps-script/ETAPA_10B_COSTOS_PENTAGRAMA.gs'
       - 'apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs'
+      - 'homeeasy-pentagrama-sync.js'
+      - 'homeeasy-pentagrama-sync.css'
+      - 'configuracion.html'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/pentagrama-agent/src/agent.js'
@@ -47,13 +57,18 @@ jobs:
           node-version: '22'
       - name: Syntax checks
         run: |
+          node --check homeeasy-pentagrama-sync.js
           node --check infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js
           node --check infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js
           node --check infra/whatsapp/bridge/pentagrama-sync/phase2.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js
           node --check infra/whatsapp/bridge/pentagrama-sync/index.js
           node --check infra/whatsapp/bridge/pentagrama-agents/gateway.js
           node --check infra/pentagrama-agent/src/agent.js
-          node --check apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs
+          cp apps-script/ETAPA_10B_COSTOS_PENTAGRAMA.gs /tmp/ETAPA_10B_COSTOS_PENTAGRAMA.js
+          cp apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs /tmp/ETAPA_10C_PENTAGRAMA_SYNC.js
+          node --check /tmp/ETAPA_10B_COSTOS_PENTAGRAMA.js
+          node --check /tmp/ETAPA_10C_PENTAGRAMA_SYNC.js
       - name: Catalog inventory tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js
       - name: Catalog binding tests
@@ -62,3 +77,5 @@ jobs:
         run: node --test infra/whatsapp/bridge/pentagrama-sync/phase2.test.js
       - name: Agent tests
         run: node --test infra/pentagrama-agent/test/agent.test.js
+      - name: Existing cotizador Ring regression
+        run: node tests/cost-calculator-ring.cjs
