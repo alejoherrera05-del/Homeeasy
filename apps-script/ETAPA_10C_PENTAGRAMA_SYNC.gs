@@ -72,6 +72,7 @@ function leerCatalogoPentagramaSync10C_(ss) {
 }
 
 function aplicarPentagramaSync10C_(ss, data, authValidation) {
+  if (data && data.modelCandidate) return aplicarModeloLocalPentagramaSync10C_(ss, data, authValidation);
   if (data && Array.isArray(data.catalogMutations) && data.catalogMutations.length) {
     return aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation);
   }
@@ -128,6 +129,108 @@ function claveExternaReglasSync10C_(rules) {
   function code_(input) { return String(input || "").trim().toUpperCase(); }
   if (!code_(value.productCode)) return "";
   return [code_(value.productCode), code_(value.groupCode), code_(value.associationGroup)].join("|");
+}
+
+function aplicarModeloLocalPentagramaSync10C_(ss, data, authValidation) {
+  const scanId = String(data && data.scanId || "").trim();
+  const scannedAt = new Date(String(data && data.scannedAt || ""));
+  const candidate = data && data.modelCandidate;
+  if (!scanId || isNaN(scannedAt.getTime()) || Date.now() - scannedAt.getTime() > 30 * 60 * 1000) return { status: "error", code: "PENTAGRAMA_SCAN_EXPIRED", msg: "El escaneo no existe o expiró." };
+  if (!candidate || Number(candidate.schemaVersion) !== 1 || String(candidate.mode) !== "ENROLLABLES_LOCAL_FIRST") return { status: "error", code: "PENTAGRAMA_LOCAL_MODEL_INVALID", msg: "El candidato local no es válido." };
+  if (!Array.isArray(candidate.products) || candidate.products.length !== 279 || !Array.isArray(candidate.qaCases) || !candidate.qaCases.length) return { status: "error", code: "PENTAGRAMA_LOCAL_MODEL_INCOMPLETE", msg: "El candidato no cubre los 279 Enrollables o no contiene QA." };
+  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  const historyId = Utilities.getUuid(); const snapshotId = Utilities.getUuid();
+  const historySheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_HISTORY_SHEET, HOMEEASY_SYNC_HISTORY_HEADERS);
+  const snapshotSheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_SNAPSHOT_V2_SHEET, HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS);
+  const snapshots = []; const writes = [];
+  try {
+    if (String(candidate.sourceVersion || "") !== String(cargarCatalogoCostos10B_(ss, true).version || "")) throw new Error("La versión local cambió después del escaneo.");
+    const productSheet = ss.getSheetByName(HOMEEASY_COST_SHEET);
+    const matrixSheet = ss.getSheetByName(HOMEEASY_COST_MATRIX_SHEET);
+    const configSheet = ss.getSheetByName(HOMEEASY_COST_CONFIG_SHEET);
+    if (!productSheet || !matrixSheet || !configSheet) throw new Error("Faltan hojas de Costos Pentagrama.");
+    const allProductPatches = candidate.products.concat(Array.isArray(candidate.complements) ? candidate.complements : []);
+    const productRows = indiceFilasSync10C_(productSheet, 0); let nextProductRow = productSheet.getLastRow() + 1;
+    allProductPatches.forEach(function(patch) {
+      const id = String(patch.homeeasyId || ""); if (!id) throw new Error("Producto candidato sin ID.");
+      let row = productRows[id] || 0; const existed = Boolean(row);
+      if (!row && String(patch.family) !== "complemento-enrollable") throw new Error("No existe el producto local " + id);
+      if (!row) row = nextProductRow++;
+      const before = existed ? productSheet.getRange(row, 1, 1, HOMEEASY_COST_HEADERS.length).getValues()[0] : [];
+      if (existed && Math.abs(Number(before[6]) - Number(patch.expectedRate)) > 0.005) throw new Error("La tarifa cambió después del escaneo: " + id);
+      if (existed && hashObjetoSync10C_(leerReglasCostos10B_(before[20])) !== String(patch.expectedRulesHash || "")) throw new Error("Las reglas cambiaron después del escaneo: " + id);
+      snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_SHEET, row, id, before, existed, "PRODUCT"));
+      const values = existed ? before.slice() : filaComplementoSync10C_(patch, candidate);
+      values[5] = String(patch.method || values[5] || "area"); values[6] = Number(patch.proposedRate);
+      values[13] = "VIGENTE"; values[15] = String(candidate.version); values[16] = "COP"; values[17] = true;
+      values[18] = "Pentagrama Live"; values[19] = new Date(); values[20] = JSON.stringify(patch.rules || {});
+      writes.push({ sheet: productSheet, row: row, values: values }); productRows[id] = row;
+    });
+    (candidate.matrices || []).forEach(function(patch) {
+      const row = Number(patch.row); if (!Number.isInteger(row) || row < 2) throw new Error("Fila de matriz inválida.");
+      const existed = row <= matrixSheet.getLastRow(); const before = existed ? matrixSheet.getRange(row, 1, 1, HOMEEASY_COST_MATRIX_HEADERS.length).getValues()[0] : [];
+      snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_MATRIX_SHEET, row, String(patch.key || row), before, existed, "MATRIX"));
+      if (!Array.isArray(patch.values) || patch.values.length !== HOMEEASY_COST_MATRIX_HEADERS.length) throw new Error("Celda de matriz inválida.");
+      writes.push({ sheet: matrixSheet, row: row, values: patch.values });
+    });
+    const configRows = indiceFilasSync10C_(configSheet, 0); let nextConfigRow = configSheet.getLastRow() + 1;
+    (candidate.config || []).forEach(function(patch) {
+      const key = String(patch.key || ""); let row = configRows[key] || 0; const existed = Boolean(row);
+      if (!row) row = nextConfigRow++;
+      const before = existed ? configSheet.getRange(row, 1, 1, HOMEEASY_COST_CONFIG_HEADERS.length).getValues()[0] : [];
+      if (existed && String(before[1] || "") !== String(patch.expectedValue || "")) throw new Error("La configuración cambió después del escaneo: " + key);
+      snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_CONFIG_SHEET, row, key, before, existed, "CONFIG"));
+      writes.push({ sheet: configSheet, row: row, values: [key, patch.value, "Actualizado atómicamente desde Pentagrama Live"] }); configRows[key] = row;
+    });
+    snapshotSheet.getRange(snapshotSheet.getLastRow() + 1, 1, snapshots.length, HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS.length).setValues(snapshots);
+    writes.forEach(function(write) { write.sheet.getRange(write.row, 1, 1, write.values.length).setValues([write.values]); });
+    SpreadsheetApp.flush(); borrarCacheCostos10B_();
+    const qa = ejecutarQaModeloLocalPentagramaSync10C_(ss, candidate.qaCases);
+    if (!qa.ok) throw new Error("QA Live vs local falló: " + qa.errors.slice(0, 10).join("; "));
+    historySheet.appendRow([historyId, "LOCAL_MODEL_APPLY", scanId, "APLICADO", snapshots.length, new Date(), operadorSync10C_(authValidation), JSON.stringify(qa), "", ""]);
+    return { status: "ok", historyId: historyId, snapshotId: snapshotId, changed: snapshots.length, qa: qa, version: candidate.version };
+  } catch (error) {
+    restaurarSnapshotV2PentagramaSync10C_(ss, snapshots);
+    SpreadsheetApp.flush(); borrarCacheCostos10B_();
+    historySheet.appendRow([historyId, "LOCAL_MODEL_APPLY", scanId, "REVERTIDO_AUTOMATICO", snapshots.length, new Date(), operadorSync10C_(authValidation), "", String(error), ""]);
+    return { status: "error", code: "PENTAGRAMA_APPLY_ROLLED_BACK", msg: "El modelo candidato falló; la versión anterior permanece activa.", error: String(error) };
+  } finally { lock.releaseLock(); }
+}
+
+function ejecutarQaModeloLocalPentagramaSync10C_(ss, cases) {
+  const catalog = cargarCatalogoCostos10B_(ss, true); const errors = []; let maxDifference = 0; let passed = 0;
+  (cases || []).forEach(function(testCase) {
+    const request = { product: testCase.homeeasyId, width: String(testCase.width), height: String(testCase.height), quantity: "1", extras: "0",
+      configuration: String(testCase.configuration || "standard"), coverlight: String(testCase.coverlight || ""), addons: [] };
+    const result = calcularItemCostos10B_(request, catalog, { today: fechaBogota10B_(), promotions: true, installMode: "common", installation: "0" });
+    if (!result.ok) { errors.push(testCase.id + ": " + String(result.error || "sin precio local")); return; }
+    const actual = Number(result.unit) / 100; const difference = Math.abs(actual - Number(testCase.expected)); maxDifference = Math.max(maxDifference, difference);
+    const orientation = String(result.fabrication && result.fabrication.orientationCode || "") || (result.fabrication && result.fabrication.orientation === "normal" ? "DIN" : result.fabrication && result.fabrication.orientation === "atravesada" ? "TAT" : result.fabrication && result.fabrication.orientation === "atravesada_y_anadida" ? "TAN" : "");
+    const mechanism = String(result.fabrication && result.fabrication.mechanism || "");
+    if (difference > 0.02 || (testCase.expectedOrientation && orientation !== testCase.expectedOrientation) || (testCase.expectedMechanism && mechanism !== String(testCase.expectedMechanism))) {
+      errors.push(testCase.id + " esperado " + testCase.expected + " obtenido " + actual + " orientación " + orientation + " mecanismo " + mechanism +
+        (testCase.expectedOrientation ? " orientaciónEsperada " + testCase.expectedOrientation : "") +
+        (testCase.expectedMechanism ? " mecanismoEsperado " + String(testCase.expectedMechanism) : ""));
+    } else passed++;
+  });
+  return { ok: errors.length === 0, checked: (cases || []).length, passed: passed, failed: errors.length, maxDifference: Math.round(maxDifference * 100) / 100, tolerance: 0.02, errors: errors };
+}
+
+function filaComplementoSync10C_(patch, candidate) {
+  return [String(patch.homeeasyId), "complemento-enrollable", String(patch.familyName || "Complementos Enrollable"), String(patch.reference || patch.homeeasyId),
+    String(patch.type || "Complemento"), String(patch.method || "unit"), Number(patch.proposedRate), 0, 0, 0, false,
+    String(patch.configuration || ""), true, "VIGENTE", String(candidate.validThrough || "2099-12-31"), String(candidate.version), "COP", true,
+    "Pentagrama Live", new Date(), JSON.stringify(patch.rules || {})];
+}
+
+function hashObjetoSync10C_(value) {
+  function ordenar_(item) {
+    if (Array.isArray(item)) return item.map(ordenar_);
+    if (!item || typeof item !== "object") return item;
+    const out = {}; Object.keys(item).sort().forEach(function(key) { out[key] = ordenar_(item[key]); }); return out;
+  }
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify(ordenar_(value || {})), Utilities.Charset.UTF_8)
+    .map(function(part) { return (part < 0 ? part + 256 : part).toString(16).padStart(2, "0"); }).join("");
 }
 
 function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
