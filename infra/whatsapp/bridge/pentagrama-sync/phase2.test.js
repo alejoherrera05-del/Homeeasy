@@ -23,7 +23,15 @@ test('scan preserves unmapped products and builds a verified multi-case rate pro
     mappings: [{ id: 'v', homeeasyId: 'vertical-111', family: 'Vertical', reference: 'Matte', productCode: 'P', groupCode: 'G', calculationType: 'NormalProduct', width: '1.2', height: '1.3', quantity: 1, productDiscount: 0, pricingMode: 'account-discount', strategy: 'RATE_M2', status: 'CERTIFIED', verifiedAt: '2026-10-08T00:00:00Z', casesPassed: 3, maxDifference: 0, destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }, updateField: 'Tarifa_IVA_COP', special: {}, validationCases: [{ id: 'a', width: '2', height: '2', role: 'derive' }, { id: 'b', width: '2.4', height: '2', role: 'derive' }, { id: 'min', width: '1.2', height: '1.3', role: 'boundary' }] }],
     certificationRegistry: { products: [{ homeeasyId: 'pending', status: 'REVIEW_REQUIRED', strategy: 'RATE_M2', productCode: 'PENDING', reason: 'Falta evidencia de borde.' }] },
     homeeasy: { catalog: async () => ({ version: 'x', products: [{ row: 2, id: 'vertical-111', familyName: 'Vertical', reference: 'Matte', method: 'area', rate: 87000, minHeight: 1.3, minArea: 0, promotional: false }, { row: 3, id: 'other', familyName: 'Otra', reference: 'X', rate: 10 }, { row: 4, id: 'pending', familyName: 'Panel', reference: 'Pendiente', rate: 20 }] }) },
-    gateway: { dispatch: async () => [{ id: 1 }] },
+    enrollablesRegistry: { products: {} },
+    gateway: { dispatch: async type => {
+      if (type === 'catalogInventory') return {
+        checkedAt: '2026-10-14T00:00:00Z',
+        counts: { products: 1, roots: 1, leaves: 1 },
+        products: [{ name: 'Matte', productCode: 'P', groupCode: 'G', associationGroup: '', externalKey: 'P|G|' }]
+      };
+      return [{ id: 1 }];
+    } },
     pricing: { supplierCost: async params => ({ basePrice: Number(params.Width) * Number(params.Height) * 90000, distributorDiscount: 0, productDiscount: 0, vatRate: 0, total: Number(params.Width) * Math.max(Number(params.Height), 1.3) * 90000 }) },
     homeeasyCost: { cost: async item => ({ amount: Number(item.width) * Math.max(Number(item.height), 1.3) * 87000 }) }
   });
@@ -37,6 +45,9 @@ test('scan preserves unmapped products and builds a verified multi-case rate pro
   assert.equal(scan.results.find(item => item.id === 'v').proposedRate, 90000);
   assert.equal(scan.results.find(item => item.id === 'v').autoApplicable, true);
   assert.deepEqual({ total: scan.catalogAudit.total, certified: scan.catalogAudit.certified, review: scan.catalogAudit.reviewRequired, unmapped: scan.catalogAudit.unmapped }, { total: 3, certified: 1, review: 1, unmapped: 1 });
+  assert.equal(scan.catalogAudit.pentagramaProducts, 1);
+  assert.equal(scan.catalogInventoryAudit.counts.PRESENT, 1);
+  assert.equal(scan.catalogChanges.length, 0);
 });
 
 test('apply rejects expired scans', () => {
@@ -66,4 +77,32 @@ test('post-apply mismatch rolls back the affected batch automatically', async ()
     strategy: 'RATE_M2', destination: mapping.destination, sourceModel: { method: 'area', minHeight: 0, minArea: 0, promotional: false } };
   await assert.rejects(service.runApply(operation.id, { id: 'scan-1' }, [change], {}), error => error.code === 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK');
   assert.equal(rolledBack, 'history-1');
+});
+
+test('inventory audit records real catalog additions and discontinuations without auto-applying them', () => {
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-inventory-audit-')) }),
+    mappings: [],
+    enrollablesRegistry: { products: {} },
+    gateway: { dispatch: async () => ({}) },
+    pricing: {},
+    homeeasyCost: {}
+  });
+  const audit = service.inventoryAudit([
+    {
+      id: 'old',
+      familyName: 'Ring',
+      reference: 'Old fabric',
+      active: true,
+      external: { productCode: 'OLD', groupCode: '1', associationGroup: 'R' }
+    }
+  ], {
+    checkedAt: '2026-10-14T00:00:00Z',
+    counts: { products: 1, roots: 1, leaves: 1 },
+    products: [{ name: 'New fabric', productCode: 'NEW', groupCode: '1', associationGroup: 'R', externalKey: 'NEW|1|R' }]
+  });
+  assert.equal(audit.counts.NEW, 1);
+  assert.equal(audit.counts.DISCONTINUED, 1);
+  assert.equal(audit.changes.length, 2);
+  assert.ok(audit.changes.every(item => ['NEW', 'DISCONTINUED'].includes(item.status)));
 });
