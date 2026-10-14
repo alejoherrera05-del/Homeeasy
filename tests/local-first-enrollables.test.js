@@ -46,6 +46,13 @@ test('special Penta13 and Coverlight mechanisms are persisted and consumed local
   assert.match(costs10B, /fabricationMechanismBands/);
 });
 
+test('Penta13 and Coverlight mechanism profiles are persisted on the parent Enrollable', () => {
+  assert.match(localModelSource, /fabricationMechanismBands: specialMechanismBands\.map/);
+  assert.match(localModelSource, /coverlightMechanismBands\[id\]/);
+  assert.match(costs10B, /variant\.fabricationMechanismBands/);
+  assert.match(costs10B, /productRules\.coverlightMechanismBands\[coverlightId\]/);
+});
+
 test('the local-first inventory remains exactly the 279 certified Enrollables', () => {
   assert.equal(Object.keys(inventory.products).length, 279);
 });
