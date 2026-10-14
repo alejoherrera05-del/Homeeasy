@@ -9,7 +9,8 @@
   ]);
   const STATUS_LABELS = Object.freeze({
     INCREASED: 'Aumentado', DECREASED: 'Disminuido', NEW: 'Nuevo', UNCHANGED: 'Sin cambios',
-    REVIEW_REQUIRED: 'Revisar', UNMAPPED: 'Sin mapear', ERROR: 'Error'
+    REVIEW_REQUIRED: 'Revisar', UNMAPPED: 'Sin mapear', ERROR: 'Error',
+    DISCONTINUED: 'Descontinuado', RENAMED: 'Renombrado', STRUCTURE_CHANGED: 'Cambio técnico'
   });
   const STAGES = Object.freeze({
     QUEUED: 'Conectando con agente…', READING_HOMEEASY: 'Leyendo catálogo HomeEasy…',
@@ -55,15 +56,17 @@
     const certified = Number(audit.certified != null ? audit.certified : audit.mapped != null ? audit.mapped : results.filter(item => item.id).length);
     const unmapped = Number(audit.unmapped != null ? audit.unmapped : counts.UNMAPPED || 0);
     const total = Number(audit.total != null ? audit.total : results.length);
-    const partial = Boolean(scan && (review || unmapped || certified < total));
+    const catalogPending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) +
+      Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0);
+    const partial = Boolean(scan && (review || unmapped || certified < total || catalogPending));
     let tone = 'neutral'; let label = 'Sin revisar';
     if (!online) { tone = 'error'; label = 'Sin agente disponible'; }
     else if (errors) { tone = 'error'; label = 'Requiere atención'; }
-    else if (changes) { tone = 'pending'; label = 'Actualizaciones disponibles'; }
+    else if (changes || catalogPending) { tone = 'pending'; label = 'Actualizaciones disponibles'; }
     else if (scan && partial) { tone = 'success'; label = 'Operativo · cobertura parcial'; }
     else if (scan) { tone = 'success'; label = 'Sincronizado'; }
-    return { tone, label, online, totalAgents: (agents || []).length, changes, review, errors,
-      checked: certified, certified, total, partial, unmapped };
+    return { tone, label, online, totalAgents: (agents || []).length, changes, catalogPending, review, errors,
+      checked: certified, certified, total, partial, unmapped, pentagramaProducts: Number(audit.pentagramaProducts || 0) };
   }
 
   function filterResults(results, filter) {
@@ -117,6 +120,12 @@
         <div class="he-ps-filters" id="hePsFilters" aria-label="Filtros de resultados"></div>
         <div class="he-ps-table-wrap"><table class="he-ps-table"><thead><tr><th class="he-ps-check-col"><span class="sr-only">Seleccionar</span></th><th>Producto</th><th>Familia</th><th>Anterior</th><th>Nuevo</th><th>Cambio</th><th>Estado</th></tr></thead><tbody id="hePsRows"><tr><td colspan="7" class="he-ps-empty">Ejecuta una actualización para comparar tarifas.</td></tr></tbody></table></div><button class="he-ps-more" id="hePsMore" hidden>Mostrar más resultados</button>
       </section>
+      <section class="card he-ps-results-card he-ps-catalog-card">
+        <div class="he-ps-section-head"><div><span class="he-ps-eyebrow">Inventario real del proveedor</span><h3>Novedades del catálogo Pentagrama</h3><p id="hePsCatalogSummary">Aún no se ha comparado el catálogo completo.</p></div></div>
+        <div class="he-ps-review-note" id="hePsCatalogNote" hidden><i class="fa-solid fa-shield-halved"></i><div><strong>Protección activa</strong><p>Las novedades del catálogo son solo lectura hasta que HomeEasy certifique su regla de precio. Nada nuevo se activa por nombre o aproximación.</p></div></div>
+        <div class="he-ps-success-empty" id="hePsCatalogUpToDate" hidden><span><i class="fa-solid fa-check"></i></span><div><strong>Catálogo sin novedades</strong><p>Las identidades técnicas conocidas siguen presentes en Pentagrama.</p></div></div>
+        <div class="he-ps-table-wrap"><table class="he-ps-table he-ps-catalog-table"><thead><tr><th>Estado</th><th>Referencia Pentagrama</th><th>Código</th><th>Ruta / familia</th><th>Vínculo HomeEasy</th></tr></thead><tbody id="hePsCatalogRows"><tr><td colspan="5" class="he-ps-empty">Ejecuta una actualización para comparar el catálogo.</td></tr></tbody></table></div>
+      </section>
       <div class="he-ps-secondary-grid">
         <section class="card he-ps-compact-card"><div class="he-ps-section-head compact"><div><span class="he-ps-eyebrow">Disponibilidad</span><h3>Agentes Pentagrama</h3></div><i class="fa-solid fa-computer he-ps-section-icon"></i></div><div id="hePsAgents" class="he-ps-list"><div class="he-ps-empty">Consultando agentes…</div></div></section>
         <section class="card he-ps-compact-card"><div class="he-ps-section-head compact"><div><span class="he-ps-eyebrow">Trazabilidad</span><h3>Historial</h3></div><i class="fa-solid fa-clock-rotate-left he-ps-section-icon"></i></div><div id="hePsHistory" class="he-ps-list"><div class="he-ps-empty">Consultando historial…</div></div></section>
@@ -136,10 +145,12 @@
     const agents = state.status && state.status.agents || []; const overview = deriveOverview(state.scan, agents); const dot = $('#hePsStatusDot'); dot.className = `he-ps-status-dot ${overview.tone}`;
     if (state.error) { overview.tone = 'error'; overview.label = 'Requiere atención'; dot.className = 'he-ps-status-dot error'; }
     $('#hePsStatusLabel').textContent = overview.label;
-    $('#hePsStatusHelp').textContent = overview.tone === 'success' && overview.partial ? `${overview.certified} certificadas · ${overview.review} pendientes · ${overview.unmapped} sin mapear` : overview.tone === 'success' ? 'Las referencias certificadas coinciden con el costo vigente.' : overview.tone === 'pending' ? 'Hay cambios certificados disponibles; los casos pendientes permanecen intactos.' : overview.tone === 'error' ? 'La operación necesita atención antes de continuar.' : 'Ejecuta una actualización para comparar tarifas.';
+    $('#hePsStatusHelp').textContent = overview.tone === 'success' && overview.partial ? `${overview.certified} certificadas · ${overview.review} pendientes · ${overview.unmapped} sin mapear` : overview.tone === 'success' ? 'Las referencias certificadas coinciden con Pentagrama.' : overview.tone === 'pending' ? 'Pentagrama reportó cambios de precio o novedades de catálogo; nada no certificado se aplicará.' : overview.tone === 'error' ? 'La operación necesita atención antes de continuar.' : 'Ejecuta una actualización para comparar precios y catálogo.';
     const nextCheck = state.status && state.status.nextScheduledCheck; const lastAuto = state.status && state.status.lastAutomaticCheck; const autoResult = state.status && state.status.automaticResult;
     const autoHint = autoResult ? (autoResult.event === 'AUTO_SCAN_OK' ? 'Sin cambios' : autoResult.event === 'CHANGES_DETECTED' && Number(autoResult.changes || 0) ? `${Number(autoResult.changes || 0)} cambios pendientes` : autoResult.event === 'CHANGES_DETECTED' ? 'Cobertura parcial' : 'Falló · requiere atención') : 'Aún no ejecutada';
-    $('#hePsMetrics').innerHTML = [metric('fa-clock', 'Última revisión automática', lastAuto ? dateTime(lastAuto) : 'Sin registros', autoHint), metric('fa-list-check', 'Referencias certificadas', String(overview.certified), `${overview.review} pendientes · ${overview.unmapped} sin mapear`), metric('fa-arrow-right-arrow-left', 'Cambios pendientes', String(overview.changes), overview.review ? `${overview.review} fuera del auto-apply` : 'Sin anomalías'), metric('fa-computer', 'Agentes disponibles', `${overview.online} de ${overview.totalAgents}`), metric('fa-calendar-check', 'Próxima revisión automática', nextCheck ? dateTime(nextCheck) : 'No programada')].join('');
+    const audit = state.scan && state.scan.catalogAudit || {};
+    const catalogHint = `${Number(audit.newReferences || 0)} nuevas · ${Number(audit.discontinued || 0)} bajas`;
+    $('#hePsMetrics').innerHTML = [metric('fa-clock', 'Última revisión automática', lastAuto ? dateTime(lastAuto) : 'Sin registros', autoHint), metric('fa-list-check', 'Referencias certificadas', String(overview.certified), `${overview.review} pendientes · ${overview.unmapped} sin mapear`), metric('fa-boxes-stacked', 'Catálogo Pentagrama', overview.pentagramaProducts ? String(overview.pentagramaProducts) : '—', overview.pentagramaProducts ? catalogHint : 'Pendiente de lectura'), metric('fa-arrow-right-arrow-left', 'Cambios de precio', String(overview.changes), overview.review ? `${overview.review} fuera del auto-apply` : 'Sin anomalías'), metric('fa-computer', 'Agentes disponibles', `${overview.online} de ${overview.totalAgents}`), metric('fa-calendar-check', 'Próxima revisión automática', nextCheck ? dateTime(nextCheck) : 'No programada')].join('');
     const alert = $('#hePsAlert');
     if (state.error) { alert.hidden = false; alert.className = 'he-ps-alert error'; alert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i><span>${esc(friendlyError(state.error))}</span>`; }
     else if (!overview.online) { alert.hidden = false; alert.className = 'he-ps-alert error'; alert.innerHTML = `<i class="fa-solid fa-computer"></i><span>${esc(ERROR_MESSAGES.AGENT_OFFLINE)}</span>`; }
@@ -167,6 +178,39 @@
     const more = $('#hePsMore'); more.hidden = filtered.length <= state.limit; more.textContent = `Mostrar más (${Math.max(0, filtered.length - state.limit)})`; renderApplyButton(safeTotal);
   }
 
+  function catalogAction(status) {
+    if (status === 'NEW') return 'Pendiente de certificar';
+    if (status === 'DISCONTINUED') return 'Pendiente de desactivar';
+    if (status === 'RENAMED') return 'Revisar nombre';
+    if (status === 'STRUCTURE_CHANGED') return 'Revisar identidad técnica';
+    return 'Revisión requerida';
+  }
+
+  function renderCatalogChanges() {
+    const scan = state.scan;
+    const changes = scan && Array.isArray(scan.catalogChanges) ? scan.catalogChanges : [];
+    const audit = scan && scan.catalogAudit || {};
+    const counts = {
+      NEW: Number(audit.newReferences || 0),
+      DISCONTINUED: Number(audit.discontinued || 0),
+      RENAMED: Number(audit.renamed || 0),
+      STRUCTURE_CHANGED: Number(audit.structureChanged || 0),
+      CONFLICT: Number(audit.bindingConflicts || 0)
+    };
+    const total = counts.NEW + counts.DISCONTINUED + counts.RENAMED + counts.STRUCTURE_CHANGED + counts.CONFLICT;
+    $('#hePsCatalogSummary').textContent = scan
+      ? `${Number(audit.pentagramaProducts || 0)} referencias vistas en Pentagrama · ${counts.NEW} nuevas · ${counts.DISCONTINUED} descontinuadas · ${counts.RENAMED} renombradas · ${counts.STRUCTURE_CHANGED} cambios técnicos`
+      : 'Aún no se ha comparado el catálogo completo.';
+    $('#hePsCatalogNote').hidden = !(scan && total);
+    $('#hePsCatalogUpToDate').hidden = !(scan && total === 0);
+    const visible = changes.slice(0, 200);
+    $('#hePsCatalogRows').innerHTML = visible.length ? visible.map(item => {
+      const live = item.live || {};
+      const route = Array.isArray(live.path) ? live.path.join(' › ') : '';
+      return `<tr class="he-ps-row ${esc(item.status)}"><td data-label="Estado"><span class="he-ps-pill ${esc(item.status)}">${esc(STATUS_LABELS[item.status] || item.status)}</span><small>${esc(catalogAction(item.status))}</small></td><td data-label="Referencia"><strong>${esc(item.newName || item.oldName || '—')}</strong>${item.oldName && item.newName && item.oldName !== item.newName ? `<small>Antes: ${esc(item.oldName)}</small>` : ''}</td><td data-label="Código"><strong>${esc(item.productCode || '—')}</strong><small>${esc(item.externalKey || '')}</small></td><td data-label="Ruta">${esc(route || '—')}</td><td data-label="HomeEasy"><strong>${esc(item.homeeasyId || 'Sin vincular')}</strong><small>${esc(item.status === 'NEW' ? 'No se activará hasta certificar precio y reglas.' : catalogAction(item.status))}</small></td></tr>`;
+    }).join('') : '<tr><td colspan="5" class="he-ps-empty">No se detectaron novedades de catálogo.</td></tr>';
+  }
+
   function renderApplyButton(safeTotal) { const button = $('#hePsApply'); const selected = selectedSafe().length; const available = Number.isFinite(safeTotal) ? safeTotal : (state.scan && state.scan.results || []).filter(isSafe).length; button.disabled = state.busy || !can('config.write') || !selected; button.querySelector('span').textContent = selected ? `Aplicar actualización (${selected})` : available ? 'Selecciona cambios' : 'Sin cambios aplicables'; }
   function pentagramaStatus(agent) { const value = agent && agent.pentagrama && agent.pentagrama.status || 'unknown'; if (value === 'ready') return ['Pentagrama disponible', 'ready']; if (value === 'error') return [friendlyError(agent.pentagrama.code), 'error']; return ['Pentagrama sin comprobar', 'unknown']; }
   function renderAgents(items) { $('#hePsAgents').innerHTML = (items || []).map(agent => { const portal = pentagramaStatus(agent); return `<div class="he-ps-list-row agent"><span class="he-ps-agent-icon ${agent.online ? 'online' : 'offline'}"><i class="fa-solid fa-computer"></i></span><div class="he-ps-list-copy"><strong>${esc(agent.hostname || agent.installationId)}</strong><span><b class="he-ps-presence ${agent.online ? 'online' : 'offline'}">${agent.online ? 'Online' : 'Offline'}</b> · v${esc(agent.version || '—')}</span><small>${esc(portal[0])} · Última conexión ${esc(dateTime(agent.lastSeen))}</small></div></div>`; }).join('') || '<div class="he-ps-empty"><i class="fa-solid fa-computer"></i><strong>No hay agentes registrados</strong><span>Instala o enciende un agente para consultar Pentagrama.</span></div>'; }
@@ -187,7 +231,7 @@
     $('#hePsHistory').querySelectorAll('[data-history-detail]').forEach(button => button.onclick = () => openHistory(button.dataset.historyDetail));
     $('#hePsHistory').querySelectorAll('[data-rollback]').forEach(button => button.onclick = () => rollback(button.dataset.rollback));
   }
-  function renderAll() { renderOverview(); renderResults(); renderAgents(state.status && state.status.agents || []); renderHistory(state.history); }
+  function renderAll() { renderOverview(); renderResults(); renderCatalogChanges(); renderAgents(state.status && state.status.agents || []); renderHistory(state.history); }
 
   function setProgress(stage, type) {
     const box = $('#hePsProgress'); if (!stage) { box.hidden = true; return; }
@@ -200,7 +244,7 @@
 
   async function scan() {
     if (state.busy) return; state.busy = true; state.error = null; renderAll();
-    try { const started = await request('/api/pentagrama-sync/scan', 'POST', {}); await poll(started.operation.id, 'scan'); await refresh({ resetSelection: true }); const counts = state.scan && state.scan.counts || {}; const safe = selectedSafe(); const review = Number(counts.REVIEW_REQUIRED || 0); if (safe.length) { await apply(true); return; } if (!Number(counts.ERROR || 0)) await Swal.fire({ icon: 'success', title: 'Todo lo certificado está actualizado', text: `${Number(state.scan && state.scan.catalogAudit && (state.scan.catalogAudit.certified != null ? state.scan.catalogAudit.certified : state.scan.catalogAudit.mapped) || 0)} certificadas · ${review} pendientes fuera del auto-apply · 0 cambios`, confirmButtonColor: '#a6455a' }); else await Swal.fire({ icon: 'error', title: 'Requiere atención', text: 'Una o más consultas operativas fallaron. No se modificó ninguna tarifa.', confirmButtonColor: '#a6455a' }); }
+    try { const started = await request('/api/pentagrama-sync/scan', 'POST', {}); await poll(started.operation.id, 'scan'); await refresh({ resetSelection: true }); const counts = state.scan && state.scan.counts || {}; const audit = state.scan && state.scan.catalogAudit || {}; const safe = selectedSafe(); const review = Number(counts.REVIEW_REQUIRED || 0); const catalogPending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0); if (safe.length) { await apply(true); return; } if (!Number(counts.ERROR || 0) && catalogPending) await Swal.fire({ icon: 'info', title: 'Pentagrama revisado', text: `Los precios certificados están al día. Se detectaron ${catalogPending} novedad(es) de catálogo que permanecerán bloqueadas hasta ser certificadas.`, confirmButtonColor: '#a6455a' }); else if (!Number(counts.ERROR || 0)) await Swal.fire({ icon: 'success', title: 'Todo lo certificado está actualizado', text: `${Number(audit.certified != null ? audit.certified : audit.mapped || 0)} certificadas · ${review} pendientes fuera del auto-apply · catálogo sin novedades`, confirmButtonColor: '#a6455a' }); else await Swal.fire({ icon: 'error', title: 'Requiere atención', text: 'Una o más consultas operativas fallaron. No se modificó ninguna tarifa.', confirmButtonColor: '#a6455a' }); }
     catch (error) { state.error = error; setProgress(null); await Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: friendlyError(error), confirmButtonColor: '#a6455a' }); }
     finally { state.busy = false; renderAll(); }
   }
@@ -209,7 +253,7 @@
     const changes = selectedSafe(); if (!changes.length) return;
     if (!automatic) { const result = await Swal.fire({ icon: 'warning', title: `Aplicar ${changes.length} cambio(s)`, html: 'Se creará un respaldo, se actualizará la Sheet, se refrescará la caché y se ejecutará QA.<br><b>Los casos “Revisar” no se aplicarán.</b>', showCancelButton: true, confirmButtonText: 'Crear respaldo y aplicar', cancelButtonText: 'Cancelar', confirmButtonColor: '#a6455a' }); if (!result.isConfirmed) return; }
     state.busy = true; state.error = null; renderAll();
-    try { const started = await request('/api/pentagrama-sync/apply', 'POST', { scanId: state.scan.id, changeIds: changes.map(item => item.id) }); const operation = await poll(started.operation.id, 'apply'); await refresh({ resetSelection: true }); const qa = operation.result && operation.result.qa; if (!qa || qa.ok !== true) throw Object.assign(new Error('QA_FAILED'), { code: 'QA_FAILED' }); const review = Number(state.scan && state.scan.counts && state.scan.counts.REVIEW_REQUIRED || 0); await Swal.fire({ icon: 'success', title: 'HomeEasy actualizado correctamente', text: `${changes.length} tarifa(s) actualizadas${review ? ` · ${review} requiere(n) revisión` : ''}. QA contra Pentagrama: PASS.`, confirmButtonColor: '#a6455a' }); }
+    try { const started = await request('/api/pentagrama-sync/apply', 'POST', { scanId: state.scan.id, changeIds: changes.map(item => item.id) }); const operation = await poll(started.operation.id, 'apply'); await refresh({ resetSelection: true }); const qa = operation.result && operation.result.qa; if (!qa || qa.ok !== true) throw Object.assign(new Error('QA_FAILED'), { code: 'QA_FAILED' }); const review = Number(state.scan && state.scan.counts && state.scan.counts.REVIEW_REQUIRED || 0); const audit = state.scan && state.scan.catalogAudit || {}; const catalogPending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0); await Swal.fire({ icon: 'success', title: 'HomeEasy actualizado correctamente', text: `${changes.length} tarifa(s) actualizadas${review ? ` · ${review} requiere(n) revisión` : ''}${catalogPending ? ` · ${catalogPending} novedad(es) de catálogo bloqueadas para certificación` : ''}. QA contra Pentagrama: PASS.`, confirmButtonColor: '#a6455a' }); }
     catch (error) { state.error = error; setProgress(null); const rolledBack = /QA/i.test(String(error.code || error.message || '')); await Swal.fire({ icon: 'error', title: 'La actualización no fue aplicada', text: rolledBack ? 'El QA no pasó. HomeEasy fue restaurado al estado anterior.' : friendlyError(error), confirmButtonColor: '#a6455a' }); }
     finally { state.busy = false; renderAll(); }
   }
