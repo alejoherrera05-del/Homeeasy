@@ -3,8 +3,13 @@ name: Pentagrama Catalog Sync QA
 on:
   push:
     paths:
+      - 'apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/pentagrama-agent/src/agent.js'
@@ -13,8 +18,13 @@ on:
       - '.github/workflows/pentagrama-catalog-sync-qa.yml'
   pull_request:
     paths:
+      - 'apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/pentagrama-agent/src/agent.js'
@@ -27,9 +37,9 @@ permissions:
   contents: read
 
 jobs:
-  catalog-inventory:
+  catalog-sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,10 +48,17 @@ jobs:
       - name: Syntax checks
         run: |
           node --check infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/phase2.js
           node --check infra/whatsapp/bridge/pentagrama-sync/index.js
           node --check infra/whatsapp/bridge/pentagrama-agents/gateway.js
           node --check infra/pentagrama-agent/src/agent.js
-      - name: Inventory tests
+          node --check apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs
+      - name: Catalog inventory tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js
+      - name: Catalog binding tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js
+      - name: Phase 2 tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/phase2.test.js
       - name: Agent tests
         run: node --test infra/pentagrama-agent/test/agent.test.js
