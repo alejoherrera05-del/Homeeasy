@@ -467,8 +467,19 @@ function opcionesComplementos10B_(catalog, ids) {
 function configurarProductoCostos10B_(product, configuration) {
   const id = String(configuration || "standard");
   if (id === "standard") return product;
-  const variant = ((product.rules || {}).configurations || []).find(function(c) { return c.id === id; });
+  const baseRules = product.rules || {};
+  const variant = (baseRules.configurations || []).find(function(c) { return c.id === id; });
   if (!variant) throw new Error("Elige una configuración disponible.");
+  const rules = Object.assign({}, baseRules, {
+    coverlightIds: variant.coverlightIds || baseRules.coverlightIds || [],
+    addonIds: variant.addonIds || baseRules.addonIds || []
+  });
+  if (Array.isArray(variant.fabricationMechanismBands) && variant.fabricationMechanismBands.length) {
+    const baseProfile = baseRules.fabricationProfile && typeof baseRules.fabricationProfile === "object" ? baseRules.fabricationProfile : {};
+    rules.fabricationProfile = Object.assign({}, baseProfile, {
+      mechanismBands: JSON.parse(JSON.stringify(variant.fabricationMechanismBands))
+    });
+  }
   return Object.assign({}, product, {
     method: variant.method || product.method,
     rateCents: variant.rateCOP === undefined ? product.rateCents : copACentavos10B_(variant.rateCOP || 0),
@@ -476,10 +487,7 @@ function configurarProductoCostos10B_(product, configuration) {
     extraDiscount: numeroCostos10B_(variant.extraDiscount, 0),
     configuration: variant.label,
     selectedSupplementId: String(variant.supplementId || ""),
-    rules: Object.assign({}, product.rules, {
-      coverlightIds: variant.coverlightIds || (product.rules && product.rules.coverlightIds) || [],
-      addonIds: variant.addonIds || (product.rules && product.rules.addonIds) || []
-    })
+    rules: rules
   });
 }
 
@@ -487,22 +495,30 @@ function aplicarPerfilFabricacionComplementos10B_(product, item, catalog) {
   const selectedIds = [];
   if (product && product.selectedSupplementId) selectedIds.push(String(product.selectedSupplementId));
   if (item && item.coverlight) selectedIds.push(String(item.coverlight));
-  if (!selectedIds.length) return product;
 
   let mechanismBands = null;
-  selectedIds.forEach(function(id) {
-    const complement = (catalog.products || []).find(function(p) { return p.id === id && p.family === "complemento-enrollable"; });
-    const bands = complement && complement.rules && complement.rules.fabricationMechanismBands;
+  function adoptarBandas_(bands) {
     if (!Array.isArray(bands) || !bands.length) return;
     const serialized = JSON.stringify(bands);
     if (mechanismBands && JSON.stringify(mechanismBands) !== serialized) {
       throw new Error("Los complementos seleccionados requieren perfiles de mecanismo incompatibles.");
     }
     mechanismBands = JSON.parse(serialized);
-  });
-  if (!mechanismBands) return product;
+  }
 
-  const rules = Object.assign({}, product.rules || {});
+  const productRules = product && product.rules || {};
+  const coverlightId = item && item.coverlight ? String(item.coverlight) : "";
+  if (coverlightId && productRules.coverlightMechanismBands) {
+    adoptarBandas_(productRules.coverlightMechanismBands[coverlightId]);
+  }
+
+  selectedIds.forEach(function(id) {
+    const complement = (catalog.products || []).find(function(p) { return p.id === id && p.family === "complemento-enrollable"; });
+    adoptarBandas_(complement && complement.rules && complement.rules.fabricationMechanismBands);
+  });
+
+  if (!mechanismBands) return product;
+  const rules = Object.assign({}, productRules);
   const baseProfile = rules.fabricationProfile && typeof rules.fabricationProfile === "object" ? rules.fabricationProfile : {};
   rules.fabricationProfile = Object.assign({}, baseProfile, { mechanismBands: mechanismBands });
   return Object.assign({}, product, { rules: rules });
