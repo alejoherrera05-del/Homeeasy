@@ -10,9 +10,19 @@ const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certific
 const { PentagramaCatalogInventory, compareInventory } = require('./catalog-inventory');
 const { buildCatalogBindings } = require('./catalog-bindings');
 const DEFAULT_ENROLLABLES_REGISTRY = require('./enrollables-live-products.json');
+const ENROLLABLE_IDS = new Set(Object.keys(DEFAULT_ENROLLABLES_REGISTRY.products || {}));
 const { CatalogCertifier, isRing, isRenueva, referenceName, sourceRowValues } = require('./catalog-certifier');
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
+
+function certifiedLocalCandidate(scan) {
+  const summary = scan && scan.localModelCandidate && scan.localModelCandidate.summary;
+  return Boolean(summary &&
+    Number(summary.enrollables) === 279 &&
+    Number(summary.fail) === 0 &&
+    Number(summary.maxDifference) <= 0.02 &&
+    Number(summary.monetaryExpectedSelfReferential || 0) === 0);
+}
 
 function statusFor(oldCost, newCost) {
   if (!Number.isFinite(newCost)) return 'ERROR';
@@ -371,6 +381,27 @@ class PentagramaPhase2 {
     this.store.updateOperation(operationId, { state: 'running', stage: 'READING_HOMEEASY' });
     const source = await this.homeeasy.catalog(context);
     this.store.updateOperation(operationId, { stage: 'READING_PENTAGRAMA' });
+    const hasEnrollables = (source.products || []).some(item => ENROLLABLE_IDS.has(String(item.id)));
+    let localModelCandidate = null;
+    let localModelError = null;
+    if (hasEnrollables) {
+      try {
+        localModelCandidate = await this.gateway.dispatch('buildLocalEnrollablesSnapshot', { source }, { lockKey: `local-enrollables:${source.version}` });
+        if (!localModelCandidate || Number(localModelCandidate.summary && localModelCandidate.summary.enrollables) !== 279 ||
+          Number(localModelCandidate.summary && localModelCandidate.summary.fail) !== 0 ||
+          Number(localModelCandidate.summary && localModelCandidate.summary.monetaryExpectedSelfReferential || 0) !== 0) {
+          throw Object.assign(new Error('El modelo Enrollables no quedó completamente certificado con evidencia Live actual.'), { code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED' });
+        }
+      } catch (error) {
+        localModelCandidate = null;
+        localModelError = {
+          code: String(error.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED'),
+          message: String(error.message || 'No se pudo construir el modelo Enrollables.').slice(0, 300),
+          failures: Array.isArray(error.failures) ? error.failures.slice(0, 50) : [],
+          missing: Array.isArray(error.missing) ? error.missing.slice(0, 300) : []
+        };
+      }
+    }
     const inventory = await this.fullCatalogInventory();
     const catalogInventoryAudit = this.inventoryAudit(source.products || [], inventory);
     const catalogActions = await this.buildCatalogActions(source, inventory);
@@ -382,9 +413,41 @@ class PentagramaPhase2 {
     };
 
     const results = [];
-    const mappedIds = new Set(this.mappings.map(item => item.homeeasyId));
-    const certifiedMappingIds = new Set(this.mappings.filter(mappingIsCertified).map(item => item.homeeasyId));
+    const mappedIds = new Set([...this.mappings.map(item => item.homeeasyId), ...ENROLLABLE_IDS]);
+    const certifiedMappingIds = new Set([...this.mappings.filter(mappingIsCertified).map(item => item.homeeasyId), ...(localModelCandidate ? ENROLLABLE_IDS : [])]);
     const certificationById = new Map((this.certificationRegistry.products || []).map(item => [item.homeeasyId, item]));
+    if (localModelCandidate) {
+      const changed = Number(localModelCandidate.summary && localModelCandidate.summary.changed || 0);
+      results.push({
+        id: 'enrollables-local-model',
+        homeeasyId: '__enrollables_local_model__',
+        family: 'Enrollable',
+        reference: `${localModelCandidate.summary.enrollables} Enrollables · modelo local ${localModelCandidate.version}`,
+        strategy: 'LOCAL_MODEL',
+        status: changed ? 'NEW' : 'UNCHANGED',
+        autoApplicable: changed > 0,
+        oldCost: 0,
+        newCost: changed,
+        difference: changed,
+        percent: null,
+        reviewReason: null,
+        severity: 'normal',
+        destination: { sheet: 'Costos_Pentagrama*', field: 'snapshot-atómico' }
+      });
+    } else if (hasEnrollables) {
+      results.push({
+        id: 'enrollables-local-model',
+        homeeasyId: '__enrollables_local_model__',
+        family: 'Enrollable',
+        reference: '279 Enrollables',
+        strategy: 'LOCAL_MODEL',
+        status: 'ERROR',
+        autoApplicable: false,
+        error: localModelError && localModelError.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED',
+        diagnostics: localModelError
+      });
+    }
+
     for (const item of source.products || []) {
       if (mappedIds.has(item.id)) continue;
       const certification = certificationById.get(item.id);
@@ -397,7 +460,7 @@ class PentagramaPhase2 {
       }
     }
     this.store.updateOperation(operationId, { stage: 'COMPARING' });
-    for (const mapping of this.mappings) {
+    for (const mapping of this.mappings.filter(item => !ENROLLABLE_IDS.has(String(item.homeeasyId)))) {
       const sourceItem = (source.products || []).find(item => item.id === mapping.homeeasyId);
       if (!sourceItem) { results.push({ homeeasyId: mapping.homeeasyId, family: mapping.family, reference: mapping.reference, status: 'UNMAPPED' }); continue; }
       try {
@@ -427,12 +490,12 @@ class PentagramaPhase2 {
     }
     const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
-    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, sourceValidThrough: source.validThrough, catalogSummary,
+    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, sourceValidThrough: source.validThrough, catalogSummary, localModelCandidate, localModelError,
       catalogInventoryAudit,
       catalogChanges: catalogInventoryAudit.changes,
       catalogActions,
       catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.id).length,
-        certified: results.filter(item => item.id && certifiedMappingIds.has(item.homeeasyId)).length,
+        certified: (source.products || []).filter(item => certifiedMappingIds.has(String(item.id))).length,
         autoUpdatable: results.filter(item => item.autoApplicable).length,
         reviewRequired: results.filter(item => item.status === 'REVIEW_REQUIRED').length,
         unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts,
