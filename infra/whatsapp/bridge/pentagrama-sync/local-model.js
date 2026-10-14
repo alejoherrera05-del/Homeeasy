@@ -12,7 +12,13 @@ const BASE_CASES = Object.freeze([
 ]);
 const STRUCTURE_CASES = Object.freeze([
   Object.freeze({ id: 'limit', width: 0.8, height: 1 }),
+  Object.freeze({ id: 'boundary-130', width: 1.3, height: 2.2 }),
+  Object.freeze({ id: 'decimal-183', width: 1.83, height: 2.2 }),
   Object.freeze({ id: 'width-250', width: 2.5, height: 2.2 }),
+  Object.freeze({ id: 'mechanism-130-350', width: 1.3, height: 3.5 }),
+  Object.freeze({ id: 'mechanism-190-320', width: 1.9, height: 3.2 }),
+  Object.freeze({ id: 'mechanism-260-320', width: 2.6, height: 3.2 }),
+  Object.freeze({ id: 'mechanism-300-280', width: 3, height: 2.8 }),
   Object.freeze({ id: 'tat', width: 3.5, height: 2 }),
   Object.freeze({ id: 'tan', width: 4.5, height: 3.2 })
 ]);
@@ -31,6 +37,7 @@ function localTotal(product, rate, sample) { return money(effectiveArea(product,
 function inferredRate(product, sample, total) { return Number(total) / effectiveArea(product, sample); }
 function same(left, right) { return Math.abs(Number(left) - Number(right)) <= TOLERANCE; }
 function normalizeRules(value) { return value && typeof value === 'object' && !Array.isArray(value) ? JSON.parse(JSON.stringify(value)) : {}; }
+function cloneValue(value) { return value === undefined ? undefined : JSON.parse(JSON.stringify(value)); }
 function slug(value) { return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 55); }
 
 const PORTAL_MECHANISM_BANDS = Object.freeze({
@@ -80,6 +87,117 @@ function mechanismForBands(sample, bands) {
     (!Number(item.maxHeightMm) || heightMm <= Number(item.maxHeightMm))
   );
   return String(band && band.mechanism || '');
+}
+
+function uniqueStructureCases(profile, sourceRules) {
+  const cases = STRUCTURE_CASES.map(item => ({ ...item }));
+  const rollWidths = [...new Set([
+    Number(profile && profile.rollWidthMm || 0), Number(sourceRules && sourceRules.rollWidthMm || 0),
+    1300, 1830, 2000, 2500, 2800, 3000, 3200
+  ].filter(value => value > 0))];
+  for (const rollWidthMm of rollWidths) {
+    const rollWidth = rollWidthMm / 1000;
+    cases.push({ id: `near-roll-${rollWidthMm}-low`, width: Math.max(0.01, rollWidth - 0.01), height: 2.2 });
+    cases.push({ id: `near-roll-${rollWidthMm}-high`, width: rollWidth + 0.01, height: 2.2 });
+  }
+  const seen = new Set();
+  return cases.filter(item => {
+    const key = `${Number(item.width).toFixed(3)}:${Number(item.height).toFixed(3)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function fabricationFromLive(live) {
+  const configuration = live && live.configuration || {};
+  const fabrication = live && live.fabrication || {};
+  const hasAuthorization = Object.prototype.hasOwnProperty.call(fabrication, 'requiresAuthorization');
+  const hasWarranty = Object.prototype.hasOwnProperty.call(fabrication, 'warranty');
+  return {
+    outcome: String(live && live.outcome || ''),
+    orientationCode: String(configuration.orientationCode || fabrication.orientationCode || ''),
+    mechanism: String(configuration.mechanism || fabrication.mechanism || ''),
+    requiresAuthorization: hasAuthorization ? Boolean(fabrication.requiresAuthorization) : undefined,
+    warranty: hasWarranty ? fabrication.warranty !== false : undefined
+  };
+}
+
+function mechanismBandCandidates(seedProfile) {
+  const maxM08 = Number(seedProfile && seedProfile.mechanismBands && seedProfile.mechanismBands.find(item => item.mechanism === 'M08' && item.maxWidthMm) &&
+    seedProfile.mechanismBands.find(item => item.mechanism === 'M08' && item.maxWidthMm).maxWidthMm || 3800);
+  const candidates = Object.keys(PORTAL_MECHANISM_BANDS).map(name => ({
+    id: name,
+    bands: [
+      ...clonedMechanismBands(name),
+      { maxWidthMm: maxM08, maxHeightMm: 3500, mechanism: 'M08' },
+      { maxWidthMm: null, maxHeightMm: null, mechanism: 'NA' }
+    ]
+  }));
+  if (seedProfile && Array.isArray(seedProfile.mechanismBands)) {
+    candidates.unshift({ id: 'CURRENT', bands: cloneValue(seedProfile.mechanismBands) });
+  }
+  return candidates;
+}
+
+function deriveMechanismBands(evidence, seedProfile, label) {
+  const priced = evidence.filter(item => item.outcome !== 'NOT_MANUFACTURABLE' && item.mechanism);
+  const matches = mechanismBandCandidates(seedProfile).filter(candidate =>
+    priced.every(item => mechanismForBands(item, candidate.bands) === item.mechanism));
+  if (matches.length) return matches[0].bands.map(item => ({ ...item }));
+  const mechanisms = [...new Set(priced.map(item => item.mechanism))];
+  if (mechanisms.length === 1) return [{ maxWidthMm: null, maxHeightMm: null, mechanism: mechanisms[0] }];
+  throw Object.assign(new Error(`${label}: current Live mechanisms do not match a reproducible structural profile`), {
+    code: 'PENTAGRAMA_LOCAL_MODEL_MECHANISM_PROFILE_UNRESOLVED', evidence: priced
+  });
+}
+
+function deriveFabricationProfile(group, evidence, seedProfile) {
+  const sourceRules = group.product.rules || {};
+  const rollCandidates = [...new Set([
+    Number(sourceRules.rollWidthMm || 0),
+    Number(seedProfile && seedProfile.rollWidthMm || 0),
+    1300, 1830, 2000, 2500, 2800, 3000, 3200
+  ].filter(value => value > 0))];
+  const acrossCodes = [...new Set(evidence.filter(item => item.orientationCode && item.orientationCode !== 'DIN' && !item.orientationCode.startsWith('TAN')).map(item => item.orientationCode))];
+  const addedCodes = [...new Set(evidence.filter(item => item.orientationCode && item.orientationCode.startsWith('TAN')).map(item => item.orientationCode))];
+  if (!acrossCodes.length) acrossCodes.push(String(seedProfile && seedProfile.orientationAcrossCode || 'TAT'));
+  if (!addedCodes.length) addedCodes.push(String(seedProfile && seedProfile.orientationAddedCode || 'TAN'));
+  const mechanismBands = deriveMechanismBands(evidence, seedProfile, group.product.id);
+  const candidates = [];
+  for (const rollWidthMm of rollCandidates) {
+    for (const rotateAtRollWidth of [false, true]) {
+      for (const orientationAcrossCode of acrossCodes) {
+        for (const orientationAddedCode of addedCodes) {
+          const profile = {
+            id: `live-${slug(group.product.id)}-${rollWidthMm}`,
+            source: 'Pentagrama Live current run',
+            verifiedAt: new Date().toISOString(),
+            casesPassed: evidence.length,
+            maxDifference: 0,
+            sizeGroup: String(sourceRules.sizeGroup || seedProfile && seedProfile.sizeGroup || ''),
+            rollWidthMm, canRotate: true, rotateAtRollWidth,
+            orientationAcrossCode, orientationAddedCode,
+            mechanismBands
+          };
+          const product = { rules: { ...sourceRules, fabricationProfile: profile } };
+          if (evidence.every(item => {
+            const local = localFabrication(product, item, {});
+            return local.outcome === item.outcome && local.orientationCode === item.orientationCode &&
+              local.mechanism === item.mechanism &&
+              (item.requiresAuthorization === undefined || local.requiresAuthorization === item.requiresAuthorization) &&
+              (item.warranty === undefined || local.warranty === item.warranty);
+          })) candidates.push(profile);
+        }
+      }
+    }
+  }
+  if (!candidates.length) {
+    throw Object.assign(new Error(`${group.product.id}: current Live evidence does not yield one reproducible fabrication profile`), {
+      code: 'PENTAGRAMA_LOCAL_MODEL_FABRICATION_PROFILE_UNRESOLVED', evidence
+    });
+  }
+  return candidates[0];
 }
 
 function assertSpecialMechanism(samples, liveMechanisms, bands, label) {
@@ -148,6 +266,9 @@ function localFabrication(product, sample, sizePolicy) {
     return { outcome: 'NOT_MANUFACTURABLE', orientationCode: 'NAN', mechanism: '' };
   }
   const widthMm = sample.width * 1000; const heightMm = sample.height * 1000;
+  if ((rules.maxWidthMm && widthMm > rules.maxWidthMm) || (rules.maxHeightMm && heightMm > rules.maxHeightMm)) {
+    return { outcome: 'NOT_MANUFACTURABLE', orientationCode: 'NAN', mechanism: '' };
+  }
   const profile = rules.fabricationProfile;
   if (profile && Array.isArray(profile.mechanismBands)) {
     const rollWidth = Number(profile.rollWidthMm || 0);
@@ -163,7 +284,9 @@ function localFabrication(product, sample, sizePolicy) {
     return {
       outcome: orientationCode === 'DIN' ? 'PRICE' : 'ALTERNATIVE',
       orientationCode,
-      mechanism: String(mechanismBand && mechanismBand.mechanism || '')
+      mechanism: String(mechanismBand && mechanismBand.mechanism || ''),
+      requiresAuthorization: orientationCode.startsWith('TAN') || orientationCode.endsWith('SG'),
+      warranty: !orientationCode.startsWith('TAN') && !orientationCode.endsWith('SG')
     };
   }
   const configurations = sizePolicy && sizePolicy.configurations || {};
@@ -176,7 +299,9 @@ function localFabrication(product, sample, sizePolicy) {
     if (!rules.canRotate) return { outcome: 'NOT_MANUFACTURABLE', orientationCode: 'NAN', mechanism: '' };
     orientationCode = heightMm <= rollWidth ? 'TAT' : 'TAN';
   }
-  return { outcome: orientationCode === 'DIN' ? 'PRICE' : 'ALTERNATIVE', orientationCode, mechanism: String(band && band.mechanism || '') };
+  return { outcome: orientationCode === 'DIN' ? 'PRICE' : 'ALTERNATIVE', orientationCode, mechanism: String(band && band.mechanism || ''),
+    requiresAuthorization: orientationCode.startsWith('TAN') || orientationCode.endsWith('SG'),
+    warranty: !orientationCode.startsWith('TAN') && !orientationCode.endsWith('SG') };
 }
 
 function assertLivePrice(result, label) {
@@ -186,6 +311,73 @@ function assertLivePrice(result, label) {
     throw error;
   }
   return Number(result.pricing.total);
+}
+
+function serializedCandidateQa(sourceById, productPatches, complementPatches, qaCases, sizePolicy) {
+  const products = new Map(productPatches.map(patch => {
+    const source = sourceById.get(patch.homeeasyId);
+    return [patch.homeeasyId, { ...source, rate: patch.proposedRate, rules: normalizeRules(patch.rules) }];
+  }));
+  const complements = new Map(complementPatches.map(patch => [patch.homeeasyId, patch]));
+  const failures = [];
+  let maxDifference = 0;
+  for (const qa of qaCases) {
+    const base = products.get(qa.homeeasyId);
+    if (!base) {
+      failures.push({ id: qa.id, code: 'SERIALIZED_PRODUCT_MISSING' });
+      continue;
+    }
+    const product = { ...base, rules: normalizeRules(base.rules) };
+    let supplement = null;
+    if (qa.configuration && qa.configuration !== 'standard') {
+      const variant = (product.rules.configurations || []).find(item => item.id === qa.configuration);
+      if (!variant) {
+        failures.push({ id: qa.id, code: 'SERIALIZED_CONFIGURATION_MISSING' });
+        continue;
+      }
+      if (Array.isArray(variant.fabricationMechanismBands) && variant.fabricationMechanismBands.length) {
+        product.rules.fabricationProfile = { ...(product.rules.fabricationProfile || {}), mechanismBands: cloneValue(variant.fabricationMechanismBands) };
+      }
+      supplement = complements.get(String(variant.supplementId || '')) || null;
+    }
+    if (qa.coverlight) {
+      const bands = product.rules.coverlightMechanismBands && product.rules.coverlightMechanismBands[qa.coverlight];
+      if (Array.isArray(bands) && bands.length) {
+        product.rules.fabricationProfile = { ...(product.rules.fabricationProfile || {}), mechanismBands: cloneValue(bands) };
+      } else {
+        const complement = complements.get(String(qa.coverlight));
+        const fallbackBands = complement && complement.rules && complement.rules.fabricationMechanismBands;
+        if (Array.isArray(fallbackBands) && fallbackBands.length) {
+          product.rules.fabricationProfile = { ...(product.rules.fabricationProfile || {}), mechanismBands: cloneValue(fallbackBands) };
+        }
+      }
+    }
+    const sample = { width: Number(qa.width), height: Number(qa.height) };
+    const fabrication = localFabrication(product, sample, sizePolicy);
+    let actual = localTotal(product, product.rate, sample);
+    if (supplement) actual += Number(supplement.proposedRate || 0) * sample.width;
+    if (qa.coverlight) {
+      const complement = complements.get(String(qa.coverlight));
+      if (complement) actual += Number(complement.proposedRate || 0) * sample.height * 2;
+    }
+    actual = money(actual);
+    const hasExpectedPrice = Number(qa.expected) > 0;
+    const difference = hasExpectedPrice ? Math.abs(actual - Number(qa.expected)) : 0;
+    maxDifference = Math.max(maxDifference, difference);
+    const mismatch = (hasExpectedPrice && difference > TOLERANCE) ||
+      (qa.expectedOutcome && fabrication.outcome !== qa.expectedOutcome) ||
+      (qa.expectedOrientation && fabrication.orientationCode !== qa.expectedOrientation) ||
+      (qa.expectedMechanism && fabrication.mechanism !== qa.expectedMechanism) ||
+      (qa.expectedRequiresAuthorization !== undefined && fabrication.requiresAuthorization !== qa.expectedRequiresAuthorization) ||
+      (qa.expectedWarranty !== undefined && fabrication.warranty !== qa.expectedWarranty);
+    if (mismatch) failures.push({
+      id: qa.id, code: 'SERIALIZED_PRE_APPLY_MISMATCH', expected: qa.expected, actual, difference: money(difference),
+      expectedOutcome: qa.expectedOutcome, actualOutcome: fabrication.outcome,
+      expectedOrientation: qa.expectedOrientation, actualOrientation: fabrication.orientationCode,
+      expectedMechanism: qa.expectedMechanism, actualMechanism: fabrication.mechanism
+    });
+  }
+  return { cases: qaCases.length, pass: qaCases.length - failures.length, fail: failures.length, maxDifference: money(maxDifference), failures };
 }
 
 async function buildEnrollablesLocalCandidate(options = {}) {
@@ -202,13 +394,10 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   const qaCases = [];
   const failures = [];
   const groups = new Map();
+  const structureChanges = [];
   let recoveredBaseCases = 0;
-  const reusingCertifiedBaseLinearity = !String(source.config && source.config.PENTAGRAMA_LOCAL_MODEL || '').trim() &&
+  const reusingCertifiedBaseLinearity = options.reuseCertifiedBaseLinearity !== false &&
     Number(structuralProfiles.baseLinearityCasesPassed || 0) === 558;
-  const reusingCertifiedStructureMatrix = reusingCertifiedBaseLinearity &&
-    Number(structuralProfiles.schemaVersion || 0) >= 2 &&
-    Number(structuralProfiles.structureKeys || 0) === Object.keys(structuralProfiles.profiles || {}).length &&
-    String(source.enrollableSizeRules && source.enrollableSizeRules.id || '') === String(structuralProfiles.sourceRuleId || '');
   // The active source rate already passed the durable two-point certification.
   // Reusing that evidence must not query all 279 base tariffs again.
   const liveBaseCases = reusingCertifiedBaseLinearity ? [] : BASE_CASES;
@@ -254,58 +443,61 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   if (failures.length) throw Object.assign(new Error(`${failures.length} Enrollables are not reproducible with an exact local area rate`), { code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED', failures });
 
   for (const group of groups.values()) {
-    const certifiedDefinition = structuralProfiles.profiles[group.liveProduct.homeeasyId];
-    const profile = profileForGroup(group, source.enrollableSizeRules || {});
-    if (profile) {
-      group.members.forEach(homeeasyId => {
-        const memberPatch = productPatches.find(item => item.homeeasyId === homeeasyId);
-        if (!memberPatch) return;
-        memberPatch.rules.fabricationProfile = normalizeRules(profile);
-        memberPatch.rules.rollWidthMm = profile.rollWidthMm;
-        memberPatch.rules.canRotate = true;
-        memberPatch.rules.sizeGroup = profile.sizeGroup;
-      });
-    }
+    // Historical profiles are probe seeds only. They can never certify a new
+    // candidate without fresh Live evidence from this build.
+    const seedProfile = profileForGroup(group, source.enrollableSizeRules || {});
     const patch = productPatches.find(item => item.homeeasyId === group.product.id);
-    const localProduct = { ...group.product, rules: patch.rules };
-    if (reusingCertifiedStructureMatrix && certifiedDefinition &&
-        Number(certifiedDefinition.casesPassed || 0) === STRUCTURE_CASES.length &&
-        Array.isArray(certifiedDefinition.evidence) && certifiedDefinition.evidence.length === STRUCTURE_CASES.length) {
-      for (const sample of certifiedDefinition.evidence) {
-        const localFab = localFabrication(localProduct, sample, source.enrollableSizeRules || {});
-        if (localFab.outcome !== sample.outcome || localFab.orientationCode !== sample.orientationCode || localFab.mechanism !== sample.mechanism) {
-          failures.push({ homeeasyId: group.product.id, caseId: sample.id, code: 'CERTIFIED_STRUCTURE_MISMATCH',
-            expectedOutcome: sample.outcome, actualOutcome: localFab.outcome,
-            liveOrientation: sample.orientationCode, localOrientation: localFab.orientationCode,
-            liveMechanism: sample.mechanism, localMechanism: localFab.mechanism });
-        }
-        qaCases.push({ id: `${group.product.id}:${sample.id}`, homeeasyId: group.product.id, width: sample.width, height: sample.height,
-          configuration: 'standard', expected: localTotal(group.product, patch.proposedRate, sample), expectedOutcome: sample.outcome,
-          expectedOrientation: sample.orientationCode, expectedMechanism: sample.mechanism, scope: 'structure',
-          evidenceSource: structuralProfiles.source, evidenceVerifiedAt: structuralProfiles.verifiedAt });
-      }
-      continue;
-    }
-    for (const sample of STRUCTURE_CASES) {
+    const evidence = [];
+    const failureCountBefore = failures.length;
+    for (const sample of uniqueStructureCases(seedProfile, group.product.rules || {})) {
       const live = await options.resolveLive({ homeeasyId: group.product.id, width: sample.width, height: sample.height, quantity: 1, configuration: 'standard' });
-      const localFab = localFabrication(localProduct, sample, source.enrollableSizeRules || {});
       if (!live || live.ok !== true) {
-        if (!(live && live.outcome === 'NOT_MANUFACTURABLE' && localFab.outcome === 'NOT_MANUFACTURABLE')) {
-          failures.push({ homeeasyId: group.product.id, caseId: sample.id, code: String(live && live.code || 'LIVE_UNRESOLVED') });
+        if (live && live.outcome === 'NOT_MANUFACTURABLE' && live.code === 'PENTAGRAMA_NOT_MANUFACTURABLE') {
+          const fabrication = { outcome: 'NOT_MANUFACTURABLE', orientationCode: 'NAN', mechanism: '', requiresAuthorization: undefined, warranty: undefined };
+          evidence.push({ ...sample, ...fabrication });
+          qaCases.push({ id: `${group.product.id}:${sample.id}`, homeeasyId: group.product.id, width: sample.width, height: sample.height,
+            configuration: 'standard', expected: null, expectedOutcome: fabrication.outcome, expectedOrientation: fabrication.orientationCode,
+            expectedMechanism: '', scope: 'structure', evidenceSource: 'Pentagrama Live current run' });
+        } else {
+          failures.push({ homeeasyId: group.product.id, caseId: sample.id, code: String(live && live.code || 'LIVE_UNRESOLVED'), outcome: live && live.outcome });
         }
         continue;
       }
       const expected = assertLivePrice(live, `${group.product.id}/${sample.id}`);
-      const actual = localTotal(group.product, patch.proposedRate, sample);
-      const orientation = String(live.configuration && live.configuration.orientationCode || '');
-      if (!same(actual, expected) || localFab.orientationCode !== orientation || (localFab.mechanism && localFab.mechanism !== String(live.configuration && live.configuration.mechanism || ''))) {
-        failures.push({ homeeasyId: group.product.id, caseId: sample.id, code: 'STRUCTURE_MISMATCH', expected, actual,
-          liveOrientation: orientation, localOrientation: localFab.orientationCode, liveMechanism: live.configuration && live.configuration.mechanism, localMechanism: localFab.mechanism });
-      }
+      const fabrication = fabricationFromLive(live);
+      evidence.push({ ...sample, ...fabrication, expected: money(expected) });
       qaCases.push({ id: `${group.product.id}:${sample.id}`, homeeasyId: group.product.id, width: sample.width, height: sample.height,
-        configuration: 'standard', expected: money(expected), expectedOutcome: live.outcome, expectedOrientation: orientation,
-        expectedMechanism: String(live.configuration && live.configuration.mechanism || ''), scope: 'structure' });
+        configuration: 'standard', expected: money(expected), expectedOutcome: fabrication.outcome, expectedOrientation: fabrication.orientationCode,
+        expectedMechanism: fabrication.mechanism, expectedRequiresAuthorization: fabrication.requiresAuthorization,
+        expectedWarranty: fabrication.warranty, scope: 'structure', evidenceSource: 'Pentagrama Live current run' });
     }
+    if (failures.length > failureCountBefore) continue;
+    if (seedProfile) {
+      for (const item of evidence) {
+        const previous = localFabrication({ rules: { ...(group.product.rules || {}), fabricationProfile: seedProfile } }, item, source.enrollableSizeRules || {});
+        if (previous.orientationCode !== item.orientationCode || previous.mechanism !== item.mechanism || previous.outcome !== item.outcome) {
+          structureChanges.push({ homeeasyId: group.product.id, caseId: item.id,
+            previousOutcome: previous.outcome, currentOutcome: item.outcome,
+            previousOrientation: previous.orientationCode, currentOrientation: item.orientationCode,
+            previousMechanism: previous.mechanism, currentMechanism: item.mechanism });
+        }
+      }
+    }
+    let profile;
+    try {
+      profile = deriveFabricationProfile(group, evidence, seedProfile);
+    } catch (error) {
+      failures.push({ homeeasyId: group.product.id, code: error.code || 'PENTAGRAMA_LOCAL_MODEL_FABRICATION_PROFILE_UNRESOLVED', evidence: error.evidence || evidence });
+      continue;
+    }
+    group.members.forEach(homeeasyId => {
+      const memberPatch = productPatches.find(item => item.homeeasyId === homeeasyId);
+      if (!memberPatch) return;
+      memberPatch.rules.fabricationProfile = normalizeRules(profile);
+      memberPatch.rules.rollWidthMm = profile.rollWidthMm;
+      memberPatch.rules.canRotate = true;
+      memberPatch.rules.sizeGroup = profile.sizeGroup;
+    });
   }
   if (failures.length) throw Object.assign(new Error('One or more Enrollable structures failed Live vs local QA'), { code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED', failures });
 
@@ -341,7 +533,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
         configuration: 'penta13', expected: money(configuredTotal), expectedOutcome: configured.outcome, expectedOrientation: configured.configuration.orientationCode,
         expectedMechanism: configured.configuration.mechanism, scope: 'penta13' });
     }
-    const specialMechanismBands = clonedMechanismBands('STANDARD');
+    const specialMechanismBands = deriveMechanismBands(samples.map((sample, index) => ({ ...sample, outcome: 'PRICE', mechanism: liveMechanisms[index] })), null, `${parentId}/penta13`);
     assertSpecialMechanism(samples, liveMechanisms, specialMechanismBands, `${parentId}/penta13`);
     const rate = money(rates.reduce((sum, value) => sum + value, 0) / rates.length);
     if (Math.max(...rates) - Math.min(...rates) > TOLERANCE) throw Object.assign(new Error(`${supplement.id} is not linear by width`), { code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED' });
@@ -381,7 +573,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
         configuration: 'standard', coverlight: id, expected: configured.pricing.total, expectedOutcome: configured.outcome,
         expectedOrientation: configured.configuration.orientationCode, expectedMechanism: configured.configuration.mechanism, scope: 'complement' });
     }
-    const specialMechanismBands = clonedMechanismBands('STANDARD');
+    const specialMechanismBands = deriveMechanismBands(samples.map((sample, index) => ({ ...sample, outcome: 'PRICE', mechanism: liveMechanisms[index] })), null, id);
     assertSpecialMechanism(samples, liveMechanisms, specialMechanismBands, id);
     const rate = money(rates.reduce((sum, value) => sum + value, 0) / rates.length);
     if (Math.max(...rates) - Math.min(...rates) > TOLERANCE) throw Object.assign(new Error(`${id} is not linear by height`), { code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED' });
@@ -399,6 +591,12 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   const version = `pentagrama-${new Date(options.now || Date.now()).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}`;
   const allPatches = productPatches.concat(complementPatches);
   const changed = allPatches.filter(item => !same(item.expectedRate, item.proposedRate) || item.expectedRulesHash !== hash(item.rules)).length;
+  const serializedQa = serializedCandidateQa(sourceById, productPatches, complementPatches, qaCases, source.enrollableSizeRules || {});
+  if (serializedQa.fail) {
+    throw Object.assign(new Error(`${serializedQa.fail} serialized pre-Apply cases failed`), {
+      code: 'PENTAGRAMA_LOCAL_MODEL_SERIALIZED_QA_FAILED', failures: serializedQa.failures, summary: serializedQa
+    });
+  }
   return {
     schemaVersion: 1, mode: 'ENROLLABLES_LOCAL_FIRST', generatedAt: new Date(options.now || Date.now()).toISOString(),
     version, sourceVersion: String(source.version || ''), validThrough: String(source.validThrough || ''), products: productPatches, complements: complementPatches,
@@ -407,12 +605,17 @@ async function buildEnrollablesLocalCandidate(options = {}) {
       { key: 'PENTAGRAMA_LAST_UPDATED_AT', expectedValue: String(source.config && source.config.PENTAGRAMA_LAST_UPDATED_AT || ''), value: new Date(options.now || Date.now()).toISOString() },
       { key: 'PENTAGRAMA_LOCAL_MODEL', expectedValue: String(source.config && source.config.PENTAGRAMA_LOCAL_MODEL || ''), value: 'ENROLLABLES_279_V1' }
     ],
-    qaCases, summary: { enrollables: productPatches.length, structures: groups.size, cases: qaCases.length,
-      pass: qaCases.length, fail: 0, maxDifference: 0, changed, penta13: supplementGroups.size > 0,
+    qaCases, summary: { enrollables: productPatches.length, structures: groups.size, cases: serializedQa.cases,
+      pass: serializedQa.pass, fail: serializedQa.fail, maxDifference: serializedQa.maxDifference, changed, penta13: supplementGroups.size > 0,
       complements: Object.keys(COMPLEMENTS).length, baseCasesLive: (liveProducts.length * liveBaseCases.length) + recoveredBaseCases,
       baseLinearityCasesReused: reusingCertifiedBaseLinearity ? 558 : 0,
-      structureCasesReused: reusingCertifiedStructureMatrix ? groups.size * STRUCTURE_CASES.length : 0 }
+      structureCasesLive: qaCases.filter(item => item.scope === 'structure').length,
+      structureCasesReused: 0,
+      mechanismChanges: structureChanges.filter(item => item.previousMechanism !== item.currentMechanism).length,
+      orientationChanges: structureChanges.filter(item => item.previousOrientation !== item.currentOrientation).length,
+      structureChanges }
   };
 }
 
-module.exports = Object.freeze({ TOLERANCE, BASE_CASES, STRUCTURE_CASES, effectiveArea, localTotal, localFabrication, portalFabricationProfile, structureKey, buildEnrollablesLocalCandidate, hash, same });
+module.exports = Object.freeze({ TOLERANCE, BASE_CASES, STRUCTURE_CASES, effectiveArea, localTotal, localFabrication, portalFabricationProfile,
+  uniqueStructureCases, deriveMechanismBands, deriveFabricationProfile, serializedCandidateQa, structureKey, buildEnrollablesLocalCandidate, hash, same });

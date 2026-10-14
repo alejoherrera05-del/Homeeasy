@@ -46,6 +46,16 @@ test('special Penta13 and Coverlight mechanisms are persisted and consumed local
   assert.match(costs10B, /fabricationMechanismBands/);
 });
 
+test('new candidates require current Live structural evidence and serialized pre-Apply QA', () => {
+  assert.doesNotMatch(localModelSource, /reusingCertifiedStructureMatrix/);
+  assert.match(localModelSource, /Pentagrama Live current run/);
+  assert.match(localModelSource, /serializedCandidateQa/);
+  assert.match(localModelSource, /PENTAGRAMA_LOCAL_MODEL_SERIALIZED_QA_FAILED/);
+  assert.match(localModelSource, /structureCasesReused:\s*0/);
+  assert.match(localModelSource, /decimal-183/);
+  assert.match(localModelSource, /near-roll-/);
+});
+
 test('Penta13 and Coverlight mechanism profiles are persisted on the parent Enrollable', () => {
   assert.match(localModelSource, /fabricationMechanismBands: specialMechanismBands\.map/);
   assert.match(localModelSource, /coverlightMechanismBands\[id\]/);

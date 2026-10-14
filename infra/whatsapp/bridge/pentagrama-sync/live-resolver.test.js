@@ -87,15 +87,24 @@ test('live resolver reports portal manufacturing alternatives with exact prices'
 });
 
 test('live resolver prices Penta13 from the real portal option instead of hardcoding its codes', async () => {
-  const { resolver, calls } = fixture();
+  const { resolver, calls } = fixture({ catalog: { dependencies: async params => {
+    calls.push(['dependencies', params]);
+    return { codigo: 100, ProductAttributeList: [
+      { FriendlyName: 'direccion-de-la-tela', ProductAttributeValuesList: [{ Value: 'DIN' }] },
+      { FriendlyName: 'mecanismo', ProductAttributeValuesList: [{ Value: 'M03' }] }
+    ] };
+  } } });
   const result = await resolver.resolve({ homeeasyId: 'enrollable-blackout-matte3', width: 1.83, height: 2.2, configuration: 'penta13' });
   assert.equal(result.ok, true);
   assert.equal(result.configuration.head, 'PENTA13 BLANCA');
+  assert.equal(result.configuration.orientationCode, 'DIN');
+  assert.equal(result.configuration.mechanism, 'M03');
   assert.equal(result.pricing.complements[0].productCode, 'CENPEN13BLA');
   assert.equal(result.pricing.subtotal, 237231.4);
   assert.deepEqual(calls.find(call => call[0] === 'dependencies')[1], {
     idAttribute: '2482', idValueSelected: 'CP13BLA', productCode: 'ENRSTDBOMA3090', idAttributeValue: '30328'
   });
+  assert.equal(calls.findIndex(call => call[0] === 'dependencies') < calls.findIndex(call => call[0] === 'defaults'), true);
 });
 
 test('live resolver adds only explicitly mapped complements through Pentagrama', async () => {
