@@ -210,6 +210,127 @@ function fabricationAmbiguityProbes(candidates, sourceRules, limit = 12) {
   return probes;
 }
 
+function learnedMechanismBands(evidence) {
+  const points = (evidence || [])
+    .filter(item => item && item.outcome !== 'NOT_MANUFACTURABLE' && item.mechanism)
+    .map(item => ({
+      widthMm: Math.round(Number(item.width) * 1000),
+      heightMm: Math.round(Number(item.height) * 1000),
+      mechanism: String(item.mechanism)
+    }))
+    .filter(item => item.widthMm > 0 && item.heightMm > 0 && item.mechanism);
+
+  if (!points.length) return null;
+
+  let remaining = points.map((item, index) => ({ ...item, index }));
+  const bands = [];
+
+  for (let step = 0; remaining.length && step < 16; step++) {
+    const mechanisms = [...new Set(remaining.map(item => item.mechanism))];
+    if (mechanisms.length === 1) {
+      bands.push({ maxWidthMm: null, maxHeightMm: null, mechanism: mechanisms[0] });
+      remaining = [];
+      break;
+    }
+
+    let best = null;
+    for (const mechanism of mechanisms) {
+      const own = remaining.filter(item => item.mechanism === mechanism);
+      const widthCandidates = [...new Set(own.map(item => item.widthMm)), null];
+      const heightCandidates = [...new Set(own.map(item => item.heightMm)), null];
+
+      for (const maxWidthMm of widthCandidates) {
+        for (const maxHeightMm of heightCandidates) {
+          if (maxWidthMm === null && maxHeightMm === null) continue;
+
+          const captured = remaining.filter(item =>
+            (maxWidthMm === null || item.widthMm <= maxWidthMm) &&
+            (maxHeightMm === null || item.heightMm <= maxHeightMm)
+          );
+          if (!captured.length || captured.some(item => item.mechanism !== mechanism)) continue;
+
+          const constraintCount = Number(maxWidthMm !== null) + Number(maxHeightMm !== null);
+          const candidate = {
+            mechanism,
+            maxWidthMm,
+            maxHeightMm,
+            captured,
+            count: captured.length,
+            constraintCount,
+            span: (maxWidthMm === null ? 100000 : maxWidthMm) * (maxHeightMm === null ? 100000 : maxHeightMm)
+          };
+
+          if (!best ||
+              candidate.count > best.count ||
+              (candidate.count === best.count && candidate.constraintCount < best.constraintCount) ||
+              (candidate.count === best.count && candidate.constraintCount === best.constraintCount && candidate.span > best.span)) {
+            best = candidate;
+          }
+        }
+      }
+    }
+
+    if (!best) return null;
+    bands.push({
+      maxWidthMm: best.maxWidthMm,
+      maxHeightMm: best.maxHeightMm,
+      mechanism: best.mechanism
+    });
+    const covered = new Set(best.captured.map(item => item.index));
+    remaining = remaining.filter(item => !covered.has(item.index));
+  }
+
+  if (remaining.length || !bands.length) return null;
+  if (!points.every(item => mechanismForBands({ width: item.widthMm / 1000, height: item.heightMm / 1000 }, bands) === item.mechanism)) {
+    return null;
+  }
+  return bands;
+}
+
+function learnedMechanismBoundaryProbes(bands, evidence, limit = 12) {
+  const existing = new Set((evidence || []).map(item =>
+    `${Math.round(Number(item.width) * 1000)}:${Math.round(Number(item.height) * 1000)}`
+  ));
+  const probes = [];
+  const add = (widthMm, heightMm, label) => {
+    if (!(widthMm > 0) || !(heightMm > 0)) return;
+    const key = `${widthMm}:${heightMm}`;
+    if (existing.has(key) || probes.some(item => item._key === key) || probes.length >= limit) return;
+    probes.push({ _key: key, id: `mechanism-learned-${label}-${widthMm}-${heightMm}`, width: widthMm / 1000, height: heightMm / 1000 });
+  };
+
+  for (let index = 0; index < (bands || []).length && probes.length < limit; index++) {
+    const band = bands[index];
+    const samples = (evidence || []).filter(item => item && item.mechanism === band.mechanism);
+    const widths = [...new Set(samples.map(item => Math.round(Number(item.width) * 1000)).filter(value => value > 0))].sort((a, b) => a - b);
+    const heights = [...new Set(samples.map(item => Math.round(Number(item.height) * 1000)).filter(value => value > 0))].sort((a, b) => a - b);
+    const representativeHeights = heights.length
+      ? [...new Set([heights[0], heights[Math.floor(heights.length / 2)], heights[heights.length - 1]])]
+      : [2200];
+    const representativeWidths = widths.length
+      ? [...new Set([widths[0], widths[Math.floor(widths.length / 2)], widths[widths.length - 1]])]
+      : [1300];
+
+    const maxWidthMm = Number(band.maxWidthMm || 0);
+    if (maxWidthMm > 0) {
+      for (const heightMm of representativeHeights) {
+        add(maxWidthMm, heightMm, `w${index + 1}`);
+        add(maxWidthMm + 1, heightMm, `w${index + 1}`);
+      }
+    }
+
+    const maxHeightMm = Number(band.maxHeightMm || 0);
+    if (maxHeightMm > 0) {
+      for (const widthMm of representativeWidths) {
+        add(widthMm, maxHeightMm, `h${index + 1}`);
+        add(widthMm, maxHeightMm + 1, `h${index + 1}`);
+      }
+    }
+  }
+
+  return probes.map(({ _key, ...item }) => item);
+}
+
 function deriveMechanismBands(evidence, seedProfile, label) {
   const priced = evidence.filter(item => item.outcome !== 'NOT_MANUFACTURABLE' && item.mechanism);
   const matches = mechanismBandCandidates(seedProfile).filter(candidate =>
@@ -243,6 +364,21 @@ function deriveMechanismBands(evidence, seedProfile, label) {
       candidates: ['CONSTANT'],
       ambiguityProbes
     });
+  }
+
+  const learnedBands = learnedMechanismBands(priced);
+  if (learnedBands) {
+    const learnedProbes = learnedMechanismBoundaryProbes(learnedBands, priced);
+    if (learnedProbes.length) {
+      throw Object.assign(new Error(`${label}: learned Live mechanism boundaries require direct edge confirmation`), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_MECHANISM_PROFILE_AMBIGUOUS',
+        evidence: priced,
+        candidates: ['LEARNED_LIVE'],
+        learnedBands,
+        ambiguityProbes: learnedProbes
+      });
+    }
+    return learnedBands.map(item => ({ ...item }));
   }
 
   throw Object.assign(new Error(`${label}: current Live mechanisms do not match a reproducible structural profile`), {
@@ -930,5 +1066,5 @@ async function buildEnrollablesLocalCandidate(options = {}) {
 }
 
 module.exports = Object.freeze({ TOLERANCE, BASE_CASES, STRUCTURE_CASES, effectiveArea, localTotal, localFabrication, portalFabricationProfile,
-  uniqueStructureCases, deriveMechanismBands, deriveFabricationProfile, mechanismAmbiguityProbes, fabricationAmbiguityProbes,
+  uniqueStructureCases, deriveMechanismBands, deriveFabricationProfile, mechanismAmbiguityProbes, fabricationAmbiguityProbes, learnedMechanismBands, learnedMechanismBoundaryProbes,
   serializedCandidateQa, structureKey, buildEnrollablesLocalCandidate, hash, same });
