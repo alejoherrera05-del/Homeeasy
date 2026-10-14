@@ -132,7 +132,7 @@ class PentagramaSessionBridge {
 
   async browserRequest(payload = {}, timeoutMs = 60000) {
     const id = require('crypto').randomUUID();
-    const deadlineMs = Math.max(5000, Math.min(120000, Number(timeoutMs || 60000)));
+    const deadlineMs = Math.max(5000, Math.min(240000, Number(timeoutMs || 60000)));
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.browserPending.delete(id);
