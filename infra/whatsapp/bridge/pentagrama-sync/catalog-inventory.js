@@ -67,10 +67,13 @@ function categoryParams(path, includeLevel) {
 
 class PentagramaCatalogInventory {
   constructor(options = {}) {
-    if (!options.gateway || typeof options.gateway.dispatch !== 'function') {
-      throw new TypeError('PentagramaCatalogInventory requires a gateway');
+    const hasGateway = options.gateway && typeof options.gateway.dispatch === 'function';
+    const hasCatalog = options.catalog && typeof options.catalog.categories === 'function' && typeof options.catalog.products === 'function';
+    if (!hasGateway && !hasCatalog) {
+      throw new TypeError('PentagramaCatalogInventory requires a gateway or catalog client');
     }
-    this.gateway = options.gateway;
+    this.gateway = hasGateway ? options.gateway : null;
+    this.catalogApi = hasCatalog ? options.catalog : null;
     this.maxDepth = Math.max(1, Number(options.maxDepth || 8));
     this.maxLeaves = Math.max(1, Number(options.maxLeaves || 10000));
     this.maxRequests = Math.max(1, Number(options.maxRequests || 20000));
@@ -83,6 +86,14 @@ class PentagramaCatalogInventory {
       throw Object.assign(new Error('Pentagrama catalog inventory exceeded request limit'), {
         code: 'PENTAGRAMA_CATALOG_INVENTORY_LIMIT'
       });
+    }
+    if (this.catalogApi) {
+      if (!['categories', 'products'].includes(operation) || typeof this.catalogApi[operation] !== 'function') {
+        throw Object.assign(new Error('Unsupported local catalog inventory operation'), {
+          code: 'PENTAGRAMA_CATALOG_INVENTORY_OPERATION_NOT_ALLOWED'
+        });
+      }
+      return this.catalogApi[operation](params || {});
     }
     return this.gateway.dispatch('catalog', { operation, params: params || {} }, {
       lockKey: 'catalog-inventory:' + operation + ':' + JSON.stringify(params || {})
