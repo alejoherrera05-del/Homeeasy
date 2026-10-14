@@ -106,3 +106,45 @@ test('post-apply mismatch rolls back the affected batch automatically', async ()
   await assert.rejects(service.runApply(operation.id, { id: 'scan-1' }, [change], {}), error => error.code === 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK');
   assert.equal(rolledBack, 'history-1');
 });
+
+
+test('certified local Enrollables candidate may apply after normal scan TTL within grace window', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-local-grace-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const checkedAt = new Date(Date.now() - 45 * 60 * 1000).toISOString();
+  store.addScan({
+    id: 'local-grace',
+    checkedAt,
+    expiresAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    sourceVersion: 'v1',
+    localModelCandidate: { summary: { enrollables: 279, fail: 0, maxDifference: 0, changed: 285 } },
+    results: [{ id: 'enrollables-local-model', strategy: 'LOCAL_MODEL', status: 'NEW', autoApplicable: true }]
+  });
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [],
+    pricing: {},
+    homeeasyCost: {},
+    homeeasy: { catalog: async () => ({ version: 'v1' }) },
+    gateway: {}
+  });
+  const operation = service.startApply({}, {}, { scanId: 'local-grace', changeIds: ['enrollables-local-model'] });
+  assert.equal(operation.type, 'apply');
+});
+
+test('expired regular scan still rejects apply even during local grace window', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-regular-expired-'));
+  const store = new Phase2Store({ dataDir: directory });
+  store.addScan({
+    id: 'regular-expired',
+    checkedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    expiresAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    localModelCandidate: { summary: { enrollables: 279, fail: 0, maxDifference: 0 } },
+    results: [{ id: 'v', strategy: 'RATE_M2', status: 'INCREASED', autoApplicable: true }]
+  });
+  const service = new PentagramaPhase2({ store, mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {} });
+  assert.throws(
+    () => service.startApply({}, {}, { scanId: 'regular-expired', changeIds: ['v'] }),
+    error => error.code === 'PENTAGRAMA_SCAN_EXPIRED'
+  );
+});
