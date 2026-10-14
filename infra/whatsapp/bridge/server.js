@@ -907,7 +907,7 @@ async function handle(req, res) {
   if (req.method === 'GET' && url.pathname.startsWith('/api/pentagrama-sync/scans/')) {
     await auth.authorize(req, 'config.read');
     const id = decodeURIComponent(url.pathname.split('/').pop());
-    const scan = pentagramaPhase2.store.scan(id);
+    const scan = pentagramaPhase2.publicScan(id);
     return scan ? json(res, 200, { ok: true, scan }) : json(res, 404, { ok: false, code: 'SCAN_NOT_FOUND' });
   }
 
