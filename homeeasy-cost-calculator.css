@@ -579,6 +579,7 @@ dialog textarea{margin:14px 0}
 .fabrication-notice span{display:block;margin-top:3px}
 .fabrication-notice--warning{background:#fff8e8;border-color:rgba(194,164,104,.34);color:#745f2e}
 .fabrication-notice--info{background:#f5f7fb;border-color:rgba(76,92,120,.14);color:#536076}
+.fabrication-notice--standard{background:#fafbfc;border-color:rgba(76,92,120,.09);color:#697386}
 .fabrication-notice--alternative{background:var(--brand-soft);border-color:rgba(178,86,108,.18);color:var(--brand-dark)}
 .fabrication-notice--danger{background:#fff3f3;border-color:rgba(184,78,92,.22);color:#9c3f4b}
 .fabrication-notice--manual{background:#f3f8f4;border-color:rgba(66,121,80,.18);color:#426f4d}
