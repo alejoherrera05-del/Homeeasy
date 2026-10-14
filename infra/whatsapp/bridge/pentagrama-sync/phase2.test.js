@@ -236,3 +236,54 @@ test('a later QA failure compensates a successfully applied Enrollables batch', 
   );
   assert.deepEqual(rolledBack, ['local-history', 'price-history']);
 });
+
+
+test('public scan keeps only the summary of the heavy local model and removes write payloads', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-public-scan-'));
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [],
+    enrollablesRegistry: { products: {} },
+    pricing: {},
+    homeeasyCost: {},
+    homeeasy: {}
+  });
+  const publicScan = service.publicScan({
+    id: 'scan-public',
+    localModelCandidate: {
+      version: 'local-v1',
+      generatedAt: '2026-10-14T00:00:00Z',
+      sourceVersion: 'sheet-v1',
+      summary: { enrollables: 279, fail: 0 },
+      products: new Array(279).fill({ secret: 'heavy' }),
+      qaCases: new Array(500).fill({ expected: 123 })
+    },
+    results: [{
+      id: 'x',
+      status: 'NEW',
+      sourceModel: { rules: { private: true } },
+      validationCases: [{ width: 2 }],
+      priceEvidence: [{ total: 999 }]
+    }],
+    catalogActions: [{
+      id: 'catalog-add:x',
+      kind: 'ADD',
+      autoApplicable: true,
+      certified: true,
+      evidence: [{ total: 999 }],
+      mutation: { rowValues: ['private-write-payload'] }
+    }],
+    catalogChanges: []
+  });
+  assert.deepEqual(publicScan.localModelCandidate, {
+    version: 'local-v1',
+    generatedAt: '2026-10-14T00:00:00Z',
+    sourceVersion: 'sheet-v1',
+    summary: { enrollables: 279, fail: 0 }
+  });
+  assert.equal('sourceModel' in publicScan.results[0], false);
+  assert.equal('validationCases' in publicScan.results[0], false);
+  assert.equal('priceEvidence' in publicScan.results[0], false);
+  assert.equal('mutation' in publicScan.catalogActions[0], false);
+  assert.equal('evidence' in publicScan.catalogActions[0], false);
+});
