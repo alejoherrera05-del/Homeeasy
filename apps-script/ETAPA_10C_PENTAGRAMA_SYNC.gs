@@ -154,7 +154,7 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
     mutations.forEach(function(mutation) {
       if (mutation && mutation.certified !== true) throw new Error("La novedad de catálogo no está certificada.");
       const kind = String(mutation && mutation.kind || "").trim().toUpperCase();
-      if (["ADD", "DEACTIVATE", "RENAME"].indexOf(kind) < 0) throw new Error("Tipo de novedad no permitido: " + kind);
+      if (["ADD", "DEACTIVATE", "RENAME", "UPDATE_RATE"].indexOf(kind) < 0) throw new Error("Tipo de novedad no permitido: " + kind);
       const id = String(mutation && mutation.homeeasyId || "").trim();
       if (!id || seenIds[id]) throw new Error("ID de catálogo inválido o duplicado: " + id);
       seenIds[id] = true;
@@ -185,7 +185,7 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
           values = mutation.rowValues.slice(); values[0] = id;
         }
         values[12] = false; values[13] = "DESCONTINUADO"; values[18] = "Pentagrama Sync"; values[19] = new Date();
-      } else {
+      } else if (kind === "RENAME") {
         if (existed) values = before.slice();
         else {
           if (!Array.isArray(mutation.rowValues) || mutation.rowValues.length !== HOMEEASY_COST_HEADERS.length) throw new Error("Falta override certificado para renombrar: " + id);
@@ -194,6 +194,15 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
         const newReference = String(mutation.newReference || "").trim();
         if (!newReference) throw new Error("Nuevo nombre vacío: " + id);
         values[3] = newReference; values[18] = "Pentagrama Sync"; values[19] = new Date();
+      } else {
+        if (!Array.isArray(mutation.rowValues) || mutation.rowValues.length !== HOMEEASY_COST_HEADERS.length) throw new Error("Fila certificada incompleta para actualizar tarifa: " + id);
+        if (existed && Math.abs(Number(before[6]) - Number(mutation.expectedRate)) > 0.005) throw new Error("La tarifa cambió después del escaneo: " + id);
+        if (!isFinite(Number(mutation.proposedRate)) || Number(mutation.proposedRate) <= 0) throw new Error("Tarifa propuesta inválida: " + id);
+        if (!Array.isArray(mutation.qaCases) || mutation.qaCases.length < 2) throw new Error("Evidencia QA insuficiente para tarifa: " + id);
+        values = mutation.rowValues.slice(); values[0] = id; values[6] = Number(mutation.proposedRate);
+        values[12] = true; values[13] = "VIGENTE"; values[18] = "Pentagrama Sync"; values[19] = new Date();
+        const rateRules = leerReglasCostos10B_(values[20]);
+        if (!claveExternaReglasSync10C_(rateRules)) throw new Error("La actualización de tarifa no contiene identidad Pentagrama: " + id);
       }
 
       snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_SHEET, row, id, before, existed, "CATALOG_" + kind));
@@ -234,7 +243,12 @@ function ejecutarQaCatalogoPentagramaSync10C_(ss, writes) {
       if (String(product.name) !== String(mutation.newReference || "")) errors.push(id + ": el nombre no coincide después de escribir.");
       return;
     }
-    if (product.active !== true) { errors.push(id + ": el alta no quedó activa."); return; }
+    if (product.active !== true) { errors.push(id + ": la referencia no quedó activa."); return; }
+    if (write.kind === "UPDATE_RATE") {
+      checked++;
+      const actualRate = Number(product.rateCents || 0) / 100;
+      if (Math.abs(actualRate - Number(mutation.proposedRate || 0)) > 0.005) errors.push(id + ": la tarifa escrita no coincide.");
+    }
     (mutation.qaCases || []).forEach(function(testCase) {
       checked++;
       try {
