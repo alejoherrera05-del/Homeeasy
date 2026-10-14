@@ -230,11 +230,26 @@ class PentagramaAgentGateway {
 
   onlineAgents(excluded = new Set(), minimumVersion = '') {
     const now = Date.now();
+    const versionParts = value => String(value || '').split('.').map(part => Number(part) || 0);
+    const compareVersions = (left, right) => {
+      const a = versionParts(left);
+      const b = versionParts(right);
+      for (let index = 0; index < Math.max(a.length, b.length); index++) {
+        if ((a[index] || 0) !== (b[index] || 0)) return (b[index] || 0) - (a[index] || 0);
+      }
+      return 0;
+    };
+    const readinessRank = agent => agent && agent.pentagrama && agent.pentagrama.status === 'ready' ? 0 : 1;
+
     return Array.from(this.agents.values())
       .filter(agent => !excluded.has(agent.installationId) &&
         now - (Date.parse(agent.lastSeen || '') || 0) <= this.onlineMs &&
         (!minimumVersion || versionAtLeast(agent.version, minimumVersion)))
-      .sort((a, b) => (Date.parse(a.lastJob && a.lastJob.at || '') || 0) - (Date.parse(b.lastJob && b.lastJob.at || '') || 0));
+      .sort((a, b) =>
+        compareVersions(a.version, b.version) ||
+        readinessRank(a) - readinessRank(b) ||
+        (Date.parse(b.lastSeen || '') || 0) - (Date.parse(a.lastSeen || '') || 0) ||
+        (Date.parse(a.lastJob && a.lastJob.at || '') || 0) - (Date.parse(b.lastJob && b.lastJob.at || '') || 0));
   }
 
   runOnAgent(agent, type, payload, timeoutMs) {
@@ -270,7 +285,7 @@ class PentagramaAgentGateway {
 
   async _dispatch(type, payload) {
     const excluded = new Set();
-    const minimumVersion = '1.5.1';
+    const minimumVersion = '1.5.2';
     let lastError;
     while (excluded.size < 2) {
       const agent = this.onlineAgents(excluded, minimumVersion)[0];
