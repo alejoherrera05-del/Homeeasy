@@ -298,6 +298,11 @@ function referenceGroup(product){
 }
 function productOptions(item){
   const products=(catalog?.products||[]).filter(p=>p.family===item.family);
+  if(item.family==='ring'){
+    const groups=[['Velo','Velo'],['Traslúcido','Traslúcido'],['Blackout','Blackout']];
+    const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Selecciona una tela / referencia</option>':'';
+    return missing+groupedProductOptions(products,item,groups,p=>p.type,false);
+  }
   if(item.family!=='enrollable'){
     const keys=[...new Set(products.map(referenceGroup).filter(Boolean))];
     const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Revisa la referencia compartida</option>':'';
