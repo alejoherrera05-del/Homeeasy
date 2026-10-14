@@ -647,8 +647,19 @@ class PentagramaPhase2 {
     setImmediate(async () => {
       try {
         this.store.updateOperation(operation.id, { state: 'running', stage: 'ROLLING_BACK' });
-        const result = await this.homeeasy.rollback(String(payload.historyId), context);
-        const entry = { id: result.historyId, type: 'ROLLBACK', at: new Date().toISOString(), sourceHistoryId: payload.historyId, qa: result.qa, actor };
+        const sourceHistoryId = String(payload.historyId);
+        const storedEntry = (this.store.state.history || []).find(item => String(item.id) === sourceHistoryId);
+        const upstreamIds = storedEntry && Array.isArray(storedEntry.upstreamHistoryIds) && storedEntry.upstreamHistoryIds.length
+          ? storedEntry.upstreamHistoryIds.slice().reverse()
+          : [sourceHistoryId];
+        const results = [];
+        for (const historyId of upstreamIds) results.push(await this.homeeasy.rollback(String(historyId), context));
+        const qa = {
+          ok: results.every(item => item && item.qa && item.qa.ok !== false),
+          batches: results.map(item => ({ historyId: item.historyId, qa: item.qa }))
+        };
+        const entry = { id: crypto.randomUUID(), type: 'ROLLBACK', at: new Date().toISOString(), sourceHistoryId,
+          upstreamHistoryIds: results.map(item => item.historyId).filter(Boolean), qa, actor };
         this.store.addHistory(entry); this.store.updateOperation(operation.id, { state: 'completed', stage: 'COMPLETED', result: entry });
       } catch (error) { this.fail(operation.id, error); }
     });
