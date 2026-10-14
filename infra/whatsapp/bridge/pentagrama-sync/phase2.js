@@ -7,6 +7,9 @@ const { buildProposal, same } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
+const { PentagramaCatalogInventory, compareInventory } = require('./catalog-inventory');
+const { buildCatalogBindings } = require('./catalog-bindings');
+const DEFAULT_ENROLLABLES_REGISTRY = require('./enrollables-live-products.json');
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
 
@@ -35,6 +38,8 @@ class PentagramaPhase2 {
     this.gateway = options.gateway;
     this.mappings = options.mappings || INITIAL_MAPPINGS;
     this.certificationRegistry = options.certificationRegistry || DEFAULT_CERTIFICATION_REGISTRY;
+    this.enrollablesRegistry = options.enrollablesRegistry || DEFAULT_ENROLLABLES_REGISTRY;
+    this.inventory = options.inventory || (this.gateway ? new PentagramaCatalogInventory({ gateway: this.gateway }) : null);
     this.store = options.store || new Phase2Store(options);
   }
 
@@ -65,15 +70,67 @@ class PentagramaPhase2 {
     return { ...buildProposal(mapping, sourceItem, evidence), evidence };
   }
 
+  async fullCatalogInventory() {
+    if (!this.gateway) throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
+    try {
+      return await this.gateway.dispatch('catalogInventory', {}, { lockKey: 'catalog-inventory:full' });
+    } catch (error) {
+      // Agentes anteriores a 1.4.0 no conocen el trabajo compuesto. Conservamos
+      // compatibilidad recorriendo el catálogo con jobs pequeños hasta actualizar el agente.
+      if (String(error && error.code || '') !== 'AGENT_JOB_NOT_ALLOWED') throw error;
+      if (!this.inventory) throw error;
+      return this.inventory.scan();
+    }
+  }
+
+  inventoryAudit(sourceProducts, inventory) {
+    const bindingState = buildCatalogBindings(sourceProducts, {
+      mappings: this.mappings,
+      enrollables: this.enrollablesRegistry
+    });
+    const comparison = compareInventory(bindingState.bindings, inventory && inventory.products || []);
+    const changes = comparison.results
+      .filter(item => !['PRESENT', 'INACTIVE_MISSING'].includes(item.status))
+      .map(item => ({
+        status: item.status,
+        externalKey: item.externalKey,
+        previousExternalKey: item.previousExternalKey || '',
+        homeeasyId: item.homeeasyId || '',
+        productCode: item.productCode || '',
+        oldName: item.oldName || '',
+        newName: item.newName || '',
+        live: item.live ? {
+          name: item.live.name,
+          productCode: item.live.productCode,
+          groupCode: item.live.groupCode,
+          associationGroup: item.live.associationGroup,
+          primaryGroup: item.live.primaryGroup,
+          calculationType: item.live.calculationType,
+          unit: item.live.unit,
+          path: item.live.path
+        } : null
+      }));
+    return {
+      checkedAt: inventory && inventory.checkedAt || new Date().toISOString(),
+      inventory: inventory && inventory.counts || { products: 0, roots: 0, leaves: 0 },
+      counts: comparison.counts,
+      bindingConflicts: bindingState.conflicts,
+      changes
+    };
+  }
+
   async runScan(operationId, context) {
     this.store.updateOperation(operationId, { state: 'running', stage: 'READING_HOMEEASY' });
     const source = await this.homeeasy.catalog(context);
     this.store.updateOperation(operationId, { stage: 'READING_PENTAGRAMA' });
-    const catalogSummary = { categories: null };
-    try {
-      const categories = await this.gateway.dispatch('catalog', { operation: 'categories', params: {} }, { lockKey: 'catalog:categories' });
-      catalogSummary.categories = Array.isArray(categories) ? categories.length : null;
-    } catch (error) { catalogSummary.error = String(error.code || 'CATALOG_UNAVAILABLE'); }
+    const inventory = await this.fullCatalogInventory();
+    const catalogInventoryAudit = this.inventoryAudit(source.products || [], inventory);
+    const catalogSummary = {
+      categories: Number(inventory && inventory.counts && inventory.counts.roots || inventory && inventory.roots || 0),
+      leaves: Number(inventory && inventory.counts && inventory.counts.leaves || inventory && inventory.leaves || 0),
+      products: Number(inventory && inventory.counts && inventory.counts.products || (inventory && inventory.products || []).length),
+      requests: Number(inventory && inventory.requests || 0)
+    };
 
     const results = [];
     const mappedIds = new Set(this.mappings.map(item => item.homeeasyId));
@@ -122,11 +179,19 @@ class PentagramaPhase2 {
     const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
     const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary,
+      catalogInventoryAudit,
+      catalogChanges: catalogInventoryAudit.changes,
       catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.id).length,
         certified: results.filter(item => item.id && certifiedMappingIds.has(item.homeeasyId)).length,
         autoUpdatable: results.filter(item => item.autoApplicable).length,
         reviewRequired: results.filter(item => item.status === 'REVIEW_REQUIRED').length,
-        unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts },
+        unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts,
+        pentagramaProducts: catalogSummary.products,
+        newReferences: Number(catalogInventoryAudit.counts.NEW || 0),
+        discontinued: Number(catalogInventoryAudit.counts.DISCONTINUED || 0),
+        renamed: Number(catalogInventoryAudit.counts.RENAMED || 0),
+        structureChanged: Number(catalogInventoryAudit.counts.STRUCTURE_CHANGED || 0),
+        bindingConflicts: catalogInventoryAudit.bindingConflicts.length },
       expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts, results };
     this.store.addScan(scan);
     this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', scanId: scan.id, result: { scanId: scan.id, counts } });
