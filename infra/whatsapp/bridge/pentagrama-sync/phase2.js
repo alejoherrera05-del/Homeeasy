@@ -825,10 +825,51 @@ class PentagramaPhase2 {
     return operation;
   }
 
+  publicScan(scanOrId) {
+    const scan = typeof scanOrId === 'string' ? this.store.scan(scanOrId) : scanOrId;
+    if (!scan) return null;
+    const local = scan.localModelCandidate;
+    const results = (scan.results || []).map(item => {
+      const {
+        sourceModel, validationCases, priceEvidence, ...safe
+      } = item || {};
+      return safe;
+    });
+    const catalogActions = (scan.catalogActions || []).map(item => {
+      const { mutation, evidence, ...safe } = item || {};
+      return safe;
+    });
+    const catalogChanges = (scan.catalogChanges || []).map(item => ({
+      ...item,
+      live: item && item.live ? {
+        name: item.live.name,
+        productCode: item.live.productCode,
+        groupCode: item.live.groupCode,
+        associationGroup: item.live.associationGroup,
+        primaryGroup: item.live.primaryGroup,
+        calculationType: item.live.calculationType,
+        unit: item.live.unit,
+        path: item.live.path
+      } : null
+    }));
+    return {
+      ...scan,
+      results,
+      catalogActions,
+      catalogChanges,
+      localModelCandidate: local ? {
+        version: local.version,
+        generatedAt: local.generatedAt,
+        sourceVersion: local.sourceVersion,
+        summary: local.summary
+      } : null
+    };
+  }
+
   fail(id, error) { this.store.updateOperation(id, { state: 'failed', stage: 'FAILED', error: { code: String(error.code || 'PENTAGRAMA_SYNC_FAILED'), message: String(error.message || 'Sync failed').slice(0, 300) } }); }
   status() {
     const scheduler = this.store.schedulerState();
-    return { latestScan: this.store.latestScan(), nextScheduledCheck: this.store.state.nextScheduledCheck,
+    return { latestScan: this.publicScan(this.store.latestScan()), nextScheduledCheck: this.store.state.nextScheduledCheck,
       lastAutomaticCheck: scheduler.lastRunAt, automaticResult: scheduler.lastResult };
   }
 }
