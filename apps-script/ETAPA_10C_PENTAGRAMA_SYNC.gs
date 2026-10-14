@@ -20,18 +20,52 @@ function procesarRutaPentagramaSync10C_(ss, data, authValidation) {
 function leerCatalogoPentagramaSync10C_(ss) {
   const sheet = ss.getSheetByName(HOMEEASY_COST_SHEET);
   const values = sheet.getDataRange().getValues();
-  const products = [];
+  const rowsById = {};
   for (let i = 1; i < values.length; i++) {
-    if (!String(values[i][0] || "").trim()) continue;
-    products.push({ row: i + 1, id: String(values[i][0]), family: String(values[i][1]), familyName: String(values[i][2]),
-      reference: String(values[i][3]), type: String(values[i][4]), method: String(values[i][5]), rate: Number(values[i][6]),
-      minHeight: Number(values[i][7] || 0), minArea: Number(values[i][8] || 0), extraDiscount: Number(values[i][9] || 0),
-      promotional: String(values[i][10]).toUpperCase() === "TRUE", configuration: String(values[i][11]),
-      active: String(values[i][12]).toUpperCase() !== "FALSE", status: String(values[i][13]),
-      destination: { sheet: HOMEEASY_COST_SHEET, row: i + 1, field: "Tarifa_IVA_COP" },
-      updatedAt: values[i][19] instanceof Date ? values[i][19].toISOString() : String(values[i][19] || "") });
+    const id = String(values[i][0] || "").trim();
+    if (!id) continue;
+    rowsById[id] = { row: i + 1, values: values[i] };
   }
+
+  // Usa el mismo catálogo efectivo del cotizador. Así la sincronización ve también
+  // productos certificados que hoy viven fuera de la Sheet (por ejemplo Ring)
+  // y recibe su identidad técnica Pentagrama sin exponer reglas sensibles al navegador.
   const catalog = cargarCatalogoCostos10B_(ss, false);
+  const products = (catalog.products || []).map(function(product) {
+    const stored = rowsById[String(product.id)] || null;
+    const row = stored && stored.values;
+    const rules = product.rules && typeof product.rules === "object" ? product.rules : {};
+    return {
+      row: stored ? stored.row : null,
+      storage: stored ? "SHEET" : "CERTIFIED_EMBEDDED",
+      id: String(product.id),
+      family: String(product.family || ""),
+      familyName: String(product.familyName || ""),
+      reference: String(product.name || ""),
+      type: String(product.type || ""),
+      method: String(product.method || ""),
+      rate: stored ? Number(row[6] || 0) : Number(product.rateCents || 0) / 100,
+      minHeight: stored ? Number(row[7] || 0) : Number(product.minHeightMm || 0) / 1000,
+      minArea: stored ? Number(row[8] || 0) : Number(product.minAreaMm2 || 0) / 1000000,
+      extraDiscount: stored ? Number(row[9] || 0) : Number(product.extraDiscount || 0),
+      promotional: stored ? String(row[10]).toUpperCase() === "TRUE" : Boolean(product.promotional),
+      configuration: String(product.configuration || ""),
+      active: Boolean(product.active),
+      status: String(product.status || ""),
+      destination: stored ? { sheet: HOMEEASY_COST_SHEET, row: stored.row, field: "Tarifa_IVA_COP" } : null,
+      updatedAt: stored && row[19] instanceof Date ? row[19].toISOString() : stored ? String(row[19] || "") : "",
+      external: {
+        productCode: String(rules.productCode || ""),
+        groupCode: String(rules.groupCode || ""),
+        associationGroup: String(rules.associationGroup || ""),
+        primaryGroup: String(rules.primaryGroup || ""),
+        calculationType: String(rules.calculationType || ""),
+        unit: String(rules.unit || ""),
+        source: String(rules.source || ""),
+        sourceSha256: String(rules.sourceSha256 || "")
+      }
+    };
+  });
   return { status: "ok", version: catalog.version, validThrough: catalog.validThrough, products: products };
 }
 
