@@ -31,6 +31,12 @@ test('10C snapshots products, matrices and config before atomic publication', ()
   assert.match(sync, /restaurarSnapshotV2PentagramaSync10C_/);
 });
 
+test('10C QA compares certified portal orientationCode instead of collapsing TATSG/TANSG', () => {
+  assert.match(sync, /fabrication\.orientationCode/);
+  assert.match(sync, /orientaciónEsperada/);
+  assert.match(sync, /mecanismoEsperado/);
+});
+
 test('the local-first inventory remains exactly the 279 certified Enrollables', () => {
   assert.equal(Object.keys(inventory.products).length, 279);
 });
