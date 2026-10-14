@@ -66,6 +66,36 @@ const PORTAL_MECHANISM_BANDS = Object.freeze({
   ])
 });
 
+function clonedMechanismBands(profileName) {
+  const bands = PORTAL_MECHANISM_BANDS[String(profileName || '')];
+  if (!bands) return [];
+  return bands.map(item => ({ ...item }));
+}
+
+function mechanismForBands(sample, bands) {
+  const widthMm = Number(sample && sample.width || 0) * 1000;
+  const heightMm = Number(sample && sample.height || 0) * 1000;
+  const band = (bands || []).find(item =>
+    (!Number(item.maxWidthMm) || widthMm <= Number(item.maxWidthMm)) &&
+    (!Number(item.maxHeightMm) || heightMm <= Number(item.maxHeightMm))
+  );
+  return String(band && band.mechanism || '');
+}
+
+function assertSpecialMechanism(samples, liveMechanisms, bands, label) {
+  samples.forEach((sample, index) => {
+    const expected = String(liveMechanisms[index] || '');
+    const local = mechanismForBands(sample, bands);
+    if (expected && local !== expected) {
+      throw Object.assign(new Error(`${label}/${sample.width}x${sample.height}: special mechanism profile mismatch (${local} != ${expected})`), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_SPECIAL_MECHANISM_MISMATCH',
+        expectedMechanism: expected,
+        localMechanism: local
+      });
+    }
+  });
+}
+
 function portalFabricationProfile(definition) {
   if (!definition) return null;
   const bands = PORTAL_MECHANISM_BANDS[definition.mechanismProfile];
@@ -297,6 +327,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     const parentId = supplement.parents[0];
     const samples = [{ width: 1.83, height: 2.2 }, { width: 2.5, height: 2.2 }];
     const rates = [];
+    const liveMechanisms = [];
     for (const sample of samples) {
       const [base, configured] = await Promise.all([
         options.resolveLive({ homeeasyId: parentId, ...sample, quantity: 1, configuration: 'standard' }),
@@ -305,15 +336,18 @@ async function buildEnrollablesLocalCandidate(options = {}) {
       const baseTotal = assertLivePrice(base, `${parentId}/standard`);
       const configuredTotal = assertLivePrice(configured, `${parentId}/penta13`);
       const extra = money(configuredTotal - baseTotal); rates.push(extra / sample.width);
+      liveMechanisms.push(String(configured.configuration && configured.configuration.mechanism || ''));
       qaCases.push({ id: `${parentId}:penta13-${sample.width}`, homeeasyId: parentId, width: sample.width, height: sample.height,
         configuration: 'penta13', expected: money(configuredTotal), expectedOutcome: configured.outcome, expectedOrientation: configured.configuration.orientationCode,
         expectedMechanism: configured.configuration.mechanism, scope: 'penta13' });
     }
+    const specialMechanismBands = clonedMechanismBands('STANDARD');
+    assertSpecialMechanism(samples, liveMechanisms, specialMechanismBands, `${parentId}/penta13`);
     const rate = money(rates.reduce((sum, value) => sum + value, 0) / rates.length);
     if (Math.max(...rates) - Math.min(...rates) > TOLERANCE) throw Object.assign(new Error(`${supplement.id} is not linear by width`), { code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED' });
     const existing = sourceById.get(supplement.id);
     complementPatches.push({ homeeasyId: supplement.id, row: existing && existing.row || null, expectedRate: existing ? Number(existing.rate) : null,
-      proposedRate: rate, expectedRulesHash: hash(existing && existing.rules || {}), rules: {}, method: 'linear-width',
+      proposedRate: rate, expectedRulesHash: hash(existing && existing.rules || {}), rules: { fabricationMechanismBands: specialMechanismBands }, method: 'linear-width',
       family: 'complemento-enrollable', familyName: 'Complementos Enrollable', reference: supplement.option.label,
       type: 'Penta13', configuration: supplement.option.itemCode, source: 'Pentagrama Live' });
     supplement.parents.forEach(id => {
@@ -329,6 +363,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     if (!existing) throw Object.assign(new Error(`HomeEasy catalog is missing complement ${id}`), { code: 'PENTAGRAMA_LOCAL_MODEL_SOURCE_INCOMPLETE' });
     const samples = [{ width: 1.83, height: 1.2 }, { width: 1.83, height: 2.2 }];
     const rates = [];
+    const liveMechanisms = [];
     for (const sample of samples) {
       const [base, configured] = await Promise.all([
         options.resolveLive({ homeeasyId: matte.id, ...sample, quantity: 1, configuration: 'standard' }),
@@ -336,14 +371,19 @@ async function buildEnrollablesLocalCandidate(options = {}) {
       ]);
       const extra = money(assertLivePrice(configured, `${id}/configured`) - assertLivePrice(base, `${id}/base`));
       rates.push(extra / (sample.height * 2));
+      liveMechanisms.push(String(configured.configuration && configured.configuration.mechanism || ''));
       qaCases.push({ id: `${id}:${sample.height}`, homeeasyId: matte.id, width: sample.width, height: sample.height,
         configuration: 'standard', coverlight: id, expected: configured.pricing.total, expectedOutcome: configured.outcome,
         expectedOrientation: configured.configuration.orientationCode, expectedMechanism: configured.configuration.mechanism, scope: 'complement' });
     }
+    const specialMechanismBands = clonedMechanismBands('STANDARD');
+    assertSpecialMechanism(samples, liveMechanisms, specialMechanismBands, id);
     const rate = money(rates.reduce((sum, value) => sum + value, 0) / rates.length);
     if (Math.max(...rates) - Math.min(...rates) > TOLERANCE) throw Object.assign(new Error(`${id} is not linear by height`), { code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED' });
+    const complementRules = normalizeRules(existing.rules);
+    complementRules.fabricationMechanismBands = specialMechanismBands;
     complementPatches.push({ homeeasyId: id, row: existing.row, expectedRate: Number(existing.rate), proposedRate: rate,
-      expectedRulesHash: hash(existing.rules || {}), rules: normalizeRules(existing.rules), method: 'linear-height',
+      expectedRulesHash: hash(existing.rules || {}), rules: complementRules, method: 'linear-height',
       family: existing.family, familyName: existing.familyName, reference: existing.reference, type: existing.type,
       configuration: definition.productCode, source: 'Pentagrama Live' });
   }
