@@ -211,9 +211,12 @@ function ejecutarQaModeloLocalPentagramaSync10C_(ss, cases) {
     const result = calcularItemCostos10B_(request, catalog, { today: fechaBogota10B_(), promotions: true, installMode: "common", installation: "0" });
     if (!result.ok) { errors.push(testCase.id + ": " + String(result.error || "sin precio local")); return; }
     const actual = Number(result.unit) / 100; const difference = Math.abs(actual - Number(testCase.expected)); maxDifference = Math.max(maxDifference, difference);
-    const orientation = result.fabrication && result.fabrication.orientation === "normal" ? "DIN" : result.fabrication && result.fabrication.orientation === "atravesada" ? "TAT" : result.fabrication && result.fabrication.orientation === "atravesada_y_anadida" ? "TAN" : "";
-    if (difference > 0.02 || (testCase.expectedOrientation && orientation !== testCase.expectedOrientation) || (testCase.expectedMechanism && String(result.fabrication && result.fabrication.mechanism || "") !== String(testCase.expectedMechanism))) {
-      errors.push(testCase.id + " esperado " + testCase.expected + " obtenido " + actual + " orientación " + orientation);
+    const orientation = String(result.fabrication && result.fabrication.orientationCode || "") || (result.fabrication && result.fabrication.orientation === "normal" ? "DIN" : result.fabrication && result.fabrication.orientation === "atravesada" ? "TAT" : result.fabrication && result.fabrication.orientation === "atravesada_y_anadida" ? "TAN" : "");
+    const mechanism = String(result.fabrication && result.fabrication.mechanism || "");
+    if (difference > 0.02 || (testCase.expectedOrientation && orientation !== testCase.expectedOrientation) || (testCase.expectedMechanism && mechanism !== String(testCase.expectedMechanism))) {
+      errors.push(testCase.id + " esperado " + testCase.expected + " obtenido " + actual + " orientación " + orientation + " mecanismo " + mechanism +
+        (testCase.expectedOrientation ? " orientaciónEsperada " + testCase.expectedOrientation : "") +
+        (testCase.expectedMechanism ? " mecanismoEsperado " + String(testCase.expectedMechanism) : ""));
     } else passed++;
   });
   return { ok: errors.length === 0, checked: (cases || []).length, passed: passed, failed: errors.length, maxDifference: Math.round(maxDifference * 100) / 100, tolerance: 0.02, errors: errors };
