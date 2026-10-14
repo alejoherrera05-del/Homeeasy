@@ -140,13 +140,111 @@ function mechanismBandCandidates(seedProfile) {
   return candidates;
 }
 
+function mechanismAmbiguityProbes(candidates, limit = 12) {
+  const widths = new Set([800, 1300, 1600, 1830, 1900, 2500, 2600, 3000, 3200]);
+  const heights = new Set([1000, 1200, 2200, 2800, 3100, 3200, 3500]);
+  for (const candidate of candidates || []) {
+    for (const band of candidate.bands || []) {
+      const width = Number(band.maxWidthMm || 0);
+      const height = Number(band.maxHeightMm || 0);
+      if (width > 0) [width - 1, width, width + 1].forEach(value => { if (value > 0) widths.add(value); });
+      if (height > 0) [height - 1, height, height + 1].forEach(value => { if (value > 0) heights.add(value); });
+    }
+  }
+  const probes = [];
+  for (const widthMm of [...widths].sort((a, b) => a - b)) {
+    for (const heightMm of [...heights].sort((a, b) => a - b)) {
+      const sample = { width: widthMm / 1000, height: heightMm / 1000 };
+      const signatures = new Set((candidates || []).map(candidate => mechanismForBands(sample, candidate.bands)));
+      if (signatures.size > 1) {
+        probes.push({ id: `mechanism-ambiguity-${widthMm}-${heightMm}`, ...sample });
+        if (probes.length >= limit) return probes;
+      }
+    }
+  }
+  return probes;
+}
+
+function genericMechanismProbes(evidence, limit = 12) {
+  const existing = new Set((evidence || []).map(item => `${Math.round(Number(item.width) * 1000)}:${Math.round(Number(item.height) * 1000)}`));
+  const seeds = [
+    [800, 1000], [1300, 2200], [1300, 3500], [1600, 2200], [1830, 2200],
+    [1900, 3200], [2500, 2200], [2600, 3200], [3000, 2800], [3200, 3100], [3500, 2000]
+  ];
+  return seeds
+    .filter(([widthMm, heightMm]) => !existing.has(`${widthMm}:${heightMm}`))
+    .slice(0, limit)
+    .map(([widthMm, heightMm]) => ({ id: `mechanism-discovery-${widthMm}-${heightMm}`, width: widthMm / 1000, height: heightMm / 1000 }));
+}
+
+function fabricationAmbiguityProbes(candidates, sourceRules, limit = 12) {
+  const widths = new Set([800, 1300, 1830, 1900, 2500, 2600, 3000, 3200, 3500, 4500]);
+  const heights = new Set([1000, 1200, 2200, 2800, 3100, 3200, 3500]);
+  for (const profile of candidates || []) {
+    const rollWidthMm = Number(profile.rollWidthMm || 0);
+    if (rollWidthMm > 0) {
+      [rollWidthMm - 1, rollWidthMm, rollWidthMm + 1].forEach(value => { if (value > 0) widths.add(value); });
+      [rollWidthMm - 1, rollWidthMm, rollWidthMm + 1].forEach(value => { if (value > 0) heights.add(value); });
+    }
+    for (const band of profile.mechanismBands || []) {
+      const width = Number(band.maxWidthMm || 0);
+      const height = Number(band.maxHeightMm || 0);
+      if (width > 0) [width - 1, width, width + 1].forEach(value => { if (value > 0) widths.add(value); });
+      if (height > 0) [height - 1, height, height + 1].forEach(value => { if (value > 0) heights.add(value); });
+    }
+  }
+  const probes = [];
+  for (const widthMm of [...widths].sort((a, b) => a - b)) {
+    for (const heightMm of [...heights].sort((a, b) => a - b)) {
+      const sample = { width: widthMm / 1000, height: heightMm / 1000 };
+      const signatures = new Set((candidates || []).map(profile => {
+        const result = localFabrication({ rules: { ...(sourceRules || {}), fabricationProfile: profile } }, sample, {});
+        return JSON.stringify([result.outcome, result.orientationCode, result.mechanism, result.requiresAuthorization, result.warranty]);
+      }));
+      if (signatures.size > 1) {
+        probes.push({ id: `fabrication-ambiguity-${widthMm}-${heightMm}`, ...sample });
+        if (probes.length >= limit) return probes;
+      }
+    }
+  }
+  return probes;
+}
+
 function deriveMechanismBands(evidence, seedProfile, label) {
   const priced = evidence.filter(item => item.outcome !== 'NOT_MANUFACTURABLE' && item.mechanism);
   const matches = mechanismBandCandidates(seedProfile).filter(candidate =>
     priced.every(item => mechanismForBands(item, candidate.bands) === item.mechanism));
-  if (matches.length) return matches[0].bands.map(item => ({ ...item }));
+
+  if (matches.length === 1) return matches[0].bands.map(item => ({ ...item }));
+
+  if (matches.length > 1) {
+    const ambiguityProbes = mechanismAmbiguityProbes(matches);
+    if (!ambiguityProbes.length) return matches[0].bands.map(item => ({ ...item }));
+    throw Object.assign(new Error(`${label}: multiple mechanism profiles still match current Live evidence`), {
+      code: 'PENTAGRAMA_LOCAL_MODEL_MECHANISM_PROFILE_AMBIGUOUS',
+      evidence: priced,
+      candidates: matches.map(item => item.id),
+      ambiguityProbes
+    });
+  }
+
   const mechanisms = [...new Set(priced.map(item => item.mechanism))];
-  if (mechanisms.length === 1) return [{ maxWidthMm: null, maxHeightMm: null, mechanism: mechanisms[0] }];
+  const widths = new Set(priced.map(item => Math.round(Number(item.width) * 1000)));
+  const heights = new Set(priced.map(item => Math.round(Number(item.height) * 1000)));
+  if (mechanisms.length === 1 && priced.length >= 6 && widths.size >= 3 && heights.size >= 3) {
+    return [{ maxWidthMm: null, maxHeightMm: null, mechanism: mechanisms[0] }];
+  }
+
+  const ambiguityProbes = genericMechanismProbes(priced);
+  if (mechanisms.length === 1 && ambiguityProbes.length) {
+    throw Object.assign(new Error(`${label}: constant mechanism is not yet proven across the fabrication domain`), {
+      code: 'PENTAGRAMA_LOCAL_MODEL_MECHANISM_PROFILE_AMBIGUOUS',
+      evidence: priced,
+      candidates: ['CONSTANT'],
+      ambiguityProbes
+    });
+  }
+
   throw Object.assign(new Error(`${label}: current Live mechanisms do not match a reproducible structural profile`), {
     code: 'PENTAGRAMA_LOCAL_MODEL_MECHANISM_PROFILE_UNRESOLVED', evidence: priced
   });
@@ -201,7 +299,22 @@ function deriveFabricationProfile(group, evidence, seedProfile) {
       code: 'PENTAGRAMA_LOCAL_MODEL_FABRICATION_PROFILE_UNRESOLVED', evidence
     });
   }
-  return candidates[0];
+  if (candidates.length === 1) return candidates[0];
+
+  const ambiguityProbes = fabricationAmbiguityProbes(candidates, sourceRules);
+  if (!ambiguityProbes.length) return candidates[0];
+
+  throw Object.assign(new Error(`${group.product.id}: multiple materially different fabrication profiles still match current Live evidence`), {
+    code: 'PENTAGRAMA_LOCAL_MODEL_FABRICATION_PROFILE_AMBIGUOUS',
+    evidence,
+    candidates: candidates.map(item => ({
+      rollWidthMm: item.rollWidthMm,
+      rotateAtRollWidth: item.rotateAtRollWidth,
+      orientationAcrossCode: item.orientationAcrossCode,
+      orientationAddedCode: item.orientationAddedCode
+    })),
+    ambiguityProbes
+  });
 }
 
 function assertSpecialMechanism(samples, liveMechanisms, bands, label) {
@@ -366,6 +479,10 @@ function serializedCandidateQa(sourceById, productPatches, complementPatches, qa
     }
     actual = money(actual);
     const hasExpectedPrice = Number(qa.expected) > 0;
+    if (hasExpectedPrice && qa.evidenceSource !== 'Pentagrama Live current run') {
+      failures.push({ id: qa.id, code: 'SERIALIZED_EXPECTED_PRICE_NOT_LIVE_CURRENT', evidenceSource: qa.evidenceSource || '' });
+      continue;
+    }
     const difference = hasExpectedPrice ? Math.abs(actual - Number(qa.expected)) : 0;
     maxDifference = Math.max(maxDifference, difference);
     const mismatch = (hasExpectedPrice && difference > TOLERANCE) ||
@@ -399,47 +516,72 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   const failures = [];
   const groups = new Map();
   const structureChanges = [];
-  let recoveredBaseCases = 0;
+  let baseCurrentLiveChecks = 0;
+  let baseLinearityCasesReused = 0;
+  let currentTariffChanges = 0;
+  const ambiguousProfileLabels = new Set();
+  let ambiguityProbeCount = 0;
   const reusingCertifiedBaseLinearity = options.reuseCertifiedBaseLinearity !== false &&
     Number(structuralProfiles.baseLinearityCasesPassed || 0) === 558;
-  // The active source rate already passed the durable two-point certification.
-  // Reusing that evidence must not query all 279 base tariffs again.
-  const liveBaseCases = reusingCertifiedBaseLinearity ? [] : BASE_CASES;
+
   for (const liveProduct of liveProducts) {
     const product = sourceById.get(liveProduct.homeeasyId);
     const evidence = [];
-    // The durable two-point evidence certifies linearity, but legacy/manual rows
-    // can still have no persisted rate. Recover one current point only for those
-    // rows; do not repeat the already-certified 558-case matrix.
-    const productBaseCases = reusingCertifiedBaseLinearity && !(Number(product.rate) > 0)
-      ? [BASE_CASES[0]]
-      : liveBaseCases;
-    for (const sample of productBaseCases) {
+
+    const captureBasePrice = async sample => {
       const quote = await options.quoteBase({ homeeasyId: product.id, width: sample.width, height: sample.height, quantity: 1 });
       const total = Number(quote && quote.total);
-      if (!(total > 0)) throw Object.assign(new Error(`${product.id}/${sample.id}: invalid Pentagrama total`), { code: 'PENTAGRAMA_LOCAL_MODEL_PRICE_UNAVAILABLE' });
-      evidence.push({ ...sample, total, rate: inferredRate(product, sample, total) });
-      if (reusingCertifiedBaseLinearity) recoveredBaseCases++;
+      if (!(total > 0)) {
+        throw Object.assign(new Error(`${product.id}/${sample.id}: invalid Pentagrama total`), {
+          code: 'PENTAGRAMA_LOCAL_MODEL_PRICE_UNAVAILABLE'
+        });
+      }
+      baseCurrentLiveChecks++;
+      evidence.push({ ...sample, total, rate: inferredRate(product, sample, total), evidenceSource: 'Pentagrama Live current run' });
+    };
+
+    await captureBasePrice(BASE_CASES[0]);
+
+    const firstRate = money(evidence[0].rate);
+    const persistedRate = Number(product.rate || 0);
+    const mayReuseHistoricalLinearity = reusingCertifiedBaseLinearity && persistedRate > 0 && same(firstRate, persistedRate);
+
+    if (mayReuseHistoricalLinearity) {
+      baseLinearityCasesReused++;
+    } else {
+      await captureBasePrice(BASE_CASES[1]);
     }
-    const spread = evidence.length ? Math.max(...evidence.map(item => item.rate)) - Math.min(...evidence.map(item => item.rate)) : 0;
-    const rate = reusingCertifiedBaseLinearity
-      ? money(evidence.length ? evidence[0].rate : product.rate)
-      : money(evidence.reduce((sum, item) => sum + item.rate, 0) / evidence.length);
+
+    const spread = evidence.length > 1
+      ? Math.max(...evidence.map(item => item.rate)) - Math.min(...evidence.map(item => item.rate))
+      : 0;
+    const rate = money(evidence.reduce((sum, item) => sum + item.rate, 0) / evidence.length);
     const productFailures = evidence.filter(item => !same(localTotal(product, rate, item), item.total));
-    if ((!reusingCertifiedBaseLinearity && spread > TOLERANCE) || productFailures.length) {
+
+    if ((evidence.length > 1 && spread > TOLERANCE) || productFailures.length) {
       failures.push({ homeeasyId: product.id, code: 'NON_LINEAR_BASE_PRICE', spread: money(spread) });
       continue;
     }
+
+    if (!same(rate, persistedRate)) currentTariffChanges++;
+
     const rules = normalizeRules(product.rules);
     productPatches.push({
-      homeeasyId: product.id, row: product.row, expectedRate: Number(product.rate), proposedRate: rate,
-      expectedRulesHash: hash(rules), rules, source: 'Pentagrama Live', method: 'area'
+      homeeasyId: product.id, row: product.row, expectedRate: persistedRate, proposedRate: rate,
+      expectedRulesHash: hash(rules), rules, source: 'Pentagrama Live current run', method: 'area'
     });
-    const retainedEvidence = reusingCertifiedBaseLinearity
-      ? (evidence.length ? evidence : [{ ...BASE_CASES[0], total: localTotal(product, rate, BASE_CASES[0]) }])
-      : evidence;
-    retainedEvidence.forEach(item => qaCases.push({ id: `${product.id}:${item.id}`, homeeasyId: product.id, width: item.width, height: item.height,
-      configuration: 'standard', expected: money(item.total), expectedOutcome: 'PRICE', scope: 'base' }));
+
+    evidence.forEach(item => qaCases.push({
+      id: `${product.id}:${item.id}`,
+      homeeasyId: product.id,
+      width: item.width,
+      height: item.height,
+      configuration: 'standard',
+      expected: money(item.total),
+      scope: 'base',
+      evidenceSource: 'Pentagrama Live current run'
+    }));
+
     const key = structureKey(product, liveProduct);
     if (!groups.has(key)) groups.set(key, { product, liveProduct, members: [] });
     groups.get(key).members.push(product.id);
@@ -456,7 +598,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     const captured = new Set();
     const captureStructure = async sample => {
       const sampleKey = `${Number(sample.width).toFixed(3)}:${Number(sample.height).toFixed(3)}`;
-      if (captured.has(sampleKey)) return;
+      if (captured.has(sampleKey)) return false;
       captured.add(sampleKey);
       const live = await options.resolveLive({ homeeasyId: group.product.id, width: sample.width, height: sample.height, quantity: 1, configuration: 'standard' });
       if (!live || live.ok !== true) {
@@ -469,7 +611,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
         } else {
           failures.push({ homeeasyId: group.product.id, caseId: sample.id, code: String(live && live.code || 'LIVE_UNRESOLVED'), outcome: live && live.outcome });
         }
-        return;
+        return true;
       }
       const expected = assertLivePrice(live, `${group.product.id}/${sample.id}`);
       const fabrication = fabricationFromLive(live);
@@ -478,25 +620,37 @@ async function buildEnrollablesLocalCandidate(options = {}) {
         configuration: 'standard', expected: money(expected), expectedOutcome: fabrication.outcome, expectedOrientation: fabrication.orientationCode,
         expectedMechanism: fabrication.mechanism, expectedRequiresAuthorization: fabrication.requiresAuthorization,
         expectedWarranty: fabrication.warranty, scope: 'structure', evidenceSource: 'Pentagrama Live current run' });
+      return true;
     };
     for (const sample of uniqueStructureCases(seedProfile, group.product.rules || {})) {
       await captureStructure(sample);
     }
     if (failures.length === failureCountBefore) {
-      let low = Math.max(...evidence.filter(item => Number(item.height) === 2.2 && item.orientationCode === 'DIN').map(item => Number(item.width)), -Infinity);
-      let high = Math.min(...evidence.filter(item => Number(item.height) === 2.2 && item.orientationCode && item.orientationCode !== 'DIN').map(item => Number(item.width)), Infinity);
+      let lowMm = Math.max(...evidence
+        .filter(item => Math.round(Number(item.height) * 1000) === 2200 && item.orientationCode === 'DIN')
+        .map(item => Math.round(Number(item.width) * 1000)), -Infinity);
+      let highMm = Math.min(...evidence
+        .filter(item => Math.round(Number(item.height) * 1000) === 2200 && item.orientationCode && item.orientationCode !== 'DIN')
+        .map(item => Math.round(Number(item.width) * 1000)), Infinity);
       let probe = 0;
-      while (Number.isFinite(low) && Number.isFinite(high) && high - low > 0.011 && probe < 12) {
-        const width = Math.round(((low + high) / 2) * 1000) / 1000;
-        await captureStructure({ id: `roll-search-${++probe}`, width, height: 2.2 });
-        const found = evidence.find(item => Number(item.width) === width && Number(item.height) === 2.2);
+
+      while (Number.isFinite(lowMm) && Number.isFinite(highMm) && highMm - lowMm > 1 && probe < 20) {
+        const widthMm = Math.floor((lowMm + highMm) / 2);
+        await captureStructure({ id: `roll-search-mm-${++probe}-${widthMm}`, width: widthMm / 1000, height: 2.2 });
+        const found = evidence.find(item =>
+          Math.round(Number(item.width) * 1000) === widthMm &&
+          Math.round(Number(item.height) * 1000) === 2200);
         if (!found) break;
-        if (found.orientationCode === 'DIN') low = width;
-        else high = width;
+        if (found.orientationCode === 'DIN') lowMm = widthMm;
+        else highMm = widthMm;
       }
-      if (Number.isFinite(low) && Number.isFinite(high)) {
-        const boundaryMm = Math.round(((low + high) / 2) * 100) * 10;
-        await captureStructure({ id: 'roll-boundary-confirm', width: boundaryMm / 1000, height: 2.2 });
+
+      if (Number.isFinite(lowMm) && Number.isFinite(highMm)) {
+        for (const widthMm of [lowMm - 1, lowMm, highMm, highMm + 1]) {
+          if (widthMm > 0) {
+            await captureStructure({ id: `roll-boundary-mm-${widthMm}`, width: widthMm / 1000, height: 2.2 });
+          }
+        }
       }
     }
     if (failures.length > failureCountBefore) continue;
@@ -511,13 +665,28 @@ async function buildEnrollablesLocalCandidate(options = {}) {
         }
       }
     }
-    let profile;
-    try {
-      profile = deriveFabricationProfile(group, evidence, seedProfile);
-    } catch (error) {
-      failures.push({ homeeasyId: group.product.id, code: error.code || 'PENTAGRAMA_LOCAL_MODEL_FABRICATION_PROFILE_UNRESOLVED', evidence: error.evidence || evidence });
-      continue;
+    let profile = null;
+    for (let attempt = 0; attempt < 24 && !profile; attempt++) {
+      try {
+        profile = deriveFabricationProfile(group, evidence, seedProfile);
+      } catch (error) {
+        const probes = Array.isArray(error.ambiguityProbes) ? error.ambiguityProbes : [];
+        if (probes.length && String(error.code || '').endsWith('_AMBIGUOUS')) {
+          ambiguousProfileLabels.add(group.product.id);
+          let added = 0;
+          for (const probe of probes) {
+            if (await captureStructure({ ...probe, id: `${probe.id || 'ambiguity'}-${attempt + 1}` })) {
+              added++;
+              ambiguityProbeCount++;
+            }
+          }
+          if (added) continue;
+        }
+        failures.push({ homeeasyId: group.product.id, code: error.code || 'PENTAGRAMA_LOCAL_MODEL_FABRICATION_PROFILE_UNRESOLVED', evidence: error.evidence || evidence });
+        break;
+      }
     }
+    if (!profile) continue;
     group.members.forEach(homeeasyId => {
       const memberPatch = productPatches.find(item => item.homeeasyId === homeeasyId);
       if (!memberPatch) return;
@@ -543,33 +712,107 @@ async function buildEnrollablesLocalCandidate(options = {}) {
       supplementGroups.get(id).parents.push(liveProduct.homeeasyId);
     }
   }
+  const resolveSpecialMechanism = async ({ label, parentId, configuration, coverlight, initialSamples, scope, denominator }) => {
+    const records = [];
+    const seen = new Set();
+
+    const capture = async sample => {
+      const sampleKey = `${Math.round(Number(sample.width) * 1000)}:${Math.round(Number(sample.height) * 1000)}`;
+      if (seen.has(sampleKey)) return false;
+      seen.add(sampleKey);
+
+      const [base, configured] = await Promise.all([
+        options.resolveLive({ homeeasyId: parentId, width: sample.width, height: sample.height, quantity: 1, configuration: 'standard' }),
+        options.resolveLive({ homeeasyId: parentId, width: sample.width, height: sample.height, quantity: 1, configuration, ...(coverlight ? { coverlight } : {}) })
+      ]);
+
+      if (!base || base.ok !== true || !configured || configured.ok !== true ||
+          !['PRICE', 'ALTERNATIVE'].includes(base.outcome) || !['PRICE', 'ALTERNATIVE'].includes(configured.outcome)) {
+        return false;
+      }
+
+      const baseTotal = assertLivePrice(base, `${label}/base`);
+      const configuredTotal = assertLivePrice(configured, `${label}/configured`);
+      const fabrication = fabricationFromLive(configured);
+      const divisor = Number(denominator(sample));
+      const rate = divisor > 0 ? money(configuredTotal - baseTotal) / divisor : NaN;
+
+      records.push({ ...sample, configuredTotal: money(configuredTotal), rate, ...fabrication });
+      qaCases.push({
+        id: `${label}:${scope}-${Math.round(Number(sample.width) * 1000)}-${Math.round(Number(sample.height) * 1000)}`,
+        homeeasyId: parentId,
+        width: sample.width,
+        height: sample.height,
+        configuration,
+        ...(coverlight ? { coverlight } : {}),
+        expected: money(configuredTotal),
+        expectedOutcome: fabrication.outcome,
+        expectedOrientation: fabrication.orientationCode,
+        expectedMechanism: fabrication.mechanism,
+        expectedRequiresAuthorization: fabrication.requiresAuthorization,
+        expectedWarranty: fabrication.warranty,
+        scope,
+        evidenceSource: 'Pentagrama Live current run'
+      });
+      return true;
+    };
+
+    for (const sample of initialSamples) await capture(sample);
+
+    let bands = null;
+    for (let attempt = 0; attempt < 24 && !bands; attempt++) {
+      try {
+        bands = deriveMechanismBands(records, null, label);
+      } catch (error) {
+        const probes = Array.isArray(error.ambiguityProbes) ? error.ambiguityProbes : [];
+        if (probes.length && String(error.code || '').endsWith('_AMBIGUOUS')) {
+          ambiguousProfileLabels.add(label);
+          let added = 0;
+          for (const probe of probes) {
+            if (await capture(probe)) {
+              added++;
+              ambiguityProbeCount++;
+            }
+          }
+          if (added) continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!bands) {
+      throw Object.assign(new Error(`${label}: mechanism profile remains ambiguous after Live probes`), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_MECHANISM_PROFILE_AMBIGUOUS'
+      });
+    }
+
+    const rates = records.map(item => Number(item.rate)).filter(Number.isFinite);
+    if (!rates.length || Math.max(...rates) - Math.min(...rates) > TOLERANCE) {
+      throw Object.assign(new Error(`${label} is not linear for its configured supplement`), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED'
+      });
+    }
+
+    return { bands, records, rate: money(rates.reduce((sum, value) => sum + value, 0) / rates.length) };
+  };
+
   for (const supplement of supplementGroups.values()) {
     const parentId = supplement.parents[0];
-    const samples = [{ width: 1.83, height: 2.2 }, { width: 2.5, height: 2.2 }];
-    const rates = [];
-    const liveMechanisms = [];
-    for (const sample of samples) {
-      const [base, configured] = await Promise.all([
-        options.resolveLive({ homeeasyId: parentId, ...sample, quantity: 1, configuration: 'standard' }),
-        options.resolveLive({ homeeasyId: parentId, ...sample, quantity: 1, configuration: 'penta13' })
-      ]);
-      const baseTotal = assertLivePrice(base, `${parentId}/standard`);
-      const configuredTotal = assertLivePrice(configured, `${parentId}/penta13`);
-      const extra = money(configuredTotal - baseTotal); rates.push(extra / sample.width);
-      liveMechanisms.push(String(configured.configuration && configured.configuration.mechanism || ''));
-      qaCases.push({ id: `${parentId}:penta13-${sample.width}`, homeeasyId: parentId, width: sample.width, height: sample.height,
-        configuration: 'penta13', expected: money(configuredTotal), expectedOutcome: configured.outcome, expectedOrientation: configured.configuration.orientationCode,
-        expectedMechanism: configured.configuration.mechanism, scope: 'penta13' });
-    }
-    const specialMechanismBands = deriveMechanismBands(samples.map((sample, index) => ({ ...sample, outcome: 'PRICE', mechanism: liveMechanisms[index] })), null, `${parentId}/penta13`);
-    assertSpecialMechanism(samples, liveMechanisms, specialMechanismBands, `${parentId}/penta13`);
-    const rate = money(rates.reduce((sum, value) => sum + value, 0) / rates.length);
-    if (Math.max(...rates) - Math.min(...rates) > TOLERANCE) throw Object.assign(new Error(`${supplement.id} is not linear by width`), { code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED' });
+    const special = await resolveSpecialMechanism({
+      label: `${parentId}/penta13`,
+      parentId,
+      configuration: 'penta13',
+      initialSamples: [{ width: 1.83, height: 2.2 }, { width: 2.5, height: 2.2 }],
+      scope: 'penta13',
+      denominator: sample => Number(sample.width)
+    });
+    const specialMechanismBands = special.bands;
+    const rate = special.rate;
     const existing = sourceById.get(supplement.id);
     complementPatches.push({ homeeasyId: supplement.id, row: existing && existing.row || null, expectedRate: existing ? Number(existing.rate) : null,
       proposedRate: rate, expectedRulesHash: hash(existing && existing.rules || {}), rules: { fabricationMechanismBands: specialMechanismBands }, method: 'linear-width',
       family: 'complemento-enrollable', familyName: 'Complementos Enrollable', reference: supplement.option.label,
-      type: 'Penta13', configuration: supplement.option.itemCode, source: 'Pentagrama Live' });
+      type: 'Penta13', configuration: supplement.option.itemCode, source: 'Pentagrama Live current run' });
     supplement.parents.forEach(id => {
       const patch = productPatches.find(item => item.homeeasyId === id);
       const configs = Array.isArray(patch.rules.configurations) ? patch.rules.configurations.filter(item => item.id !== 'penta13') : [];
@@ -586,25 +829,19 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   for (const [id, definition] of Object.entries(COMPLEMENTS)) {
     const existing = sourceById.get(id);
     if (!existing) throw Object.assign(new Error(`HomeEasy catalog is missing complement ${id}`), { code: 'PENTAGRAMA_LOCAL_MODEL_SOURCE_INCOMPLETE' });
-    const samples = [{ width: 1.83, height: 1.2 }, { width: 1.83, height: 2.2 }];
-    const rates = [];
-    const liveMechanisms = [];
-    for (const sample of samples) {
-      const [base, configured] = await Promise.all([
-        options.resolveLive({ homeeasyId: matte.id, ...sample, quantity: 1, configuration: 'standard' }),
-        options.resolveLive({ homeeasyId: matte.id, ...sample, quantity: 1, configuration: 'standard', coverlight: id })
-      ]);
-      const extra = money(assertLivePrice(configured, `${id}/configured`) - assertLivePrice(base, `${id}/base`));
-      rates.push(extra / (sample.height * 2));
-      liveMechanisms.push(String(configured.configuration && configured.configuration.mechanism || ''));
-      qaCases.push({ id: `${id}:${sample.height}`, homeeasyId: matte.id, width: sample.width, height: sample.height,
-        configuration: 'standard', coverlight: id, expected: configured.pricing.total, expectedOutcome: configured.outcome,
-        expectedOrientation: configured.configuration.orientationCode, expectedMechanism: configured.configuration.mechanism, scope: 'complement' });
-    }
-    const specialMechanismBands = deriveMechanismBands(samples.map((sample, index) => ({ ...sample, outcome: 'PRICE', mechanism: liveMechanisms[index] })), null, id);
-    assertSpecialMechanism(samples, liveMechanisms, specialMechanismBands, id);
-    const rate = money(rates.reduce((sum, value) => sum + value, 0) / rates.length);
-    if (Math.max(...rates) - Math.min(...rates) > TOLERANCE) throw Object.assign(new Error(`${id} is not linear by height`), { code: 'PENTAGRAMA_LOCAL_MODEL_COMPLEMENT_FAILED' });
+
+    const special = await resolveSpecialMechanism({
+      label: id,
+      parentId: matte.id,
+      configuration: 'standard',
+      coverlight: id,
+      initialSamples: [{ width: 1.83, height: 1.2 }, { width: 1.83, height: 2.2 }],
+      scope: 'complement',
+      denominator: sample => Number(sample.height) * 2
+    });
+    const specialMechanismBands = special.bands;
+    const rate = special.rate;
+
     const complementRules = normalizeRules(existing.rules);
     complementRules.fabricationMechanismBands = specialMechanismBands;
     const coverlightMechanismBands = normalizeRules(mattePatch.rules.coverlightMechanismBands);
@@ -613,7 +850,7 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     complementPatches.push({ homeeasyId: id, row: existing.row, expectedRate: Number(existing.rate), proposedRate: rate,
       expectedRulesHash: hash(existing.rules || {}), rules: complementRules, method: 'linear-height',
       family: existing.family, familyName: existing.familyName, reference: existing.reference, type: existing.type,
-      configuration: definition.productCode, source: 'Pentagrama Live' });
+      configuration: definition.productCode, source: 'Pentagrama Live current run' });
   }
 
   const version = `pentagrama-${new Date(options.now || Date.now()).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}`;
@@ -635,10 +872,21 @@ async function buildEnrollablesLocalCandidate(options = {}) {
     ],
     qaCases, summary: { enrollables: productPatches.length, structures: groups.size, cases: serializedQa.cases,
       pass: serializedQa.pass, fail: serializedQa.fail, maxDifference: serializedQa.maxDifference, changed, penta13: supplementGroups.size > 0,
-      complements: Object.keys(COMPLEMENTS).length, baseCasesLive: (liveProducts.length * liveBaseCases.length) + recoveredBaseCases,
-      baseLinearityCasesReused: reusingCertifiedBaseLinearity ? 558 : 0,
+      complements: Object.keys(COMPLEMENTS).length,
+      baseCasesLive: baseCurrentLiveChecks,
+      baseCurrentLiveChecks,
+      baseLinearityCasesReused,
+      currentTariffChanges,
+      monetaryExpectedLive: qaCases.filter(item => Number(item.expected) > 0 && item.evidenceSource === 'Pentagrama Live current run').length,
+      monetaryExpectedSelfReferential: qaCases.filter(item => Number(item.expected) > 0 && item.evidenceSource !== 'Pentagrama Live current run').length,
       structureCasesLive: qaCases.filter(item => item.scope === 'structure').length,
       structureCasesReused: 0,
+      ambiguousProfilesDetected: ambiguousProfileLabels.size,
+      ambiguityProbes: ambiguityProbeCount,
+      ambiguousProfilesRemaining: 0,
+      boundaryPrecisionMm: 1,
+      penta13FabricationCases: qaCases.filter(item => item.scope === 'penta13').length,
+      coverlightFabricationCases: qaCases.filter(item => item.scope === 'complement').length,
       mechanismChanges: structureChanges.filter(item => item.previousMechanism !== item.currentMechanism).length,
       orientationChanges: structureChanges.filter(item => item.previousOrientation !== item.currentOrientation).length,
       structureChanges }
@@ -646,4 +894,5 @@ async function buildEnrollablesLocalCandidate(options = {}) {
 }
 
 module.exports = Object.freeze({ TOLERANCE, BASE_CASES, STRUCTURE_CASES, effectiveArea, localTotal, localFabrication, portalFabricationProfile,
-  uniqueStructureCases, deriveMechanismBands, deriveFabricationProfile, serializedCandidateQa, structureKey, buildEnrollablesLocalCandidate, hash, same });
+  uniqueStructureCases, deriveMechanismBands, deriveFabricationProfile, mechanismAmbiguityProbes, fabricationAmbiguityProbes,
+  serializedCandidateQa, structureKey, buildEnrollablesLocalCandidate, hash, same });
