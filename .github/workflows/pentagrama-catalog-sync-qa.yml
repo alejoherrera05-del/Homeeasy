@@ -1,0 +1,31 @@
+name: Pentagrama Catalog Sync QA
+
+on:
+  push:
+    paths:
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
+      - '.github/workflows/pentagrama-catalog-sync-qa.yml'
+  pull_request:
+    paths:
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
+      - '.github/workflows/pentagrama-catalog-sync-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalog-inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js
+      - name: Inventory tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js
