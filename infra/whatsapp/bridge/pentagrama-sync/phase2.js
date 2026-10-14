@@ -635,9 +635,12 @@ class PentagramaPhase2 {
         }
       }
       if (rollbackResults.length) {
+        const causeCode = String(error.code || 'PENTAGRAMA_SYNC_FAILED');
         throw Object.assign(new Error('La transacción no pasó QA y HomeEasy intentó restaurar todos los cambios.'), {
-          code: 'PENTAGRAMA_TRANSACTION_ROLLED_BACK',
-          causeCode: String(error.code || 'PENTAGRAMA_SYNC_FAILED'),
+          code: causeCode === 'PENTAGRAMA_POST_APPLY_QA_FAILED'
+            ? 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK'
+            : 'PENTAGRAMA_TRANSACTION_ROLLED_BACK',
+          causeCode,
           rollbackResults
         });
       }
