@@ -190,19 +190,41 @@ test('ambiguous mechanism profiles request discriminating Live probes instead of
 
 test('fabrication profile resolves an orientation boundary at one-millimeter precision', () => {
   const group = { product: { id: 'boundary-product', rules: { sizeGroup: 'STD' } } };
+  const truth = {
+    rollWidthMm: 1830, rotateAtRollWidth: false, orientationAcrossCode: 'TAT', orientationAddedCode: 'TAN',
+    mechanismBands: [
+      { maxWidthMm: 1600, maxHeightMm: 2200, mechanism: 'M01' },
+      { maxWidthMm: 2600, maxHeightMm: 3200, mechanism: 'M03' },
+      { maxWidthMm: 3200, maxHeightMm: 3100, mechanism: 'M05' },
+      { maxWidthMm: null, maxHeightMm: null, mechanism: 'NA' }
+    ]
+  };
   const evidence = [
-    { width: 0.8, height: 1, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M01' },
-    { width: 1.6, height: 2.2, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M01' },
-    { width: 1.601, height: 2.2, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M03' },
-    { width: 1.829, height: 2.2, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M03' },
-    { width: 1.83, height: 2.2, outcome: 'PRICE', orientationCode: 'DIN', mechanism: 'M03' },
-    { width: 1.831, height: 2.2, outcome: 'ALTERNATIVE', orientationCode: 'TAN', mechanism: 'M03' },
-    { width: 2.5, height: 2.2, outcome: 'ALTERNATIVE', orientationCode: 'TAN', mechanism: 'M03' },
-    { width: 3, height: 2.8, outcome: 'ALTERNATIVE', orientationCode: 'TAN', mechanism: 'M05' }
-  ];
-  const profile = deriveFabricationProfile(group, evidence, null);
-  assert.equal(profile.rollWidthMm, 1830);
-  assert.equal(profile.rotateAtRollWidth, false);
+    { width: 0.8, height: 1 },
+    { width: 1.6, height: 2.2 },
+    { width: 1.601, height: 2.2 },
+    { width: 1.829, height: 2.2 },
+    { width: 1.83, height: 2.2 },
+    { width: 1.831, height: 2.2 },
+    { width: 2.5, height: 2.2 },
+    { width: 3, height: 2.8 }
+  ].map(sample => ({ ...sample, ...localFabrication({ rules: { fabricationProfile: truth } }, sample, {}) }));
+
+  let profile = null;
+  for (let attempt = 0; attempt < 12 && !profile; attempt++) {
+    try {
+      profile = deriveFabricationProfile(group, evidence, null);
+    } catch (error) {
+      assert.equal(error.code, 'PENTAGRAMA_LOCAL_MODEL_FABRICATION_PROFILE_AMBIGUOUS');
+      assert.ok(error.ambiguityProbes.length > 0);
+      for (const sample of error.ambiguityProbes) {
+        if (evidence.some(item => item.width === sample.width && item.height === sample.height)) continue;
+        evidence.push({ ...sample, ...localFabrication({ rules: { fabricationProfile: truth } }, sample, {}) });
+      }
+    }
+  }
+
+  assert.ok(profile);
   const product = { rules: { fabricationProfile: profile } };
   assert.equal(localFabrication(product, { width: 1.83, height: 2.2 }, {}).orientationCode, 'DIN');
   assert.equal(localFabrication(product, { width: 1.831, height: 2.2 }, {}).orientationCode, 'TAN');
