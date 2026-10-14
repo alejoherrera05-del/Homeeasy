@@ -101,7 +101,7 @@ const CATALOG_OPERATIONS = Object.freeze({
 });
 
 async function runJob(job, sync) {
-  if (!job || !['health', 'getPrice', 'catalog', 'resolveLivePrice'].includes(job.type)) throw Object.assign(new Error('Job type is not allowed'), { code: 'AGENT_JOB_NOT_ALLOWED' });
+  if (!job || !['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory'].includes(job.type)) throw Object.assign(new Error('Job type is not allowed'), { code: 'AGENT_JOB_NOT_ALLOWED' });
   if (job.type === 'health') {
     await sync.client.get('/Order/GetJsonCategoryList');
     return { ok: true, checkedAt: new Date().toISOString() };
@@ -115,6 +115,7 @@ async function runJob(job, sync) {
     return sync.catalog[method](payload.params || {});
   }
   if (job.type === 'resolveLivePrice') return sync.liveResolver.resolve(payload);
+  if (job.type === 'catalogInventory') return sync.catalogInventory.scan();
   return sync.pricing.supplierCost(payload.params || {}, payload.options || {});
 }
 
