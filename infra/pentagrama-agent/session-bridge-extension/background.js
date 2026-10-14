@@ -127,11 +127,16 @@ async function tabState(tabId) {
     const results = await chrome.scripting.executeScript({
       target: { tabId },
       world: 'MAIN',
-      func: () => ({
-        url: location.href,
-        readyState: document.readyState,
-        hasLogin: !!document.querySelector('input[name="Login"]') && !!document.querySelector('input[name="Password"]')
-      })
+      func: () => {
+        const captcha = document.querySelector('#CaptchaValue, input[name="CaptchaValue"]');
+        const captchaVisible = Boolean(captcha && captcha.getClientRects().length && getComputedStyle(captcha).visibility !== 'hidden');
+        return {
+          url: location.href,
+          readyState: document.readyState,
+          hasLogin: !!document.querySelector('input[name="Login"]') && !!document.querySelector('input[name="Password"]'),
+          hasCaptcha: captchaVisible
+        };
+      }
     });
     return results && results[0] && results[0].result || null;
   } catch (_) {
@@ -179,18 +184,54 @@ function freshLoginUrl(baseUrl) {
   return url.toString();
 }
 
+async function waitForManualCaptcha(tabId, timeoutMs = 120000) {
+  await chrome.action.setBadgeText({ text: 'CAP' });
+  await chrome.tabs.update(tabId, { active: true }).catch(() => null);
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const cookies = await portalCookies();
+    if (hasAuth(cookies)) {
+      await publishSession(cookies);
+      await chrome.action.setBadgeText({ text: 'OK' });
+      return true;
+    }
+
+    const state = await waitTabReady(tabId, 5000).catch(() => null);
+    if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) {
+      const refreshed = await portalCookies();
+      if (hasAuth(refreshed)) {
+        await publishSession(refreshed);
+        await chrome.action.setBadgeText({ text: 'OK' });
+        return true;
+      }
+    }
+    await sleep(500);
+  }
+
+  throw Object.assign(new Error('Pentagrama requires manual CAPTCHA verification in Brave'), {
+    code: 'PENTAGRAMA_CAPTCHA_REQUIRED',
+    manualActionRequired: true
+  });
+}
+
 async function ensurePortalAuthenticated(tabId) {
   let state = await waitTabReady(tabId, 20000).catch(() => null);
   if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) return true;
 
+  if (state && state.hasCaptcha) return waitForManualCaptcha(tabId);
+
   const credentials = await agent('/v1/credentials');
   await chrome.tabs.update(tabId, { url: freshLoginUrl(credentials.loginUrl), active: false });
   const deadline = Date.now() + 45000;
+
   while (Date.now() < deadline) {
     state = await waitTabReady(tabId, 5000).catch(() => null);
     if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) return true;
+    if (state && state.hasCaptcha) return waitForManualCaptcha(tabId);
     await sleep(350);
   }
+
   throw Object.assign(new Error('Pentagrama login did not complete in Brave'), { code: 'PENTAGRAMA_BROWSER_SESSION_REQUIRED' });
 }
 
@@ -355,8 +396,17 @@ chrome.cookies.onChanged.addListener(changeInfo => {
   setTimeout(reconcile, 250);
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (!message || message.type !== 'HOMEEASY_LOGIN_PAGE_READY') return;
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!message) return;
+
+  if (message.type === 'HOMEEASY_CAPTCHA_REQUIRED') {
+    chrome.action.setBadgeText({ text: 'CAP' }).catch(() => null);
+    if (sender && sender.tab && sender.tab.id) chrome.tabs.update(sender.tab.id, { active: true }).catch(() => null);
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (message.type !== 'HOMEEASY_LOGIN_PAGE_READY') return;
   agent('/v1/credentials')
     .then(credentials => sendResponse({
       ok: true,
