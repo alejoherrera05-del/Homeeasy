@@ -5,8 +5,10 @@
 
 const HOMEEASY_SYNC_SNAPSHOT_SHEET = "Costos_Pentagrama_Snapshots";
 const HOMEEASY_SYNC_HISTORY_SHEET = "Costos_Pentagrama_Sync_Historial";
+const HOMEEASY_SYNC_SNAPSHOT_V2_SHEET = "Costos_Pentagrama_Snapshots_V2";
 const HOMEEASY_SYNC_SNAPSHOT_HEADERS = Object.freeze(["Snapshot_ID", "Historial_ID", "Scan_ID", "Fila", "Producto_ID", "Antes_JSON", "Creado_En"]);
 const HOMEEASY_SYNC_HISTORY_HEADERS = Object.freeze(["Historial_ID", "Tipo", "Scan_ID", "Estado", "Cambios", "Creado_En", "Operador", "QA_JSON", "Error", "Revertido_Por"]);
+const HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS = Object.freeze(["Snapshot_ID", "Historial_ID", "Scan_ID", "Hoja", "Fila", "Clave", "Antes_JSON", "Existia", "Creado_En", "Tipo"]);
 
 function procesarRutaPentagramaSync10C_(ss, data, authValidation) {
   const tipo = String(data && data.tipo || "");
@@ -70,6 +72,9 @@ function leerCatalogoPentagramaSync10C_(ss) {
 }
 
 function aplicarPentagramaSync10C_(ss, data, authValidation) {
+  if (data && Array.isArray(data.catalogMutations) && data.catalogMutations.length) {
+    return aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation);
+  }
   const scanId = String(data && data.scanId || "").trim();
   const scannedAt = new Date(String(data && data.scannedAt || ""));
   const changes = Array.isArray(data && data.changes) ? data.changes : [];
@@ -118,6 +123,157 @@ function aplicarPentagramaSync10C_(ss, data, authValidation) {
   } finally { lock.releaseLock(); }
 }
 
+function claveExternaReglasSync10C_(rules) {
+  const value = rules && typeof rules === "object" ? rules : {};
+  function code_(input) { return String(input || "").trim().toUpperCase(); }
+  if (!code_(value.productCode)) return "";
+  return [code_(value.productCode), code_(value.groupCode), code_(value.associationGroup)].join("|");
+}
+
+function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
+  const scanId = String(data && data.scanId || "").trim();
+  const scannedAt = new Date(String(data && data.scannedAt || ""));
+  const mutations = Array.isArray(data && data.catalogMutations) ? data.catalogMutations : [];
+  if (!scanId || isNaN(scannedAt.getTime()) || Date.now() - scannedAt.getTime() > 30 * 60 * 1000) {
+    return { status: "error", code: "PENTAGRAMA_SCAN_EXPIRED", msg: "El escaneo no existe o expiró." };
+  }
+  if (!mutations.length) return { status: "error", code: "PENTAGRAMA_NO_CHANGES", msg: "No hay novedades de catálogo para aplicar." };
+
+  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  const historyId = Utilities.getUuid(); const snapshotId = Utilities.getUuid();
+  const productSheet = ss.getSheetByName(HOMEEASY_COST_SHEET);
+  const snapshotSheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_SNAPSHOT_V2_SHEET, HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS);
+  const historySheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_HISTORY_SHEET, HOMEEASY_SYNC_HISTORY_HEADERS);
+  const snapshots = []; const writes = [];
+  try {
+    if (!productSheet) throw new Error("No existe la hoja de Costos Pentagrama.");
+    const rowById = indiceFilasSync10C_(productSheet, 0);
+    let nextRow = productSheet.getLastRow() + 1;
+    const seenIds = {};
+
+    mutations.forEach(function(mutation) {
+      if (mutation && mutation.certified !== true) throw new Error("La novedad de catálogo no está certificada.");
+      const kind = String(mutation && mutation.kind || "").trim().toUpperCase();
+      if (["ADD", "DEACTIVATE", "RENAME"].indexOf(kind) < 0) throw new Error("Tipo de novedad no permitido: " + kind);
+      const id = String(mutation && mutation.homeeasyId || "").trim();
+      if (!id || seenIds[id]) throw new Error("ID de catálogo inválido o duplicado: " + id);
+      seenIds[id] = true;
+
+      let row = Number(rowById[id] || 0); const existed = Boolean(row);
+      if (!row) row = nextRow++;
+      const before = existed ? productSheet.getRange(row, 1, 1, HOMEEASY_COST_HEADERS.length).getValues()[0] : [];
+      if (existed && String(before[0]) !== id) throw new Error("El producto cambió de fila: " + id);
+
+      const currentRules = existed ? leerReglasCostos10B_(before[20]) : {};
+      const currentKey = claveExternaReglasSync10C_(currentRules);
+      const expectedKey = String(mutation.expectedExternalKey || "").trim().toUpperCase();
+      if (existed && expectedKey && currentKey && currentKey !== expectedKey) throw new Error("La identidad Pentagrama cambió después del escaneo: " + id);
+
+      let values;
+      if (kind === "ADD") {
+        if (existed) throw new Error("La referencia nueva ya existe en HomeEasy: " + id);
+        if (!Array.isArray(mutation.rowValues) || mutation.rowValues.length !== HOMEEASY_COST_HEADERS.length) throw new Error("Fila certificada incompleta: " + id);
+        values = mutation.rowValues.slice();
+        values[0] = id; values[12] = true; values[13] = "VIGENTE"; values[18] = "Pentagrama Sync"; values[19] = new Date();
+        const addRules = leerReglasCostos10B_(values[20]);
+        if (!claveExternaReglasSync10C_(addRules)) throw new Error("La referencia nueva no contiene identidad Pentagrama: " + id);
+        if (!Array.isArray(mutation.qaCases) || mutation.qaCases.length < 2) throw new Error("Evidencia QA insuficiente para alta: " + id);
+      } else if (kind === "DEACTIVATE") {
+        if (existed) values = before.slice();
+        else {
+          if (!Array.isArray(mutation.rowValues) || mutation.rowValues.length !== HOMEEASY_COST_HEADERS.length) throw new Error("Falta override certificado para desactivar: " + id);
+          values = mutation.rowValues.slice(); values[0] = id;
+        }
+        values[12] = false; values[13] = "DESCONTINUADO"; values[18] = "Pentagrama Sync"; values[19] = new Date();
+      } else {
+        if (existed) values = before.slice();
+        else {
+          if (!Array.isArray(mutation.rowValues) || mutation.rowValues.length !== HOMEEASY_COST_HEADERS.length) throw new Error("Falta override certificado para renombrar: " + id);
+          values = mutation.rowValues.slice(); values[0] = id;
+        }
+        const newReference = String(mutation.newReference || "").trim();
+        if (!newReference) throw new Error("Nuevo nombre vacío: " + id);
+        values[3] = newReference; values[18] = "Pentagrama Sync"; values[19] = new Date();
+      }
+
+      snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_SHEET, row, id, before, existed, "CATALOG_" + kind));
+      writes.push({ row: row, values: values, mutation: mutation, kind: kind });
+      rowById[id] = row;
+    });
+
+    snapshotSheet.getRange(snapshotSheet.getLastRow() + 1, 1, snapshots.length, HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS.length).setValues(snapshots);
+    writes.forEach(function(write) { productSheet.getRange(write.row, 1, 1, HOMEEASY_COST_HEADERS.length).setValues([write.values]); });
+    SpreadsheetApp.flush(); borrarCacheCostos10B_();
+
+    const qa = ejecutarQaCatalogoPentagramaSync10C_(ss, writes);
+    if (!qa.ok) throw new Error("QA de catálogo falló: " + qa.errors.slice(0, 10).join("; "));
+    historySheet.appendRow([historyId, "CATALOG_APPLY", scanId, "APLICADO", writes.length, new Date(), operadorSync10C_(authValidation), JSON.stringify(qa), "", ""]);
+    return { status: "ok", historyId: historyId, snapshotId: snapshotId, changed: writes.length, qa: qa };
+  } catch (error) {
+    restaurarSnapshotV2PentagramaSync10C_(ss, snapshots);
+    SpreadsheetApp.flush(); borrarCacheCostos10B_();
+    historySheet.appendRow([historyId, "CATALOG_APPLY", scanId, "REVERTIDO_AUTOMATICO", snapshots.length, new Date(), operadorSync10C_(authValidation), "", String(error), ""]);
+    return { status: "error", code: "PENTAGRAMA_CATALOG_APPLY_ROLLED_BACK", msg: "No se aplicó la novedad de catálogo; se restauró el snapshot.", error: String(error) };
+  } finally { lock.releaseLock(); }
+}
+
+function ejecutarQaCatalogoPentagramaSync10C_(ss, writes) {
+  const errors = []; let checked = 0;
+  const catalog = cargarCatalogoCostos10B_(ss, true);
+  (writes || []).forEach(function(write) {
+    const mutation = write.mutation || {}; const id = String(mutation.homeeasyId || "");
+    const product = (catalog.products || []).find(function(item) { return String(item.id) === id; });
+    if (!product) { errors.push(id + ": no quedó visible en el catálogo técnico."); return; }
+    if (write.kind === "DEACTIVATE") {
+      checked++;
+      if (product.active !== false || String(product.status).toUpperCase() !== "DESCONTINUADO") errors.push(id + ": no quedó desactivado.");
+      return;
+    }
+    if (write.kind === "RENAME") {
+      checked++;
+      if (String(product.name) !== String(mutation.newReference || "")) errors.push(id + ": el nombre no coincide después de escribir.");
+      return;
+    }
+    if (product.active !== true) { errors.push(id + ": el alta no quedó activa."); return; }
+    (mutation.qaCases || []).forEach(function(testCase) {
+      checked++;
+      try {
+        const request = testCase.homeeasy || { product: id, width: String(testCase.width), height: String(testCase.height), quantity: String(testCase.quantity || 1), extras: "0" };
+        const result = calcularItemCostos10B_(request, catalog, { today: fechaBogota10B_(), promotions: true, installMode: "common", installation: "0" });
+        const actual = Number(result.unit) / 100;
+        if (!result.ok || Math.abs(actual - Number(testCase.expected)) > 0.02) errors.push(id + "/" + String(testCase.id || "caso") + " esperado " + testCase.expected + " obtenido " + actual);
+      } catch (error) { errors.push(id + "/" + String(testCase.id || "caso") + ": " + String(error)); }
+    });
+  });
+  return { ok: errors.length === 0, checked: checked, catalog: catalog.products.length, tolerance: 0.02, errors: errors };
+}
+
+function indiceFilasSync10C_(sheet, column) {
+  const out = {}; if (!sheet || sheet.getLastRow() < 2) return out;
+  sheet.getRange(2, column + 1, sheet.getLastRow() - 1, 1).getValues().forEach(function(row, index) {
+    const key = String(row[0] || "").trim(); if (key) out[key] = index + 2;
+  });
+  return out;
+}
+
+function snapshotV2Sync10C_(snapshotId, historyId, scanId, sheet, row, key, before, existed, type) {
+  return [snapshotId, historyId, scanId, sheet, row, key, JSON.stringify(before || []), existed, new Date(), type];
+}
+
+function restaurarSnapshotV2PentagramaSync10C_(ss, rows) {
+  const grouped = {};
+  (rows || []).forEach(function(row) { const name = String(row[3] || ""); if (!grouped[name]) grouped[name] = []; grouped[name].push(row); });
+  Object.keys(grouped).forEach(function(name) {
+    const sheet = ss.getSheetByName(name); if (!sheet) throw new Error("No existe la hoja del snapshot: " + name);
+    grouped[name].sort(function(a, b) { return Number(b[4]) - Number(a[4]); }).forEach(function(row) {
+      const rowNumber = Number(row[4]); const existed = String(row[7]).toUpperCase() === "TRUE" || row[7] === true;
+      if (!existed) { if (rowNumber <= sheet.getLastRow()) sheet.deleteRow(rowNumber); return; }
+      const values = JSON.parse(String(row[6] || "[]")); if (!values.length) throw new Error("Snapshot vacío para " + name + "/" + rowNumber);
+      sheet.getRange(rowNumber, 1, 1, values.length).setValues([values]);
+    });
+  });
+}
+
 function revertirPentagramaSync10C_(ss, data, authValidation) {
   const sourceHistoryId = String(data && data.historyId || "").trim();
   if (!sourceHistoryId) return { status: "error", code: "ROLLBACK_HISTORY_REQUIRED", msg: "Falta historialId." };
@@ -126,6 +282,15 @@ function revertirPentagramaSync10C_(ss, data, authValidation) {
   const historySheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_HISTORY_SHEET, HOMEEASY_SYNC_HISTORY_HEADERS);
   const rollbackId = Utilities.getUuid();
   try {
+    const snapshotsV2 = ss.getSheetByName(HOMEEASY_SYNC_SNAPSHOT_V2_SHEET);
+    const rowsV2 = snapshotsV2 ? snapshotsV2.getDataRange().getValues().slice(1).filter(function(row) { return String(row[1]) === sourceHistoryId; }) : [];
+    if (rowsV2.length) {
+      restaurarSnapshotV2PentagramaSync10C_(ss, rowsV2);
+      SpreadsheetApp.flush(); borrarCacheCostos10B_();
+      const qaV2 = { ok: true, catalog: cargarCatalogoCostos10B_(ss, true).products.length, errors: [] };
+      historySheet.appendRow([rollbackId, "ROLLBACK", "", "APLICADO", rowsV2.length, new Date(), operadorSync10C_(authValidation), JSON.stringify(qaV2), "", sourceHistoryId]);
+      return { status: "ok", historyId: rollbackId, sourceHistoryId: sourceHistoryId, changed: rowsV2.length, qa: qaV2 };
+    }
     if (!snapshotsSheet) throw new Error("No existe snapshot para revertir.");
     const rows = snapshotsSheet.getDataRange().getValues().slice(1).filter(function(row) { return String(row[1]) === sourceHistoryId; });
     if (!rows.length) throw new Error("No se encontró el snapshot solicitado.");
