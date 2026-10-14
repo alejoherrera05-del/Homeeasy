@@ -196,6 +196,7 @@ test('fabrication profile resolves an orientation boundary at one-millimeter pre
       { maxWidthMm: 1600, maxHeightMm: 2200, mechanism: 'M01' },
       { maxWidthMm: 2600, maxHeightMm: 3200, mechanism: 'M03' },
       { maxWidthMm: 3200, maxHeightMm: 3100, mechanism: 'M05' },
+      { maxWidthMm: 3800, maxHeightMm: 3500, mechanism: 'M08' },
       { maxWidthMm: null, maxHeightMm: null, mechanism: 'NA' }
     ]
   };
