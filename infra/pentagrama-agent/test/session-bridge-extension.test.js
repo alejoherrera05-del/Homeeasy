@@ -17,5 +17,13 @@ test('browser transport bounds portal fetches and retries transient failures', (
 });
 
 test('session bridge extension version is 1.0.1', () => {
-  assert.equal(manifest.version, '1.0.1');
+  assert.equal(manifest.version, '1.0.2');
+});
+
+
+test('automatic re-login is not blocked by stale sessionStorage and uses a fresh login URL', () => {
+  const content = fs.readFileSync(path.join(root, 'session-bridge-extension', 'content.js'), 'utf8');
+  assert.doesNotMatch(content, /homeeasy-login-attempted/);
+  assert.match(background, /freshLoginUrl/);
+  assert.match(background, /searchParams\.set\('ha'/);
 });
