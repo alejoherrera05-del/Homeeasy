@@ -12,11 +12,11 @@
  *********************************************************/
 
 const HOMEEASY_COST_STAGE = "10B";
-const HOMEEASY_COST_SCHEMA_VERSION = 2;
+const HOMEEASY_COST_SCHEMA_VERSION = 3;
 const HOMEEASY_COST_SHEET = "Costos_Pentagrama";
 const HOMEEASY_COST_MATRIX_SHEET = "Costos_Pentagrama_Matrices";
 const HOMEEASY_COST_CONFIG_SHEET = "Costos_Pentagrama_Config";
-const HOMEEASY_COST_CACHE_KEY = "HOMEEASY_COST_CATALOG_V4_SIZE_RULES";
+const HOMEEASY_COST_CACHE_KEY = "HOMEEASY_COST_CATALOG_V5_LOCAL_FIRST";
 
 const HOMEEASY_RING_SOURCE_SHA256_10B = "1c313dcd421259ada7493329a9fa97672f27e8a1df03e57e4b1e5a1bf7c363be";
 const HOMEEASY_RING_CATALOG_GZIP_B64_10B = "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";
@@ -203,7 +203,7 @@ function borrarCacheCostos10B_() {
 
 function autorizarRutaCostos10B_(ss, data, permission) {
   const tipo = String(data && data.tipo || "").trim();
-  if ((tipo === "COSTOS_SYNC_READ" || tipo === "COSTOS_SYNC_COST") && autorizarServicioPentagramaSync10D_(data)) {
+  if (/^COSTOS_SYNC_(READ|COST|APPLY|ROLLBACK|HISTORY)$/.test(tipo) && autorizarServicioPentagramaSync10D_(data)) {
     return { ok: true, validation: { usuario: "Pentagrama Scheduler", email: "scheduler@homeeasy", userId: "PENTAGRAMA_SCHEDULER" } };
   }
   if (typeof validarPermisoSesionAuth9B_ !== "function") {
@@ -235,7 +235,9 @@ function obtenerEstadoCostos10B_(ss) {
     version: catalog.version, validThrough: catalog.validThrough, currency: catalog.currency,
     pricesIncludeVat: catalog.pricesIncludeVat, products: catalog.products.length,
     matrixCells: catalog.matrixCount, expired: fechaBogota10B_() > catalog.validThrough,
-    source: "Costos_Pentagrama", legacyTarifas: false, vps: false
+    source: "Costos_Pentagrama", legacyTarifas: false, vps: false,
+    pentagramaUpdatedAt: String(catalog.config && catalog.config.PENTAGRAMA_LAST_UPDATED_AT || ""),
+    localModel: String(catalog.config && catalog.config.PENTAGRAMA_LOCAL_MODEL || "")
   };
 }
 
@@ -250,6 +252,7 @@ function obtenerOpcionesCostos10B_(ss) {
     if (p.family === "enrollable") return {
       id: p.id, family: p.family, familyName: p.familyName, name: nombreEnrollable10B_(p), type: p.type,
       method: p.method, manual: false, coverlight: opcionesComplementos10B_(catalog, rules.coverlightIds || []),
+      configurations: (rules.configurations || []).map(function(c) { return { id: c.id, label: c.label, manual: c.method === "manual" }; }),
       limits: { minWidthMm: rules.minWidthMm, minHeightMm: rules.minHeightMm,
         maxWidthMm: rules.maxWidthMm, maxHeightMm: rules.maxHeightMm, maxRatio: rules.maxRatio }
     };
@@ -265,7 +268,9 @@ function obtenerOpcionesCostos10B_(ss) {
   return {
     status: "ok", etapa: HOMEEASY_COST_STAGE, version: catalog.version,
     validThrough: catalog.validThrough, currency: catalog.currency,
-    pricesIncludeVat: catalog.pricesIncludeVat, products: products
+    pricesIncludeVat: catalog.pricesIncludeVat, products: products,
+    pentagramaUpdatedAt: String(catalog.config && catalog.config.PENTAGRAMA_LAST_UPDATED_AT || ""),
+    localModel: String(catalog.config && catalog.config.PENTAGRAMA_LOCAL_MODEL || "")
   };
 }
 
@@ -387,7 +392,8 @@ function cargarCatalogoCostos10B_(ss, forceRefresh) {
     pricesIncludeVat: boolCostos10B_(config.PRECIOS_INCLUYEN_IVA, true),
     products: products,
     matrixCount: matrixRows.length,
-    enrollableSizeRules: enrollableSizeRules
+    enrollableSizeRules: enrollableSizeRules,
+    config: config
   };
   if (!catalog.version || !catalog.validThrough || catalog.currency !== "COP" || catalog.pricesIncludeVat !== true) {
     throw new Error("La configuración de Costos Pentagrama está incompleta o no es compatible.");
@@ -414,7 +420,8 @@ function calcularItemCostos10B_(item, catalog, options) {
 
     const original = catalog.products.find(function(p) { return p.id === String(item && (item.product || item.productId) || ""); });
     if (!original || !original.active || original.family === "complemento-enrollable") throw new Error("Elige un producto disponible.");
-    const product = configurarProductoCostos10B_(original, item && item.configuration);
+    let product = configurarProductoCostos10B_(original, item && item.configuration);
+    product = aplicarPerfilFabricacionComplementos10B_(product, item || {}, catalog);
 
     let unit = 0;
     let area = null;
@@ -451,6 +458,7 @@ function calcularItemCostos10B_(item, catalog, options) {
         throw new Error("Esta configuración requiere costo confirmado por Pentagrama.");
       }
       const rules = product.rules || {};
+      if (product.selectedSupplementId) unit += calcularComplemento10B_(product.selectedSupplementId, catalog, width, height, options.today, 1);
       const coverlightId = item.coverlight ? String(item.coverlight) : "";
       if (coverlightId) {
         if ((rules.coverlightIds || []).indexOf(coverlightId) < 0) throw new Error("Coverlight no es compatible con esta configuración.");
@@ -521,16 +529,61 @@ function opcionesComplementos10B_(catalog, ids) {
 function configurarProductoCostos10B_(product, configuration) {
   const id = String(configuration || "standard");
   if (id === "standard") return product;
-  const variant = ((product.rules || {}).configurations || []).find(function(c) { return c.id === id; });
+  const baseRules = product.rules || {};
+  const variant = (baseRules.configurations || []).find(function(c) { return c.id === id; });
   if (!variant) throw new Error("Elige una configuración disponible.");
+  const rules = Object.assign({}, baseRules, {
+    coverlightIds: variant.coverlightIds || baseRules.coverlightIds || [],
+    addonIds: variant.addonIds || baseRules.addonIds || []
+  });
+  if (Array.isArray(variant.fabricationMechanismBands) && variant.fabricationMechanismBands.length) {
+    const baseProfile = baseRules.fabricationProfile && typeof baseRules.fabricationProfile === "object" ? baseRules.fabricationProfile : {};
+    rules.fabricationProfile = Object.assign({}, baseProfile, {
+      mechanismBands: JSON.parse(JSON.stringify(variant.fabricationMechanismBands))
+    });
+  }
   return Object.assign({}, product, {
-    method: variant.method,
-    rateCents: copACentavos10B_(variant.rateCOP || 0),
+    method: variant.method || product.method,
+    rateCents: variant.rateCOP === undefined ? product.rateCents : copACentavos10B_(variant.rateCOP || 0),
     promotional: Boolean(variant.promotional),
     extraDiscount: numeroCostos10B_(variant.extraDiscount, 0),
     configuration: variant.label,
-    rules: Object.assign({}, product.rules, { coverlightIds: variant.coverlightIds || [], addonIds: variant.addonIds || [] })
+    selectedSupplementId: String(variant.supplementId || ""),
+    rules: rules
   });
+}
+
+function aplicarPerfilFabricacionComplementos10B_(product, item, catalog) {
+  const selectedIds = [];
+  if (product && product.selectedSupplementId) selectedIds.push(String(product.selectedSupplementId));
+  if (item && item.coverlight) selectedIds.push(String(item.coverlight));
+
+  let mechanismBands = null;
+  function adoptarBandas_(bands) {
+    if (!Array.isArray(bands) || !bands.length) return;
+    const serialized = JSON.stringify(bands);
+    if (mechanismBands && JSON.stringify(mechanismBands) !== serialized) {
+      throw new Error("Los complementos seleccionados requieren perfiles de mecanismo incompatibles.");
+    }
+    mechanismBands = JSON.parse(serialized);
+  }
+
+  const productRules = product && product.rules || {};
+  const coverlightId = item && item.coverlight ? String(item.coverlight) : "";
+  if (coverlightId && productRules.coverlightMechanismBands) {
+    adoptarBandas_(productRules.coverlightMechanismBands[coverlightId]);
+  }
+
+  selectedIds.forEach(function(id) {
+    const complement = (catalog.products || []).find(function(p) { return p.id === id && p.family === "complemento-enrollable"; });
+    adoptarBandas_(complement && complement.rules && complement.rules.fabricationMechanismBands);
+  });
+
+  if (!mechanismBands) return product;
+  const rules = Object.assign({}, productRules);
+  const baseProfile = rules.fabricationProfile && typeof rules.fabricationProfile === "object" ? rules.fabricationProfile : {};
+  rules.fabricationProfile = Object.assign({}, baseProfile, { mechanismBands: mechanismBands });
+  return Object.assign({}, product, { rules: rules });
 }
 
 function validarVigenciaProducto10B_(product, today) {
@@ -544,6 +597,48 @@ function validarMedidasEnrollable10B_(product, width, height, catalog) {
   const r = product.rules || {};
   if (product.family !== "enrollable" && product.family !== "complemento-enrollable") return;
   if ((r.minWidthMm && width < r.minWidthMm) || (r.minHeightMm && height < r.minHeightMm)) throw new Error("Estas medidas están por debajo del mínimo de fabricación.");
+
+  const portalProfile = r.fabricationProfile;
+  if (product.family === "enrollable" && portalProfile && Array.isArray(portalProfile.mechanismBands)) {
+    const rollWidth = numeroCostos10B_(portalProfile.rollWidthMm, 0);
+    let orientation = "normal";
+    let orientationCode = "DIN";
+    let requiresAuthorization = false;
+    let warranty = true;
+    const crossesRoll = rollWidth && (portalProfile.rotateAtRollWidth ? width >= rollWidth : width > rollWidth);
+    if (crossesRoll) {
+      if (height <= rollWidth) {
+        orientation = "atravesada";
+        orientationCode = String(portalProfile.orientationAcrossCode || "TAT");
+      } else {
+        orientation = "atravesada_y_anadida";
+        orientationCode = String(portalProfile.orientationAddedCode || "TAN");
+        requiresAuthorization = true;
+        warranty = false;
+      }
+    }
+    const mechanismBand = portalProfile.mechanismBands.find(function(band) {
+      const maxWidth = numeroCostos10B_(band.maxWidthMm, 0);
+      const maxHeight = numeroCostos10B_(band.maxHeightMm, 0);
+      return (!maxWidth || width <= maxWidth) && (!maxHeight || height <= maxHeight);
+    });
+    if (!mechanismBand || !String(mechanismBand.mechanism || "")) {
+      throw errorFabricacionEnrollable10B_("El perfil certificado de Pentagrama no resolvió un mecanismo para estas medidas.", []);
+    }
+    return {
+      supported: true,
+      ruleId: String(r.sizeRuleId || ""),
+      sizeGroup: String(portalProfile.sizeGroup || r.sizeGroup || ""),
+      configuration: "standard",
+      orientation: orientation,
+      orientationCode: orientationCode,
+      requiresAuthorization: requiresAuthorization,
+      warranty: warranty,
+      mechanism: String(mechanismBand.mechanism),
+      tube: "",
+      source: String(portalProfile.source || "Pentagrama GetAttributesDefaultValues")
+    };
+  }
 
   const sizePolicy = catalog && catalog.enrollableSizeRules || {};
   const sizeRuleId = String(r.sizeRuleId || "");
