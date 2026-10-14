@@ -43,7 +43,7 @@ assert.equal(calace.status,'REVIEW_REQUIRED');
 const angolo=products.find(p=>p.rules.productCode==='CORONSERIVEANGGRE');
 assert.ok(angolo);
 assert.equal(angolo.rateCents,11095560);
-assert.equal(angolo.configuration,'Sistema Ring al 2.0 · tubo con anillos');
+assert.equal(angolo.configuration,'Sistema Ring al 2.0 · tubo con anillos. Configuración Pentagrama: color de anillos, recogida, altura de confección, bajo, dirección de tela y correa opcional.');
 
 const catalog={
   version:'2026-10-14-ring',
