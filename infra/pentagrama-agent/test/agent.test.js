@@ -31,13 +31,17 @@ test('agent executes only allowlisted health, price, catalog, live resolver and 
     catalog: { categories: async params => [{ id: params.scope }] },
     pricing: { supplierCost: async () => ({ basePrice: 244800, total: 244800 }) },
     liveResolver: { resolve: async payload => ({ ok: true, outcome: 'PRICE', product: payload.homeeasyId }) },
-    catalogInventory: { scan: async () => ({ counts: { products: 321 }, products: [] }) }
+    catalogInventory: { scan: async () => ({ counts: { products: 321 }, products: [] }) },
+    localModel: { build: async source => ({ version: 'local-v1', sourceVersion: source.version, summary: { enrollables: 279, fail: 0 } }) }
   };
   assert.equal((await runJob({ type: 'health' }, sync)).ok, true);
   assert.equal((await runJob({ type: 'getPrice', payload: { params: {} } }, sync)).basePrice, 244800);
   assert.deepEqual(await runJob({ type: 'catalog', payload: { operation: 'categories', params: { scope: 7 } } }, sync), [{ id: 7 }]);
   assert.equal((await runJob({ type: 'resolveLivePrice', payload: { homeeasyId: 'matte3' } }, sync)).outcome, 'PRICE');
   assert.equal((await runJob({ type: 'catalogInventory' }, sync)).counts.products, 321);
+  const local = await runJob({ type: 'buildLocalEnrollablesSnapshot', payload: { source: { version: 'sheet-v1' } } }, sync);
+  assert.equal(local.summary.enrollables, 279);
+  assert.equal(local.sourceVersion, 'sheet-v1');
   await assert.rejects(() => runJob({ type: 'catalog', payload: { operation: 'requestAnyUrl' } }, sync), error => error.code === 'AGENT_CATALOG_OPERATION_NOT_ALLOWED');
   await assert.rejects(() => runJob({ type: 'shell' }, sync), error => error.code === 'AGENT_JOB_NOT_ALLOWED');
 });
