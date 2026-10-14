@@ -21,7 +21,7 @@ function fixture(options = {}) {
   });
 }
 
-function register(gateway, id = crypto.randomUUID(), version = '1.5.2') {
+function register(gateway, id = crypto.randomUUID(), version = '1.5.3') {
   const keys = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
   const body = gateway.register('bootstrap-test', {
     identity: { installationId: id, hostname: 'TEST-PC', version, platform: 'win32-x64', installedAt: new Date().toISOString() },
@@ -56,7 +56,7 @@ test('heartbeat does not enqueue a Pentagrama login job', async () => {
 
 test('dispatcher sends only allowlisted work and returns price, catalog or live resolver results', async () => {
   const gateway = fixture();
-  const registration = register(gateway, crypto.randomUUID(), '1.5.2');
+  const registration = register(gateway, crypto.randomUUID(), '1.5.3');
   const agent = gateway.authenticate(registration.id, registration.token);
   const pending = gateway.dispatch('getPrice', { params: { ProductCode: 'TEST' } });
   const delivery = await gateway.poll(agent);
@@ -83,7 +83,7 @@ test('dispatcher sends only allowlisted work and returns price, catalog or live 
 
 test('local snapshot jobs use the dedicated long-running timeout', async () => {
   const gateway = fixture({ localModelJobTimeoutMs: 75 * 60 * 1000 });
-  const registration = register(gateway, crypto.randomUUID(), '1.5.2');
+  const registration = register(gateway, crypto.randomUUID(), '1.5.3');
   gateway.authenticate(registration.id, registration.token);
   let observedTimeout = null;
   gateway.runOnAgent = async (_agent, type, _payload, timeoutMs) => {
@@ -98,7 +98,7 @@ test('local snapshot jobs use the dedicated long-running timeout', async () => {
 test('local snapshot jobs skip legacy agents that cannot execute the model builder', async () => {
   const gateway = fixture();
   register(gateway, crypto.randomUUID(), '1.2.1');
-  const current = register(gateway, crypto.randomUUID(), '1.5.2');
+  const current = register(gateway, crypto.randomUUID(), '1.5.3');
   const agent = gateway.authenticate(current.id, current.token);
   const pending = gateway.dispatch('buildLocalEnrollablesSnapshot', {});
   const delivery = await gateway.poll(agent);
@@ -107,19 +107,19 @@ test('local snapshot jobs skip legacy agents that cannot execute the model build
   assert.equal((await pending).ok, true);
 });
 
-test('dispatcher excludes 1.5.1 browser-transport agents and prefers the newest ready compatible agent', async () => {
+test('dispatcher excludes pre-1.5.3 agents and prefers the newest ready compatible agent', async () => {
   const gateway = fixture();
   const legacy = register(gateway, crypto.randomUUID(), '1.5.1');
-  const current = register(gateway, crypto.randomUUID(), '1.5.2');
+  const current = register(gateway, crypto.randomUUID(), '1.5.3');
   const newer = register(gateway, crypto.randomUUID(), '1.5.3');
 
   const legacyAgent = gateway.authenticate(legacy.id, legacy.token);
   const currentAgent = gateway.authenticate(current.id, current.token);
   const newerAgent = gateway.authenticate(newer.id, newer.token);
 
-  gateway.heartbeat(legacyAgent, { version: '1.5.1', pentagrama: { status: 'ready' } });
-  gateway.heartbeat(currentAgent, { version: '1.5.2', pentagrama: { status: 'ready' } });
-  gateway.heartbeat(newerAgent, { version: '1.5.3', pentagrama: { status: 'ready' } });
+  gateway.heartbeat(legacyAgent, { version: '1.5.2', pentagrama: { status: 'ready' } });
+  gateway.heartbeat(currentAgent, { version: '1.5.3', pentagrama: { status: 'ready' } });
+  gateway.heartbeat(newerAgent, { version: '1.5.4', pentagrama: { status: 'ready' } });
 
   const pending = gateway.dispatch('catalog', { operation: 'categories' });
 
