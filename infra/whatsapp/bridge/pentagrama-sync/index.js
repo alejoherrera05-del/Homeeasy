@@ -8,6 +8,7 @@ const { PentagramaComparison } = require('./comparison');
 const { INITIAL_MAPPINGS } = require('./mapper');
 const { PentagramaLiveResolver } = require('./live-resolver');
 const { PentagramaCatalogInventory } = require('./catalog-inventory');
+const { buildEnrollablesLocalCandidate } = require('./local-model');
 
 function createPentagramaSync(options = {}) {
   const client = options.client || new PentagramaClient(options);
@@ -20,7 +21,15 @@ function createPentagramaSync(options = {}) {
   const comparison = options.comparison || new PentagramaComparison({ pricing, homeeasy, mappings: options.mappings || INITIAL_MAPPINGS });
   const liveResolver = options.liveResolver || new PentagramaLiveResolver({ catalog, pricing, vatRate: options.vatRate });
   const catalogInventory = options.catalogInventory || new PentagramaCatalogInventory({ catalog });
-  return Object.freeze({ mode, client, catalog, pricing, homeeasy, comparison, liveResolver, catalogInventory });
+  const localModel = options.localModel || Object.freeze({
+    build: source => buildEnrollablesLocalCandidate({
+      source,
+      quoteBase: input => liveResolver.quoteBase(input),
+      resolveLive: input => liveResolver.resolve(input),
+      configurationOptions: input => liveResolver.configurationOptions(input)
+    })
+  });
+  return Object.freeze({ mode, client, catalog, pricing, homeeasy, comparison, liveResolver, catalogInventory, localModel });
 }
 
 module.exports = Object.freeze({ createPentagramaSync });
