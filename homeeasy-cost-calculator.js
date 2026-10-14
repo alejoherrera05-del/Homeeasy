@@ -5,9 +5,9 @@ const $=id=>document.getElementById(id);
 const API_URL=String(window.HomeEasyCore&&window.HomeEasyCore.API_URL||'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
 const PENTAGRAMA_LIVE_URL='https://api.homeeasy.com.co/api/pentagrama-sync/live-price';
 const isPentagramaLiveProduct=id=>String(id||'').startsWith('enrollable-');
-const familyLabels={onda:'Onda Serena',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales',enrollable:'Enrollable'};
+const familyLabels={onda:'Onda Serena',ring:'Cortina Ring',panel:'Panel Japonés',sheer:'Sheer Elegance',vertesse:'Sheer Vertesse',vertical:'Verticales',enrollable:'Enrollable'};
 const FORMAL_QUOTE_TRANSFER_KEY='homeeasy.cost-to-formal.v1';
-const familyOrder=['onda','sheer','vertesse','panel','vertical','enrollable'];
+const familyOrder=['onda','ring','sheer','vertesse','panel','vertical','enrollable'];
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cop=cents=>'COP $'+new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Math.round((Number(cents)||0)/100));
 const formatPesos=raw=>new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Number(String(raw||'0').replace(/\D/g,''))||0);
@@ -200,7 +200,7 @@ function familyInstallationFields(family){
   return {
     mount:true,
     control:['enrollable','sheer','vertesse','panel','vertical'].includes(family),
-    opening:['onda','vertesse','panel','vertical'].includes(family)
+    opening:['onda','ring','vertesse','panel','vertical'].includes(family)
   };
 }
 
@@ -298,6 +298,11 @@ function referenceGroup(product){
 }
 function productOptions(item){
   const products=(catalog?.products||[]).filter(p=>p.family===item.family);
+  if(item.family==='ring'){
+    const groups=[['Velo','Velo'],['Traslúcido','Traslúcido'],['Blackout','Blackout']];
+    const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Selecciona una tela / referencia</option>':'';
+    return missing+groupedProductOptions(products,item,groups,p=>p.type,false);
+  }
   if(item.family!=='enrollable'){
     const keys=[...new Set(products.map(referenceGroup).filter(Boolean))];
     const missing=!products.some(p=>p.id===item.product)?'<option value="" selected disabled>Revisa la referencia compartida</option>':'';

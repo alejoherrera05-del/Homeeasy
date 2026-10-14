@@ -35,6 +35,8 @@ jobs:
         run: npm install --no-save --no-package-lock jsdom@25
       - name: Verify price calculations (unchanged)
         run: node tests/cost-calculator-10b.cjs
+      - name: Verify Cortina Ring certified catalog
+        run: node tests/cost-calculator-ring.cjs
       - name: Verify enrollable UI (unchanged)
         run: node tests/cost-calculator-enrollables-ui.cjs
       - name: Verify window editing and duplication
