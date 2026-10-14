@@ -48,7 +48,7 @@ function productosRingCertificados10B_(catalogVersion, validThrough) {
       minAreaMm2: 0,
       extraDiscount: 0,
       promotional: false,
-      configuration: "Sistema Ring al 2.0 · tubo con anillos",
+      configuration: "Sistema Ring al 2.0 · tubo con anillos. Configuración Pentagrama: color de anillos, recogida, altura de confección, bajo, dirección de tela y correa opcional.",
       active: active,
       status: active ? "VIGENTE" : "REVIEW_REQUIRED",
       validThrough: validThrough,
