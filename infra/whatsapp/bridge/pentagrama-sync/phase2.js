@@ -200,7 +200,7 @@ class PentagramaPhase2 {
     }
     const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
-    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary, localModelCandidate,
+    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary, localModelCandidate, localModelError,
       catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.id).length,
         certified: (source.products || []).filter(item => certifiedMappingIds.has(item.id)).length,
         autoUpdatable: results.filter(item => item.autoApplicable).length,
@@ -208,7 +208,8 @@ class PentagramaPhase2 {
         unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts },
       expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts, results };
     this.store.addScan(scan);
-    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', scanId: scan.id, result: { scanId: scan.id, counts } });
+    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', scanId: scan.id,
+      result: { scanId: scan.id, counts, localModelError } });
   }
 
   startApply(actor, context, payload) {
