@@ -607,8 +607,33 @@ class PentagramaPhase2 {
 
   async runApply(operationId, scan, changes, catalogActions, context) {
     this.store.updateOperation(operationId, { state: 'running', stage: 'PREWRITE_VALIDATION' });
+
+    const localChanges = (changes || []).filter(item => item.strategy === 'LOCAL_MODEL');
+    const normalChanges = (changes || []).filter(item => item.strategy !== 'LOCAL_MODEL');
+    if (localChanges.length > 1) {
+      throw Object.assign(new Error('El modelo local de Enrollables debe publicarse como un único lote.'), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_BATCH_REQUIRED'
+      });
+    }
+
+    const localChange = localChanges[0] || null;
+    if (localChange && !certifiedLocalCandidate(scan)) {
+      throw Object.assign(new Error('El modelo local de Enrollables dejó de estar certificado.'), {
+        code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED'
+      });
+    }
+
+    if (localChange) {
+      const currentSource = await this.homeeasy.catalog(context);
+      if (!currentSource || String(currentSource.version || '') !== String(scan.sourceVersion || '')) {
+        throw Object.assign(new Error('El catálogo HomeEasy cambió después de certificar las 279 Enrollables.'), {
+          code: 'PENTAGRAMA_LOCAL_MODEL_SOURCE_CHANGED'
+        });
+      }
+    }
+
     const verified = [];
-    for (const item of changes) {
+    for (const item of normalChanges) {
       const mapping = this.mappings.find(candidate => candidate.id === item.id);
       if (!mapping) throw Object.assign(new Error('Mapping changed after scan'), { code: 'PENTAGRAMA_MAPPING_CHANGED' });
       const validation = await this.validateMapping(mapping, item.sourceModel, context);
@@ -617,12 +642,14 @@ class PentagramaPhase2 {
       }
       verified.push({ item, mapping, validation });
     }
+
     const verifiedCatalog = await this.verifyCatalogActions(scan, catalogActions || []);
     this.store.updateOperation(operationId, { stage: 'SNAPSHOT' });
     this.store.updateOperation(operationId, { stage: 'WRITING_SHEET' });
 
     let appliedPrices = null;
     let appliedCatalog = null;
+    let appliedLocal = null;
     try {
       if (verified.length) {
         appliedPrices = await this.homeeasy.apply(scan, verified.map(({ item, mapping, validation }) => ({
@@ -634,8 +661,19 @@ class PentagramaPhase2 {
             quantity: item.quantity, expected: roundMoney(sample.pentagrama.total), homeeasy: homeEasyItemForCase(mapping, sample) }))
         })), context);
       }
+
       if (verifiedCatalog.length) {
         appliedCatalog = await this.homeeasy.applyCatalog(scan, verifiedCatalog.map(item => item.mutation), context);
+      }
+
+      if (localChange) {
+        appliedLocal = await this.homeeasy.applyLocalModel(scan, scan.localModelCandidate, context);
+        if (!appliedLocal || !appliedLocal.qa || appliedLocal.qa.ok !== true ||
+          Number(appliedLocal.qa.maxDifference || 0) > 0.02) {
+          throw Object.assign(new Error('El QA posterior del modelo Enrollables no coincidió.'), {
+            code: 'PENTAGRAMA_POST_APPLY_QA_FAILED'
+          });
+        }
       }
 
       this.store.updateOperation(operationId, { stage: 'QA' });
@@ -654,19 +692,34 @@ class PentagramaPhase2 {
         throw Object.assign(new Error('Post-apply Pentagrama QA failed'), { code: 'PENTAGRAMA_POST_APPLY_QA_FAILED' });
       }
 
+      const localChecked = Number(appliedLocal && appliedLocal.qa && appliedLocal.qa.checked || 0);
+      const catalogChecked = Number(appliedCatalog && appliedCatalog.qa && appliedCatalog.qa.checked || 0);
+      const localMaxDifference = Number(appliedLocal && appliedLocal.qa && appliedLocal.qa.maxDifference || 0);
       const qa = {
         ok: true,
-        checked: postQa.length + Number(appliedCatalog && appliedCatalog.qa && appliedCatalog.qa.checked || 0),
-        maxDifference: postQa.reduce((max, item) => Math.max(max, Math.abs(item.difference)), 0),
+        checked: postQa.length + catalogChecked + localChecked,
+        maxDifference: Math.max(
+          localMaxDifference,
+          postQa.reduce((max, item) => Math.max(max, Math.abs(item.difference)), 0)
+        ),
         cases: postQa,
         priceSheet: appliedPrices && appliedPrices.qa || null,
-        catalogSheet: appliedCatalog && appliedCatalog.qa || null
+        catalogSheet: appliedCatalog && appliedCatalog.qa || null,
+        localModel: appliedLocal && appliedLocal.qa || null
       };
-      const changedIds = new Set(changes.map(item => item.id));
+
+      const changedIds = new Set((changes || []).map(item => item.id));
       const appliedCatalogIds = new Set(verifiedCatalog.map(item => item.id));
       const appliedExternalKeys = new Set(verifiedCatalog.map(item => item.externalKey).filter(Boolean));
-      const verifiedResults = scan.results.map(item => changedIds.has(item.id) ? { ...item, status: 'UNCHANGED', oldCost: item.newCost,
-        difference: 0, percent: 0, appliedAt: new Date().toISOString() } : item);
+      const verifiedResults = scan.results.map(item => changedIds.has(item.id) ? {
+        ...item,
+        status: 'UNCHANGED',
+        autoApplicable: false,
+        oldCost: item.strategy === 'LOCAL_MODEL' ? item.oldCost : item.newCost,
+        difference: 0,
+        percent: item.strategy === 'LOCAL_MODEL' ? null : 0,
+        appliedAt: new Date().toISOString()
+      } : item);
       const verifiedCounts = verifiedResults.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
       const remainingCatalogChanges = (scan.catalogChanges || []).filter(item => !appliedExternalKeys.has(item.externalKey));
       const remainingCatalogActions = (scan.catalogActions || []).map(item => appliedCatalogIds.has(item.id)
@@ -678,22 +731,58 @@ class PentagramaPhase2 {
       catalogAudit.renamed = remainingCatalogChanges.filter(item => item.status === 'RENAMED').length;
       catalogAudit.structureChanged = remainingCatalogChanges.filter(item => item.status === 'STRUCTURE_CHANGED').length;
       catalogAudit.catalogAutoApplicable = remainingCatalogActions.filter(item => item.autoApplicable === true).length;
+      catalogAudit.catalogRateChanges = remainingCatalogActions.filter(item => item.kind === 'UPDATE_RATE' && item.autoApplicable === true).length;
+      catalogAudit.catalogCertifiedAdditions = remainingCatalogActions.filter(item => item.kind === 'ADD' && item.autoApplicable === true).length;
+      catalogAudit.catalogCertifiedDeactivations = remainingCatalogActions.filter(item => item.kind === 'DEACTIVATE' && item.autoApplicable === true).length;
       catalogAudit.catalogReviewRequired = remainingCatalogActions.filter(item => item.autoApplicable !== true && item.status !== 'UNCHANGED').length;
-      const verifiedScan = { ...scan, id: crypto.randomUUID(), parentScanId: scan.id, checkedAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts: verifiedCounts, results: verifiedResults,
-        catalogChanges: remainingCatalogChanges, catalogActions: remainingCatalogActions, catalogAudit };
+
+      const verifiedScan = {
+        ...scan,
+        id: crypto.randomUUID(),
+        parentScanId: scan.id,
+        checkedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(),
+        counts: verifiedCounts,
+        results: verifiedResults,
+        catalogChanges: remainingCatalogChanges,
+        catalogActions: remainingCatalogActions,
+        catalogAudit,
+        localModelCandidate: localChange ? null : scan.localModelCandidate,
+        localModelVersion: appliedLocal && appliedLocal.version || scan.localModelVersion || null
+      };
       this.store.addScan(verifiedScan);
 
-      const upstreamHistoryIds = [appliedPrices && appliedPrices.historyId, appliedCatalog && appliedCatalog.historyId].filter(Boolean);
-      const entry = { id: crypto.randomUUID(), type: 'APPLY', at: new Date().toISOString(), scanId: scan.id, verifiedScanId: verifiedScan.id,
-        changed: changes.length + verifiedCatalog.length, priceChanges: changes.length, catalogChanges: verifiedCatalog.length,
-        upstreamHistoryIds, qa, actor: this.store.operationById(operationId).actor };
+      const upstreamHistoryIds = [
+        appliedPrices && appliedPrices.historyId,
+        appliedCatalog && appliedCatalog.historyId,
+        appliedLocal && appliedLocal.historyId
+      ].filter(Boolean);
+      const entry = {
+        id: crypto.randomUUID(),
+        type: 'APPLY',
+        at: new Date().toISOString(),
+        scanId: scan.id,
+        verifiedScanId: verifiedScan.id,
+        changed: normalChanges.length + verifiedCatalog.length + (localChange ? 1 : 0),
+        priceChanges: normalChanges.length,
+        catalogChanges: verifiedCatalog.length,
+        localModelChanges: localChange ? 1 : 0,
+        upstreamHistoryIds,
+        qa,
+        actor: this.store.operationById(operationId).actor
+      };
       this.store.addHistory(entry);
       this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result: entry });
     } catch (error) {
       const rollbackResults = [];
-      for (const historyId of [appliedCatalog && appliedCatalog.historyId, appliedPrices && appliedPrices.historyId].filter(Boolean)) {
-        try { rollbackResults.push(await this.homeeasy.rollback(historyId, context)); } catch (rollbackError) {
+      for (const historyId of [
+        appliedLocal && appliedLocal.historyId,
+        appliedCatalog && appliedCatalog.historyId,
+        appliedPrices && appliedPrices.historyId
+      ].filter(Boolean)) {
+        try {
+          rollbackResults.push(await this.homeeasy.rollback(historyId, context));
+        } catch (rollbackError) {
           rollbackResults.push({ status: 'error', historyId, error: String(rollbackError.code || rollbackError.message || rollbackError) });
         }
       }
