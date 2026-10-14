@@ -46,17 +46,15 @@ test('requires direct edge probes before accepting a learned boundary', () => {
 
 test('derives learned live bands after the exact edge has been proven', () => {
   const evidence = [
-    ev(1.2, 2.2, 'M03'),
+    ev(1.0, 2.2, 'M03'),
     ev(1.8, 2.2, 'M03'),
+    ev(2.399, 2.2, 'M03'),
     ev(2.4, 2.2, 'M03'),
-    ev(2.5, 2.2, 'M05'),
-    ev(2.999, 2.2, 'M05'),
-    ev(3.0, 2.2, 'M05'),
-    ev(3.001, 2.2, 'M08', 'ALTERNATIVE'),
-    ev(3.2, 2.2, 'M08', 'ALTERNATIVE')
+    ev(2.401, 2.2, 'M05', 'ALTERNATIVE'),
+    ev(3.0, 2.2, 'M05', 'ALTERNATIVE')
   ];
 
   const bands = deriveMechanismBands(evidence, null, 'live-custom');
-  assert.equal(bands.find(item => item.mechanism === 'M05')?.maxWidthMm, 3000);
-  assert.equal(bands.at(-1).mechanism, 'M08');
+  assert.equal(bands.find(item => item.mechanism === 'M03')?.maxWidthMm, 2400);
+  assert.equal(bands.at(-1).mechanism, 'M05');
 });
