@@ -196,7 +196,7 @@ function bindingExternalKey(binding) {
   return externalKey(binding || {});
 }
 
-function compareInventory(bindings, inventoryProducts) {
+function compareInventory(bindings, inventoryProducts, options = {}) {
   const bound = Array.isArray(bindings) ? bindings : [];
   const live = Array.isArray(inventoryProducts) ? inventoryProducts : [];
   const liveByKey = new Map(live.filter(item => item && item.externalKey).map(item => [item.externalKey, item]));
@@ -225,7 +225,7 @@ function compareInventory(bindings, inventoryProducts) {
     if (binding) {
       consumedBindings.add(binding);
       const oldName = cleanText(binding.reference || binding.name);
-      const newName = cleanText(liveItem.name);
+      const newName = cleanText(typeof options.nameResolver === 'function' ? options.nameResolver(liveItem, binding) : liveItem.name);
       results.push({
         status: oldName && newName && oldName !== newName ? 'RENAMED' : 'PRESENT',
         externalKey: liveItem.externalKey,
@@ -251,7 +251,7 @@ function compareInventory(bindings, inventoryProducts) {
         homeeasyId: structuralBinding.homeeasyId || structuralBinding.id || '',
         productCode: liveItem.productCode,
         oldName: cleanText(structuralBinding.reference || structuralBinding.name),
-        newName: cleanText(liveItem.name),
+        newName: cleanText(typeof options.nameResolver === 'function' ? options.nameResolver(liveItem, structuralBinding) : liveItem.name),
         live: liveItem,
         binding: structuralBinding
       });
@@ -264,7 +264,7 @@ function compareInventory(bindings, inventoryProducts) {
       homeeasyId: '',
       productCode: liveItem.productCode,
       oldName: '',
-      newName: cleanText(liveItem.name),
+      newName: cleanText(typeof options.nameResolver === 'function' ? options.nameResolver(liveItem, null) : liveItem.name),
       live: liveItem,
       binding: null
     });
