@@ -372,7 +372,13 @@ function cargarCatalogoCostos10B_(ss, forceRefresh) {
   const catalogVersion = String(config.VERSION_CATALOGO || (products[0] && products[0].version) || "").trim();
   const catalogValidThrough = normalizarFechaCostos10B_(config.VIGENTE_HASTA || (products[0] && products[0].validThrough) || "");
   const ringProducts = productosRingCertificados10B_(catalogVersion, catalogValidThrough);
-  Array.prototype.push.apply(products, ringProducts);
+  // La Sheet es la fuente editable. Si una referencia Ring ya existe allí,
+  // su fila (incluido un override inactivo) reemplaza el snapshot certificado.
+  const storedIds = {};
+  products.forEach(function(product) { storedIds[String(product.id)] = true; });
+  ringProducts.forEach(function(product) {
+    if (!storedIds[String(product.id)]) products.push(product);
+  });
 
   const catalog = {
     version: catalogVersion,
