@@ -339,10 +339,26 @@ function enrollableControls(item){
   return '<div class="enrollable-options">'+configurationControl+coverlightControls(item)+'</div>';
 }
 
-function fabricationOrientationLabel(value){
+function fabricationOrientationLabel(value,code){
+  const normalized=String(code||'').toUpperCase();
+  if(normalized==='TANSG')return 'Atravesada y añadida sin garantía';
+  if(normalized==='TATSG')return 'Atravesada sin garantía';
+  if(normalized==='TAN')return 'Atravesada y añadida';
+  if(normalized==='TAT')return 'Atravesada';
+  if(normalized==='DIN')return 'Normal';
   if(value==='atravesada_y_anadida')return 'Atravesada y añadida';
   if(value==='atravesada')return 'Atravesada';
   return 'Normal';
+}
+
+function fabricationDetailLine(fabrication){
+  const pieces=[];
+  const code=String(fabrication?.orientationCode||'').toUpperCase();
+  if(code)pieces.push(code);
+  if(fabrication?.mechanism)pieces.push('Mecanismo '+fabrication.mechanism);
+  if(fabrication?.tube)pieces.push('Tubo '+fabrication.tube);
+  if(fabrication?.sizeGroup)pieces.push('Grupo '+fabrication.sizeGroup);
+  return pieces.join(' · ');
 }
 
 function renderFabricationNotice(item,result){
@@ -356,16 +372,28 @@ function renderFabricationNotice(item,result){
 
   const fabrication=result.fabrication;
   if(result.ok&&fabrication?.supported){
+    const label=fabricationOrientationLabel(fabrication.orientation,fabrication.orientationCode);
+    const detail=fabricationDetailLine(fabrication);
+    const source=fabrication.source?' · '+escape(fabrication.source):'';
+
     if(fabrication.requiresAuthorization||fabrication.warranty===false){
-      const detail=[fabrication.mechanism,fabrication.tube].filter(Boolean).join(' · ');
       return '<div class="fabrication-notice fabrication-notice--warning">'+
-        '<i class="fa-solid fa-triangle-exclamation"></i><div><strong>Fabricación especial · '+escape(fabricationOrientationLabel(fabrication.orientation))+'</strong>'+
-        '<span>Esta fabricación requiere autorización y queda sin garantía.'+(detail?' '+escape(detail)+'.':'')+'</span></div>'+
+        '<i class="fa-solid fa-triangle-exclamation"></i><div><strong>Configuración de fabricación · '+escape(label)+'</strong>'+
+        '<span>'+(detail?escape(detail)+' · ':'')+'requiere autorización'+(fabrication.warranty===false?' · sin garantía':'')+source+'.</span></div>'+
       '</div>';
     }
-    if(fabrication.orientation==='atravesada'){
+
+    if(fabrication.orientation==='atravesada'||String(fabrication.orientationCode||'').toUpperCase()==='TAT'){
       return '<div class="fabrication-notice fabrication-notice--info">'+
-        '<i class="fa-solid fa-rotate"></i><div><strong>Fabricación atravesada</strong><span>La medida está respaldada por la tabla de fabricación registrada.</span></div>'+
+        '<i class="fa-solid fa-rotate"></i><div><strong>Configuración de fabricación · '+escape(label)+'</strong>'+
+        '<span>'+(detail?escape(detail):'Configuración confirmada para esta medida')+source+'.</span></div>'+
+      '</div>';
+    }
+
+    if(detail){
+      return '<div class="fabrication-notice fabrication-notice--info fabrication-notice--standard">'+
+        '<i class="fa-solid fa-circle-info"></i><div><strong>Configuración de fabricación</strong>'+
+        '<span>'+escape(label)+' · '+escape(detail)+(fabrication.warranty===false?' · sin garantía':' · garantía vigente')+source+'.</span></div>'+
       '</div>';
     }
     return '';
@@ -373,7 +401,7 @@ function renderFabricationNotice(item,result){
 
   if(result.requiresAlternative&&Array.isArray(result.alternatives)&&result.alternatives.length){
     const options=result.alternatives.map(alt=>{
-      const detail=[alt.mechanism,alt.tube].filter(Boolean).join(' · ');
+      const detail=[alt.mechanism&&('Mecanismo '+alt.mechanism),alt.tube&&('Tubo '+alt.tube)].filter(Boolean).join(' · ');
       return '<div class="fabrication-alternative">'+
         '<div><strong>'+escape(alt.label||alt.id||'Alternativa')+'</strong><span>'+(detail?escape(detail)+' · ':'')+(alt.requiresConfirmedCost!==false?'requiere costo confirmado':'costo automático disponible')+'</span></div>'+
         (alt.requiresConfirmedCost!==false?'<button type="button" data-action="special-cost" data-alt-id="'+escape(alt.id||'')+'" data-alt-label="'+escape(alt.label||alt.id||'Configuración especial')+'">Registrar costo</button>':'')+
