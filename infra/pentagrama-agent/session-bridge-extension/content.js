@@ -4,8 +4,6 @@
   try {
     const url = new URL(location.href);
     if (url.searchParams.get('homeeasy') !== '1') return;
-    if (sessionStorage.getItem('homeeasy-login-attempted') === '1') return;
-
     const login = document.querySelector('input[name="Login"]');
     const password = document.querySelector('input[name="Password"]');
     const button = document.querySelector('[name="LoginButton"]');
@@ -13,8 +11,6 @@
 
     const response = await chrome.runtime.sendMessage({ type: 'HOMEEASY_LOGIN_PAGE_READY' });
     if (!response || !response.ok) return;
-
-    sessionStorage.setItem('homeeasy-login-attempted', '1');
 
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
     setter.call(login, response.login || '');
