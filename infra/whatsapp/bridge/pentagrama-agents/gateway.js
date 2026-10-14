@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory']);
+const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot']);
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_TIMEOUT',
@@ -232,7 +232,7 @@ class PentagramaAgentGateway {
       this.jobs.set(id, job);
       const pending = this.pendingPolls.get(agent.installationId);
       if (pending) pending({ ok: true, job: this.takeJob(agent) });
-      const timeoutMs = type === 'catalogInventory' ? this.catalogInventoryJobTimeoutMs : this.jobTimeoutMs;
+      const timeoutMs = ['catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(type) ? this.catalogInventoryJobTimeoutMs : this.jobTimeoutMs;
       timer = setTimeout(() => {
         this.jobs.delete(id);
         reject(Object.assign(new Error('Pentagrama Agent timed out'), { code: 'AGENT_TIMEOUT', infrastructure: true }));
