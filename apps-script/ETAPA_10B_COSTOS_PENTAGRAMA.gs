@@ -358,7 +358,8 @@ function calcularItemCostos10B_(item, catalog, options) {
 
     const original = catalog.products.find(function(p) { return p.id === String(item && (item.product || item.productId) || ""); });
     if (!original || !original.active || original.family === "complemento-enrollable") throw new Error("Elige un producto disponible.");
-    const product = configurarProductoCostos10B_(original, item && item.configuration);
+    let product = configurarProductoCostos10B_(original, item && item.configuration);
+    product = aplicarPerfilFabricacionComplementos10B_(product, item || {}, catalog);
 
     let unit = 0;
     let area = null;
@@ -480,6 +481,31 @@ function configurarProductoCostos10B_(product, configuration) {
       addonIds: variant.addonIds || (product.rules && product.rules.addonIds) || []
     })
   });
+}
+
+function aplicarPerfilFabricacionComplementos10B_(product, item, catalog) {
+  const selectedIds = [];
+  if (product && product.selectedSupplementId) selectedIds.push(String(product.selectedSupplementId));
+  if (item && item.coverlight) selectedIds.push(String(item.coverlight));
+  if (!selectedIds.length) return product;
+
+  let mechanismBands = null;
+  selectedIds.forEach(function(id) {
+    const complement = (catalog.products || []).find(function(p) { return p.id === id && p.family === "complemento-enrollable"; });
+    const bands = complement && complement.rules && complement.rules.fabricationMechanismBands;
+    if (!Array.isArray(bands) || !bands.length) return;
+    const serialized = JSON.stringify(bands);
+    if (mechanismBands && JSON.stringify(mechanismBands) !== serialized) {
+      throw new Error("Los complementos seleccionados requieren perfiles de mecanismo incompatibles.");
+    }
+    mechanismBands = JSON.parse(serialized);
+  });
+  if (!mechanismBands) return product;
+
+  const rules = Object.assign({}, product.rules || {});
+  const baseProfile = rules.fabricationProfile && typeof rules.fabricationProfile === "object" ? rules.fabricationProfile : {};
+  rules.fabricationProfile = Object.assign({}, baseProfile, { mechanismBands: mechanismBands });
+  return Object.assign({}, product, { rules: rules });
 }
 
 function validarVigenciaProducto10B_(product, today) {
