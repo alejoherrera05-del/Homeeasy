@@ -90,7 +90,12 @@ class PentagramaPhase2 {
       mappings: this.mappings,
       enrollables: this.enrollablesRegistry
     });
-    const comparison = compareInventory(bindingState.bindings, inventory && inventory.products || []);
+    const comparison = compareInventory(bindingState.bindings, inventory && inventory.products || [], {
+      nameResolver: (live, binding) => {
+        if ((binding && String(binding.family || '').toLowerCase() === 'ring') || isRing(live)) return referenceName(live);
+        return live && live.name;
+      }
+    });
     const changes = comparison.results
       .filter(item => !['PRESENT', 'INACTIVE_MISSING'].includes(item.status))
       .map(item => ({
