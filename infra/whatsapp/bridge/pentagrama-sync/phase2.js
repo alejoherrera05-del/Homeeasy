@@ -10,6 +10,15 @@ const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certific
 const ENROLLABLE_IDS = new Set(Object.keys(require('./enrollables-live-products.json').products || {}));
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
+const LOCAL_MODEL_APPLY_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+
+function certifiedLocalCandidate(scan) {
+  const summary = scan && scan.localModelCandidate && scan.localModelCandidate.summary;
+  return Boolean(summary &&
+    Number(summary.enrollables) === 279 &&
+    Number(summary.fail) === 0 &&
+    Number(summary.maxDifference) <= 0.02);
+}
 
 function statusFor(oldCost, newCost) {
   if (!Number.isFinite(newCost)) return 'ERROR';
@@ -204,8 +213,15 @@ class PentagramaPhase2 {
 
   startApply(actor, context, payload) {
     const scan = this.store.scan(String(payload.scanId || ''));
-    if (!scan || Date.parse(scan.expiresAt) < Date.now()) throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
     const requested = Array.isArray(payload.changeIds) ? new Set(payload.changeIds.map(String)) : null;
+    const localOnlyRequest = Boolean(requested && requested.size === 1 && requested.has('enrollables-local-model'));
+    const checkedAt = Date.parse(scan && scan.checkedAt || '');
+    const normalExpired = !scan || Date.parse(scan.expiresAt || '') < Date.now();
+    const localGraceEligible = Boolean(scan && localOnlyRequest && certifiedLocalCandidate(scan) &&
+      Number.isFinite(checkedAt) && Date.now() - checkedAt <= LOCAL_MODEL_APPLY_MAX_AGE_MS);
+    if (normalExpired && !localGraceEligible) {
+      throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
+    }
     const changes = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && (!requested || requested.has(item.id)));
     if (!changes.length) throw Object.assign(new Error('No verified changes were selected'), { statusCode: 409, code: 'PENTAGRAMA_NO_APPLICABLE_CHANGES' });
     const operation = this.store.operation('apply', actor);
@@ -275,8 +291,14 @@ class PentagramaPhase2 {
   async runLocalModelApply(operationId, scan, change, context) {
     this.store.updateOperation(operationId, { state: 'running', stage: 'PREWRITE_VALIDATION' });
     const candidate = scan.localModelCandidate;
-    if (!candidate || candidate.summary.fail !== 0 || candidate.summary.enrollables !== 279 || candidate.summary.maxDifference > 0.02) {
+    if (!certifiedLocalCandidate(scan)) {
       throw Object.assign(new Error('The local Enrollables candidate is not certified'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+    }
+    const currentSource = await this.homeeasy.catalog(context);
+    if (!currentSource || String(currentSource.version || '') !== String(scan.sourceVersion || '')) {
+      throw Object.assign(new Error('HomeEasy source changed after the Enrollables candidate was certified'), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_SOURCE_CHANGED'
+      });
     }
     this.store.updateOperation(operationId, { stage: 'SNAPSHOT' });
     this.store.updateOperation(operationId, { stage: 'WRITING_SHEET' });
