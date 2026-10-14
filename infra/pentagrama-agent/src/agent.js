@@ -7,6 +7,7 @@ const path = require('path');
 const { AgentApi } = require('./api');
 const { Logger } = require('./logger');
 const dpapi = require('./dpapi');
+const { PentagramaSessionBridge } = require('./session-bridge');
 let createPentagramaSync;
 try {
   ({ createPentagramaSync } = require('../core'));
@@ -88,11 +89,16 @@ function authHeaders(agentIdentity, secrets) {
 
 function publicError(error) {
   const code = String(error && error.code || 'AGENT_JOB_FAILED');
-  return {
+  const result = {
     code,
     message: String(error && error.message || 'Agent job failed').slice(0, 300),
-    infrastructure: ['PENTAGRAMA_ACCESS_BLOCKED', 'PENTAGRAMA_UNEXPECTED_RESPONSE', 'AGENT_TRANSPORT_ERROR', 'UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND'].includes(code)
+    infrastructure: ['PENTAGRAMA_ACCESS_BLOCKED', 'PENTAGRAMA_UNEXPECTED_RESPONSE', 'PENTAGRAMA_BROWSER_SESSION_REQUIRED', 'AGENT_TRANSPORT_ERROR', 'UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND'].includes(code)
   };
+  if (code.startsWith('PENTAGRAMA_LOCAL_MODEL_')) {
+    if (Array.isArray(error && error.failures)) result.failures = error.failures.slice(0, 50);
+    if (Array.isArray(error && error.missing)) result.missing = error.missing.slice(0, 300);
+  }
+  return result;
 }
 
 const CATALOG_OPERATIONS = Object.freeze({
@@ -101,7 +107,7 @@ const CATALOG_OPERATIONS = Object.freeze({
 });
 
 async function runJob(job, sync) {
-  if (!job || !['health', 'getPrice', 'catalog', 'resolveLivePrice'].includes(job.type)) throw Object.assign(new Error('Job type is not allowed'), { code: 'AGENT_JOB_NOT_ALLOWED' });
+  if (!job || !['health', 'getPrice', 'catalog', 'resolveLivePrice', 'buildLocalEnrollablesSnapshot'].includes(job.type)) throw Object.assign(new Error('Job type is not allowed'), { code: 'AGENT_JOB_NOT_ALLOWED' });
   if (job.type === 'health') {
     await sync.client.get('/Order/GetJsonCategoryList');
     return { ok: true, checkedAt: new Date().toISOString() };
@@ -115,6 +121,9 @@ async function runJob(job, sync) {
     return sync.catalog[method](payload.params || {});
   }
   if (job.type === 'resolveLivePrice') return sync.liveResolver.resolve(payload);
+  if (job.type === 'buildLocalEnrollablesSnapshot') {
+    return sync.localModel.build(payload.source || {});
+  }
   return sync.pricing.supplierCost(payload.params || {}, payload.options || {});
 }
 
@@ -124,10 +133,19 @@ async function main() {
   const agentIdentity = identity();
   const api = new AgentApi({ serverUrl: config.serverUrl, caPath: path.resolve(path.dirname(CONFIG_PATH), config.caFile || 'server.crt') });
   const secrets = await provision(api, agentIdentity);
-  const sync = createPentagramaSync({
+  const sessionBridge = new PentagramaSessionBridge({
+    extensionId: 'cmijhfckibhbdhneapoknlbmfadfmogn',
     login: secrets.pentagrama.login,
     password: secrets.pentagrama.password,
     baseUrl: secrets.pentagrama.baseUrl
+  });
+  await sessionBridge.start();
+
+  const sync = createPentagramaSync({
+    login: secrets.pentagrama.login,
+    password: secrets.pentagrama.password,
+    baseUrl: secrets.pentagrama.baseUrl,
+    browserTransport: request => sessionBridge.browserRequest(request, Math.max(150000, Number(request && request.timeoutMs || 0)))
   });
   const headers = authHeaders(agentIdentity, secrets);
   let pentagrama = { status: 'unknown', checkedAt: null };
@@ -159,6 +177,7 @@ async function main() {
       await delay(Math.min(60000, 1000 * (2 ** Math.min(failures, 6))));
     }
   }
+  await sessionBridge.stop().catch(() => {});
   logger.info('stopped');
 }
 

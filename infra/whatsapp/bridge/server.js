@@ -14,7 +14,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.16.0';
+const BRIDGE_VERSION = '0.18.6';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -914,6 +914,14 @@ async function handle(req, res) {
   if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/scan') {
     const actor = await auth.authorize(req, 'config.write');
     const operation = pentagramaPhase2.startScan(auth.publicActor(actor), operationContext(req));
+    return json(res, 202, { ok: true, operation });
+  }
+
+  if (req.method === 'POST' && /^\/api\/pentagrama-sync\/scans\/[^/]+\/resume-local-model$/.test(url.pathname)) {
+    const actor = await auth.authorize(req, 'config.write');
+    const parts = url.pathname.split('/');
+    const payload = await readJsonBody(req);
+    const operation = pentagramaPhase2.startResumeLocalModel(auth.publicActor(actor), { ...payload, scanId: decodeURIComponent(parts[4]) });
     return json(res, 202, { ok: true, operation });
   }
 

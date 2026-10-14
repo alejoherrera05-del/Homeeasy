@@ -7,8 +7,18 @@ const { buildProposal, same } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
+const ENROLLABLE_IDS = new Set(Object.keys(require('./enrollables-live-products.json').products || {}));
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
+const LOCAL_MODEL_APPLY_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+
+function certifiedLocalCandidate(scan) {
+  const summary = scan && scan.localModelCandidate && scan.localModelCandidate.summary;
+  return Boolean(summary &&
+    Number(summary.enrollables) === 279 &&
+    Number(summary.fail) === 0 &&
+    Number(summary.maxDifference) <= 0.02);
+}
 
 function statusFor(oldCost, newCost) {
   if (!Number.isFinite(newCost)) return 'ERROR';
@@ -21,9 +31,14 @@ function statusFor(oldCost, newCost) {
 }
 
 function operationContext(req) {
+  const internal = Boolean(req.headers['x-homeeasy-token']);
   return {
-    sessionToken: req.headers['x-homeeasy-session'], deviceId: req.headers['x-homeeasy-device-id'],
-    deviceName: req.headers['x-homeeasy-device-name'], platform: req.headers['x-homeeasy-platform'], browser: req.headers['x-homeeasy-browser']
+    sessionToken: req.headers['x-homeeasy-session'],
+    serviceKey: internal ? process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY : '',
+    deviceId: req.headers['x-homeeasy-device-id'] || (internal ? 'PENTAGRAMA_VPS' : ''),
+    deviceName: req.headers['x-homeeasy-device-name'] || (internal ? 'Pentagrama VPS' : ''),
+    platform: req.headers['x-homeeasy-platform'] || (internal ? 'VPS' : ''),
+    browser: req.headers['x-homeeasy-browser'] || (internal ? 'HTTP interno' : '')
   };
 }
 
@@ -42,6 +57,42 @@ class PentagramaPhase2 {
     const operation = this.store.operation('scan', actor);
     setImmediate(() => this.runScan(operation.id, context).catch(error => this.fail(operation.id, error)));
     return operation;
+  }
+
+  startResumeLocalModel(actor, payload) {
+    const scan = this.store.scan(String(payload && payload.scanId || ''));
+    const source = payload && payload.source;
+    if (!scan) throw Object.assign(new Error('Scan is missing'), { statusCode: 404, code: 'PENTAGRAMA_SCAN_NOT_FOUND' });
+    if (!source || !Array.isArray(source.products) || String(source.version || '') !== String(scan.sourceVersion || '')) {
+      throw Object.assign(new Error('Persisted HomeEasy evidence does not match the scan'), { statusCode: 409, code: 'PENTAGRAMA_RESUME_EVIDENCE_MISMATCH' });
+    }
+    const operation = this.store.operation('resume-local-model', actor);
+    setImmediate(() => this.runResumeLocalModel(operation.id, scan, source).catch(error => this.fail(operation.id, error)));
+    return operation;
+  }
+
+  async runResumeLocalModel(operationId, scan, source) {
+    this.store.updateOperation(operationId, { state: 'running', stage: 'BUILDING_LOCAL_MODEL' });
+    const candidate = await this.gateway.dispatch('buildLocalEnrollablesSnapshot', { source }, { lockKey: `local-enrollables-resume:${scan.id}` });
+    if (!candidate || Number(candidate.summary && candidate.summary.enrollables) !== 279 || Number(candidate.summary && candidate.summary.fail) !== 0) {
+      throw Object.assign(new Error('Resumed local model candidate is not certified'), { code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED' });
+    }
+    const changed = Number(candidate.summary.changed || 0);
+    const localResult = { id: 'enrollables-local-model', homeeasyId: '__enrollables_local_model__', family: 'Enrollable',
+      reference: `${candidate.summary.enrollables} Enrollables · modelo local ${candidate.version}`,
+      strategy: 'LOCAL_MODEL', status: changed ? 'NEW' : 'UNCHANGED', autoApplicable: changed > 0,
+      oldCost: 0, newCost: changed, difference: changed, percent: null, reviewReason: null, severity: 'normal',
+      destination: { sheet: 'Costos_Pentagrama*', field: 'snapshot-atómico' } };
+    const results = scan.results.map(item => item.id === 'enrollables-local-model' ? localResult : item);
+    if (!results.some(item => item.id === 'enrollables-local-model')) results.push(localResult);
+    const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
+    const resumed = { ...scan, id: crypto.randomUUID(), parentScanId: scan.id, checkedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), localModelCandidate: candidate, results, counts,
+      catalogAudit: { ...(scan.catalogAudit || {}), certified: Number(scan.catalogAudit && scan.catalogAudit.certified || 0) + 279,
+        autoUpdatable: Number(scan.catalogAudit && scan.catalogAudit.autoUpdatable || 0) + (changed > 0 ? 1 : 0) } };
+    this.store.addScan(resumed);
+    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', scanId: resumed.id,
+      result: { scanId: resumed.id, parentScanId: scan.id, counts, candidateSummary: candidate.summary } });
   }
 
   validationCases(mapping) {
@@ -69,6 +120,21 @@ class PentagramaPhase2 {
     this.store.updateOperation(operationId, { state: 'running', stage: 'READING_HOMEEASY' });
     const source = await this.homeeasy.catalog(context);
     this.store.updateOperation(operationId, { stage: 'READING_PENTAGRAMA' });
+    const hasEnrollables = (source.products || []).some(item => ENROLLABLE_IDS.has(item.id));
+    let localModelCandidate = null;
+    let localModelError = null;
+    if (hasEnrollables) {
+      try {
+        localModelCandidate = await this.gateway.dispatch('buildLocalEnrollablesSnapshot', { source }, { lockKey: `local-enrollables:${source.version}` });
+      } catch (error) {
+        localModelError = {
+          code: String(error.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED'),
+          message: String(error.message || 'Local model candidate failed').slice(0, 300),
+          failures: Array.isArray(error.failures) ? error.failures.slice(0, 50) : [],
+          missing: Array.isArray(error.missing) ? error.missing.slice(0, 300) : []
+        };
+      }
+    }
     const catalogSummary = { categories: null };
     try {
       const categories = await this.gateway.dispatch('catalog', { operation: 'categories', params: {} }, { lockKey: 'catalog:categories' });
@@ -76,8 +142,8 @@ class PentagramaPhase2 {
     } catch (error) { catalogSummary.error = String(error.code || 'CATALOG_UNAVAILABLE'); }
 
     const results = [];
-    const mappedIds = new Set(this.mappings.map(item => item.homeeasyId));
-    const certifiedMappingIds = new Set(this.mappings.filter(mappingIsCertified).map(item => item.homeeasyId));
+    const mappedIds = new Set([...this.mappings.map(item => item.homeeasyId), ...ENROLLABLE_IDS]);
+    const certifiedMappingIds = new Set([...this.mappings.filter(mappingIsCertified).map(item => item.homeeasyId), ...(localModelCandidate ? ENROLLABLE_IDS : [])]);
     const certificationById = new Map((this.certificationRegistry.products || []).map(item => [item.homeeasyId, item]));
     for (const item of source.products || []) {
       if (mappedIds.has(item.id)) continue;
@@ -90,8 +156,21 @@ class PentagramaPhase2 {
         results.push({ homeeasyId: item.id, family: item.familyName, reference: item.reference, status: 'UNMAPPED' });
       }
     }
+    if (localModelCandidate) {
+      const changed = Number(localModelCandidate.summary && localModelCandidate.summary.changed || 0);
+      results.push({ id: 'enrollables-local-model', homeeasyId: '__enrollables_local_model__', family: 'Enrollable',
+        reference: `${localModelCandidate.summary.enrollables} Enrollables · modelo local ${localModelCandidate.version}`,
+        strategy: 'LOCAL_MODEL', status: changed ? 'NEW' : 'UNCHANGED', autoApplicable: changed > 0,
+        oldCost: 0, newCost: changed, difference: changed, percent: null,
+        reviewReason: null, severity: 'normal', destination: { sheet: 'Costos_Pentagrama*', field: 'snapshot-atómico' } });
+    } else if (hasEnrollables) {
+      results.push({ id: 'enrollables-local-model', homeeasyId: '__enrollables_local_model__', family: 'Enrollable', reference: '279 Enrollables',
+        strategy: 'LOCAL_MODEL', status: 'ERROR', autoApplicable: false,
+        error: localModelError && localModelError.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED',
+        diagnostics: localModelError });
+    }
     this.store.updateOperation(operationId, { stage: 'COMPARING' });
-    for (const mapping of this.mappings) {
+    for (const mapping of this.mappings.filter(item => !ENROLLABLE_IDS.has(item.homeeasyId))) {
       const sourceItem = (source.products || []).find(item => item.id === mapping.homeeasyId);
       if (!sourceItem) { results.push({ homeeasyId: mapping.homeeasyId, family: mapping.family, reference: mapping.reference, status: 'UNMAPPED' }); continue; }
       try {
@@ -121,21 +200,29 @@ class PentagramaPhase2 {
     }
     const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
-    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary,
+    const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, catalogSummary, localModelCandidate, localModelError,
       catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.id).length,
-        certified: results.filter(item => item.id && certifiedMappingIds.has(item.homeeasyId)).length,
+        certified: (source.products || []).filter(item => certifiedMappingIds.has(item.id)).length,
         autoUpdatable: results.filter(item => item.autoApplicable).length,
         reviewRequired: results.filter(item => item.status === 'REVIEW_REQUIRED').length,
         unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts },
       expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts, results };
     this.store.addScan(scan);
-    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', scanId: scan.id, result: { scanId: scan.id, counts } });
+    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', scanId: scan.id,
+      result: { scanId: scan.id, counts, localModelError } });
   }
 
   startApply(actor, context, payload) {
     const scan = this.store.scan(String(payload.scanId || ''));
-    if (!scan || Date.parse(scan.expiresAt) < Date.now()) throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
     const requested = Array.isArray(payload.changeIds) ? new Set(payload.changeIds.map(String)) : null;
+    const localOnlyRequest = Boolean(requested && requested.size === 1 && requested.has('enrollables-local-model'));
+    const checkedAt = Date.parse(scan && scan.checkedAt || '');
+    const normalExpired = !scan || Date.parse(scan.expiresAt || '') < Date.now();
+    const localGraceEligible = Boolean(scan && localOnlyRequest && certifiedLocalCandidate(scan) &&
+      Number.isFinite(checkedAt) && Date.now() - checkedAt <= LOCAL_MODEL_APPLY_MAX_AGE_MS);
+    if (normalExpired && !localGraceEligible) {
+      throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
+    }
     const changes = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && (!requested || requested.has(item.id)));
     if (!changes.length) throw Object.assign(new Error('No verified changes were selected'), { statusCode: 409, code: 'PENTAGRAMA_NO_APPLICABLE_CHANGES' });
     const operation = this.store.operation('apply', actor);
@@ -144,6 +231,11 @@ class PentagramaPhase2 {
   }
 
   async runApply(operationId, scan, changes, context) {
+    const localChanges = changes.filter(item => item.strategy === 'LOCAL_MODEL');
+    if (localChanges.length) {
+      if (localChanges.length !== 1 || changes.length !== 1 || !scan.localModelCandidate) throw Object.assign(new Error('Local model must be published as one isolated atomic batch'), { code: 'PENTAGRAMA_LOCAL_MODEL_BATCH_REQUIRED' });
+      return this.runLocalModelApply(operationId, scan, localChanges[0], context);
+    }
     this.store.updateOperation(operationId, { state: 'running', stage: 'PREWRITE_VALIDATION' });
     const verified = [];
     for (const item of changes) {
@@ -193,6 +285,39 @@ class PentagramaPhase2 {
     this.store.addScan(verifiedScan);
     const entry = { id: applied.historyId, type: 'APPLY', at: new Date().toISOString(), scanId: scan.id, verifiedScanId: verifiedScan.id,
       changed: changes.length, qa, actor: this.store.operationById(operationId).actor };
+    this.store.addHistory(entry);
+    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result: entry });
+  }
+
+  async runLocalModelApply(operationId, scan, change, context) {
+    this.store.updateOperation(operationId, { state: 'running', stage: 'PREWRITE_VALIDATION' });
+    const candidate = scan.localModelCandidate;
+    if (!certifiedLocalCandidate(scan)) {
+      throw Object.assign(new Error('The local Enrollables candidate is not certified'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+    }
+    const currentSource = await this.homeeasy.catalog(context);
+    if (!currentSource || String(currentSource.version || '') !== String(scan.sourceVersion || '')) {
+      throw Object.assign(new Error('HomeEasy source changed after the Enrollables candidate was certified'), {
+        code: 'PENTAGRAMA_LOCAL_MODEL_SOURCE_CHANGED'
+      });
+    }
+    this.store.updateOperation(operationId, { stage: 'SNAPSHOT' });
+    this.store.updateOperation(operationId, { stage: 'WRITING_SHEET' });
+    const applied = await this.homeeasy.applyLocalModel(scan, candidate, context);
+    this.store.updateOperation(operationId, { stage: 'QA' });
+    if (!applied.qa || applied.qa.ok !== true || Number(applied.qa.maxDifference) > 0.02) {
+      throw Object.assign(new Error('Local model post-write QA failed and was rolled back by HomeEasy'), { code: 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK' });
+    }
+    const verifiedResults = scan.results.map(item => item.id === change.id ? { ...item, status: 'UNCHANGED', autoApplicable: false, difference: 0,
+      appliedAt: new Date().toISOString() } : item);
+    const verifiedCounts = verifiedResults.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
+    const verifiedScan = { ...scan, id: crypto.randomUUID(), parentScanId: scan.id, checkedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts: verifiedCounts, results: verifiedResults,
+      localModelCandidate: null, localModelVersion: applied.version };
+    this.store.addScan(verifiedScan);
+    const entry = { id: applied.historyId, type: 'LOCAL_MODEL_APPLY', at: new Date().toISOString(), scanId: scan.id,
+      verifiedScanId: verifiedScan.id, changed: Number(candidate.summary.changed || 0), qa: applied.qa, version: applied.version,
+      actor: this.store.operationById(operationId).actor };
     this.store.addHistory(entry);
     this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result: entry });
   }

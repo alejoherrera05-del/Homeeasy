@@ -4,13 +4,14 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice']);
+const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'buildLocalEnrollablesSnapshot']);
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_TIMEOUT',
   'AGENT_TRANSPORT_ERROR',
   'PENTAGRAMA_ACCESS_BLOCKED',
-  'PENTAGRAMA_UNEXPECTED_RESPONSE'
+  'PENTAGRAMA_UNEXPECTED_RESPONSE',
+  'PENTAGRAMA_BROWSER_SESSION_REQUIRED'
 ]);
 
 function safeEqual(left, right) {
@@ -21,6 +22,15 @@ function safeEqual(left, right) {
 
 function sha256(value) {
   return crypto.createHash('sha256').update(String(value || '')).digest('hex');
+}
+
+function versionAtLeast(value, minimum) {
+  const current = String(value || '').split('.').map(part => Number(part) || 0);
+  const required = String(minimum || '').split('.').map(part => Number(part) || 0);
+  for (let index = 0; index < Math.max(current.length, required.length); index++) {
+    if ((current[index] || 0) !== (required[index] || 0)) return (current[index] || 0) > (required[index] || 0);
+  }
+  return true;
 }
 
 function publicAgent(agent, now = Date.now(), onlineMs = 45000) {
@@ -49,6 +59,10 @@ class PentagramaAgentGateway {
     this.baseUrl = String(options.baseUrl || process.env.PENTAGRAMA_BASE_URL || 'https://pedidos.persianaspentagrama.com');
     this.onlineMs = Math.max(15000, Number(options.onlineMs || 45000));
     this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || 45000));
+    this.localModelJobTimeoutMs = Math.max(
+      30 * 60 * 1000,
+      Number(options.localModelJobTimeoutMs || process.env.PENTAGRAMA_LOCAL_MODEL_JOB_TIMEOUT_MS || 4 * 60 * 60 * 1000)
+    );
     this.pollTimeoutMs = Math.max(5000, Number(options.pollTimeoutMs || 25000));
     this.latestVersion = String(options.latestVersion || process.env.PENTAGRAMA_AGENT_LATEST_VERSION || '1.0.0');
     this.agents = new Map();
@@ -196,11 +210,16 @@ class PentagramaAgentGateway {
     job.state = body.ok === true ? 'completed' : 'failed';
     job.completedAt = new Date().toISOString();
     job.result = body.ok === true ? body.result : null;
+    const errorCode = String(body.error && body.error.code || 'AGENT_JOB_FAILED').slice(0, 100);
     job.error = body.ok === true ? null : {
-      code: String(body.error && body.error.code || 'AGENT_JOB_FAILED').slice(0, 100),
+      code: errorCode,
       message: String(body.error && body.error.message || 'Agent job failed').slice(0, 300),
       infrastructure: body.error && body.error.infrastructure === true
     };
+    if (job.error && errorCode.startsWith('PENTAGRAMA_LOCAL_MODEL_')) {
+      if (Array.isArray(body.error && body.error.failures)) job.error.failures = body.error.failures.slice(0, 50);
+      if (Array.isArray(body.error && body.error.missing)) job.error.missing = body.error.missing.slice(0, 300);
+    }
     agent.lastSeen = job.completedAt;
     agent.lastJob = { id: job.id, type: job.type, state: job.state, at: job.completedAt };
     if (body.pentagrama) agent.pentagrama = body.pentagrama;
@@ -209,14 +228,31 @@ class PentagramaAgentGateway {
     return { ok: true };
   }
 
-  onlineAgents(excluded = new Set()) {
+  onlineAgents(excluded = new Set(), minimumVersion = '') {
     const now = Date.now();
+    const versionParts = value => String(value || '').split('.').map(part => Number(part) || 0);
+    const compareVersions = (left, right) => {
+      const a = versionParts(left);
+      const b = versionParts(right);
+      for (let index = 0; index < Math.max(a.length, b.length); index++) {
+        if ((a[index] || 0) !== (b[index] || 0)) return (b[index] || 0) - (a[index] || 0);
+      }
+      return 0;
+    };
+    const readinessRank = agent => agent && agent.pentagrama && agent.pentagrama.status === 'ready' ? 0 : 1;
+
     return Array.from(this.agents.values())
-      .filter(agent => !excluded.has(agent.installationId) && now - (Date.parse(agent.lastSeen || '') || 0) <= this.onlineMs)
-      .sort((a, b) => (Date.parse(a.lastJob && a.lastJob.at || '') || 0) - (Date.parse(b.lastJob && b.lastJob.at || '') || 0));
+      .filter(agent => !excluded.has(agent.installationId) &&
+        now - (Date.parse(agent.lastSeen || '') || 0) <= this.onlineMs &&
+        (!minimumVersion || versionAtLeast(agent.version, minimumVersion)))
+      .sort((a, b) =>
+        compareVersions(a.version, b.version) ||
+        readinessRank(a) - readinessRank(b) ||
+        (Date.parse(b.lastSeen || '') || 0) - (Date.parse(a.lastSeen || '') || 0) ||
+        (Date.parse(a.lastJob && a.lastJob.at || '') || 0) - (Date.parse(b.lastJob && b.lastJob.at || '') || 0));
   }
 
-  runOnAgent(agent, type, payload) {
+  runOnAgent(agent, type, payload, timeoutMs) {
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
       const job = { id, agentId: agent.installationId, type, payload, state: 'queued', createdAt: new Date().toISOString() };
@@ -234,7 +270,7 @@ class PentagramaAgentGateway {
       timer = setTimeout(() => {
         this.jobs.delete(id);
         reject(Object.assign(new Error('Pentagrama Agent timed out'), { code: 'AGENT_TIMEOUT', infrastructure: true }));
-      }, this.jobTimeoutMs);
+      }, Math.max(this.jobTimeoutMs, Number(timeoutMs || 0)));
     });
   }
 
@@ -249,13 +285,14 @@ class PentagramaAgentGateway {
 
   async _dispatch(type, payload) {
     const excluded = new Set();
+    const minimumVersion = '1.5.3';
     let lastError;
     while (excluded.size < 2) {
-      const agent = this.onlineAgents(excluded)[0];
+      const agent = this.onlineAgents(excluded, minimumVersion)[0];
       if (!agent) break;
       excluded.add(agent.installationId);
       try {
-        return await this.runOnAgent(agent, type, payload);
+        return await this.runOnAgent(agent, type, payload, type === 'buildLocalEnrollablesSnapshot' ? this.localModelJobTimeoutMs : 0);
       } catch (error) {
         lastError = error;
         const infrastructure = error.infrastructure === true || INFRASTRUCTURE_CODES.has(error.code);

@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { PentagramaPhase2, statusFor } = require('./phase2');
+const { PentagramaPhase2, statusFor, operationContext } = require('./phase2');
 const { Phase2Store } = require('./phase2-store');
 
 test('change classifier enforces unchanged and review thresholds', () => {
@@ -13,6 +13,24 @@ test('change classifier enforces unchanged and review thresholds', () => {
   assert.equal(statusFor(100, 114.99), 'INCREASED');
   assert.equal(statusFor(100, 70), 'REVIEW_REQUIRED');
   assert.equal(statusFor(100, 130), 'REVIEW_REQUIRED');
+});
+
+test('internal operation context reuses the configured sync service key', () => {
+  const previous = process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY;
+  process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY = 'test-service-key';
+  try {
+    assert.deepEqual(operationContext({ headers: { 'x-homeeasy-token': 'internal' } }), {
+      sessionToken: undefined,
+      serviceKey: 'test-service-key',
+      deviceId: 'PENTAGRAMA_VPS',
+      deviceName: 'Pentagrama VPS',
+      platform: 'VPS',
+      browser: 'HTTP interno'
+    });
+  } finally {
+    if (previous === undefined) delete process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY;
+    else process.env.HOMEEASY_PENTAGRAMA_SYNC_KEY = previous;
+  }
 });
 
 test('scan preserves unmapped products and builds a verified multi-case rate proposal', async () => {
@@ -47,6 +65,27 @@ test('apply rejects expired scans', () => {
   assert.throws(() => service.startApply({}, {}, { scanId: 'old' }), error => error.code === 'PENTAGRAMA_SCAN_EXPIRED');
 });
 
+test('resumes only the failed local candidate from persisted scan evidence', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-resume-'));
+  const store = new Phase2Store({ dataDir: directory });
+  store.addScan({ id: 'failed-scan', checkedAt: new Date(0).toISOString(), expiresAt: new Date(1).toISOString(), sourceVersion: 'v1',
+    catalogAudit: { certified: 90, autoUpdatable: 2 }, counts: { ERROR: 1 },
+    results: [{ id: 'enrollables-local-model', status: 'ERROR', autoApplicable: false }] });
+  let dispatched = 0;
+  const service = new PentagramaPhase2({ store, mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {
+    dispatch: async (type, payload) => { dispatched += 1; assert.equal(type, 'buildLocalEnrollablesSnapshot'); assert.equal(payload.source.version, 'v1');
+      return { version: 'candidate-v2', summary: { enrollables: 279, fail: 0, changed: 279, cases: 614, pass: 614, maxDifference: 0 } }; }
+  }});
+  const operation = service.startResumeLocalModel({ email: 'test@example.com' }, { scanId: 'failed-scan', source: { version: 'v1', products: [{}] } });
+  for (let i = 0; i < 30 && store.operationById(operation.id).state !== 'completed'; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  const resumed = store.latestScan();
+  assert.equal(dispatched, 1);
+  assert.equal(resumed.parentScanId, 'failed-scan');
+  assert.equal(resumed.localModelCandidate.version, 'candidate-v2');
+  assert.equal(resumed.results.find(item => item.id === 'enrollables-local-model').status, 'NEW');
+  assert.equal(resumed.catalogAudit.certified, 369);
+});
+
 test('post-apply mismatch rolls back the affected batch automatically', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-rollback-'));
   const store = new Phase2Store({ dataDir: directory }); let rolledBack = null;
@@ -66,4 +105,46 @@ test('post-apply mismatch rolls back the affected batch automatically', async ()
     strategy: 'RATE_M2', destination: mapping.destination, sourceModel: { method: 'area', minHeight: 0, minArea: 0, promotional: false } };
   await assert.rejects(service.runApply(operation.id, { id: 'scan-1' }, [change], {}), error => error.code === 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK');
   assert.equal(rolledBack, 'history-1');
+});
+
+
+test('certified local Enrollables candidate may apply after normal scan TTL within grace window', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-local-grace-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const checkedAt = new Date(Date.now() - 45 * 60 * 1000).toISOString();
+  store.addScan({
+    id: 'local-grace',
+    checkedAt,
+    expiresAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    sourceVersion: 'v1',
+    localModelCandidate: { summary: { enrollables: 279, fail: 0, maxDifference: 0, changed: 285 } },
+    results: [{ id: 'enrollables-local-model', strategy: 'LOCAL_MODEL', status: 'NEW', autoApplicable: true }]
+  });
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [],
+    pricing: {},
+    homeeasyCost: {},
+    homeeasy: { catalog: async () => ({ version: 'v1' }) },
+    gateway: {}
+  });
+  const operation = service.startApply({}, {}, { scanId: 'local-grace', changeIds: ['enrollables-local-model'] });
+  assert.equal(operation.type, 'apply');
+});
+
+test('expired regular scan still rejects apply even during local grace window', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-regular-expired-'));
+  const store = new Phase2Store({ dataDir: directory });
+  store.addScan({
+    id: 'regular-expired',
+    checkedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    expiresAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    localModelCandidate: { summary: { enrollables: 279, fail: 0, maxDifference: 0 } },
+    results: [{ id: 'v', strategy: 'RATE_M2', status: 'INCREASED', autoApplicable: true }]
+  });
+  const service = new PentagramaPhase2({ store, mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {} });
+  assert.throws(
+    () => service.startApply({}, {}, { scanId: 'regular-expired', changeIds: ['v'] }),
+    error => error.code === 'PENTAGRAMA_SCAN_EXPIRED'
+  );
 });

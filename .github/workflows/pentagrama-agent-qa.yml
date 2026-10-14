@@ -1,0 +1,38 @@
+name: Pentagrama Agent QA
+
+on:
+  push:
+    paths:
+      - 'infra/pentagrama-agent/**'
+      - 'infra/whatsapp/bridge/pentagrama-sync/**'
+      - '.github/workflows/pentagrama-agent-qa.yml'
+  pull_request:
+    paths:
+      - 'infra/pentagrama-agent/**'
+      - 'infra/whatsapp/bridge/pentagrama-sync/**'
+      - '.github/workflows/pentagrama-agent-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pentagrama-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check infra/pentagrama-agent/src/agent.js
+          node --check infra/pentagrama-agent/src/session-bridge.js
+          node --check infra/pentagrama-agent/session-bridge-extension/background.js
+          node --check infra/pentagrama-agent/session-bridge-extension/content.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/auth.js
+      - name: Agent unit tests
+        run: node --test infra/pentagrama-agent/test/*.test.js
+      - name: Pentagrama sync unit tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/*.test.js
