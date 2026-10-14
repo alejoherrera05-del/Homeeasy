@@ -112,6 +112,40 @@ class CatalogCertifier {
     this.tolerance = Number.isFinite(Number(options.tolerance)) ? Number(options.tolerance) : 0.02;
   }
 
+  async probeRing(live) {
+    if (!isRing(live)) return { ok: false, status: 'REVIEW_REQUIRED', reason: 'La referencia no pertenece al perfil técnico certificado de Cortina Ring.' };
+    if (isRenueva(live)) return { ok: false, status: 'EXCLUDED', reason: 'La familia Renueva está excluida de HomeEasy.' };
+    const type = ringType(live);
+    if (!type) return { ok: false, status: 'REVIEW_REQUIRED', reason: 'No se pudo resolver el tipo de Cortina Ring.' };
+    const sample = RING_SAMPLES.find(item => item.id === 'square');
+    const cost = await this.pricing.supplierCost(priceParams(live, sample), {
+      pricingMode: 'account-discount',
+      productDiscount: Number(live.discount || 0),
+      AssociationGroup: text(live.associationGroup)
+    });
+    const total = Number(cost && cost.total);
+    if (!Number.isFinite(total) || total <= 0) {
+      return { ok: false, status: 'REVIEW_REQUIRED', reason: 'Pentagrama devolvió una tarifa vacía o COP 0.' };
+    }
+    return {
+      ok: true,
+      status: 'PROBED',
+      type,
+      reference: referenceName(live),
+      rate: roundRate(total),
+      evidence: {
+        id: sample.id,
+        width: sample.width,
+        height: sample.height,
+        total: roundMoney(total),
+        basePrice: Number(cost.basePrice || 0),
+        distributorDiscount: Number(cost.distributorDiscount || 0),
+        productDiscount: Number(cost.productDiscount || 0),
+        vatRate: Number(cost.vatRate || 0)
+      }
+    };
+  }
+
   async certifyRing(live, sourceCatalog = {}) {
     if (!isRing(live)) return { ok: false, status: 'REVIEW_REQUIRED', reason: 'La referencia no pertenece al perfil técnico certificado de Cortina Ring.' };
     if (isRenueva(live)) return { ok: false, status: 'EXCLUDED', reason: 'La familia Renueva está excluida de HomeEasy.' };
