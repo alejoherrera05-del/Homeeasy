@@ -20,5 +20,18 @@ test('catalog inventory endpoint is read-only and asynchronous', () => {
 });
 
 test('bridge version identifies the inventory-readonly deployment', () => {
-  assert.match(server, /const BRIDGE_VERSION = '0\.16\.2';/);
+  assert.match(server, /const BRIDGE_VERSION = '0\.16\.5';/);
+});
+
+
+test('enrollables audit endpoint is read-only and asynchronous', () => {
+  const route = "if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/enrollables-audit')";
+  const start = server.indexOf(route);
+  assert.notEqual(start, -1);
+
+  const block = server.slice(start, start + 800);
+  assert.match(block, /auth\.authorize\(req, 'config\.read'\)/);
+  assert.match(block, /pentagramaPhase2\.startEnrollablesAudit\(/);
+  assert.match(block, /return json\(res, 202,/);
+  assert.doesNotMatch(block, /startApply|applyCatalog|applyLocalModel|rollback|WRITING_SHEET/);
 });
