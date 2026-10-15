@@ -20,7 +20,7 @@ test('catalog inventory endpoint is read-only and asynchronous', () => {
 });
 
 test('bridge version identifies the inventory-readonly deployment', () => {
-  assert.match(server, /const BRIDGE_VERSION = '0\.17\.2';/);
+  assert.match(server, /const BRIDGE_VERSION = '0\.18\.0';/);
 });
 
 test('internal Pentagrama scan/apply/rollback use scheduler service context', () => {
@@ -52,4 +52,17 @@ test('enrollables audit endpoint is read-only and asynchronous', () => {
   assert.match(block, /pentagramaPhase2\.startEnrollablesAudit\(/);
   assert.match(block, /return json\(res, 202,/);
   assert.doesNotMatch(block, /startApply|applyCatalog|applyLocalModel|rollback|WRITING_SHEET/);
+});
+
+
+test('quick price scan endpoint is separate from deep maintenance scan', () => {
+  const quickRoute = "if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/quick-scan')";
+  const deepRoute = "if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/scan')";
+  const quick = server.indexOf(quickRoute);
+  const deep = server.indexOf(deepRoute);
+  assert.notEqual(quick, -1);
+  assert.notEqual(deep, -1);
+  assert.ok(quick < deep);
+  assert.match(server.slice(quick, quick + 500), /startQuickScan/);
+  assert.match(server.slice(deep, deep + 500), /startScan/);
 });
