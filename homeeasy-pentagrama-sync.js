@@ -24,7 +24,9 @@
     AGENT_TIMEOUT: 'El agente Pentagrama no respondió a tiempo. Verifica que el equipo siga encendido y conectado.',
     AGENT_TRANSPORT_ERROR: 'Se perdió la comunicación con el agente Pentagrama. Inténtalo nuevamente cuando la conexión esté estable.',
     PENTAGRAMA_ACCESS_BLOCKED: 'Pentagrama bloqueó la red del agente. Usa un equipo conectado desde una red autorizada.',
-    PENTAGRAMA_SESSION_EXPIRED: 'La sesión de Pentagrama no es válida. Revisa las credenciales del agente e inténtalo nuevamente.',
+    PENTAGRAMA_SESSION_EXPIRED: 'La sesión de Pentagrama no es válida. Revisa la sesión de Brave en el equipo del agente e inténtalo nuevamente.',
+    PENTAGRAMA_BROWSER_SESSION_REQUIRED: 'El Agent está conectado, pero Brave todavía no tiene una sesión Pentagrama disponible. Abre o inicia sesión en Pentagrama desde ese equipo.',
+    PENTAGRAMA_CAPTCHA_REQUIRED: 'Pentagrama solicitó CAPTCHA. Complétalo en Brave en el equipo del agente; HomeEasy no modificó ningún precio.',
     PENTAGRAMA_UNEXPECTED_RESPONSE: 'Pentagrama respondió de una forma inesperada. No se modificó ninguna tarifa.',
     PENTAGRAMA_SCAN_EXPIRED: 'Este análisis venció. Ejecuta “Actualizar desde Pentagrama” nuevamente.',
     PENTAGRAMA_PREWRITE_VALIDATION_FAILED: 'Pentagrama cambió o la tarifa dejó de ser reproducible antes de escribir. No se modificó la Sheet.',
@@ -245,7 +247,17 @@
   }
 
   function renderApplyButton(safeTotal) { const button = $('#hePsApply'); const selected = selectedSafe().length; const catalog = safeCatalogActions().length; const availablePrices = Number.isFinite(safeTotal) ? safeTotal : (state.scan && state.scan.results || []).filter(isSafe).length; const available = availablePrices + catalog; const total = selected + catalog; button.hidden = !available; button.disabled = state.busy || !can('config.write') || !total; button.querySelector('span').textContent = total ? `Aplicar actualización (${total})` : available ? 'Selecciona cambios' : 'Sin cambios aplicables'; }
-  function pentagramaStatus(agent) { const value = agent && agent.pentagrama && agent.pentagrama.status || 'unknown'; if (value === 'ready') return ['Pentagrama disponible', 'ready']; if (value === 'error') return [friendlyError(agent.pentagrama.code), 'error']; return ['Pentagrama sin comprobar', 'unknown']; }
+  function pentagramaStatus(agent) {
+    const p = agent && agent.pentagrama || {};
+    const bridge = p.sessionBridge || {};
+    const value = p.status || 'unknown';
+    if (value === 'ready') return [bridge.browserTransportOnline ? 'Pentagrama disponible · Brave conectado' : 'Pentagrama disponible', 'ready'];
+    if (value === 'error') return [friendlyError(p.code), 'error'];
+    if (bridge.configured && bridge.browserTransportOnline && bridge.sessionReady) return ['Brave conectado · sesión Pentagrama lista', 'ready'];
+    if (bridge.configured && bridge.browserTransportOnline) return ['Brave conectado · esperando sesión Pentagrama', 'unknown'];
+    if (bridge.configured) return ['Agent listo · esperando extensión de Brave', 'unknown'];
+    return ['Pentagrama sin comprobar', 'unknown'];
+  }
   function renderAgents(items) { $('#hePsAgents').innerHTML = (items || []).map(agent => { const portal = pentagramaStatus(agent); return `<div class="he-ps-list-row agent"><span class="he-ps-agent-icon ${agent.online ? 'online' : 'offline'}"><i class="fa-solid fa-computer"></i></span><div class="he-ps-list-copy"><strong>${esc(agent.hostname || agent.installationId)}</strong><span><b class="he-ps-presence ${agent.online ? 'online' : 'offline'}">${agent.online ? 'Online' : 'Offline'}</b> · v${esc(agent.version || '—')}</span><small>${esc(portal[0])} · Última conexión ${esc(dateTime(agent.lastSeen))}</small></div></div>`; }).join('') || '<div class="he-ps-empty"><i class="fa-solid fa-computer"></i><strong>No hay agentes registrados</strong><span>Instala o enciende un agente para consultar Pentagrama.</span></div>'; }
   function historyAgent() { const agents = state.status && state.status.agents || []; return agents.length === 1 ? agents[0].hostname || agents[0].installationId : 'No registrado'; }
 
