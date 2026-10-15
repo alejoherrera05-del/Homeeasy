@@ -21,14 +21,12 @@ function createPentagramaSync(options = {}) {
   const comparison = options.comparison || new PentagramaComparison({ pricing, homeeasy, mappings: options.mappings || INITIAL_MAPPINGS });
   const liveResolver = options.liveResolver || new PentagramaLiveResolver({ catalog, pricing, vatRate: options.vatRate });
   const catalogInventory = options.catalogInventory || new PentagramaCatalogInventory({ catalog });
-  const localModel = options.localModel || Object.freeze({
-    build: source => buildEnrollablesLocalCandidate({
-      source,
-      quoteBase: input => liveResolver.quoteBase(input),
-      resolveLive: input => liveResolver.resolve(input),
-      configurationOptions: input => liveResolver.configurationOptions(input)
-    })
-  });
+  const localModel = Object.freeze({ build: source => buildEnrollablesLocalCandidate({
+    source,
+    quoteBase: input => liveResolver.quoteBase(input),
+    resolveLive: input => liveResolver.resolve(input),
+    configurationOptions: input => liveResolver.configurationOptions(input)
+  }) });
   return Object.freeze({ mode, client, catalog, pricing, homeeasy, comparison, liveResolver, catalogInventory, localModel });
 }
 
