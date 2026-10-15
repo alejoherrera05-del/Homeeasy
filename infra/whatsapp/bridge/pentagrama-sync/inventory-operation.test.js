@@ -45,6 +45,11 @@ test('read-only inventory is orchestrated through short catalog jobs with persis
   const gateway = {
     dispatch: async (type, payload) => {
       calls.push({ type, payload: JSON.parse(JSON.stringify(payload || {})) });
+
+      if (type === 'catalogInventory') {
+        throw Object.assign(new Error('older agent'), { code: 'AGENT_JOB_NOT_ALLOWED' });
+      }
+
       assert.equal(type, 'catalog');
       assert.ok(['categories', 'products'].includes(payload.operation));
 
@@ -137,8 +142,8 @@ test('read-only inventory is orchestrated through short catalog jobs with persis
 
   assert.equal('products' in completed.result, false);
   assert.ok(calls.length > 1);
-  assert.ok(calls.every(call => call.type === 'catalog'));
-  assert.equal(calls.some(call => call.type === 'catalogInventory'), false);
+  assert.equal(calls[0].type, 'catalogInventory');
+  assert.ok(calls.slice(1).every(call => call.type === 'catalog'));
 
   const familyProgress = updates
     .map(update => update.progress)
@@ -171,6 +176,10 @@ test('inventory waits and resumes after a temporary Agent outage instead of fail
   let attempts = 0;
   const gateway = {
     dispatch: async (type, payload) => {
+      if (type === 'catalogInventory') {
+        throw Object.assign(new Error('older agent'), { code: 'AGENT_JOB_NOT_ALLOWED' });
+      }
+
       assert.equal(type, 'catalog');
       attempts += 1;
 
