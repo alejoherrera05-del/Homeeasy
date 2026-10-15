@@ -144,6 +144,7 @@ class PentagramaClient {
     if ([301, 302, 303, 307, 308].includes(response.status) && /\/(?:User\/)?Login/i.test(location)) return true;
     if (/\/(?:User\/)?Login/i.test(String(response.url || '')) && looksLikeLoginHtml(text)) return true;
     if (looksLikeLoginHtml(text)) return true;
+    if (expect === 'json' && response.status === 500 && /^\s*</.test(text)) return true;
     return false;
   }
 
