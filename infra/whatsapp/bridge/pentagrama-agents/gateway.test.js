@@ -112,16 +112,14 @@ test('dispatcher ignores online legacy Agents and sends Pentagrama jobs to a com
 
   const pending = gateway.dispatch('catalog', { operation: 'categories', params: { level: 1 } }, { lockKey: 'compat-routing' });
 
-  const oldPollA = await gateway.poll(oldAgentA);
-  const oldPollB = await gateway.poll(oldAgentB);
-  assert.equal(oldPollA.job, null);
-  assert.equal(oldPollB.job, null);
+  assert.equal(gateway.takeJob(oldAgentA), null);
+  assert.equal(gateway.takeJob(oldAgentB), null);
 
-  const modernDelivery = await gateway.poll(modernAgent);
-  assert.equal(modernDelivery.job.type, 'catalog');
+  const modernJob = gateway.takeJob(modernAgent);
+  assert.equal(modernJob.type, 'catalog');
 
   gateway.complete(modernAgent, {
-    jobId: modernDelivery.job.id,
+    jobId: modernJob.id,
     ok: true,
     result: [{ Code: '1', Name: 'OK' }]
   });
