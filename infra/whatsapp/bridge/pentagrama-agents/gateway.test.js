@@ -93,3 +93,29 @@ test('functional errors stop while infrastructure errors fail over once', async 
   gateway.complete(gateway.authenticate(first.id, first.token), { jobId: job3.job.id, ok: true, result: { ok: true } });
   assert.equal((await failover).ok, true);
 });
+
+
+test('catalog inventory is allowlisted and uses the long-running job path', async () => {
+  const gateway = fixture({ catalogInventoryJobTimeoutMs: 5000 });
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+
+  const pending = gateway.dispatch('catalogInventory', {}, { lockKey: 'catalog-inventory:test' });
+  const delivery = await gateway.poll(agent);
+
+  assert.equal(delivery.job.type, 'catalogInventory');
+
+  gateway.complete(agent, {
+    jobId: delivery.job.id,
+    ok: true,
+    result: {
+      checkedAt: '2026-10-15T02:00:00Z',
+      counts: { roots: 59, leaves: 300, products: 500 },
+      products: []
+    }
+  });
+
+  const result = await pending;
+  assert.equal(result.counts.roots, 59);
+  assert.equal(result.counts.products, 500);
+});
