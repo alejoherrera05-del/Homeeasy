@@ -9,6 +9,7 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2-store.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
@@ -20,6 +21,7 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2-store.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
@@ -48,6 +50,7 @@ jobs:
           node --check infra/whatsapp/bridge/server.js
           node --check infra/whatsapp/bridge/pentagrama-agents/gateway.js
           node --check infra/whatsapp/bridge/pentagrama-sync/phase2.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js
           node --check infra/whatsapp/bridge/pentagrama-sync/phase2-store.js
 
       - name: Agent gateway tests
@@ -76,15 +79,16 @@ jobs:
           assert 'startInventory' in block
           assert 'startApply' not in block
           assert 'rollback' not in block
-          assert "const BRIDGE_VERSION = '0.16.1'" in server
+          assert "const BRIDGE_VERSION = '0.16.2'" in server
 
           assert "this.store.operation('inventory', actor)" in phase2
-          assert "gateway.dispatch('catalogInventory'" in phase2
+          assert 'new PentagramaCatalogInventory' in phase2
           assert "stage: 'COMPLETED'" in phase2
+          assert "stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_PENTAGRAMA'" in phase2
 
-          assert "'catalogInventory'" in gateway
-          assert 'catalogInventoryJobTimeoutMs' in gateway
-          print('Pentagrama inventory read-only boundary: PASS')
+          assert "'catalogInventory'" not in gateway
+          assert 'catalogInventoryJobTimeoutMs' not in gateway
+          print('Pentagrama progressive inventory read-only boundary: PASS')
           PY
 
       - name: Diff hygiene
