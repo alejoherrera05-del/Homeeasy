@@ -227,26 +227,20 @@ class PentagramaPhase2 {
       throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
     }
 
-    let inventory;
-    try {
-      inventory = await this.gateway.dispatch('catalogInventory', {}, {
-        lockKey: 'catalog-inventory:full'
-      });
-    } catch (error) {
-      if (String(error && error.code || '') !== 'AGENT_JOB_NOT_ALLOWED') throw error;
-
-      const reader = new PentagramaCatalogInventory({
-        ...this.inventoryOptions,
-        gateway: this.gateway,
-        onProgress: async progress => {
-          this.store.updateOperation(operationId, {
-            stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_PENTAGRAMA',
-            progress
-          });
-        }
-      });
-      inventory = await reader.scan();
-    }
+    // Ejecutamos el inventario como una secuencia de jobs cortos de catálogo.
+    // El job compuesto catalogInventory puede durar más que el timeout del Gateway
+    // y además no publica progreso mientras el Agent está ocupado.
+    const reader = new PentagramaCatalogInventory({
+      ...this.inventoryOptions,
+      gateway: this.gateway,
+      onProgress: async progress => {
+        this.store.updateOperation(operationId, {
+          stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_PENTAGRAMA',
+          progress
+        });
+      }
+    });
+    const inventory = await reader.scan();
 
     const result = publicInventorySummary(inventory);
     this.store.updateOperation(operationId, {
@@ -289,15 +283,10 @@ class PentagramaPhase2 {
 
   async fullCatalogInventory() {
     if (!this.gateway) throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
-    try {
-      return await this.gateway.dispatch('catalogInventory', {}, { lockKey: 'catalog-inventory:full' });
-    } catch (error) {
-      // Agentes anteriores a 1.4.0 no conocen el trabajo compuesto. Conservamos
-      // compatibilidad recorriendo el catálogo con jobs pequeños hasta actualizar el agente.
-      if (String(error && error.code || '') !== 'AGENT_JOB_NOT_ALLOWED') throw error;
-      if (!this.inventory) throw error;
-      return this.inventory.scan();
-    }
+    if (!this.inventory) throw Object.assign(new Error('Pentagrama catalog inventory is unavailable'), { code: 'AGENT_OFFLINE' });
+    // Mantener el recorrido en jobs cortos evita dejar al Agent bloqueado por un
+    // único trabajo largo y permite que cada petición tenga su propio timeout/reintento.
+    return this.inventory.scan();
   }
 
   inventoryAudit(sourceProducts, inventory) {
