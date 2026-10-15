@@ -88,7 +88,7 @@ jobs:
           assert 'startInventory' in block
           assert 'startApply' not in block
           assert 'rollback' not in block
-          assert "const BRIDGE_VERSION = '0.16.3'" in server
+          assert "const BRIDGE_VERSION = '0.16.4'" in server
 
           assert "this.store.operation('inventory', actor)" in phase2
           assert 'new PentagramaCatalogInventory' in phase2
@@ -100,6 +100,7 @@ jobs:
           assert "'/api/pentagrama-sync/enrollables-audit'" in server
           assert 'startEnrollablesAudit' in phase2
           assert 'PentagramaEnrollablesAudit' in phase2
+          assert 'uniqueRoutes' in phase2
           print('Pentagrama progressive inventory read-only boundary: PASS')
           PY
 
