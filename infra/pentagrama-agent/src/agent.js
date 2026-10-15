@@ -89,34 +89,16 @@ function authHeaders(agentIdentity, secrets) {
 
 function publicError(error) {
   const code = String(error && error.code || 'AGENT_JOB_FAILED');
-  return {
+  const result = {
     code,
     message: String(error && error.message || 'Agent job failed').slice(0, 300),
-    infrastructure: ['PENTAGRAMA_ACCESS_BLOCKED', 'PENTAGRAMA_UNEXPECTED_RESPONSE', 'AGENT_TRANSPORT_ERROR', 'UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND'].includes(code)
+    infrastructure: ['PENTAGRAMA_ACCESS_BLOCKED', 'PENTAGRAMA_UNEXPECTED_RESPONSE', 'PENTAGRAMA_BROWSER_SESSION_REQUIRED', 'AGENT_TRANSPORT_ERROR', 'UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND'].includes(code)
   };
-}
-
-function publicBridgeStatus(sessionBridge) {
-  const status = sessionBridge && typeof sessionBridge.status === 'function' ? sessionBridge.status() : {};
-  return {
-    configured: Boolean(status.configured),
-    browserTransportOnline: Boolean(status.browserTransportOnline),
-    sessionReady: Boolean(status.hasAuth && !status.needsSession),
-    needsSession: Boolean(status.needsSession),
-    reason: status.reason ? String(status.reason).slice(0, 120) : null,
-    updatedAt: status.updatedAt || null,
-    browserTransportSeenAt: status.browserTransportSeenAt || null
-  };
-}
-
-function shouldSelfProbe(pentagrama, bridge, now = Date.now(), intervalMs = 5 * 60 * 1000, retryMs = 30 * 1000) {
-  if (!bridge || bridge.browserTransportOnline !== true) return false;
-  const last = Date.parse(String(pentagrama && pentagrama.checkedAt || ''));
-  if (!Number.isFinite(last)) return true;
-  const age = now - last;
-  return String(pentagrama && pentagrama.status || 'unknown') === 'ready'
-    ? age >= intervalMs
-    : age >= retryMs;
+  if (code.startsWith('PENTAGRAMA_LOCAL_MODEL_')) {
+    if (Array.isArray(error && error.failures)) result.failures = error.failures.slice(0, 50);
+    if (Array.isArray(error && error.missing)) result.missing = error.missing.slice(0, 300);
+  }
+  return result;
 }
 
 const CATALOG_OPERATIONS = Object.freeze({
@@ -140,7 +122,9 @@ async function runJob(job, sync) {
   }
   if (job.type === 'resolveLivePrice') return sync.liveResolver.resolve(payload);
   if (job.type === 'catalogInventory') return sync.catalogInventory.scan();
-  if (job.type === 'buildLocalEnrollablesSnapshot') return sync.localModel.build(payload.source || {});
+  if (job.type === 'buildLocalEnrollablesSnapshot') {
+    return sync.localModel.build(payload.source || {});
+  }
   return sync.pricing.supplierCost(payload.params || {}, payload.options || {});
 }
 
@@ -162,37 +146,15 @@ async function main() {
     login: secrets.pentagrama.login,
     password: secrets.pentagrama.password,
     baseUrl: secrets.pentagrama.baseUrl,
-    browserTransport: request => sessionBridge.browserRequest(
-      request,
-      Math.max(150000, Number(request && request.timeoutMs || 0))
-    )
+    browserTransport: request => sessionBridge.browserRequest(request, Math.max(150000, Number(request && request.timeoutMs || 0)))
   });
   const headers = authHeaders(agentIdentity, secrets);
-  let pentagrama = { status: 'unknown', checkedAt: null, sessionBridge: publicBridgeStatus(sessionBridge) };
+  let pentagrama = { status: 'unknown', checkedAt: null };
   let failures = 0;
-  let selfProbe = null;
-
-  function startSelfProbeIfNeeded() {
-    const bridge = publicBridgeStatus(sessionBridge);
-    if (selfProbe || !shouldSelfProbe(pentagrama, bridge)) return;
-    selfProbe = runJob({ type: 'health' }, sync)
-      .then(() => {
-        pentagrama = { status: 'ready', checkedAt: new Date().toISOString(), sessionBridge: publicBridgeStatus(sessionBridge) };
-        logger.info('browser_session_probe_ok', { checkedAt: pentagrama.checkedAt });
-      })
-      .catch(error => {
-        const safeError = publicError(error);
-        pentagrama = { status: 'error', checkedAt: new Date().toISOString(), code: safeError.code, sessionBridge: publicBridgeStatus(sessionBridge) };
-        logger.warn('browser_session_probe_failed', { code: safeError.code });
-      })
-      .finally(() => { selfProbe = null; });
-  }
   logger.info('started', { version: VERSION, installationId: agentIdentity.installationId, hostname: agentIdentity.hostname });
 
   while (!stopping) {
     try {
-      pentagrama = { ...pentagrama, sessionBridge: publicBridgeStatus(sessionBridge) };
-      startSelfProbeIfNeeded();
       const heartbeat = await api.post('/api/pentagrama-agent/heartbeat', { ...agentIdentity, version: VERSION, pentagrama }, headers);
       if (heartbeat.updateAvailable) logger.warn('update_available', { currentVersion: VERSION, latestVersion: heartbeat.latestVersion });
       const delivery = await api.post('/api/pentagrama-agent/poll', { ...agentIdentity, version: VERSION, pentagrama }, headers);
@@ -201,12 +163,12 @@ async function main() {
       const started = Date.now();
       try {
         const result = await runJob(delivery.job, sync);
-        pentagrama = { status: 'ready', checkedAt: new Date().toISOString(), sessionBridge: publicBridgeStatus(sessionBridge) };
+        pentagrama = { status: 'ready', checkedAt: new Date().toISOString() };
         await api.post('/api/pentagrama-agent/result', { jobId: delivery.job.id, ok: true, result, pentagrama }, headers);
         logger.info('job_completed', { jobId: delivery.job.id, type: delivery.job.type, durationMs: Date.now() - started });
       } catch (error) {
         const safeError = publicError(error);
-        pentagrama = { status: 'error', checkedAt: new Date().toISOString(), code: safeError.code, sessionBridge: publicBridgeStatus(sessionBridge) };
+        pentagrama = { status: 'error', checkedAt: new Date().toISOString(), code: safeError.code };
         await api.post('/api/pentagrama-agent/result', { jobId: delivery.job.id, ok: false, error: safeError, pentagrama }, headers);
         logger.warn('job_failed', { jobId: delivery.job.id, type: delivery.job.type, code: safeError.code, durationMs: Date.now() - started });
       }
@@ -229,4 +191,4 @@ if (require.main === module) {
   main().catch(error => { logger.error('startup_failed', { code: error.code || 'STARTUP_FAILED', message: error.message }); process.exit(1); });
 }
 
-module.exports = Object.freeze({ identity, decryptEnvelope, publicError, publicBridgeStatus, shouldSelfProbe, runJob, CATALOG_OPERATIONS });
+module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, CATALOG_OPERATIONS });
