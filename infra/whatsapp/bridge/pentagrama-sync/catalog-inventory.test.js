@@ -27,6 +27,27 @@ test('external identity is stable and independent from display name', () => {
   }), 'ABC|10|RING');
 });
 
+test('catalog inventory can scope roots before crawling expensive unrelated families', async () => {
+  const routes = {
+    'categories:{"level":1}': [
+      { Code: '102', Name: 'ACCESORIO PRODUCTO', Levels: 4 },
+      { Code: '4', Name: 'ENROLLABLE', Levels: 1 }
+    ],
+    'products:{"Category1":"4"}': [
+      { ProductName: 'Screen 5%', ProductCode: 'ENR001', GroupCode: '599', GrupAsoc: 'ENRST' }
+    ]
+  };
+  const inventory = await new PentagramaCatalogInventory({
+    gateway: fakeGateway(routes),
+    rootFilter: root => root.name === 'ENROLLABLE'
+  }).scan();
+  assert.equal(inventory.discoveredRoots, 2);
+  assert.equal(inventory.excludedRoots, 1);
+  assert.equal(inventory.counts.roots, 1);
+  assert.equal(inventory.counts.products, 1);
+  assert.equal(inventory.requests, 2);
+});
+
 test('catalog inventory crawls category leaves and deduplicates the same Pentagrama product', async () => {
   const routes = {
     'categories:{"level":1}': [
