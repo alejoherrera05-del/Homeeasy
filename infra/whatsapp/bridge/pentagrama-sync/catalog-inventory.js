@@ -86,20 +86,23 @@ class PentagramaCatalogInventory {
     this.maxDepth = Math.max(1, Number(options.maxDepth || 8));
     this.maxLeaves = Math.max(1, Number(options.maxLeaves || 10000));
     this.maxRequests = Math.max(1, Number(options.maxRequests || 20000));
-    this.retryWindowMs = Math.max(0, Number(options.retryWindowMs || 30 * 60 * 1000));
+    this.retryWindowMs = Math.max(0, Number(options.retryWindowMs || 60 * 60 * 1000));
     this.retryDelayMs = Math.max(1000, Number(options.retryDelayMs || 10000));
     this.onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
     this.wait = typeof options.wait === 'function' ? options.wait : wait;
+    this.progressState = {};
     this.requests = 0;
     this.startedAt = null;
   }
 
   async progress(patch = {}) {
-    if (!this.onProgress) return;
-    await this.onProgress({
+    this.progressState = {
+      ...this.progressState,
       requests: this.requests,
       ...patch
-    });
+    };
+    if (!this.onProgress) return;
+    await this.onProgress({ ...this.progressState });
   }
 
   async catalog(operation, params) {
@@ -118,7 +121,7 @@ class PentagramaCatalogInventory {
           lockKey: 'catalog-inventory:' + operation + ':' + JSON.stringify(params || {})
         });
 
-        if (Date.now() - retryStartedAt > 1000) {
+        if (Date.now() - retryStartedAt > 1000 || this.requests % 10 === 0) {
           await this.progress({
             status: 'RUNNING',
             waitingCode: null
@@ -182,6 +185,7 @@ class PentagramaCatalogInventory {
 
   async scan() {
     this.requests = 0;
+    this.progressState = {};
     this.startedAt = Date.now();
 
     const roots = listOf(await this.catalog('categories', { level: 1 }))
