@@ -33,12 +33,18 @@ function category(item) {
   };
 }
 
+function normalizeRouteCode(value, { zeroWhenBlank = false } = {}) {
+  const normalized = clean(value);
+  if (zeroWhenBlank && normalized === '') return '0';
+  return normalized;
+}
+
 function routeKey(parts) {
   return [
-    clean(parts && parts.Cat1),
-    clean(parts && parts.Cat2),
-    clean(parts && parts.Cat3),
-    clean(parts && parts.Cat4)
+    normalizeRouteCode(parts && parts.Cat1),
+    normalizeRouteCode(parts && parts.Cat2),
+    normalizeRouteCode(parts && parts.Cat3),
+    normalizeRouteCode(parts && parts.Cat4, { zeroWhenBlank: true })
   ].join('|');
 }
 
@@ -68,6 +74,14 @@ function liveProduct(item, route) {
 
 function baselineEntries() {
   return Object.values(baseline && baseline.products || {});
+}
+
+function excludedPortalRouteNames() {
+  return new Set(
+    (baseline && baseline.excludedPortal || []).map(item =>
+      [upper(item && item.subfamily), upper(item && item.reference)].join('|')
+    )
+  );
 }
 
 function baselineSummary() {
@@ -226,11 +240,13 @@ class PentagramaEnrollablesAudit {
           Cat4: leaf.code
         };
         const rKey = routeKey(categories);
+        const excludedNames = excludedPortalRouteNames();
         const route = {
           routeKey: rKey,
           categories,
           groupName: group.name,
           referenceName: leaf.name,
+          excludedPortal: excludedNames.has([upper(group.name), upper(leaf.name)].join('|')),
           path: [
             'ENROLLABLE',
             'STANDARD/PLATINA SIN CABEZAL',
@@ -300,7 +316,16 @@ class PentagramaEnrollablesAudit {
     const live = await this.scanLive();
 
     const expectedRouteKeys = new Set(expected.byRoute.keys());
-    const liveRouteKeys = new Set(live.byRoute.keys());
+
+    const excludedLiveRoutes = [...live.byRoute.values()]
+      .filter(route => route.excludedPortal);
+
+    const relevantLiveRoutes = new Map(
+      [...live.byRoute.entries()]
+        .filter(([, route]) => !route.excludedPortal)
+    );
+
+    const liveRouteKeys = new Set(relevantLiveRoutes.keys());
 
     const presentRoutes = [...expectedRouteKeys].filter(key => liveRouteKeys.has(key));
     const missingRoutes = [...expectedRouteKeys].filter(key => !liveRouteKeys.has(key));
@@ -313,7 +338,7 @@ class PentagramaEnrollablesAudit {
 
     for (const rKey of presentRoutes) {
       const expectedRoute = expected.byRoute.get(rKey);
-      const liveRoute = live.byRoute.get(rKey);
+      const liveRoute = relevantLiveRoutes.get(rKey);
       const expectedProductKeys = expectedRoute.productKeys;
 
       for (const key of expectedProductKeys) {
@@ -350,7 +375,7 @@ class PentagramaEnrollablesAudit {
     }
 
     const addedRouteDetails = addedRoutes.map(key => {
-      const route = live.byRoute.get(key);
+      const route = relevantLiveRoutes.get(key);
       return {
         routeKey: key,
         categories: route.categories,
@@ -382,7 +407,12 @@ class PentagramaEnrollablesAudit {
     const addedRouteProductCount = addedRouteDetails
       .reduce((sum, route) => sum + route.productCount, 0);
 
-    const liveIdentityKeys = new Set(live.byKey.keys());
+    const relevantIdentityKeys = new Set();
+    for (const route of relevantLiveRoutes.values()) {
+      for (const key of route.products.keys()) relevantIdentityKeys.add(key);
+    }
+
+    const liveIdentityKeys = relevantIdentityKeys;
     const expectedIdentityKeys = new Set(expected.byKey.keys());
     const presentIdentities = [...expectedIdentityKeys].filter(key => liveIdentityKeys.has(key));
     const addedIdentities = [...liveIdentityKeys].filter(key => !expectedIdentityKeys.has(key));
@@ -407,6 +437,10 @@ class PentagramaEnrollablesAudit {
       live: {
         uniqueIdentities: live.byKey.size,
         uniqueRoutes: live.byRoute.size,
+        relevantUniqueIdentities: relevantIdentityKeys.size,
+        relevantUniqueRoutes: relevantLiveRoutes.size,
+        excludedPortalRoutes: excludedLiveRoutes.length,
+        excludedPortalSkuCount: excludedLiveRoutes.reduce((sum, route) => sum + route.products.size, 0),
         categoryGroups: live.groups.length,
         requests: this.requests,
         duplicateAppearances: live.duplicateAppearances,
@@ -432,6 +466,15 @@ class PentagramaEnrollablesAudit {
         added: addedIdentities.length,
         missing: missingIdentities.length
       },
+      exclusions: {
+        portalOnlyRoutes: excludedLiveRoutes.map(route => ({
+          routeKey: route.routeKey,
+          categories: route.categories,
+          groupName: route.groupName,
+          referenceName: route.referenceName,
+          productCount: route.products.size
+        }))
+      },
       deltas: {
         addedRoutes: addedRouteDetails,
         missingRoutes: missingRouteDetails,
@@ -447,6 +490,8 @@ module.exports = Object.freeze({
   baselineSummary,
   productKey,
   routeKey,
+  normalizeRouteCode,
+  excludedPortalRouteNames,
   liveProduct,
   category,
   listOf
