@@ -21,10 +21,10 @@ function fixture(options = {}) {
   });
 }
 
-function register(gateway, id = crypto.randomUUID()) {
+function register(gateway, id = crypto.randomUUID(), version = '1.5.3', hostname = 'TEST-PC') {
   const keys = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
   const body = gateway.register('bootstrap-test', {
-    identity: { installationId: id, hostname: 'TEST-PC', version: '1.0.0', platform: 'win32-x64', installedAt: new Date().toISOString() },
+    identity: { installationId: id, hostname, version, platform: 'win32-x64', installedAt: new Date().toISOString() },
     publicKey: keys.publicKey.export({ type: 'spki', format: 'pem' })
   });
   const contentKey = crypto.privateDecrypt({ key: keys.privateKey, oaepHash: 'sha256' }, Buffer.from(body.sealed.key, 'base64'));
@@ -49,7 +49,7 @@ test('heartbeat does not enqueue a Pentagrama login job', async () => {
   const gateway = fixture();
   const registration = register(gateway);
   const agent = gateway.authenticate(registration.id, registration.token);
-  gateway.heartbeat(agent, { version: '1.0.0', pentagrama: { status: 'ready', checkedAt: null } });
+  gateway.heartbeat(agent, { version: '1.5.3', pentagrama: { status: 'ready', checkedAt: null } });
   const poll = await gateway.poll(agent);
   assert.equal(poll.job, null);
 });
@@ -92,4 +92,51 @@ test('functional errors stop while infrastructure errors fail over once', async 
   const job3 = await gateway.poll(gateway.authenticate(first.id, first.token));
   gateway.complete(gateway.authenticate(first.id, first.token), { jobId: job3.job.id, ok: true, result: { ok: true } });
   assert.equal((await failover).ok, true);
+});
+
+
+test('dispatcher ignores online legacy Agents and sends Pentagrama jobs to a compatible 1.5.3 Agent', async () => {
+  const gateway = fixture();
+
+  const oldA = register(gateway, crypto.randomUUID(), '1.2.1', 'OLD-A');
+  const oldB = register(gateway, crypto.randomUUID(), '1.2.1', 'OLD-B');
+  const modern = register(gateway, crypto.randomUUID(), '1.5.3', 'MODERN');
+
+  const oldAgentA = gateway.authenticate(oldA.id, oldA.token);
+  const oldAgentB = gateway.authenticate(oldB.id, oldB.token);
+  const modernAgent = gateway.authenticate(modern.id, modern.token);
+
+  gateway.heartbeat(oldAgentA, { version: '1.2.1', pentagrama: { status: 'ready', checkedAt: null } });
+  gateway.heartbeat(oldAgentB, { version: '1.2.1', pentagrama: { status: 'ready', checkedAt: null } });
+  gateway.heartbeat(modernAgent, { version: '1.5.3', pentagrama: { status: 'ready', checkedAt: null } });
+
+  const pending = gateway.dispatch('catalog', { operation: 'categories', params: { level: 1 } }, { lockKey: 'compat-routing' });
+
+  const oldPollA = await gateway.poll(oldAgentA);
+  const oldPollB = await gateway.poll(oldAgentB);
+  assert.equal(oldPollA.job, null);
+  assert.equal(oldPollB.job, null);
+
+  const modernDelivery = await gateway.poll(modernAgent);
+  assert.equal(modernDelivery.job.type, 'catalog');
+
+  gateway.complete(modernAgent, {
+    jobId: modernDelivery.job.id,
+    ok: true,
+    result: [{ Code: '1', Name: 'OK' }]
+  });
+
+  assert.deepEqual(await pending, [{ Code: '1', Name: 'OK' }]);
+});
+
+test('dispatcher returns AGENT_INCOMPATIBLE when only legacy Agents are online', async () => {
+  const gateway = fixture({ jobTimeoutMs: 200 });
+  const old = register(gateway, crypto.randomUUID(), '1.2.1', 'OLD-ONLY');
+  const oldAgent = gateway.authenticate(old.id, old.token);
+  gateway.heartbeat(oldAgent, { version: '1.2.1', pentagrama: { status: 'ready', checkedAt: null } });
+
+  await assert.rejects(
+    () => gateway.dispatch('catalog', { operation: 'categories' }, { lockKey: 'legacy-only' }),
+    error => error.code === 'AGENT_INCOMPATIBLE'
+  );
 });
