@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 process.env.HOMEEASY_AGENT_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-agent-test-'));
-const { decryptEnvelope, publicError, publicBridgeStatus, runJob } = require('../src/agent');
+const { decryptEnvelope, publicError, publicBridgeStatus, shouldSelfProbe, runJob } = require('../src/agent');
 const { Logger } = require('../src/logger');
 
 test('agent decrypts the hybrid registration envelope', () => {
@@ -83,4 +83,21 @@ test('public bridge status exposes diagnostics without credentials or cookies', 
   assert.equal('login' in status, false);
   assert.equal('password' in status, false);
   assert.equal('cookies' in status, false);
+});
+
+
+test('read-only self probe starts only when the browser transport is online and stale', () => {
+  const now = Date.parse('2026-10-15T01:30:00.000Z');
+  assert.equal(shouldSelfProbe({ checkedAt: null }, { browserTransportOnline: true }, now), true);
+  assert.equal(shouldSelfProbe({ checkedAt: null }, { browserTransportOnline: false }, now), false);
+  assert.equal(shouldSelfProbe(
+    { checkedAt: '2026-10-15T01:29:00.000Z' },
+    { browserTransportOnline: true },
+    now
+  ), false);
+  assert.equal(shouldSelfProbe(
+    { checkedAt: '2026-10-15T01:20:00.000Z' },
+    { browserTransportOnline: true },
+    now
+  ), true);
 });
