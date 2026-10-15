@@ -240,13 +240,21 @@ class PentagramaCatalogInventory {
           const current = byKey.get(product.externalKey);
 
           if (!current) {
-            byKey.set(product.externalKey, { ...product, paths: [product.path] });
+            byKey.set(product.externalKey, {
+              ...product,
+              paths: [product.path],
+              categoryCodePaths: [product.categoryCodes]
+            });
             continue;
           }
 
           duplicateAppearances += 1;
           const pathKey = product.path.join(' > ');
-          if (!current.paths.some(item => item.join(' > ') === pathKey)) current.paths.push(product.path);
+          if (!current.paths.some(item => item.join(' > ') === pathKey)) {
+            current.paths.push(product.path);
+            if (!Array.isArray(current.categoryCodePaths)) current.categoryCodePaths = [];
+            current.categoryCodePaths.push(product.categoryCodes);
+          }
         }
       }
 
