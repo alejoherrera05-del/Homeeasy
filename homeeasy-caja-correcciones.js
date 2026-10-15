@@ -10,6 +10,8 @@
     let query = '';
     let limit = 40;
     let busy = false;
+    let moreObserver = null;
+    let moreBusy = false;
     let toolbar;
     let countLabel;
     const canWrite = () => Boolean(global.HomeEasyAuth && global.HomeEasyAuth.hasPermission('caja.write'));
@@ -45,17 +47,38 @@
         const needle = normalize(query);
         return rows.filter(tx => !needle || normalize([tx.titulo, tx.cat, tx.descripcion, tx.id].join(' ')).includes(needle));
     }
+    function showMore() {
+        if (moreBusy || !latest || !token() || filteredFeed().length <= limit) return;
+        moreBusy = true;
+        if (moreObserver) { moreObserver.disconnect(); moreObserver = null; }
+        const button = container.querySelector('.caja-more');
+        if (button) {
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+            button.innerHTML = '<i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Cargando movimientos…';
+        }
+        const expected = latest;
+        const expectedView = view;
+        const expectedQuery = query;
+        global.requestAnimationFrame(() => {
+            moreBusy = false;
+            if (latest !== expected || view !== expectedView || query !== expectedQuery || !token()) return;
+            limit += 40;
+            paint();
+        });
+    }
     function paint() {
+        if (moreObserver) { moreObserver.disconnect(); moreObserver = null; }
         if (!latest) return;
         const rows = filteredFeed();
         const visible = rows.slice(0, limit);
         originalRender({ ...latest, feed: visible });
-        countLabel.textContent = rows.length ? `${Math.min(limit, rows.length)} de ${rows.length} movimientos` : 'No hay movimientos que coincidan.';
+        if (countLabel && latest.correccionesCajaVersion === 1) countLabel.textContent = rows.length ? `${Math.min(limit, rows.length)} de ${rows.length} movimientos` : 'No hay movimientos que coincidan.';
         if (!rows.length) container.replaceChildren(element('p', 'caja-empty', view === 'eliminados' ? 'No hay movimientos eliminados que coincidan.' : 'No hay movimientos que coincidan con la búsqueda.'));
         const items = container.querySelectorAll('.transaction-item');
         visible.forEach((tx, index) => {
             const row = items[index];
-            if (!row || !tx.manual || !tx.revision) return;
+            if (!row || latest.correccionesCajaVersion !== 1 || !tx.manual || !tx.revision) return;
             row.classList.add('caja-manual-row');
             if (tx.eliminado) {
                 row.classList.add('caja-deleted-row');
@@ -70,7 +93,15 @@
         });
         if (rows.length > limit) {
             const more = element('button', 'caja-more', 'Mostrar más movimientos'); more.type = 'button';
-            more.addEventListener('click', () => { limit += 40; paint(); }); container.append(more);
+            more.setAttribute('aria-label', 'Ver movimientos anteriores');
+            more.addEventListener('click', showMore);
+            container.append(more);
+            if (typeof global.IntersectionObserver === 'function') {
+                moreObserver = new global.IntersectionObserver(entries => {
+                    if (entries.some(entry => entry.isIntersecting)) showMore();
+                }, { rootMargin: '0px 0px 160px 0px' });
+                moreObserver.observe(more);
+            }
         }
     }
     function closeActionSheet() {
@@ -254,11 +285,17 @@
         } else if (trigger && trigger.isConnected) trigger.focus();
     }
     global.renderCaja = function (data) {
-        if (data.correccionesCajaVersion !== 1) { latest = null; if (toolbar) toolbar.hidden = true; originalRender(data); return; }
+        if (data.correccionesCajaVersion !== 1) {
+            latest = data; view = 'recientes'; query = ''; limit = 40;
+            if (toolbar) toolbar.hidden = true;
+            paint();
+            return;
+        }
         latest = data; buildToolbar(); toolbar.hidden = false; paint();
     };
     global.lockCaja = async function () {
-        latest = null; query = ''; view = 'recientes'; limit = 40;
+        latest = null; query = ''; view = 'recientes'; limit = 40; moreBusy = false;
+        if (moreObserver) { moreObserver.disconnect(); moreObserver = null; }
         if (toolbar) { toolbar.remove(); toolbar = null; }
         return originalLock.apply(this, arguments);
     };
