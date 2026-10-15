@@ -41,6 +41,73 @@ function operationContext(req) {
   };
 }
 
+
+function publicInventorySummary(inventory) {
+  const products = Array.isArray(inventory && inventory.products) ? inventory.products : [];
+  const families = new Map();
+
+  for (const product of products) {
+    const key = String(product && product.externalKey || [
+      product && product.productCode,
+      product && product.groupCode,
+      product && product.associationGroup
+    ].map(value => String(value || '').trim().toUpperCase()).join('|'));
+
+    const paths = Array.isArray(product && product.paths) && product.paths.length
+      ? product.paths
+      : [product && product.path];
+
+    const names = new Set(
+      paths
+        .filter(Array.isArray)
+        .map(path => String(path[0] || '').trim())
+        .filter(Boolean)
+    );
+
+    for (const name of names) {
+      const normalizedName = name.toUpperCase();
+      if (!families.has(normalizedName)) {
+        families.set(normalizedName, {
+          family: name,
+          keys: new Set(),
+          renuevaKeys: new Set()
+        });
+      }
+      const item = families.get(normalizedName);
+      item.keys.add(key);
+      if (isRenueva(product)) item.renuevaKeys.add(key);
+    }
+  }
+
+  const familyList = [...families.values()]
+    .map(item => ({
+      family: item.family,
+      products: item.keys.size,
+      renueva: item.renuevaKeys.size,
+      eligibleProducts: item.keys.size - item.renuevaKeys.size
+    }))
+    .sort((a, b) => b.products - a.products || a.family.localeCompare(b.family));
+
+  const findFamily = name => familyList.find(item => String(item.family).trim().toUpperCase() === name) || null;
+
+  return {
+    checkedAt: inventory && inventory.checkedAt || new Date().toISOString(),
+    counts: {
+      roots: Number(inventory && inventory.counts && inventory.counts.roots || inventory && inventory.roots || 0),
+      leaves: Number(inventory && inventory.counts && inventory.counts.leaves || inventory && inventory.leaves || 0),
+      products: Number(inventory && inventory.counts && inventory.counts.products || products.length),
+      requests: Number(inventory && inventory.requests || 0),
+      duplicateAppearances: Number(inventory && inventory.counts && inventory.counts.duplicateAppearances || inventory && inventory.duplicateAppearances || 0),
+      skippedWithoutCode: Number(inventory && inventory.counts && inventory.counts.skippedWithoutCode || inventory && inventory.skippedWithoutCode || 0)
+    },
+    families: familyList,
+    critical: {
+      ring: findFamily('CORTINA RING'),
+      enrollable: findFamily('ENROLLABLE')
+    }
+  };
+}
+
 class PentagramaPhase2 {
   constructor(options = {}) {
     this.pricing = options.pricing;
@@ -59,6 +126,20 @@ class PentagramaPhase2 {
     const operation = this.store.operation('scan', actor);
     setImmediate(() => this.runScan(operation.id, context).catch(error => this.fail(operation.id, error)));
     return operation;
+  }
+
+  startInventory(actor) {
+    const operation = this.store.operation('inventory', actor);
+    setImmediate(() => this.runInventory(operation.id).catch(error => this.fail(operation.id, error)));
+    return operation;
+  }
+
+  async runInventory(operationId) {
+    this.store.updateOperation(operationId, { state: 'running', stage: 'READING_PENTAGRAMA' });
+    const inventory = await this.fullCatalogInventory();
+    const result = publicInventorySummary(inventory);
+    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result });
+    return result;
   }
 
   validationCases(mapping) {
@@ -874,4 +955,4 @@ class PentagramaPhase2 {
   }
 }
 
-module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, SCAN_MAX_AGE_MS });
+module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, publicInventorySummary, SCAN_MAX_AGE_MS });
