@@ -27,6 +27,84 @@ function operationContext(req) {
   };
 }
 
+
+function publicInventorySummary(inventory) {
+  const products = Array.isArray(inventory && inventory.products) ? inventory.products : [];
+  const families = new Map();
+
+  const renueva = product => {
+    const paths = Array.isArray(product && product.paths) && product.paths.length
+      ? product.paths
+      : [product && product.path];
+    const text = [
+      product && product.name,
+      ...paths.filter(Array.isArray).flat()
+    ].map(value => String(value || '')).join(' ').toUpperCase();
+    return /\bRENUEVA\b/.test(text);
+  };
+
+  for (const product of products) {
+    const key = String(product && product.externalKey || [
+      product && product.productCode,
+      product && product.groupCode,
+      product && product.associationGroup
+    ].map(value => String(value || '').trim().toUpperCase()).join('|'));
+
+    const paths = Array.isArray(product && product.paths) && product.paths.length
+      ? product.paths
+      : [product && product.path];
+
+    const familyNames = new Set(
+      paths
+        .filter(Array.isArray)
+        .map(path => String(path[0] || '').trim())
+        .filter(Boolean)
+    );
+
+    for (const familyName of familyNames) {
+      const normalizedName = familyName.toUpperCase();
+      if (!families.has(normalizedName)) {
+        families.set(normalizedName, {
+          family: familyName,
+          keys: new Set(),
+          renuevaKeys: new Set()
+        });
+      }
+      const entry = families.get(normalizedName);
+      entry.keys.add(key);
+      if (renueva(product)) entry.renuevaKeys.add(key);
+    }
+  }
+
+  const familyList = [...families.values()]
+    .map(entry => ({
+      family: entry.family,
+      products: entry.keys.size,
+      renueva: entry.renuevaKeys.size,
+      eligibleProducts: entry.keys.size - entry.renuevaKeys.size
+    }))
+    .sort((a, b) => b.products - a.products || a.family.localeCompare(b.family));
+
+  const findFamily = name => familyList.find(item => String(item.family).trim().toUpperCase() === name) || null;
+
+  return {
+    checkedAt: inventory && inventory.checkedAt || new Date().toISOString(),
+    counts: {
+      roots: Number(inventory && inventory.counts && inventory.counts.roots || inventory && inventory.roots || 0),
+      leaves: Number(inventory && inventory.counts && inventory.counts.leaves || inventory && inventory.leaves || 0),
+      products: Number(inventory && inventory.counts && inventory.counts.products || products.length),
+      requests: Number(inventory && inventory.requests || 0),
+      duplicateAppearances: Number(inventory && inventory.counts && inventory.counts.duplicateAppearances || inventory && inventory.duplicateAppearances || 0),
+      skippedWithoutCode: Number(inventory && inventory.counts && inventory.counts.skippedWithoutCode || inventory && inventory.skippedWithoutCode || 0)
+    },
+    families: familyList,
+    critical: {
+      ring: findFamily('CORTINA RING'),
+      enrollable: findFamily('ENROLLABLE')
+    }
+  };
+}
+
 class PentagramaPhase2 {
   constructor(options = {}) {
     this.pricing = options.pricing;
@@ -42,6 +120,23 @@ class PentagramaPhase2 {
     const operation = this.store.operation('scan', actor);
     setImmediate(() => this.runScan(operation.id, context).catch(error => this.fail(operation.id, error)));
     return operation;
+  }
+
+  startInventory(actor) {
+    const operation = this.store.operation('inventory', actor);
+    setImmediate(() => this.runInventory(operation.id).catch(error => this.fail(operation.id, error)));
+    return operation;
+  }
+
+  async runInventory(operationId) {
+    this.store.updateOperation(operationId, { state: 'running', stage: 'READING_PENTAGRAMA' });
+    if (!this.gateway || typeof this.gateway.dispatch !== 'function') {
+      throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
+    }
+    const inventory = await this.gateway.dispatch('catalogInventory', {}, { lockKey: 'catalog-inventory:full' });
+    const result = publicInventorySummary(inventory);
+    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result });
+    return result;
   }
 
   validationCases(mapping) {
@@ -219,4 +314,4 @@ class PentagramaPhase2 {
   }
 }
 
-module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, SCAN_MAX_AGE_MS });
+module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, publicInventorySummary, SCAN_MAX_AGE_MS });
