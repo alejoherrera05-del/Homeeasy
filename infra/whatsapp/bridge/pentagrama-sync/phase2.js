@@ -114,6 +114,7 @@ class PentagramaPhase2 {
     this.gateway = options.gateway;
     this.mappings = options.mappings || INITIAL_MAPPINGS;
     this.certificationRegistry = options.certificationRegistry || DEFAULT_CERTIFICATION_REGISTRY;
+    this.inventoryOptions = options.inventoryOptions || {};
     this.store = options.store || new Phase2Store(options);
   }
 
@@ -149,6 +150,7 @@ class PentagramaPhase2 {
     }
 
     const inventoryReader = new PentagramaCatalogInventory({
+      ...this.inventoryOptions,
       gateway: this.gateway,
       onProgress: async progress => {
         this.store.updateOperation(operationId, {
