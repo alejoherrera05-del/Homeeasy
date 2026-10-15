@@ -16,6 +16,29 @@ const { CatalogCertifier, isRing, isRenueva, referenceName, sourceRowValues } = 
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
 
+function normalizedRootName(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
+}
+
+function homeEasyRelevantRoot(root) {
+  const name = normalizedRootName(root && root.name);
+  return (
+    name === 'ENROLLABLE' ||
+    name === 'ENROLLABLES' ||
+    name.includes('CORTINA RING') ||
+    name.includes('ONDA SERENA') ||
+    name.includes('SHEER') ||
+    name.includes('VERTESSE') ||
+    name.includes('PANEL JAPONES') ||
+    name.includes('VERTICAL')
+  );
+}
+
 function certifiedLocalCandidate(scan) {
   const summary = scan && scan.localModelCandidate && scan.localModelCandidate.summary;
   return Boolean(summary &&
@@ -108,6 +131,8 @@ function publicInventorySummary(inventory) {
     checkedAt: inventory && inventory.checkedAt || new Date().toISOString(),
     counts: {
       roots: Number(inventory && inventory.counts && inventory.counts.roots || inventory && inventory.roots || 0),
+      discoveredRoots: Number(inventory && inventory.counts && inventory.counts.discoveredRoots || inventory && inventory.discoveredRoots || 0),
+      excludedRoots: Number(inventory && inventory.counts && inventory.counts.excludedRoots || inventory && inventory.excludedRoots || 0),
       leaves: Number(inventory && inventory.counts && inventory.counts.leaves || inventory && inventory.leaves || 0),
       products: Number(inventory && inventory.counts && inventory.counts.products || products.length),
       requests: Number(inventory && inventory.requests || 0),
@@ -131,7 +156,10 @@ class PentagramaPhase2 {
     this.mappings = options.mappings || INITIAL_MAPPINGS;
     this.certificationRegistry = options.certificationRegistry || DEFAULT_CERTIFICATION_REGISTRY;
     this.enrollablesRegistry = options.enrollablesRegistry || DEFAULT_ENROLLABLES_REGISTRY;
-    this.inventoryOptions = options.inventoryOptions || {};
+    this.inventoryOptions = {
+      rootFilter: homeEasyRelevantRoot,
+      ...(options.inventoryOptions || {})
+    };
     this.inventory = options.inventory || (this.gateway && typeof this.gateway.dispatch === 'function'
       ? new PentagramaCatalogInventory({ ...this.inventoryOptions, gateway: this.gateway })
       : null);
