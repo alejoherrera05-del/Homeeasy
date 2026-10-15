@@ -6,6 +6,7 @@ const { roundMoney } = require('./comparison');
 const { buildProposal, same } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
+const { PentagramaCatalogInventory } = require('./catalog-inventory');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
@@ -129,13 +130,52 @@ class PentagramaPhase2 {
   }
 
   async runInventory(operationId) {
-    this.store.updateOperation(operationId, { state: 'running', stage: 'READING_PENTAGRAMA' });
+    this.store.updateOperation(operationId, {
+      state: 'running',
+      stage: 'READING_PENTAGRAMA',
+      progress: {
+        status: 'STARTING',
+        rootsTotal: 0,
+        rootsCompleted: 0,
+        currentFamily: null,
+        requests: 0,
+        leaves: 0,
+        products: 0
+      }
+    });
+
     if (!this.gateway || typeof this.gateway.dispatch !== 'function') {
       throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
     }
-    const inventory = await this.gateway.dispatch('catalogInventory', {}, { lockKey: 'catalog-inventory:full' });
+
+    const inventoryReader = new PentagramaCatalogInventory({
+      gateway: this.gateway,
+      onProgress: async progress => {
+        this.store.updateOperation(operationId, {
+          stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_PENTAGRAMA',
+          progress
+        });
+      }
+    });
+
+    const inventory = await inventoryReader.scan();
     const result = publicInventorySummary(inventory);
-    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result });
+
+    this.store.updateOperation(operationId, {
+      state: 'completed',
+      stage: 'COMPLETED',
+      progress: {
+        status: 'COMPLETED',
+        rootsTotal: result.counts.roots,
+        rootsCompleted: result.counts.roots,
+        currentFamily: null,
+        requests: result.counts.requests,
+        leaves: result.counts.leaves,
+        products: result.counts.products
+      },
+      result
+    });
+
     return result;
   }
 
