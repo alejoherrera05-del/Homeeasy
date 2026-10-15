@@ -86,17 +86,27 @@ test('public bridge status exposes diagnostics without credentials or cookies', 
 });
 
 
-test('read-only self probe starts only when the browser transport is online and stale', () => {
+test('read-only self probe retries errors quickly and refreshes healthy sessions every five minutes', () => {
   const now = Date.parse('2026-10-15T01:30:00.000Z');
-  assert.equal(shouldSelfProbe({ checkedAt: null }, { browserTransportOnline: true }, now), true);
-  assert.equal(shouldSelfProbe({ checkedAt: null }, { browserTransportOnline: false }, now), false);
+  assert.equal(shouldSelfProbe({ status: 'unknown', checkedAt: null }, { browserTransportOnline: true }, now), true);
+  assert.equal(shouldSelfProbe({ status: 'unknown', checkedAt: null }, { browserTransportOnline: false }, now), false);
   assert.equal(shouldSelfProbe(
-    { checkedAt: '2026-10-15T01:29:00.000Z' },
+    { status: 'ready', checkedAt: '2026-10-15T01:29:00.000Z' },
     { browserTransportOnline: true },
     now
   ), false);
   assert.equal(shouldSelfProbe(
-    { checkedAt: '2026-10-15T01:20:00.000Z' },
+    { status: 'ready', checkedAt: '2026-10-15T01:20:00.000Z' },
+    { browserTransportOnline: true },
+    now
+  ), true);
+  assert.equal(shouldSelfProbe(
+    { status: 'error', checkedAt: '2026-10-15T01:29:45.000Z' },
+    { browserTransportOnline: true },
+    now
+  ), false);
+  assert.equal(shouldSelfProbe(
+    { status: 'error', checkedAt: '2026-10-15T01:29:20.000Z' },
     { browserTransportOnline: true },
     now
   ), true);
