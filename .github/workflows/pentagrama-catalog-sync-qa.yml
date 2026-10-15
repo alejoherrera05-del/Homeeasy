@@ -1,0 +1,155 @@
+name: Pentagrama Catalog Sync QA
+
+on:
+  push:
+    paths:
+      - 'apps-script/ETAPA_10B_COSTOS_PENTAGRAMA.gs'
+      - 'apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs'
+      - 'homeeasy-pentagrama-sync.js'
+      - 'homeeasy-pentagrama-sync.css'
+      - 'configuracion.html'
+      - 'infra/whatsapp/bridge/server.js'
+      - 'tests/cost-calculator-ring.cjs'
+      - 'tests/cost-calculator-enrollables.cjs'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/client.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/client.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/live-resolver.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/live-resolver.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model-learned.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-structural-profiles.json'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
+      - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
+      - 'infra/pentagrama-agent/src/agent.js'
+      - 'infra/pentagrama-agent/src/session-bridge.js'
+      - 'infra/pentagrama-agent/session-bridge-extension/background.js'
+      - 'infra/pentagrama-agent/session-bridge-extension/content.js'
+      - 'infra/pentagrama-agent/session-bridge-extension/manifest.json'
+      - 'infra/pentagrama-agent/test/agent.test.js'
+      - 'infra/pentagrama-agent/test/session-bridge.test.js'
+      - 'infra/pentagrama-agent/test/session-bridge-extension.test.js'
+      - 'infra/pentagrama-agent/build.ps1'
+      - 'infra/pentagrama-agent/installer/HomeEasyPentagramaAgent.iss'
+      - 'infra/pentagrama-agent/package.json'
+      - '.github/workflows/pentagrama-catalog-sync-qa.yml'
+  pull_request:
+    paths:
+      - 'apps-script/ETAPA_10B_COSTOS_PENTAGRAMA.gs'
+      - 'apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs'
+      - 'homeeasy-pentagrama-sync.js'
+      - 'homeeasy-pentagrama-sync.css'
+      - 'configuracion.html'
+      - 'infra/whatsapp/bridge/server.js'
+      - 'tests/cost-calculator-ring.cjs'
+      - 'tests/cost-calculator-enrollables.cjs'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/client.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/client.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/live-resolver.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/live-resolver.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/local-model-learned.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-structural-profiles.json'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
+      - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
+      - 'infra/pentagrama-agent/src/agent.js'
+      - 'infra/pentagrama-agent/src/session-bridge.js'
+      - 'infra/pentagrama-agent/session-bridge-extension/background.js'
+      - 'infra/pentagrama-agent/session-bridge-extension/content.js'
+      - 'infra/pentagrama-agent/session-bridge-extension/manifest.json'
+      - 'infra/pentagrama-agent/test/agent.test.js'
+      - 'infra/pentagrama-agent/test/session-bridge.test.js'
+      - 'infra/pentagrama-agent/test/session-bridge-extension.test.js'
+      - 'infra/pentagrama-agent/build.ps1'
+      - 'infra/pentagrama-agent/installer/HomeEasyPentagramaAgent.iss'
+      - 'infra/pentagrama-agent/package.json'
+      - '.github/workflows/pentagrama-catalog-sync-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalog-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check homeeasy-pentagrama-sync.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/catalog.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/client.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/live-resolver.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/local-model.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/phase2.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/index.js
+          node --check infra/whatsapp/bridge/pentagrama-agents/gateway.js
+          node --check infra/pentagrama-agent/src/agent.js
+          node --check infra/pentagrama-agent/src/session-bridge.js
+          node --check infra/pentagrama-agent/session-bridge-extension/background.js
+          node --check infra/pentagrama-agent/session-bridge-extension/content.js
+          cp apps-script/ETAPA_10B_COSTOS_PENTAGRAMA.gs /tmp/ETAPA_10B_COSTOS_PENTAGRAMA.js
+          cp apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs /tmp/ETAPA_10C_PENTAGRAMA_SYNC.js
+          node --check /tmp/ETAPA_10B_COSTOS_PENTAGRAMA.js
+          node --check /tmp/ETAPA_10C_PENTAGRAMA_SYNC.js
+      - name: Pentagrama browser client tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/client.test.js
+      - name: Catalog inventory tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.test.js
+      - name: Catalog binding tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-bindings.test.js
+      - name: Catalog certifier tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/catalog-certifier.test.js
+      - name: Live resolver tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/live-resolver.test.js
+      - name: Enrollables local model tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/local-model.test.js
+      - name: Learned Enrollables model tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/local-model-learned.test.js
+      - name: Phase 2 tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/phase2.test.js
+      - name: Inventory route read-only test
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js
+      - name: Agent tests
+        run: node --test infra/pentagrama-agent/test/agent.test.js
+      - name: Session Bridge tests
+        run: node --test infra/pentagrama-agent/test/session-bridge.test.js infra/pentagrama-agent/test/session-bridge-extension.test.js
+      - name: Agent package consistency
+        run: |
+          node -e "const p=require('./infra/pentagrama-agent/package.json');const fs=require('fs');const s=fs.readFileSync('./infra/pentagrama-agent/installer/HomeEasyPentagramaAgent.iss','utf8');if(!s.includes('#define AgentVersion \\\"'+p.version+'\\\"'))process.exit(1);"
+          grep -q "session-bridge-extension" infra/pentagrama-agent/build.ps1
+      - name: Existing cotizador Ring regression
+        run: node tests/cost-calculator-ring.cjs
+      - name: Existing Enrollables calculator regression
+        run: node tests/cost-calculator-enrollables.cjs
