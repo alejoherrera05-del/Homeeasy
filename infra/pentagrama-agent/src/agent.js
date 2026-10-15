@@ -127,7 +127,7 @@ const CATALOG_OPERATIONS = Object.freeze({
 async function runJob(job, sync) {
   if (!job || !['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(job.type)) throw Object.assign(new Error('Job type is not allowed'), { code: 'AGENT_JOB_NOT_ALLOWED' });
   if (job.type === 'health') {
-    await sync.client.get('/Order/GetJsonCategoryList');
+    await sync.client.get('/Order/GetJsonCategoryList', { level: 1 });
     return { ok: true, checkedAt: new Date().toISOString() };
   }
   const payload = job.payload && typeof job.payload === 'object' ? job.payload : {};
