@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot']);
+const MIN_AGENT_VERSION = '1.5.3';
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_TIMEOUT',
@@ -23,6 +24,28 @@ function sha256(value) {
   return crypto.createHash('sha256').update(String(value || '')).digest('hex');
 }
 
+function versionParts(value) {
+  return String(value || '').split('.').map(part => {
+    const match = String(part).match(/^\d+/);
+    return match ? Number(match[0]) : 0;
+  }).slice(0, 3).concat([0, 0, 0]).slice(0, 3);
+}
+
+function versionAtLeast(value, minimum = MIN_AGENT_VERSION) {
+  const current = versionParts(value);
+  const target = versionParts(minimum);
+  for (let index = 0; index < 3; index += 1) {
+    if (current[index] > target[index]) return true;
+    if (current[index] < target[index]) return false;
+  }
+  return true;
+}
+
+function agentSupportsJob(agent, type) {
+  if (!ALLOWED_JOBS.has(type)) return false;
+  return versionAtLeast(agent && agent.version, MIN_AGENT_VERSION);
+}
+
 function publicAgent(agent, now = Date.now(), onlineMs = 45000) {
   const lastSeenMs = Date.parse(agent.lastSeen || '') || 0;
   return {
@@ -35,7 +58,9 @@ function publicAgent(agent, now = Date.now(), onlineMs = 45000) {
     lastSeen: agent.lastSeen,
     online: now - lastSeenMs <= onlineMs,
     lastJob: agent.lastJob || null,
-    pentagrama: agent.pentagrama || { status: 'unknown' }
+    pentagrama: agent.pentagrama || { status: 'unknown' },
+    compatible: versionAtLeast(agent.version, MIN_AGENT_VERSION),
+    minimumVersion: MIN_AGENT_VERSION
   };
 }
 
@@ -210,11 +235,24 @@ class PentagramaAgentGateway {
     return { ok: true };
   }
 
-  onlineAgents(excluded = new Set()) {
+  onlineAgents(excluded = new Set(), type = null) {
     const now = Date.now();
     return Array.from(this.agents.values())
-      .filter(agent => !excluded.has(agent.installationId) && now - (Date.parse(agent.lastSeen || '') || 0) <= this.onlineMs)
-      .sort((a, b) => (Date.parse(a.lastJob && a.lastJob.at || '') || 0) - (Date.parse(b.lastJob && b.lastJob.at || '') || 0));
+      .filter(agent =>
+        !excluded.has(agent.installationId) &&
+        now - (Date.parse(agent.lastSeen || '') || 0) <= this.onlineMs &&
+        (!type || agentSupportsJob(agent, type))
+      )
+      .sort((a, b) => {
+        const readyA = String(a.pentagrama && a.pentagrama.status || '') === 'ready' ? 1 : 0;
+        const readyB = String(b.pentagrama && b.pentagrama.status || '') === 'ready' ? 1 : 0;
+        if (readyA !== readyB) return readyB - readyA;
+
+        if (versionAtLeast(a.version, b.version) && !versionAtLeast(b.version, a.version)) return -1;
+        if (versionAtLeast(b.version, a.version) && !versionAtLeast(a.version, b.version)) return 1;
+
+        return (Date.parse(a.lastJob && a.lastJob.at || '') || 0) - (Date.parse(b.lastJob && b.lastJob.at || '') || 0);
+      });
   }
 
   runOnAgent(agent, type, payload) {
@@ -252,9 +290,11 @@ class PentagramaAgentGateway {
   async _dispatch(type, payload) {
     const excluded = new Set();
     let lastError;
-    while (excluded.size < 2) {
-      const agent = this.onlineAgents(excluded)[0];
+
+    while (true) {
+      const agent = this.onlineAgents(excluded, type)[0];
       if (!agent) break;
+
       excluded.add(agent.installationId);
       try {
         return await this.runOnAgent(agent, type, payload);
@@ -264,9 +304,27 @@ class PentagramaAgentGateway {
         if (!infrastructure) throw error;
       }
     }
+
     if (lastError) throw Object.assign(lastError, { statusCode: 503 });
+
+    const online = this.onlineAgents(new Set());
+    if (online.length) {
+      throw Object.assign(
+        new Error(`No compatible Pentagrama Agent is online. Minimum version: ${MIN_AGENT_VERSION}`),
+        { statusCode: 503, code: 'AGENT_INCOMPATIBLE', infrastructure: true, minimumVersion: MIN_AGENT_VERSION }
+      );
+    }
+
     throw Object.assign(new Error('No Pentagrama Agent is online'), { statusCode: 503, code: 'AGENT_OFFLINE', infrastructure: true });
   }
 }
 
-module.exports = Object.freeze({ PentagramaAgentGateway, ALLOWED_JOBS, INFRASTRUCTURE_CODES, publicAgent });
+module.exports = Object.freeze({
+  PentagramaAgentGateway,
+  ALLOWED_JOBS,
+  INFRASTRUCTURE_CODES,
+  MIN_AGENT_VERSION,
+  versionAtLeast,
+  agentSupportsJob,
+  publicAgent
+});
