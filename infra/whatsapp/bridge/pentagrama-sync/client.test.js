@@ -79,3 +79,21 @@ test('browser transport preserves POST JSON payloads without leaking a synthetic
   assert.equal(requestSeen.headers['Content-Type'], 'application/json; charset=UTF-8');
   assert.equal('Cookie' in requestSeen.headers, false);
 });
+
+
+test('generic Pentagrama HTML 500 is an upstream error, not proof of expired session', async () => {
+  const client = new PentagramaClient({
+    auth: fakeAuth(),
+    browserTransport: async request => ({
+      status: 500,
+      url: request.url,
+      headers: { 'content-type': 'text/html' },
+      text: '<html><body>Server error: missing parameter</body></html>'
+    })
+  });
+
+  await assert.rejects(
+    () => client.get('/Order/GetJsonCategoryList', { level: 1 }),
+    error => error && error.code === 'PENTAGRAMA_UNEXPECTED_RESPONSE'
+  );
+});
