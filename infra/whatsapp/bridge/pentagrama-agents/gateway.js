@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice']);
+const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot']);
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_TIMEOUT',
@@ -49,6 +49,7 @@ class PentagramaAgentGateway {
     this.baseUrl = String(options.baseUrl || process.env.PENTAGRAMA_BASE_URL || 'https://pedidos.persianaspentagrama.com');
     this.onlineMs = Math.max(15000, Number(options.onlineMs || 45000));
     this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || 45000));
+    this.catalogInventoryJobTimeoutMs = Math.max(this.jobTimeoutMs, Number(options.catalogInventoryJobTimeoutMs || 15 * 60 * 1000));
     this.pollTimeoutMs = Math.max(5000, Number(options.pollTimeoutMs || 25000));
     this.latestVersion = String(options.latestVersion || process.env.PENTAGRAMA_AGENT_LATEST_VERSION || '1.0.0');
     this.agents = new Map();
@@ -231,10 +232,11 @@ class PentagramaAgentGateway {
       this.jobs.set(id, job);
       const pending = this.pendingPolls.get(agent.installationId);
       if (pending) pending({ ok: true, job: this.takeJob(agent) });
+      const timeoutMs = ['catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(type) ? this.catalogInventoryJobTimeoutMs : this.jobTimeoutMs;
       timer = setTimeout(() => {
         this.jobs.delete(id);
         reject(Object.assign(new Error('Pentagrama Agent timed out'), { code: 'AGENT_TIMEOUT', infrastructure: true }));
-      }, this.jobTimeoutMs);
+      }, timeoutMs);
     });
   }
 
