@@ -1,0 +1,97 @@
+name: Pentagrama Inventory Readonly QA
+
+on:
+  push:
+    branches:
+      - feat/pentagrama-inventory-readonly
+    paths:
+      - 'infra/whatsapp/bridge/server.js'
+      - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
+      - 'infra/whatsapp/bridge/pentagrama-agents/gateway.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2-store.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/inventory-operation.test.js'
+      - '.github/workflows/pentagrama-inventory-readonly-qa.yml'
+  pull_request:
+    paths:
+      - 'infra/whatsapp/bridge/server.js'
+      - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
+      - 'infra/whatsapp/bridge/pentagrama-agents/gateway.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2-store.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/inventory-operation.test.js'
+      - '.github/workflows/pentagrama-inventory-readonly-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory-readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax checks
+        run: |
+          node --check infra/whatsapp/bridge/server.js
+          node --check infra/whatsapp/bridge/pentagrama-agents/gateway.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/phase2.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/phase2-store.js
+
+      - name: Agent gateway tests
+        run: node --test infra/whatsapp/bridge/pentagrama-agents/gateway.test.js
+
+      - name: Phase 2 tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/phase2.test.js infra/whatsapp/bridge/pentagrama-sync/inventory-operation.test.js
+
+      - name: Read-only route tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js
+
+      - name: Security boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          server = Path('infra/whatsapp/bridge/server.js').read_text(encoding='utf-8')
+          phase2 = Path('infra/whatsapp/bridge/pentagrama-sync/phase2.js').read_text(encoding='utf-8')
+          gateway = Path('infra/whatsapp/bridge/pentagrama-agents/gateway.js').read_text(encoding='utf-8')
+
+          route = "if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/catalog-inventory')"
+          start = server.index(route)
+          block = server[start:start + 800]
+
+          assert "auth.authorize(req, 'config.read')" in block
+          assert 'startInventory' in block
+          assert 'startApply' not in block
+          assert 'rollback' not in block
+          assert "const BRIDGE_VERSION = '0.16.2'" in server
+
+          assert "this.store.operation('inventory', actor)" in phase2
+          assert 'new PentagramaCatalogInventory' in phase2
+          assert "stage: 'COMPLETED'" in phase2
+          assert "stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_PENTAGRAMA'" in phase2
+
+          assert "'catalogInventory'" not in gateway
+          assert 'catalogInventoryJobTimeoutMs' not in gateway
+          print('Pentagrama progressive inventory read-only boundary: PASS')
+          PY
+
+      - name: Diff hygiene
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          git diff --check origin/main...HEAD
