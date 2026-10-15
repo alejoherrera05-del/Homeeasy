@@ -7,6 +7,7 @@ const { buildProposal, same } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
 const { PentagramaCatalogInventory } = require('./catalog-inventory');
+const { PentagramaEnrollablesAudit } = require('./enrollables-audit');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
@@ -128,6 +129,62 @@ class PentagramaPhase2 {
     const operation = this.store.operation('inventory', actor);
     setImmediate(() => this.runInventory(operation.id).catch(error => this.fail(operation.id, error)));
     return operation;
+  }
+
+  startEnrollablesAudit(actor) {
+    const operation = this.store.operation('enrollablesAudit', actor);
+    setImmediate(() => this.runEnrollablesAudit(operation.id).catch(error => this.fail(operation.id, error)));
+    return operation;
+  }
+
+  async runEnrollablesAudit(operationId) {
+    this.store.updateOperation(operationId, {
+      state: 'running',
+      stage: 'READING_ENROLLABLES',
+      progress: {
+        status: 'STARTING',
+        groupsTotal: 0,
+        groupsCompleted: 0,
+        currentGroup: null,
+        requests: 0,
+        leaves: 0,
+        products: 0
+      }
+    });
+
+    if (!this.gateway || typeof this.gateway.dispatch !== 'function') {
+      throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
+    }
+
+    const audit = new PentagramaEnrollablesAudit({
+      ...this.inventoryOptions,
+      gateway: this.gateway,
+      onProgress: async progress => {
+        this.store.updateOperation(operationId, {
+          stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_ENROLLABLES',
+          progress
+        });
+      }
+    });
+
+    const result = await audit.run();
+
+    this.store.updateOperation(operationId, {
+      state: 'completed',
+      stage: 'COMPLETED',
+      progress: {
+        status: 'COMPLETED',
+        groupsTotal: result.live.categoryGroups,
+        groupsCompleted: result.live.categoryGroups,
+        currentGroup: null,
+        requests: result.live.requests,
+        leaves: result.live.leaves,
+        products: result.live.uniqueIdentities
+      },
+      result
+    });
+
+    return result;
   }
 
   async runInventory(operationId) {
