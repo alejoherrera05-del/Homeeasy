@@ -449,3 +449,84 @@ test('generic catalog audit does not classify extra Enrollables color SKUs as ne
   assert.equal(Number(audit.counts.DISCONTINUED || 0), 0);
   assert.equal(audit.changes.length, 0);
 });
+
+
+test('quick scan checks certified prices without running deep catalog maintenance', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-quick-scan-'));
+  const store = new Phase2Store({ dataDir: directory });
+  let priceCalls = 0;
+  let deepCalls = 0;
+  const mapping = {
+    id: 'quick-onda',
+    homeeasyId: 'onda-quick',
+    family: 'Onda Serena',
+    reference: 'Quick',
+    productCode: 'Q1',
+    groupCode: '1345',
+    calculationType: 'NormalProduct',
+    width: '2',
+    height: '2',
+    quantity: 1,
+    productDiscount: 0,
+    pricingMode: 'account-discount',
+    strategy: 'RATE_M2',
+    status: 'CERTIFIED',
+    verifiedAt: '2026-10-08T00:00:00Z',
+    casesPassed: 3,
+    maxDifference: 0,
+    destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' },
+    updateField: 'Tarifa_IVA_COP',
+    special: {},
+    validationCases: [
+      { id: 'a', width: '2', height: '2', role: 'derive' },
+      { id: 'b', width: '2.4', height: '2', role: 'derive' },
+      { id: 'min', width: '1', height: '1', role: 'boundary' }
+    ]
+  };
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [mapping],
+    certificationRegistry: { products: [] },
+    enrollablesRegistry: { products: {} },
+    homeeasy: { catalog: async () => ({
+      version: 'quick-v1',
+      validThrough: '2026-12-31',
+      products: [{
+        row: 2,
+        id: 'onda-quick',
+        family: 'onda',
+        familyName: 'Onda Serena',
+        reference: 'Quick',
+        method: 'area',
+        rate: 90000,
+        minHeight: 0,
+        minArea: 0,
+        promotional: false,
+        active: true,
+        external: {}
+      }]
+    }) },
+    pricing: { supplierCost: async params => {
+      priceCalls += 1;
+      const area = Number(params.Width) * Number(params.Height);
+      return { total: area * 90000, basePrice: area * 90000, distributorDiscount: 0, productDiscount: 0, vatRate: 0 };
+    } },
+    homeeasyCost: { cost: async () => { throw new Error('unchanged quick scan must not run full HomeEasy validation'); } },
+    gateway: { dispatch: async () => { deepCalls += 1; throw new Error('quick scan must not crawl catalog'); } }
+  });
+
+  const operation = service.startQuickScan({ email: 'test@example.com' }, { serviceKey: 'test-key', deviceId: 'test-device' });
+  for (let i = 0; i < 50 && store.operationById(operation.id).state !== 'completed'; i++) {
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+
+  const completed = store.operationById(operation.id);
+  const scan = store.latestScan();
+  assert.equal(completed.state, 'completed');
+  assert.equal(scan.mode, 'quick');
+  assert.equal(scan.counts.UNCHANGED, 1);
+  assert.equal(scan.catalogAudit.mode, 'PRICE_ONLY');
+  assert.equal(scan.catalogActions.length, 0);
+  assert.equal(priceCalls, 1);
+  assert.equal(deepCalls, 0);
+});
