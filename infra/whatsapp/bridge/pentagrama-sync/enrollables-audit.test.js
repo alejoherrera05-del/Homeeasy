@@ -6,7 +6,8 @@ const baseline = require('./enrollables-live-products.json');
 const {
   PentagramaEnrollablesAudit,
   baselineSummary,
-  routeKey
+  routeKey,
+  excludedPortalRouteNames
 } = require('./enrollables-audit');
 
 function entries() {
@@ -249,4 +250,142 @@ test('a missing expected fabric route is reported as a removed reference route',
   assert.equal(result.routeComparison.missingExpectedProductsInRoute, 1);
   assert.equal(result.routeComparison.exactReferenceStructure, false);
   assert.equal(result.skuComparison.missing, 1);
+});
+
+
+test('blank Cat4 and zero Cat4 are the same logical fabric route', () => {
+  assert.equal(
+    routeKey({ Cat1: '4', Cat2: '79', Cat3: '499', Cat4: '' }),
+    routeKey({ Cat1: '4', Cat2: '79', Cat3: '499', Cat4: '0' })
+  );
+  assert.equal(
+    routeKey({ Cat1: '4', Cat2: '79', Cat3: '499', Cat4: '' }),
+    '4|79|499|0'
+  );
+});
+
+test('known portal-only Enrollables remain explicit exclusions', () => {
+  const exclusions = excludedPortalRouteNames();
+
+  assert.equal(exclusions.has('TRASLUZ|AMORE'), true);
+  assert.equal(exclusions.has('TRASLUZ|ECOSCREEN'), true);
+  assert.equal(exclusions.has('TRASLUZ|NATURA'), true);
+  assert.equal(exclusions.size, 3);
+});
+
+test('portal-only routes are reported separately and do not become HomeEasy additions', async () => {
+  const first = entries().find(item => String(item.categories && item.categories.Cat3) === '79') || entries()[0];
+
+  const exclusionRows = [
+    { Cat4: '2324', Name: 'AMORE', ProductCode: 'ENRSTDTRAMCO' },
+    { Cat4: '2325', Name: 'ECOSCREEN', ProductCode: 'ENRSTDTRECOAL' },
+    { Cat4: '2326', Name: 'NATURA', ProductCode: 'ENRSTDTRNAWHLI' }
+  ];
+
+  const originalCategory4Rows = category4Rows;
+  const originalProductRows = productRows;
+
+  const gateway = {
+    dispatch: async (type, payload) => {
+      assert.equal(type, 'catalog');
+      const params = payload.params || {};
+
+      if (payload.operation === 'categories' && params.level === 3) {
+        return category3Rows();
+      }
+
+      if (payload.operation === 'categories' && params.level === 4) {
+        const rows = originalCategory4Rows(params.Category3);
+        if (String(params.Category3) === '79') {
+          rows.push(...exclusionRows.map(item => ({ Code: item.Cat4, Name: item.Name })));
+        }
+        return rows;
+      }
+
+      if (payload.operation === 'products') {
+        const extra = exclusionRows.find(item =>
+          String(params.Category3) === '79' &&
+          String(params.Category4) === item.Cat4
+        );
+
+        if (extra) {
+          return [{
+            ProductName: extra.Name + ' sample',
+            ProductCode: extra.ProductCode,
+            GroupCode: '326',
+            GrupAsoc: 'ENRSTD',
+            CalculationType: 'NormalProduct'
+          }];
+        }
+
+        return originalProductRows(params.Category3, params.Category4);
+      }
+
+      throw new Error('unexpected audit request');
+    }
+  };
+
+  const audit = new PentagramaEnrollablesAudit({
+    gateway,
+    wait: async () => {}
+  });
+
+  const result = await audit.run();
+
+  assert.equal(result.routeComparison.addedRoutes, 0);
+  assert.equal(result.routeComparison.missingRoutes, 0);
+  assert.equal(result.routeComparison.exactReferenceStructure, true);
+  assert.equal(result.live.excludedPortalRoutes, 3);
+  assert.equal(result.live.excludedPortalSkuCount, 3);
+  assert.deepEqual(
+    result.exclusions.portalOnlyRoutes.map(route => route.referenceName).sort(),
+    ['AMORE', 'ECOSCREEN', 'NATURA']
+  );
+});
+
+test('live Lona with blank Cat4 matches baseline Lona stored as Cat4 zero', async () => {
+  const gateway = {
+    dispatch: async (type, payload) => {
+      assert.equal(type, 'catalog');
+      const params = payload.params || {};
+
+      if (payload.operation === 'categories' && params.level === 3) {
+        return category3Rows();
+      }
+
+      if (payload.operation === 'categories' && params.level === 4) {
+        const rows = category4Rows(params.Category3);
+        if (String(params.Category3) === '499') {
+          return rows.map(row =>
+            String(row.Code) === '0'
+              ? { Code: '', Name: row.Name }
+              : row
+          );
+        }
+        return rows;
+      }
+
+      if (payload.operation === 'products') {
+        const cat4 = String(params.Category4 || '');
+        if (String(params.Category3) === '499' && cat4 === '') {
+          return productRows('499', '0');
+        }
+        return productRows(params.Category3, params.Category4);
+      }
+
+      throw new Error('unexpected audit request');
+    }
+  };
+
+  const audit = new PentagramaEnrollablesAudit({
+    gateway,
+    wait: async () => {}
+  });
+
+  const result = await audit.run();
+
+  assert.equal(result.routeComparison.presentRoutes, 278);
+  assert.equal(result.routeComparison.addedRoutes, 0);
+  assert.equal(result.routeComparison.missingRoutes, 0);
+  assert.equal(result.routeComparison.exactReferenceStructure, true);
 });
