@@ -118,7 +118,10 @@ class PentagramaPhase2 {
     this.mappings = options.mappings || INITIAL_MAPPINGS;
     this.certificationRegistry = options.certificationRegistry || DEFAULT_CERTIFICATION_REGISTRY;
     this.enrollablesRegistry = options.enrollablesRegistry || DEFAULT_ENROLLABLES_REGISTRY;
-    this.inventory = options.inventory || (this.gateway && typeof this.gateway.dispatch === 'function' ? new PentagramaCatalogInventory({ gateway: this.gateway }) : null);
+    this.inventoryOptions = options.inventoryOptions || {};
+    this.inventory = options.inventory || (this.gateway && typeof this.gateway.dispatch === 'function'
+      ? new PentagramaCatalogInventory({ ...this.inventoryOptions, gateway: this.gateway })
+      : null);
     this.catalogCertifier = options.catalogCertifier || (this.pricing && typeof this.pricing.supplierCost === 'function' ? new CatalogCertifier({ pricing: this.pricing }) : null);
     this.store = options.store || new Phase2Store(options);
   }
@@ -193,10 +196,60 @@ class PentagramaPhase2 {
 
 
   async runInventory(operationId) {
-    this.store.updateOperation(operationId, { state: 'running', stage: 'READING_PENTAGRAMA' });
-    const inventory = await this.fullCatalogInventory();
+    this.store.updateOperation(operationId, {
+      state: 'running',
+      stage: 'READING_PENTAGRAMA',
+      progress: {
+        status: 'STARTING',
+        rootsTotal: 0,
+        rootsCompleted: 0,
+        currentFamily: null,
+        requests: 0,
+        leaves: 0,
+        products: 0
+      }
+    });
+
+    if (!this.gateway || typeof this.gateway.dispatch !== 'function') {
+      throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
+    }
+
+    let inventory;
+    try {
+      inventory = await this.gateway.dispatch('catalogInventory', {}, {
+        lockKey: 'catalog-inventory:full'
+      });
+    } catch (error) {
+      if (String(error && error.code || '') !== 'AGENT_JOB_NOT_ALLOWED') throw error;
+
+      const reader = new PentagramaCatalogInventory({
+        ...this.inventoryOptions,
+        gateway: this.gateway,
+        onProgress: async progress => {
+          this.store.updateOperation(operationId, {
+            stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_PENTAGRAMA',
+            progress
+          });
+        }
+      });
+      inventory = await reader.scan();
+    }
+
     const result = publicInventorySummary(inventory);
-    this.store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED', result });
+    this.store.updateOperation(operationId, {
+      state: 'completed',
+      stage: 'COMPLETED',
+      progress: {
+        status: 'COMPLETED',
+        rootsTotal: result.counts.roots,
+        rootsCompleted: result.counts.roots,
+        currentFamily: null,
+        requests: result.counts.requests,
+        leaves: result.counts.leaves,
+        products: result.counts.products
+      },
+      result
+    });
     return result;
   }
 
