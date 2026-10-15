@@ -5,6 +5,7 @@ on:
     branches:
       - feat/pentagrama-inventory-readonly
       - feat/pentagrama-enrollables-audit
+      - feat/pentagrama-one-button-final
     paths:
       - 'infra/whatsapp/bridge/server.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
@@ -88,15 +89,17 @@ jobs:
           assert 'startInventory' in block
           assert 'startApply' not in block
           assert 'rollback' not in block
-          assert "const BRIDGE_VERSION = '0.16.5'" in server
+          assert "const BRIDGE_VERSION = '0.16.6'" in server
 
           assert "this.store.operation('inventory', actor)" in phase2
           assert 'new PentagramaCatalogInventory' in phase2
           assert "stage: 'COMPLETED'" in phase2
           assert "stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_PENTAGRAMA'" in phase2
 
-          assert "'catalogInventory'" not in gateway
-          assert 'catalogInventoryJobTimeoutMs' not in gateway
+          assert "'catalogInventory'" in gateway
+          assert 'catalogInventoryJobTimeoutMs' in gateway
+          assert "String(error && error.code || '') !== 'AGENT_JOB_NOT_ALLOWED'" in phase2
+          assert 'new PentagramaCatalogInventory' in phase2
           assert "'/api/pentagrama-sync/enrollables-audit'" in server
           assert 'startEnrollablesAudit' in phase2
           assert 'PentagramaEnrollablesAudit' in phase2
