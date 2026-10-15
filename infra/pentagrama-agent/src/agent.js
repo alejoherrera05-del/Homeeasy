@@ -109,10 +109,14 @@ function publicBridgeStatus(sessionBridge) {
   };
 }
 
-function shouldSelfProbe(pentagrama, bridge, now = Date.now(), intervalMs = 5 * 60 * 1000) {
+function shouldSelfProbe(pentagrama, bridge, now = Date.now(), intervalMs = 5 * 60 * 1000, retryMs = 30 * 1000) {
   if (!bridge || bridge.browserTransportOnline !== true) return false;
   const last = Date.parse(String(pentagrama && pentagrama.checkedAt || ''));
-  return !Number.isFinite(last) || (now - last) >= intervalMs;
+  if (!Number.isFinite(last)) return true;
+  const age = now - last;
+  return String(pentagrama && pentagrama.status || 'unknown') === 'ready'
+    ? age >= intervalMs
+    : age >= retryMs;
 }
 
 const CATALOG_OPERATIONS = Object.freeze({
