@@ -20,7 +20,7 @@ test('catalog inventory endpoint is read-only and asynchronous', () => {
 });
 
 test('bridge version identifies the inventory-readonly deployment', () => {
-  assert.match(server, /const BRIDGE_VERSION = '0\.16\.3';/);
+  assert.match(server, /const BRIDGE_VERSION = '0\.16\.4';/);
 });
 
 
