@@ -298,11 +298,115 @@ class PentagramaCatalogInventory {
   }
 }
 
+function bindingExternalKey(binding) {
+  if (binding && binding.externalKey) return String(binding.externalKey);
+  return externalKey(binding || {});
+}
+
+function compareInventory(bindings, inventoryProducts, options = {}) {
+  const bound = Array.isArray(bindings) ? bindings : [];
+  const live = Array.isArray(inventoryProducts) ? inventoryProducts : [];
+  const liveByKey = new Map(live.filter(item => item && item.externalKey).map(item => [item.externalKey, item]));
+  const boundByKey = new Map(bound.map(item => [bindingExternalKey(item), item]).filter(([key]) => key));
+  const liveByProductCode = new Map();
+  const boundByProductCode = new Map();
+
+  for (const item of live) {
+    const code = normalizeCode(item && item.productCode);
+    if (!code) continue;
+    if (!liveByProductCode.has(code)) liveByProductCode.set(code, []);
+    liveByProductCode.get(code).push(item);
+  }
+  for (const item of bound) {
+    const code = normalizeCode(item && item.productCode);
+    if (!code) continue;
+    if (!boundByProductCode.has(code)) boundByProductCode.set(code, []);
+    boundByProductCode.get(code).push(item);
+  }
+
+  const results = [];
+  const consumedBindings = new Set();
+
+  for (const liveItem of live) {
+    const binding = boundByKey.get(liveItem.externalKey);
+    if (binding) {
+      consumedBindings.add(binding);
+      const oldName = cleanText(binding.reference || binding.name);
+      const newName = cleanText(typeof options.nameResolver === 'function' ? options.nameResolver(liveItem, binding) : liveItem.name);
+      results.push({
+        status: oldName && newName && oldName !== newName ? 'RENAMED' : 'PRESENT',
+        externalKey: liveItem.externalKey,
+        homeeasyId: binding.homeeasyId || binding.id || '',
+        productCode: liveItem.productCode,
+        oldName,
+        newName,
+        live: liveItem,
+        binding
+      });
+      continue;
+    }
+
+    const sameCodeBindings = boundByProductCode.get(normalizeCode(liveItem.productCode)) || [];
+    const unmatchedSameCode = sameCodeBindings.filter(item => !consumedBindings.has(item));
+    if (unmatchedSameCode.length === 1 && (liveByProductCode.get(normalizeCode(liveItem.productCode)) || []).length === 1) {
+      const structuralBinding = unmatchedSameCode[0];
+      consumedBindings.add(structuralBinding);
+      results.push({
+        status: 'STRUCTURE_CHANGED',
+        externalKey: liveItem.externalKey,
+        previousExternalKey: bindingExternalKey(structuralBinding),
+        homeeasyId: structuralBinding.homeeasyId || structuralBinding.id || '',
+        productCode: liveItem.productCode,
+        oldName: cleanText(structuralBinding.reference || structuralBinding.name),
+        newName: cleanText(typeof options.nameResolver === 'function' ? options.nameResolver(liveItem, structuralBinding) : liveItem.name),
+        live: liveItem,
+        binding: structuralBinding
+      });
+      continue;
+    }
+
+    results.push({
+      status: 'NEW',
+      externalKey: liveItem.externalKey,
+      homeeasyId: '',
+      productCode: liveItem.productCode,
+      oldName: '',
+      newName: cleanText(typeof options.nameResolver === 'function' ? options.nameResolver(liveItem, null) : liveItem.name),
+      live: liveItem,
+      binding: null
+    });
+  }
+
+  for (const binding of bound) {
+    if (consumedBindings.has(binding)) continue;
+    const key = bindingExternalKey(binding);
+    if (!key || liveByKey.has(key)) continue;
+    results.push({
+      status: binding.active === false ? 'INACTIVE_MISSING' : 'DISCONTINUED',
+      externalKey: key,
+      homeeasyId: binding.homeeasyId || binding.id || '',
+      productCode: cleanText(binding.productCode),
+      oldName: cleanText(binding.reference || binding.name),
+      newName: '',
+      live: null,
+      binding
+    });
+  }
+
+  const counts = results.reduce((acc, item) => {
+    acc[item.status] = (acc[item.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  return { counts, results };
+}
+
 module.exports = Object.freeze({
   PentagramaCatalogInventory,
   categoryView,
   productView,
   externalKey,
+  compareInventory,
   listOf,
   RETRYABLE_CODES
 });
