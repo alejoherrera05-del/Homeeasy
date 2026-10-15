@@ -89,7 +89,7 @@ jobs:
           assert 'startInventory' in block
           assert 'startApply' not in block
           assert 'rollback' not in block
-          assert "const BRIDGE_VERSION = '0.16.8'" in server
+          assert "const BRIDGE_VERSION = '0.16.9'" in server
 
           assert "this.store.operation('inventory', actor)" in phase2
           assert 'new PentagramaCatalogInventory' in phase2
@@ -98,7 +98,8 @@ jobs:
 
           assert "'catalogInventory'" in gateway
           assert 'catalogInventoryJobTimeoutMs' in gateway
-          assert "String(error && error.code || '') !== 'AGENT_JOB_NOT_ALLOWED'" in phase2
+          assert "this.gateway.dispatch('catalogInventory'" not in phase2
+          assert 'return this.inventory.scan()' in phase2
           assert 'new PentagramaCatalogInventory' in phase2
           assert "'/api/pentagrama-sync/enrollables-audit'" in server
           assert 'startEnrollablesAudit' in phase2
