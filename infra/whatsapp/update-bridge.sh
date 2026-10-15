@@ -2,10 +2,11 @@
 set -Eeuo pipefail
 
 REPO_URL="https://github.com/alejoherrera05-del/Homeeasy.git"
+SOURCE_REF="${HOMEEASY_SOURCE_REF:-main}"
 INSTALL_DIR="/opt/homeeasy-whatsapp"
 TMP_DIR="$(mktemp -d)"
 HEALTH_FILE="/tmp/homeeasy-bridge-health.json"
-EXPECTED_VERSION="0.12.0"
+EXPECTED_VERSION=""
 
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
@@ -20,8 +21,15 @@ if [[ ! -f "$INSTALL_DIR/.env" ]]; then
   exit 1
 fi
 
-echo "Descargando Bridge actualizado..."
-git clone --depth 1 "$REPO_URL" "$TMP_DIR/repo" >/dev/null 2>&1
+echo "Descargando Bridge actualizado desde $SOURCE_REF..."
+git clone --depth 1 --branch "$SOURCE_REF" "$REPO_URL" "$TMP_DIR/repo" >/dev/null 2>&1
+
+EXPECTED_VERSION="$(sed -n "s/^const BRIDGE_VERSION = '\([^']*\)';/\1/p" "$TMP_DIR/repo/infra/whatsapp/bridge/server.js" | head -n 1)"
+if [[ -z "$EXPECTED_VERSION" ]]; then
+  echo "No se pudo determinar BRIDGE_VERSION desde $SOURCE_REF."
+  exit 1
+fi
+echo "Versión esperada del Bridge: $EXPECTED_VERSION"
 
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/server.js" "$INSTALL_DIR/bridge/server.js"
 cp "$TMP_DIR/repo/infra/whatsapp/bridge/auth.js" "$INSTALL_DIR/bridge/auth.js"
@@ -76,4 +84,4 @@ if [[ "$STORAGE" != "OK" ]]; then
 fi
 
 echo
-echo "Bridge actualizado correctamente a v$EXPECTED_VERSION. Almacenamiento OK. La sesión de WhatsApp permanece intacta."
+echo "Bridge actualizado correctamente a v$EXPECTED_VERSION desde $SOURCE_REF. Almacenamiento OK. La sesión de WhatsApp permanece intacta."
