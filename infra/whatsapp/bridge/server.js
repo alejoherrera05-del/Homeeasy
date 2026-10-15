@@ -14,7 +14,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.17.2';
+const BRIDGE_VERSION = '0.18.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -917,6 +917,12 @@ async function handle(req, res) {
     const id = decodeURIComponent(url.pathname.split('/').pop());
     const scan = pentagramaPhase2.store.scan(id);
     return scan ? json(res, 200, { ok: true, scan }) : json(res, 404, { ok: false, code: 'SCAN_NOT_FOUND' });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/quick-scan') {
+    const actor = await auth.authorize(req, 'config.write');
+    const operation = pentagramaPhase2.startQuickScan(auth.publicActor(actor), pentagramaOperationContext(req));
+    return json(res, 202, { ok: true, operation });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/scan') {
