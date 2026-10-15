@@ -25,6 +25,19 @@ function certifiedLocalCandidate(scan) {
     Number(summary.monetaryExpectedSelfReferential || 0) === 0);
 }
 
+function isEnrollablesStandardProduct(product) {
+  const paths = Array.isArray(product && product.paths) && product.paths.length
+    ? product.paths
+    : [product && product.path];
+  return paths
+    .filter(Array.isArray)
+    .some(path => {
+      const family = String(path[0] || '').trim().toUpperCase();
+      const system = String(path[1] || '').trim().toUpperCase();
+      return family === 'ENROLLABLE' && /STANDARD/.test(system) && /PLATINA/.test(system);
+    });
+}
+
 function statusFor(oldCost, newCost) {
   if (!Number.isFinite(newCost)) return 'ERROR';
   if (!Number.isFinite(oldCost)) return 'NEW';
@@ -288,11 +301,13 @@ class PentagramaPhase2 {
   }
 
   inventoryAudit(sourceProducts, inventory) {
-    const bindingState = buildCatalogBindings(sourceProducts, {
-      mappings: this.mappings,
-      enrollables: this.enrollablesRegistry
+    const genericSource = (sourceProducts || []).filter(item => !ENROLLABLE_IDS.has(String(item && item.id)));
+    const genericInventory = (inventory && inventory.products || []).filter(item => !isEnrollablesStandardProduct(item));
+    const bindingState = buildCatalogBindings(genericSource, {
+      mappings: this.mappings.filter(item => !ENROLLABLE_IDS.has(String(item && item.homeeasyId))),
+      enrollables: { products: {} }
     });
-    const comparison = compareInventory(bindingState.bindings, inventory && inventory.products || [], {
+    const comparison = compareInventory(bindingState.bindings, genericInventory, {
       nameResolver: (live, binding) => {
         if ((binding && String(binding.family || '').toLowerCase() === 'ring') || isRing(live)) return referenceName(live);
         return live && live.name;
@@ -332,13 +347,15 @@ class PentagramaPhase2 {
   async buildCatalogActions(source, inventory) {
     if (!this.catalogCertifier) return [];
     const sourceProducts = Array.isArray(source && source.products) ? source.products : [];
+    const genericSource = sourceProducts.filter(item => !ENROLLABLE_IDS.has(String(item && item.id)));
+    const genericInventory = (inventory && inventory.products || []).filter(item => !isEnrollablesStandardProduct(item));
     const sourceById = new Map(sourceProducts.map(item => [String(item.id), item]));
     const sourceIds = new Set(sourceProducts.map(item => String(item.id)));
-    const bindingState = buildCatalogBindings(sourceProducts, {
-      mappings: this.mappings,
-      enrollables: this.enrollablesRegistry
+    const bindingState = buildCatalogBindings(genericSource, {
+      mappings: this.mappings.filter(item => !ENROLLABLE_IDS.has(String(item && item.homeeasyId))),
+      enrollables: { products: {} }
     });
-    const comparison = compareInventory(bindingState.bindings, inventory && inventory.products || [], {
+    const comparison = compareInventory(bindingState.bindings, genericInventory, {
       nameResolver: (live, binding) => {
         if ((binding && String(binding.family || '').toLowerCase() === 'ring') || isRing(live)) return referenceName(live);
         return live && live.name;
