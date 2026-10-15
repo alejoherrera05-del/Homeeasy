@@ -138,3 +138,34 @@ test('dispatcher returns AGENT_INCOMPATIBLE when only legacy Agents are online',
     error => error.code === 'AGENT_INCOMPATIBLE'
   );
 });
+
+
+test('active long job remains visibly online as busy even when heartbeat age exceeds online window', async () => {
+  const gateway = fixture({ onlineMs: 15, jobTimeoutMs: 1000 });
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  const pending = gateway.dispatch('catalog', { operation: 'products', params: { Category1: '4' } }, { lockKey: 'busy-visible' });
+  const delivery = gateway.takeJob(agent);
+  assert.equal(delivery.type, 'catalog');
+  agent.lastSeen = new Date(Date.now() - 60000).toISOString();
+  const status = gateway.list()[0];
+  assert.equal(status.online, true);
+  assert.equal(status.busy, true);
+  gateway.complete(agent, { jobId: delivery.id, ok: true, result: [] });
+  await pending;
+});
+
+test('stale registered compatible Agent is reported offline, not incompatible', async () => {
+  const gateway = fixture({ onlineMs: 15, jobTimeoutMs: 200 });
+  const modern = register(gateway, crypto.randomUUID(), '1.5.3', 'MODERN-OFFLINE');
+  const old = register(gateway, crypto.randomUUID(), '1.2.1', 'OLD-ONLINE');
+  const modernAgent = gateway.authenticate(modern.id, modern.token);
+  const oldAgent = gateway.authenticate(old.id, old.token);
+  modernAgent.lastSeen = new Date(Date.now() - 60000).toISOString();
+  gateway.heartbeat(oldAgent, { version: '1.2.1', pentagrama: { status: 'ready', checkedAt: null } });
+
+  await assert.rejects(
+    () => gateway.dispatch('catalog', { operation: 'categories' }, { lockKey: 'modern-stale' }),
+    error => error.code === 'AGENT_OFFLINE'
+  );
+});
