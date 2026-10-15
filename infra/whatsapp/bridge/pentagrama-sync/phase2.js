@@ -611,9 +611,59 @@ class PentagramaPhase2 {
         };
       }
     }
+
+    let enrollablesRouteAudit = null;
+    let enrollablesRouteAuditError = null;
+    if (hasEnrollables) {
+      try {
+        const routeAudit = new PentagramaEnrollablesAudit({
+          ...this.inventoryOptions,
+          gateway: this.gateway
+        });
+        enrollablesRouteAudit = await routeAudit.run();
+      } catch (error) {
+        enrollablesRouteAuditError = {
+          code: String(error && error.code || 'PENTAGRAMA_ENROLLABLES_ROUTE_AUDIT_FAILED'),
+          message: String(error && error.message || 'No se pudo validar la estructura de Enrollables.').slice(0, 300)
+        };
+      }
+    }
+
     const inventory = await this.fullCatalogInventory();
     const catalogInventoryAudit = this.inventoryAudit(source.products || [], inventory);
     const catalogActions = await this.buildCatalogActions(source, inventory);
+
+    const enrollablesCatalogChanges = [];
+    if (enrollablesRouteAudit) {
+      for (const route of enrollablesRouteAudit.deltas && enrollablesRouteAudit.deltas.addedRoutes || []) {
+        enrollablesCatalogChanges.push({
+          status: 'NEW',
+          externalKey: 'ENROLLABLE_ROUTE:' + String(route.routeKey || ''),
+          homeeasyId: '',
+          productCode: '',
+          oldName: '',
+          newName: String(route.referenceName || route.routeKey || ''),
+          family: 'Enrollable',
+          routeKey: route.routeKey,
+          productCount: route.productCount,
+          live: { path: ['ENROLLABLE', 'STANDARD/PLATINA SIN CABEZAL', route.groupName, route.referenceName].filter(Boolean) }
+        });
+      }
+      for (const route of enrollablesRouteAudit.deltas && enrollablesRouteAudit.deltas.missingRoutes || []) {
+        enrollablesCatalogChanges.push({
+          status: 'DISCONTINUED',
+          externalKey: 'ENROLLABLE_ROUTE:' + String(route.routeKey || ''),
+          homeeasyId: Array.isArray(route.homeeasyIds) ? route.homeeasyIds[0] || '' : '',
+          productCode: '',
+          oldName: Array.isArray(route.references) ? route.references[0] || route.routeKey : route.routeKey,
+          newName: '',
+          family: 'Enrollable',
+          routeKey: route.routeKey,
+          live: null
+        });
+      }
+    }
+
     const catalogSummary = {
       categories: Number(inventory && inventory.counts && inventory.counts.roots || inventory && inventory.roots || 0),
       leaves: Number(inventory && inventory.counts && inventory.counts.leaves || inventory && inventory.leaves || 0),
@@ -627,20 +677,27 @@ class PentagramaPhase2 {
     const certificationById = new Map((this.certificationRegistry.products || []).map(item => [item.homeeasyId, item]));
     if (localModelCandidate) {
       const changed = Number(localModelCandidate.summary && localModelCandidate.summary.changed || 0);
+      const routeStructureSafe = Boolean(
+        enrollablesRouteAudit &&
+        enrollablesRouteAudit.routeComparison &&
+        enrollablesRouteAudit.routeComparison.exactReferenceStructure === true
+      );
       results.push({
         id: 'enrollables-local-model',
         homeeasyId: '__enrollables_local_model__',
         family: 'Enrollable',
         reference: `${localModelCandidate.summary.enrollables} Enrollables · modelo local ${localModelCandidate.version}`,
         strategy: 'LOCAL_MODEL',
-        status: changed ? 'NEW' : 'UNCHANGED',
-        autoApplicable: changed > 0,
+        status: changed ? (routeStructureSafe ? 'NEW' : 'REVIEW_REQUIRED') : 'UNCHANGED',
+        autoApplicable: changed > 0 && routeStructureSafe,
         oldCost: 0,
         newCost: changed,
         difference: changed,
         percent: null,
-        reviewReason: null,
-        severity: 'normal',
+        reviewReason: routeStructureSafe ? null : (enrollablesRouteAuditError
+          ? 'No se pudo validar la estructura actual de Enrollables.'
+          : 'Pentagrama reportó una alta, baja o movimiento de ruta en Enrollables.'),
+        severity: routeStructureSafe ? 'normal' : 'review_required',
         destination: { sheet: 'Costos_Pentagrama*', field: 'snapshot-atómico' }
       });
     } else if (hasEnrollables) {
@@ -701,7 +758,9 @@ class PentagramaPhase2 {
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
     const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, sourceValidThrough: source.validThrough, catalogSummary, localModelCandidate, localModelError,
       catalogInventoryAudit,
-      catalogChanges: catalogInventoryAudit.changes,
+      enrollablesRouteAudit,
+      enrollablesRouteAuditError,
+      catalogChanges: [...catalogInventoryAudit.changes, ...enrollablesCatalogChanges],
       catalogActions,
       catalogAudit: { total: (source.products || []).length, mapped: results.filter(item => item.id).length,
         certified: (source.products || []).filter(item => certifiedMappingIds.has(String(item.id))).length,
@@ -709,11 +768,17 @@ class PentagramaPhase2 {
         reviewRequired: results.filter(item => item.status === 'REVIEW_REQUIRED').length,
         unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts,
         pentagramaProducts: catalogSummary.products,
-        newReferences: Number(catalogInventoryAudit.counts.NEW || 0),
-        discontinued: Number(catalogInventoryAudit.counts.DISCONTINUED || 0),
+        newReferences: Number(catalogInventoryAudit.counts.NEW || 0) + Number(enrollablesRouteAudit && enrollablesRouteAudit.routeComparison && enrollablesRouteAudit.routeComparison.addedRoutes || 0),
+        discontinued: Number(catalogInventoryAudit.counts.DISCONTINUED || 0) + Number(enrollablesRouteAudit && enrollablesRouteAudit.routeComparison && enrollablesRouteAudit.routeComparison.missingRoutes || 0),
         renamed: Number(catalogInventoryAudit.counts.RENAMED || 0),
         structureChanged: Number(catalogInventoryAudit.counts.STRUCTURE_CHANGED || 0),
         bindingConflicts: catalogInventoryAudit.bindingConflicts.length,
+        enrollablesRoutesExpected: Number(enrollablesRouteAudit && enrollablesRouteAudit.baseline && enrollablesRouteAudit.baseline.uniqueRoutes || 0),
+        enrollablesRoutesLive: Number(enrollablesRouteAudit && enrollablesRouteAudit.live && enrollablesRouteAudit.live.relevantUniqueRoutes || 0),
+        enrollablesExtraVariants: Number(enrollablesRouteAudit && enrollablesRouteAudit.routeComparison && enrollablesRouteAudit.routeComparison.additionalVariantsInKnownRoutes || 0),
+        enrollablesExcludedPortalRoutes: Number(enrollablesRouteAudit && enrollablesRouteAudit.live && enrollablesRouteAudit.live.excludedPortalRoutes || 0),
+        enrollablesStructureExact: Boolean(enrollablesRouteAudit && enrollablesRouteAudit.routeComparison && enrollablesRouteAudit.routeComparison.exactReferenceStructure),
+        enrollablesRouteAuditError: enrollablesRouteAuditError && enrollablesRouteAuditError.code || null,
         catalogAutoApplicable: catalogActions.filter(item => item.autoApplicable === true).length,
         catalogRateChanges: catalogActions.filter(item => item.kind === 'UPDATE_RATE' && item.autoApplicable === true).length,
         catalogCertifiedAdditions: catalogActions.filter(item => item.kind === 'ADD' && item.autoApplicable === true).length,
