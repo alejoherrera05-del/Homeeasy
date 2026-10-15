@@ -411,3 +411,55 @@ test('public inventory summary deduplicates products per family across multiple 
   assert.equal(summary.families.find(item => item.family === 'ENROLLABLE').products, 1);
   assert.equal(summary.families.find(item => item.family === 'CORTINA RING').products, 1);
 });
+
+test('generic catalog audit does not classify extra Enrollables color SKUs as new fabric references', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-enrollables-generic-filter-'));
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [],
+    pricing: {},
+    homeeasyCost: {},
+    enrollablesRegistry: require('./enrollables-live-products.json'),
+    gateway: { dispatch: async () => ({}) }
+  });
+
+  const audit = service.inventoryAudit([
+    {
+      id: 'enrollable-blackout-angora',
+      familyName: 'Enrollable',
+      reference: 'Angora',
+      active: true,
+      external: {
+        productCode: 'ENRSTDBOANGWHI',
+        groupCode: '324',
+        associationGroup: 'ENRSTD'
+      }
+    }
+  ], {
+    checkedAt: '2026-10-15T00:00:00Z',
+    counts: { products: 2, roots: 1, leaves: 1 },
+    products: [
+      {
+        name: 'Angora White',
+        productCode: 'ENRSTDBOANGWHI',
+        groupCode: '324',
+        associationGroup: 'ENRSTD',
+        externalKey: 'ENRSTDBOANGWHI|324|ENRSTD',
+        path: ['ENROLLABLE', 'STANDARD/PLATINA SIN CABEZAL', 'BLACK OUT', 'ANGORA']
+      },
+      {
+        name: 'Angora Grey',
+        productCode: 'ENRSTDBOANGGRE',
+        groupCode: '324',
+        associationGroup: 'ENRSTD',
+        externalKey: 'ENRSTDBOANGGRE|324|ENRSTD',
+        path: ['ENROLLABLE', 'STANDARD/PLATINA SIN CABEZAL', 'BLACK OUT', 'ANGORA']
+      }
+    ]
+  });
+
+  assert.equal(Number(audit.counts.NEW || 0), 0);
+  assert.equal(Number(audit.counts.DISCONTINUED || 0), 0);
+  assert.equal(audit.changes.length, 0);
+});
+
