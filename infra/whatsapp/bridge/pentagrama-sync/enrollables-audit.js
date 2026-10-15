@@ -33,7 +33,24 @@ function category(item) {
   };
 }
 
-function liveProduct(item, path) {
+function routeKey(parts) {
+  return [
+    clean(parts && parts.Cat1),
+    clean(parts && parts.Cat2),
+    clean(parts && parts.Cat3),
+    clean(parts && parts.Cat4)
+  ].join('|');
+}
+
+function productKey(item) {
+  return [
+    upper(item && item.productCode),
+    upper(item && item.groupCode),
+    upper(item && item.associationGroup)
+  ].join('|');
+}
+
+function liveProduct(item, route) {
   const product = {
     name: clean(first(item, ['ProductName', 'productName', 'Name', 'name', 'Description', 'description'])),
     productCode: clean(first(item, ['ProductCode', 'productCode', 'Code', 'code'])),
@@ -41,9 +58,11 @@ function liveProduct(item, path) {
     associationGroup: clean(first(item, ['GrupAsoc', 'grupAsoc', 'AssociationGroup', 'associationGroup'])),
     calculationType: clean(first(item, ['CalculationType', 'calculationType'])),
     unit: clean(first(item, ['UnidadMedida', 'unidadMedida', 'Unit', 'unit'])),
-    path: Array.isArray(path) ? path.slice() : []
+    routeKey: route.routeKey,
+    categories: { ...route.categories },
+    path: route.path.slice()
   };
-  product.externalKey = [upper(product.productCode), upper(product.groupCode), upper(product.associationGroup)].join('|');
+  product.externalKey = productKey(product);
   return product;
 }
 
@@ -51,35 +70,57 @@ function baselineEntries() {
   return Object.values(baseline && baseline.products || {});
 }
 
-function baselineKey(item) {
-  return [upper(item && item.productCode), upper(item && item.groupCode), upper(item && item.associationGroup)].join('|');
-}
-
 function baselineSummary() {
   const entries = baselineEntries();
   const byKey = new Map();
+  const byRoute = new Map();
   const subfamilies = new Map();
 
   for (const item of entries) {
-    const key = baselineKey(item);
+    const key = productKey(item);
     if (!byKey.has(key)) byKey.set(key, []);
     byKey.get(key).push(item);
+
+    const categories = item && item.categories || {};
+    const rKey = routeKey(categories);
+    if (!byRoute.has(rKey)) {
+      byRoute.set(rKey, {
+        routeKey: rKey,
+        categories: {
+          Cat1: clean(categories.Cat1),
+          Cat2: clean(categories.Cat2),
+          Cat3: clean(categories.Cat3),
+          Cat4: clean(categories.Cat4)
+        },
+        subfamily: clean(item && item.subfamily),
+        references: [],
+        homeeasyIds: [],
+        productKeys: new Set()
+      });
+    }
+    const route = byRoute.get(rKey);
+    route.references.push(clean(item && item.reference));
+    route.homeeasyIds.push(clean(item && item.homeeasyId));
+    route.productKeys.add(key);
 
     const subfamily = clean(item && item.subfamily) || 'sin-clasificar';
     subfamilies.set(subfamily, (subfamilies.get(subfamily) || 0) + 1);
   }
 
-  const logicalDuplicates = [...byKey.entries()]
-    .filter(([, items]) => items.length > 1)
-    .map(([externalKey, items]) => ({
-      externalKey,
-      homeeasyIds: items.map(item => item.homeeasyId),
-      references: items.map(item => item.reference)
+  const logicalDuplicates = [...byRoute.values()]
+    .filter(route => route.homeeasyIds.length > 1)
+    .map(route => ({
+      routeKey: route.routeKey,
+      categories: route.categories,
+      homeeasyIds: route.homeeasyIds,
+      references: route.references,
+      productKeys: [...route.productKeys]
     }));
 
   return {
     entries,
     byKey,
+    byRoute,
     logicalDuplicates,
     subfamilies: [...subfamilies.entries()]
       .map(([subfamily, count]) => ({ subfamily, count }))
@@ -143,8 +184,7 @@ class PentagramaEnrollablesAudit {
 
     const byKey = new Map();
     const byProductCode = new Map();
-    const subfamilies = new Map();
-    let leaves = 0;
+    const byRoute = new Map();
     let duplicateAppearances = 0;
     let skippedWithoutCode = 0;
 
@@ -165,7 +205,7 @@ class PentagramaEnrollablesAudit {
         groupsTotal: cat3.length,
         groupsCompleted: index,
         currentGroup: group.name,
-        leaves,
+        leaves: byRoute.size,
         products: byKey.size
       });
 
@@ -179,6 +219,28 @@ class PentagramaEnrollablesAudit {
       const productPaths = cat4.length ? cat4 : [{ code: '', name: '' }];
 
       for (const leaf of productPaths) {
+        const categories = {
+          Cat1: '4',
+          Cat2: '79',
+          Cat3: group.code,
+          Cat4: leaf.code
+        };
+        const rKey = routeKey(categories);
+        const route = {
+          routeKey: rKey,
+          categories,
+          groupName: group.name,
+          referenceName: leaf.name,
+          path: [
+            'ENROLLABLE',
+            'STANDARD/PLATINA SIN CABEZAL',
+            group.name,
+            leaf.name
+          ].filter(Boolean),
+          products: new Map()
+        };
+        byRoute.set(rKey, route);
+
         const params = {
           Category1: '4',
           Category2: '79',
@@ -186,43 +248,39 @@ class PentagramaEnrollablesAudit {
         };
         if (leaf.code) params.Category4 = leaf.code;
 
-        leaves += 1;
         const rawProducts = listOf(await this.catalog('products', params));
 
         for (const raw of rawProducts) {
-          const product = liveProduct(raw, [
-            'ENROLLABLE',
-            'STANDARD/PLATINA SIN CABEZAL',
-            group.name,
-            leaf.name
-          ].filter(Boolean));
+          const product = liveProduct(raw, route);
 
           if (!product.productCode) {
             skippedWithoutCode += 1;
             continue;
           }
 
+          if (route.products.has(product.externalKey)) continue;
+          route.products.set(product.externalKey, product);
+
           if (byKey.has(product.externalKey)) {
             duplicateAppearances += 1;
-            continue;
+          } else {
+            byKey.set(product.externalKey, product);
           }
 
-          byKey.set(product.externalKey, product);
-
-          const productCode = upper(product.productCode);
-          if (!byProductCode.has(productCode)) byProductCode.set(productCode, []);
-          byProductCode.get(productCode).push(product);
+          const pCode = upper(product.productCode);
+          if (!byProductCode.has(pCode)) byProductCode.set(pCode, []);
+          if (!byProductCode.get(pCode).some(item => item.routeKey === product.routeKey && item.externalKey === product.externalKey)) {
+            byProductCode.get(pCode).push(product);
+          }
         }
       }
-
-      subfamilies.set(group.name, byKey.size);
 
       await this.progress({
         status: 'RUNNING',
         groupsTotal: cat3.length,
         groupsCompleted: index + 1,
         currentGroup: index + 1 < cat3.length ? cat3[index + 1].name : null,
-        leaves,
+        leaves: byRoute.size,
         products: byKey.size
       });
     }
@@ -231,7 +289,7 @@ class PentagramaEnrollablesAudit {
       groups: cat3,
       byKey,
       byProductCode,
-      leaves,
+      byRoute,
       duplicateAppearances,
       skippedWithoutCode
     };
@@ -241,72 +299,94 @@ class PentagramaEnrollablesAudit {
     const expected = baselineSummary();
     const live = await this.scanLive();
 
-    const expectedKeys = new Set(expected.byKey.keys());
-    const liveKeys = new Set(live.byKey.keys());
+    const expectedRouteKeys = new Set(expected.byRoute.keys());
+    const liveRouteKeys = new Set(live.byRoute.keys());
 
-    const present = [...expectedKeys].filter(key => liveKeys.has(key));
-    const missing = [...expectedKeys].filter(key => !liveKeys.has(key));
-    const added = [...liveKeys].filter(key => !expectedKeys.has(key));
+    const presentRoutes = [...expectedRouteKeys].filter(key => liveRouteKeys.has(key));
+    const missingRoutes = [...expectedRouteKeys].filter(key => !liveRouteKeys.has(key));
+    const addedRoutes = [...liveRouteKeys].filter(key => !expectedRouteKeys.has(key));
 
-    const structureChanged = [];
-    const structureChangedMissing = new Set();
-    const structureChangedAdded = new Set();
+    const movedExpectedProducts = [];
+    const missingExpectedProductsInRoute = [];
+    let expectedProductsPresentInOwnRoute = 0;
+    let additionalVariantsInKnownRoutes = 0;
 
-    for (const missingKey of missing) {
-      const baselineItems = expected.byKey.get(missingKey) || [];
-      const reference = baselineItems[0] || {};
-      const productCode = upper(reference.productCode);
-      const candidates = live.byProductCode.get(productCode) || [];
+    for (const rKey of presentRoutes) {
+      const expectedRoute = expected.byRoute.get(rKey);
+      const liveRoute = live.byRoute.get(rKey);
+      const expectedProductKeys = expectedRoute.productKeys;
 
-      if (candidates.length) {
-        structureChangedMissing.add(missingKey);
-        for (const candidate of candidates) structureChangedAdded.add(candidate.externalKey);
-        structureChanged.push({
-          productCode: clean(reference.productCode),
-          expected: {
-            externalKey: missingKey,
-            groupCode: clean(reference.groupCode),
-            associationGroup: clean(reference.associationGroup),
-            homeeasyIds: baselineItems.map(item => item.homeeasyId)
-          },
-          live: candidates.map(candidate => ({
-            externalKey: candidate.externalKey,
-            groupCode: candidate.groupCode,
-            associationGroup: candidate.associationGroup,
-            name: candidate.name,
-            path: candidate.path
-          }))
-        });
+      for (const key of expectedProductKeys) {
+        if (liveRoute.products.has(key)) {
+          expectedProductsPresentInOwnRoute += 1;
+          continue;
+        }
+
+        const expectedItems = expected.byKey.get(key) || [];
+        const firstItem = expectedItems[0] || {};
+        const elsewhere = live.byKey.get(key);
+
+        if (elsewhere) {
+          movedExpectedProducts.push({
+            externalKey: key,
+            productCode: clean(firstItem.productCode),
+            fromRoute: rKey,
+            toRoute: elsewhere.routeKey,
+            homeeasyIds: expectedItems.map(item => item.homeeasyId)
+          });
+        } else {
+          missingExpectedProductsInRoute.push({
+            externalKey: key,
+            productCode: clean(firstItem.productCode),
+            routeKey: rKey,
+            homeeasyIds: expectedItems.map(item => item.homeeasyId)
+          });
+        }
+      }
+
+      for (const key of liveRoute.products.keys()) {
+        if (!expectedProductKeys.has(key)) additionalVariantsInKnownRoutes += 1;
       }
     }
 
-    const trueMissing = missing.filter(key => !structureChangedMissing.has(key));
-    const trueAdded = added.filter(key => !structureChangedAdded.has(key));
-
-    const detailForBaseline = key => {
-      const items = expected.byKey.get(key) || [];
-      const firstItem = items[0] || {};
+    const addedRouteDetails = addedRoutes.map(key => {
+      const route = live.byRoute.get(key);
       return {
-        externalKey: key,
-        productCode: clean(firstItem.productCode),
-        groupCode: clean(firstItem.groupCode),
-        associationGroup: clean(firstItem.associationGroup),
-        homeeasyIds: items.map(item => item.homeeasyId),
-        references: items.map(item => item.reference)
+        routeKey: key,
+        categories: route.categories,
+        groupName: route.groupName,
+        referenceName: route.referenceName,
+        productCount: route.products.size,
+        products: [...route.products.values()].slice(0, 12).map(product => ({
+          externalKey: product.externalKey,
+          productCode: product.productCode,
+          groupCode: product.groupCode,
+          associationGroup: product.associationGroup,
+          name: product.name
+        }))
       };
-    };
+    });
 
-    const detailForLive = key => {
-      const item = live.byKey.get(key) || {};
+    const missingRouteDetails = missingRoutes.map(key => {
+      const route = expected.byRoute.get(key);
       return {
-        externalKey: key,
-        productCode: item.productCode,
-        groupCode: item.groupCode,
-        associationGroup: item.associationGroup,
-        name: item.name,
-        path: item.path
+        routeKey: key,
+        categories: route.categories,
+        subfamily: route.subfamily,
+        references: route.references,
+        homeeasyIds: route.homeeasyIds,
+        productKeys: [...route.productKeys]
       };
-    };
+    });
+
+    const addedRouteProductCount = addedRouteDetails
+      .reduce((sum, route) => sum + route.productCount, 0);
+
+    const liveIdentityKeys = new Set(live.byKey.keys());
+    const expectedIdentityKeys = new Set(expected.byKey.keys());
+    const presentIdentities = [...expectedIdentityKeys].filter(key => liveIdentityKeys.has(key));
+    const addedIdentities = [...liveIdentityKeys].filter(key => !expectedIdentityKeys.has(key));
+    const missingIdentities = [...expectedIdentityKeys].filter(key => !liveIdentityKeys.has(key));
 
     return {
       checkedAt: new Date().toISOString(),
@@ -319,29 +399,44 @@ class PentagramaEnrollablesAudit {
       baseline: {
         entries: expected.entries.length,
         uniqueIdentities: expected.byKey.size,
+        uniqueRoutes: expected.byRoute.size,
         logicalDuplicates: expected.logicalDuplicates.length,
         logicalDuplicateDetails: expected.logicalDuplicates,
         subfamilies: expected.subfamilies
       },
       live: {
         uniqueIdentities: live.byKey.size,
+        uniqueRoutes: live.byRoute.size,
         categoryGroups: live.groups.length,
-        leaves: live.leaves,
         requests: this.requests,
         duplicateAppearances: live.duplicateAppearances,
         skippedWithoutCode: live.skippedWithoutCode
       },
-      comparison: {
-        present: present.length,
-        added: trueAdded.length,
-        missing: trueMissing.length,
-        structureChanged: structureChanged.length,
-        exactIdentityMatch: trueAdded.length === 0 && trueMissing.length === 0 && structureChanged.length === 0
+      routeComparison: {
+        presentRoutes: presentRoutes.length,
+        addedRoutes: addedRoutes.length,
+        missingRoutes: missingRoutes.length,
+        expectedProductsPresentInOwnRoute,
+        movedExpectedProducts: movedExpectedProducts.length,
+        missingExpectedProductsInRoute: missingExpectedProductsInRoute.length,
+        additionalVariantsInKnownRoutes,
+        addedRouteProductCount,
+        exactReferenceStructure:
+          addedRoutes.length === 0 &&
+          missingRoutes.length === 0 &&
+          movedExpectedProducts.length === 0 &&
+          missingExpectedProductsInRoute.length === 0
+      },
+      skuComparison: {
+        present: presentIdentities.length,
+        added: addedIdentities.length,
+        missing: missingIdentities.length
       },
       deltas: {
-        added: trueAdded.map(detailForLive),
-        missing: trueMissing.map(detailForBaseline),
-        structureChanged
+        addedRoutes: addedRouteDetails,
+        missingRoutes: missingRouteDetails,
+        movedExpectedProducts,
+        missingExpectedProductsInRoute
       }
     };
   }
@@ -350,7 +445,8 @@ class PentagramaEnrollablesAudit {
 module.exports = Object.freeze({
   PentagramaEnrollablesAudit,
   baselineSummary,
-  baselineKey,
+  productKey,
+  routeKey,
   liveProduct,
   category,
   listOf
