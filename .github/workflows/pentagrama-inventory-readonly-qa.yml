@@ -86,4 +86,6 @@ jobs:
           PY
 
       - name: Diff hygiene
-        run: git diff --check HEAD^ HEAD
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          git diff --check origin/main...HEAD
