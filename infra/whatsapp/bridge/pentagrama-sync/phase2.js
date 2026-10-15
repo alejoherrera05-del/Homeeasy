@@ -929,7 +929,7 @@ class PentagramaPhase2 {
       maintenanceRequired: false,
       total: sourceProducts.length,
       mapped: mappedIds.size + ringSources.length,
-      certified: certifiedIds.size,
+      certified: sourceProducts.filter(item => certifiedIds.has(String(item.id))).length,
       autoUpdatable: results.filter(item => item.autoApplicable).length + catalogActions.filter(item => item.autoApplicable).length,
       reviewRequired: Number(counts.REVIEW_REQUIRED || 0) + catalogActions.filter(item => item.autoApplicable !== true).length,
       unmapped: Number(counts.UNMAPPED || 0),
