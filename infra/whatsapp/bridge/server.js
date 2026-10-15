@@ -976,6 +976,12 @@ async function handle(req, res) {
     return json(res, 200, { ok: true, mode: PENTAGRAMA_MODE, operation, result });
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/catalog-inventory') {
+    const actor = await auth.authorize(req, 'config.read');
+    const operation = pentagramaPhase2.startInventory(auth.publicActor(actor));
+    return json(res, 202, { ok: true, operation });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/pentagrama-agent/status') {
     await auth.authorize(req, 'config.read');
     const agents = pentagramaAgents.list();
