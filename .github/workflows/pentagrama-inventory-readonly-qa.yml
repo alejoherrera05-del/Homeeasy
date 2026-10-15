@@ -88,7 +88,7 @@ jobs:
           assert 'startInventory' in block
           assert 'startApply' not in block
           assert 'rollback' not in block
-          assert "const BRIDGE_VERSION = '0.16.4'" in server
+          assert "const BRIDGE_VERSION = '0.16.5'" in server
 
           assert "this.store.operation('inventory', actor)" in phase2
           assert 'new PentagramaCatalogInventory' in phase2
