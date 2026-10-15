@@ -178,7 +178,7 @@ class PentagramaPhase2 {
         groupsCompleted: result.live.categoryGroups,
         currentGroup: null,
         requests: result.live.requests,
-        leaves: result.live.leaves,
+        leaves: result.live.uniqueRoutes,
         products: result.live.uniqueIdentities
       },
       result
