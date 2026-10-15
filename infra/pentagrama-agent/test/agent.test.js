@@ -27,7 +27,7 @@ test('agent decrypts the hybrid registration envelope', () => {
 
 test('agent executes only allowlisted health, price, catalog, live resolver and inventory jobs', async () => {
   const sync = {
-    client: { get: async route => route === '/Order/GetJsonCategoryList' ? [] : null },
+    client: { get: async (route, params) => route === '/Order/GetJsonCategoryList' && params && params.level === 1 ? [] : null },
     catalog: { categories: async params => [{ id: params.scope }] },
     pricing: { supplierCost: async () => ({ basePrice: 244800, total: 244800 }) },
     liveResolver: { resolve: async payload => ({ ok: true, outcome: 'PRICE', product: payload.homeeasyId }) },
