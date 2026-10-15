@@ -46,7 +46,7 @@ function agentSupportsJob(agent, type) {
   return versionAtLeast(agent && agent.version, MIN_AGENT_VERSION);
 }
 
-function publicAgent(agent, now = Date.now(), onlineMs = 45000) {
+function publicAgent(agent, now = Date.now(), onlineMs = 45000, busy = false) {
   const lastSeenMs = Date.parse(agent.lastSeen || '') || 0;
   return {
     installationId: agent.installationId,
@@ -56,7 +56,8 @@ function publicAgent(agent, now = Date.now(), onlineMs = 45000) {
     installedAt: agent.installedAt,
     registeredAt: agent.registeredAt,
     lastSeen: agent.lastSeen,
-    online: now - lastSeenMs <= onlineMs,
+    online: Boolean(busy) || now - lastSeenMs <= onlineMs,
+    busy: Boolean(busy),
     lastJob: agent.lastJob || null,
     pentagrama: agent.pentagrama || { status: 'unknown' },
     compatible: versionAtLeast(agent.version, MIN_AGENT_VERSION),
@@ -73,7 +74,7 @@ class PentagramaAgentGateway {
     this.password = String(options.password || process.env.PENTAGRAMA_PASSWORD || '');
     this.baseUrl = String(options.baseUrl || process.env.PENTAGRAMA_BASE_URL || 'https://pedidos.persianaspentagrama.com');
     this.onlineMs = Math.max(15000, Number(options.onlineMs || 45000));
-    this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || 45000));
+    this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || 180000));
     this.catalogInventoryJobTimeoutMs = Math.max(this.jobTimeoutMs, Number(options.catalogInventoryJobTimeoutMs || 15 * 60 * 1000));
     this.pollTimeoutMs = Math.max(5000, Number(options.pollTimeoutMs || 25000));
     this.latestVersion = String(options.latestVersion || process.env.PENTAGRAMA_AGENT_LATEST_VERSION || '1.0.0');
@@ -184,7 +185,12 @@ class PentagramaAgentGateway {
 
   list() {
     const now = Date.now();
-    return Array.from(this.agents.values()).map(agent => publicAgent(agent, now, this.onlineMs));
+    return Array.from(this.agents.values()).map(agent => {
+      const busy = Array.from(this.jobs.values()).some(job =>
+        job.agentId === agent.installationId && ['queued', 'running'].includes(job.state)
+      );
+      return publicAgent(agent, now, this.onlineMs, busy);
+    });
   }
 
   takeJob(agent) {
@@ -306,6 +312,14 @@ class PentagramaAgentGateway {
     }
 
     if (lastError) throw Object.assign(lastError, { statusCode: 503 });
+
+    const compatibleRegistered = Array.from(this.agents.values()).some(agent => agentSupportsJob(agent, type));
+    if (compatibleRegistered) {
+      throw Object.assign(
+        new Error('The compatible Pentagrama Agent is not currently reachable'),
+        { statusCode: 503, code: 'AGENT_OFFLINE', infrastructure: true, minimumVersion: MIN_AGENT_VERSION }
+      );
+    }
 
     const online = this.onlineAgents(new Set());
     if (online.length) {
