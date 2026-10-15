@@ -89,6 +89,7 @@ class PentagramaCatalogInventory {
     this.retryWindowMs = Math.max(0, Number(options.retryWindowMs || 60 * 60 * 1000));
     this.retryDelayMs = Math.max(1000, Number(options.retryDelayMs || 10000));
     this.onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
+    this.rootFilter = typeof options.rootFilter === 'function' ? options.rootFilter : null;
     this.wait = typeof options.wait === 'function' ? options.wait : wait;
     this.progressState = {};
     this.requests = 0;
@@ -188,9 +189,12 @@ class PentagramaCatalogInventory {
     this.progressState = {};
     this.startedAt = Date.now();
 
-    const roots = listOf(await this.catalog('categories', { level: 1 }))
+    const discoveredRoots = listOf(await this.catalog('categories', { level: 1 }))
       .map(categoryView)
       .filter(item => item.code);
+    const roots = this.rootFilter
+      ? discoveredRoots.filter(root => this.rootFilter(root))
+      : discoveredRoots;
 
     const byKey = new Map();
     const leafPaths = [];
@@ -290,6 +294,8 @@ class PentagramaCatalogInventory {
     return {
       checkedAt: new Date().toISOString(),
       roots: roots.length,
+      discoveredRoots: discoveredRoots.length,
+      excludedRoots: Math.max(0, discoveredRoots.length - roots.length),
       leaves: leafPaths.length,
       requests: this.requests,
       skippedWithoutCode,
@@ -298,6 +304,8 @@ class PentagramaCatalogInventory {
       counts: {
         products: products.length,
         roots: roots.length,
+        discoveredRoots: discoveredRoots.length,
+        excludedRoots: Math.max(0, discoveredRoots.length - roots.length),
         leaves: leafPaths.length,
         skippedWithoutCode,
         duplicateAppearances
