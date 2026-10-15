@@ -20,7 +20,11 @@ function createPentagramaSync(options = {}) {
   const homeeasy = options.homeeasy || new HomeEasyCostClient(options);
   const comparison = options.comparison || new PentagramaComparison({ pricing, homeeasy, mappings: options.mappings || INITIAL_MAPPINGS });
   const liveResolver = options.liveResolver || new PentagramaLiveResolver({ catalog, pricing, vatRate: options.vatRate });
-  const catalogInventory = options.catalogInventory || new PentagramaCatalogInventory({ catalog });
+  const catalogInventory = options.catalogInventory || (
+    mode === 'agent' && options.dispatcher && typeof options.dispatcher.dispatch === 'function'
+      ? new PentagramaCatalogInventory({ gateway: options.dispatcher })
+      : null
+  );
   const localModel = Object.freeze({ build: source => buildEnrollablesLocalCandidate({
     source,
     quoteBase: input => liveResolver.quoteBase(input),
