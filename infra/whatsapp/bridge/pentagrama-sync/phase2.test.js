@@ -349,11 +349,13 @@ test('read-only inventory operation uses short catalog jobs and publishes only a
   assert.equal(completed.stage, 'COMPLETED');
   assert.ok(calls.length > 1);
   assert.ok(calls.every(call => call.type === 'catalog'));
-  assert.equal(completed.result.counts.roots, 3);
-  assert.equal(completed.result.counts.leaves, 3);
+  assert.equal(completed.result.counts.roots, 2);
+  assert.equal(completed.result.counts.discoveredRoots, 3);
+  assert.equal(completed.result.counts.excludedRoots, 1);
+  assert.equal(completed.result.counts.leaves, 2);
   assert.equal(completed.result.counts.products, 4);
-  assert.equal(completed.result.counts.requests, 4);
-  assert.equal(completed.result.counts.duplicateAppearances, 1);
+  assert.equal(completed.result.counts.requests, 3);
+  assert.equal(completed.result.counts.duplicateAppearances, 0);
   assert.deepEqual(completed.result.critical.ring, {
     family: 'CORTINA RING',
     products: 2,
