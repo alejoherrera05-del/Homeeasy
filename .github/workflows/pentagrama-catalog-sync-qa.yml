@@ -31,6 +31,7 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/index.test.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/pentagrama-agent/src/agent.js'
       - 'infra/pentagrama-agent/src/session-bridge.js'
@@ -123,6 +124,8 @@ jobs:
           cp apps-script/ETAPA_10C_PENTAGRAMA_SYNC.gs /tmp/ETAPA_10C_PENTAGRAMA_SYNC.js
           node --check /tmp/ETAPA_10B_COSTOS_PENTAGRAMA.js
           node --check /tmp/ETAPA_10C_PENTAGRAMA_SYNC.js
+      - name: Pentagrama startup wiring tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/index.test.js
       - name: Pentagrama browser client tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/client.test.js
       - name: Catalog inventory tests
