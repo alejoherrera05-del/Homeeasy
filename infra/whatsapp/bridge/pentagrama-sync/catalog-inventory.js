@@ -89,6 +89,7 @@ class PentagramaCatalogInventory {
     this.retryWindowMs = Math.max(0, Number(options.retryWindowMs || 30 * 60 * 1000));
     this.retryDelayMs = Math.max(1000, Number(options.retryDelayMs || 10000));
     this.onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
+    this.wait = typeof options.wait === 'function' ? options.wait : wait;
     this.requests = 0;
     this.startedAt = null;
   }
@@ -137,7 +138,7 @@ class PentagramaCatalogInventory {
           retryElapsedMs: elapsed
         });
 
-        await wait(this.retryDelayMs);
+        await this.wait(this.retryDelayMs);
       }
     }
   }
