@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - feat/pentagrama-inventory-readonly
+      - feat/pentagrama-enrollables-audit
     paths:
       - 'infra/whatsapp/bridge/server.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-audit.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-audit.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2-store.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
@@ -22,6 +25,8 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-audit.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-audit.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2-store.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
@@ -51,6 +56,7 @@ jobs:
           node --check infra/whatsapp/bridge/pentagrama-agents/gateway.js
           node --check infra/whatsapp/bridge/pentagrama-sync/phase2.js
           node --check infra/whatsapp/bridge/pentagrama-sync/catalog-inventory.js
+          node --check infra/whatsapp/bridge/pentagrama-sync/enrollables-audit.js
           node --check infra/whatsapp/bridge/pentagrama-sync/phase2-store.js
 
       - name: Agent gateway tests
@@ -58,6 +64,9 @@ jobs:
 
       - name: Phase 2 tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/phase2.test.js infra/whatsapp/bridge/pentagrama-sync/inventory-operation.test.js
+
+      - name: Enrollables audit tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/enrollables-audit.test.js
 
       - name: Read-only route tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js
@@ -79,7 +88,7 @@ jobs:
           assert 'startInventory' in block
           assert 'startApply' not in block
           assert 'rollback' not in block
-          assert "const BRIDGE_VERSION = '0.16.2'" in server
+          assert "const BRIDGE_VERSION = '0.16.3'" in server
 
           assert "this.store.operation('inventory', actor)" in phase2
           assert 'new PentagramaCatalogInventory' in phase2
@@ -88,6 +97,9 @@ jobs:
 
           assert "'catalogInventory'" not in gateway
           assert 'catalogInventoryJobTimeoutMs' not in gateway
+          assert "'/api/pentagrama-sync/enrollables-audit'" in server
+          assert 'startEnrollablesAudit' in phase2
+          assert 'PentagramaEnrollablesAudit' in phase2
           print('Pentagrama progressive inventory read-only boundary: PASS')
           PY
 
