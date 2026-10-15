@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 process.env.HOMEEASY_AGENT_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-agent-test-'));
-const { decryptEnvelope, publicError, runJob } = require('../src/agent');
+const { decryptEnvelope, publicError, publicBridgeStatus, runJob } = require('../src/agent');
 const { Logger } = require('../src/logger');
 
 test('agent decrypts the hybrid registration envelope', () => {
@@ -58,4 +58,29 @@ test('logs redact secret-shaped fields and rotate safely', () => {
 test('error classification marks transport failures but not credential rejection', () => {
   assert.equal(publicError({ code: 'ETIMEDOUT', message: 'timeout' }).infrastructure, true);
   assert.equal(publicError({ code: 'PENTAGRAMA_SESSION_EXPIRED', message: 'bad credentials' }).infrastructure, false);
+});
+
+
+test('public bridge status exposes diagnostics without credentials or cookies', () => {
+  const status = publicBridgeStatus({
+    status: () => ({
+      configured: true,
+      browserTransportOnline: true,
+      hasAuth: true,
+      needsSession: false,
+      reason: null,
+      updatedAt: '2026-10-14T23:00:00.000Z',
+      browserTransportSeenAt: '2026-10-14T23:00:01.000Z',
+      login: 'must-not-leak',
+      password: 'must-not-leak',
+      cookies: [{ name: '.ASPXAUTH', value: 'secret' }]
+    })
+  });
+  assert.equal(status.configured, true);
+  assert.equal(status.browserTransportOnline, true);
+  assert.equal(status.sessionReady, true);
+  assert.equal(status.needsSession, false);
+  assert.equal('login' in status, false);
+  assert.equal('password' in status, false);
+  assert.equal('cookies' in status, false);
 });
