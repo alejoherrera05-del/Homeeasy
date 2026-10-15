@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 const { INITIAL_MAPPINGS, MAPPING_STATUSES, mappingIsReady, mappingIsCertified, pentagramaParamsForCase, homeEasyItemForCase } = require('./mapper');
 const { roundMoney } = require('./comparison');
-const { buildProposal, same } = require('./strategies');
+const { buildProposal, same, effectiveArea } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
@@ -170,6 +170,12 @@ class PentagramaPhase2 {
   startScan(actor, context) {
     const operation = this.store.operation('scan', actor);
     setImmediate(() => this.runScan(operation.id, context).catch(error => this.fail(operation.id, error)));
+    return operation;
+  }
+
+  startQuickScan(actor, context) {
+    const operation = this.store.operation('quick_scan', actor);
+    setImmediate(() => this.runQuickScan(operation.id, context).catch(error => this.fail(operation.id, error)));
     return operation;
   }
 
@@ -601,6 +607,377 @@ class PentagramaPhase2 {
     }
 
     return actions;
+  }
+
+  async quickProbeMapping(mapping, sourceItem) {
+    if (!mappingIsCertified(mapping) || !sourceItem) {
+      return { changed: false, status: 'REVIEW_REQUIRED', reason: 'La referencia no tiene certificación vigente.' };
+    }
+    const sample = this.validationCases(mapping).find(item => item.role === 'derive') || this.validationCases(mapping)[0];
+    if (!sample) return { changed: false, status: 'REVIEW_REQUIRED', reason: 'No hay muestra certificada para revisión rápida.' };
+
+    const pentagrama = await this.pricing.supplierCost(
+      pentagramaParamsForCase(mapping, sample),
+      { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
+    );
+    const discount = sourceItem.promotional ? (100 - Number(sourceItem.extraDiscount || 0)) / 100 : 1;
+    const area = effectiveArea(sourceItem, sample);
+    if (!(area > 0) || !(discount > 0)) {
+      return { changed: false, status: 'REVIEW_REQUIRED', reason: 'No se pudo reconstruir la tarifa vigente.' };
+    }
+    const impliedRate = roundMoney(Number(pentagrama.total) / (area * discount));
+    const currentRate = roundMoney(Number(sourceItem.rate || 0));
+    return {
+      changed: !same(currentRate, impliedRate),
+      status: statusFor(currentRate, impliedRate),
+      currentRate,
+      impliedRate,
+      sample,
+      pentagrama
+    };
+  }
+
+  ringLiveFromSource(sourceItem) {
+    const external = sourceItem && sourceItem.external || {};
+    const externalKey = [
+      external.productCode,
+      external.groupCode,
+      external.associationGroup
+    ].map(value => String(value || '').trim().toUpperCase()).join('|');
+    return {
+      name: [sourceItem && sourceItem.type, sourceItem && sourceItem.reference].filter(Boolean).join(' '),
+      productCode: String(external.productCode || ''),
+      groupCode: String(external.groupCode || ''),
+      associationGroup: String(external.associationGroup || ''),
+      primaryGroup: String(external.primaryGroup || ''),
+      calculationType: String(external.calculationType || 'NormalProduct'),
+      unit: String(external.unit || 'MT2'),
+      discount: 0,
+      externalKey,
+      path: ['CORTINA RING', String(sourceItem && sourceItem.type || ''), String(sourceItem && sourceItem.reference || '')].filter(Boolean)
+    };
+  }
+
+  async runQuickScan(operationId, context) {
+    this.store.updateOperation(operationId, {
+      state: 'running',
+      stage: 'READING_HOMEEASY',
+      progress: { status: 'STARTING', completed: 0, total: 0, current: null }
+    });
+
+    const source = await this.homeeasy.catalog(context);
+    const sourceProducts = Array.isArray(source && source.products) ? source.products : [];
+    const sourceById = new Map(sourceProducts.map(item => [String(item.id), item]));
+    const certifiedMappings = this.mappings.filter(item =>
+      mappingIsCertified(item) && !ENROLLABLE_IDS.has(String(item.homeeasyId))
+    );
+    const ringSources = sourceProducts.filter(item => {
+      const external = item && item.external || {};
+      return item && item.active !== false &&
+        String(external.associationGroup || '').trim().toUpperCase() === 'RIECORIN' &&
+        String(external.groupCode || '').trim().toUpperCase() === '1346' &&
+        !/\bRENUEVA\b/i.test(String(item.reference || ''));
+    });
+
+    const totalChecks = certifiedMappings.length + ringSources.length;
+    let completed = 0;
+    this.store.updateOperation(operationId, {
+      stage: 'READING_PENTAGRAMA',
+      progress: { status: 'RUNNING', completed, total: totalChecks, current: null }
+    });
+
+    const results = [];
+    const catalogActions = [];
+    const certifiedIds = new Set([
+      ...certifiedMappings.map(item => String(item.homeeasyId)),
+      ...ringSources.map(item => String(item.id)),
+      ...Array.from(ENROLLABLE_IDS)
+    ]);
+
+    // Cobertura informativa que no requiere tocar Pentagrama.
+    const certificationById = new Map((this.certificationRegistry.products || []).map(item => [String(item.homeeasyId), item]));
+    for (const item of sourceProducts) {
+      const id = String(item.id);
+      if (certifiedIds.has(id)) continue;
+      const certification = certificationById.get(id);
+      if (certification && certification.status === 'REVIEW_REQUIRED') {
+        results.push({
+          homeeasyId: id,
+          family: item.familyName,
+          reference: item.reference,
+          productCode: certification.productCode,
+          strategy: certification.strategy,
+          status: 'REVIEW_REQUIRED',
+          autoApplicable: false,
+          reviewReason: certification.reason || 'Mapping pendiente de certificación.'
+        });
+      } else {
+        results.push({ homeeasyId: id, family: item.familyName, reference: item.reference, status: 'UNMAPPED' });
+      }
+    }
+
+    for (const mapping of certifiedMappings) {
+      const sourceItem = sourceById.get(String(mapping.homeeasyId));
+      if (!sourceItem) {
+        results.push({ id: mapping.id, homeeasyId: mapping.homeeasyId, family: mapping.family, reference: mapping.reference, status: 'UNMAPPED' });
+        completed += 1;
+        continue;
+      }
+
+      this.store.updateOperation(operationId, {
+        stage: 'READING_PENTAGRAMA',
+        progress: { status: 'RUNNING', completed, total: totalChecks, current: sourceItem.reference || mapping.reference }
+      });
+
+      try {
+        const probe = await this.quickProbeMapping(mapping, sourceItem);
+        if (!probe.changed && probe.status === 'UNCHANGED') {
+          results.push({
+            id: mapping.id,
+            homeeasyId: mapping.homeeasyId,
+            family: mapping.family,
+            reference: mapping.reference,
+            productCode: mapping.productCode,
+            oldCost: probe.currentRate,
+            newCost: probe.currentRate,
+            difference: 0,
+            percent: 0,
+            status: 'UNCHANGED',
+            width: mapping.width,
+            height: mapping.height,
+            quantity: mapping.quantity,
+            strategy: mapping.strategy,
+            autoApplicable: false,
+            sourceRow: sourceItem.row,
+            expectedRate: Number(sourceItem.rate),
+            proposedRate: Number(sourceItem.rate),
+            destination: mapping.destination,
+            updateField: mapping.updateField,
+            sourceModel: sourceItem
+          });
+        } else if (probe.changed) {
+          const validation = await this.validateMapping(mapping, sourceItem, context);
+          const proposedRate = Number(validation.proposedRate);
+          const currentRate = Number(sourceItem.rate);
+          let status = validation.autoApplicable ? statusFor(currentRate, proposedRate) : 'REVIEW_REQUIRED';
+          if (!Number.isFinite(proposedRate)) status = 'REVIEW_REQUIRED';
+          results.push({
+            id: mapping.id,
+            homeeasyId: mapping.homeeasyId,
+            family: mapping.family,
+            reference: mapping.reference,
+            productCode: mapping.productCode,
+            oldCost: roundMoney(currentRate),
+            newCost: Number.isFinite(proposedRate) ? roundMoney(proposedRate) : roundMoney(currentRate),
+            difference: Number.isFinite(proposedRate) ? roundMoney(proposedRate - currentRate) : 0,
+            percent: Number.isFinite(proposedRate) && currentRate ? roundMoney(((proposedRate - currentRate) / currentRate) * 100) : null,
+            status,
+            width: mapping.width,
+            height: mapping.height,
+            quantity: mapping.quantity,
+            strategy: mapping.strategy,
+            autoApplicable: Boolean(validation.autoApplicable && ['INCREASED', 'DECREASED', 'NEW'].includes(status)),
+            reviewReason: validation.reason || null,
+            severity: status === 'REVIEW_REQUIRED' ? 'review_required' : Math.abs(Number(proposedRate - currentRate) / Math.max(1, currentRate) * 100) >= 15 ? 'warning' : 'normal',
+            sourceRow: sourceItem.row,
+            expectedRate: currentRate,
+            proposedRate: Number.isFinite(proposedRate) ? proposedRate : null,
+            destination: mapping.destination,
+            updateField: mapping.updateField,
+            sourceModel: sourceItem,
+            priceEvidence: (validation.evidence || []).map(item => ({
+              id: item.id, role: item.role, width: item.width, height: item.height,
+              homeeasy: item.homeeasy, basePrice: item.pentagrama.basePrice,
+              distributorDiscount: item.pentagrama.distributorDiscount,
+              productDiscount: item.pentagrama.productDiscount,
+              vatRate: item.pentagrama.vatRate, total: item.pentagrama.total
+            }))
+          });
+        } else {
+          results.push({
+            id: mapping.id,
+            homeeasyId: mapping.homeeasyId,
+            family: mapping.family,
+            reference: mapping.reference,
+            productCode: mapping.productCode,
+            status: 'REVIEW_REQUIRED',
+            autoApplicable: false,
+            reviewReason: probe.reason || 'La revisión rápida no pudo certificar la tarifa.'
+          });
+        }
+      } catch (error) {
+        results.push({
+          id: mapping.id,
+          homeeasyId: mapping.homeeasyId,
+          family: mapping.family,
+          reference: mapping.reference,
+          strategy: mapping.strategy,
+          autoApplicable: false,
+          status: 'ERROR',
+          error: String(error.code || 'QUICK_SCAN_FAILED')
+        });
+      }
+      completed += 1;
+    }
+
+    // Ring conocido: solo precio. Altas, bajas y renombres quedan para mantenimiento profundo.
+    for (const sourceItem of ringSources) {
+      this.store.updateOperation(operationId, {
+        stage: 'READING_PENTAGRAMA',
+        progress: { status: 'RUNNING', completed, total: totalChecks, current: sourceItem.reference }
+      });
+      try {
+        const live = this.ringLiveFromSource(sourceItem);
+        const probe = await this.catalogCertifier.probeRing(live);
+        if (!probe.ok) {
+          catalogActions.push({
+            id: 'catalog-review:' + String(live.externalKey || sourceItem.id),
+            kind: 'REVIEW',
+            status: 'REVIEW_REQUIRED',
+            autoApplicable: false,
+            certified: false,
+            homeeasyId: String(sourceItem.id),
+            externalKey: live.externalKey,
+            productCode: live.productCode,
+            reference: sourceItem.reference,
+            reason: probe.reason || 'La tarifa Ring no pudo comprobarse.'
+          });
+        } else if (!same(Number(sourceItem.rate), Number(probe.rate))) {
+          const certified = await this.catalogCertifier.certifyRing(live, source);
+          if (!certified.ok) {
+            catalogActions.push({
+              id: 'catalog-review:' + String(live.externalKey || sourceItem.id),
+              kind: 'REVIEW',
+              status: 'REVIEW_REQUIRED',
+              autoApplicable: false,
+              certified: false,
+              homeeasyId: String(sourceItem.id),
+              externalKey: live.externalKey,
+              productCode: live.productCode,
+              reference: sourceItem.reference,
+              reason: certified.reason || 'La nueva tarifa Ring no pudo certificarse.'
+            });
+          } else {
+            const priceStatus = statusFor(Number(sourceItem.rate), Number(certified.rate));
+            const safeVariation = !['REVIEW_REQUIRED', 'ERROR'].includes(priceStatus);
+            catalogActions.push({
+              id: 'catalog-rate:' + live.externalKey,
+              kind: 'UPDATE_RATE',
+              status: safeVariation ? priceStatus : 'REVIEW_REQUIRED',
+              autoApplicable: safeVariation,
+              certified: safeVariation,
+              homeeasyId: String(sourceItem.id),
+              externalKey: live.externalKey,
+              productCode: live.productCode,
+              reference: certified.reference,
+              oldRate: Number(sourceItem.rate),
+              proposedRate: certified.rate,
+              difference: roundMoney(certified.rate - Number(sourceItem.rate)),
+              percent: Number(sourceItem.rate) ? roundMoney(((certified.rate - Number(sourceItem.rate)) / Number(sourceItem.rate)) * 100) : null,
+              reason: safeVariation ? null : 'La variación certificada supera el umbral de seguridad del 30 %.',
+              mutation: safeVariation ? {
+                kind: 'UPDATE_RATE',
+                certified: true,
+                homeeasyId: String(sourceItem.id),
+                expectedExternalKey: live.externalKey,
+                expectedRate: Number(sourceItem.rate),
+                proposedRate: certified.rate,
+                rowValues: sourceRowValues(sourceItem, source, {
+                  rate: certified.rate,
+                  reference: certified.reference,
+                  type: certified.type,
+                  active: true,
+                  status: 'VIGENTE',
+                  rules: certified.rules
+                }),
+                qaCases: certified.qaCases.map(testCase => ({
+                  ...testCase,
+                  homeeasy: { ...testCase.homeeasy, product: String(sourceItem.id) }
+                }))
+              } : null
+            });
+          }
+        }
+      } catch (error) {
+        catalogActions.push({
+          id: 'catalog-review:' + String(sourceItem.id),
+          kind: 'REVIEW',
+          status: 'ERROR',
+          autoApplicable: false,
+          certified: false,
+          homeeasyId: String(sourceItem.id),
+          productCode: String(sourceItem.external && sourceItem.external.productCode || ''),
+          reference: sourceItem.reference,
+          reason: String(error.code || error.message || 'PENTAGRAMA_RING_PRICE_CHECK_FAILED')
+        });
+      }
+      completed += 1;
+    }
+
+    this.store.updateOperation(operationId, {
+      stage: 'COMPARING',
+      progress: { status: 'RUNNING', completed, total: totalChecks, current: null }
+    });
+
+    const counts = results.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {});
+    const mappedIds = new Set(certifiedMappings.map(item => String(item.homeeasyId)));
+    const catalogAudit = {
+      mode: 'PRICE_ONLY',
+      maintenanceRequired: false,
+      total: sourceProducts.length,
+      mapped: mappedIds.size + ringSources.length,
+      certified: certifiedIds.size,
+      autoUpdatable: results.filter(item => item.autoApplicable).length + catalogActions.filter(item => item.autoApplicable).length,
+      reviewRequired: Number(counts.REVIEW_REQUIRED || 0) + catalogActions.filter(item => item.autoApplicable !== true).length,
+      unmapped: Number(counts.UNMAPPED || 0),
+      strategies: results.filter(item => item.strategy).reduce((acc, item) => {
+        acc[item.strategy] = (acc[item.strategy] || 0) + 1;
+        return acc;
+      }, {}),
+      pentagramaProducts: 0,
+      newReferences: 0,
+      discontinued: 0,
+      renamed: 0,
+      structureChanged: 0,
+      bindingConflicts: 0,
+      catalogAutoApplicable: catalogActions.filter(item => item.autoApplicable === true).length,
+      catalogRateChanges: catalogActions.filter(item => item.kind === 'UPDATE_RATE' && item.autoApplicable === true).length,
+      catalogCertifiedAdditions: 0,
+      catalogCertifiedDeactivations: 0,
+      catalogReviewRequired: catalogActions.filter(item => item.autoApplicable !== true).length,
+      maintenanceNote: 'Altas, bajas, renombres, rutas y estructura se revisan únicamente en mantenimiento profundo.'
+    };
+
+    const scan = {
+      id: crypto.randomUUID(),
+      mode: 'quick',
+      checkedAt: new Date().toISOString(),
+      sourceVersion: source.version,
+      sourceValidThrough: source.validThrough,
+      catalogSummary: { mode: 'PRICE_ONLY', checked: totalChecks, maintenanceSkipped: true },
+      localModelCandidate: null,
+      localModelError: null,
+      catalogInventoryAudit: null,
+      enrollablesRouteAudit: null,
+      enrollablesRouteAuditError: null,
+      catalogChanges: [],
+      catalogActions,
+      catalogAudit,
+      expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(),
+      counts,
+      results
+    };
+    this.store.addScan(scan);
+    this.store.updateOperation(operationId, {
+      state: 'completed',
+      stage: 'COMPLETED',
+      scanId: scan.id,
+      result: { scanId: scan.id, counts, mode: 'quick' },
+      progress: { status: 'COMPLETED', completed, total: totalChecks, current: null }
+    });
   }
 
   async runScan(operationId, context) {
