@@ -109,6 +109,12 @@ function publicBridgeStatus(sessionBridge) {
   };
 }
 
+function shouldSelfProbe(pentagrama, bridge, now = Date.now(), intervalMs = 5 * 60 * 1000) {
+  if (!bridge || bridge.browserTransportOnline !== true) return false;
+  const last = Date.parse(String(pentagrama && pentagrama.checkedAt || ''));
+  return !Number.isFinite(last) || (now - last) >= intervalMs;
+}
+
 const CATALOG_OPERATIONS = Object.freeze({
   categories: 'categories', products: 'products', attributes: 'attributes', defaults: 'defaults',
   dependencies: 'dependencies', alerts: 'alerts', validateRoller: 'validateRoller', fixedPrice: 'fixedPrice'
@@ -160,11 +166,29 @@ async function main() {
   const headers = authHeaders(agentIdentity, secrets);
   let pentagrama = { status: 'unknown', checkedAt: null, sessionBridge: publicBridgeStatus(sessionBridge) };
   let failures = 0;
+  let selfProbe = null;
+
+  function startSelfProbeIfNeeded() {
+    const bridge = publicBridgeStatus(sessionBridge);
+    if (selfProbe || !shouldSelfProbe(pentagrama, bridge)) return;
+    selfProbe = runJob({ type: 'health' }, sync)
+      .then(() => {
+        pentagrama = { status: 'ready', checkedAt: new Date().toISOString(), sessionBridge: publicBridgeStatus(sessionBridge) };
+        logger.info('browser_session_probe_ok', { checkedAt: pentagrama.checkedAt });
+      })
+      .catch(error => {
+        const safeError = publicError(error);
+        pentagrama = { status: 'error', checkedAt: new Date().toISOString(), code: safeError.code, sessionBridge: publicBridgeStatus(sessionBridge) };
+        logger.warn('browser_session_probe_failed', { code: safeError.code });
+      })
+      .finally(() => { selfProbe = null; });
+  }
   logger.info('started', { version: VERSION, installationId: agentIdentity.installationId, hostname: agentIdentity.hostname });
 
   while (!stopping) {
     try {
       pentagrama = { ...pentagrama, sessionBridge: publicBridgeStatus(sessionBridge) };
+      startSelfProbeIfNeeded();
       const heartbeat = await api.post('/api/pentagrama-agent/heartbeat', { ...agentIdentity, version: VERSION, pentagrama }, headers);
       if (heartbeat.updateAvailable) logger.warn('update_available', { currentVersion: VERSION, latestVersion: heartbeat.latestVersion });
       const delivery = await api.post('/api/pentagrama-agent/poll', { ...agentIdentity, version: VERSION, pentagrama }, headers);
@@ -201,4 +225,4 @@ if (require.main === module) {
   main().catch(error => { logger.error('startup_failed', { code: error.code || 'STARTUP_FAILED', message: error.message }); process.exit(1); });
 }
 
-module.exports = Object.freeze({ identity, decryptEnvelope, publicError, publicBridgeStatus, runJob, CATALOG_OPERATIONS });
+module.exports = Object.freeze({ identity, decryptEnvelope, publicError, publicBridgeStatus, shouldSelfProbe, runJob, CATALOG_OPERATIONS });
