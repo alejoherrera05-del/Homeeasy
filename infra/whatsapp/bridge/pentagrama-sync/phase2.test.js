@@ -462,4 +462,3 @@ test('generic catalog audit does not classify extra Enrollables color SKUs as ne
   assert.equal(Number(audit.counts.DISCONTINUED || 0), 0);
   assert.equal(audit.changes.length, 0);
 });
-
