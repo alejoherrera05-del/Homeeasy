@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 const { PentagramaPhase2, statusFor, publicInventorySummary } = require('./phase2');
 const { Phase2Store } = require('./phase2-store');
+const { INITIAL_MAPPINGS, pentagramaParamsForCase } = require('./mapper');
 
 test('change classifier enforces unchanged and review thresholds', () => {
   assert.equal(statusFor(100, 100), 'UNCHANGED');
@@ -529,4 +530,68 @@ test('quick scan checks certified prices without running deep catalog maintenanc
   assert.equal(scan.catalogActions.length, 0);
   assert.equal(priceCalls, 1);
   assert.equal(deepCalls, 0);
+});
+
+
+test('onda-67 quick price probe uses the certified RIECOR28 association group', () => {
+  const mapping = INITIAL_MAPPINGS.find(item => item.homeeasyId === 'onda-67');
+  assert.ok(mapping);
+  const params = pentagramaParamsForCase(mapping, { width: '2', height: '2' });
+  assert.equal(params.ProductCode, 'CORONSEVECORWH2.8');
+  assert.equal(params.GroupCode, '1345');
+  assert.equal(params.AssociationGroup, 'RIECOR28');
+  assert.equal(params.Discount, 0);
+});
+
+test('quick probe retries one transient Pentagrama unexpected response', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-quick-retry-'));
+  const store = new Phase2Store({ dataDir: directory });
+  let calls = 0;
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [{
+      id: 'retry',
+      homeeasyId: 'onda-retry',
+      family: 'Onda Serena',
+      reference: 'Retry',
+      productCode: 'RETRY',
+      groupCode: '1345',
+      calculationType: 'NormalProduct',
+      width: '2',
+      height: '2',
+      quantity: 1,
+      productDiscount: 0,
+      pricingMode: 'account-discount',
+      strategy: 'RATE_M2',
+      status: 'CERTIFIED',
+      verifiedAt: '2026-10-08T00:00:00Z',
+      casesPassed: 3,
+      maxDifference: 0,
+      destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' },
+      validationCases: [{ id: 'a', width: '2', height: '2', role: 'derive' }],
+      updateField: 'Tarifa_IVA_COP',
+      special: { AssociationGroup: 'RIECOR28' }
+    }],
+    certificationRegistry: { products: [] },
+    enrollablesRegistry: { products: {} },
+    homeeasy: { catalog: async () => ({
+      version: 'retry-v1',
+      products: [{ row: 2, id: 'onda-retry', familyName: 'Onda Serena', reference: 'Retry', method: 'area', rate: 90000, minHeight: 0, minArea: 0, promotional: false, active: true }]
+    }) },
+    pricing: { supplierCost: async params => {
+      calls += 1;
+      if (calls === 1) throw Object.assign(new Error('temporary response'), { code: 'PENTAGRAMA_UNEXPECTED_RESPONSE' });
+      return { total: Number(params.Width) * Number(params.Height) * 90000, basePrice: 1, distributorDiscount: 0, productDiscount: 0, vatRate: 0 };
+    } },
+    homeeasyCost: { cost: async () => ({ amount: 0 }) }
+  });
+
+  const operation = service.startQuickScan({ email: 'test@example.com' }, { serviceKey: 'test-key', deviceId: 'test-device' });
+  for (let i = 0; i < 50 && store.operationById(operation.id).state !== 'completed'; i++) {
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+  const scan = store.latestScan();
+  assert.equal(calls, 2);
+  assert.equal(scan.counts.UNCHANGED, 1);
+  assert.equal(Number(scan.counts.ERROR || 0), 0);
 });
