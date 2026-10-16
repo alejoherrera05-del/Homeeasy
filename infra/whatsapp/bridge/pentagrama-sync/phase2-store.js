@@ -12,7 +12,23 @@ class Phase2Store {
   }
 
   load() {
-    try { this.state = { ...this.state, ...JSON.parse(fs.readFileSync(this.file, 'utf8')) }; } catch (_) {}
+    try {
+      this.state = { ...this.state, ...JSON.parse(fs.readFileSync(this.file, 'utf8')) };
+      let changed = false;
+      for (const operation of this.state.operations || []) {
+        if (['queued', 'running'].includes(String(operation.state || ''))) {
+          operation.state = 'failed';
+          operation.stage = 'FAILED';
+          operation.updatedAt = new Date().toISOString();
+          operation.error = {
+            code: 'BRIDGE_RESTARTED',
+            message: 'La operación fue interrumpida por un reinicio del Bridge. Puede iniciarse nuevamente de forma segura.'
+          };
+          changed = true;
+        }
+      }
+      if (changed) this.save();
+    } catch (_) {}
   }
 
   save() {
