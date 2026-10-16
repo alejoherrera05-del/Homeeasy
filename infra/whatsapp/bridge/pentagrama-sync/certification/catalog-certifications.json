@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-10T01:52:11.462Z",
+  "generatedAt": "2026-10-16T15:33:36.920Z",
   "sources": {
     "homeeasy": "Costos_Pentagrama live export",
     "pentagrama": "authenticated portal catalog and price endpoint/UI"
@@ -3135,16 +3135,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANBOMA195",
       "groupCode": "378",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 27214.11,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3176,7 +3176,10 @@
             "difference": 27214.11
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-79",
@@ -3186,16 +3189,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANTRCA500",
       "groupCode": "615",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 26764.29,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3227,7 +3230,10 @@
             "difference": 26764.29
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-80",
@@ -3252,16 +3258,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANTRRO68609000",
       "groupCode": "410",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 32162.13,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3293,7 +3299,10 @@
             "difference": 32162.13
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-82",
@@ -3303,16 +3312,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANTRCL22405000",
       "groupCode": "399",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35310.87,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3344,7 +3353,10 @@
             "difference": 35310.87
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-83",
@@ -3369,16 +3381,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCTRE3EBO",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 33961.41,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3410,7 +3422,10 @@
             "difference": 33961.41
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-85",
@@ -3420,16 +3435,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCTRE1EBO",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 38234.7,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3461,7 +3476,10 @@
             "difference": 38234.7
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-86",
@@ -3471,16 +3489,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCLINDUN",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35760.69,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3512,7 +3530,10 @@
             "difference": 35760.69
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-87",
@@ -3522,16 +3543,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCDIFASH",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35760.69,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3563,7 +3584,10 @@
             "difference": 35760.69
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-88",
@@ -3573,16 +3597,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCESAS",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35760.69,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3614,7 +3638,10 @@
             "difference": 35760.69
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-89",
@@ -3624,16 +3651,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCFAOF3WHBL",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 54653.13,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3665,7 +3692,10 @@
             "difference": 54653.13
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-90",
@@ -3675,16 +3705,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCSIBA5BL",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 42957.81,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3716,7 +3746,10 @@
             "difference": 42957.81
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-91",
@@ -3726,16 +3759,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCECCRYCRE",
       "groupCode": "385",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 42957.81,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3767,7 +3800,10 @@
             "difference": 42957.81
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-92",
@@ -3777,16 +3813,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCJACPRICRBR",
       "groupCode": "385",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35760.69,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3818,7 +3854,10 @@
             "difference": 35760.69
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-93",
@@ -3828,16 +3867,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCPAPBE",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35760.69,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3869,7 +3908,10 @@
             "difference": 35760.69
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-94",
@@ -3879,16 +3921,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCJADEQUEBAM",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35760.69,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3920,7 +3962,10 @@
             "difference": 35760.69
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-95",
@@ -3930,16 +3975,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCJADEQUEBRWH",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35760.69,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -3971,7 +4016,10 @@
             "difference": 35760.69
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-96",
@@ -3981,16 +4029,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCJAC10047604",
       "groupCode": "385",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 35760.69,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4022,7 +4070,10 @@
             "difference": 35760.69
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-97",
@@ -4032,16 +4083,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCJAC10047812",
       "groupCode": "385",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 38234.7,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4073,7 +4124,10 @@
             "difference": 38234.7
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-98",
@@ -4083,16 +4137,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCJADEDEGRESAN",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 38234.7,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4124,7 +4178,10 @@
             "difference": 38234.7
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-99",
@@ -4134,16 +4191,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCJACSTYCHAL",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 38234.7,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4175,7 +4232,10 @@
             "difference": 38234.7
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-100",
@@ -4185,16 +4245,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCJAC10047404",
       "groupCode": "385",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 44757.09,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4226,7 +4286,10 @@
             "difference": 44757.09
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-101",
@@ -4236,16 +4299,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCSPGLAN",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 52628.94,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4277,7 +4340,10 @@
             "difference": 52628.94
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-102",
@@ -4287,16 +4353,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCSPSTCOBR",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 82092.15,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4328,7 +4394,10 @@
             "difference": 82092.15
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-103",
@@ -4338,16 +4407,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCSPEXBR",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 65673.72,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4379,7 +4448,10 @@
             "difference": 65673.72
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-104",
@@ -4389,16 +4461,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCSPBABE",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 65673.72,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4430,7 +4502,10 @@
             "difference": 65673.72
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-105",
@@ -4440,16 +4515,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCULJANOFO",
       "groupCode": "385",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 68372.64,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4481,7 +4556,10 @@
             "difference": 68372.64
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-106",
@@ -4491,16 +4569,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCSPNOGO",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 82092.15,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4532,7 +4610,10 @@
             "difference": 82092.15
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-107",
@@ -4542,16 +4623,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCSPAMMI",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 82092.15,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4583,7 +4664,10 @@
             "difference": 82092.15
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-108",
@@ -4593,16 +4677,16 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "PANSCSPGLAPE",
       "groupCode": "671",
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
       "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "casesPassed": 2,
-      "maxDifference": 82092.15,
-      "reason": "ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "reason": "Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.",
       "evidence": {
         "source": "Pentagrama authenticated price endpoint",
         "cases": [
@@ -4634,7 +4718,10 @@
             "difference": 82092.15
           }
         ]
-      }
+      },
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-109",
