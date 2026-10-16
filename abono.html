@@ -370,7 +370,7 @@
 
         <div id="paz-salvo-banner">✓ PAZ Y SALVO ✓</div>
 
-        <button class="btn-homeeasy no-print" onclick="finalizarAbono()"><i class="fas fa-cloud-upload-alt me-2"></i> Confirmar y Sincronizar</button>
+        <button id="btn-confirmar-abono" type="button" class="btn-homeeasy no-print" onclick="finalizarAbono()"><i class="fas fa-cloud-upload-alt me-2"></i> Confirmar y Sincronizar</button>
     </div>
 
     <div class="pdf-footer">
@@ -666,7 +666,36 @@
         }
     }
 
+    // Protege contra varios clics o envíos simultáneos desde este formulario.
+    // La idempotencia definitiva también requiere una validación en Apps Script.
+    var abonoRegistroEnCurso = false;
+    var abonoRegistroEstado = 'listo'; // listo | incierto | registrado
+
     async function finalizarAbono() {
+        if (abonoRegistroEnCurso) return;
+        if (abonoRegistroEstado !== 'listo') {
+            await Swal.fire({
+                icon: abonoRegistroEstado === 'registrado' ? 'info' : 'warning',
+                title: abonoRegistroEstado === 'registrado' ? 'Abono ya registrado' : 'Abono pendiente de verificar',
+                text: abonoRegistroEstado === 'registrado'
+                    ? 'Este formulario ya registró el abono. Abre un formulario nuevo para realizar otro.'
+                    : 'La solicitud anterior pudo haberse guardado. Revisa el historial de abonos y Caja antes de volver a registrar un pago.',
+                confirmButtonColor: '#a6455a'
+            });
+            return;
+        }
+        abonoRegistroEnCurso = true;
+        var boton = document.getElementById('btn-confirmar-abono');
+        if (boton) boton.disabled = true;
+        try {
+            await ejecutarRegistroAbono();
+        } finally {
+            abonoRegistroEnCurso = false;
+            if (boton && abonoRegistroEstado === 'listo') boton.disabled = false;
+        }
+    }
+
+    async function ejecutarRegistroAbono() {
         await asegurarLibreriasPdf();
         // No emitir documentos con un encabezado predeterminado o desactualizado.
         // Capturar exactamente la configuración que ya figura en el formulario.
@@ -903,10 +932,18 @@
             setStep(2, 'check');
             setStep(3, 'active');
 
+            // ID explícito para permitir idempotencia en servidor (si está implementada).
+            var requestIdAbono = window.HomeEasyCore && typeof HomeEasyCore.createRequestId === 'function'
+                ? HomeEasyCore.createRequestId()
+                : (window.crypto && typeof crypto.randomUUID === 'function'
+                    ? crypto.randomUUID()
+                    : 'ABONO-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+            abonoRegistroEstado = 'incierto'; // Un error posterior no garantiza que el servidor no guardó.
             var response = await fetch(URL_G, {
                 method: "POST",
                 body: JSON.stringify({
                     tipo: "abono",
+                    requestId: requestIdAbono,
                     numeroOP: numOP,
                     cedula: ced,
                     nombre: nom,
@@ -921,6 +958,7 @@
             var json = await response.json();
 
             if (json.status === "success") {
+                abonoRegistroEstado = 'registrado';
                 setStep(3, 'check');
                 setStep(4, 'active');
                 
@@ -933,8 +971,17 @@
             } else {
                 throw new Error(json.msg || "No se pudo registrar el abono");
             }
-        } catch (err) { 
-            alert("Error de conexión: " + err.message); 
+        } catch (err) {
+            if (abonoRegistroEstado === 'incierto') {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'No se pudo confirmar el resultado',
+                    text: 'El pago pudo haber sido guardado aunque la conexión fallara. Antes de intentarlo de nuevo, comprueba el historial de esta orden y Caja. Detalle: ' + err.message,
+                    confirmButtonColor: '#a6455a'
+                });
+            } else {
+                alert("Error al preparar el recibo: " + err.message);
+            } 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('inputs_abono').style.display = '';
             document.getElementById('abono_destacado').style.display = 'none';
