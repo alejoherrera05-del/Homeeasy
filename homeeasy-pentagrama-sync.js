@@ -203,6 +203,7 @@
       if (action.kind === 'ADD') return 'Certificada · alta automática';
       if (action.kind === 'DEACTIVATE') return 'Confirmada · desactivación segura';
       if (action.kind === 'UPDATE_RATE') return 'Precio real certificado · actualización automática';
+      if (action.kind === 'UPDATE_RULES') return 'Regla técnica certificada · mantenimiento seguro';
       if (action.kind === 'RENAME') return 'Identidad confirmada · cambio de nombre';
     }
     if (action && action.reason) return action.reason;
@@ -225,16 +226,17 @@
       RENAMED: Number(audit.renamed || 0),
       STRUCTURE_CHANGED: Number(audit.structureChanged || 0),
       RATE: Number(audit.catalogRateChanges || 0),
+      RULE: Number(audit.maintenanceRuleChanges || 0),
       CONFLICT: Number(audit.bindingConflicts || 0)
     };
     const safe = safeCatalogActions();
     const structuralTotal = counts.NEW + counts.DISCONTINUED + counts.RENAMED + counts.STRUCTURE_CHANGED + counts.CONFLICT;
-    const total = structuralTotal + counts.RATE;
+    const total = structuralTotal + counts.RATE + counts.RULE;
     const quickMode = Boolean(scan && scan.mode === 'quick');
     $('#hePsCatalogSummary').textContent = quickMode
       ? `Actualización rápida de precios · ${counts.RATE} precio(s) Ring cambiado(s). Altas, bajas, renombres y estructura se revisan en mantenimiento profundo.`
       : scan
-        ? `${Number(audit.pentagramaProducts || 0)} referencias vistas en Pentagrama · ${counts.NEW} nuevas · ${counts.DISCONTINUED} descontinuadas · ${counts.RATE} precios Ring cambiados · ${safe.length} cambio(s) certificado(s)`
+        ? `${Number(audit.pentagramaProducts || 0)} referencias vistas en Pentagrama · ${counts.NEW} nuevas · ${counts.DISCONTINUED} descontinuadas · ${counts.RATE} precios Ring cambiados · ${counts.RULE} regla(s) técnica(s) certificada(s) · ${safe.length} cambio(s) aplicable(s)`
         : 'Aún no se ha comparado el catálogo completo.';
     $('#hePsCatalogNote').hidden = quickMode ? false : !(scan && total);
     if (quickMode) $('#hePsCatalogNote').innerHTML = '<i class="fa-solid fa-screwdriver-wrench"></i><div><strong>Mantenimiento separado</strong><p>La actualización normal revisa precios conocidos. El inventario, rutas, altas, bajas y renombres se auditan aparte para no ralentizar el trabajo diario.</p></div>';
@@ -254,7 +256,18 @@
         proposedRate: item.proposedRate,
         action: item
       }));
-    const visible = [...changes.map(item => ({ ...item, action: actionByKey.get(item.externalKey) || null })), ...rateRows].slice(0, 250);
+    const maintenanceRows = actions
+      .filter(item => item.kind === 'UPDATE_RULES')
+      .map(item => ({
+        status: item.status,
+        externalKey: item.externalKey,
+        homeeasyId: item.homeeasyId,
+        productCode: item.productCode,
+        oldName: item.reference,
+        newName: item.reference,
+        action: item
+      }));
+    const visible = [...changes.map(item => ({ ...item, action: actionByKey.get(item.externalKey) || null })), ...rateRows, ...maintenanceRows].slice(0, 250);
     $('#hePsCatalogRows').innerHTML = visible.length ? visible.map(item => {
       const live = item.live || {};
       const route = Array.isArray(live.path) ? live.path.join(' › ') : '';
@@ -262,7 +275,7 @@
       const rateNote = Number.isFinite(item.oldRate) && Number.isFinite(item.proposedRate)
         ? `<small>${money(item.oldRate)} → ${money(item.proposedRate)}</small>`
         : '';
-      return `<tr class="he-ps-row ${esc(item.status)}"><td data-label="Estado"><span class="he-ps-pill ${esc(item.status)}">${esc(STATUS_LABELS[item.status] || item.status)}</span><small>${esc(catalogAction(item.status, action))}</small></td><td data-label="Referencia"><strong>${esc(item.newName || item.oldName || (action && action.reference) || '—')}</strong>${item.oldName && item.newName && item.oldName !== item.newName ? `<small>Antes: ${esc(item.oldName)}</small>` : ''}${rateNote}</td><td data-label="Código"><strong>${esc(item.productCode || (action && action.productCode) || '—')}</strong><small>${esc(item.externalKey || '')}</small></td><td data-label="Ruta">${esc(route || (action && action.kind === 'UPDATE_RATE' ? 'Cortina Ring · tarifa certificada' : '—'))}</td><td data-label="HomeEasy"><strong>${esc(item.homeeasyId || (action && action.homeeasyId) || 'Sin vincular')}</strong><small>${esc(catalogAction(item.status, action))}</small></td></tr>`;
+      return `<tr class="he-ps-row ${esc(item.status)}"><td data-label="Estado"><span class="he-ps-pill ${esc(item.status)}">${esc(STATUS_LABELS[item.status] || item.status)}</span><small>${esc(catalogAction(item.status, action))}</small></td><td data-label="Referencia"><strong>${esc(item.newName || item.oldName || (action && action.reference) || '—')}</strong>${item.oldName && item.newName && item.oldName !== item.newName ? `<small>Antes: ${esc(item.oldName)}</small>` : ''}${rateNote}</td><td data-label="Código"><strong>${esc(item.productCode || (action && action.productCode) || '—')}</strong><small>${esc(item.externalKey || '')}</small></td><td data-label="Ruta">${esc(route || (action && action.kind === 'UPDATE_RATE' ? 'Cortina Ring · tarifa certificada' : action && action.kind === 'UPDATE_RULES' ? 'Regla técnica · mínimo de facturación certificado' : '—'))}</td><td data-label="HomeEasy"><strong>${esc(item.homeeasyId || (action && action.homeeasyId) || 'Sin vincular')}</strong><small>${esc(catalogAction(item.status, action))}</small></td></tr>`;
     }).join('') : '<tr><td colspan="5" class="he-ps-empty">No se detectaron novedades de catálogo.</td></tr>';
   }
 
@@ -333,10 +346,15 @@
       await refresh({ resetSelection: true });
       const audit = state.scan && state.scan.catalogAudit || {};
       const pending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0);
+      const certifiedMaintenance = Number(audit.maintenanceRuleChanges || 0);
       await Swal.fire({
-        icon: pending ? 'info' : 'success',
+        icon: certifiedMaintenance || pending ? 'info' : 'success',
         title: 'Mantenimiento terminado',
-        text: pending ? `Se detectaron ${pending} novedad(es) técnicas para revisar. No se aplicó ninguna automáticamente.` : 'Catálogo y estructura revisados. No se detectaron novedades técnicas.',
+        text: certifiedMaintenance
+          ? `${certifiedMaintenance} corrección(es) técnica(s) quedaron certificadas y listas para aplicar con respaldo + QA. Pulsa “Aplicar actualización”.`
+          : pending
+            ? `Se detectaron ${pending} novedad(es) técnicas para revisar. No se aplicó ninguna automáticamente.`
+            : 'Catálogo y estructura revisados. No se detectaron novedades técnicas.',
         confirmButtonColor: '#a6455a'
       });
     } catch (error) {
