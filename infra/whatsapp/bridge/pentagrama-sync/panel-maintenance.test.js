@@ -63,3 +63,64 @@ test('Panel Japonés mappings require maintenance until minimum rule is applied'
   assert.equal(verified[0].mutation.qaCases.length, 3);
   assert.equal(calls, 3);
 });
+
+
+test('targeted maintenance scan creates certified rule actions without catalog crawl', async () => {
+  const mapping = {
+    id: 'panel-targeted',
+    homeeasyId: 'panel-targeted',
+    family: 'Panel Japonés',
+    reference: 'Targeted',
+    productCode: 'PANELTARGETED',
+    groupCode: '671',
+    calculationType: 'NormalProduct',
+    width: '2',
+    height: '2',
+    quantity: 1,
+    productDiscount: 0,
+    pricingMode: 'account-discount',
+    strategy: 'RATE_M2',
+    status: 'CERTIFIED',
+    verifiedAt: '2026-10-10T00:00:00Z',
+    casesPassed: 3,
+    maxDifference: 0,
+    expectedMinHeight: 1.3,
+    expectedMinArea: 1.6,
+    expectedPreviousMinArea: 0,
+    destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' },
+    updateField: 'Tarifa_IVA_COP',
+    special: { AssociationGroup: 'PANEL', Discount: 0 },
+    validationCases: [{ id: 'a', width: '2', height: '2', role: 'derive' }]
+  };
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-targeted-maintenance-'));
+  const store = new (require('./phase2-store').Phase2Store)({ dataDir: directory });
+  let gatewayCalls = 0;
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [mapping],
+    certificationRegistry: { products: [] },
+    enrollablesRegistry: { products: {} },
+    homeeasy: { catalog: async () => ({
+      version: 'targeted-v1',
+      validThrough: '2026-12-31',
+      products: [{
+        row: 2, id: 'panel-targeted', family: 'panel', familyName: 'Panel Japonés',
+        reference: 'Targeted', method: 'area', rate: 90000, minHeight: 1.3, minArea: 0,
+        extraDiscount: 0, promotional: false, active: true, status: 'VIGENTE', rules: {}
+      }]
+    }) },
+    gateway: { dispatch: async () => { gatewayCalls += 1; throw new Error('must not crawl'); } }
+  });
+
+  const op = service.startRuleMaintenance({ email: 'test@example.com' }, { deviceId: 'test-device' });
+  for (let i = 0; i < 50 && store.operationById(op.id).state !== 'completed'; i++) {
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+  const completed = store.operationById(op.id);
+  const scan = store.latestScan();
+  assert.equal(completed.state, 'completed');
+  assert.equal(scan.mode, 'maintenance_rules');
+  assert.equal(scan.catalogAudit.maintenanceRuleChanges, 1);
+  assert.equal(scan.catalogActions[0].kind, 'UPDATE_RULES');
+  assert.equal(gatewayCalls, 0);
+});
