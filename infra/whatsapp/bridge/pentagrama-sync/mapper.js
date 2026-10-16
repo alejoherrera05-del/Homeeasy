@@ -12,7 +12,8 @@ const MAPPING_STATUSES = Object.freeze({
 const EXPANDED_CERTIFIED_MAPPINGS = Object.freeze(
   [
     ...require('./certification/onda-serena-certified.json').mappings,
-    ...require('./certification/verticales-certified.json').mappings
+    ...require('./certification/verticales-certified.json').mappings,
+    ...require('./certification/panel-japones-certified.json').mappings
   ].map(mapping => Object.freeze({
     ...mapping,
     destination: Object.freeze({ ...mapping.destination }),
