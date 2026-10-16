@@ -268,7 +268,7 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
     mutations.forEach(function(mutation) {
       if (mutation && mutation.certified !== true) throw new Error("La novedad de catálogo no está certificada.");
       const kind = String(mutation && mutation.kind || "").trim().toUpperCase();
-      if (["ADD", "DEACTIVATE", "RENAME", "UPDATE_RATE"].indexOf(kind) < 0) throw new Error("Tipo de novedad no permitido: " + kind);
+      if (["ADD", "DEACTIVATE", "RENAME", "UPDATE_RATE", "UPDATE_RULES"].indexOf(kind) < 0) throw new Error("Tipo de novedad no permitido: " + kind);
       const id = String(mutation && mutation.homeeasyId || "").trim();
       if (!id || seenIds[id]) throw new Error("ID de catálogo inválido o duplicado: " + id);
       seenIds[id] = true;
@@ -308,6 +308,22 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
         const newReference = String(mutation.newReference || "").trim();
         if (!newReference) throw new Error("Nuevo nombre vacío: " + id);
         values[3] = newReference; values[18] = "Pentagrama Sync"; values[19] = new Date();
+      } else if (kind === "UPDATE_RULES") {
+        if (!existed) throw new Error("La referencia de mantenimiento no existe en HomeEasy: " + id);
+        if (!Array.isArray(mutation.rowValues) || mutation.rowValues.length !== HOMEEASY_COST_HEADERS.length) throw new Error("Fila certificada incompleta para mantenimiento: " + id);
+        if (Math.abs(Number(before[6]) - Number(mutation.expectedRate)) > 0.005) throw new Error("La tarifa cambió después del escaneo: " + id);
+        if (Math.abs(Number(before[7]) - Number(mutation.expectedMinHeight)) > 0.000001) throw new Error("El alto mínimo cambió después del escaneo: " + id);
+        if (Math.abs(Number(before[8]) - Number(mutation.expectedMinArea)) > 0.000001) throw new Error("El área mínima cambió después del escaneo: " + id);
+        if (!isFinite(Number(mutation.proposedRate)) || Number(mutation.proposedRate) <= 0) throw new Error("Tarifa propuesta inválida: " + id);
+        if (!isFinite(Number(mutation.proposedMinArea)) || Number(mutation.proposedMinArea) <= 0) throw new Error("Área mínima propuesta inválida: " + id);
+        if (!Array.isArray(mutation.qaCases) || mutation.qaCases.length < 3) throw new Error("Evidencia QA insuficiente para mantenimiento: " + id);
+        values = mutation.rowValues.slice(); values[0] = id;
+        values[6] = Number(mutation.proposedRate);
+        values[7] = Number(mutation.proposedMinHeight);
+        values[8] = Number(mutation.proposedMinArea);
+        values[12] = true; values[13] = "VIGENTE"; values[18] = "Pentagrama Maintenance"; values[19] = new Date();
+        const maintenanceRules = leerReglasCostos10B_(values[20]);
+        if (!claveExternaReglasSync10C_(maintenanceRules)) throw new Error("El mantenimiento no contiene identidad Pentagrama: " + id);
       } else {
         if (!Array.isArray(mutation.rowValues) || mutation.rowValues.length !== HOMEEASY_COST_HEADERS.length) throw new Error("Fila certificada incompleta para actualizar tarifa: " + id);
         if (existed && Math.abs(Number(before[6]) - Number(mutation.expectedRate)) > 0.005) throw new Error("La tarifa cambió después del escaneo: " + id);
@@ -358,10 +374,16 @@ function ejecutarQaCatalogoPentagramaSync10C_(ss, writes) {
       return;
     }
     if (product.active !== true) { errors.push(id + ": la referencia no quedó activa."); return; }
-    if (write.kind === "UPDATE_RATE") {
+    if (write.kind === "UPDATE_RATE" || write.kind === "UPDATE_RULES") {
       checked++;
       const actualRate = Number(product.rateCents || 0) / 100;
       if (Math.abs(actualRate - Number(mutation.proposedRate || 0)) > 0.005) errors.push(id + ": la tarifa escrita no coincide.");
+      if (write.kind === "UPDATE_RULES") {
+        const actualMinHeight = Number(product.minHeightMm || 0) / 1000;
+        const actualMinArea = Number(product.minAreaMm2 || 0) / 1000000;
+        if (Math.abs(actualMinHeight - Number(mutation.proposedMinHeight || 0)) > 0.000001) errors.push(id + ": el alto mínimo escrito no coincide.");
+        if (Math.abs(actualMinArea - Number(mutation.proposedMinArea || 0)) > 0.000001) errors.push(id + ": el área mínima escrita no coincide.");
+      }
     }
     (mutation.qaCases || []).forEach(function(testCase) {
       checked++;
