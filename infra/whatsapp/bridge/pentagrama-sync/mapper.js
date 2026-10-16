@@ -76,7 +76,7 @@ const INITIAL_MAPPINGS = Object.freeze([
       Object.freeze({ id: 'minimum-regression', width: '1', height: '1', role: 'boundary' })
     ]),
     updateField: 'Tarifa_IVA_COP',
-    special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '' })
+    special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: 'RIECOR28', Discount: 0 })
   }),
   Object.freeze({
     id: 'onda-comfort-white-200x200',
