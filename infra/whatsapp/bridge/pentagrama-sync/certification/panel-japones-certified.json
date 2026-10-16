@@ -1,0 +1,1605 @@
+{
+  "generatedAt": "2026-10-16T15:33:31.361Z",
+  "sourceEvidence": "panel-japones-live-evidence.json",
+  "maintenanceRule": {
+    "minHeight": 1.3,
+    "minArea": 1.6
+  },
+  "mappings": [
+    {
+      "id": "panel-certified-panel-78",
+      "family": "Panel Japonés",
+      "reference": "Blackout Matte",
+      "homeeasyId": "panel-78",
+      "productCode": "PANBOMA195",
+      "groupCode": "378",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-79",
+      "family": "Panel Japonés",
+      "reference": "Calais Blanco y Crema",
+      "homeeasyId": "panel-79",
+      "productCode": "PANTRCA500",
+      "groupCode": "615",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-81",
+      "family": "Panel Japonés",
+      "reference": "Roma",
+      "homeeasyId": "panel-81",
+      "productCode": "PANTRRO68609000",
+      "groupCode": "410",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-82",
+      "family": "Panel Japonés",
+      "reference": "Claire",
+      "homeeasyId": "panel-82",
+      "productCode": "PANTRCL22405000",
+      "groupCode": "399",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-84",
+      "family": "Panel Japonés",
+      "reference": "Screen Tretto 3%",
+      "homeeasyId": "panel-84",
+      "productCode": "PANSCTRE3EBO",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-85",
+      "family": "Panel Japonés",
+      "reference": "Screen Tretto 1%",
+      "homeeasyId": "panel-85",
+      "productCode": "PANSCTRE1EBO",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-86",
+      "family": "Panel Japonés",
+      "reference": "Screen Lino",
+      "homeeasyId": "panel-86",
+      "productCode": "PANSCLINDUN",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-87",
+      "family": "Panel Japonés",
+      "reference": "Screen Difuse",
+      "homeeasyId": "panel-87",
+      "productCode": "PANSCDIFASH",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-88",
+      "family": "Panel Japonés",
+      "reference": "Screen Estuco",
+      "homeeasyId": "panel-88",
+      "productCode": "PANSCESAS",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-89",
+      "family": "Panel Japonés",
+      "reference": "Screen Face Off",
+      "homeeasyId": "panel-89",
+      "productCode": "PANSCFAOF3WHBL",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-90",
+      "family": "Panel Japonés",
+      "reference": "Screen Silver Back",
+      "homeeasyId": "panel-90",
+      "productCode": "PANSCSIBA5BL",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-91",
+      "family": "Panel Japonés",
+      "reference": "Screen Eco Crystal",
+      "homeeasyId": "panel-91",
+      "productCode": "PANSCECCRYCRE",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-92",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Privas",
+      "homeeasyId": "panel-92",
+      "productCode": "PANSCJACPRICRBR",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-93",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Papua",
+      "homeeasyId": "panel-93",
+      "productCode": "PANSCPAPBE",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-94",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Queen",
+      "homeeasyId": "panel-94",
+      "productCode": "PANSCJADEQUEBAM",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-95",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Sketch",
+      "homeeasyId": "panel-95",
+      "productCode": "PANSCJADEQUEBRWH",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-96",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Provence",
+      "homeeasyId": "panel-96",
+      "productCode": "PANSCJAC10047604",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-97",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Expressions",
+      "homeeasyId": "panel-97",
+      "productCode": "PANSCJAC10047812",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-98",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Desert",
+      "homeeasyId": "panel-98",
+      "productCode": "PANSCJADEDEGRESAN",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-99",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Stylo",
+      "homeeasyId": "panel-99",
+      "productCode": "PANSCJACSTYCHAL",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-100",
+      "family": "Panel Japonés",
+      "reference": "Screen Jacquard Nirvana",
+      "homeeasyId": "panel-100",
+      "productCode": "PANSCJAC10047404",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-101",
+      "family": "Panel Japonés",
+      "reference": "Screen Splendour Glow",
+      "homeeasyId": "panel-101",
+      "productCode": "PANSCSPGLAN",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-102",
+      "family": "Panel Japonés",
+      "reference": "Screen Splendour Style",
+      "homeeasyId": "panel-102",
+      "productCode": "PANSCSPSTCOBR",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-103",
+      "family": "Panel Japonés",
+      "reference": "Screen Splendour Explore",
+      "homeeasyId": "panel-103",
+      "productCode": "PANSCSPEXBR",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-104",
+      "family": "Panel Japonés",
+      "reference": "Screen Splendour Bamboo",
+      "homeeasyId": "panel-104",
+      "productCode": "PANSCSPBABE",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-105",
+      "family": "Panel Japonés",
+      "reference": "Screen Ultimate Jacquard Novo",
+      "homeeasyId": "panel-105",
+      "productCode": "PANSCULJANOFO",
+      "groupCode": "385",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-106",
+      "family": "Panel Japonés",
+      "reference": "Screen Splendour Noble",
+      "homeeasyId": "panel-106",
+      "productCode": "PANSCSPNOGO",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-107",
+      "family": "Panel Japonés",
+      "reference": "Screen Splendour Amazon",
+      "homeeasyId": "panel-107",
+      "productCode": "PANSCSPAMMI",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "panel-certified-panel-108",
+      "family": "Panel Japonés",
+      "reference": "Screen Splendour Glamour",
+      "homeeasyId": "panel-108",
+      "productCode": "PANSCSPGLAPE",
+      "groupCode": "671",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-10-10T01:50:08.967Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6,
+      "expectedPreviousMinArea": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "derive"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "derive"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1.3",
+          "role": "boundary"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "PANEL",
+        "Discount": 0
+      }
+    }
+  ]
+}
