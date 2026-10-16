@@ -79,8 +79,6 @@ async function catalog(operation, params) {
 }
 
 (async () => {
-  console.log('=== SHEER ELEGANCE · DIAGNÓSTICO SOLO LECTURA ===');
-
   const roots = listOf(await catalog('categories', { level: 1 }))
     .map(categoryView)
     .filter(item => item.code);
@@ -95,8 +93,6 @@ async function catalog(operation, params) {
     process.exitCode = 1;
     return;
   }
-
-  console.log('Raíz:', root.name, '· niveles:', root.levels);
 
   const targetCodes = new Set(targets.map(item => item.productCode.toUpperCase()));
   const found = new Map();
