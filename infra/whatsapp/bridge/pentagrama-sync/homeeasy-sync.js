@@ -6,9 +6,9 @@ class HomeEasySyncClient {
   constructor(options = {}) {
     this.backendUrl = String(options.backendUrl || process.env.HOMEEASY_BACKEND_URL || 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
     this.fetch = options.fetch || globalThis.fetch;
-    this.timeoutMs = Math.max(5000, Number(options.timeoutMs || 45000));
-    this.lockRetryDelayMs = Math.max(0, Number(options.lockRetryDelayMs || 3000));
-    this.lockResponseThresholdMs = Math.max(0, Number(options.lockResponseThresholdMs || 25000));
+    this.timeoutMs = Math.max(5000, Number(options.timeoutMs ?? 45000));
+    this.lockRetryDelayMs = Math.max(0, Number(options.lockRetryDelayMs ?? 3000));
+    this.lockResponseThresholdMs = Math.max(0, Number(options.lockResponseThresholdMs ?? 25000));
   }
 
   async request(tipo, payload, context) {
