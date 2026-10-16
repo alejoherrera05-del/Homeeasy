@@ -33,6 +33,7 @@
     PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK: 'El QA contra Pentagrama no coincidió. El lote fue restaurado automáticamente.',
     PENTAGRAMA_NO_APPLICABLE_CHANGES: 'No hay cambios normales seleccionados para aplicar.',
     BRIDGE_RESTARTED: 'La operación anterior fue interrumpida por un reinicio del Bridge. Puedes iniciarla nuevamente con seguridad.',
+    HOMEEASY_SYNC_LOCK_BUSY: 'HomeEasy estaba ocupado por otra operación. No se modificaron datos; vuelve a intentarlo en unos segundos.',
     HOMEEASY_SYNC_UPSTREAM_UNAVAILABLE: 'No fue posible comunicarse con la Sheet de HomeEasy. No se aplicaron cambios.',
     HOMEEASY_SYNC_SESSION_REQUIRED: 'Tu sesión de HomeEasy venció. Inicia sesión nuevamente para continuar.',
     APP_SESSION_EXPIRED: 'Tu sesión de HomeEasy venció. Inicia sesión nuevamente para continuar.',
