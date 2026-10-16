@@ -8,6 +8,7 @@ class HomeEasySyncClient {
     this.fetch = options.fetch || globalThis.fetch;
     this.timeoutMs = Math.max(5000, Number(options.timeoutMs || 45000));
     this.lockRetryDelayMs = Math.max(0, Number(options.lockRetryDelayMs || 3000));
+    this.lockResponseThresholdMs = Math.max(0, Number(options.lockResponseThresholdMs || 25000));
   }
 
   async request(tipo, payload, context) {
@@ -45,7 +46,7 @@ class HomeEasySyncClient {
         String(tipo) === 'COSTOS_SYNC_APPLY' &&
         response.ok &&
         !data &&
-        elapsedMs >= 25000;
+        elapsedMs >= this.lockResponseThresholdMs;
 
       if (looksLikeLockTimeout && attempt === 0) {
         await new Promise(resolve => setTimeout(resolve, this.lockRetryDelayMs));
