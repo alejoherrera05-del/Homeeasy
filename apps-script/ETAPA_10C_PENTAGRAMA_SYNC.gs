@@ -92,7 +92,8 @@ function aplicarPentagramaSync10C_(ss, data, authValidation) {
   const changes = Array.isArray(data && data.changes) ? data.changes : [];
   if (!scanId || isNaN(scannedAt.getTime()) || Date.now() - scannedAt.getTime() > 30 * 60 * 1000) return { status: "error", code: "PENTAGRAMA_SCAN_EXPIRED", msg: "El escaneo no existe o expiró." };
   if (!changes.length) return { status: "error", code: "PENTAGRAMA_NO_CHANGES", msg: "No hay cambios para aplicar." };
-  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return { status: "error", code: "PENTAGRAMA_SYNC_BUSY", msg: "HomeEasy está ocupado por otra operación. No se modificaron datos." };
   const historyId = Utilities.getUuid(); const snapshotId = Utilities.getUuid();
   const sheet = ss.getSheetByName(HOMEEASY_COST_SHEET);
   const snapshotSheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_SNAPSHOT_SHEET, HOMEEASY_SYNC_SNAPSHOT_HEADERS);
@@ -149,7 +150,8 @@ function aplicarModeloLocalPentagramaSync10C_(ss, data, authValidation) {
   if (!scanId || isNaN(scannedAt.getTime()) || Date.now() - scannedAt.getTime() > 30 * 60 * 1000) return { status: "error", code: "PENTAGRAMA_SCAN_EXPIRED", msg: "El escaneo no existe o expiró." };
   if (!candidate || Number(candidate.schemaVersion) !== 1 || String(candidate.mode) !== "ENROLLABLES_LOCAL_FIRST") return { status: "error", code: "PENTAGRAMA_LOCAL_MODEL_INVALID", msg: "El candidato local no es válido." };
   if (!Array.isArray(candidate.products) || candidate.products.length !== 279 || !Array.isArray(candidate.qaCases) || !candidate.qaCases.length) return { status: "error", code: "PENTAGRAMA_LOCAL_MODEL_INCOMPLETE", msg: "El candidato no cubre los 279 Enrollables o no contiene QA." };
-  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return { status: "error", code: "PENTAGRAMA_SYNC_BUSY", msg: "HomeEasy está ocupado por otra operación. No se modificaron datos." };
   const historyId = Utilities.getUuid(); const snapshotId = Utilities.getUuid();
   const historySheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_HISTORY_SHEET, HOMEEASY_SYNC_HISTORY_HEADERS);
   const snapshotSheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_SNAPSHOT_V2_SHEET, HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS);
@@ -253,7 +255,8 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
   }
   if (!mutations.length) return { status: "error", code: "PENTAGRAMA_NO_CHANGES", msg: "No hay novedades de catálogo para aplicar." };
 
-  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return { status: "error", code: "PENTAGRAMA_SYNC_BUSY", msg: "HomeEasy está ocupado por otra operación. No se modificaron datos." };
   const historyId = Utilities.getUuid(); const snapshotId = Utilities.getUuid();
   const productSheet = ss.getSheetByName(HOMEEASY_COST_SHEET);
   const snapshotSheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_SNAPSHOT_V2_SHEET, HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS);
@@ -427,7 +430,8 @@ function restaurarSnapshotV2PentagramaSync10C_(ss, rows) {
 function revertirPentagramaSync10C_(ss, data, authValidation) {
   const sourceHistoryId = String(data && data.historyId || "").trim();
   if (!sourceHistoryId) return { status: "error", code: "ROLLBACK_HISTORY_REQUIRED", msg: "Falta historialId." };
-  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return { status: "error", code: "PENTAGRAMA_SYNC_BUSY", msg: "HomeEasy está ocupado por otra operación. No se modificaron datos." };
   const sheet = ss.getSheetByName(HOMEEASY_COST_SHEET); const snapshotsSheet = ss.getSheetByName(HOMEEASY_SYNC_SNAPSHOT_SHEET);
   const historySheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_HISTORY_SHEET, HOMEEASY_SYNC_HISTORY_HEADERS);
   const rollbackId = Utilities.getUuid();
