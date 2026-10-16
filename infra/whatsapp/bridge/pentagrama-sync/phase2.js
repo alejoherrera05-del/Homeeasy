@@ -238,6 +238,12 @@ class PentagramaPhase2 {
     return operation;
   }
 
+  startRuleMaintenance(actor, context) {
+    const operation = this.store.operation('maintenance_rules', actor);
+    setImmediate(() => this.runRuleMaintenance(operation.id, context).catch(error => this.fail(operation.id, error)));
+    return operation;
+  }
+
   startInventory(actor) {
     const operation = this.store.operation('inventory', actor);
     setImmediate(() => this.runInventory(operation.id).catch(error => this.fail(operation.id, error)));
@@ -666,6 +672,102 @@ class PentagramaPhase2 {
     }
 
     return actions;
+  }
+
+  async runRuleMaintenance(operationId, context) {
+    this.store.updateOperation(operationId, {
+      state: 'running',
+      stage: 'READING_HOMEEASY',
+      progress: { status: 'STARTING', completed: 0, total: 0, current: null }
+    });
+
+    const source = await this.homeeasy.catalog(context);
+    const actions = this.buildRuleMaintenanceActions(source);
+    const sourceProducts = Array.isArray(source && source.products) ? source.products : [];
+    const sourceById = new Map(sourceProducts.map(item => [String(item.id), item]));
+    const certifiedMappings = this.mappings.filter(mapping => mappingIsCertified(mapping));
+    const alignedMappings = certifiedMappings.filter(mapping =>
+      mappingRuleAlignment(mapping, sourceById.get(String(mapping.homeeasyId))).ok
+    );
+
+    const results = actions.map(action => ({
+      id: action.id,
+      homeeasyId: action.homeeasyId,
+      family: 'Panel Japonés',
+      reference: action.reference,
+      productCode: action.productCode,
+      status: action.autoApplicable ? 'STRUCTURE_CHANGED' : 'REVIEW_REQUIRED',
+      autoApplicable: Boolean(action.autoApplicable),
+      reviewReason: action.reason || null,
+      strategy: 'RATE_M2',
+      destination: { sheet: 'Costos_Pentagrama', field: 'Area_Min_Fact_m2 + Tarifa_IVA_COP' }
+    }));
+
+    const counts = results.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    const scan = {
+      id: crypto.randomUUID(),
+      mode: 'maintenance_rules',
+      checkedAt: new Date().toISOString(),
+      sourceVersion: source.version,
+      sourceValidThrough: source.validThrough,
+      catalogSummary: { mode: 'CERTIFICATION_MAINTENANCE', checked: actions.length, maintenanceSkipped: false },
+      localModelCandidate: null,
+      localModelError: null,
+      catalogInventoryAudit: null,
+      enrollablesRouteAudit: null,
+      enrollablesRouteAuditError: null,
+      catalogChanges: actions.map(action => ({
+        status: action.status,
+        externalKey: action.externalKey,
+        homeeasyId: action.homeeasyId,
+        productCode: action.productCode,
+        oldName: action.reference,
+        newName: action.reference,
+        family: 'Panel Japonés',
+        live: null
+      })),
+      catalogActions: actions,
+      catalogAudit: {
+        mode: 'CERTIFICATION_MAINTENANCE',
+        maintenanceRequired: actions.length > 0,
+        total: sourceProducts.length,
+        mapped: this.mappings.length + ENROLLABLE_IDS.size,
+        certified: alignedMappings.length + ENROLLABLE_IDS.size,
+        autoUpdatable: actions.filter(item => item.autoApplicable === true).length,
+        reviewRequired: actions.filter(item => item.autoApplicable !== true).length,
+        unmapped: 0,
+        strategies: { RATE_M2: actions.length },
+        pentagramaProducts: 0,
+        newReferences: 0,
+        discontinued: 0,
+        renamed: 0,
+        structureChanged: actions.length,
+        bindingConflicts: 0,
+        catalogAutoApplicable: actions.filter(item => item.autoApplicable === true).length,
+        catalogRateChanges: 0,
+        catalogCertifiedAdditions: 0,
+        catalogCertifiedDeactivations: 0,
+        maintenanceRuleChanges: actions.filter(item => item.autoApplicable === true).length,
+        catalogReviewRequired: actions.filter(item => item.autoApplicable !== true).length,
+        maintenanceNote: 'Mantenimiento focalizado de reglas certificadas; no recorre catálogo ni reconstruye Enrollables.'
+      },
+      expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(),
+      counts,
+      results
+    };
+
+    this.store.addScan(scan);
+    this.store.updateOperation(operationId, {
+      state: 'completed',
+      stage: 'COMPLETED',
+      scanId: scan.id,
+      result: { scanId: scan.id, counts, mode: 'maintenance_rules' },
+      progress: { status: 'COMPLETED', completed: actions.length, total: actions.length, current: null }
+    });
   }
 
   async quickProbeMapping(mapping, sourceItem) {
