@@ -39,6 +39,20 @@ function defaultMap(data) {
   return out;
 }
 
+function dependencyDefaultMap(data) {
+  const list = Array.isArray(data && data.ProductAttributeList) ? data.ProductAttributeList : [];
+  const out = {};
+  list.forEach(item => {
+    const name = String(item && (item.FriendlyName ?? item.friendlyName ?? item.Name ?? item.name) || '').trim().toLowerCase();
+    const values = Array.isArray(item && item.ProductAttributeValuesList) ? item.ProductAttributeValuesList : [];
+    const selected = values.find(value => value && (value.Selected === true || value.IsDefault === true || value.Default === true)) ||
+      (values.length === 1 ? values[0] : null);
+    const value = String(selected && (selected.Value ?? selected.value ?? selected.Code ?? selected.code) || '').trim();
+    if (name && value) out[name] = value;
+  });
+  return out;
+}
+
 function hasAttributeField(html, id) {
   const escaped = String(id || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(`<select\\b[^>]*\\bid=["']${escaped}["']`, 'i').test(String(html || ''));
@@ -106,8 +120,44 @@ class PentagramaLiveResolver {
     this.vatRate = decimalFraction(vatRate);
   }
 
+  product(input = {}) {
+    return SUPPORTED_PRODUCTS[String(input.homeeasyId || input.product || '').trim()] || null;
+  }
+
+  priceParams(product, width, height, quantity) {
+    return {
+      ProductCode: product.productCode, Quantity: quantity, Width: width, Height: height,
+      GroupCode: product.groupCode, calculationType: product.calculationType,
+      Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: product.associationGroup
+    };
+  }
+
+  async quoteBase(input = {}) {
+    const product = this.product(input);
+    if (!product) throw Object.assign(new Error('Live product is not supported'), { code: 'PENTAGRAMA_LIVE_PRODUCT_UNSUPPORTED' });
+    const width = requiredNumber(input.width, 'width');
+    const height = requiredNumber(input.height, 'height');
+    const quantity = Math.trunc(requiredNumber(input.quantity === undefined ? 1 : input.quantity, 'quantity', 1));
+    const fixed = fixedAmount(await this.catalog.fixedPrice({ Code: product.productCode, cantidad: quantity, ancho: width, alto: height }));
+    if (fixed > 0) return { basePrice: fixed, distributorDiscount: 0, productDiscount: 0, pricingMode: 'fixed-price', subtotal: fixed, vatRate: this.vatRate, total: roundMoney(fixed * (1 + this.vatRate)) };
+    return this.pricing.supplierCost(this.priceParams(product, width, height, quantity), {
+      pricingMode: 'account-discount', productDiscount: product.discount, AssociationGroup: product.associationGroup
+    });
+  }
+
+  async configurationOptions(input = {}) {
+    const product = this.product(input);
+    if (!product) throw Object.assign(new Error('Live product is not supported'), { code: 'PENTAGRAMA_LIVE_PRODUCT_UNSUPPORTED' });
+    const html = await this.catalog.attributes({
+      ProductCode: product.productCode, Group: product.associationGroup, GroupCode: product.groupCode,
+      LineNumber: '', PrimaryGroup: product.primaryGroup, Discount: product.discount,
+      CalculationType: product.calculationType, Modified: ''
+    });
+    return { penta13: attributeOption(html, 'cenefa', /^PENTA\s*13\b/i) };
+  }
+
   async resolve(input = {}) {
-    const product = SUPPORTED_PRODUCTS[String(input.homeeasyId || input.product || '').trim()];
+    const product = this.product(input);
     if (!product) {
       const homeeasyId = String(input.homeeasyId || input.product || '').trim();
       return { ok: false, outcome: 'UNSUPPORTED', code: 'PENTAGRAMA_LIVE_PRODUCT_UNSUPPORTED', fallback: fallbackFor(homeeasyId) };
@@ -115,11 +165,7 @@ class PentagramaLiveResolver {
     const width = requiredNumber(input.width, 'width');
     const height = requiredNumber(input.height, 'height');
     const quantity = Math.trunc(requiredNumber(input.quantity === undefined ? 1 : input.quantity, 'quantity', 1));
-    const priceParams = {
-      ProductCode: product.productCode, Quantity: quantity, Width: width, Height: height,
-      GroupCode: product.groupCode, calculationType: product.calculationType,
-      Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: product.associationGroup
-    };
+    const priceParams = this.priceParams(product, width, height, quantity);
     const requestedConfiguration = String(input.configuration || 'standard').trim().toLowerCase();
 
     // Mirrors the portal flow: render the available attributes, validate alerts,
@@ -151,16 +197,33 @@ class PentagramaLiveResolver {
       return unresolved('Pentagrama did not expose the manufacturing attribute selectors');
     }
 
+    let configuredHead = null;
+    let dependencyDefaults = {};
+    if (requestedConfiguration.includes('penta13')) {
+      configuredHead = attributeOption(attributes, 'cenefa', /^PENTA\s*13\b/i);
+      if (!configuredHead) return unresolved('Pentagrama did not expose a Penta13 option for this product');
+      const dependency = await this.catalog.dependencies({
+        idAttribute: configuredHead.idAttribute,
+        idValueSelected: configuredHead.value,
+        productCode: product.productCode,
+        idAttributeValue: configuredHead.idAttributeValue
+      });
+      if (!dependency || Number(dependency.codigo) !== 100) {
+        return unresolved('Pentagrama did not resolve the Penta13 dependencies');
+      }
+      dependencyDefaults = dependencyDefaultMap(dependency);
+    }
+
     const fixed = fixedAmount(await this.catalog.fixedPrice({ Code: product.productCode, cantidad: quantity, ancho: width, alto: height }));
     const quoted = await this.pricing.supplierCost(priceParams, {
       pricingMode: 'account-discount',
       productDiscount: product.discount,
       AssociationGroup: product.associationGroup
     });
-    const defaults = defaultMap(await this.catalog.defaults({
+    const defaults = { ...defaultMap(await this.catalog.defaults({
       ProductCode: product.productCode, Quantity: quantity, Width: width, Height: height,
       Group: product.associationGroup, PrimaryGroup: product.primaryGroup
-    }));
+    })), ...dependencyDefaults };
     const orientation = orientationFor(defaults['direccion-de-la-tela']);
     const mechanism = String(defaults.mecanismo || '').trim().toUpperCase();
     if (!orientation.code || !mechanism) {
@@ -197,21 +260,6 @@ class PentagramaLiveResolver {
     const base = fixed > 0
       ? { basePrice: fixed, distributorDiscount: 0, productDiscount: 0, pricingMode: 'fixed-price', subtotal: fixed, vatRate: this.vatRate, total: roundMoney(fixed * (1 + this.vatRate)) }
       : quoted;
-
-    let configuredHead = null;
-    if (requestedConfiguration.includes('penta13')) {
-      configuredHead = attributeOption(attributes, 'cenefa', /^PENTA\s*13\b/i);
-      if (!configuredHead) return unresolved('Pentagrama did not expose a Penta13 option for this product');
-      const dependency = await this.catalog.dependencies({
-        idAttribute: configuredHead.idAttribute,
-        idValueSelected: configuredHead.value,
-        productCode: product.productCode,
-        idAttributeValue: configuredHead.idAttributeValue
-      });
-      if (!dependency || Number(dependency.codigo) !== 100) {
-        return unresolved('Pentagrama did not resolve the Penta13 dependencies');
-      }
-    }
 
     const selectedComplements = [];
     if (input.coverlight) selectedComplements.push(String(input.coverlight));
@@ -273,4 +321,5 @@ class PentagramaLiveResolver {
   }
 }
 
-module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, CERTIFIED_FALLBACKS, COMPLEMENTS, attributeOption, defaultMap, fixedAmount, hasAttributeField, orientationFor });
+module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, CERTIFIED_FALLBACKS, COMPLEMENTS, attributeOption, defaultMap,
+  dependencyDefaultMap, fixedAmount, hasAttributeField, orientationFor });

@@ -27,15 +27,22 @@ test('agent decrypts the hybrid registration envelope', () => {
 
 test('agent executes only allowlisted health, price, catalog and live resolver jobs', async () => {
   const sync = {
-    client: { get: async route => route === '/Order/GetJsonCategoryList' ? [] : null },
+    client: {
+      get: async (route, params) => route === '/Order/GetJsonCategoryList' && params && params.level === 1 ? [] : null,
+      auth: { clearSession() {}, async authenticate() {} }
+    },
     catalog: { categories: async params => [{ id: params.scope }] },
     pricing: { supplierCost: async () => ({ basePrice: 244800, total: 244800 }) },
-    liveResolver: { resolve: async payload => ({ ok: true, outcome: 'PRICE', product: payload.homeeasyId }) }
+    liveResolver: { resolve: async payload => ({ ok: true, outcome: 'PRICE', product: payload.homeeasyId }) },
+    catalogInventory: { scan: async () => ({ counts: { products: 321 }, products: [] }) },
+    localModel: { build: async source => ({ ok: true, products: source.products }) }
   };
   assert.equal((await runJob({ type: 'health' }, sync)).ok, true);
   assert.equal((await runJob({ type: 'getPrice', payload: { params: {} } }, sync)).basePrice, 244800);
   assert.deepEqual(await runJob({ type: 'catalog', payload: { operation: 'categories', params: { scope: 7 } } }, sync), [{ id: 7 }]);
   assert.equal((await runJob({ type: 'resolveLivePrice', payload: { homeeasyId: 'matte3' } }, sync)).outcome, 'PRICE');
+  assert.equal((await runJob({ type: 'catalogInventory' }, sync)).counts.products, 321);
+  assert.equal((await runJob({ type: 'buildLocalEnrollablesSnapshot', payload: { source: { products: [1] } } }, sync)).products.length, 1);
   await assert.rejects(() => runJob({ type: 'catalog', payload: { operation: 'requestAnyUrl' } }, sync), error => error.code === 'AGENT_CATALOG_OPERATION_NOT_ALLOWED');
   await assert.rejects(() => runJob({ type: 'shell' }, sync), error => error.code === 'AGENT_JOB_NOT_ALLOWED');
 });

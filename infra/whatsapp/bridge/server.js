@@ -14,7 +14,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.16.5';
+const BRIDGE_VERSION = '0.18.1';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -41,6 +41,14 @@ const pentagramaPhase2 = new PentagramaPhase2({
   dataDir: DATA_DIR, pricing: pentagramaSync.pricing, homeeasyCost: pentagramaSync.homeeasy, gateway: pentagramaAgents
 });
 const pentagramaScheduler = new PentagramaScheduler({ phase2: pentagramaPhase2, gateway: pentagramaAgents });
+
+function pentagramaOperationContext(req) {
+  const context = operationContext(req);
+  if (auth.isInternal(req) && !context.sessionToken && !context.serviceKey) {
+    return pentagramaScheduler.context();
+  }
+  return context;
+}
 
 if (!WAHA_API_KEY || !BRIDGE_TOKEN) {
   console.error('Missing WAHA_API_KEY or BRIDGE_TOKEN. Refusing to start.');
@@ -911,21 +919,27 @@ async function handle(req, res) {
     return scan ? json(res, 200, { ok: true, scan }) : json(res, 404, { ok: false, code: 'SCAN_NOT_FOUND' });
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/quick-scan') {
+    const actor = await auth.authorize(req, 'config.write');
+    const operation = pentagramaPhase2.startQuickScan(auth.publicActor(actor), pentagramaOperationContext(req));
+    return json(res, 202, { ok: true, operation });
+  }
+
   if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/scan') {
     const actor = await auth.authorize(req, 'config.write');
-    const operation = pentagramaPhase2.startScan(auth.publicActor(actor), operationContext(req));
+    const operation = pentagramaPhase2.startScan(auth.publicActor(actor), pentagramaOperationContext(req));
     return json(res, 202, { ok: true, operation });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/apply') {
     const actor = await auth.authorize(req, 'config.write');
-    const operation = pentagramaPhase2.startApply(auth.publicActor(actor), operationContext(req), await readJsonBody(req));
+    const operation = pentagramaPhase2.startApply(auth.publicActor(actor), pentagramaOperationContext(req), await readJsonBody(req));
     return json(res, 202, { ok: true, operation });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/rollback') {
     const actor = await auth.authorize(req, 'config.write');
-    const operation = pentagramaPhase2.startRollback(auth.publicActor(actor), operationContext(req), await readJsonBody(req));
+    const operation = pentagramaPhase2.startRollback(auth.publicActor(actor), pentagramaOperationContext(req), await readJsonBody(req));
     return json(res, 202, { ok: true, operation });
   }
 

@@ -45,6 +45,7 @@ test('read-only inventory is orchestrated through short catalog jobs with persis
   const gateway = {
     dispatch: async (type, payload) => {
       calls.push({ type, payload: JSON.parse(JSON.stringify(payload || {})) });
+
       assert.equal(type, 'catalog');
       assert.ok(['categories', 'products'].includes(payload.operation));
 
@@ -138,7 +139,6 @@ test('read-only inventory is orchestrated through short catalog jobs with persis
   assert.equal('products' in completed.result, false);
   assert.ok(calls.length > 1);
   assert.ok(calls.every(call => call.type === 'catalog'));
-  assert.equal(calls.some(call => call.type === 'catalogInventory'), false);
 
   const familyProgress = updates
     .map(update => update.progress)

@@ -21,10 +21,10 @@ function fixture(options = {}) {
   });
 }
 
-function register(gateway, id = crypto.randomUUID()) {
+function register(gateway, id = crypto.randomUUID(), version = '1.5.3', hostname = 'TEST-PC') {
   const keys = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
   const body = gateway.register('bootstrap-test', {
-    identity: { installationId: id, hostname: 'TEST-PC', version: '1.0.0', platform: 'win32-x64', installedAt: new Date().toISOString() },
+    identity: { installationId: id, hostname, version, platform: 'win32-x64', installedAt: new Date().toISOString() },
     publicKey: keys.publicKey.export({ type: 'spki', format: 'pem' })
   });
   const contentKey = crypto.privateDecrypt({ key: keys.privateKey, oaepHash: 'sha256' }, Buffer.from(body.sealed.key, 'base64'));
@@ -49,7 +49,7 @@ test('heartbeat does not enqueue a Pentagrama login job', async () => {
   const gateway = fixture();
   const registration = register(gateway);
   const agent = gateway.authenticate(registration.id, registration.token);
-  gateway.heartbeat(agent, { version: '1.0.0', pentagrama: { status: 'ready', checkedAt: null } });
+  gateway.heartbeat(agent, { version: '1.5.3', pentagrama: { status: 'ready', checkedAt: null } });
   const poll = await gateway.poll(agent);
   assert.equal(poll.job, null);
 });
@@ -92,4 +92,80 @@ test('functional errors stop while infrastructure errors fail over once', async 
   const job3 = await gateway.poll(gateway.authenticate(first.id, first.token));
   gateway.complete(gateway.authenticate(first.id, first.token), { jobId: job3.job.id, ok: true, result: { ok: true } });
   assert.equal((await failover).ok, true);
+});
+
+
+test('dispatcher ignores online legacy Agents and sends Pentagrama jobs to a compatible 1.5.3 Agent', async () => {
+  const gateway = fixture();
+
+  const oldA = register(gateway, crypto.randomUUID(), '1.2.1', 'OLD-A');
+  const oldB = register(gateway, crypto.randomUUID(), '1.2.1', 'OLD-B');
+  const modern = register(gateway, crypto.randomUUID(), '1.5.3', 'MODERN');
+
+  const oldAgentA = gateway.authenticate(oldA.id, oldA.token);
+  const oldAgentB = gateway.authenticate(oldB.id, oldB.token);
+  const modernAgent = gateway.authenticate(modern.id, modern.token);
+
+  gateway.heartbeat(oldAgentA, { version: '1.2.1', pentagrama: { status: 'ready', checkedAt: null } });
+  gateway.heartbeat(oldAgentB, { version: '1.2.1', pentagrama: { status: 'ready', checkedAt: null } });
+  gateway.heartbeat(modernAgent, { version: '1.5.3', pentagrama: { status: 'ready', checkedAt: null } });
+
+  const pending = gateway.dispatch('catalog', { operation: 'categories', params: { level: 1 } }, { lockKey: 'compat-routing' });
+
+  assert.equal(gateway.takeJob(oldAgentA), null);
+  assert.equal(gateway.takeJob(oldAgentB), null);
+
+  const modernJob = gateway.takeJob(modernAgent);
+  assert.equal(modernJob.type, 'catalog');
+
+  gateway.complete(modernAgent, {
+    jobId: modernJob.id,
+    ok: true,
+    result: [{ Code: '1', Name: 'OK' }]
+  });
+
+  assert.deepEqual(await pending, [{ Code: '1', Name: 'OK' }]);
+});
+
+test('dispatcher returns AGENT_INCOMPATIBLE when only legacy Agents are online', async () => {
+  const gateway = fixture({ jobTimeoutMs: 200 });
+  const old = register(gateway, crypto.randomUUID(), '1.2.1', 'OLD-ONLY');
+  const oldAgent = gateway.authenticate(old.id, old.token);
+  gateway.heartbeat(oldAgent, { version: '1.2.1', pentagrama: { status: 'ready', checkedAt: null } });
+
+  await assert.rejects(
+    () => gateway.dispatch('catalog', { operation: 'categories' }, { lockKey: 'legacy-only' }),
+    error => error.code === 'AGENT_INCOMPATIBLE'
+  );
+});
+
+
+test('active long job remains visibly online as busy even when heartbeat age exceeds online window', async () => {
+  const gateway = fixture({ onlineMs: 15, jobTimeoutMs: 1000 });
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  const pending = gateway.dispatch('catalog', { operation: 'products', params: { Category1: '4' } }, { lockKey: 'busy-visible' });
+  const delivery = gateway.takeJob(agent);
+  assert.equal(delivery.type, 'catalog');
+  agent.lastSeen = new Date(Date.now() - 60000).toISOString();
+  const status = gateway.list()[0];
+  assert.equal(status.online, true);
+  assert.equal(status.busy, true);
+  gateway.complete(agent, { jobId: delivery.id, ok: true, result: [] });
+  await pending;
+});
+
+test('stale registered compatible Agent is reported offline, not incompatible', async () => {
+  const gateway = fixture({ onlineMs: 15, jobTimeoutMs: 200 });
+  const modern = register(gateway, crypto.randomUUID(), '1.5.3', 'MODERN-OFFLINE');
+  const old = register(gateway, crypto.randomUUID(), '1.2.1', 'OLD-ONLINE');
+  const modernAgent = gateway.authenticate(modern.id, modern.token);
+  const oldAgent = gateway.authenticate(old.id, old.token);
+  modernAgent.lastSeen = new Date(Date.now() - 60000).toISOString();
+  gateway.heartbeat(oldAgent, { version: '1.2.1', pentagrama: { status: 'ready', checkedAt: null } });
+
+  await assert.rejects(
+    () => gateway.dispatch('catalog', { operation: 'categories' }, { lockKey: 'modern-stale' }),
+    error => error.code === 'AGENT_OFFLINE'
+  );
 });
