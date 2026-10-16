@@ -32,6 +32,7 @@
     PENTAGRAMA_PREWRITE_VALIDATION_FAILED: 'Pentagrama cambió o la tarifa dejó de ser reproducible antes de escribir. No se modificó la Sheet.',
     PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK: 'El QA contra Pentagrama no coincidió. El lote fue restaurado automáticamente.',
     PENTAGRAMA_NO_APPLICABLE_CHANGES: 'No hay cambios normales seleccionados para aplicar.',
+    BRIDGE_RESTARTED: 'La operación anterior fue interrumpida por un reinicio del Bridge. Puedes iniciarla nuevamente con seguridad.',
     HOMEEASY_SYNC_UPSTREAM_UNAVAILABLE: 'No fue posible comunicarse con la Sheet de HomeEasy. No se aplicaron cambios.',
     HOMEEASY_SYNC_SESSION_REQUIRED: 'Tu sesión de HomeEasy venció. Inicia sesión nuevamente para continuar.',
     APP_SESSION_EXPIRED: 'Tu sesión de HomeEasy venció. Inicia sesión nuevamente para continuar.',
@@ -341,12 +342,31 @@
     if (!confirm.isConfirmed) return;
     state.busy = true; state.error = null; renderAll();
     try {
-      const started = await request('/api/pentagrama-sync/scan', 'POST', {});
+      // Primero resolvemos migraciones de certificación ya conocidas. Es rápido y
+      // evita reconstruir Enrollables o recorrer el catálogo completo sin necesidad.
+      let started = await request('/api/pentagrama-sync/maintenance-rules', 'POST', {});
       await poll(started.operation.id, 'scan');
       await refresh({ resetSelection: true });
-      const audit = state.scan && state.scan.catalogAudit || {};
+
+      let audit = state.scan && state.scan.catalogAudit || {};
+      let certifiedMaintenance = Number(audit.maintenanceRuleChanges || 0);
+      if (certifiedMaintenance) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Correcciones certificadas listas',
+          text: `${certifiedMaintenance} corrección(es) técnica(s) quedaron certificadas y listas para aplicar con respaldo + QA. Pulsa “Aplicar actualización”.`,
+          confirmButtonColor: '#a6455a'
+        });
+        return;
+      }
+
+      // Si no hay migraciones conocidas, recién ahí hacemos la auditoría profunda.
+      started = await request('/api/pentagrama-sync/scan', 'POST', {});
+      await poll(started.operation.id, 'scan');
+      await refresh({ resetSelection: true });
+      audit = state.scan && state.scan.catalogAudit || {};
       const pending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0);
-      const certifiedMaintenance = Number(audit.maintenanceRuleChanges || 0);
+      certifiedMaintenance = Number(audit.maintenanceRuleChanges || 0);
       await Swal.fire({
         icon: certifiedMaintenance || pending ? 'info' : 'success',
         title: 'Mantenimiento terminado',
