@@ -171,7 +171,22 @@
     const scan = state.scan; const results = scan && scan.results || []; const counts = scan && scan.counts || {}; const safeTotal = results.filter(isSafe).length; const pending = Number(counts.INCREASED || 0) + Number(counts.DECREASED || 0) + Number(counts.NEW || 0);
     $('#hePsResultsSummary').textContent = scan ? `${results.length} referencias leídas · ${pending} cambios de precio · ${Number(counts.REVIEW_REQUIRED || 0)} pendientes de certificar` : 'Aún no hay información para mostrar.';
     $('#hePsUpToDate').hidden = !(scan && pending === 0 && Number(counts.ERROR || 0) === 0);
-    $('#hePsReviewNote').hidden = !Number(counts.REVIEW_REQUIRED || 0);
+    const reviewCount = Number(counts.REVIEW_REQUIRED || 0);
+    const reviewNote = $('#hePsReviewNote');
+    reviewNote.hidden = !reviewCount;
+    if (reviewCount) {
+      const byFamily = results.filter(item => item.status === 'REVIEW_REQUIRED').reduce((acc, item) => {
+        const family = String(item.family || 'Sin familia');
+        acc[family] = (acc[family] || 0) + 1;
+        return acc;
+      }, {});
+      const familySummary = Object.entries(byFamily)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 5)
+        .map(([family, total]) => `${family}: ${total}`)
+        .join(' · ');
+      reviewNote.innerHTML = `<i class="fa-solid fa-circle-info"></i><div><strong>Pendientes de certificación</strong><p>No son errores ni bloquean la actualización diaria. Se resolverán por familia en mantenimiento${familySummary ? `: ${esc(familySummary)}` : ''}.</p></div>`;
+    }
     $('#hePsFilters').innerHTML = FILTERS.map(([value, label]) => filterButton(value, label, counts)).join('');
     $('#hePsFilters').querySelectorAll('[data-filter]').forEach(button => button.onclick = () => { state.filter = button.dataset.filter; state.limit = 50; renderResults(); });
     const filtered = filterResults(results, state.filter); const visible = filtered.slice(0, state.limit);
