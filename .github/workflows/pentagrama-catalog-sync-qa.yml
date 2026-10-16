@@ -28,6 +28,8 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-structural-profiles.json'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/panel-maintenance.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/certification/panel-japones-certified.json'
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
@@ -72,6 +74,8 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-sync/enrollables-structural-profiles.json'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/phase2.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/panel-maintenance.test.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/certification/panel-japones-certified.json'
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
@@ -142,6 +146,8 @@ jobs:
         run: node --test infra/whatsapp/bridge/pentagrama-sync/local-model-learned.test.js
       - name: Phase 2 tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/phase2.test.js
+      - name: Panel maintenance tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/panel-maintenance.test.js
       - name: Inventory route read-only test
         run: node --test infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js
       - name: Agent tests
