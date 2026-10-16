@@ -44,7 +44,7 @@
     if (ERROR_MESSAGES[code]) return ERROR_MESSAGES[code];
     if (/QA/i.test(code)) return 'El QA no pasó. HomeEasy fue restaurado automáticamente al estado anterior.';
     if (/SHEET|COSTOS_SYNC|HOMEEASY_SYNC/i.test(code)) return 'La actualización de la Sheet falló. HomeEasy conserva los valores anteriores.';
-    return 'No fue posible completar la operación. No se modificaron tarifas; inténtalo nuevamente.';
+    return `No fue posible completar la operación. No se modificaron tarifas. Código: ${code || 'PENTAGRAMA_SYNC_FAILED'}`;
   }
 
   function deriveOverview(scan, agents) {
