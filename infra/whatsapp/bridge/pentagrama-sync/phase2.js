@@ -616,10 +616,19 @@ class PentagramaPhase2 {
     const sample = this.validationCases(mapping).find(item => item.role === 'derive') || this.validationCases(mapping)[0];
     if (!sample) return { changed: false, status: 'REVIEW_REQUIRED', reason: 'No hay muestra certificada para revisión rápida.' };
 
-    const pentagrama = await this.pricing.supplierCost(
-      pentagramaParamsForCase(mapping, sample),
-      { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
-    );
+    let pentagrama;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        pentagrama = await this.pricing.supplierCost(
+          pentagramaParamsForCase(mapping, sample),
+          { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
+        );
+        break;
+      } catch (error) {
+        const retryable = ['PENTAGRAMA_UNEXPECTED_RESPONSE', 'AGENT_TRANSPORT_ERROR', 'AGENT_TIMEOUT'].includes(String(error && error.code || ''));
+        if (!retryable || attempt === 1) throw error;
+      }
+    }
     const discount = sourceItem.promotional ? (100 - Number(sourceItem.extraDiscount || 0)) / 100 : 1;
     const area = effectiveArea(sourceItem, sample);
     if (!(area > 0) || !(discount > 0)) {
@@ -811,6 +820,7 @@ class PentagramaPhase2 {
           homeeasyId: mapping.homeeasyId,
           family: mapping.family,
           reference: mapping.reference,
+          productCode: mapping.productCode,
           strategy: mapping.strategy,
           autoApplicable: false,
           status: 'ERROR',
