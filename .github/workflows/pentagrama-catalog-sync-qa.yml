@@ -32,6 +32,7 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-sync/certification/panel-japones-certified.json'
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.test.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
@@ -78,6 +79,7 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-sync/certification/panel-japones-certified.json'
       - 'infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.js'
+      - 'infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.test.js'
       - 'infra/whatsapp/bridge/pentagrama-sync/index.js'
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/pentagrama-agent/src/agent.js'
@@ -150,6 +152,8 @@ jobs:
         run: node --test infra/whatsapp/bridge/pentagrama-sync/panel-maintenance.test.js
       - name: Inventory route read-only test
         run: node --test infra/whatsapp/bridge/pentagrama-sync/inventory-route.test.js
+      - name: HomeEasy sync transport tests
+        run: node --test infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.test.js
       - name: Agent tests
         run: node --test infra/pentagrama-agent/test/agent.test.js
       - name: Session Bridge tests
