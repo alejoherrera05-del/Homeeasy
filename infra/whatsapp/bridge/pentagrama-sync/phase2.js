@@ -1415,6 +1415,8 @@ class PentagramaPhase2 {
           proposedRate: certified.proposedRate,
           mutation: {
             ...mutation,
+            kind: 'UPDATE_RATE',
+            maintenanceKind: 'UPDATE_RULES',
             certified: true,
             proposedRate: certified.proposedRate,
             proposedMinHeight: certified.target.minHeight,
