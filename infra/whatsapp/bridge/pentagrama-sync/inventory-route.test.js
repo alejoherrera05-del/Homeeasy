@@ -20,7 +20,7 @@ test('catalog inventory endpoint is read-only and asynchronous', () => {
 });
 
 test('bridge version identifies the inventory-readonly deployment', () => {
-  assert.match(server, /const BRIDGE_VERSION = '0\.18\.1';/);
+  assert.match(server, /const BRIDGE_VERSION = '0\.18\.2';/);
 });
 
 test('internal Pentagrama scan/apply/rollback use scheduler service context', () => {
