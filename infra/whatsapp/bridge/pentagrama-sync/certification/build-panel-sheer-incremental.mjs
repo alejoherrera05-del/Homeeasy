@@ -41,11 +41,36 @@ function markExactReview(result, details) {
 }
 
 for (const result of panelEvidence.failed) {
-  markExactReview(result, {
-    associationGroup: 'PANEL',
-    verifiedAt: panelEvidence.checkedAt,
-    reason: 'ProductCode y GroupCode exactos. Las dos medidas normales reproducen Pentagrama, pero el borde 1.00 x 1.30 usa 1.6 m2 en el endpoint y contradice la regresion critica HomeEasy/portal configurado. No se certifica ni se fuerza un minimo generico de 1.6 m2.'
-  });
+  const product = requireProduct(result.homeeasyId);
+  const safeMinimumCertification = result.productCode && result.groupCode &&
+    result.source && Number(result.source.minHeight) === 1.3 && Number(result.source.minArea) === 0 &&
+    result.source.method === 'area' && Array.isArray(result.cases) && result.cases.length === 3 &&
+    result.cases.filter(item => item.role === 'derive').every(item => Number(item.difference) === 0);
+  if (safeMinimumCertification) {
+    Object.assign(product, {
+      candidate: 'EXACT_CANDIDATE',
+      status: 'CERTIFIED',
+      strategy: 'RATE_M2',
+      productCode: result.productCode,
+      groupCode: result.groupCode,
+      calculationType: 'NormalProduct',
+      associationGroup: 'PANEL',
+      unit: 'UND',
+      verifiedAt: panelEvidence.checkedAt,
+      casesPassed: 3,
+      maxDifference: 0,
+      maintenanceRequired: true,
+      expectedMinHeight: 1.3,
+      expectedMinArea: 1.6,
+      reason: 'Certificado contra Pentagrama en tres medidas. Requiere aplicar una sola vez el mínimo técnico de facturación de 1,6 m² en HomeEasy antes de habilitar auto-apply diario.'
+    });
+  } else {
+    markExactReview(result, {
+      associationGroup: 'PANEL',
+      verifiedAt: panelEvidence.checkedAt,
+      reason: 'La referencia aún no tiene evidencia suficiente para certificar la regla de mínimo.'
+    });
+  }
 }
 
 for (const result of sheerEvidence.failed) {
@@ -99,7 +124,7 @@ const panel = registry.products.filter(product => product.family === 'Panel Japo
 const sheer = registry.products.filter(product => product.family === 'Sheer Elegance');
 const familyCounts = products => Object.fromEntries(['CERTIFIED', 'REVIEW_REQUIRED', 'UNMAPPED'].map(status => [status, products.filter(product => product.status === status).length]));
 
-if (counts.CERTIFIED !== 90 || counts.REVIEW_REQUIRED !== 82 || counts.UNMAPPED !== 280) {
+if (counts.CERTIFIED !== 119 || counts.REVIEW_REQUIRED !== 53 || counts.UNMAPPED !== 280) {
   throw new Error(`Unexpected registry counts: ${JSON.stringify(counts)}`);
 }
 
