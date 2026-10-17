@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'abono.html'
+      - 'homeeasy-recibos.js'
       - 'apps-script/RECIBOS_SEGUROS*.gs'
       - 'tests/recibos-*.cjs'
       - 'tests/recibos-*.mjs'
@@ -19,6 +20,7 @@ on:
     branches: [main]
     paths:
       - 'abono.html'
+      - 'homeeasy-recibos.js'
       - 'apps-script/RECIBOS_SEGUROS*.gs'
       - 'tests/recibos-*.cjs'
       - 'tests/recibos-*.mjs'
@@ -62,7 +64,7 @@ jobs:
       - name: Package reproducible local PDF QA assets
         run: |
           mkdir -p qa/abono-pdf/_offline/node_modules/{bootstrap/dist/css,html2canvas/dist,jspdf/dist,@fortawesome/fontawesome-free/css,@fortawesome/fontawesome-free/webfonts,@fontsource/montserrat/files}
-          cp abono.html homeeasy-docs.js homeeasy-core.js homeeasy-page-guard.js homeeasy-runtime.js homeeasy-runtime-cache.js homeeasy-cost-calculator.js cotizador-persianas.html configuracion.html cotizacion.html pedido.html homeeasy-whatsapp-doc-actions.js logohomeeasy.png triangulogold.png Hommypiedepagina.png Hommycompleto.png qa/abono-pdf/_offline/
+          cp abono.html homeeasy-recibos.js homeeasy-docs.js homeeasy-core.js homeeasy-page-guard.js homeeasy-runtime.js homeeasy-runtime-cache.js homeeasy-cost-calculator.js cotizador-persianas.html configuracion.html cotizacion.html pedido.html homeeasy-whatsapp-doc-actions.js logohomeeasy.png triangulogold.png Hommypiedepagina.png Hommycompleto.png qa/abono-pdf/_offline/
           cp node_modules/bootstrap/dist/css/bootstrap.min.css qa/abono-pdf/_offline/node_modules/bootstrap/dist/css/
           cp node_modules/html2canvas/dist/html2canvas.min.js qa/abono-pdf/_offline/node_modules/html2canvas/dist/
           cp node_modules/jspdf/dist/jspdf.umd.min.js qa/abono-pdf/_offline/node_modules/jspdf/dist/

@@ -246,6 +246,7 @@
     <script src="homeeasy-core.js?v=3.5.2"></script>
     <script src="homeeasy-page-guard.js?v=20261008"></script>
     <script src="homeeasy-docs.js?v=4.7"></script>
+    <script defer src="homeeasy-recibos.js?v=20261016"></script>
   <link rel="stylesheet" href="homeeasy-back.css?v=1.1">
   <script defer src="homeeasy-back.js?v=1.2"></script>
   <link rel="stylesheet" href="homeeasy-header.css?v=2.5">
@@ -737,22 +738,8 @@
     var abonoIntento = null;
 
     async function obtenerIntentoAbono(datos, numeroRecibo) {
-        if (!navigator.locks || !crypto.subtle) throw new Error('Este navegador no puede coordinar pagos entre pestañas. Actualiza el navegador antes de registrar el abono.');
-        var digest = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(datos)));
-        var key = 'homeeasy.abono.' + Array.from(new Uint8Array(digest),function(b) { return b.toString(16).padStart(2,'0'); }).join('');
-        return navigator.locks.request('homeeasy-abonos',async function() {
-            var previo = JSON.parse(localStorage.getItem(key) || 'null');
-            if (previo && previo.estado === 'registrado') {
-                var nuevo = await Swal.fire({icon:'warning',title:'Ya existe un pago con estos datos',
-                    text:'Revisa el recibo ' + previo.numeroRecibo + '. Autoriza una nueva solicitud solo si recibiste otro pago real.',
-                    showCancelButton:true,confirmButtonText:'Es otro pago real',cancelButtonText:'Revisar historial',confirmButtonColor:'#a6455a'});
-                if (!nuevo.isConfirmed) return null;
-                previo = null;
-            }
-            var intento = previo || {requestId:crypto.randomUUID(),numeroRecibo:numeroRecibo,estado:'incierto'};
-            localStorage.setItem(key,JSON.stringify(intento));
-            return Object.assign({key:key},intento);
-        });
+        if (!window.HomeEasyRecibos) throw new Error('No se pudo cargar la protección de pagos. Actualiza el formulario.');
+        return HomeEasyRecibos.obtenerIntentoAbono(datos, numeroRecibo);
     }
 
     async function finalizarAbono() {
