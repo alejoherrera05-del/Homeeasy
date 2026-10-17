@@ -43,7 +43,9 @@ const scenarios=[
  {label:'single',count:4,mode:'individual',notes:false,total:1570000},
  {label:'long-total',count:14,mode:'total',notes:true,total:19864000},
  {label:'long-individual',count:14,mode:'individual',notes:true,total:19864000},
- {label:'private',count:4,mode:'individual',notes:true,total:1570000,privacy:true}
+ ...Array.from({length:8},(_,mask)=>({label:'privacy-'+mask,count:4,mode:'individual',notes:true,total:1570000,
+   privacy:{hideMeasures:Boolean(mask&1),hideUnitPrices:Boolean(mask&2),hideFabrics:Boolean(mask&4)}})),
+ {label:'private-long-total',count:14,mode:'total',notes:true,total:19864000,privacy:{hideMeasures:true,hideUnitPrices:true,hideFabrics:true}}
 ];
 function makeTransfer(s){
  const unit=Math.floor(s.total/s.count);
@@ -51,7 +53,7 @@ function makeTransfer(s){
  return {
   version:1,createdAt:Date.now(),displayMode:s.mode,project:'QA no cliente real',
   totalPesos:s.total,
-  visibility:s.privacy?{hideMeasures:true,hideUnitPrices:true,hideFabrics:true}:undefined,
+  visibility:s.privacy,
   items:values.map((price,i)=>{
     const descripcion=descriptions[i];
     const parts=descripcion.split(' · ');
@@ -75,6 +77,13 @@ try{
   const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1,acceptDownloads:true});
   page.setDefaultTimeout(25000);
   const errors=[];
+  // Recursos locales por transporte interceptado: QA no depende de red externa.
+  await page.route('http://127.0.0.1:4173/**',route=>{
+    const file=path.resolve(root,'.'+decodeURIComponent(new URL(route.request().url()).pathname));
+    if(!file.startsWith(root+path.sep)||!fs.existsSync(file))return route.fulfill({status:404,body:''});
+    const ext=path.extname(file),types={'.html':'text/html','.js':'application/javascript','.css':'text/css','.png':'image/png','.woff2':'font/woff2'};
+    return route.fulfill({status:200,contentType:types[ext]||'application/octet-stream',body:fs.readFileSync(file)});
+  });
   page.on('pageerror',e=>errors.push(String(e.message)));
   page.on('console',msg=>{if(msg.type()==='error')errors.push('Console: '+msg.text());});
   await page.addInitScript(({data,settings})=>{
@@ -90,6 +99,8 @@ try{
          return new Response(JSON.stringify({status:'success'}),{status:200,headers:{'Content-Type':'application/json'}});
        }
        if(url.searchParams.has('nextCotizacion'))return new Response(JSON.stringify({status:'ok',nextCotizacion:46}));
+       if(url.searchParams.has('nextPedido'))return new Response(JSON.stringify({status:'ok',nextPedido:174}));
+       if(window.__QA_SAVED&&(url.searchParams.get('tipo')==='EDITAR_COT'||url.searchParams.has('convertirCot')))return new Response(JSON.stringify({status:'found',numero:46,numero_cotizacion:46,fecha:'2026-10-17',...window.__QA_SAVED}));
        if(url.searchParams.has('init'))return new Response(JSON.stringify({status:'ok',clientes:[]}));
        return new Response(JSON.stringify({status:'ok',configuracion:window.__QA_CONFIG}));
      }
@@ -207,13 +218,14 @@ try{
     const privacy=await page.evaluate(()=>window.__QA_PRIVACY_CLONE);
     assert(privacy,'Privacy PDF clone must be inspected');
     assert.equal(privacy.descriptions.length,scenario.count);
-    assert(privacy.descriptions.every(value=>!value.includes(' × ')),'PDF must not include measured dimensions');
-    assert(privacy.descriptions.every(value=>!value.includes('Traslucente Kilim')),'PDF must not include fabric reference');
-    assert(privacy.notesHidden,'PDF hides technical free-text observations');
-    assert(privacy.unitHidden,'PDF hides unit-price column');
+    assert.equal(privacy.descriptions.some(value=>value.includes(' × ')),!scenario.privacy.hideMeasures,'PDF dimension visibility');
+    assert.equal(privacy.descriptions.some(value=>value.includes('Traslucente Kilim')),!scenario.privacy.hideFabrics,'PDF fabric visibility');
+    assert.equal(privacy.notesHidden,scenario.privacy.hideMeasures||scenario.privacy.hideFabrics,'PDF technical notes visibility');
+    assert.equal(privacy.unitHidden,scenario.privacy.hideUnitPrices||scenario.mode==='total','PDF unit-price visibility');
     const full=await page.evaluate(()=>JSON.parse(window.__QA_POST.itemsJSON));
     assert(full.every(row=>row.descripcion.includes(' × ')),'Stored items keep complete original dimensions');
-    assert(full[0].visibilidadCliente.hideMeasures,'Stored visibility flags survive');
+    assert.deepEqual(full[0].visibilidadCliente,scenario.privacy,'Stored visibility flags survive');
+    assert.equal(await page.locator('#area-pdf').evaluate(el=>el.classList.contains('quote-hide-unit-prices')),false,'Internal price columns restored');
   }
   const file=path.join(output,scenario.label+'.pdf');
   const pdfBytes=Buffer.from(submitted.base64,'base64');
@@ -225,6 +237,24 @@ try{
   if(scenario.label==='long-total')assert.equal(pageCount,2,'Fourteen blinds total-only must not leave an orphan page');
   if(scenario.label==='long-individual')assert(pageCount>=2&&pageCount<=3,'Itemized 14-blind quote pagination must be controlled');
   report.push({scenario:scenario.label,form:initial,pdfBytes:pdfBytes.length,pdfPages:pageCount,pdf:file,errors});
+  if(scenario.privacy){
+    const saved=await page.evaluate(()=>window.__QA_POST);
+    await page.addInitScript(saved=>{window.__QA_SAVED=saved},saved);
+    await page.goto('http://127.0.0.1:4173/cotizacion.html?edit=46',{waitUntil:'load'});
+    await page.waitForFunction(()=>document.querySelectorAll('#tabla-body .row-desc').length===JSON.parse(window.__QA_SAVED.itemsJSON).length);
+    const restored=await page.evaluate(()=>({items:[...document.querySelectorAll('#tabla-body .row-desc')].map(x=>x.value),flags:quoteClientVisibility,notes:document.getElementById('notas').value,unitVisible:getComputedStyle(document.querySelector('thead th:nth-child(3)')).display!=='none'}));
+    assert.deepEqual(restored.items,JSON.parse(saved.itemsJSON).map(x=>x.descripcion),'Reopened quote keeps full descriptions');
+    assert.deepEqual(restored.flags,scenario.privacy,'Reopened quote restores visibility');assert.equal(restored.notes,saved.observaciones);assert(restored.unitVisible,'Internal unit prices remain visible');
+    await page.locator('#btnProcesar').click();await page.waitForFunction(()=>window.__QA_POST?.tipo==='edit_cotizacion');
+    const edited=await page.evaluate(()=>window.__QA_POST);
+    assert.deepEqual(JSON.parse(edited.itemsJSON),JSON.parse(saved.itemsJSON),'Edit/save preserves full item metadata');assert.equal(edited.total,saved.total,'Edit preserves total');
+    await page.goto('http://127.0.0.1:4173/pedido.html?cotizacion=46',{waitUntil:'load'});
+    await page.waitForFunction(()=>document.querySelectorAll('#tabla-body .row-desc').length===JSON.parse(window.__QA_SAVED.itemsJSON).length);
+    const op=await page.evaluate(()=>({items:[...document.querySelectorAll('#tabla-body .row-desc')].map(x=>x.value),prices:[...document.querySelectorAll('#tabla-body .precio')].map(x=>Number(x.value.replace(/\D/g,''))),unitVisible:getComputedStyle(document.querySelector('thead th:nth-child(3)')).display!=='none',notes:document.getElementById('notas').value}));
+    assert.deepEqual(op.items,JSON.parse(saved.itemsJSON).map(x=>x.descripcion),'Converted OP keeps full measures and fabrics');assert.deepEqual(op.prices,JSON.parse(saved.itemsJSON).map(x=>x.precio),'Converted OP keeps full prices');assert(op.unitVisible);assert.equal(op.notes,saved.observaciones);
+    console.log('Roundtrip browser '+scenario.label+': edit/recover/save/convert OP PASS');
+  }
+  assert.deepEqual(errors,[],'No browser regression errors');
   if(errors.length)console.log('Diagnostics '+scenario.label+': '+errors.join(' | ').slice(0,350));
   await page.close();
  }

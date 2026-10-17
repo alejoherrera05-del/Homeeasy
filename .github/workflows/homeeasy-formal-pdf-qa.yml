@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'cotizacion.html'
+      - 'cotizador-persianas.html'
+      - 'homeeasy-cost-calculator.js'
+      - 'homeeasy-cost-calculator.css'
+      - 'tests/cotizacion-visibilidad-cliente.cjs'
       - 'homeeasy-docs.js'
       - 'tests/homeeasy-document-config-parity.cjs'
       - 'tests/cotizacion-pdf-browser-regression.mjs'
@@ -13,6 +17,10 @@ on:
     branches: [main]
     paths:
       - 'cotizacion.html'
+      - 'cotizador-persianas.html'
+      - 'homeeasy-cost-calculator.js'
+      - 'homeeasy-cost-calculator.css'
+      - 'tests/cotizacion-visibilidad-cliente.cjs'
       - 'homeeasy-docs.js'
       - 'tests/homeeasy-document-config-parity.cjs'
       - 'tests/cotizacion-pdf-browser-regression.mjs'
@@ -38,6 +46,8 @@ jobs:
           node --check homeeasy-docs.js
           node --check tests/cotizacion-pdf-browser-regression.mjs
           node tests/cotizacion-integracion-integridad.cjs
+          node tests/cotizacion-visibilidad-cliente.cjs
+          node --check tests/cotizacion-cerebro-roundtrip.cjs
           node tests/homeeasy-document-config-parity.cjs
       - name: Install isolated QA tools
         run: |
@@ -57,7 +67,7 @@ jobs:
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/homeeasy-formal-pdf-http.log 2>&1 &
           sleep 2
-      - name: Generate PDF in real Chromium for three isolated scenarios
+      - name: Verify twelve PDF scenarios and quote recovery, editing and OP conversion
         run: node tests/cotizacion-pdf-browser-regression.mjs
       - name: Inspect PDF pagination and produce visual previews
         if: always()
