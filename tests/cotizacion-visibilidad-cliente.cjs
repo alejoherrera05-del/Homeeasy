@@ -80,7 +80,9 @@ assert.throws(()=>publicQuote.descripcionParaCliente({
 assert(quote.includes('visibilidadCliente: {...quoteClientVisibility}'));
 assert(quote.includes('guardarDetallePublico(tr,item)'));
 assert(quote.includes('descripcionesParaPdf[index]'));
-assert(quote.includes("areaPdf.classList.remove('pdf-export-mode','quote-total-only','quote-hide-unit-prices')"));
+assert(quote.includes("areaPdf.classList.remove('pdf-export-mode','quote-hide-unit-prices')"));
+assert(quote.includes("areaPdf.classList.toggle('quote-total-only', quotePresentationMode === 'total')"));
+assert(quote.includes('#area-pdf.pdf-export-mode.quote-total-only'));
 assert(quote.includes("notes.closest('.mb-4')?.style.setProperty('display','none')"));
 assert(order.includes('tr.querySelector(".row-desc").value = item.descripcion || "";'));
 for (const id of ['formal-hide-measures','formal-hide-unit-prices','formal-hide-fabrics']) {
