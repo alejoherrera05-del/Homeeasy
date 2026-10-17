@@ -39,7 +39,7 @@ must(quote,'class="header-brand"','Original corporate header missing');
 must(quote,'class="order-meta"','Quote number/date pill missing');
 must(quote,'class="document-type"','Original document title missing');
 must(quote,'class="pdf-footer"','Original footer missing');
-must(quote,'#area-pdf.quote-total-only','Total-only presentation missing');
+must(quote,'#area-pdf.pdf-export-mode.quote-total-only','Total-only PDF presentation missing');
 must(quote,'#tabla-body .pdf-repeat-table-header th:nth-child(3)','Repeated header should hide unit price');
 must(quote,'#tabla-body .pdf-repeat-table-header th:nth-child(4)','Repeated header should hide row total');
 must(calc,'id="formal-quote"','Formal quote entrypoint missing');
