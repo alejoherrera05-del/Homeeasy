@@ -990,7 +990,11 @@
                     // Las notas técnicas pueden contener referencias/dimensiones libres.
                     // Se conservan en la base interna y se omiten del PDF protegido.
                     if (quoteInternalTechnicalNotes && (quoteClientVisibility.hideMeasures || quoteClientVisibility.hideFabrics)) {
-                        clonedDoc.getElementById('notas')?.closest('.mb-4')?.remove();
+                        const notes = clonedDoc.getElementById('notas');
+                        if (notes) {
+                            notes.value = '';
+                            notes.closest('.mb-4')?.style.setProperty('display','none');
+                        }
                     }
                     
                     const descInput = clonedDoc.getElementById('descuento_input'); 
