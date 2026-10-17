@@ -241,6 +241,10 @@
         .success-box p { color: #666; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; font-weight: 500;}
         .btn-success-home { background: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25); }
         .btn-success-home:active { transform: scale(0.95); }
+        /* El botón del recibo existe incluso cuando WhatsApp carga tarde. */
+        .he-wa-generated-btn { width: 100%; min-height: 52px; margin: 0 0 10px; border: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 9px; background: #25D366; color: #fff; font-weight: 800; font-size: .92rem; box-shadow: 0 9px 22px rgba(37,211,102,.23); }
+        .he-wa-generated-btn:active { transform: scale(.97); }
+        .he-wa-generated-btn:disabled { opacity: .58; cursor: wait; }
     </style>
     
     <script src="homeeasy-core.js?v=3.5.2"></script>
@@ -274,6 +278,7 @@
         <div class="success-icon"><i class="fas fa-check"></i></div>
         <h3>¡Pago Registrado!</h3>
         <p>El abono fue guardado, el saldo actualizado y el recibo está listo para el cliente.</p>
+        <button id="btn-recibo-whatsapp" class="he-wa-generated-btn" type="button" onclick="enviarReciboWhatsapp()"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Enviar por WhatsApp</button>
         <button class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
     </div>
 </div>
@@ -736,6 +741,48 @@
     var abonoRegistroEnCurso = false;
     var abonoRegistroEstado = 'listo'; // listo | incierto | registrado
     var abonoIntento = null;
+    var abonoDocumentoWhatsappConfirmado = null;
+
+    async function enviarReciboWhatsapp() {
+        var boton = document.getElementById('btn-recibo-whatsapp');
+        if (!boton || boton.disabled) return;
+        if (abonoRegistroEstado !== 'registrado' || !abonoDocumentoWhatsappConfirmado) {
+            await Swal.fire({
+                icon:'warning',title:'Recibo sin confirmar',
+                text:'Solo puedes enviar por WhatsApp un recibo registrado correctamente.',
+                confirmButtonColor:'#a6455a'
+            });
+            return;
+        }
+        boton.disabled = true;
+        var etiquetaOriginal = boton.innerHTML;
+        boton.innerHTML = '<i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Preparando envío…';
+        try {
+            var guard = window.HomeEasyPageGuard;
+            if (!guard || typeof guard.ensureWhatsappDocumentActions !== 'function') {
+                throw new Error('No está disponible el módulo seguro de documentos de HomeEasy.');
+            }
+            var acciones = await guard.ensureWhatsappDocumentActions();
+            if (!acciones || typeof acciones.sendStoredDocument !== 'function') {
+                throw new Error('El módulo de WhatsApp no está preparado.');
+            }
+            // Envía el PDF del recibo registrado sin repetir escrituras financieras.
+            await acciones.sendStoredDocument({
+                ...abonoDocumentoWhatsappConfirmado,
+                documentType:'abono',resend:false,source:'generado'
+            });
+        } catch (errorWhatsapp) {
+            await Swal.fire({
+                icon:'warning',title:'WhatsApp no disponible',
+                text:'El recibo ya quedó registrado. No debes repetir el abono. ' +
+                    (errorWhatsapp.message || 'Revisa la conexión y vuelve a intentar enviar el PDF.'),
+                confirmButtonColor:'#a6455a'
+            });
+        } finally {
+            boton.disabled = false;
+            boton.innerHTML = etiquetaOriginal;
+        }
+    }
 
     async function obtenerIntentoAbono(datos, numeroRecibo) {
         if (!window.HomeEasyRecibos) throw new Error('No se pudo cargar la protección de pagos. Actualiza el formulario.');
@@ -1037,6 +1084,18 @@
 
             if (json.status === "success") {
                 abonoRegistroEstado = 'registrado';
+                // Disponible aunque WhatsApp cargue tarde o falle su carga inicial.
+                abonoDocumentoWhatsappConfirmado = {
+                    pdfBase64: pdfBase64,
+                    filename: nombreArchivo,
+                    cedula: ced,
+                    clientName: nom,
+                    reference: String(json.numero_recibo || nRecibo),
+                    orderReference: numOP,
+                    amount: valAbono,
+                    balance: saldoBase - valAbono,
+                    idempotencyKey: 'recibo-confirmado:' + requestIdAbono
+                };
                 try {
                     localStorage.setItem(abonoIntento.key,JSON.stringify({requestId:requestIdAbono,numeroRecibo:json.numero_recibo || nRecibo,estado:'registrado'}));
                 } catch (storageError) { console.warn('Recibo guardado; conserva el historial para verificar nuevos pagos.'); }
