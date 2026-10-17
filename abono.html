@@ -604,8 +604,28 @@
                         var ab = historialAbonos[i];
                         var tr = document.createElement('tr');
                         tr.innerHTML = '<td>' + (ab.fecha || '—') + '</td><td>REC-' + ab.recibo + '</td><td>' + fmtCOP(ab.valor) + '</td>';
+                        if (data.recibosSeguros && window.HomeEasyAuth && HomeEasyAuth.hasPermission('anulaciones.execute')) {
+                            var btnAnular = document.createElement('button');
+                            btnAnular.type = 'button';
+                            btnAnular.className = 'btn btn-link btn-sm text-danger no-print';
+                            btnAnular.textContent = 'Anular recibo';
+                            btnAnular.setAttribute('aria-label', 'Anular recibo ' + ab.recibo);
+                            btnAnular.onclick = (function(recibo) { return function() { anularReciboIndividual(recibo, this); }; })(ab.recibo);
+                            tr.cells[1].appendChild(btnAnular);
+                        }
                         tbody.appendChild(tr);
                     }
+                    (data.recibosAnulados || []).forEach(function(ab) {
+                        var filaAnulada = document.createElement('tr');
+                        filaAnulada.className = 'no-print';
+                        [ab.fecha || '—', 'REC-' + ab.recibo + ' · ANULADO', fmtCOP(ab.valor)].forEach(function(texto) {
+                            var celda = document.createElement('td');
+                            celda.textContent = texto;
+                            filaAnulada.appendChild(celda);
+                        });
+                        filaAnulada.title = ab.motivo || '';
+                        tbody.appendChild(filaAnulada);
+                    });
 
                     document.getElementById('seccion_historial').style.display = 'block';
 
@@ -666,10 +686,74 @@
         }
     }
 
+    var anulacionReciboEnCurso = false;
+    async function anularReciboIndividual(numeroRecibo, boton) {
+        if (anulacionReciboEnCurso) return;
+        anulacionReciboEnCurso = true;
+        boton.disabled = true;
+        var enviado = false;
+        try {
+            var base = {
+                numeroOP: document.getElementById('numeroOP').value.trim(),
+                cedula: document.getElementById('cedula').value,
+                numeroRecibo: numeroRecibo,
+                requestId: crypto.randomUUID()
+            };
+            var preview = await (await fetch(URL_G, {method:'POST', body:JSON.stringify(Object.assign({},base,{tipo:'PREVISUALIZAR_ANULACION_RECIBO'}))})).json();
+            if (preview.status !== 'success') throw new Error(preview.msg || 'No fue posible revisar este recibo.');
+            var confirmacion = await Swal.fire({
+                icon:'warning', title:'Anular recibo ' + numeroRecibo,
+                text:'Se excluirá este registro de Caja y de los pagos de la orden. El PDF y el historial se conservarán. Total pagado resultante: ' + fmtCOP(preview.pagado) + '. Saldo: ' + fmtCOP(preview.saldo) + '. Confirma solo si el registro fue erróneo y no hubo devolución de dinero.',
+                input:'textarea', inputLabel:'Motivo obligatorio', inputAttributes:{maxlength:'500'},
+                inputValidator:function(value) { return !value || value.trim().length < 5 ? 'Escribe el motivo (mínimo 5 caracteres).' : undefined; },
+                showCancelButton:true, confirmButtonText:'Autorizar anulación', cancelButtonText:'Conservar recibo',
+                confirmButtonColor:'#a6455a', customClass:{popup:'swal2-premium'}
+            });
+            if (!confirmacion.isConfirmed) return;
+            var payload = Object.assign({},base,{tipo:'ANULAR_RECIBO',expectedRevision:preview.expectedRevision,
+                motivo:confirmacion.value.trim(),confirmado:true,sinDevolucion:true});
+            // Conserva la misma solicitud si la respuesta se pierde. No crear otra operación.
+            sessionStorage.setItem('homeeasy.recibo.anulacionPendiente',JSON.stringify(payload));
+            enviado = true;
+            var result = await (await fetch(URL_G,{method:'POST',body:JSON.stringify(payload)})).json();
+            if (result.status !== 'success') throw new Error(result.msg || 'No se confirmó la anulación.');
+            sessionStorage.removeItem('homeeasy.recibo.anulacionPendiente');
+            await Swal.fire({icon:'success',title:'Recibo anulado',text:'Se conservaron el PDF y la auditoría.',confirmButtonColor:'#a6455a'});
+            buscarOrden();
+        } catch (error) {
+            await Swal.fire({icon:'warning',title:enviado ? 'Resultado pendiente de verificar' : 'No se pudo anular',
+                text:(enviado ? 'Consulta el historial y Caja antes de repetir la operación. ' : '') + error.message,
+                confirmButtonColor:'#a6455a'});
+        } finally {
+            anulacionReciboEnCurso = false;
+            if (!enviado) boton.disabled = false;
+        }
+    }
+
     // Protege contra varios clics o envíos simultáneos desde este formulario.
     // La idempotencia definitiva también requiere una validación en Apps Script.
     var abonoRegistroEnCurso = false;
     var abonoRegistroEstado = 'listo'; // listo | incierto | registrado
+    var abonoIntento = null;
+
+    async function obtenerIntentoAbono(datos, numeroRecibo) {
+        if (!navigator.locks || !crypto.subtle) throw new Error('Este navegador no puede coordinar pagos entre pestañas. Actualiza el navegador antes de registrar el abono.');
+        var digest = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(datos)));
+        var key = 'homeeasy.abono.' + Array.from(new Uint8Array(digest),function(b) { return b.toString(16).padStart(2,'0'); }).join('');
+        return navigator.locks.request('homeeasy-abonos',async function() {
+            var previo = JSON.parse(localStorage.getItem(key) || 'null');
+            if (previo && previo.estado === 'registrado') {
+                var nuevo = await Swal.fire({icon:'warning',title:'Ya existe un pago con estos datos',
+                    text:'Revisa el recibo ' + previo.numeroRecibo + '. Autoriza una nueva solicitud solo si recibiste otro pago real.',
+                    showCancelButton:true,confirmButtonText:'Es otro pago real',cancelButtonText:'Revisar historial',confirmButtonColor:'#a6455a'});
+                if (!nuevo.isConfirmed) return null;
+                previo = null;
+            }
+            var intento = previo || {requestId:crypto.randomUUID(),numeroRecibo:numeroRecibo,estado:'incierto'};
+            localStorage.setItem(key,JSON.stringify(intento));
+            return Object.assign({key:key},intento);
+        });
+    }
 
     async function finalizarAbono() {
         if (abonoRegistroEnCurso) return;
@@ -779,13 +863,23 @@
             }
         } catch (errorVerificacion) {
             Swal.close();
-            var continuar = await Swal.fire({
+            await Swal.fire({
                 icon: 'warning', title: 'Sin conexión para verificar',
-                text: 'No se pudo verificar el saldo en tiempo real. ¿Deseas continuar con el dato en caché?',
-                showCancelButton: true, confirmButtonText: 'Sí, continuar', cancelButtonText: 'No, esperar',
+                text: 'No se pudo verificar el saldo. Recupera la conexión y vuelve a consultar la orden antes de registrar el pago.',
+                confirmButtonText: 'Entendido',
                 confirmButtonColor: '#a6455a', customClass: { popup: 'swal2-premium' }
             });
-            if (!continuar.isConfirmed) return;
+            return;
+        }
+
+        try {
+            abonoIntento = await obtenerIntentoAbono([numOP,ced,valAbono,mPago,concepto],nRecibo);
+            if (!abonoIntento) return;
+            nRecibo = abonoIntento.numeroRecibo;
+            document.getElementById('n_recibo_display').innerText = nRecibo;
+        } catch (errorIntento) {
+            await Swal.fire({icon:'warning',title:'No se pudo preparar el pago',text:errorIntento.message,confirmButtonColor:'#a6455a'});
+            return;
         }
 
         // ✅ PREPARAR PDF: Agregar fila actual + totales a la tabla
@@ -933,17 +1027,14 @@
             setStep(3, 'active');
 
             // ID explícito para permitir idempotencia en servidor (si está implementada).
-            var requestIdAbono = window.HomeEasyCore && typeof HomeEasyCore.createRequestId === 'function'
-                ? HomeEasyCore.createRequestId()
-                : (window.crypto && typeof crypto.randomUUID === 'function'
-                    ? crypto.randomUUID()
-                    : 'ABONO-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+            var requestIdAbono = abonoIntento.requestId;
             abonoRegistroEstado = 'incierto'; // Un error posterior no garantiza que el servidor no guardó.
             var response = await fetch(URL_G, {
                 method: "POST",
                 body: JSON.stringify({
                     tipo: "abono",
                     requestId: requestIdAbono,
+                    numeroReciboEsperado: nRecibo,
                     numeroOP: numOP,
                     cedula: ced,
                     nombre: nom,
@@ -959,6 +1050,9 @@
 
             if (json.status === "success") {
                 abonoRegistroEstado = 'registrado';
+                try {
+                    localStorage.setItem(abonoIntento.key,JSON.stringify({requestId:requestIdAbono,numeroRecibo:json.numero_recibo || nRecibo,estado:'registrado'}));
+                } catch (storageError) { console.warn('Recibo guardado; conserva el historial para verificar nuevos pagos.'); }
                 setStep(3, 'check');
                 setStep(4, 'active');
                 
@@ -969,6 +1063,10 @@
                     document.getElementById('success-modal').style.display = 'flex';
                 }, 800);
             } else {
+                if (json.definitive === true) {
+                    localStorage.removeItem(abonoIntento.key);
+                    abonoRegistroEstado = 'listo';
+                }
                 throw new Error(json.msg || "No se pudo registrar el abono");
             }
         } catch (err) {

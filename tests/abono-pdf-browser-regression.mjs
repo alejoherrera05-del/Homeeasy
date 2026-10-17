@@ -42,6 +42,7 @@ try {
    await page.addInitScript(({settings,history,initial,totalOrder,pending})=>{
      window.__QA_CONFIG=settings;
      window.__QA_POST=null;
+     window.HomeEasyAuth={hasPermission:()=>true};
      const native=window.fetch.bind(window);
      window.fetch=async(input,opts={})=>{
        const url=new URL(String(input),window.location.href);
@@ -52,7 +53,7 @@ try {
          }
          if(url.searchParams.has('nextRecibo'))return new Response(JSON.stringify({status:'ok',nextRecibo:612}));
          if(url.searchParams.get('tipo')==='HISTORIAL_ABONOS')return new Response(JSON.stringify({
-           status:'ok',abonoInicial:String(initial),fechaOrden:'1/10/2026',totalOrden:String(totalOrder),abonos:history
+           status:'ok',recibosSeguros:true,abonoInicial:String(initial),fechaOrden:'1/10/2026',totalOrden:String(totalOrder),abonos:history
          }));
          if(url.searchParams.get('tipo')==='VERIFICAR_SALDO')return new Response(JSON.stringify({status:'ok',saldoReal:String(pending)}));
          if(url.searchParams.get('init')==='LOAD'){

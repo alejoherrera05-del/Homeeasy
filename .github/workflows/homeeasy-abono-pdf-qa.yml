@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'abono.html'
+      - 'apps-script/RECIBOS_SEGUROS*.gs'
+      - 'tests/recibos-*.cjs'
+      - 'tests/recibos-*.mjs'
       - 'configuracion.html'
       - 'homeeasy-docs.js'
       - 'tests/homeeasy-document-config-parity.cjs'
@@ -16,6 +19,9 @@ on:
     branches: [main]
     paths:
       - 'abono.html'
+      - 'apps-script/RECIBOS_SEGUROS*.gs'
+      - 'tests/recibos-*.cjs'
+      - 'tests/recibos-*.mjs'
       - 'configuracion.html'
       - 'homeeasy-docs.js'
       - 'tests/homeeasy-document-config-parity.cjs'
@@ -46,6 +52,8 @@ jobs:
           node tests/cotizacion-integracion-integridad.cjs
           node tests/homeeasy-document-config-parity.cjs
           node tests/abono-integracion-integridad.cjs
+          node tests/abono-no-doble-envio.cjs
+          node tests/recibos-seguros.cjs
           node tests/config-website-flag-integridad.cjs
       - name: Install isolated QA tools
         run: |
@@ -66,7 +74,9 @@ jobs:
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/homeeasy-abono-pdf-http.log 2>&1 &
           sleep 2
       - name: Generate original receipt voucher PDF in real Chromium, mobile and desktop with mock backend
-        run: node tests/abono-pdf-browser-regression.mjs
+        run: |
+          node tests/recibos-intento-browser.mjs
+          node tests/abono-pdf-browser-regression.mjs
       - name: Inspect PDF pagination and produce visual previews
         if: always()
         run: |

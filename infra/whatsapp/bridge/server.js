@@ -14,7 +14,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.18.4';
+const BRIDGE_VERSION = '0.18.5';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -985,7 +985,7 @@ async function handle(req, res) {
     await auth.authorize(req, 'config.read');
     const payload = await readJsonBody(req);
     const operation = String(payload.operation || '').trim();
-    const allowed = new Set(['categories', 'products', 'attributes', 'defaults', 'dependencies', 'alerts', 'validateRoller']);
+    const allowed = new Set(['categories', 'products', 'attributes', 'defaults', 'dependencies', 'alerts', 'validateRoller', 'fixedPrice']);
     if (!allowed.has(operation)) {
       return json(res, 400, { ok: false, code: 'PENTAGRAMA_CATALOG_OPERATION_NOT_ALLOWED' });
     }
