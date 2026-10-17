@@ -13,8 +13,10 @@ function replaceOnce(oldText,newText) {
 }
 replaceOnce('    if (data.tipo === "movimiento_caja" && data.accionCaja)',
   '    const respuestaReciboSeguro = recibosProcesar_(ss, data);\n    if (respuestaReciboSeguro) return json_(respuestaReciboSeguro);\n    if (data.tipo === "movimiento_caja" && data.accionCaja)');
+if(main.source.includes('fecha: String(row[4]), valor: Number(row[5])'))
+  replaceOnce('fecha: String(row[4]), valor: Number(row[5])', 'fecha: row[4] ? Utilities.formatDate(new Date(row[4]), Session.getScriptTimeZone(), "dd/MM/yyyy") : "", valor: Number(row[5])');
 replaceOnce('        abonos: abonos ',
-  '        abonos: abonos,\n        recibosSeguros: true,\n        recibosAnulados: dataAb.slice(1).filter(function(row) { return String(row[1]).trim() === numOP && estadoAbonoFila_(row) === "ANULADO"; }).map(function(row) { return { recibo: row[0], fecha: String(row[4]), valor: Number(row[5]), estado: "ANULADO", motivo: row[23] || row[14] || "", pdfUrl: row[7] || "" }; })');
+  '        abonos: abonos,\n        recibosSeguros: true,\n        recibosAnulados: dataAb.slice(1).filter(function(row) { return String(row[1]).trim() === numOP && estadoAbonoFila_(row) === "ANULADO"; }).map(function(row) { return { recibo: row[0], fecha: row[4] ? Utilities.formatDate(new Date(row[4]), Session.getScriptTimeZone(), "dd/MM/yyyy") : "", valor: Number(row[5]), estado: "ANULADO", motivo: row[23] || row[14] || "", pdfUrl: row[7] || "" }; })');
 const moduleSource=fs.readFileSync('apps-script/RECIBOS_SEGUROS.gs','utf8');
 const moduleFile=project.files.find(f=>f.name==='RECIBOS_SEGUROS');
 if(moduleFile) moduleFile.source=moduleSource;
