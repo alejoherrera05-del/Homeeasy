@@ -42,14 +42,29 @@ const descriptions=[
 const scenarios=[
  {label:'single',count:4,mode:'individual',notes:false,total:1570000},
  {label:'long-total',count:14,mode:'total',notes:true,total:19864000},
- {label:'long-individual',count:14,mode:'individual',notes:true,total:19864000}
+ {label:'long-individual',count:14,mode:'individual',notes:true,total:19864000},
+ {label:'private',count:4,mode:'individual',notes:true,total:1570000,privacy:true}
 ];
 function makeTransfer(s){
  const unit=Math.floor(s.total/s.count);
  const values=Array.from({length:s.count},(_,i)=>i===0?unit+s.total-unit*s.count:unit);
  return {
   version:1,createdAt:Date.now(),displayMode:s.mode,project:'QA no cliente real',
-  totalPesos:s.total,items:values.map((price,i)=>({descripcion:descriptions[i],cantidad:1,precio:price})),
+  totalPesos:s.total,
+  visibility:s.privacy?{hideMeasures:true,hideUnitPrices:true,hideFabrics:true}:undefined,
+  items:values.map((price,i)=>{
+    const descripcion=descriptions[i];
+    const parts=descripcion.split(' · ');
+    return {
+      descripcion,cantidad:1,precio:price,
+      ...(s.privacy?{detallePublico:{
+        original:descripcion,
+        sinMedidas:parts.slice(0,-1).join(' · '),
+        sinTelas:[parts[0],parts[1],parts.at(-1)].join(' · '),
+        sinAmbas:parts.slice(0,2).join(' · ')
+      }}:{})
+    };
+  }),
   observations:s.notes?'Detalles de instalación:\n'+descriptions.map((d,i)=>'- '+d+': instalación al techo, apertura '+(i%3===0?'a la derecha':i%3===1?'a los extremos':'a la izquierda')+'.').join('\n'):''
  };
 }
@@ -138,6 +153,25 @@ try{
   assert(initial.company.includes('1.061.760.852-1'),scenario.label+': company config');
   assert(initial.commercial.includes('22 días')&&initial.commercial.includes('40%'),scenario.label+': commercial config');
   assert(initial.logo,scenario.label+': official HomeEasy logo');
+  if (scenario.privacy) {
+    await page.evaluate(async()=>{
+      await asegurarLibreriasPdf();
+      const original=window.html2canvas;
+      window.html2canvas=(element,opts)=>original(element,{
+        ...opts,
+        onclone(clone){
+          opts.onclone(clone);
+          const area=clone.getElementById('area-pdf');
+          const priceHeader=area.querySelector('thead th:nth-child(3)');
+          window.__QA_PRIVACY_CLONE={
+            descriptions:Array.from(area.querySelectorAll('#tabla-body .row-desc')).map(el=>el.textContent),
+            notesHidden:clone.getElementById('notas')?.closest('.mb-4')?.style.display==='none',
+            unitHidden:clone.defaultView.getComputedStyle(priceHeader).display==='none'
+          };
+        }
+      });
+    });
+  }
   // Cliente ficticio: el flujo de guardado exige identificación y nombre.
   await page.evaluate(()=>{
     document.getElementById('cedula').value='900123456';
@@ -169,6 +203,18 @@ try{
   assert.equal(submitted.tipo,'cotizacion');
   assert.equal(submitted.rows,scenario.count);
   assert.equal(submitted.total,scenario.total);
+  if (scenario.privacy) {
+    const privacy=await page.evaluate(()=>window.__QA_PRIVACY_CLONE);
+    assert(privacy,'Privacy PDF clone must be inspected');
+    assert.equal(privacy.descriptions.length,scenario.count);
+    assert(privacy.descriptions.every(value=>!value.includes(' × ')),'PDF must not include measured dimensions');
+    assert(privacy.descriptions.every(value=>!value.includes('Traslucente Kilim')),'PDF must not include fabric reference');
+    assert(privacy.notesHidden,'PDF hides technical free-text observations');
+    assert(privacy.unitHidden,'PDF hides unit-price column');
+    const full=await page.evaluate(()=>JSON.parse(window.__QA_POST.itemsJSON));
+    assert(full.every(row=>row.descripcion.includes(' × ')),'Stored items keep complete original dimensions');
+    assert(full[0].visibilidadCliente.hideMeasures,'Stored visibility flags survive');
+  }
   const file=path.join(output,scenario.label+'.pdf');
   const pdfBytes=Buffer.from(submitted.base64,'base64');
   fs.writeFileSync(file,pdfBytes);
