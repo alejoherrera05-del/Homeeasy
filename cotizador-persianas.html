@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="homeeasy-cost-calculator.css?v=20261017-visibilidad">
 <script src="homeeasy-core.js?v=3.5"></script>
 <script src="homeeasy-page-guard.js?v=20261002b"></script>
-<script defer src="homeeasy-cost-calculator.js?v=20261017-visibilidad"></script>
+<script defer src="homeeasy-cost-calculator.js?v=20261017-opciones-precios"></script>
   <link rel="stylesheet" href="homeeasy-back.css?v=1.1">
   <script defer src="homeeasy-back.js?v=1.2"></script>
   <link rel="stylesheet" href="homeeasy-header.css?v=2.5">
@@ -219,19 +219,18 @@
   <div class="formal-mode-options" role="group" aria-label="Presentación de los valores">
     <button type="button" class="formal-mode-option selected" data-formal-mode="individual" aria-pressed="true">
       <span class="formal-mode-icon"><i class="fa-solid fa-list"></i></span>
-      <span><strong>Valores por producto</strong><small>Conserva el total de cada producto.</small></span>
+      <span><strong>Valores por producto</strong><small>Muestra el subtotal de cada producto, sin precios unitarios.</small></span>
       <i class="fa-solid fa-check formal-mode-check"></i>
     </button>
     <button type="button" class="formal-mode-option" data-formal-mode="total" aria-pressed="false">
       <span class="formal-mode-icon"><i class="fa-solid fa-receipt"></i></span>
-      <span><strong>Solo valor total</strong><small>Muestra un único valor final.</small></span>
+      <span><strong>Solo valor total</strong><small>Muestra únicamente el valor final de la cotización.</small></span>
       <i class="fa-solid fa-check formal-mode-check"></i>
     </button>
   </div>
   <fieldset class="formal-visibility-options">
     <legend>Ocultar al cliente</legend>
     <label><input type="checkbox" id="formal-hide-measures" checked><span>Medidas</span></label>
-    <label><input type="checkbox" id="formal-hide-unit-prices" checked><span>Valores unitarios</span></label>
     <label><input type="checkbox" id="formal-hide-fabrics"><span>Referencias de telas</span></label>
   </fieldset>
   <div class="formal-visibility-preview" aria-live="polite" id="formal-visibility-preview"></div>

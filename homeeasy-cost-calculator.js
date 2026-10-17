@@ -1493,7 +1493,7 @@ function createFormalQuoteTransfer(displayMode='individual',visibility={}){
     displayMode:displayMode==='total'?'total':'individual',
     visibility:{
       hideMeasures:visibility.hideMeasures===true,
-      hideUnitPrices:visibility.hideUnitPrices===true,
+      hideUnitPrices:true, // El PDF del cliente nunca muestra precio unitario; Hommy conserva el cálculo.
       hideFabrics:visibility.hideFabrics===true
     },
     totalPesos,
@@ -1586,11 +1586,10 @@ let formalSelectedMode='individual';
 function updateFormalPreview(){
   const measures=$('formal-hide-measures').checked;
   const fabrics=$('formal-hide-fabrics').checked;
-  const units=$('formal-hide-unit-prices').checked||formalSelectedMode==='total';
   const example=state.items[0]&&lastQuote?.ok
     ?formalDescription(state.items[0],0,lastQuote,{hideMeasures:measures,hideFabrics:fabrics})
     :'Producto cotizado';
-  $('formal-visibility-preview').textContent='Vista del cliente: '+example+' · '+(formalSelectedMode==='total'?'solo valor total':units?'valor por producto, sin unitario':'valores unitarios y totales');
+  $('formal-visibility-preview').textContent='Vista del cliente: '+example+' · '+(formalSelectedMode==='total'?'solo valor total':'subtotales por producto, sin precio unitario');
 }
 $('formal-quote').onclick=()=>{
   if(!lastQuote?.ok)return;
@@ -1608,13 +1607,12 @@ $('formal-mode-dialog').addEventListener('click',event=>{
   });
   updateFormalPreview();
 });
-['formal-hide-measures','formal-hide-unit-prices','formal-hide-fabrics'].forEach(id=>{
+['formal-hide-measures','formal-hide-fabrics'].forEach(id=>{
   $(id).addEventListener('change',updateFormalPreview);
 });
 $('confirm-formal-mode').onclick=()=>{
   const transfer=createFormalQuoteTransfer(formalSelectedMode,{
     hideMeasures:$('formal-hide-measures').checked,
-    hideUnitPrices:$('formal-hide-unit-prices').checked,
     hideFabrics:$('formal-hide-fabrics').checked
   });
   if(!transfer)return;
