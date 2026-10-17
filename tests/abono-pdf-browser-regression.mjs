@@ -42,6 +42,7 @@ try {
    await page.addInitScript(({settings,history,initial,totalOrder,pending})=>{
      window.__QA_CONFIG=settings;
      window.__QA_POST=null;
+     window.__QA_POST_COUNT=0;
      window.HomeEasyAuth={hasPermission:()=>true};
      const native=window.fetch.bind(window);
      window.fetch=async(input,opts={})=>{
@@ -49,6 +50,7 @@ try {
        if(url.hostname==='script.google.com'){
          if(String(opts.method||'GET').toUpperCase()==='POST'){
            window.__QA_POST=JSON.parse(opts.body);
+           window.__QA_POST_COUNT++;
            return new Response(JSON.stringify({status:'success'}),{status:200,headers:{'Content-Type':'application/json'}});
          }
          if(url.searchParams.has('nextRecibo'))return new Response(JSON.stringify({status:'ok',nextRecibo:612}));
@@ -155,6 +157,7 @@ try {
    await page.locator('button[onclick="finalizarAbono()"]').click();
    if(scenario.failure){
      await page.waitForFunction(()=>document.getElementById('loading').style.display==='none');
+     assert.equal(await page.locator('#btn-recibo-whatsapp').count(),1,'WhatsApp action must be built into the receipt page');
      const recovery=await page.evaluate(()=>({value:document.getElementById('valorAbono').value,
        width:document.getElementById('area-pdf').style.width,
        inputs:document.getElementById('inputs_abono').style.display,
@@ -197,6 +200,56 @@ try {
    assert(bytes.length>15000,'PDF empty');
    const count=(bytes.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length;
    assert.equal(count,1,'Voucher must be a continuous PDF for the tested payment history');
+   await page.waitForFunction(()=>document.getElementById('success-modal').style.display==='flex');
+   const button=page.locator('#btn-recibo-whatsapp');
+   assert.equal(await button.count(),1,'WhatsApp action must always exist');
+   assert(await button.isVisible(),'WhatsApp must be visible immediately upon successful receipt');
+   assert.equal(await page.evaluate(()=>window.__QA_POST_COUNT),1,'Register payment exactly once');
+   if(scenario.label==='mobile-first'){
+     await page.evaluate(()=>{
+       window.__QA_WA_LOADS=0;
+       window.__QA_WA_CALLS=[];
+       window.HomeEasyPageGuard={
+         ensureWhatsappDocumentActions:async()=>{
+           window.__QA_WA_LOADS++;
+           return {sendStoredDocument:async payload=>{
+             window.__QA_WA_CALLS.push({
+               documentType:payload.documentType,resend:payload.resend,
+               reference:payload.reference,filename:payload.filename,
+               requestKey:payload.idempotencyKey,pdfBase64:payload.pdfBase64,
+               amount:payload.amount,cedula:payload.cedula
+             });
+           }};
+         }
+       };
+     });
+     await button.click();
+     await page.waitForFunction(()=>window.__QA_WA_CALLS?.length===1);
+     const action=await page.evaluate(()=>({
+       loads:window.__QA_WA_LOADS,
+       sent:window.__QA_WA_CALLS[0],
+       postCount:window.__QA_POST_COUNT,
+       buttonVisible:getComputedStyle(document.getElementById('btn-recibo-whatsapp')).display!=='none',
+       disabled:document.getElementById('btn-recibo-whatsapp').disabled
+     }));
+     assert.equal(action.loads,1,'Lazy load WhatsApp on click');
+     assert.equal(action.sent.documentType,'abono');
+     assert.equal(action.sent.resend,false);
+     assert.equal(action.sent.filename,p.nombreArchivo);
+     assert.equal(action.sent.cedula,p.cedula);
+     assert.equal(action.sent.amount,p.valorAbono);
+     assert.equal(action.sent.pdfBase64,p.pdfBase64,'Send exactly the registered receipt PDF');
+     assert.equal(action.postCount,1,'WhatsApp cannot register another payment');
+     assert.equal(action.buttonVisible,true,'Button stays visible');
+     assert.equal(action.disabled,false,'Button is reusable');
+     await page.evaluate(()=>window.HomeEasyPageGuard={
+       ensureWhatsappDocumentActions:async()=>{throw Error('QA_OFFLINE_WHATSAPP')}
+     });
+     await button.click();
+     await page.waitForFunction(()=>!document.getElementById('btn-recibo-whatsapp').disabled);
+     assert(await button.isVisible(),'WhatsApp must remain visible after loading failure');
+     assert.equal(await page.evaluate(()=>window.__QA_POST_COUNT),1,'Never repost payment on WhatsApp failure');
+   }
    const pdfPath=path.join(output,scenario.label+'.pdf');
    fs.writeFileSync(pdfPath,bytes);
    report.push({label:scenario.label,pass:true,history:scenario.history,pdfBytes:bytes.length,
