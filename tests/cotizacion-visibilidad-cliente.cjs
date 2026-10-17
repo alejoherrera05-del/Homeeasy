@@ -85,11 +85,28 @@ assert(quote.includes("areaPdf.classList.toggle('quote-total-only', quotePresent
 assert(quote.includes('#area-pdf.pdf-export-mode.quote-total-only'));
 assert(quote.includes("notes.closest('.mb-4')?.style.setProperty('display','none')"));
 assert(order.includes('tr.querySelector(".row-desc").value = item.descripcion || "";'));
-for (const id of ['formal-hide-measures','formal-hide-unit-prices','formal-hide-fabrics']) {
+for (const id of ['formal-hide-measures','formal-hide-fabrics']) {
   assert(calcHtml.includes('id="'+id+'"'), id + ' existe en el selector');
 }
+assert(!calcHtml.includes('id="formal-hide-unit-prices"'), 'Sin checkbox redundante de precio unitario');
+assert(!calc.includes("$('formal-hide-unit-prices')"), 'JS no depende de checkbox eliminado');
+assert(calcHtml.includes('sin precios unitarios.'), 'El modo valores por producto explica la ocultación');
+assert(calcHtml.includes('únicamente el valor final de la cotización.'), 'Modo solo total explícito');
+assert(calc.includes('hideUnitPrices:true,'), 'La calculadora marca precios unitarios ocultos');
+const alwaysPrivate = helpers.createFormalQuoteTransfer('individual',{
+  hideMeasures:false,hideUnitPrices:false,hideFabrics:false
+});
+assert.equal(alwaysPrivate.visibility.hideUnitPrices,true, 'Incluso con configuración anterior false se ocultan unitarios');
+assert.equal(alwaysPrivate.totalPesos,transfer.totalPesos, 'El total interno no cambia');
+const onlyTotal=helpers.createFormalQuoteTransfer('total',{
+  hideMeasures:true,hideFabrics:true
+});
+assert.equal(onlyTotal.visibility.hideUnitPrices,true);
+assert.equal(onlyTotal.displayMode,'total');
+assert(quote.includes("areaPdf.classList.toggle('quote-hide-unit-prices', quoteClientVisibility.hideUnitPrices)"), 'PDF oculta precios unitarios cuando se solicita');
+assert(quote.includes("areaPdf.classList.remove('pdf-export-mode','quote-hide-unit-prices')"), 'Al salir del PDF se restauran columnas internas');
 new Function(calc);
 for(const match of quote.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)){
   if(match[1].trim())new Function(match[1]);
 }
-console.log('OK: privacidad PDF, precios, datos internos, 3 casillas, compatibilidad y sintaxis');
+console.log('OK: privacidad PDF, dos casillas, unitarios ocultos en cliente, modos de precios, datos internos y sintaxis');
