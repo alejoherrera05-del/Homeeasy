@@ -88,10 +88,11 @@ async function fixedPrice(target, sample) {
     const rates=reads.filter(x=>x.ok && x.rateM2>0).map(x=>x.rateM2);
     const unique=[...new Set(rates.map(x=>x.toFixed(2)))];
     const consistent=reads.length===samples.length && rates.length===samples.length && unique.length===1;
-    const pentagramaRate=consistent ? rates[0] : null;
+    const pentagramaRateNet=consistent ? rates[0] : null;
+    const pentagramaRateVat=pentagramaRateNet!=null ? round(pentagramaRateNet*1.19,2) : null;
     const currentRate=source ? Number(source.rate||0) : null;
-    const difference=currentRate!=null && pentagramaRate!=null ? round(pentagramaRate-currentRate,2) : null;
-    const differencePct=currentRate && pentagramaRate!=null ? round((difference/currentRate)*100,2) : null;
+    const differenceVat=currentRate!=null && pentagramaRateVat!=null ? round(pentagramaRateVat-currentRate,2) : null;
+    const differenceVatPct=currentRate && pentagramaRateVat!=null ? round((differenceVat/currentRate)*100,4) : null;
 
     rows.push({
       reference:target.reference,
@@ -99,10 +100,12 @@ async function fixedPrice(target, sample) {
       productCode:target.productCode,
       groupCode:target.groupCode,
       consistent,
-      pentagramaRate,
+      pentagramaRateNet,
+      pentagramaRateVat,
       currentRate,
-      difference,
-      differencePct,
+      differenceVat,
+      differenceVatPct,
+      vatFactor:1.19,
       reads
     });
   }
@@ -112,7 +115,7 @@ async function fixedPrice(target, sample) {
       targets:rows.length,
       consistent:rows.filter(r=>r.consistent).length,
       inconsistent:rows.filter(r=>!r.consistent).length,
-      exactCurrentMatches:rows.filter(r=>r.consistent && Math.abs((r.currentRate||0)-r.pentagramaRate)<=0.02).length
+      exactCurrentMatches:rows.filter(r=>r.consistent && Math.abs((r.currentRate||0)-r.pentagramaRateVat)<=0.02).length
     },
     rows
   }));
