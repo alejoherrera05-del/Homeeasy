@@ -304,14 +304,14 @@
         .btn-success-home:active { transform: scale(0.95); }
 
         .row-desc, #notas { height: auto !important; min-height: 35px; }
-        #area-pdf.quote-total-only thead th:nth-child(3),
-        #area-pdf.quote-total-only thead th:nth-child(4),
-        #area-pdf.quote-total-only #tabla-body td:nth-child(3),
-        #area-pdf.quote-total-only #tabla-body td:nth-child(4),
-        #area-pdf.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(3),
-        #area-pdf.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(4) { display:none !important; }
-        #area-pdf.quote-total-only #subtotal_row,
-        #area-pdf.quote-total-only #desc_row { display:none !important; }
+        #area-pdf.pdf-export-mode.quote-total-only thead th:nth-child(3),
+        #area-pdf.pdf-export-mode.quote-total-only thead th:nth-child(4),
+        #area-pdf.pdf-export-mode.quote-total-only #tabla-body td:nth-child(3),
+        #area-pdf.pdf-export-mode.quote-total-only #tabla-body td:nth-child(4),
+        #area-pdf.pdf-export-mode.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(3),
+        #area-pdf.pdf-export-mode.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(4) { display:none !important; }
+        #area-pdf.pdf-export-mode.quote-total-only #subtotal_row,
+        #area-pdf.pdf-export-mode.quote-total-only #desc_row { display:none !important; }
         #area-pdf.quote-hide-unit-prices thead th:nth-child(3),
         #area-pdf.quote-hide-unit-prices #tabla-body td:nth-child(3),
         #area-pdf.quote-hide-unit-prices #tabla-body .pdf-repeat-table-header th:nth-child(3) { display:none !important; }
@@ -619,7 +619,8 @@
 
     function aplicarModoPresentacion(mode) {
         quotePresentationMode = mode === 'total' ? 'total' : 'individual';
-        // En pantalla siempre se muestran todos los valores; solo cambia el PDF.
+        // Marca retrocompatible; el ocultamiento CSS opera solo al exportar PDF.
+        document.getElementById('area-pdf')?.classList.toggle('quote-total-only', quotePresentationMode === 'total');
     }
 
     function cargarItemsDesdeCotizador(items) {
@@ -1088,7 +1089,8 @@
             });
 
             } finally {
-                areaPdf.classList.remove('pdf-export-mode','quote-total-only','quote-hide-unit-prices');
+                areaPdf.classList.remove('pdf-export-mode','quote-hide-unit-prices');
+                areaPdf.classList.toggle('quote-total-only', quotePresentationMode === 'total');
                 document.body.style.padding = origBodyPadding;
                 areaPdf.style.borderRadius = origBorderRadius;
                 areaPdf.style.boxShadow = origBoxShadow;
