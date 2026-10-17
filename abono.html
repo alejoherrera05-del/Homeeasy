@@ -246,6 +246,7 @@
     <script src="homeeasy-core.js?v=3.5.2"></script>
     <script src="homeeasy-page-guard.js?v=20261008"></script>
     <script src="homeeasy-docs.js?v=4.7"></script>
+    <script defer src="homeeasy-recibos.js?v=20261016"></script>
   <link rel="stylesheet" href="homeeasy-back.css?v=1.1">
   <script defer src="homeeasy-back.js?v=1.2"></script>
   <link rel="stylesheet" href="homeeasy-header.css?v=2.5">
@@ -370,7 +371,7 @@
 
         <div id="paz-salvo-banner">✓ PAZ Y SALVO ✓</div>
 
-        <button class="btn-homeeasy no-print" onclick="finalizarAbono()"><i class="fas fa-cloud-upload-alt me-2"></i> Confirmar y Sincronizar</button>
+        <button id="btn-confirmar-abono" type="button" class="btn-homeeasy no-print" onclick="finalizarAbono()"><i class="fas fa-cloud-upload-alt me-2"></i> Confirmar y Sincronizar</button>
     </div>
 
     <div class="pdf-footer">
@@ -604,8 +605,28 @@
                         var ab = historialAbonos[i];
                         var tr = document.createElement('tr');
                         tr.innerHTML = '<td>' + (ab.fecha || '—') + '</td><td>REC-' + ab.recibo + '</td><td>' + fmtCOP(ab.valor) + '</td>';
+                        if (data.recibosSeguros && window.HomeEasyAuth && HomeEasyAuth.hasPermission('anulaciones.execute')) {
+                            var btnAnular = document.createElement('button');
+                            btnAnular.type = 'button';
+                            btnAnular.className = 'btn btn-link btn-sm text-danger no-print';
+                            btnAnular.textContent = 'Anular recibo';
+                            btnAnular.setAttribute('aria-label', 'Anular recibo ' + ab.recibo);
+                            btnAnular.onclick = (function(recibo) { return function() { anularReciboIndividual(recibo, this); }; })(ab.recibo);
+                            tr.cells[1].appendChild(btnAnular);
+                        }
                         tbody.appendChild(tr);
                     }
+                    (data.recibosAnulados || []).forEach(function(ab) {
+                        var filaAnulada = document.createElement('tr');
+                        filaAnulada.className = 'no-print';
+                        [ab.fecha || '—', 'REC-' + ab.recibo + ' · ANULADO', fmtCOP(ab.valor)].forEach(function(texto) {
+                            var celda = document.createElement('td');
+                            celda.textContent = texto;
+                            filaAnulada.appendChild(celda);
+                        });
+                        filaAnulada.title = ab.motivo || '';
+                        tbody.appendChild(filaAnulada);
+                    });
 
                     document.getElementById('seccion_historial').style.display = 'block';
 
@@ -666,7 +687,86 @@
         }
     }
 
+    var anulacionReciboEnCurso = false;
+    async function anularReciboIndividual(numeroRecibo, boton) {
+        if (anulacionReciboEnCurso) return;
+        anulacionReciboEnCurso = true;
+        boton.disabled = true;
+        var enviado = false;
+        try {
+            var base = {
+                numeroOP: document.getElementById('numeroOP').value.trim(),
+                cedula: document.getElementById('cedula').value,
+                numeroRecibo: numeroRecibo,
+                requestId: crypto.randomUUID()
+            };
+            var preview = await (await fetch(URL_G, {method:'POST', body:JSON.stringify(Object.assign({},base,{tipo:'PREVISUALIZAR_ANULACION_RECIBO'}))})).json();
+            if (preview.status !== 'success') throw new Error(preview.msg || 'No fue posible revisar este recibo.');
+            var confirmacion = await Swal.fire({
+                icon:'warning', title:'Anular recibo ' + numeroRecibo,
+                text:'Se excluirá este registro de Caja y de los pagos de la orden. El PDF y el historial se conservarán. Total pagado resultante: ' + fmtCOP(preview.pagado) + '. Saldo: ' + fmtCOP(preview.saldo) + '. Confirma solo si el registro fue erróneo y no hubo devolución de dinero.',
+                input:'textarea', inputLabel:'Motivo obligatorio', inputAttributes:{maxlength:'500'},
+                inputValidator:function(value) { return !value || value.trim().length < 5 ? 'Escribe el motivo (mínimo 5 caracteres).' : undefined; },
+                showCancelButton:true, confirmButtonText:'Autorizar anulación', cancelButtonText:'Conservar recibo',
+                confirmButtonColor:'#a6455a', customClass:{popup:'swal2-premium'}
+            });
+            if (!confirmacion.isConfirmed) return;
+            var payload = Object.assign({},base,{tipo:'ANULAR_RECIBO',expectedRevision:preview.expectedRevision,
+                motivo:confirmacion.value.trim(),confirmado:true,sinDevolucion:true});
+            // Conserva la misma solicitud si la respuesta se pierde. No crear otra operación.
+            sessionStorage.setItem('homeeasy.recibo.anulacionPendiente',JSON.stringify(payload));
+            enviado = true;
+            var result = await (await fetch(URL_G,{method:'POST',body:JSON.stringify(payload)})).json();
+            if (result.status !== 'success') throw new Error(result.msg || 'No se confirmó la anulación.');
+            sessionStorage.removeItem('homeeasy.recibo.anulacionPendiente');
+            await Swal.fire({icon:'success',title:'Recibo anulado',text:'Se conservaron el PDF y la auditoría.',confirmButtonColor:'#a6455a'});
+            buscarOrden();
+        } catch (error) {
+            await Swal.fire({icon:'warning',title:enviado ? 'Resultado pendiente de verificar' : 'No se pudo anular',
+                text:(enviado ? 'Consulta el historial y Caja antes de repetir la operación. ' : '') + error.message,
+                confirmButtonColor:'#a6455a'});
+        } finally {
+            anulacionReciboEnCurso = false;
+            if (!enviado) boton.disabled = false;
+        }
+    }
+
+    // Protege contra varios clics o envíos simultáneos desde este formulario.
+    // La idempotencia definitiva también requiere una validación en Apps Script.
+    var abonoRegistroEnCurso = false;
+    var abonoRegistroEstado = 'listo'; // listo | incierto | registrado
+    var abonoIntento = null;
+
+    async function obtenerIntentoAbono(datos, numeroRecibo) {
+        if (!window.HomeEasyRecibos) throw new Error('No se pudo cargar la protección de pagos. Actualiza el formulario.');
+        return HomeEasyRecibos.obtenerIntentoAbono(datos, numeroRecibo);
+    }
+
     async function finalizarAbono() {
+        if (abonoRegistroEnCurso) return;
+        if (abonoRegistroEstado !== 'listo') {
+            await Swal.fire({
+                icon: abonoRegistroEstado === 'registrado' ? 'info' : 'warning',
+                title: abonoRegistroEstado === 'registrado' ? 'Abono ya registrado' : 'Abono pendiente de verificar',
+                text: abonoRegistroEstado === 'registrado'
+                    ? 'Este formulario ya registró el abono. Abre un formulario nuevo para realizar otro.'
+                    : 'La solicitud anterior pudo haberse guardado. Revisa el historial de abonos y Caja antes de volver a registrar un pago.',
+                confirmButtonColor: '#a6455a'
+            });
+            return;
+        }
+        abonoRegistroEnCurso = true;
+        var boton = document.getElementById('btn-confirmar-abono');
+        if (boton) boton.disabled = true;
+        try {
+            await ejecutarRegistroAbono();
+        } finally {
+            abonoRegistroEnCurso = false;
+            if (boton && abonoRegistroEstado === 'listo') boton.disabled = false;
+        }
+    }
+
+    async function ejecutarRegistroAbono() {
         await asegurarLibreriasPdf();
         // No emitir documentos con un encabezado predeterminado o desactualizado.
         // Capturar exactamente la configuración que ya figura en el formulario.
@@ -750,13 +850,23 @@
             }
         } catch (errorVerificacion) {
             Swal.close();
-            var continuar = await Swal.fire({
+            await Swal.fire({
                 icon: 'warning', title: 'Sin conexión para verificar',
-                text: 'No se pudo verificar el saldo en tiempo real. ¿Deseas continuar con el dato en caché?',
-                showCancelButton: true, confirmButtonText: 'Sí, continuar', cancelButtonText: 'No, esperar',
+                text: 'No se pudo verificar el saldo. Recupera la conexión y vuelve a consultar la orden antes de registrar el pago.',
+                confirmButtonText: 'Entendido',
                 confirmButtonColor: '#a6455a', customClass: { popup: 'swal2-premium' }
             });
-            if (!continuar.isConfirmed) return;
+            return;
+        }
+
+        try {
+            abonoIntento = await obtenerIntentoAbono([numOP,ced,valAbono,mPago,concepto],nRecibo);
+            if (!abonoIntento) return;
+            nRecibo = abonoIntento.numeroRecibo;
+            document.getElementById('n_recibo_display').innerText = nRecibo;
+        } catch (errorIntento) {
+            await Swal.fire({icon:'warning',title:'No se pudo preparar el pago',text:errorIntento.message,confirmButtonColor:'#a6455a'});
+            return;
         }
 
         // ✅ PREPARAR PDF: Agregar fila actual + totales a la tabla
@@ -903,10 +1013,15 @@
             setStep(2, 'check');
             setStep(3, 'active');
 
+            // ID explícito para permitir idempotencia en servidor (si está implementada).
+            var requestIdAbono = abonoIntento.requestId;
+            abonoRegistroEstado = 'incierto'; // Un error posterior no garantiza que el servidor no guardó.
             var response = await fetch(URL_G, {
                 method: "POST",
                 body: JSON.stringify({
                     tipo: "abono",
+                    requestId: requestIdAbono,
+                    numeroReciboEsperado: nRecibo,
                     numeroOP: numOP,
                     cedula: ced,
                     nombre: nom,
@@ -921,6 +1036,10 @@
             var json = await response.json();
 
             if (json.status === "success") {
+                abonoRegistroEstado = 'registrado';
+                try {
+                    localStorage.setItem(abonoIntento.key,JSON.stringify({requestId:requestIdAbono,numeroRecibo:json.numero_recibo || nRecibo,estado:'registrado'}));
+                } catch (storageError) { console.warn('Recibo guardado; conserva el historial para verificar nuevos pagos.'); }
                 setStep(3, 'check');
                 setStep(4, 'active');
                 
@@ -931,10 +1050,23 @@
                     document.getElementById('success-modal').style.display = 'flex';
                 }, 800);
             } else {
+                if (json.definitive === true) {
+                    localStorage.removeItem(abonoIntento.key);
+                    abonoRegistroEstado = 'listo';
+                }
                 throw new Error(json.msg || "No se pudo registrar el abono");
             }
-        } catch (err) { 
-            alert("Error de conexión: " + err.message); 
+        } catch (err) {
+            if (abonoRegistroEstado === 'incierto') {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'No se pudo confirmar el resultado',
+                    text: 'El pago pudo haber sido guardado aunque la conexión fallara. Antes de intentarlo de nuevo, comprueba el historial de esta orden y Caja. Detalle: ' + err.message,
+                    confirmButtonColor: '#a6455a'
+                });
+            } else {
+                alert("Error al preparar el recibo: " + err.message);
+            } 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('inputs_abono').style.display = '';
             document.getElementById('abono_destacado').style.display = 'none';

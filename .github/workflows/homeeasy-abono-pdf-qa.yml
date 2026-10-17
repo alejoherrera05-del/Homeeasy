@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'abono.html'
+      - 'homeeasy-recibos.js'
+      - 'apps-script/RECIBOS_SEGUROS*.gs'
+      - 'tests/recibos-*.cjs'
+      - 'tests/recibos-*.mjs'
       - 'configuracion.html'
       - 'homeeasy-docs.js'
       - 'tests/homeeasy-document-config-parity.cjs'
@@ -16,6 +20,10 @@ on:
     branches: [main]
     paths:
       - 'abono.html'
+      - 'homeeasy-recibos.js'
+      - 'apps-script/RECIBOS_SEGUROS*.gs'
+      - 'tests/recibos-*.cjs'
+      - 'tests/recibos-*.mjs'
       - 'configuracion.html'
       - 'homeeasy-docs.js'
       - 'tests/homeeasy-document-config-parity.cjs'
@@ -46,6 +54,8 @@ jobs:
           node tests/cotizacion-integracion-integridad.cjs
           node tests/homeeasy-document-config-parity.cjs
           node tests/abono-integracion-integridad.cjs
+          node tests/abono-no-doble-envio.cjs
+          node tests/recibos-seguros.cjs
           node tests/config-website-flag-integridad.cjs
       - name: Install isolated QA tools
         run: |
@@ -54,7 +64,7 @@ jobs:
       - name: Package reproducible local PDF QA assets
         run: |
           mkdir -p qa/abono-pdf/_offline/node_modules/{bootstrap/dist/css,html2canvas/dist,jspdf/dist,@fortawesome/fontawesome-free/css,@fortawesome/fontawesome-free/webfonts,@fontsource/montserrat/files}
-          cp abono.html homeeasy-docs.js homeeasy-core.js homeeasy-page-guard.js homeeasy-runtime.js homeeasy-runtime-cache.js homeeasy-cost-calculator.js cotizador-persianas.html configuracion.html cotizacion.html pedido.html homeeasy-whatsapp-doc-actions.js logohomeeasy.png triangulogold.png Hommypiedepagina.png Hommycompleto.png qa/abono-pdf/_offline/
+          cp abono.html homeeasy-recibos.js homeeasy-docs.js homeeasy-core.js homeeasy-page-guard.js homeeasy-runtime.js homeeasy-runtime-cache.js homeeasy-cost-calculator.js cotizador-persianas.html configuracion.html cotizacion.html pedido.html homeeasy-whatsapp-doc-actions.js logohomeeasy.png triangulogold.png Hommypiedepagina.png Hommycompleto.png qa/abono-pdf/_offline/
           cp node_modules/bootstrap/dist/css/bootstrap.min.css qa/abono-pdf/_offline/node_modules/bootstrap/dist/css/
           cp node_modules/html2canvas/dist/html2canvas.min.js qa/abono-pdf/_offline/node_modules/html2canvas/dist/
           cp node_modules/jspdf/dist/jspdf.umd.min.js qa/abono-pdf/_offline/node_modules/jspdf/dist/
@@ -66,7 +76,9 @@ jobs:
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/homeeasy-abono-pdf-http.log 2>&1 &
           sleep 2
       - name: Generate original receipt voucher PDF in real Chromium, mobile and desktop with mock backend
-        run: node tests/abono-pdf-browser-regression.mjs
+        run: |
+          node tests/recibos-intento-browser.mjs
+          node tests/abono-pdf-browser-regression.mjs
       - name: Inspect PDF pagination and produce visual previews
         if: always()
         run: |
