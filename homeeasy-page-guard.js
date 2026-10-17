@@ -412,6 +412,16 @@
         requiredPermission,
         permissions: PAGE_PERMISSIONS,
         getStatus: () => pageAuthStatus,
-        getLatestGeneratedDocument: () => latestGeneratedDocument
+        getLatestGeneratedDocument: () => latestGeneratedDocument,
+        // Reintento explícito bajo demanda: la acción del recibo no depende del
+        // orden de carga de los scripts secundarios de WhatsApp.
+        ensureWhatsappDocumentActions: async () => {
+            if (pageAuthStatus !== 'authorized') throw new Error('La sesión de HomeEasy no está autorizada.');
+            await loadWhatsappDocumentActions();
+            if (!global.HomeEasyWhatsApp || !global.HomeEasyWhatsAppDocumentActions) {
+                throw new Error('No se pudo cargar WhatsApp. Comprueba la conexión y vuelve a pulsar Enviar por WhatsApp.');
+            }
+            return global.HomeEasyWhatsAppDocumentActions;
+        }
     });
 })(window);

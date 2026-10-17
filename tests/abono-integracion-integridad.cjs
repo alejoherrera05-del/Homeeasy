@@ -31,6 +31,13 @@ for(const key of ['numeroOP: numOP','cedula: ced','nombre: nom','valorAbono: val
 must(receipt,key);
 must(guard,"['cotizacion.html', 'pedido.html', 'abono.html']");
 must(guard,"homeeasy:document-generated");
+must(guard,"ensureWhatsappDocumentActions: async () => {");
+must(receipt,'id="btn-recibo-whatsapp"');
+must(receipt,'onclick="enviarReciboWhatsapp()"');
+must(receipt,'abonoDocumentoWhatsappConfirmado = {');
+must(receipt,"idempotencyKey: 'recibo-confirmado:' + requestIdAbono");
+must(receipt,'await acciones.sendStoredDocument({');
+must(receipt,"resend:false,source:'generado'");
 must(actions,"documentType: type");
 must(actions,"const type = DOCUMENT_PAGES[page]");
 must(quote,'const payloadType = isEditMode ? "edit_cotizacion" : "cotizacion"');
