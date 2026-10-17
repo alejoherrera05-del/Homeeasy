@@ -1394,20 +1394,30 @@ $('review-dialog').addEventListener('click',event=>{
   activateItem(id,{scroll:true,focusField:'width'});
 });
 
-function formalDescription(item,index,q){
+function formalDescription(item,index,q,{hideMeasures=false,hideFabrics=false}={}){
   const product=q.items?.[index]?.product;
   const parts=[];
   const location=String(item.location||'').trim();
   if(location)parts.push(location);
   parts.push(familyLabels[item.family]||item.family||'Persiana');
-  if(product?.name)parts.push(product.name);
+  if(!hideFabrics&&product?.name)parts.push(product.name);
   if(item.coverlight){
     const cover=calculatedCovers(item).find(c=>c.id===item.coverlight);
     const coverName=cleanCommercialComplementName(cover?.name||'Coverlight');
     parts.push('+ '+coverName);
   }
-  if(item.width&&item.height)parts.push(whatsappMeasure(item.width)+' × '+whatsappMeasure(item.height)+' m');
+  if(!hideMeasures&&item.width&&item.height)parts.push(whatsappMeasure(item.width)+' × '+whatsappMeasure(item.height)+' m');
   return parts.filter(Boolean).join(' · ');
+}
+
+function formalPublicVariants(item,index,q){
+  const original=formalDescription(item,index,q);
+  return {
+    original,
+    sinMedidas:formalDescription(item,index,q,{hideMeasures:true}),
+    sinTelas:formalDescription(item,index,q,{hideFabrics:true}),
+    sinAmbas:formalDescription(item,index,q,{hideMeasures:true,hideFabrics:true})
+  };
 }
 
 function allocateFormalItemTotals(q){
@@ -1450,7 +1460,7 @@ function formalRowsFromQuote(q){
   }
 
   if(difference===0){
-    return rows.map(row=>({descripcion:row.description,cantidad:row.quantity,precio:row.unitPrice}));
+    return rows.map((row,index)=>({descripcion:row.description,cantidad:row.quantity,precio:row.unitPrice,detallePublico:formalPublicVariants(state.items[index],index,q)}));
   }
 
   // Caso poco común: todas las líneas tienen cantidad > 1 y el total no puede
@@ -1462,13 +1472,14 @@ function formalRowsFromQuote(q){
     const base=Math.floor(allocated/quantity);
     const remainder=allocated-(base*quantity);
     const description=formalDescription(item,index,q);
-    if(quantity-remainder>0)exactRows.push({descripcion:description,cantidad:quantity-remainder,precio:base});
-    if(remainder>0)exactRows.push({descripcion:description,cantidad:remainder,precio:base+1});
+    const detallePublico=formalPublicVariants(item,index,q);
+    if(quantity-remainder>0)exactRows.push({descripcion:description,cantidad:quantity-remainder,precio:base,detallePublico});
+    if(remainder>0)exactRows.push({descripcion:description,cantidad:remainder,precio:base+1,detallePublico});
   });
   return exactRows;
 }
 
-function createFormalQuoteTransfer(displayMode='individual'){
+function createFormalQuoteTransfer(displayMode='individual',visibility={}){
   const q=lastQuote;
   if(!q?.ok)return null;
   const rows=formalRowsFromQuote(q);
@@ -1480,6 +1491,11 @@ function createFormalQuoteTransfer(displayMode='individual'){
     project:String(state.project||'').trim(),
     rounded:Boolean(state.roundSale),
     displayMode:displayMode==='total'?'total':'individual',
+    visibility:{
+      hideMeasures:visibility.hideMeasures===true,
+      hideUnitPrices:visibility.hideUnitPrices===true,
+      hideFabrics:visibility.hideFabrics===true
+    },
     totalPesos,
     observations:installLines.length?'Detalles de instalación:\n'+installLines.join('\n'):'',
     items:rows
@@ -1566,15 +1582,41 @@ $('cancel-install').onclick=()=>{
   installationDraft=null;
 };
 
+let formalSelectedMode='individual';
+function updateFormalPreview(){
+  const measures=$('formal-hide-measures').checked;
+  const fabrics=$('formal-hide-fabrics').checked;
+  const units=$('formal-hide-unit-prices').checked||formalSelectedMode==='total';
+  const example=state.items[0]&&lastQuote?.ok
+    ?formalDescription(state.items[0],0,lastQuote,{hideMeasures:measures,hideFabrics:fabrics})
+    :'Producto cotizado';
+  $('formal-visibility-preview').textContent='Vista del cliente: '+example+' · '+(formalSelectedMode==='total'?'solo valor total':units?'valor por producto, sin unitario':'valores unitarios y totales');
+}
 $('formal-quote').onclick=()=>{
   if(!lastQuote?.ok)return;
+  updateFormalPreview();
   $('formal-mode-dialog').showModal();
 };
-
 $('formal-mode-dialog').addEventListener('click',event=>{
   const option=event.target.closest('[data-formal-mode]');
   if(!option)return;
-  const transfer=createFormalQuoteTransfer(option.dataset.formalMode);
+  formalSelectedMode=option.dataset.formalMode==='total'?'total':'individual';
+  $('formal-mode-dialog').querySelectorAll('[data-formal-mode]').forEach(button=>{
+    const selected=button.dataset.formalMode===formalSelectedMode;
+    button.classList.toggle('selected',selected);
+    button.setAttribute('aria-pressed',String(selected));
+  });
+  updateFormalPreview();
+});
+['formal-hide-measures','formal-hide-unit-prices','formal-hide-fabrics'].forEach(id=>{
+  $(id).addEventListener('change',updateFormalPreview);
+});
+$('confirm-formal-mode').onclick=()=>{
+  const transfer=createFormalQuoteTransfer(formalSelectedMode,{
+    hideMeasures:$('formal-hide-measures').checked,
+    hideUnitPrices:$('formal-hide-unit-prices').checked,
+    hideFabrics:$('formal-hide-fabrics').checked
+  });
   if(!transfer)return;
   try{
     sessionStorage.setItem(FORMAL_QUOTE_TRANSFER_KEY,JSON.stringify(transfer));
@@ -1583,8 +1625,7 @@ $('formal-mode-dialog').addEventListener('click',event=>{
   }catch(e){
     toast('No se pudo abrir la cotización formal.');
   }
-});
-
+};
 $('cancel-formal-mode').onclick=()=>$('formal-mode-dialog').close();
 
 $('copy-sale').onclick=async()=>{

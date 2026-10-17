@@ -42,14 +42,31 @@ const descriptions=[
 const scenarios=[
  {label:'single',count:4,mode:'individual',notes:false,total:1570000},
  {label:'long-total',count:14,mode:'total',notes:true,total:19864000},
- {label:'long-individual',count:14,mode:'individual',notes:true,total:19864000}
+ {label:'long-individual',count:14,mode:'individual',notes:true,total:19864000},
+ ...Array.from({length:8},(_,mask)=>({label:'privacy-'+mask,count:4,mode:'individual',notes:true,total:1570000,
+   privacy:{hideMeasures:Boolean(mask&1),hideUnitPrices:Boolean(mask&2),hideFabrics:Boolean(mask&4)}})),
+ {label:'private-long-total',count:14,mode:'total',notes:true,total:19864000,privacy:{hideMeasures:true,hideUnitPrices:true,hideFabrics:true}}
 ];
 function makeTransfer(s){
  const unit=Math.floor(s.total/s.count);
  const values=Array.from({length:s.count},(_,i)=>i===0?unit+s.total-unit*s.count:unit);
  return {
   version:1,createdAt:Date.now(),displayMode:s.mode,project:'QA no cliente real',
-  totalPesos:s.total,items:values.map((price,i)=>({descripcion:descriptions[i],cantidad:1,precio:price})),
+  totalPesos:s.total,
+  visibility:s.privacy,
+  items:values.map((price,i)=>{
+    const descripcion=descriptions[i];
+    const parts=descripcion.split(' · ');
+    return {
+      descripcion,cantidad:1,precio:price,
+      ...(s.privacy?{detallePublico:{
+        original:descripcion,
+        sinMedidas:parts.slice(0,-1).join(' · '),
+        sinTelas:[parts[0],parts[1],parts.at(-1)].join(' · '),
+        sinAmbas:parts.slice(0,2).join(' · ')
+      }}:{})
+    };
+  }),
   observations:s.notes?'Detalles de instalación:\n'+descriptions.map((d,i)=>'- '+d+': instalación al techo, apertura '+(i%3===0?'a la derecha':i%3===1?'a los extremos':'a la izquierda')+'.').join('\n'):''
  };
 }
@@ -60,6 +77,13 @@ try{
   const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1,acceptDownloads:true});
   page.setDefaultTimeout(25000);
   const errors=[];
+  // Recursos locales por transporte interceptado: QA no depende de red externa.
+  await page.route('http://127.0.0.1:4173/**',route=>{
+    const file=path.resolve(root,'.'+decodeURIComponent(new URL(route.request().url()).pathname));
+    if(!file.startsWith(root+path.sep)||!fs.existsSync(file))return route.fulfill({status:404,body:''});
+    const ext=path.extname(file),types={'.html':'text/html','.js':'application/javascript','.css':'text/css','.png':'image/png','.woff2':'font/woff2'};
+    return route.fulfill({status:200,contentType:types[ext]||'application/octet-stream',body:fs.readFileSync(file)});
+  });
   page.on('pageerror',e=>errors.push(String(e.message)));
   page.on('console',msg=>{if(msg.type()==='error')errors.push('Console: '+msg.text());});
   await page.addInitScript(({data,settings})=>{
@@ -75,6 +99,8 @@ try{
          return new Response(JSON.stringify({status:'success'}),{status:200,headers:{'Content-Type':'application/json'}});
        }
        if(url.searchParams.has('nextCotizacion'))return new Response(JSON.stringify({status:'ok',nextCotizacion:46}));
+       if(url.searchParams.has('nextPedido'))return new Response(JSON.stringify({status:'ok',nextPedido:174}));
+       if(window.__QA_SAVED&&(url.searchParams.get('tipo')==='EDITAR_COT'||url.searchParams.has('convertirCot')))return new Response(JSON.stringify({status:'found',numero:46,numero_cotizacion:46,fecha:'2026-10-17',...window.__QA_SAVED}));
        if(url.searchParams.has('init'))return new Response(JSON.stringify({status:'ok',clientes:[]}));
        return new Response(JSON.stringify({status:'ok',configuracion:window.__QA_CONFIG}));
      }
@@ -138,6 +164,25 @@ try{
   assert(initial.company.includes('1.061.760.852-1'),scenario.label+': company config');
   assert(initial.commercial.includes('22 días')&&initial.commercial.includes('40%'),scenario.label+': commercial config');
   assert(initial.logo,scenario.label+': official HomeEasy logo');
+  if (scenario.privacy) {
+    await page.evaluate(async()=>{
+      await asegurarLibreriasPdf();
+      const original=window.html2canvas;
+      window.html2canvas=(element,opts)=>original(element,{
+        ...opts,
+        onclone(clone){
+          opts.onclone(clone);
+          const area=clone.getElementById('area-pdf');
+          const priceHeader=area.querySelector('thead th:nth-child(3)');
+          window.__QA_PRIVACY_CLONE={
+            descriptions:Array.from(area.querySelectorAll('#tabla-body .row-desc')).map(el=>el.textContent),
+            notesHidden:clone.getElementById('notas')?.closest('.mb-4')?.style.display==='none',
+            unitHidden:clone.defaultView.getComputedStyle(priceHeader).display==='none'
+          };
+        }
+      });
+    });
+  }
   // Cliente ficticio: el flujo de guardado exige identificación y nombre.
   await page.evaluate(()=>{
     document.getElementById('cedula').value='900123456';
@@ -169,6 +214,19 @@ try{
   assert.equal(submitted.tipo,'cotizacion');
   assert.equal(submitted.rows,scenario.count);
   assert.equal(submitted.total,scenario.total);
+  if (scenario.privacy) {
+    const privacy=await page.evaluate(()=>window.__QA_PRIVACY_CLONE);
+    assert(privacy,'Privacy PDF clone must be inspected');
+    assert.equal(privacy.descriptions.length,scenario.count);
+    assert.equal(privacy.descriptions.some(value=>value.includes(' × ')),!scenario.privacy.hideMeasures,'PDF dimension visibility');
+    assert.equal(privacy.descriptions.some(value=>value.includes('Traslucente Kilim')),!scenario.privacy.hideFabrics,'PDF fabric visibility');
+    assert.equal(privacy.notesHidden,scenario.privacy.hideMeasures||scenario.privacy.hideFabrics,'PDF technical notes visibility');
+    assert.equal(privacy.unitHidden,scenario.privacy.hideUnitPrices||scenario.mode==='total','PDF unit-price visibility');
+    const full=await page.evaluate(()=>JSON.parse(window.__QA_POST.itemsJSON));
+    assert(full.every(row=>row.descripcion.includes(' × ')),'Stored items keep complete original dimensions');
+    assert.deepEqual(full[0].visibilidadCliente,scenario.privacy,'Stored visibility flags survive');
+    assert.equal(await page.locator('#area-pdf').evaluate(el=>el.classList.contains('quote-hide-unit-prices')),false,'Internal price columns restored');
+  }
   const file=path.join(output,scenario.label+'.pdf');
   const pdfBytes=Buffer.from(submitted.base64,'base64');
   fs.writeFileSync(file,pdfBytes);
@@ -179,6 +237,24 @@ try{
   if(scenario.label==='long-total')assert.equal(pageCount,2,'Fourteen blinds total-only must not leave an orphan page');
   if(scenario.label==='long-individual')assert(pageCount>=2&&pageCount<=3,'Itemized 14-blind quote pagination must be controlled');
   report.push({scenario:scenario.label,form:initial,pdfBytes:pdfBytes.length,pdfPages:pageCount,pdf:file,errors});
+  if(scenario.privacy){
+    const saved=await page.evaluate(()=>window.__QA_POST);
+    await page.addInitScript(saved=>{window.__QA_SAVED=saved},saved);
+    await page.goto('http://127.0.0.1:4173/cotizacion.html?edit=46',{waitUntil:'load'});
+    await page.waitForFunction(()=>document.querySelectorAll('#tabla-body .row-desc').length===JSON.parse(window.__QA_SAVED.itemsJSON).length);
+    const restored=await page.evaluate(()=>({items:[...document.querySelectorAll('#tabla-body .row-desc')].map(x=>x.value),flags:quoteClientVisibility,notes:document.getElementById('notas').value,unitVisible:getComputedStyle(document.querySelector('thead th:nth-child(3)')).display!=='none'}));
+    assert.deepEqual(restored.items,JSON.parse(saved.itemsJSON).map(x=>x.descripcion),'Reopened quote keeps full descriptions');
+    assert.deepEqual(restored.flags,scenario.privacy,'Reopened quote restores visibility');assert.equal(restored.notes,saved.observaciones);assert(restored.unitVisible,'Internal unit prices remain visible');
+    await page.locator('#btnProcesar').click();await page.waitForFunction(()=>window.__QA_POST?.tipo==='edit_cotizacion');
+    const edited=await page.evaluate(()=>window.__QA_POST);
+    assert.deepEqual(JSON.parse(edited.itemsJSON),JSON.parse(saved.itemsJSON),'Edit/save preserves full item metadata');assert.equal(edited.total,saved.total,'Edit preserves total');
+    await page.goto('http://127.0.0.1:4173/pedido.html?cotizacion=46',{waitUntil:'load'});
+    await page.waitForFunction(()=>document.querySelectorAll('#tabla-body .row-desc').length===JSON.parse(window.__QA_SAVED.itemsJSON).length);
+    const op=await page.evaluate(()=>({items:[...document.querySelectorAll('#tabla-body .row-desc')].map(x=>x.value),prices:[...document.querySelectorAll('#tabla-body .precio')].map(x=>Number(x.value.replace(/\D/g,''))),unitVisible:getComputedStyle(document.querySelector('thead th:nth-child(3)')).display!=='none',notes:document.getElementById('notas').value}));
+    assert.deepEqual(op.items,JSON.parse(saved.itemsJSON).map(x=>x.descripcion),'Converted OP keeps full measures and fabrics');assert.deepEqual(op.prices,JSON.parse(saved.itemsJSON).map(x=>x.precio),'Converted OP keeps full prices');assert(op.unitVisible);assert.equal(op.notes,saved.observaciones);
+    console.log('Roundtrip browser '+scenario.label+': edit/recover/save/convert OP PASS');
+  }
+  assert.deepEqual(errors,[],'No browser regression errors');
   if(errors.length)console.log('Diagnostics '+scenario.label+': '+errors.join(' | ').slice(0,350));
   await page.close();
  }

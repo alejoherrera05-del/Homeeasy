@@ -304,14 +304,17 @@
         .btn-success-home:active { transform: scale(0.95); }
 
         .row-desc, #notas { height: auto !important; min-height: 35px; }
-        #area-pdf.quote-total-only thead th:nth-child(3),
-        #area-pdf.quote-total-only thead th:nth-child(4),
-        #area-pdf.quote-total-only #tabla-body td:nth-child(3),
-        #area-pdf.quote-total-only #tabla-body td:nth-child(4),
-        #area-pdf.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(3),
-        #area-pdf.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(4) { display:none !important; }
-        #area-pdf.quote-total-only #subtotal_row,
-        #area-pdf.quote-total-only #desc_row { display:none !important; }
+        #area-pdf.pdf-export-mode.quote-total-only thead th:nth-child(3),
+        #area-pdf.pdf-export-mode.quote-total-only thead th:nth-child(4),
+        #area-pdf.pdf-export-mode.quote-total-only #tabla-body td:nth-child(3),
+        #area-pdf.pdf-export-mode.quote-total-only #tabla-body td:nth-child(4),
+        #area-pdf.pdf-export-mode.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(3),
+        #area-pdf.pdf-export-mode.quote-total-only #tabla-body .pdf-repeat-table-header th:nth-child(4) { display:none !important; }
+        #area-pdf.pdf-export-mode.quote-total-only #subtotal_row,
+        #area-pdf.pdf-export-mode.quote-total-only #desc_row { display:none !important; }
+        #area-pdf.quote-hide-unit-prices thead th:nth-child(3),
+        #area-pdf.quote-hide-unit-prices #tabla-body td:nth-child(3),
+        #area-pdf.quote-hide-unit-prices #tabla-body .pdf-repeat-table-header th:nth-child(3) { display:none !important; }
     </style>
     
     <script src="homeeasy-core.js?v=3.5.2"></script>
@@ -470,6 +473,45 @@
     const COST_CALCULATOR_TRANSFER_KEY = 'homeeasy.cost-to-formal.v1';
     let importedCalculatorTransfer = false;
     let quotePresentationMode = 'individual';
+    // Las opciones afectan exclusivamente la copia PDF, no la información interna.
+    let quoteClientVisibility = {hideMeasures:false,hideUnitPrices:false,hideFabrics:false};
+    let quoteInternalTechnicalNotes = false;
+
+    function normalizarVisibilidadCliente(value) {
+        const v = value && typeof value === 'object' ? value : {};
+        return {
+            hideMeasures:v.hideMeasures===true,
+            hideUnitPrices:v.hideUnitPrices===true,
+            hideFabrics:v.hideFabrics===true
+        };
+    }
+
+    function guardarDetallePublico(tr,item) {
+        if (item?.detallePublico && typeof item.detallePublico === 'object') {
+            tr.dataset.detallePublico = JSON.stringify(item.detallePublico);
+        }
+    }
+
+    function obtenerDetallePublico(tr) {
+        try { return tr.dataset.detallePublico ? JSON.parse(tr.dataset.detallePublico) : null; }
+        catch (error) { return null; }
+    }
+
+    function descripcionParaCliente(tr) {
+        const desc = String(tr.querySelector('.row-desc')?.value || '').trim();
+        if (!desc || (!quoteClientVisibility.hideMeasures && !quoteClientVisibility.hideFabrics)) return desc;
+        const variants = obtenerDetallePublico(tr);
+        if (!variants || variants.original !== desc) {
+            throw new Error('La descripción técnica cambió o no está disponible. Para ocultar medidas o telas, vuelve al cotizador y genera la cotización con los datos actualizados.');
+        }
+        const key = quoteClientVisibility.hideMeasures
+            ? (quoteClientVisibility.hideFabrics ? 'sinAmbas' : 'sinMedidas')
+            : 'sinTelas';
+        if (typeof variants[key] !== 'string' || !variants[key].trim()) {
+            throw new Error('No se pudo generar la descripción protegida. Revisa el producto en el cotizador.');
+        }
+        return variants[key];
+    }
 
     let homeEasyPdfLibrariesPromise = null;
     function cargarScriptPdf(src, ready) {
@@ -577,8 +619,8 @@
 
     function aplicarModoPresentacion(mode) {
         quotePresentationMode = mode === 'total' ? 'total' : 'individual';
-        const area = document.getElementById('area-pdf');
-        if (area) area.classList.toggle('quote-total-only', quotePresentationMode === 'total');
+        // Marca retrocompatible; el ocultamiento CSS opera solo al exportar PDF.
+        document.getElementById('area-pdf')?.classList.toggle('quote-total-only', quotePresentationMode === 'total');
     }
 
     function cargarItemsDesdeCotizador(items) {
@@ -590,6 +632,7 @@
             agregarFila();
             const tr = tbody.lastElementChild;
             tr.querySelector('.row-desc').value = String(item.descripcion || '');
+            guardarDetallePublico(tr,item);
             tr.querySelector('.cant').value = Math.max(1, Math.round(Number(item.cantidad) || 1));
             const precio = Math.max(0, Math.round(Number(item.precio) || 0));
             tr.querySelector('.precio').value = precio
@@ -611,6 +654,8 @@
             if (!transfer || transfer.version !== 1 || age < 0 || age > 30 * 60 * 1000) return false;
             if (!cargarItemsDesdeCotizador(transfer.items)) return false;
             aplicarModoPresentacion(transfer.displayMode);
+            quoteClientVisibility = normalizarVisibilidadCliente(transfer.visibility);
+            quoteInternalTechnicalNotes = Boolean(transfer.observations);
             if (transfer.observations) {
                 const notas = document.getElementById('notas');
                 notas.value = String(transfer.observations);
@@ -705,6 +750,9 @@
                     } else {
                         aplicarModoPresentacion('individual');
                     }
+                    // Documentos anteriores no tienen filtros de privacidad.
+                    quoteClientVisibility = normalizarVisibilidadCliente(items[0]?.visibilidadCliente);
+                    quoteInternalTechnicalNotes = items[0]?.notasTecnicasInternas===true;
                     let subtotalCarga = 0;
 
                     if(items.length > 0) {
@@ -723,6 +771,7 @@
                             tbody.appendChild(tr);
                             
                             tr.querySelector(".row-desc").value = item.descripcion || "";
+                            guardarDetallePublico(tr,item);
                             tr.querySelector(".cant").value = item.cantidad || 1;
                             
                             let pr = parseFloat(item.precio) || 0;
@@ -869,6 +918,13 @@
         let numeroCot = document.getElementById("n_cot_display").innerText.trim() || "0";
 
         if (!cedula || !nombre) return alert("Por favor, ingresa al menos Cédula y Nombre.");
+        let descripcionesParaPdf;
+        try {
+            descripcionesParaPdf = Array.from(document.querySelectorAll('#tabla-body tr')).map(descripcionParaCliente);
+        } catch (errorPrivacidad) {
+            alert(errorPrivacidad.message);
+            return;
+        }
 
         const loading = document.getElementById('loading');
         if(isEditMode) document.getElementById('lbl-proceso').innerText = "ACTUALIZANDO...";
@@ -887,6 +943,8 @@
             
             const areaPdf = document.getElementById('area-pdf'); 
             areaPdf.classList.add('pdf-export-mode');
+            areaPdf.classList.toggle('quote-total-only', quotePresentationMode === 'total');
+            areaPdf.classList.toggle('quote-hide-unit-prices', quoteClientVisibility.hideUnitPrices);
             
             const origBorderRadius = areaPdf.style.borderRadius; 
             const origBoxShadow = areaPdf.style.boxShadow;
@@ -922,10 +980,23 @@
                 onclone: function(clonedDoc) {
                     clonedDoc.querySelectorAll('.no-print').forEach(el => el.remove());
                     
-                    clonedDoc.querySelectorAll('#tabla-body tr').forEach(f => { 
-                        const desc = f.querySelector('.row-desc'); 
-                        if(!desc || !desc.value.trim()) f.remove(); 
+                    clonedDoc.querySelectorAll('#tabla-body tr').forEach((f,index) => {
+                        const desc = f.querySelector('.row-desc');
+                        if (desc && descripcionesParaPdf[index] !== undefined) {
+                            desc.value = descripcionesParaPdf[index];
+                            desc.setAttribute('value', descripcionesParaPdf[index]);
+                        }
+                        if (!desc || !desc.value.trim()) f.remove();
                     });
+                    // Las notas técnicas pueden contener referencias/dimensiones libres.
+                    // Se conservan en la base interna y se omiten del PDF protegido.
+                    if (quoteInternalTechnicalNotes && (quoteClientVisibility.hideMeasures || quoteClientVisibility.hideFabrics)) {
+                        const notes = clonedDoc.getElementById('notas');
+                        if (notes) {
+                            notes.value = '';
+                            notes.closest('.mb-4')?.style.setProperty('display','none');
+                        }
+                    }
                     
                     const descInput = clonedDoc.getElementById('descuento_input'); 
                     const descRow = clonedDoc.getElementById('desc_row');
@@ -1018,7 +1089,8 @@
             });
 
             } finally {
-                areaPdf.classList.remove('pdf-export-mode');
+                areaPdf.classList.remove('pdf-export-mode','quote-hide-unit-prices');
+                areaPdf.classList.toggle('quote-total-only', quotePresentationMode === 'total');
                 document.body.style.padding = origBodyPadding;
                 areaPdf.style.borderRadius = origBorderRadius;
                 areaPdf.style.boxShadow = origBoxShadow;
@@ -1075,7 +1147,10 @@
                             cantidad: cantidad, 
                             precio: precio, 
                             subtotal: cantidad * precio,
-                            presentacion: quotePresentationMode 
+                            presentacion: quotePresentationMode,
+                            visibilidadCliente: {...quoteClientVisibility},
+                            notasTecnicasInternas: quoteInternalTechnicalNotes,
+                            ...(obtenerDetallePublico(tr) ? {detallePublico:obtenerDetallePublico(tr)} : {})
                         });
                     }
                 }
