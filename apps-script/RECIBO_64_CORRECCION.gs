@@ -8,6 +8,12 @@ function corregirRecibo64HomeEasy() {
   recibosExigir_(actor && owner && actor===owner,'La recuperación exige al propietario del Cerebro.');
   recibosExigir_(HOMEEASY_SPREADSHEET_ID==='1hnHAeKhyd9MVCn1bCm8XExl4hdV2ijqdIjCXoJba1iY','La base configurada no corresponde al incidente.');
   var backupId=PropertiesService.getScriptProperties().getProperty('RECIBO64_RESPALDO_ID');
+  if(!backupId) {
+    var backups=DriveApp.getFilesByName('HomeEasy — respaldo previo corrección REC-64 — 2026-10-16');
+    recibosExigir_(backups.hasNext(),'No se encontró el respaldo verificado del incidente.');
+    backupId=backups.next().getId();
+    recibosExigir_(!backups.hasNext(),'Hay respaldos con nombres repetidos; se requiere seleccionar explícitamente el ID.');
+  }
   recibosExigir_(backupId && backupId!==HOMEEASY_SPREADSHEET_ID,'Falta una copia de respaldo independiente.');
   var ss=SpreadsheetApp.openById(HOMEEASY_SPREADSHEET_ID),backup=SpreadsheetApp.openById(backupId);
   var ab=ss.getSheetByName('Abonos'),op=ss.getSheetByName('Ordenes_Pedido');
