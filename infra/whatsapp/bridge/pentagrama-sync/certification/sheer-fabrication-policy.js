@@ -51,18 +51,19 @@ function escapeRegex(value) {
 }
 
 function selectedOptionValue(html, selectId) {
-  const safe = escapeRegex(selectId);
-  const select = String(html || '').match(new RegExp(
-    '<select\\b[^>]*\\bid=["\\']' + safe + '["\\'][^>]*>([\\s\\S]*?)<\\/select>',
-    'i'
-  ));
-  if (!select) return '';
-  const optionRx = /<option\b([^>]*)>([\s\S]*?)<\/option>/gi;
-  let match;
-  while ((match = optionRx.exec(select[1]))) {
-    if (!/\bselected\b/i.test(match[1])) continue;
-    const value = match[1].match(/\bvalue=["']([^"']*)/i);
-    return value ? String(value[1]).trim() : '';
+  const selectRx = /<select\b([^>]*)>([\s\S]*?)<\/select>/gi;
+  let selectMatch;
+  while ((selectMatch = selectRx.exec(String(html || '')))) {
+    const idMatch = selectMatch[1].match(/\bid=["']([^"']*)/i);
+    if (!idMatch || idMatch[1] !== String(selectId)) continue;
+    const optionRx = /<option\b([^>]*)>([\s\S]*?)<\/option>/gi;
+    let optionMatch;
+    while ((optionMatch = optionRx.exec(selectMatch[2]))) {
+      if (!/\bselected\b/i.test(optionMatch[1])) continue;
+      const value = optionMatch[1].match(/\bvalue=["']([^"']*)/i);
+      return value ? String(value[1]).trim() : '';
+    }
+    return '';
   }
   return '';
 }
