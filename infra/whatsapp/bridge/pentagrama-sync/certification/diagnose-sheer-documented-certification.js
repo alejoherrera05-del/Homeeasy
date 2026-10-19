@@ -190,12 +190,16 @@ function productionParity() {
     const exactCurrent = rateDifference != null && Math.abs(rateDifference) <= 0.02;
 
     const head = await selectedHead(target);
+    const associationStandard = target.associationGroup === 'SHEERSTD';
     const headStd = head.ok && head.value === SYSTEMS.standard.headCode;
+    const headEvidence = headStd
+      ? 'HTML_SELECTED_STD'
+      : (head.ok && !head.value && associationStandard ? 'ASSOCIATION_GROUP_SHEERSTD' : null);
 
     const certifiable = Boolean(
       priceConsistent &&
       exactCurrent &&
-      headStd &&
+      headEvidence &&
       currentRate > 0
     );
 
@@ -211,6 +215,8 @@ function productionParity() {
       rateDifference,
       priceConsistent,
       head:head.ok ? head.value : null,
+      headEvidence,
+      associationGroup:target.associationGroup,
       headCode:head.ok ? null : head.code,
       reads
     });
@@ -226,6 +232,8 @@ function productionParity() {
       pentagramaRateVat:row.pentagramaRateVat,
       rateDifference:row.rateDifference,
       head:row.head,
+      headEvidence:row.headEvidence,
+      associationGroup:row.associationGroup,
       headCode:row.headCode
     }));
 
@@ -249,6 +257,8 @@ function productionParity() {
       priceConsistent:rows.filter(row => row.priceConsistent).length,
       exactCurrentMatches:rows.filter(row => row.rateDifference != null && Math.abs(row.rateDifference) <= 0.02).length,
       headStd:rows.filter(row => row.head === SYSTEMS.standard.headCode).length,
+      standardAssociationEvidence:rows.filter(row => row.headEvidence === 'ASSOCIATION_GROUP_SHEERSTD').length,
+      headEvidenceResolved:rows.filter(row => Boolean(row.headEvidence)).length,
       certifiable:rows.filter(row => row.certifiable).length,
       pending:rows.filter(row => !row.certifiable).length,
       productionParity:true
