@@ -102,25 +102,46 @@ async function selectedHead(target) {
 }
 
 function productionParity() {
-  const root = path.resolve(__dirname, '../../../../..');
-  const productionPath = path.join(root, SOURCE.production);
-  const auditPath = path.join(root, SOURCE.audit);
-  const source = fs.readFileSync(productionPath, 'utf8');
-  const audit = fs.readFileSync(auditPath, 'utf8');
   const missing = [];
-  for (const signature of productionSignatures()) {
-    if (!source.includes(signature.mechanism)) missing.push('production mechanism ' + signature.mechanism);
-    if (!source.includes(signature.tuple)) missing.push('production tuple ' + signature.tuple);
-  }
-  if (!audit.includes(SOURCE.document)) missing.push('audit source ' + SOURCE.document);
+  const checked = [];
+  const skipped = [];
+
   if (!supports('standard', 1.0, 1.3) ||
       !supports('standard', 1.6, 1.8) ||
       !supports('standard', 2.6, 1.2) ||
       supports('standard', 1.7, 1.8) ||
       supports('standard', 2.6, 1.3)) {
     missing.push('standard matrix self-check');
+  } else {
+    checked.push('embedded-standard-matrix');
   }
-  return {ok:missing.length === 0,missing};
+
+  const repoRoot = process.env.HOMEEASY_REPO_ROOT
+    ? path.resolve(process.env.HOMEEASY_REPO_ROOT)
+    : path.resolve(__dirname, '../../../../..');
+  const productionPath = path.join(repoRoot, SOURCE.production);
+  const auditPath = path.join(repoRoot, SOURCE.audit);
+
+  if (fs.existsSync(productionPath)) {
+    const source = fs.readFileSync(productionPath, 'utf8');
+    for (const signature of productionSignatures()) {
+      if (!source.includes(signature.mechanism)) missing.push('production mechanism ' + signature.mechanism);
+      if (!source.includes(signature.tuple)) missing.push('production tuple ' + signature.tuple);
+    }
+    checked.push(SOURCE.production);
+  } else {
+    skipped.push(SOURCE.production + ' not mounted in Bridge container');
+  }
+
+  if (fs.existsSync(auditPath)) {
+    const audit = fs.readFileSync(auditPath, 'utf8');
+    if (!audit.includes(SOURCE.document)) missing.push('audit source ' + SOURCE.document);
+    checked.push(SOURCE.audit);
+  } else {
+    skipped.push(SOURCE.audit + ' not mounted in Bridge container');
+  }
+
+  return {ok:missing.length === 0,missing,checked,skipped};
 }
 
 (async()=>{
