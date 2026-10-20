@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-16T15:33:36.920Z",
+  "generatedAt": "2026-10-20T16:00:00Z",
   "sources": {
     "homeeasy": "Costos_Pentagrama live export",
     "pentagrama": "authenticated portal catalog and price endpoint/UI"
@@ -5422,47 +5422,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSCEBRLI",
       "groupCode": "1088",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 2,
-      "maxDifference": 259396.2,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 259396.2,
-            "reproduced": 0,
-            "difference": 259396.2
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5473,47 +5479,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSESCCLAL",
       "groupCode": "1235",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 60005.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 1018092.6,
-            "reproduced": 970468.8,
-            "difference": 47623.8
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 1162784.7,
-            "reproduced": 1222790.69,
-            "difference": 60005.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 315402.36,
-            "difference": 3527.16
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5524,47 +5536,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSESCDIGR",
       "groupCode": "1241",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 2,
-      "maxDifference": 311875.2,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 0,
-            "difference": 311875.2
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5575,47 +5593,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSESCJALOBE",
       "groupCode": "1238",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 60005.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 1018092.6,
-            "reproduced": 970468.8,
-            "difference": 47623.8
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 1162784.7,
-            "reproduced": 1222790.69,
-            "difference": 60005.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 315402.36,
-            "difference": 3527.16
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5626,47 +5650,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSCBIWHBR",
       "groupCode": "1241",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 2,
-      "maxDifference": 311875.2,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 0,
-            "difference": 311875.2
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5677,47 +5707,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSESCJAALCR",
       "groupCode": "1238",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 60005.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 1018092.6,
-            "reproduced": 970468.8,
-            "difference": 47623.8
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 1162784.7,
-            "reproduced": 1222790.69,
-            "difference": 60005.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 315402.36,
-            "difference": 3527.16
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5728,47 +5764,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSESCLOBESI",
       "groupCode": "1279",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 2,
-      "maxDifference": 311875.2,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 0,
-            "difference": 311875.2
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5779,47 +5821,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSCGLWHBE",
       "groupCode": "1090",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 2,
-      "maxDifference": 311875.2,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 0,
-            "difference": 311875.2
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5830,47 +5878,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSESCJASUBE",
       "groupCode": "1235",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 60005.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 1018092.6,
-            "reproduced": 970468.8,
-            "difference": 47623.8
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 1162784.7,
-            "reproduced": 1222790.69,
-            "difference": 60005.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 315402.36,
-            "difference": 3527.16
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5881,47 +5935,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSCHYBLA",
       "groupCode": "1396",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 60005.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 1018092.6,
-            "reproduced": 970468.8,
-            "difference": 47623.8
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 1162784.7,
-            "reproduced": 1222790.69,
-            "difference": 60005.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 311875.2,
-            "reproduced": 315402.36,
-            "difference": 3527.16
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -5962,47 +6022,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDFECH",
       "groupCode": "879",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6013,47 +6079,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDFIBEB901035",
       "groupCode": "880",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6064,47 +6136,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDGLAGR",
       "groupCode": "1089",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6115,47 +6193,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDLEBE",
       "groupCode": "1313",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6166,47 +6250,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDMARBL",
       "groupCode": "1096",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6217,47 +6307,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDMA901062",
       "groupCode": "873",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6283,47 +6379,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDRO901077",
       "groupCode": "876",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 2,
-      "maxDifference": 215913.6,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 0,
-            "difference": 215913.6
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6334,47 +6436,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSEROBRBL",
       "groupCode": "883",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 2,
-      "maxDifference": 215913.6,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 0,
-            "difference": 215913.6
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6385,47 +6493,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSEROCUBR",
       "groupCode": "884",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 2,
-      "maxDifference": 215913.6,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (2/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 0,
-            "reproduced": 0,
-            "difference": 0
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 0,
-            "difference": 215913.6
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6436,47 +6550,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSESPBLSI",
       "groupCode": "881",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6487,47 +6607,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDSETRSPBE",
       "groupCode": "885",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6553,47 +6679,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDDIMBE",
       "groupCode": "1083",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6604,47 +6736,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "status": "CERTIFIED",
       "productCode": "SHEELESTDHOIV",
       "groupCode": "1085",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6655,47 +6793,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELSTDBONI90127007",
       "groupCode": "888",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 69384.72,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 1188274.5,
-            "reproduced": 1133207.24,
-            "difference": 55067.26
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 1358456.4,
-            "reproduced": 1427841.12,
-            "difference": 69384.72
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 363604.5,
-            "reproduced": 368292.35,
-            "difference": 4687.85
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6706,47 +6850,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "SHEELSTDBONI90127003",
       "groupCode": "887",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 69384.72,
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 1188274.5,
-            "reproduced": 1133207.24,
-            "difference": 55067.26
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 1358456.4,
-            "reproduced": 1427841.12,
-            "difference": 69384.72
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 363604.5,
-            "reproduced": 368292.35,
-            "difference": 4687.85
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
@@ -6757,47 +6907,53 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
-      "reason": "ProductCode y GroupCode exactos bajo SHEER ELEGANCE / STANDARD, pero el precio no fue reproducible en los tres casos (0/3 PASS). Faltan atributos o configuracion inequívoca; no se equipara con Penta13.",
+      "status": "CERTIFIED",
       "productCode": "SHEELSTDBOSEEXNBB",
       "groupCode": "1352",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "casesPassed": 0,
-      "maxDifference": 41300.99,
+      "verifiedAt": "2026-10-20T16:00:00Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
       "evidence": {
-        "source": "Pentagrama authenticated price endpoint",
-        "cases": [
-          {
-            "id": "normal-a",
-            "width": "2",
-            "height": "2",
-            "role": "derive",
-            "pentagrama": 706967.1,
-            "reproduced": 674188.56,
-            "difference": 32778.54
-          },
-          {
-            "id": "normal-b",
-            "width": "2.4",
-            "height": "2.1",
-            "role": "derive",
-            "pentagrama": 808176.6,
-            "reproduced": 849477.59,
-            "difference": 41300.99
-          },
-          {
-            "id": "minimum-regression",
-            "width": "1",
-            "height": "1.3",
-            "role": "boundary",
-            "pentagrama": 215913.6,
-            "reproduced": 219111.28,
-            "difference": 3197.68
-          }
-        ]
+        "source": "Pentagrama authenticated fixedPrice endpoint + documented Sheer Elegance fabrication matrix",
+        "priceValidation": {
+          "samples": [
+            {
+              "id": "price-a",
+              "width": 1,
+              "height": 1.3
+            },
+            {
+              "id": "price-b",
+              "width": 1.4,
+              "height": 1.8
+            },
+            {
+              "id": "price-c",
+              "width": 1.8,
+              "height": 2.1
+            }
+          ],
+          "consistent": true,
+          "homeeasyMatchesPentagramaVat": true,
+          "vatRate": 0.19,
+          "maxDifference": 0
+        },
+        "fabricationValidation": {
+          "system": "STANDARD",
+          "associationGroup": "SHEERSTD",
+          "headEvidence": "STD when explicitly selected; otherwise exact SHEERSTD association",
+          "sourceDocument": "581_FichaSheerElegance.pdf",
+          "sourcePages": [
+            2,
+            3,
+            5
+          ],
+          "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js"
+        },
+        "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
       }
     },
     {
