@@ -54,6 +54,54 @@ test('heartbeat does not enqueue a Pentagrama login job', async () => {
   assert.equal(poll.job, null);
 });
 
+test('heartbeat keeps a long-running job online and exposes its real runtime phase', async () => {
+  const gateway = fixture({ onlineMs: 50 });
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  const pending = gateway.dispatch('buildLocalEnrollablesSnapshot', { source: { version: 'v1' } });
+  const delivery = await gateway.poll(agent);
+  await new Promise(resolve => setTimeout(resolve, 35));
+  gateway.heartbeat(agent, {
+    version: '1.5.4',
+    runtime: { status: 'running', jobId: delivery.job.id, jobType: delivery.job.type, phase: 'EXECUTING' }
+  });
+  await new Promise(resolve => setTimeout(resolve, 35));
+  const status = gateway.list()[0];
+  assert.equal(status.online, true);
+  assert.equal(status.busy, true);
+  assert.equal(status.runtime.phase, 'EXECUTING');
+  gateway.complete(agent, { jobId: delivery.job.id, ok: true, result: { ok: true } });
+  assert.deepEqual(await pending, { ok: true });
+});
+
+test('stale busy state never makes an agent appear online', () => {
+  const gatewayModule = require('./gateway');
+  const agent = { installationId: 'x', lastSeen: '2020-01-01T00:00:00.000Z' };
+  assert.equal(gatewayModule.publicAgent(agent, Date.now(), 50, true).online, false);
+  assert.equal(gatewayModule.publicAgent(agent, Date.now(), 50, true).busy, true);
+});
+
+test('late result after timeout is acknowledged and the agent is not double-booked', async () => {
+  const gateway = fixture({ jobTimeoutMs: 60, lateResultGraceMs: 60000, finishedJobRetentionMs: 60000 });
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  const pending = gateway.dispatch('health', {}, { lockKey: 'slow-health' });
+  const delivery = await gateway.poll(agent);
+  await assert.rejects(pending, error => error.code === 'AGENT_TIMEOUT');
+  await assert.rejects(
+    () => gateway.dispatch('health', {}, { lockKey: 'second-health' }),
+    error => error.code === 'AGENT_BUSY'
+  );
+  const acknowledgment = gateway.complete(agent, { jobId: delivery.job.id, ok: true, result: { ok: true } });
+  assert.deepEqual(acknowledgment, { ok: true, duplicate: true, late: true });
+  assert.equal(gateway.list()[0].busy, false);
+});
+
+test('latest agent version never regresses below the shipped or minimum version', () => {
+  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.5.4');
+  assert.equal(fixture({ latestVersion: '1.6.0' }).latestVersion, '1.6.0');
+});
+
 test('dispatcher sends only allowlisted work and returns price, catalog or live resolver results', async () => {
   const gateway = fixture();
   const registration = register(gateway);
@@ -140,7 +188,7 @@ test('dispatcher returns AGENT_INCOMPATIBLE when only legacy Agents are online',
 });
 
 
-test('active long job remains visibly online as busy even when heartbeat age exceeds online window', async () => {
+test('stale long job remains busy but is not falsely reported online', async () => {
   const gateway = fixture({ onlineMs: 15, jobTimeoutMs: 1000 });
   const registration = register(gateway);
   const agent = gateway.authenticate(registration.id, registration.token);
@@ -149,7 +197,7 @@ test('active long job remains visibly online as busy even when heartbeat age exc
   assert.equal(delivery.type, 'catalog');
   agent.lastSeen = new Date(Date.now() - 60000).toISOString();
   const status = gateway.list()[0];
-  assert.equal(status.online, true);
+  assert.equal(status.online, false);
   assert.equal(status.busy, true);
   gateway.complete(agent, { jobId: delivery.id, ok: true, result: [] });
   await pending;
@@ -171,9 +219,13 @@ test('stale registered compatible Agent is reported offline, not incompatible', 
 });
 
 
-test('browser-backed jobs have a longer timeout than ordinary Agent jobs', () => {
+test('browser-backed and local-model build jobs share the configured long timeout budget', () => {
   const gateway = fixture({ jobTimeoutMs: 1000, browserJobTimeoutMs: 5000, catalogInventoryJobTimeoutMs: 9000 });
   assert.equal(gateway.jobTimeoutMs, 5000);
   assert.equal(gateway.browserJobTimeoutMs, 5000);
   assert.equal(gateway.catalogInventoryJobTimeoutMs, 9000);
+  assert.equal(gateway.timeoutFor('getPrice'), 5000);
+  assert.equal(gateway.timeoutFor('resolveLivePrice'), 5000);
+  assert.equal(gateway.timeoutFor('catalogInventory'), 9000);
+  assert.equal(gateway.timeoutFor('buildLocalEnrollablesSnapshot'), 9000);
 });

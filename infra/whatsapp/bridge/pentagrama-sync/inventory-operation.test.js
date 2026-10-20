@@ -32,7 +32,7 @@ function waitForTerminal(store, id, limit = 100) {
   });
 }
 
-test('read-only inventory is orchestrated through short catalog jobs with persistent progress', async () => {
+test('read-only inventory is orchestrated as one catalogInventory job with a compact result', async () => {
   const store = tempStore('pentagrama-inventory-operation-');
   const updates = [];
   const originalUpdate = store.updateOperation.bind(store);
@@ -43,60 +43,50 @@ test('read-only inventory is orchestrated through short catalog jobs with persis
 
   const calls = [];
   const gateway = {
-    dispatch: async (type, payload) => {
+    dispatch: async (type, payload, options) => {
       calls.push({ type, payload: JSON.parse(JSON.stringify(payload || {})) });
-
-      assert.equal(type, 'catalog');
-      assert.ok(['categories', 'products'].includes(payload.operation));
-
-      const params = payload.params || {};
-
-      if (payload.operation === 'categories' && params.level === 1) {
-        return [
-          { Code: '83', Name: 'CORTINA RING', Levels: 2 },
-          { Code: '4', Name: 'ENROLLABLE', Levels: 2 }
-        ];
-      }
-
-      if (payload.operation === 'categories' && params.Category1 === '83') {
-        return [
-          { Code: '1', Name: 'VELO' },
-          { Code: '2', Name: 'RENUEVA' }
-        ];
-      }
-
-      if (payload.operation === 'categories' && params.Category1 === '4') {
-        return [{ Code: '1', Name: 'SCREEN' }];
-      }
-
-      if (payload.operation === 'products' && params.Category1 === '83' && params.Category2 === '1') {
-        return [{
+      assert.equal(type, 'catalogInventory');
+      assert.deepEqual(payload, {});
+      assert.equal(options.lockKey, 'catalog-inventory:full');
+      return {
+        checkedAt: '2026-10-20T00:00:00.000Z',
+        counts: { roots: 2, discoveredRoots: 2, excludedRoots: 0, leaves: 3, products: 3 },
+        requests: 6,
+        products: [{
           ProductName: 'Ring A',
+          name: 'Ring A',
           ProductCode: 'RA',
+          productCode: 'RA',
           GroupCode: '1346',
-          GrupAsoc: 'RIECORIN'
-        }];
-      }
-
-      if (payload.operation === 'products' && params.Category1 === '83' && params.Category2 === '2') {
-        return [{
+          groupCode: '1346',
+          GrupAsoc: 'RIECORIN',
+          associationGroup: 'RIECORIN',
+          externalKey: 'RA|1346|RIECORIN',
+          path: ['CORTINA RING', 'VELO']
+        }, {
           ProductName: 'Renueva Ring',
+          name: 'Renueva Ring',
           ProductCode: 'RR',
+          productCode: 'RR',
           GroupCode: '1346',
-          GrupAsoc: 'RIECORIN'
-        }];
-      }
-
-      if (payload.operation === 'products' && params.Category1 === '4' && params.Category2 === '1') {
-        return [{
+          groupCode: '1346',
+          GrupAsoc: 'RIECORIN',
+          associationGroup: 'RIECORIN',
+          externalKey: 'RR|1346|RIECORIN',
+          path: ['CORTINA RING', 'RENUEVA']
+        }, {
           ProductName: 'Screen',
+          name: 'Screen',
           ProductCode: 'E1',
+          productCode: 'E1',
           GroupCode: '599',
-          GrupAsoc: 'ENR'
-        }];
-      }
-
-      throw new Error('unexpected catalog request in test');
+          groupCode: '599',
+          GrupAsoc: 'ENR',
+          associationGroup: 'ENR',
+          externalKey: 'E1|599|ENR',
+          path: ['ENROLLABLE', 'SCREEN']
+        }]
+      };
     }
   };
 
@@ -137,16 +127,8 @@ test('read-only inventory is orchestrated through short catalog jobs with persis
   });
 
   assert.equal('products' in completed.result, false);
-  assert.ok(calls.length > 1);
-  assert.ok(calls.every(call => call.type === 'catalog'));
-
-  const familyProgress = updates
-    .map(update => update.progress)
-    .filter(Boolean)
-    .filter(progress => progress.currentFamily);
-
-  assert.ok(familyProgress.some(progress => progress.currentFamily === 'CORTINA RING'));
-  assert.ok(familyProgress.some(progress => progress.currentFamily === 'ENROLLABLE'));
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].type, 'catalogInventory');
 
   assert.deepEqual(completed.progress, {
     status: 'COMPLETED',
@@ -159,7 +141,7 @@ test('read-only inventory is orchestrated through short catalog jobs with persis
   });
 });
 
-test('inventory waits and resumes after a temporary Agent outage instead of failing the whole run', async () => {
+test('inventory records a temporary Agent outage as a controlled failed operation', async () => {
   const store = tempStore('pentagrama-inventory-retry-');
   const updates = [];
   const originalUpdate = store.updateOperation.bind(store);
@@ -168,21 +150,10 @@ test('inventory waits and resumes after a temporary Agent outage instead of fail
     return originalUpdate(id, patch);
   };
 
-  let attempts = 0;
   const gateway = {
-    dispatch: async (type, payload) => {
-      assert.equal(type, 'catalog');
-      attempts += 1;
-
-      if (attempts === 1) {
-        throw Object.assign(new Error('temporarily offline'), { code: 'AGENT_OFFLINE' });
-      }
-
-      if (payload.operation === 'categories' && payload.params && payload.params.level === 1) {
-        return [];
-      }
-
-      throw new Error('unexpected retry test request');
+    dispatch: async type => {
+      assert.equal(type, 'catalogInventory');
+      throw Object.assign(new Error('temporarily offline'), { code: 'AGENT_OFFLINE' });
     }
   };
 
@@ -202,16 +173,9 @@ test('inventory waits and resumes after a temporary Agent outage instead of fail
   const operation = service.startInventory({ email: 'test@example.com' });
   const completed = await waitForTerminal(store, operation.id);
 
-  assert.equal(completed.state, 'completed');
-  assert.equal(attempts, 2);
-  assert.ok(
-    updates.some(update =>
-      update.stage === 'WAITING_AGENT' &&
-      update.progress &&
-      update.progress.status === 'WAITING_AGENT' &&
-      update.progress.waitingCode === 'AGENT_OFFLINE'
-    )
-  );
+  assert.equal(completed.state, 'failed');
+  assert.equal(completed.error.code, 'AGENT_OFFLINE');
+  assert.ok(updates.some(update => update.state === 'failed'));
 });
 
 test('public inventory summary deduplicates a product that appears in multiple paths of the same family', () => {

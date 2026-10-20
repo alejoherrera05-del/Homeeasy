@@ -30,7 +30,14 @@ test('scan preserves unmapped products and builds a verified multi-case rate pro
       counts: { products: 1, roots: 1, leaves: 1 },
       products: [{ name: 'Matte', productCode: 'P', groupCode: 'G', associationGroup: '', externalKey: 'P|G|' }]
     }) },
-    gateway: { dispatch: async () => [{ id: 1 }] },
+    gateway: { dispatch: async type => {
+      if (type === 'catalogInventory') return {
+        checkedAt: '2026-10-14T00:00:00Z',
+        counts: { products: 1, roots: 1, leaves: 1 },
+        products: [{ name: 'Matte', productCode: 'P', groupCode: 'G', associationGroup: '', externalKey: 'P|G|' }]
+      };
+      return [{ id: 1 }];
+    } },
     pricing: { supplierCost: async params => ({ basePrice: Number(params.Width) * Number(params.Height) * 90000, distributorDiscount: 0, productDiscount: 0, vatRate: 0, total: Number(params.Width) * Math.max(Number(params.Height), 1.3) * 90000 }) },
     homeeasyCost: { cost: async item => ({ amount: Number(item.width) * Math.max(Number(item.height), 1.3) * 87000 }) }
   });
@@ -288,7 +295,7 @@ test('public scan keeps only the summary of the heavy local model and removes wr
 });
 
 
-test('read-only inventory operation uses short catalog jobs and publishes only a compact summary', async () => {
+test('read-only inventory operation uses one agent-side catalog lifecycle and publishes only a compact summary', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-inventory-operation-'));
   const store = new Phase2Store({ dataDir: directory });
   const calls = [];
@@ -296,38 +303,20 @@ test('read-only inventory operation uses short catalog jobs and publishes only a
   const gateway = {
     dispatch: async (type, payload, options) => {
       calls.push({ type, payload, options });
-      assert.equal(type, 'catalog');
-      const params = payload && payload.params || {};
-
-      if (payload.operation === 'categories' && params.level === 1) {
-        return [
-          { Code: '83', Name: 'CORTINA RING', Levels: 1 },
-          { Code: '4', Name: 'ENROLLABLE', Levels: 1 },
-          { Code: '102', Name: 'ACCESORIO PRODUCTO', Levels: 1 }
-        ];
-      }
-
-      if (payload.operation === 'products' && params.Category1 === '83') {
-        return [
-          { ProductName: 'Ring A', ProductCode: 'RA', GroupCode: '1346', GrupAsoc: 'RIECORIN' },
-          { ProductName: 'Renueva Ring', ProductCode: 'RR', GroupCode: '1346', GrupAsoc: 'RIECORIN' }
-        ];
-      }
-
-      if (payload.operation === 'products' && params.Category1 === '4') {
-        return [
-          { ProductName: 'Screen', ProductCode: 'E1', GroupCode: '599', GrupAsoc: 'ENR' },
-          { ProductName: 'Shared', ProductCode: 'S1', GroupCode: '1', GrupAsoc: 'X' }
-        ];
-      }
-
-      if (payload.operation === 'products' && params.Category1 === '102') {
-        return [
-          { ProductName: 'Shared', ProductCode: 'S1', GroupCode: '1', GrupAsoc: 'X' }
-        ];
-      }
-
-      throw new Error('unexpected catalog request in compact inventory test');
+      assert.equal(type, 'catalogInventory');
+      assert.deepEqual(payload, {});
+      assert.equal(options.lockKey, 'catalog-inventory:full');
+      return {
+        checkedAt: '2026-10-20T12:00:00.000Z',
+        counts: { roots: 2, discoveredRoots: 3, excludedRoots: 1, leaves: 2, products: 4, duplicateAppearances: 0 },
+        requests: 3,
+        products: [
+          { name: 'Ring A', productCode: 'RA', groupCode: '1346', associationGroup: 'RIECORIN', path: ['CORTINA RING'] },
+          { name: 'Renueva Ring', productCode: 'RR', groupCode: '1346', associationGroup: 'RIECORIN', path: ['CORTINA RING'] },
+          { name: 'Screen', productCode: 'E1', groupCode: '599', associationGroup: 'ENR', path: ['ENROLLABLE'] },
+          { name: 'Shared', productCode: 'S1', groupCode: '1', associationGroup: 'X', path: ['ENROLLABLE'] }
+        ]
+      };
     }
   };
 
@@ -348,8 +337,8 @@ test('read-only inventory operation uses short catalog jobs and publishes only a
   const completed = store.operationById(operation.id);
   assert.equal(completed.state, 'completed');
   assert.equal(completed.stage, 'COMPLETED');
-  assert.ok(calls.length > 1);
-  assert.ok(calls.every(call => call.type === 'catalog'));
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].type, 'catalogInventory');
   assert.equal(completed.result.counts.roots, 2);
   assert.equal(completed.result.counts.discoveredRoots, 3);
   assert.equal(completed.result.counts.excludedRoots, 1);

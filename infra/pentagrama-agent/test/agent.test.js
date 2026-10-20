@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 process.env.HOMEEASY_AGENT_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-agent-test-'));
-const { decryptEnvelope, publicError, runJob } = require('../src/agent');
+const { decryptEnvelope, publicError, runJob, startJobHeartbeat } = require('../src/agent');
 const { Logger } = require('../src/logger');
 
 test('agent decrypts the hybrid registration envelope', () => {
@@ -45,6 +45,21 @@ test('agent executes only allowlisted health, price, catalog and live resolver j
   assert.equal((await runJob({ type: 'buildLocalEnrollablesSnapshot', payload: { source: { products: [1] } } }, sync)).products.length, 1);
   await assert.rejects(() => runJob({ type: 'catalog', payload: { operation: 'requestAnyUrl' } }, sync), error => error.code === 'AGENT_CATALOG_OPERATION_NOT_ALLOWED');
   await assert.rejects(() => runJob({ type: 'shell' }, sync), error => error.code === 'AGENT_JOB_NOT_ALLOWED');
+});
+
+test('agent emits heartbeats while a long job remains active and stops cleanly', async () => {
+  const heartbeats = [];
+  const pulse = startJobHeartbeat(
+    { id: 'job-long', type: 'buildLocalEnrollablesSnapshot' },
+    async runtime => { heartbeats.push(runtime); },
+    { intervalMs: 1000 }
+  );
+  await new Promise(resolve => setTimeout(resolve, 1100));
+  pulse.stop('COMPLETED');
+  assert.ok(heartbeats.length >= 1);
+  assert.equal(heartbeats[0].jobId, 'job-long');
+  assert.equal(heartbeats[0].jobType, 'buildLocalEnrollablesSnapshot');
+  assert.equal(heartbeats[0].phase, 'EXECUTING');
 });
 
 test('logs redact secret-shaped fields and rotate safely', () => {

@@ -3,7 +3,7 @@
   <name>HomeEasy Pentagrama Agent</name>
   <description>Conector seguro de solo lectura entre HomeEasy y Pentagrama.</description>
   <executable>%BASE%\runtime\node.exe</executable>
-  <arguments>"%BASE%\app\src\agent.js"</arguments>
+  <arguments>"%BASE%\app\src\supervisor.js"</arguments>
   <workingdirectory>%BASE%\app</workingdirectory>
   <startmode>Automatic</startmode>
   <delayedAutoStart>true</delayedAutoStart>

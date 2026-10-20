@@ -1,4 +1,4 @@
-#define AgentVersion "1.5.3"
+#define AgentVersion "1.5.4"
 
 [Setup]
 AppId={{8C098243-2B7A-493C-A711-9B33F08528A7}

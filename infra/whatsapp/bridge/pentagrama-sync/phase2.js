@@ -326,20 +326,11 @@ class PentagramaPhase2 {
       throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
     }
 
-    // Ejecutamos el inventario como una secuencia de jobs cortos de catálogo.
-    // El job compuesto catalogInventory puede durar más que el timeout del Gateway
-    // y además no publica progreso mientras el Agent está ocupado.
-    const reader = new PentagramaCatalogInventory({
-      ...this.inventoryOptions,
-      gateway: this.gateway,
-      onProgress: async progress => {
-        this.store.updateOperation(operationId, {
-          stage: progress.status === 'WAITING_AGENT' ? 'WAITING_AGENT' : 'READING_PENTAGRAMA',
-          progress
-        });
-      }
+    // El Agent recorre el catálogo dentro de un único trabajo con heartbeat.
+    // Evita miles de entregas catalog pequeñas y conserva un único lifecycle.
+    const inventory = await this.gateway.dispatch('catalogInventory', {}, {
+      lockKey: 'catalog-inventory:full'
     });
-    const inventory = await reader.scan();
 
     const result = publicInventorySummary(inventory);
     this.store.updateOperation(operationId, {
@@ -383,9 +374,9 @@ class PentagramaPhase2 {
   async fullCatalogInventory() {
     if (!this.gateway) throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
     if (!this.inventory) throw Object.assign(new Error('Pentagrama catalog inventory is unavailable'), { code: 'AGENT_OFFLINE' });
-    // Mantener el recorrido en jobs cortos evita dejar al Agent bloqueado por un
-    // único trabajo largo y permite que cada petición tenga su propio timeout/reintento.
-    return this.inventory.scan();
+    return this.gateway.dispatch('catalogInventory', {}, {
+      lockKey: 'catalog-inventory:full'
+    });
   }
 
   inventoryAudit(sourceProducts, inventory) {
