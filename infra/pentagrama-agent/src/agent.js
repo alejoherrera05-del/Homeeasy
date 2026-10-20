@@ -23,6 +23,7 @@ const IDENTITY_PATH = path.join(ROOT, 'installation.json');
 const PRIVATE_KEY_PATH = path.join(ROOT, 'private-key.dpapi');
 const SECRETS_PATH = path.join(ROOT, 'secrets.dpapi');
 const ENROLLMENT_PATH = path.join(__dirname, '..', 'enrollment.key');
+const HEALTH_PATH = String(process.env.HOMEEASY_AGENT_HEALTH_FILE || path.join(ROOT, 'runtime-health.json'));
 const logger = new Logger(path.join(ROOT, 'logs'));
 let stopping = false;
 
@@ -32,6 +33,67 @@ function writePrivate(file, value) {
   fs.writeFileSync(file, value, { encoding: 'utf8', mode: 0o600 });
 }
 function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function writeRuntimeHealth(runtime = {}) {
+  try {
+    fs.mkdirSync(path.dirname(HEALTH_PATH), { recursive: true });
+    const temporary = `${HEALTH_PATH}.${process.pid}.tmp`;
+    fs.writeFileSync(temporary, JSON.stringify({
+      pid: process.pid,
+      version: VERSION,
+      updatedAt: new Date().toISOString(),
+      ...runtime
+    }), { encoding: 'utf8', mode: 0o600 });
+    fs.renameSync(temporary, HEALTH_PATH);
+  } catch (error) {
+    logger.warn('runtime_health_write_failed', { code: error.code || 'HEALTH_WRITE_FAILED' });
+  }
+}
+
+function startJobHeartbeat(job, sendHeartbeat, options = {}) {
+  const intervalMs = Math.max(1000, Number(options.intervalMs || 10000));
+  const startedAt = new Date().toISOString();
+  const runtime = {
+    status: 'running',
+    processId: process.pid,
+    jobId: String(job && job.id || ''),
+    jobType: String(job && job.type || ''),
+    phase: 'EXECUTING',
+    startedAt,
+    updatedAt: startedAt
+  };
+  let active = true;
+  let timer = null;
+  const schedule = () => {
+    if (!active) return;
+    timer = setTimeout(async () => {
+      runtime.updatedAt = new Date().toISOString();
+      writeRuntimeHealth(runtime);
+      try {
+        await sendHeartbeat({ ...runtime });
+      } catch (error) {
+        logger.warn('job_heartbeat_failed', {
+          jobId: runtime.jobId,
+          type: runtime.jobType,
+          code: error.code || 'AGENT_TRANSPORT_ERROR'
+        });
+      } finally {
+        schedule();
+      }
+    }, intervalMs);
+    if (typeof timer.unref === 'function') timer.unref();
+  };
+  writeRuntimeHealth(runtime);
+  schedule();
+  return {
+    runtime,
+    stop(phase = 'IDLE') {
+      active = false;
+      if (timer) clearTimeout(timer);
+      writeRuntimeHealth({ status: 'idle', phase, jobId: '', jobType: '' });
+    }
+  };
+}
 
 function identity() {
   try { return readJson(IDENTITY_PATH); } catch (_) {}
@@ -150,30 +212,69 @@ async function main() {
   });
   const headers = authHeaders(agentIdentity, secrets);
   let pentagrama = { status: 'unknown', checkedAt: null };
+  let runtime = { status: 'idle', phase: 'STARTED', updatedAt: new Date().toISOString() };
   let failures = 0;
+  let announcedUpdate = '';
+  let pendingResult = null;
   logger.info('started', { version: VERSION, installationId: agentIdentity.installationId, hostname: agentIdentity.hostname });
+  writeRuntimeHealth(runtime);
 
   while (!stopping) {
     try {
-      const heartbeat = await api.post('/api/pentagrama-agent/heartbeat', { ...agentIdentity, version: VERSION, pentagrama }, headers);
-      if (heartbeat.updateAvailable) logger.warn('update_available', { currentVersion: VERSION, latestVersion: heartbeat.latestVersion });
-      const delivery = await api.post('/api/pentagrama-agent/poll', { ...agentIdentity, version: VERSION, pentagrama }, headers);
+      if (pendingResult) {
+        const acknowledgment = await api.post('/api/pentagrama-agent/result', pendingResult.body, headers);
+        if (acknowledgment && acknowledgment.late) {
+          logger.warn('job_result_late', {
+            jobId: pendingResult.body.jobId,
+            type: pendingResult.type,
+            durationMs: Date.now() - pendingResult.started
+          });
+        }
+        logger[pendingResult.body.ok ? 'info' : 'warn'](pendingResult.body.ok ? 'job_completed' : 'job_failed', {
+          jobId: pendingResult.body.jobId,
+          type: pendingResult.type,
+          code: pendingResult.body.error && pendingResult.body.error.code,
+          durationMs: Date.now() - pendingResult.started
+        });
+        pendingResult = null;
+      }
+      runtime = { status: 'idle', phase: 'POLLING', updatedAt: new Date().toISOString() };
+      writeRuntimeHealth(runtime);
+      const heartbeat = await api.post('/api/pentagrama-agent/heartbeat', { ...agentIdentity, version: VERSION, pentagrama, runtime }, headers);
+      if (heartbeat.updateAvailable && announcedUpdate !== String(heartbeat.latestVersion || '')) {
+        announcedUpdate = String(heartbeat.latestVersion || '');
+        logger.warn('update_available', { currentVersion: VERSION, latestVersion: heartbeat.latestVersion });
+      }
+      const delivery = await api.post('/api/pentagrama-agent/poll', { ...agentIdentity, version: VERSION, pentagrama, runtime }, headers);
       failures = 0;
       if (!delivery.job) continue;
       const started = Date.now();
+      const jobHeartbeat = startJobHeartbeat(delivery.job, currentRuntime =>
+        api.post('/api/pentagrama-agent/heartbeat', {
+          ...agentIdentity,
+          version: VERSION,
+          pentagrama,
+          runtime: currentRuntime
+        }, headers));
+      runtime = jobHeartbeat.runtime;
+      logger.info('job_started', { jobId: delivery.job.id, type: delivery.job.type, phase: runtime.phase });
+      let outcome;
       try {
         const result = await runJob(delivery.job, sync);
         pentagrama = { status: 'ready', checkedAt: new Date().toISOString() };
-        await api.post('/api/pentagrama-agent/result', { jobId: delivery.job.id, ok: true, result, pentagrama }, headers);
-        logger.info('job_completed', { jobId: delivery.job.id, type: delivery.job.type, durationMs: Date.now() - started });
+        outcome = { jobId: delivery.job.id, ok: true, result, pentagrama };
       } catch (error) {
         const safeError = publicError(error);
         pentagrama = { status: 'error', checkedAt: new Date().toISOString(), code: safeError.code };
-        await api.post('/api/pentagrama-agent/result', { jobId: delivery.job.id, ok: false, error: safeError, pentagrama }, headers);
-        logger.warn('job_failed', { jobId: delivery.job.id, type: delivery.job.type, code: safeError.code, durationMs: Date.now() - started });
+        outcome = { jobId: delivery.job.id, ok: false, error: safeError, pentagrama };
       }
+      jobHeartbeat.stop(outcome.ok ? 'COMPLETED' : 'FAILED');
+      runtime = { status: 'idle', phase: outcome.ok ? 'COMPLETED' : 'FAILED', updatedAt: new Date().toISOString() };
+      pendingResult = { body: outcome, type: delivery.job.type, started };
     } catch (error) {
       failures += 1;
+      runtime = { status: 'recovering', phase: 'CONNECTION_RETRY', updatedAt: new Date().toISOString(), code: String(error.code || 'AGENT_TRANSPORT_ERROR') };
+      writeRuntimeHealth(runtime);
       logger.warn('connection_retry', { code: error.code || 'AGENT_TRANSPORT_ERROR', attempt: failures });
       await delay(Math.min(60000, 1000 * (2 ** Math.min(failures, 6))));
     }
@@ -191,4 +292,4 @@ if (require.main === module) {
   main().catch(error => { logger.error('startup_failed', { code: error.code || 'STARTUP_FAILED', message: error.message }); process.exit(1); });
 }
 
-module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, CATALOG_OPERATIONS });
+module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, startJobHeartbeat, writeRuntimeHealth, CATALOG_OPERATIONS });

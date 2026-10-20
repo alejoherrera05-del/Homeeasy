@@ -6,8 +6,10 @@ const path = require('path');
 
 const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot']);
 const MIN_AGENT_VERSION = '1.5.3';
+const LATEST_AGENT_VERSION = '1.5.4';
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
+  'AGENT_BUSY',
   'AGENT_TIMEOUT',
   'AGENT_TRANSPORT_ERROR',
   'PENTAGRAMA_ACCESS_BLOCKED',
@@ -41,6 +43,11 @@ function versionAtLeast(value, minimum = MIN_AGENT_VERSION) {
   return true;
 }
 
+function newestVersion(...values) {
+  return values.filter(Boolean).reduce((latest, candidate) =>
+    versionAtLeast(candidate, latest) ? String(candidate) : latest, MIN_AGENT_VERSION);
+}
+
 function agentSupportsJob(agent, type) {
   if (!ALLOWED_JOBS.has(type)) return false;
   return versionAtLeast(agent && agent.version, MIN_AGENT_VERSION);
@@ -56,9 +63,10 @@ function publicAgent(agent, now = Date.now(), onlineMs = 45000, busy = false) {
     installedAt: agent.installedAt,
     registeredAt: agent.registeredAt,
     lastSeen: agent.lastSeen,
-    online: Boolean(busy) || now - lastSeenMs <= onlineMs,
+    online: now - lastSeenMs <= onlineMs,
     busy: Boolean(busy),
     lastJob: agent.lastJob || null,
+    runtime: agent.runtime || { status: 'unknown' },
     pentagrama: agent.pentagrama || { status: 'unknown' },
     compatible: versionAtLeast(agent.version, MIN_AGENT_VERSION),
     minimumVersion: MIN_AGENT_VERSION
@@ -78,9 +86,17 @@ class PentagramaAgentGateway {
     this.browserJobTimeoutMs = Math.max(this.jobTimeoutMs, Number(options.browserJobTimeoutMs || process.env.PENTAGRAMA_AGENT_BROWSER_JOB_TIMEOUT_MS || 5 * 60 * 1000));
     this.catalogInventoryJobTimeoutMs = Math.max(this.browserJobTimeoutMs, Number(options.catalogInventoryJobTimeoutMs || process.env.PENTAGRAMA_AGENT_CATALOG_TIMEOUT_MS || 15 * 60 * 1000));
     this.pollTimeoutMs = Math.max(5000, Number(options.pollTimeoutMs || 25000));
-    this.latestVersion = String(options.latestVersion || process.env.PENTAGRAMA_AGENT_LATEST_VERSION || '1.0.0');
+    this.latestVersion = newestVersion(
+      options.latestVersion,
+      process.env.PENTAGRAMA_AGENT_LATEST_VERSION,
+      LATEST_AGENT_VERSION
+    );
+    this.finishedJobRetentionMs = Math.max(60000, Number(options.finishedJobRetentionMs || 30 * 60 * 1000));
+    this.lateResultGraceMs = Math.max(60000, Number(options.lateResultGraceMs || 30 * 60 * 1000));
     this.agents = new Map();
     this.jobs = new Map();
+    this.finishedJobs = new Map();
+    this.agentLeases = new Map();
     this.pendingPolls = new Map();
     this.locks = new Map();
     this.load();
@@ -175,6 +191,20 @@ class PentagramaAgentGateway {
         code: body.pentagrama.code ? String(body.pentagrama.code).slice(0, 80) : undefined
       };
     }
+    if (body.runtime && typeof body.runtime === 'object') {
+      agent.runtime = {
+        status: String(body.runtime.status || 'unknown').slice(0, 40),
+        jobId: body.runtime.jobId ? String(body.runtime.jobId).slice(0, 80) : undefined,
+        jobType: body.runtime.jobType ? String(body.runtime.jobType).slice(0, 80) : undefined,
+        phase: body.runtime.phase ? String(body.runtime.phase).slice(0, 80) : undefined,
+        startedAt: body.runtime.startedAt || undefined,
+        updatedAt: body.runtime.updatedAt || agent.lastSeen
+      };
+      const lease = this.agentLeases.get(agent.installationId);
+      if (lease && lease.timedOut === true && agent.runtime.status === 'idle') {
+        this.agentLeases.delete(agent.installationId);
+      }
+    }
     this.persist();
     return {
       ok: true,
@@ -185,9 +215,10 @@ class PentagramaAgentGateway {
   }
 
   list() {
+    this.cleanupFinishedJobs();
     const now = Date.now();
     return Array.from(this.agents.values()).map(agent => {
-      const busy = Array.from(this.jobs.values()).some(job =>
+      const busy = this.agentLeases.has(agent.installationId) || Array.from(this.jobs.values()).some(job =>
         job.agentId === agent.installationId && ['queued', 'running'].includes(job.state)
       );
       return publicAgent(agent, now, this.onlineMs, busy);
@@ -195,6 +226,7 @@ class PentagramaAgentGateway {
   }
 
   takeJob(agent) {
+    this.cleanupFinishedJobs();
     agent.lastSeen = new Date().toISOString();
     const job = Array.from(this.jobs.values()).find(item => item.agentId === agent.installationId && item.state === 'queued');
     if (!job) return null;
@@ -223,8 +255,19 @@ class PentagramaAgentGateway {
   }
 
   complete(agent, body) {
-    const job = this.jobs.get(String(body && body.jobId || ''));
-    if (!job || job.agentId !== agent.installationId) throw Object.assign(new Error('Unknown agent job'), { statusCode: 404, code: 'AGENT_JOB_NOT_FOUND' });
+    this.cleanupFinishedJobs();
+    const jobId = String(body && body.jobId || '');
+    const job = this.jobs.get(jobId);
+    if (!job || job.agentId !== agent.installationId) {
+      const finished = this.finishedJobs.get(jobId);
+      if (finished && finished.agentId === agent.installationId) {
+        this.agentLeases.delete(agent.installationId);
+        finished.lateResultAt = new Date().toISOString();
+        finished.lateResultOk = body && body.ok === true;
+        return { ok: true, duplicate: true, late: finished.state === 'timed_out' };
+      }
+      throw Object.assign(new Error('Unknown agent job'), { statusCode: 404, code: 'AGENT_JOB_NOT_FOUND' });
+    }
     if (!['running', 'queued'].includes(job.state)) return { ok: true, duplicate: true };
     job.state = body.ok === true ? 'completed' : 'failed';
     job.completedAt = new Date().toISOString();
@@ -243,10 +286,12 @@ class PentagramaAgentGateway {
   }
 
   onlineAgents(excluded = new Set(), type = null) {
+    this.cleanupFinishedJobs();
     const now = Date.now();
     return Array.from(this.agents.values())
       .filter(agent =>
         !excluded.has(agent.installationId) &&
+        !this.agentLeases.has(agent.installationId) &&
         now - (Date.parse(agent.lastSeen || '') || 0) <= this.onlineMs &&
         (!type || agentSupportsJob(agent, type))
       )
@@ -266,10 +311,13 @@ class PentagramaAgentGateway {
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
       const job = { id, agentId: agent.installationId, type, payload, state: 'queued', createdAt: new Date().toISOString() };
+      this.agentLeases.set(agent.installationId, { jobId: id, type, expiresAt: Date.now() + this.lateResultGraceMs });
       let timer;
       job.finish = completed => {
         clearTimeout(timer);
         this.jobs.delete(id);
+        this.agentLeases.delete(agent.installationId);
+        this.rememberFinishedJob(completed);
         if (completed.state === 'completed') return resolve(completed.result);
         const error = Object.assign(new Error(completed.error && completed.error.message || 'Agent job failed'), completed.error || {});
         reject(error);
@@ -277,14 +325,42 @@ class PentagramaAgentGateway {
       this.jobs.set(id, job);
       const pending = this.pendingPolls.get(agent.installationId);
       if (pending) pending({ ok: true, job: this.takeJob(agent) });
-      const timeoutMs = ['catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(type)
-        ? this.catalogInventoryJobTimeoutMs
-        : (['catalog', 'resolveLivePrice'].includes(type) ? this.browserJobTimeoutMs : this.jobTimeoutMs);
+      const timeoutMs = this.timeoutFor(type);
       timer = setTimeout(() => {
         this.jobs.delete(id);
+        job.state = 'timed_out';
+        job.completedAt = new Date().toISOString();
+        this.rememberFinishedJob(job);
+        this.agentLeases.set(agent.installationId, { jobId: id, type, timedOut: true, expiresAt: Date.now() + this.lateResultGraceMs });
         reject(Object.assign(new Error('Pentagrama Agent timed out'), { code: 'AGENT_TIMEOUT', infrastructure: true }));
       }, timeoutMs);
     });
+  }
+
+  timeoutFor(type) {
+    if (['catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(type)) return this.catalogInventoryJobTimeoutMs;
+    if (['catalog', 'resolveLivePrice'].includes(type)) return this.browserJobTimeoutMs;
+    return this.jobTimeoutMs;
+  }
+
+  rememberFinishedJob(job) {
+    this.finishedJobs.set(job.id, {
+      id: job.id,
+      agentId: job.agentId,
+      type: job.type,
+      state: job.state,
+      completedAt: job.completedAt || new Date().toISOString(),
+      expiresAt: Date.now() + this.finishedJobRetentionMs
+    });
+  }
+
+  cleanupFinishedJobs(now = Date.now()) {
+    for (const [id, job] of this.finishedJobs) {
+      if (Number(job.expiresAt || 0) <= now) this.finishedJobs.delete(id);
+    }
+    for (const [agentId, lease] of this.agentLeases) {
+      if (Number(lease.expiresAt || 0) <= now) this.agentLeases.delete(agentId);
+    }
   }
 
   async dispatch(type, payload = {}, options = {}) {
@@ -318,6 +394,15 @@ class PentagramaAgentGateway {
 
     const compatibleRegistered = Array.from(this.agents.values()).some(agent => agentSupportsJob(agent, type));
     if (compatibleRegistered) {
+      const busyCompatible = Array.from(this.agents.values()).some(agent =>
+        agentSupportsJob(agent, type) && this.agentLeases.has(agent.installationId)
+      );
+      if (busyCompatible) {
+        throw Object.assign(
+          new Error('The compatible Pentagrama Agent is already processing another job'),
+          { statusCode: 409, code: 'AGENT_BUSY', infrastructure: true, minimumVersion: MIN_AGENT_VERSION }
+        );
+      }
       throw Object.assign(
         new Error('The compatible Pentagrama Agent is not currently reachable'),
         { statusCode: 503, code: 'AGENT_OFFLINE', infrastructure: true, minimumVersion: MIN_AGENT_VERSION }
@@ -341,6 +426,7 @@ module.exports = Object.freeze({
   ALLOWED_JOBS,
   INFRASTRUCTURE_CODES,
   MIN_AGENT_VERSION,
+  LATEST_AGENT_VERSION,
   versionAtLeast,
   agentSupportsJob,
   publicAgent
