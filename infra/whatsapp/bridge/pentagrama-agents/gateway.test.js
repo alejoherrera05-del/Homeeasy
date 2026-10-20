@@ -258,3 +258,12 @@ test('browser-backed and local-model build jobs share the configured long timeou
     refreshOnHeartbeat: false
   });
 });
+
+test('local-model maintenance keeps a finite two-hour hard ceiling by default', () => {
+  const gateway = fixture();
+  assert.deepEqual(gateway.timeoutPolicyFor('buildLocalEnrollablesSnapshot'), {
+    inactivityTimeoutMs: 15 * 60 * 1000,
+    hardTimeoutMs: 2 * 60 * 60 * 1000,
+    refreshOnHeartbeat: true
+  });
+});
