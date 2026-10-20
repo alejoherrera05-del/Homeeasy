@@ -84,6 +84,22 @@ test('stale busy state never makes an agent appear online', () => {
   assert.equal(gatewayModule.publicAgent(agent, Date.now(), 50, true).busy, true);
 });
 
+test('gateway restart recovers an active Agent lease and acknowledges its eventual result', () => {
+  const gateway = fixture();
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  gateway.heartbeat(agent, {
+    version: '1.5.4',
+    runtime: { status: 'running', jobId: 'job-before-restart', jobType: 'buildLocalEnrollablesSnapshot', phase: 'EXECUTING' }
+  });
+  assert.equal(gateway.list()[0].busy, true);
+  assert.deepEqual(
+    gateway.complete(agent, { jobId: 'job-before-restart', ok: true, result: { ignoredAfterRestart: true } }),
+    { ok: true, duplicate: true, late: true, recovered: true }
+  );
+  assert.equal(gateway.list()[0].busy, false);
+});
+
 test('late result after timeout is acknowledged and the agent is not double-booked', async () => {
   const gateway = fixture({ jobTimeoutMs: 60, lateResultGraceMs: 60000, finishedJobRetentionMs: 60000 });
   const registration = register(gateway);

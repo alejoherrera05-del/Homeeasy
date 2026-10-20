@@ -201,8 +201,22 @@ class PentagramaAgentGateway {
         startedAt: body.runtime.startedAt || undefined,
         updatedAt: body.runtime.updatedAt || agent.lastSeen
       };
-      const lease = this.agentLeases.get(agent.installationId);
+      let lease = this.agentLeases.get(agent.installationId);
+      if (agent.runtime.status === 'running' && agent.runtime.jobId) {
+        if (!lease || lease.jobId === agent.runtime.jobId) {
+          lease = {
+            jobId: agent.runtime.jobId,
+            type: agent.runtime.jobType,
+            recovered: !this.jobs.has(agent.runtime.jobId),
+            expiresAt: Date.now() + this.lateResultGraceMs
+          };
+          this.agentLeases.set(agent.installationId, lease);
+        }
+      }
       if (lease && lease.timedOut === true && agent.runtime.status === 'idle') {
+        this.agentLeases.delete(agent.installationId);
+      }
+      if (lease && lease.recovered === true && agent.runtime.status === 'idle') {
         this.agentLeases.delete(agent.installationId);
       }
       const activeJob = this.jobs.get(String(agent.runtime.jobId || ''));
@@ -270,6 +284,15 @@ class PentagramaAgentGateway {
         finished.lateResultAt = new Date().toISOString();
         finished.lateResultOk = body && body.ok === true;
         return { ok: true, duplicate: true, late: finished.state === 'timed_out' };
+      }
+      const recoveredLease = this.agentLeases.get(agent.installationId);
+      if (recoveredLease && recoveredLease.recovered === true && recoveredLease.jobId === jobId) {
+        this.agentLeases.delete(agent.installationId);
+        agent.lastSeen = new Date().toISOString();
+        agent.lastJob = { id: jobId, type: recoveredLease.type, state: body && body.ok === true ? 'completed' : 'failed', at: agent.lastSeen };
+        if (body && body.pentagrama) agent.pentagrama = body.pentagrama;
+        this.persist();
+        return { ok: true, duplicate: true, late: true, recovered: true };
       }
       throw Object.assign(new Error('Unknown agent job'), { statusCode: 404, code: 'AGENT_JOB_NOT_FOUND' });
     }
