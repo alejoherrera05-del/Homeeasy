@@ -169,3 +169,11 @@ test('stale registered compatible Agent is reported offline, not incompatible', 
     error => error.code === 'AGENT_OFFLINE'
   );
 });
+
+
+test('browser-backed jobs have a longer timeout than ordinary Agent jobs', () => {
+  const gateway = fixture({ jobTimeoutMs: 1000, browserJobTimeoutMs: 5000, catalogInventoryJobTimeoutMs: 9000 });
+  assert.equal(gateway.jobTimeoutMs, 5000);
+  assert.equal(gateway.browserJobTimeoutMs, 5000);
+  assert.equal(gateway.catalogInventoryJobTimeoutMs, 9000);
+});
