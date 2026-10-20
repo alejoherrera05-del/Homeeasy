@@ -11,6 +11,8 @@ const ALLOWED_ORIGINS = new Set(
     .filter(Boolean)
 );
 const CACHE_TTL_MS = Math.max(5000, Number(process.env.HOMEEASY_SESSION_CACHE_MS || 30000));
+const AUTH_TIMEOUT_MS = Math.max(15000, Number(process.env.HOMEEASY_AUTH_TIMEOUT_MS || 30000));
+const AUTH_RETRY_DELAY_MS = Math.max(0, Number(process.env.HOMEEASY_AUTH_RETRY_DELAY_MS || 750));
 const cache = new Map();
 
 function timingSafeTextEqual(a, b) {
@@ -126,32 +128,48 @@ async function validateOperationalSession(token, deviceMeta) {
   const cached = cachedActor(rawToken, deviceId);
   if (cached) return cached;
 
-  let response;
-  try {
-    response = await fetch(BACKEND_URL, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
-      body: JSON.stringify({
-        tipo: 'AUTH_VALIDAR_SESION',
-        appSessionToken: rawToken,
-        meta: {
-          dispositivoId: deviceId,
-          dispositivoNombre: String(meta.dispositivoNombre || 'HomeEasy Web').trim().slice(0, 120),
-          plataforma: String(meta.plataforma || '').trim().slice(0, 80),
-          navegador: String(meta.navegador || '').trim().slice(0, 80),
-          pagina: 'whatsapp-bridge',
-          versionApp: '3.5',
-          origen: 'HomeEasy WhatsApp Bridge'
-        }
-      }),
-      redirect: 'follow',
-      signal: AbortSignal.timeout(15000)
+  const requestBody = JSON.stringify({
+    tipo: 'AUTH_VALIDAR_SESION',
+    appSessionToken: rawToken,
+    meta: {
+      dispositivoId: deviceId,
+      dispositivoNombre: String(meta.dispositivoNombre || 'HomeEasy Web').trim().slice(0, 120),
+      plataforma: String(meta.plataforma || '').trim().slice(0, 80),
+      navegador: String(meta.navegador || '').trim().slice(0, 80),
+      pagina: 'whatsapp-bridge',
+      versionApp: '3.5',
+      origen: 'HomeEasy WhatsApp Bridge'
+    }
+  });
+
+  let response = null;
+  let upstreamError = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      response = await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: requestBody,
+        redirect: 'follow',
+        signal: AbortSignal.timeout(AUTH_TIMEOUT_MS)
+      });
+      upstreamError = null;
+      break;
+    } catch (error) {
+      upstreamError = error;
+      if (attempt === 0 && AUTH_RETRY_DELAY_MS > 0) {
+        await new Promise(resolve => setTimeout(resolve, AUTH_RETRY_DELAY_MS));
+      }
+    }
+  }
+  if (!response) {
+    throw authError('HomeEasy authentication service unavailable', 502, {
+      code: 'AUTH_UPSTREAM_UNAVAILABLE',
+      reason: upstreamError && upstreamError.name ? upstreamError.name : 'FETCH_FAILED'
     });
-  } catch (error) {
-    throw authError('HomeEasy authentication service unavailable', 502);
   }
 
   const text = await response.text().catch(() => '');
