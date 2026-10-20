@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-20T16:00:00Z",
+  "family": "Sheer Elegance",
+  "system": "STANDARD",
+  "source": {
+    "price": "Pentagrama authenticated fixedPrice endpoint",
+    "fabricationDocument": "581_FichaSheerElegance.pdf",
+    "fabricationPages": [
+      2,
+      3,
+      5
+    ],
+    "policy": "infra/whatsapp/bridge/pentagrama-sync/certification/sheer-fabrication-policy.js",
+    "diagnostic": "infra/whatsapp/bridge/pentagrama-sync/certification/diagnose-sheer-documented-certification.js"
+  },
+  "criteria": {
+    "targets": 26,
+    "priceConsistent": 26,
+    "exactCurrentMatches": 26,
+    "headEvidenceResolved": 26,
+    "failures": 0
+  },
+  "certifiedIds": [
+    "sheer-131",
+    "sheer-132",
+    "sheer-133",
+    "sheer-134",
+    "sheer-135",
+    "sheer-136",
+    "sheer-137",
+    "sheer-138",
+    "sheer-139",
+    "sheer-140",
+    "sheer-143",
+    "sheer-144",
+    "sheer-145",
+    "sheer-146",
+    "sheer-147",
+    "sheer-148",
+    "sheer-150",
+    "sheer-151",
+    "sheer-152",
+    "sheer-153",
+    "sheer-154",
+    "sheer-156",
+    "sheer-157",
+    "sheer-158",
+    "sheer-159",
+    "sheer-160"
+  ]
+}
