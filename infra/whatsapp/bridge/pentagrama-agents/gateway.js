@@ -74,8 +74,9 @@ class PentagramaAgentGateway {
     this.password = String(options.password || process.env.PENTAGRAMA_PASSWORD || '');
     this.baseUrl = String(options.baseUrl || process.env.PENTAGRAMA_BASE_URL || 'https://pedidos.persianaspentagrama.com');
     this.onlineMs = Math.max(15000, Number(options.onlineMs || 45000));
-    this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || 180000));
-    this.catalogInventoryJobTimeoutMs = Math.max(this.jobTimeoutMs, Number(options.catalogInventoryJobTimeoutMs || 15 * 60 * 1000));
+    this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || process.env.PENTAGRAMA_AGENT_JOB_TIMEOUT_MS || 180000));
+    this.browserJobTimeoutMs = Math.max(this.jobTimeoutMs, Number(options.browserJobTimeoutMs || process.env.PENTAGRAMA_AGENT_BROWSER_JOB_TIMEOUT_MS || 5 * 60 * 1000));
+    this.catalogInventoryJobTimeoutMs = Math.max(this.browserJobTimeoutMs, Number(options.catalogInventoryJobTimeoutMs || process.env.PENTAGRAMA_AGENT_CATALOG_TIMEOUT_MS || 15 * 60 * 1000));
     this.pollTimeoutMs = Math.max(5000, Number(options.pollTimeoutMs || 25000));
     this.latestVersion = String(options.latestVersion || process.env.PENTAGRAMA_AGENT_LATEST_VERSION || '1.0.0');
     this.agents = new Map();
@@ -276,7 +277,9 @@ class PentagramaAgentGateway {
       this.jobs.set(id, job);
       const pending = this.pendingPolls.get(agent.installationId);
       if (pending) pending({ ok: true, job: this.takeJob(agent) });
-      const timeoutMs = ['catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(type) ? this.catalogInventoryJobTimeoutMs : this.jobTimeoutMs;
+      const timeoutMs = ['catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(type)
+        ? this.catalogInventoryJobTimeoutMs
+        : (['catalog', 'resolveLivePrice'].includes(type) ? this.browserJobTimeoutMs : this.jobTimeoutMs);
       timer = setTimeout(() => {
         this.jobs.delete(id);
         reject(Object.assign(new Error('Pentagrama Agent timed out'), { code: 'AGENT_TIMEOUT', infrastructure: true }));
