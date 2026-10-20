@@ -60,11 +60,14 @@ test('heartbeat keeps a long-running job online and exposes its real runtime pha
   const agent = gateway.authenticate(registration.id, registration.token);
   const pending = gateway.dispatch('buildLocalEnrollablesSnapshot', { source: { version: 'v1' } });
   const delivery = await gateway.poll(agent);
+  const activeJob = gateway.jobs.get(delivery.job.id);
+  const heartbeatBefore = activeJob.lastHeartbeatAt;
   await new Promise(resolve => setTimeout(resolve, 35));
   gateway.heartbeat(agent, {
     version: '1.5.4',
     runtime: { status: 'running', jobId: delivery.job.id, jobType: delivery.job.type, phase: 'EXECUTING' }
   });
+  assert.notEqual(activeJob.lastHeartbeatAt, heartbeatBefore);
   await new Promise(resolve => setTimeout(resolve, 35));
   const status = gateway.list()[0];
   assert.equal(status.online, true);
@@ -220,7 +223,7 @@ test('stale registered compatible Agent is reported offline, not incompatible', 
 
 
 test('browser-backed and local-model build jobs share the configured long timeout budget', () => {
-  const gateway = fixture({ jobTimeoutMs: 1000, browserJobTimeoutMs: 5000, catalogInventoryJobTimeoutMs: 9000 });
+  const gateway = fixture({ jobTimeoutMs: 1000, browserJobTimeoutMs: 5000, catalogInventoryJobTimeoutMs: 9000, longJobHardTimeoutMs: 27000 });
   assert.equal(gateway.jobTimeoutMs, 5000);
   assert.equal(gateway.browserJobTimeoutMs, 5000);
   assert.equal(gateway.catalogInventoryJobTimeoutMs, 9000);
@@ -228,4 +231,14 @@ test('browser-backed and local-model build jobs share the configured long timeou
   assert.equal(gateway.timeoutFor('resolveLivePrice'), 5000);
   assert.equal(gateway.timeoutFor('catalogInventory'), 9000);
   assert.equal(gateway.timeoutFor('buildLocalEnrollablesSnapshot'), 9000);
+  assert.deepEqual(gateway.timeoutPolicyFor('buildLocalEnrollablesSnapshot'), {
+    inactivityTimeoutMs: 9000,
+    hardTimeoutMs: 27000,
+    refreshOnHeartbeat: true
+  });
+  assert.deepEqual(gateway.timeoutPolicyFor('getPrice'), {
+    inactivityTimeoutMs: 5000,
+    hardTimeoutMs: 5000,
+    refreshOnHeartbeat: false
+  });
 });
