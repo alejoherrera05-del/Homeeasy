@@ -116,4 +116,24 @@ assert.equal('addons' in options.products[0],false);
 for(const p of options.products){assert.equal('rateCents' in p,false);assert.equal('rules' in p,false);}
 store.delete('HOMEEASY_COST_CATALOG_V5_LOCAL_FIRST:test:1');
 assert.throws(()=>ctx.cargarCatalogoCostos10B_(sh,false),/No debe leer/);
+// Caso real reportado: Matte Básico 1.83 no admite ancho 2,20,
+// pero Matte Básico 2.50 tiene tarifa propia guardada y vigente.
+const narrow={...base,id:'enrollable-blackout-mattebasico183',name:'Matte Básico 1.83',
+  promotional:false,rateCents:4629100,rules:{minWidthMm:250,minHeightMm:400,maxWidthMm:1830,maxHeightMm:2500,maxRatio:4}};
+const wide={...base,id:'enrollable-blackout-mattebasico250',name:'Matte Básico 2.50',
+  promotional:false,rateCents:4748100,rules:{minWidthMm:250,minHeightMm:400,maxWidthMm:2500,maxHeightMm:2500,maxRatio:4}};
+const twoWidths={...catalog,products:[narrow,wide]};
+const blocked=ctx.calcularItemCostos10B_({product:narrow.id,width:'2.2',height:'2.27',quantity:'1'},twoWidths,opts);
+assert.equal(blocked.ok,false);
+assert.equal(blocked.code,'ENROLLABLE_COMPATIBLE_REFERENCE_AVAILABLE');
+assert.equal(blocked.alternatives.length,1);
+assert.equal(blocked.alternatives[0].productId,wide.id);
+assert.equal(blocked.alternatives[0].unit,23712011);
+const selected=ctx.calcularItemCostos10B_({product:wide.id,width:'2.2',height:'2.27',quantity:'1'},twoWidths,opts);
+assert.equal(selected.ok,true);
+assert.equal(selected.unit,23712011);
+assert.equal(ctx.calcularItemCostos10B_({product:narrow.id,width:'2.2',height:'2.27'},twoWidths,{...opts,today:'2026-11-01'}).alternatives?.length||0,0);
+const unrelated={...wide,id:'other-screen',name:'Matte Básico 2.80',type:'Screen'};
+assert.equal(ctx.calcularItemCostos10B_({product:narrow.id,width:'2.2',height:'2.27'}, {...twoWidths,products:[narrow,unrelated]},opts).alternatives?.length||0,0);
+assert.equal(ctx.calcularItemCostos10B_({product:narrow.id,width:'2.2',height:'2.27'}, {...twoWidths,products:[narrow]},opts).alternatives?.length||0,0);
 console.log('Enrollables: bandas Pentagrama, orientación, alternativas, configuraciones públicas, mínimos, IVA, complementos, privacidad y cache V5 OK');
