@@ -504,8 +504,56 @@ function calcularItemCostos10B_(item, catalog, options) {
     ["code", "reason", "requiresAlternative", "notManufacturable", "alternatives"].forEach(function(key) {
       if (error && error[key] !== undefined) response[key] = error[key];
     });
+    // Ofrecer otra REFERENCIA ya tarifada en Sheets; no fabricar ni cotizar
+    // automáticamente la referencia original cuando supera sus límites.
+    if (!options._skipCompatibleReferences &&
+        response.error === "Esta medida requiere confirmar fabricación y recargos con Pentagrama. Usa costo confirmado.") {
+      const original = (catalog.products || []).find(function(p) {
+        return p.id === String(item && (item.product || item.productId) || "");
+      });
+      const found = buscarReferenciasCompatiblesCostos10B_(original, item, catalog, options);
+      if (found.length) {
+        response.code = "ENROLLABLE_COMPATIBLE_REFERENCE_AVAILABLE";
+        response.reason = "La referencia elegida supera su ancho de fabricación guardado. Hay otra referencia del mismo tipo con tarifa automática disponible.";
+        response.requiresAlternative = true;
+        response.alternatives = found;
+      }
+    }
     return response;
   }
+}
+
+// La alternativa es OTRO SKU, con tarifa y límites vigentes del catálogo
+// almacenado. No se cambia el SKU ni se utiliza un valor supuesto.
+function buscarReferenciasCompatiblesCostos10B_(original, item, catalog, options) {
+  if (!original || original.family !== "enrollable" || !catalog || !Array.isArray(catalog.products)) return [];
+  const matched = String(original.name || "").trim().match(/^(.+\S)\s+(\d+(?:[.,]\d+)?)$/);
+  if (!matched) return [];
+  const nameBase = matched[1].toLowerCase();
+  const width = parseDecimalCostos10B_(item && item.width, 3);
+  return catalog.products.filter(function(candidate) {
+    if (!candidate || candidate.id === original.id || candidate.family !== "enrollable" ||
+        candidate.type !== original.type || !candidate.active || candidate.status !== "VIGENTE" ||
+        candidate.method !== "area" || !(candidate.rateCents > 0)) return false;
+    const other = String(candidate.name || "").trim().match(/^(.+\S)\s+(\d+(?:[.,]\d+)?)$/);
+    return other && other[1].toLowerCase() === nameBase && Number(other[2].replace(",", ".")) > Number(matched[2].replace(",", "."));
+  }).map(function(candidate) {
+    // Reusar el cálculo completo: vigencia, IVA, fabricación, promoción y
+    // complementos. La recursión de alternativas se desactiva.
+    const quote = calcularItemCostos10B_(
+      Object.assign({}, item, { product: candidate.id, productId: candidate.id, configuration: "standard" }),
+      catalog, Object.assign({}, options, { _skipCompatibleReferences: true })
+    );
+    return quote.ok ? {
+      id: candidate.id,
+      productId: candidate.id,
+      label: nombreEnrollable10B_(candidate),
+      unit: quote.unit,
+      total: quote.total,
+      requiresConfirmedCost: false,
+      source: "Costos_Pentagrama"
+    } : null;
+  }).filter(Boolean).sort(function(a, b) { return a.unit - b.unit; }).slice(0, 4);
 }
 
 // Reglas privadas en Notas (JSON). El esquema y las tarifas permanecen en Sheets.

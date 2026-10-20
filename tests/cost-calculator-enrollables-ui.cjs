@@ -5,6 +5,7 @@ const html=fs.readFileSync(path.join(root,'cotizador-persianas.html'),'utf8').re
 const catalog=[{id:'old',family:'onda',name:'Referencia previa',method:'area'},{id:'enrollable-black',family:'enrollable',name:'Blackout ficticio',type:'Blackout',method:'area',coverlight:[{id:'cover',name:'Coverlight ficticio'}]},{id:'enrollable-screen',family:'enrollable',name:'Screen ficticio',type:'Screen',method:'area',coverlight:[]}];
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 catalog.push({id:'enrollable-dim',family:'enrollable',name:'Dim Out ficticio',type:'Dim Out',method:'area',coverlight:[]});
+catalog.push({id:'enrollable-matte183',family:'enrollable',name:'Matte Básico 1.83',type:'Blackout',method:'area',coverlight:[]},{id:'enrollable-matte250',family:'enrollable',name:'Matte Básico 2.50',type:'Blackout',method:'area',coverlight:[]});
 catalog.push(...[
  {id:'onda-67',family:'onda',name:'Velo Coral White',type:'Velo'},
  {id:'panel-84',family:'panel',name:'Screen Tretto 3%'},
@@ -25,11 +26,14 @@ async function mount(saved){
    if(i.product==='enrollable-screen'&&Number(i.width)===2.3&&Number(i.height)===3&&i.mode!=='manual'){
     return {ok:false,error:'La medida no cabe en la configuración Standard. Pentagrama ofrece otra configuración de fabricación.',reason:'La medida no cabe en la configuración Standard. Pentagrama ofrece otra configuración de fabricación.',requiresAlternative:true,notManufacturable:false,alternatives:[{id:'penta13',label:'Cenefa Penta13 manual',mechanism:'Clic L',tube:'T50',requiresConfirmedCost:true}]};
    }
+   if(i.product==='enrollable-matte183'&&Number(i.width)===2.2&&Number(i.height)===2.27){
+    return {ok:false,error:'Esta medida requiere confirmar fabricación y recargos con Pentagrama. Usa costo confirmado.',reason:'La referencia elegida supera su ancho guardado.',requiresAlternative:true,alternatives:[{id:'enrollable-matte250',productId:'enrollable-matte250',label:'Matte Básico 2.50',unit:23712011,requiresConfirmedCost:false,source:'Costos_Pentagrama'}]};
+   }
    if(i.product==='enrollable-dim'&&Number(i.width)===4&&Number(i.height)===4){
     return {ok:false,error:'La tabla oficial de Pentagrama no contiene una configuración fabricable para esta medida.',reason:'La tabla oficial de Pentagrama no contiene una configuración fabricable para esta medida.',requiresAlternative:false,notManufacturable:true,alternatives:[]};
    }
    const manual=i.mode==='manual';
-   const unit=manual?Number(i.manualCost||0)*100:10000+(i.coverlight?Number(i.height)*2000:0);
+   const unit=manual?Number(i.manualCost||0)*100:(i.product==='enrollable-matte250'?23712011:10000+(i.coverlight?Number(i.height)*2000:0));
    const fabrication=!manual&&i.product==='enrollable-black'&&Number(i.width)===2.5&&Number(i.height)===3.2?{supported:true,orientation:'atravesada_y_anadida',requiresAuthorization:true,warranty:false,mechanism:'VTX-20 o Clic M',tube:'T50'}:null;
    return {ok:!!i.width&&!!i.height&&(!manual||unit>0),widthMm:Number(i.width)*1000,heightMm:Number(i.height)*1000,coverlightOptions:i.product==='enrollable-black'?[{id:'cover',name:'Coverlight ficticio',costCents:Number(i.height)*2000}]:[],unit,total:unit*Number(i.quantity),fabrication,product:{...catalog.find(p=>p.id===i.product),coverlight:!!i.coverlight}};
   });
@@ -45,7 +49,7 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  change(w,'[data-field=family]','enrollable');assert.equal(d.querySelector('[data-field=configuration]'),null);
  assert.equal(d.querySelector('[data-action=manual-toggle]'),null);assert.equal(d.querySelector('.product-meta'),null);
  assert.equal(d.querySelector('[data-action=coverlight-toggle]'),null);
- assert.equal(d.querySelectorAll('[data-field=product] option').length,3);
+ assert.equal(d.querySelectorAll('[data-field=product] option').length,5);
  assert.ok(d.querySelector('optgroup[label="Dim Out"]'));
  input(w,'[data-field=width]','1');input(w,'[data-field=height]','1');await sleep(250);
  const toggle=d.querySelector('[data-action=coverlight-toggle]');toggle.checked=true;toggle.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(250);
@@ -72,6 +76,16 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  assert.match(d.querySelector('.fabrication-notice--warning').textContent,/sin garantía/i);
  change(w,'[data-field=product]','enrollable-dim');input(w,'[data-field=width]','4');input(w,'[data-field=height]','4');await sleep(250);
  assert.ok(d.querySelector('.fabrication-notice--danger'));
+ change(w,'[data-field=product]','enrollable-matte183');
+ input(w,'[data-field=width]','2.2');input(w,'[data-field=height]','2.27');await sleep(250);
+ const equivalent=d.querySelector('[data-action=use-equivalent-reference]');
+ assert.ok(equivalent,'Debe existir selector de referencia equivalente con precio guardado');
+ assert.match(d.querySelector('.fabrication-notice--alternative').textContent,/Matte Básico 2.50/);
+ assert.match(d.querySelector('.fabrication-notice--alternative').textContent,/237.120/);
+ assert.equal(d.querySelector('[data-field=product]').value,'enrollable-matte183','No cambiar referencia sin consentimiento');
+ equivalent.click();await sleep(250);
+ assert.equal(d.querySelector('[data-field=product]').value,'enrollable-matte250');
+ assert.match(d.querySelector('[data-output=unit]').textContent,/237.120/);
  change(w,'[data-field=family]','onda');assert.equal(d.querySelector('[data-field=product]').value,'old');assert.equal(d.querySelector('[data-field=configuration]'),null);
  for(const [family,id] of [['onda','onda-67'],['panel','panel-84'],['vertical','vertical-113'],['sheer','sheer-130'],['vertesse','vertesse-161']]){
   change(w,'[data-field=family]',family);

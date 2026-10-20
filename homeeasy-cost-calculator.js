@@ -385,6 +385,12 @@ function renderFabricationNotice(item,result){
 
   if(result.requiresAlternative&&Array.isArray(result.alternatives)&&result.alternatives.length){
     const options=result.alternatives.map(alt=>{
+      if(alt.productId&&Number.isFinite(Number(alt.unit))&&Number(alt.unit)>0){
+        return '<div class="fabrication-alternative">'+
+          '<div><strong>'+escape(alt.label||alt.productId)+'</strong><span>Otra referencia · '+escape(cop(alt.unit))+' por persiana · tarifa guardada en Costos_Pentagrama (sujeta a vigencia y disponibilidad)</span></div>'+
+          '<button type="button" data-action="use-equivalent-reference" data-product-id="'+escape(alt.productId)+'">Usar esta referencia</button>'+
+        '</div>';
+      }
       const detail=[alt.mechanism,alt.tube].filter(Boolean).join(' · ');
       return '<div class="fabrication-alternative">'+
         '<div><strong>'+escape(alt.label||alt.id||'Alternativa')+'</strong><span>'+(detail?escape(detail)+' · ':'')+(alt.requiresConfirmedCost!==false?'requiere costo confirmado':'costo automático disponible')+'</span></div>'+
@@ -1228,6 +1234,23 @@ $('items').addEventListener('click',event=>{
 
   if(button.dataset.action==='installation'){
     openInstallationDialog(state.items[index]);
+    return;
+  }
+
+  if(button.dataset.action==='use-equivalent-reference'){
+    const item=state.items[index];
+    const alternative=(catalog?.products||[]).find(p=>p.id===button.dataset.productId&&p.family==='enrollable');
+    if(!alternative)return;
+    // Cambio de referencia siempre explícito, sin heredar accesorios
+    // incompatibles del SKU anterior.
+    resetComplements(item);
+    item.product=alternative.id;
+    item.configuration='standard';
+    item.mode='auto';
+    item.manualCost='';
+    item.specialAlternative=null;
+    render();
+    toast('Referencia cambiada a '+alternative.name+'. Revisa la tela elegida.');
     return;
   }
 
