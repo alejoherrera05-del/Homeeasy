@@ -85,6 +85,7 @@ class PentagramaAgentGateway {
     this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || process.env.PENTAGRAMA_AGENT_JOB_TIMEOUT_MS || 180000));
     this.browserJobTimeoutMs = Math.max(this.jobTimeoutMs, Number(options.browserJobTimeoutMs || process.env.PENTAGRAMA_AGENT_BROWSER_JOB_TIMEOUT_MS || 5 * 60 * 1000));
     this.catalogInventoryJobTimeoutMs = Math.max(this.browserJobTimeoutMs, Number(options.catalogInventoryJobTimeoutMs || process.env.PENTAGRAMA_AGENT_CATALOG_TIMEOUT_MS || 15 * 60 * 1000));
+    this.longJobHardTimeoutMs = Math.max(this.catalogInventoryJobTimeoutMs, Number(options.longJobHardTimeoutMs || process.env.PENTAGRAMA_AGENT_LONG_JOB_HARD_TIMEOUT_MS || 45 * 60 * 1000));
     this.pollTimeoutMs = Math.max(5000, Number(options.pollTimeoutMs || 25000));
     this.latestVersion = newestVersion(
       options.latestVersion,
@@ -204,6 +205,10 @@ class PentagramaAgentGateway {
       if (lease && lease.timedOut === true && agent.runtime.status === 'idle') {
         this.agentLeases.delete(agent.installationId);
       }
+      const activeJob = this.jobs.get(String(agent.runtime.jobId || ''));
+      if (activeJob && activeJob.agentId === agent.installationId && typeof activeJob.touch === 'function') {
+        activeJob.touch();
+      }
     }
     this.persist();
     return {
@@ -313,6 +318,31 @@ class PentagramaAgentGateway {
       const job = { id, agentId: agent.installationId, type, payload, state: 'queued', createdAt: new Date().toISOString() };
       this.agentLeases.set(agent.installationId, { jobId: id, type, expiresAt: Date.now() + this.lateResultGraceMs });
       let timer;
+      const policy = this.timeoutPolicyFor(type);
+      const hardDeadline = Date.now() + policy.hardTimeoutMs;
+      const expire = code => {
+        this.jobs.delete(id);
+        job.state = 'timed_out';
+        job.completedAt = new Date().toISOString();
+        this.rememberFinishedJob(job);
+        this.agentLeases.set(agent.installationId, { jobId: id, type, timedOut: true, expiresAt: Date.now() + this.lateResultGraceMs });
+        reject(Object.assign(new Error('Pentagrama Agent timed out'), { code, infrastructure: true }));
+      };
+      const armTimeout = () => {
+        clearTimeout(timer);
+        const remainingHardMs = hardDeadline - Date.now();
+        if (remainingHardMs <= 0) return expire(policy.refreshOnHeartbeat ? 'AGENT_HARD_TIMEOUT' : 'AGENT_TIMEOUT');
+        timer = setTimeout(() => {
+          if (policy.refreshOnHeartbeat && Date.now() >= hardDeadline) return expire('AGENT_HARD_TIMEOUT');
+          return expire('AGENT_TIMEOUT');
+        }, Math.min(policy.inactivityTimeoutMs, remainingHardMs));
+      };
+      job.touch = policy.refreshOnHeartbeat ? () => {
+        if (['queued', 'running'].includes(job.state)) {
+          job.lastHeartbeatAt = new Date().toISOString();
+          armTimeout();
+        }
+      } : null;
       job.finish = completed => {
         clearTimeout(timer);
         this.jobs.delete(id);
@@ -325,15 +355,7 @@ class PentagramaAgentGateway {
       this.jobs.set(id, job);
       const pending = this.pendingPolls.get(agent.installationId);
       if (pending) pending({ ok: true, job: this.takeJob(agent) });
-      const timeoutMs = this.timeoutFor(type);
-      timer = setTimeout(() => {
-        this.jobs.delete(id);
-        job.state = 'timed_out';
-        job.completedAt = new Date().toISOString();
-        this.rememberFinishedJob(job);
-        this.agentLeases.set(agent.installationId, { jobId: id, type, timedOut: true, expiresAt: Date.now() + this.lateResultGraceMs });
-        reject(Object.assign(new Error('Pentagrama Agent timed out'), { code: 'AGENT_TIMEOUT', infrastructure: true }));
-      }, timeoutMs);
+      armTimeout();
     });
   }
 
@@ -341,6 +363,16 @@ class PentagramaAgentGateway {
     if (['catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(type)) return this.catalogInventoryJobTimeoutMs;
     if (['catalog', 'resolveLivePrice'].includes(type)) return this.browserJobTimeoutMs;
     return this.jobTimeoutMs;
+  }
+
+  timeoutPolicyFor(type) {
+    const inactivityTimeoutMs = this.timeoutFor(type);
+    const refreshOnHeartbeat = ['catalogInventory', 'buildLocalEnrollablesSnapshot'].includes(type);
+    return {
+      inactivityTimeoutMs,
+      hardTimeoutMs: refreshOnHeartbeat ? this.longJobHardTimeoutMs : inactivityTimeoutMs,
+      refreshOnHeartbeat
+    };
   }
 
   rememberFinishedJob(job) {
@@ -387,6 +419,9 @@ class PentagramaAgentGateway {
         lastError = error;
         const infrastructure = error.infrastructure === true || INFRASTRUCTURE_CODES.has(error.code);
         if (!infrastructure) throw error;
+        // Un timeout no demuestra que el proceso remoto haya terminado. Reasignar
+        // aquí podría ejecutar el mismo mantenimiento dos veces en paralelo.
+        if (['AGENT_TIMEOUT', 'AGENT_HARD_TIMEOUT'].includes(String(error.code || ''))) throw error;
       }
     }
 
