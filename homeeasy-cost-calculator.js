@@ -77,12 +77,13 @@ function engineSignature(){
 }
 
 function hasPentagramaLiveItems(){
-  return (state.items||[]).some(item=>isPentagramaLiveProduct(item.product)&&item.mode!=='manual');
+  // El cotizador comercial es local-first. Los agentes Pentagrama se reservan
+  // para sincronización, mantenimiento y QA; nunca son requisito para cotizar.
+  return false;
 }
 
 function saveEngineCache(){
   if(!engineCacheKey||!catalog?.version||!lastEngineQuote?.ok||lastEngineSignature!==engineSignature())return;
-  if(hasPentagramaLiveItems()||lastEngineQuote.items?.some(item=>item?.providerSource==='pentagrama-live'))return;
   try{
     sessionStorage.setItem(engineCacheKey,JSON.stringify({
       version:catalog.version,
@@ -99,7 +100,6 @@ function restoreEngineCache(){
   try{
     const cached=JSON.parse(sessionStorage.getItem(engineCacheKey));
     if(!cached||cached.version!==catalog.version||cached.signature!==engineSignature()||!cached.quote?.ok)return false;
-    if(cached.quote.items?.some(item=>item?.providerSource==='pentagrama-live'))return false;
     if(Date.now()-Number(cached.savedAt||0)>12*60*60*1000)return false;
     lastEngineQuote=cached.quote;
     lastEngineSignature=cached.signature;
@@ -1043,12 +1043,14 @@ async function runQuote(seq,signature){
       installMode:'common',
       promotions:state.promotions
     });
-    const quote=await applyPentagramaLive(data.quote);
+    // La respuesta de Costos_Pentagrama / modelo local certificado es la fuente
+    // autoritativa para cotizar. No consultamos Pentagrama Live en esta ruta.
+    const quote=data.quote;
     if(seq!==requestSeq||signature!==engineSignature())return;
-    applyQuote(quote,quote.ok?'':(quote.error||data.msg),signature);
+    applyQuote(quote,quote?.ok?'':(quote?.error||data.msg),signature);
   }catch(e){
     if(seq!==requestSeq)return;
-    if(!hasPentagramaLiveItems()&&lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
+    if(lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
       renderCommercial('No se pudo actualizar ahora. Conservamos el último cálculo válido.');
     }else{
       applyQuote(null,'No se pudo calcular ahora. Revisa tu conexión e intenta nuevamente.','');
