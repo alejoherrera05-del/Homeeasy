@@ -6,7 +6,7 @@ const path = require('path');
 
 const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot']);
 const MIN_AGENT_VERSION = '1.5.3';
-const LATEST_AGENT_VERSION = '1.5.4';
+const LATEST_AGENT_VERSION = '1.5.5';
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_BUSY',
@@ -303,7 +303,9 @@ class PentagramaAgentGateway {
     job.error = body.ok === true ? null : {
       code: String(body.error && body.error.code || 'AGENT_JOB_FAILED').slice(0, 100),
       message: String(body.error && body.error.message || 'Agent job failed').slice(0, 300),
-      infrastructure: body.error && body.error.infrastructure === true
+      infrastructure: body.error && body.error.infrastructure === true,
+      ...(Array.isArray(body.error && body.error.failures) ? { failures: body.error.failures.slice(0, 50) } : {}),
+      ...(Array.isArray(body.error && body.error.missing) ? { missing: body.error.missing.slice(0, 300) } : {})
     };
     agent.lastSeen = job.completedAt;
     agent.lastJob = { id: job.id, type: job.type, state: job.state, at: job.completedAt };

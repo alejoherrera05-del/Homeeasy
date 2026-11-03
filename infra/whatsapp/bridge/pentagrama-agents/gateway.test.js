@@ -117,7 +117,7 @@ test('late result after timeout is acknowledged and the agent is not double-book
 });
 
 test('latest agent version never regresses below the shipped or minimum version', () => {
-  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.5.4');
+  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.5.5');
   assert.equal(fixture({ latestVersion: '1.6.0' }).latestVersion, '1.6.0');
 });
 
@@ -159,6 +159,30 @@ test('functional errors stop while infrastructure errors fail over once', async 
   const job3 = await gateway.poll(gateway.authenticate(first.id, first.token));
   gateway.complete(gateway.authenticate(first.id, first.token), { jobId: job3.job.id, ok: true, result: { ok: true } });
   assert.equal((await failover).ok, true);
+});
+
+test('local-model failures preserve bounded diagnostics from the Agent', async () => {
+  const gateway = fixture();
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  const pending = gateway.dispatch('buildLocalEnrollablesSnapshot', { source: {} }, { lockKey: 'diagnostics' });
+  const delivery = await gateway.poll(agent);
+  gateway.complete(agent, {
+    jobId: delivery.job.id,
+    ok: false,
+    error: {
+      code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED',
+      message: 'structural mismatch',
+      failures: [{ homeeasyId: 'enrollable-test', code: 'MECHANISM_MISMATCH' }],
+      missing: ['enrollable-missing']
+    }
+  });
+  await assert.rejects(pending, error => {
+    assert.equal(error.code, 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED');
+    assert.deepEqual(error.failures, [{ homeeasyId: 'enrollable-test', code: 'MECHANISM_MISMATCH' }]);
+    assert.deepEqual(error.missing, ['enrollable-missing']);
+    return true;
+  });
 });
 
 
