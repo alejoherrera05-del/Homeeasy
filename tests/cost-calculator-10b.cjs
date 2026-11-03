@@ -29,4 +29,11 @@ const expiredCommercial=ctx.calcularQuoteCostos10B_({items:[{product:'onda-67',w
 assert.equal(expiredCommercial.ok,false);
 const expiredInternalQa=ctx.calcularQuoteCostos10B_({items:[{product:'onda-67',width:'1',height:'1',quantity:'1',extras:'0'}],transport:'0',installation:'0',margin:'0',installMode:'common',promotions:true},catalog,'2026-11-03',true);
 assert.equal(expiredInternalQa.ok,true);
+
+ctx.cargarCatalogoCostos10B_=()=>catalog;
+ctx.Utilities.formatDate=()=> '2026-11-03';
+const staleCommercial=ctx.calcularCotizacionCostos10B_({}, {items:[{product:'onda-67',width:'1',height:'1',quantity:'1',extras:'0'}],transport:'0',installation:'0',margin:'0',installMode:'common',promotions:true}, false);
+assert.equal(staleCommercial.status,'ok');
+assert.equal(staleCommercial.quote.ok,true);
+assert.match(staleCommercial.warning,/último snapshot certificado/);
 console.log('HomeEasy 10B cost math QA OK');
