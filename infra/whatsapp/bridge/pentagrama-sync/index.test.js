@@ -19,8 +19,16 @@ test('agent mode constructs without crashing and wires inventory to dispatcher',
   assert.equal(sync.catalogInventory.gateway, dispatcher);
 });
 
-test('direct mode does not instantiate a gateway-only catalog inventory reader', () => {
-  const sync = createPentagramaSync({ mode: 'direct' });
+test('direct mode wires catalog inventory to the authenticated local catalog client', async () => {
+  const calls = [];
+  const catalog = {
+    categories: async params => { calls.push(['categories', params]); return []; },
+    products: async params => { calls.push(['products', params]); return []; }
+  };
+  const sync = createPentagramaSync({ mode: 'direct', catalog });
   assert.equal(sync.mode, 'direct');
-  assert.equal(sync.catalogInventory, null);
+  assert.ok(sync.catalogInventory);
+  const inventory = await sync.catalogInventory.scan();
+  assert.equal(inventory.counts.roots, 0);
+  assert.deepEqual(calls, [['categories', { level: 1 }]]);
 });
