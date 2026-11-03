@@ -6,7 +6,12 @@ const liveInventory = require('./enrollables-live-products.json');
 const structuralProfiles = require('./enrollables-structural-profiles.json');
 const { COMPLEMENTS } = require('./live-resolver');
 const { STRUCTURE_CASES, buildEnrollablesLocalCandidate, localFabrication, portalFabricationProfile, serializedCandidateQa,
-  deriveMechanismBands, deriveFabricationProfile } = require('./local-model');
+  deriveMechanismBands, deriveFabricationProfile, candidateValidThrough } = require('./local-model');
+
+test('expired certified model renews through the end of the following Bogota month', () => {
+  assert.equal(candidateValidThrough('2026-10-31', '2026-11-03T15:00:00Z'), '2026-12-31');
+  assert.equal(candidateValidThrough('2027-12-31', '2026-11-03T15:00:00Z'), '2027-12-31');
+});
 
 function fixture() {
   const products = Object.values(liveInventory.products);

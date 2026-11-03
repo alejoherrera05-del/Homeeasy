@@ -39,6 +39,13 @@ function same(left, right) { return Math.abs(Number(left) - Number(right)) <= TO
 function normalizeRules(value) { return value && typeof value === 'object' && !Array.isArray(value) ? JSON.parse(JSON.stringify(value)) : {}; }
 function cloneValue(value) { return value === undefined ? undefined : JSON.parse(JSON.stringify(value)); }
 function slug(value) { return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 55); }
+function candidateValidThrough(sourceValue, nowValue = Date.now()) {
+  const bogota = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' })
+    .formatToParts(new Date(nowValue)).reduce((out, part) => { out[part.type] = part.value; return out; }, {});
+  const today = `${bogota.year}-${bogota.month}-${bogota.day}`;
+  if (String(sourceValue || '') >= today) return String(sourceValue);
+  return new Date(Date.UTC(Number(bogota.year), Number(bogota.month) + 1, 0)).toISOString().slice(0, 10);
+}
 
 const PORTAL_MECHANISM_BANDS = Object.freeze({
   STANDARD: Object.freeze([
@@ -1026,8 +1033,10 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   }
 
   const version = `pentagrama-${new Date(options.now || Date.now()).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}`;
+  const validThrough = candidateValidThrough(source.validThrough, options.now || Date.now());
   const allPatches = productPatches.concat(complementPatches);
-  const changed = allPatches.filter(item => !same(item.expectedRate, item.proposedRate) || item.expectedRulesHash !== hash(item.rules)).length;
+  const changed = allPatches.filter(item => !same(item.expectedRate, item.proposedRate) || item.expectedRulesHash !== hash(item.rules)).length +
+    (validThrough !== String(source.validThrough || '') ? 1 : 0);
   const serializedQa = serializedCandidateQa(sourceById, productPatches, complementPatches, qaCases, source.enrollableSizeRules || {});
   if (serializedQa.fail) {
     throw Object.assign(new Error(`${serializedQa.fail} serialized pre-Apply cases failed`), {
@@ -1036,9 +1045,10 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   }
   return {
     schemaVersion: 1, mode: 'ENROLLABLES_LOCAL_FIRST', generatedAt: new Date(options.now || Date.now()).toISOString(),
-    version, sourceVersion: String(source.version || ''), validThrough: String(source.validThrough || ''), products: productPatches, complements: complementPatches,
+    version, sourceVersion: String(source.version || ''), validThrough, products: productPatches, complements: complementPatches,
     matrices: [], config: [
       { key: 'VERSION_CATALOGO', expectedValue: String(source.version || ''), value: version },
+      { key: 'VIGENTE_HASTA', expectedValue: String(source.validThrough || ''), value: validThrough },
       { key: 'PENTAGRAMA_LAST_UPDATED_AT', expectedValue: String(source.config && source.config.PENTAGRAMA_LAST_UPDATED_AT || ''), value: new Date(options.now || Date.now()).toISOString() },
       { key: 'PENTAGRAMA_LOCAL_MODEL', expectedValue: String(source.config && source.config.PENTAGRAMA_LOCAL_MODEL || ''), value: 'ENROLLABLES_279_V1' }
     ],
@@ -1065,6 +1075,6 @@ async function buildEnrollablesLocalCandidate(options = {}) {
   };
 }
 
-module.exports = Object.freeze({ TOLERANCE, BASE_CASES, STRUCTURE_CASES, effectiveArea, localTotal, localFabrication, portalFabricationProfile,
+module.exports = Object.freeze({ TOLERANCE, BASE_CASES, STRUCTURE_CASES, effectiveArea, localTotal, localFabrication, portalFabricationProfile, candidateValidThrough,
   uniqueStructureCases, deriveMechanismBands, deriveFabricationProfile, mechanismAmbiguityProbes, fabricationAmbiguityProbes, learnedMechanismBands, learnedMechanismBoundaryProbes,
   serializedCandidateQa, structureKey, buildEnrollablesLocalCandidate, hash, same });

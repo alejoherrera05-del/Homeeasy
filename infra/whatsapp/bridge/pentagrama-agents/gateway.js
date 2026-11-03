@@ -85,7 +85,7 @@ class PentagramaAgentGateway {
     this.jobTimeoutMs = Math.max(5000, Number(options.jobTimeoutMs || process.env.PENTAGRAMA_AGENT_JOB_TIMEOUT_MS || 180000));
     this.browserJobTimeoutMs = Math.max(this.jobTimeoutMs, Number(options.browserJobTimeoutMs || process.env.PENTAGRAMA_AGENT_BROWSER_JOB_TIMEOUT_MS || 5 * 60 * 1000));
     this.catalogInventoryJobTimeoutMs = Math.max(this.browserJobTimeoutMs, Number(options.catalogInventoryJobTimeoutMs || process.env.PENTAGRAMA_AGENT_CATALOG_TIMEOUT_MS || 15 * 60 * 1000));
-    this.longJobHardTimeoutMs = Math.max(this.catalogInventoryJobTimeoutMs, Number(options.longJobHardTimeoutMs || process.env.PENTAGRAMA_AGENT_LONG_JOB_HARD_TIMEOUT_MS || 45 * 60 * 1000));
+    this.longJobHardTimeoutMs = Math.max(this.catalogInventoryJobTimeoutMs, Number(options.longJobHardTimeoutMs || process.env.PENTAGRAMA_AGENT_LONG_JOB_HARD_TIMEOUT_MS || 2 * 60 * 60 * 1000));
     this.pollTimeoutMs = Math.max(5000, Number(options.pollTimeoutMs || 25000));
     this.latestVersion = newestVersion(
       options.latestVersion,

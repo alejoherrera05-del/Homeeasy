@@ -181,8 +181,10 @@ function procesarRutaCostos10B_(ss, data) {
 
   if (tipo === "COSTOS_ESTADO") return obtenerEstadoCostos10B_(ss);
   if (tipo === "COSTOS_OPCIONES") return obtenerOpcionesCostos10B_(ss);
-  if (tipo === "COSTOS_CALCULAR_COTIZACION") return calcularCotizacionCostos10B_(ss, data);
-  if (tipo === "COSTOS_SYNC_COST") return calcularCotizacionCostos10B_(ss, data);
+  if (tipo === "COSTOS_CALCULAR_COTIZACION") return calcularCotizacionCostos10B_(ss, data, false);
+  // El QA interno debe poder reproducir el snapshot anterior aunque haya
+  // vencido. La cotización comercial conserva el bloqueo de vigencia.
+  if (tipo === "COSTOS_SYNC_COST") return calcularCotizacionCostos10B_(ss, data, true);
   if (/^COSTOS_SYNC_/.test(tipo) && typeof procesarRutaPentagramaSync10C_ === "function") return procesarRutaPentagramaSync10C_(ss, data, auth.validation);
   return { status: "error", code: "COST_ROUTE_NOT_FOUND", msg: "La acción del cotizador no existe." };
 }
@@ -280,7 +282,7 @@ function nombreEnrollable10B_(p) {
   return name.replace(/\s+(Lágrima|Platina)$/i, " — $1");
 }
 
-function calcularCotizacionCostos10B_(ss, data) {
+function calcularCotizacionCostos10B_(ss, data, allowExpiredForSync) {
   const catalog = cargarCatalogoCostos10B_(ss, false);
   const state = {
     items: Array.isArray(data && data.items) ? data.items : [],
@@ -290,7 +292,7 @@ function calcularCotizacionCostos10B_(ss, data) {
     installMode: String(data && data.installMode || "common") === "individual" ? "individual" : "common",
     promotions: data && data.promotions !== false
   };
-  const quote = calcularQuoteCostos10B_(state, catalog, fechaBogota10B_());
+  const quote = calcularQuoteCostos10B_(state, catalog, fechaBogota10B_(), Boolean(allowExpiredForSync));
   if (!quote.ok) return { status: "error", code: "COST_QUOTE_INVALID", msg: quote.error, quote: quote };
   return {
     status: "ok", etapa: HOMEEASY_COST_STAGE, version: catalog.version, validThrough: catalog.validThrough,
@@ -433,10 +435,10 @@ function calcularItemCostos10B_(item, catalog, options) {
       dineroCostos10B_(unit);
       if (!unit) throw new Error("Ingresa el costo por persiana confirmado con IVA.");
     } else {
-      if (!catalog.validThrough || String(options.today || "") > catalog.validThrough) {
+      if (!options.allowExpiredForSync && (!catalog.validThrough || String(options.today || "") > catalog.validThrough)) {
         throw new Error("La tarifa automática venció. Confirma el costo actualizado con Pentagrama.");
       }
-      validarVigenciaProducto10B_(product, options.today);
+      validarVigenciaProducto10B_(product, options.today, options.allowExpiredForSync);
       fabrication = validarMedidasEnrollable10B_(product, width, height, catalog);
       if (product.promotional && !options.promotions) {
         throw new Error("Esta referencia usa una promoción vigente. Si no aplica, usa costo confirmado.");
@@ -458,18 +460,18 @@ function calcularItemCostos10B_(item, catalog, options) {
         throw new Error("Esta configuración requiere costo confirmado por Pentagrama.");
       }
       const rules = product.rules || {};
-      if (product.selectedSupplementId) unit += calcularComplemento10B_(product.selectedSupplementId, catalog, width, height, options.today, 1);
+      if (product.selectedSupplementId) unit += calcularComplemento10B_(product.selectedSupplementId, catalog, width, height, options.today, 1, options.allowExpiredForSync);
       const coverlightId = item.coverlight ? String(item.coverlight) : "";
       if (coverlightId) {
         if ((rules.coverlightIds || []).indexOf(coverlightId) < 0) throw new Error("Coverlight no es compatible con esta configuración.");
-        unit += calcularComplemento10B_(coverlightId, catalog, width, height, options.today, 2);
+        unit += calcularComplemento10B_(coverlightId, catalog, width, height, options.today, 2, options.allowExpiredForSync);
       }
       if (item.addons !== undefined && !Array.isArray(item.addons)) throw new Error("Los accesorios seleccionados no son válidos.");
       const addons = Array.isArray(item.addons) ? item.addons : [];
       if (new Set(addons).size !== addons.length || addons.length > 20) throw new Error("Los accesorios seleccionados no son válidos.");
       addons.forEach(function(id) {
         if ((rules.addonIds || []).indexOf(id) < 0) throw new Error("El accesorio no es compatible con esta configuración.");
-        unit += calcularComplemento10B_(id, catalog, width, height, options.today, 1);
+        unit += calcularComplemento10B_(id, catalog, width, height, options.today, 1, options.allowExpiredForSync);
       });
       const extras = parseDecimalCostos10B_(item && item.extras !== undefined ? item.extras : "0", 2);
       dineroCostos10B_(extras);
@@ -487,7 +489,7 @@ function calcularItemCostos10B_(item, catalog, options) {
       widthMm: width, heightMm: height,
       coverlightOptions: product.family === "enrollable" && !manual ? (product.rules.coverlightIds || []).map(function(id) {
         try {
-          const cents = calcularComplemento10B_(id, catalog, width, height, options.today, 2);
+          const cents = calcularComplemento10B_(id, catalog, width, height, options.today, 2, options.allowExpiredForSync);
           const complement = catalog.products.find(function(p) { return p.id === id; });
           return cents > 0 ? { id: id, name: complement.name, costCents: cents } : null;
         } catch (e) { return null; }
@@ -634,9 +636,10 @@ function aplicarPerfilFabricacionComplementos10B_(product, item, catalog) {
   return Object.assign({}, product, { rules: rules });
 }
 
-function validarVigenciaProducto10B_(product, today) {
+function validarVigenciaProducto10B_(product, today, allowExpiredForSync) {
   if (product.family !== "enrollable" && product.family !== "complemento-enrollable") return;
-  if (!product.pricesIncludeVat || product.currency !== "COP" || !product.validThrough || String(today || "") > product.validThrough || product.status !== "VIGENTE") {
+  if (!product.pricesIncludeVat || product.currency !== "COP" || !product.validThrough ||
+      (!allowExpiredForSync && String(today || "") > product.validThrough) || product.status !== "VIGENTE") {
     throw new Error("La configuración requiere un costo vigente confirmado con IVA por Pentagrama.");
   }
 }
@@ -766,10 +769,10 @@ function errorFabricacionEnrollable10B_(reason, alternatives) {
   return error;
 }
 
-function calcularComplemento10B_(id, catalog, width, height, today, quantity) {
+function calcularComplemento10B_(id, catalog, width, height, today, quantity, allowExpiredForSync) {
   const p = catalog.products.find(function(p) { return p.id === id && p.active && p.family === "complemento-enrollable"; });
   if (!p) throw new Error("El complemento no está disponible.");
-  validarVigenciaProducto10B_(p, today);
+  validarVigenciaProducto10B_(p, today, allowExpiredForSync);
   validarMedidasEnrollable10B_(p, width, height, catalog);
   let factor;
   if (p.method === "linear-height") factor = height / 1000;
@@ -779,13 +782,14 @@ function calcularComplemento10B_(id, catalog, width, height, today, quantity) {
   return dineroCostos10B_(Math.round(factor * p.rateCents * quantity));
 }
 
-function calcularQuoteCostos10B_(state, catalog, today) {
+function calcularQuoteCostos10B_(state, catalog, today, allowExpiredForSync) {
   const items = (state.items || []).map(function(item) {
     return calcularItemCostos10B_(item, catalog, {
       today: today,
       promotions: state.promotions !== false,
       installMode: state.installMode,
-      installation: state.installation
+      installation: state.installation,
+      allowExpiredForSync: Boolean(allowExpiredForSync)
     });
   });
   try {
