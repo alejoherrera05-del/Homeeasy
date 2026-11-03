@@ -175,7 +175,7 @@ function aplicarModeloLocalPentagramaSync10C_(ss, data, authValidation) {
       snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_SHEET, row, id, before, existed, "PRODUCT"));
       const values = existed ? before.slice() : filaComplementoSync10C_(patch, candidate);
       values[5] = String(patch.method || values[5] || "area"); values[6] = Number(patch.proposedRate);
-      values[13] = "VIGENTE"; values[15] = String(candidate.version); values[16] = "COP"; values[17] = true;
+      values[13] = "VIGENTE"; values[14] = String(candidate.validThrough || values[14] || ""); values[15] = String(candidate.version); values[16] = "COP"; values[17] = true;
       values[18] = "Pentagrama Live"; values[19] = new Date(); values[20] = JSON.stringify(patch.rules || {});
       writes.push({ sheet: productSheet, row: row, values: values }); productRows[id] = row;
     });
@@ -259,11 +259,12 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
   if (!lock.tryLock(30000)) return { status: "error", code: "PENTAGRAMA_SYNC_BUSY", msg: "HomeEasy está ocupado por otra operación. No se modificaron datos." };
   const historyId = Utilities.getUuid(); const snapshotId = Utilities.getUuid();
   const productSheet = ss.getSheetByName(HOMEEASY_COST_SHEET);
+  const configSheet = ss.getSheetByName(HOMEEASY_COST_CONFIG_SHEET);
   const snapshotSheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_SNAPSHOT_V2_SHEET, HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS);
   const historySheet = asegurarHojaSync10C_(ss, HOMEEASY_SYNC_HISTORY_SHEET, HOMEEASY_SYNC_HISTORY_HEADERS);
   const snapshots = []; const writes = [];
   try {
-    if (!productSheet) throw new Error("No existe la hoja de Costos Pentagrama.");
+    if (!productSheet || !configSheet) throw new Error("No existen las hojas de Costos Pentagrama requeridas.");
     const rowById = indiceFilasSync10C_(productSheet, 0);
     let nextRow = productSheet.getLastRow() + 1;
     const seenIds = {};
@@ -271,7 +272,37 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
     mutations.forEach(function(mutation) {
       if (mutation && mutation.certified !== true) throw new Error("La novedad de catálogo no está certificada.");
       const kind = String(mutation && mutation.kind || "").trim().toUpperCase();
-      if (["ADD", "DEACTIVATE", "RENAME", "UPDATE_RATE", "UPDATE_RULES"].indexOf(kind) < 0) throw new Error("Tipo de novedad no permitido: " + kind);
+      if (["ADD", "DEACTIVATE", "RENAME", "UPDATE_RATE", "UPDATE_RULES", "RENEW_VALIDITY"].indexOf(kind) < 0) throw new Error("Tipo de novedad no permitido: " + kind);
+      if (kind === "RENEW_VALIDITY") {
+        const expectedValidity = String(mutation.expectedValidThrough || "").trim();
+        const proposedValidity = String(mutation.proposedValidThrough || "").trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(expectedValidity) || !/^\d{4}-\d{2}-\d{2}$/.test(proposedValidity) || proposedValidity < expectedValidity) {
+          throw new Error("La renovación de vigencia no es válida.");
+        }
+        const certifiedIds = Array.isArray(mutation.homeeasyIds) ? mutation.homeeasyIds.map(String).filter(Boolean) : [];
+        if (!certifiedIds.length || new Set(certifiedIds).size !== certifiedIds.length) throw new Error("La renovación no contiene referencias certificadas válidas.");
+        const configRows = indiceFilasSync10C_(configSheet, 0);
+        const configRow = Number(configRows.VIGENTE_HASTA || 0);
+        if (!configRow) throw new Error("No existe VIGENTE_HASTA en la configuración.");
+        const configBefore = configSheet.getRange(configRow, 1, 1, HOMEEASY_COST_CONFIG_HEADERS.length).getValues()[0];
+        if (String(configBefore[1] || "") !== expectedValidity) throw new Error("La vigencia local cambió después del escaneo.");
+        if (proposedValidity !== expectedValidity) {
+          snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_CONFIG_SHEET, configRow, "VIGENTE_HASTA", configBefore, true, "CATALOG_RENEW_VALIDITY"));
+          writes.push({ sheet: configSheet, row: configRow, values: ["VIGENTE_HASTA", proposedValidity, "Renovado atómicamente tras QA Pentagrama"], mutation: mutation, kind: kind, skipQa: true });
+        }
+
+        const productValues = productSheet.getLastRow() > 1 ? productSheet.getRange(2, 1, productSheet.getLastRow() - 1, HOMEEASY_COST_HEADERS.length).getValues() : [];
+        const certifiedSet = new Set(certifiedIds);
+        productValues.forEach(function(before, index) {
+          const id = String(before[0] || "").trim();
+          const active = before[12] === true || String(before[12]).toUpperCase() === "TRUE";
+          if (!certifiedSet.has(id) || !active || String(before[13] || "").toUpperCase() !== "VIGENTE" || String(before[14] || "") >= proposedValidity) return;
+          const row = index + 2; const values = before.slice(); values[14] = proposedValidity; values[18] = "Pentagrama Sync"; values[19] = new Date();
+          snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_SHEET, row, id, before, true, "CATALOG_RENEW_VALIDITY"));
+          writes.push({ sheet: productSheet, row: row, values: values, mutation: mutation, kind: kind, skipQa: true });
+        });
+        return;
+      }
       const id = String(mutation && mutation.homeeasyId || "").trim();
       if (!id || seenIds[id]) throw new Error("ID de catálogo inválido o duplicado: " + id);
       seenIds[id] = true;
@@ -344,7 +375,7 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
     });
 
     snapshotSheet.getRange(snapshotSheet.getLastRow() + 1, 1, snapshots.length, HOMEEASY_SYNC_SNAPSHOT_V2_HEADERS.length).setValues(snapshots);
-    writes.forEach(function(write) { productSheet.getRange(write.row, 1, 1, HOMEEASY_COST_HEADERS.length).setValues([write.values]); });
+    writes.forEach(function(write) { (write.sheet || productSheet).getRange(write.row, 1, 1, write.values.length).setValues([write.values]); });
     SpreadsheetApp.flush(); borrarCacheCostos10B_();
 
     const qa = ejecutarQaCatalogoPentagramaSync10C_(ss, writes);
@@ -362,7 +393,19 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
 function ejecutarQaCatalogoPentagramaSync10C_(ss, writes) {
   const errors = []; let checked = 0;
   const catalog = cargarCatalogoCostos10B_(ss, true);
+  const renewal = (writes || []).find(function(write) { return write.kind === "RENEW_VALIDITY"; });
+  if (renewal) {
+    checked++;
+    const proposedValidity = String(renewal.mutation && renewal.mutation.proposedValidThrough || "");
+    if (String(catalog.validThrough || "") !== proposedValidity) errors.push("La vigencia general no coincide después de escribir.");
+    const certifiedSet = new Set(Array.isArray(renewal.mutation && renewal.mutation.homeeasyIds) ? renewal.mutation.homeeasyIds.map(String) : []);
+    const stale = (catalog.products || []).filter(function(product) {
+      return certifiedSet.has(String(product.id)) && product.active === true && String(product.status || "").toUpperCase() === "VIGENTE" && String(product.validThrough || "") < proposedValidity;
+    });
+    if (stale.length) errors.push(stale.length + " referencias activas conservaron una vigencia anterior.");
+  }
   (writes || []).forEach(function(write) {
+    if (write.skipQa) return;
     const mutation = write.mutation || {}; const id = String(mutation.homeeasyId || "");
     const product = (catalog.products || []).find(function(item) { return String(item.id) === id; });
     if (!product) { errors.push(id + ": no quedó visible en el catálogo técnico."); return; }

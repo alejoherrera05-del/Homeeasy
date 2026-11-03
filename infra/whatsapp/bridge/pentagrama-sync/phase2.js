@@ -16,6 +16,19 @@ const { CatalogCertifier, isRing, isRenueva, referenceName, sourceRowValues } = 
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
 
+function bogotaIsoDate(value = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(value).reduce((out, part) => { out[part.type] = part.value; return out; }, {});
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function renewalValidThrough(value = new Date()) {
+  const today = bogotaIsoDate(value);
+  const [year, month] = today.split('-').map(Number);
+  return new Date(Date.UTC(year, month + 1, 0)).toISOString().slice(0, 10);
+}
+
 function normalizedRootName(value) {
   return String(value || '')
     .normalize('NFD')
@@ -698,7 +711,6 @@ class PentagramaPhase2 {
       acc[item.status] = (acc[item.status] || 0) + 1;
       return acc;
     }, {});
-
     const scan = {
       id: crypto.randomUUID(),
       mode: 'maintenance_rules',
@@ -936,6 +948,7 @@ class PentagramaPhase2 {
 
     const results = [];
     const catalogActions = [];
+    const verifiedRingIds = new Set();
     const coveredIds = new Set([
       ...certifiedMappings.map(item => String(item.homeeasyId)),
       ...ringSources.map(item => String(item.id)),
@@ -1152,7 +1165,10 @@ class PentagramaPhase2 {
                 }))
               } : null
             });
+            if (safeVariation) verifiedRingIds.add(String(sourceItem.id));
           }
+        } else {
+          verifiedRingIds.add(String(sourceItem.id));
         }
       } catch (error) {
         catalogActions.push({
@@ -1179,6 +1195,30 @@ class PentagramaPhase2 {
       acc[item.status] = (acc[item.status] || 0) + 1;
       return acc;
     }, {});
+    const verifiedValidityIds = Array.from(new Set([
+      ...results
+        .filter(item => ['UNCHANGED', 'INCREASED', 'DECREASED', 'NEW'].includes(String(item.status || '')))
+        .map(item => String(item.homeeasyId || '')).filter(Boolean),
+      ...verifiedRingIds
+    ])).filter(id => String(sourceById.get(id) && sourceById.get(id).validThrough || source.validThrough || '') < bogotaIsoDate()).sort();
+    const operationalErrors = Number(counts.ERROR || 0) + catalogActions.filter(item => item.status === 'ERROR').length;
+    if (operationalErrors === 0 && verifiedValidityIds.length) {
+      const proposedValidThrough = [String(source.validThrough || ''), renewalValidThrough()].sort().pop();
+      catalogActions.push({
+        id: `catalog-renew-validity:${proposedValidThrough}`,
+        kind: 'RENEW_VALIDITY',
+        status: 'STRUCTURE_CHANGED',
+        autoApplicable: true,
+        certified: true,
+        reference: 'Vigencia catálogo Pentagrama',
+        reason: `Renovar ${verifiedValidityIds.length} referencias verificadas hasta ${proposedValidThrough}.`,
+        mutation: {
+          kind: 'RENEW_VALIDITY', certified: true,
+          expectedValidThrough: String(source.validThrough || ''), proposedValidThrough,
+          homeeasyIds: verifiedValidityIds
+        }
+      });
+    }
     const mappedIds = new Set(certifiedMappings.map(item => String(item.homeeasyId)));
     const catalogAudit = {
       mode: 'PRICE_ONLY',
@@ -1414,6 +1454,29 @@ class PentagramaPhase2 {
       }
     }
     const counts = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
+    const verifiedValidityIds = Array.from(new Set([
+      ...results
+        .filter(item => item.strategy !== 'LOCAL_MODEL' && ['UNCHANGED', 'INCREASED', 'DECREASED', 'NEW'].includes(String(item.status || '')))
+        .map(item => String(item.homeeasyId || '')).filter(Boolean),
+      ...catalogActions
+        .filter(item => item.autoApplicable === true && item.homeeasyId && ['UPDATE_RATE', 'UPDATE_RULES', 'RENAME'].includes(String(item.kind || '')))
+        .map(item => String(item.homeeasyId))
+    ])).filter(id => String(sourceByIdForCertification.get(id) && sourceByIdForCertification.get(id).validThrough || source.validThrough || '') < bogotaIsoDate()).sort();
+    const operationalErrors = Number(counts.ERROR || 0) + catalogActions.filter(item => item.status === 'ERROR').length;
+    if (!localModelCandidate && operationalErrors === 0 && verifiedValidityIds.length) {
+      const proposedValidThrough = [String(source.validThrough || ''), renewalValidThrough()].sort().pop();
+      catalogActions.push({
+        id: `catalog-renew-validity:${proposedValidThrough}`,
+        kind: 'RENEW_VALIDITY', status: 'STRUCTURE_CHANGED', autoApplicable: true, certified: true,
+        reference: 'Vigencia catálogo Pentagrama',
+        reason: `Renovar ${verifiedValidityIds.length} referencias verificadas hasta ${proposedValidThrough}.`,
+        mutation: {
+          kind: 'RENEW_VALIDITY', certified: true,
+          expectedValidThrough: String(source.validThrough || ''), proposedValidThrough,
+          homeeasyIds: verifiedValidityIds
+        }
+      });
+    }
     const strategyCounts = results.filter(item => item.strategy).reduce((acc, item) => { acc[item.strategy] = (acc[item.strategy] || 0) + 1; return acc; }, {});
     const scan = { id: crypto.randomUUID(), checkedAt: new Date().toISOString(), sourceVersion: source.version, sourceValidThrough: source.validThrough, catalogSummary, localModelCandidate, localModelError,
       catalogInventoryAudit,
@@ -1465,16 +1528,28 @@ class PentagramaPhase2 {
   async verifyCatalogActions(scan, actions, context) {
     if (!actions.length) return [];
     const ruleActions = actions.filter(item => String(item.kind || '') === 'UPDATE_RULES');
-    const otherActions = actions.filter(item => String(item.kind || '') !== 'UPDATE_RULES');
+    const renewalActions = actions.filter(item => String(item.kind || '') === 'RENEW_VALIDITY');
+    const otherActions = actions.filter(item => !['UPDATE_RULES', 'RENEW_VALIDITY'].includes(String(item.kind || '')));
     const inventory = otherActions.length ? await this.fullCatalogInventory() : { products: [] };
     const liveByKey = new Map((inventory.products || []).map(item => [String(item.externalKey || ''), item]));
-    const source = ruleActions.length ? await this.homeeasy.catalog(context) : null;
+    const source = (ruleActions.length || renewalActions.length) ? await this.homeeasy.catalog(context) : null;
     const sourceById = new Map((source && source.products || []).map(item => [String(item.id), item]));
     const verified = [];
 
     for (const action of actions) {
       const kind = String(action.kind || '');
       const key = String(action.externalKey || '');
+
+      if (kind === 'RENEW_VALIDITY') {
+        const mutation = action.mutation || {};
+        const expected = String(mutation.expectedValidThrough || '');
+        const proposed = String(mutation.proposedValidThrough || '');
+        if (!source || String(source.validThrough || '') !== expected || proposed !== renewalValidThrough(new Date(scan.checkedAt))) {
+          throw Object.assign(new Error('La vigencia local cambió o la renovación dejó de ser válida.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        }
+        verified.push({ ...action, mutation: { ...mutation, kind, certified: true } });
+        continue;
+      }
 
       if (kind === 'UPDATE_RULES') {
         const mutation = action.mutation || {};
@@ -1627,13 +1702,20 @@ class PentagramaPhase2 {
     }
 
     const verifiedCatalog = await this.verifyCatalogActions(scan, catalogActions || [], context);
+    const verifiedRenewals = verifiedCatalog.filter(item => String(item.kind || '') === 'RENEW_VALIDITY');
+    const verifiedOtherCatalog = verifiedCatalog.filter(item => String(item.kind || '') !== 'RENEW_VALIDITY');
     this.store.updateOperation(operationId, { stage: 'SNAPSHOT' });
     this.store.updateOperation(operationId, { stage: 'WRITING_SHEET' });
 
     let appliedPrices = null;
     let appliedCatalog = null;
+    let appliedValidity = null;
     let appliedLocal = null;
     try {
+      if (verifiedRenewals.length) {
+        appliedValidity = await this.homeeasy.applyCatalog(scan, verifiedRenewals.map(item => item.mutation), context);
+      }
+
       if (verified.length) {
         appliedPrices = await this.homeeasy.apply(scan, verified.map(({ item, mapping, validation }) => ({
           id: item.id, homeeasyId: item.homeeasyId, row: item.sourceRow, field: item.updateField,
@@ -1645,8 +1727,8 @@ class PentagramaPhase2 {
         })), context);
       }
 
-      if (verifiedCatalog.length) {
-        appliedCatalog = await this.homeeasy.applyCatalog(scan, verifiedCatalog.map(item => item.mutation), context);
+      if (verifiedOtherCatalog.length) {
+        appliedCatalog = await this.homeeasy.applyCatalog(scan, verifiedOtherCatalog.map(item => item.mutation), context);
       }
 
       if (localChange) {
@@ -1676,7 +1758,8 @@ class PentagramaPhase2 {
       }
 
       const localChecked = Number(appliedLocal && appliedLocal.qa && appliedLocal.qa.checked || 0);
-      const catalogChecked = Number(appliedCatalog && appliedCatalog.qa && appliedCatalog.qa.checked || 0);
+      const catalogChecked = Number(appliedCatalog && appliedCatalog.qa && appliedCatalog.qa.checked || 0) +
+        Number(appliedValidity && appliedValidity.qa && appliedValidity.qa.checked || 0);
       const localMaxDifference = Number(appliedLocal && appliedLocal.qa && appliedLocal.qa.maxDifference || 0);
       const qa = {
         ok: true,
@@ -1687,7 +1770,7 @@ class PentagramaPhase2 {
         ),
         cases: postQa,
         priceSheet: appliedPrices && appliedPrices.qa || null,
-        catalogSheet: appliedCatalog && appliedCatalog.qa || null,
+        catalogSheet: appliedCatalog && appliedCatalog.qa || appliedValidity && appliedValidity.qa || null,
         localModel: appliedLocal && appliedLocal.qa || null
       };
 
@@ -1737,6 +1820,7 @@ class PentagramaPhase2 {
 
       const upstreamHistoryIds = [
         appliedPrices && appliedPrices.historyId,
+        appliedValidity && appliedValidity.historyId,
         appliedCatalog && appliedCatalog.historyId,
         appliedLocal && appliedLocal.historyId
       ].filter(Boolean);
@@ -1761,7 +1845,8 @@ class PentagramaPhase2 {
       for (const historyId of [
         appliedLocal && appliedLocal.historyId,
         appliedCatalog && appliedCatalog.historyId,
-        appliedPrices && appliedPrices.historyId
+        appliedPrices && appliedPrices.historyId,
+        appliedValidity && appliedValidity.historyId
       ].filter(Boolean)) {
         try {
           rollbackResults.push(await this.homeeasy.rollback(historyId, context));

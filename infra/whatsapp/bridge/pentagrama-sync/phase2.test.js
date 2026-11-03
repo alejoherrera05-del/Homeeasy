@@ -521,6 +521,37 @@ test('quick scan checks certified prices without running deep catalog maintenanc
   assert.equal(deepCalls, 0);
 });
 
+test('expired quick scan offers atomic validity renewal only for successfully verified references', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-validity-renewal-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const mapping = {
+    id: 'renew-onda', homeeasyId: 'onda-renew', family: 'Onda Serena', reference: 'Renew',
+    productCode: 'R1', groupCode: '1345', calculationType: 'NormalProduct', width: '2', height: '2', quantity: 1,
+    productDiscount: 0, pricingMode: 'account-discount', strategy: 'RATE_M2', status: 'CERTIFIED',
+    verifiedAt: '2026-10-08T00:00:00Z', casesPassed: 3, maxDifference: 0,
+    destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }, updateField: 'Tarifa_IVA_COP', special: {},
+    validationCases: [{ id: 'a', width: '2', height: '2', role: 'derive' }]
+  };
+  const service = new PentagramaPhase2({
+    store, mappings: [mapping], certificationRegistry: { products: [] }, enrollablesRegistry: { products: {} },
+    homeeasy: { catalog: async () => ({ version: 'expired-v1', validThrough: '2026-10-31', products: [{
+      row: 2, id: 'onda-renew', family: 'onda', familyName: 'Onda Serena', reference: 'Renew', method: 'area',
+      rate: 90000, minHeight: 0, minArea: 0, promotional: false, active: true, external: {}
+    }] }) },
+    pricing: { supplierCost: async () => ({ total: 360000, basePrice: 360000, distributorDiscount: 0, productDiscount: 0, vatRate: 0 }) },
+    homeeasyCost: { cost: async () => ({ amount: 360000 }) }, gateway: { dispatch: async () => ({}) }
+  });
+  const operation = service.startQuickScan({ email: 'test@example.com' }, { serviceKey: 'test-key', deviceId: 'test-device' });
+  for (let i = 0; i < 50 && store.operationById(operation.id).state !== 'completed'; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  const scan = store.latestScan();
+  const renewal = scan.catalogActions.find(item => item.kind === 'RENEW_VALIDITY');
+  assert.ok(renewal);
+  assert.equal(renewal.autoApplicable, true);
+  assert.deepEqual(renewal.mutation.homeeasyIds, ['onda-renew']);
+  assert.equal(renewal.mutation.expectedValidThrough, '2026-10-31');
+  assert.match(renewal.mutation.proposedValidThrough, /^\d{4}-\d{2}-\d{2}$/);
+});
+
 
 test('onda-67 quick price probe uses the certified RIECOR28 association group', () => {
   const mapping = INITIAL_MAPPINGS.find(item => item.homeeasyId === 'onda-67');
