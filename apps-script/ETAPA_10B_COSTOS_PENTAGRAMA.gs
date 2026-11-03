@@ -284,6 +284,8 @@ function nombreEnrollable10B_(p) {
 
 function calcularCotizacionCostos10B_(ss, data, allowExpiredForSync) {
   const catalog = cargarCatalogoCostos10B_(ss, false);
+  const today = fechaBogota10B_();
+  const staleSnapshot = Boolean(catalog.validThrough && today > catalog.validThrough);
   const state = {
     items: Array.isArray(data && data.items) ? data.items : [],
     transport: data && data.transport !== undefined ? data.transport : "0",
@@ -292,11 +294,18 @@ function calcularCotizacionCostos10B_(ss, data, allowExpiredForSync) {
     installMode: String(data && data.installMode || "common") === "individual" ? "individual" : "common",
     promotions: data && data.promotions !== false
   };
-  const quote = calcularQuoteCostos10B_(state, catalog, fechaBogota10B_(), Boolean(allowExpiredForSync));
+  // La vigencia vencida debe activar mantenimiento y advertencia, no detener
+  // el trabajo comercial. Conservamos todas las demás validaciones (moneda,
+  // IVA, estado VIGENTE, tarifa existente y reglas de fabricación) y usamos el
+  // último snapshot atómico hasta que Pentagrama publique el reemplazo.
+  const quote = calcularQuoteCostos10B_(state, catalog, today, Boolean(allowExpiredForSync) || staleSnapshot);
   if (!quote.ok) return { status: "error", code: "COST_QUOTE_INVALID", msg: quote.error, quote: quote };
   return {
     status: "ok", etapa: HOMEEASY_COST_STAGE, version: catalog.version, validThrough: catalog.validThrough,
-    currency: catalog.currency, pricesIncludeVat: catalog.pricesIncludeVat, quote: quote
+    currency: catalog.currency, pricesIncludeVat: catalog.pricesIncludeVat, quote: quote,
+    warning: staleSnapshot
+      ? "Tarifas pendientes de actualización con Pentagrama. Puedes continuar cotizando con el último snapshot certificado."
+      : ""
   };
 }
 

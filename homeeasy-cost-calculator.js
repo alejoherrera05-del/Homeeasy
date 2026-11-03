@@ -1047,7 +1047,7 @@ async function runQuote(seq,signature){
     // autoritativa para cotizar. No consultamos Pentagrama Live en esta ruta.
     const quote=data.quote;
     if(seq!==requestSeq||signature!==engineSignature())return;
-    applyQuote(quote,quote?.ok?'':(quote?.error||data.msg),signature);
+    applyQuote(quote,quote?.ok?(data.warning||''):(quote?.error||data.msg),signature);
   }catch(e){
     if(seq!==requestSeq)return;
     if(lastEngineQuote?.ok&&lastEngineSignature===engineSignature()){
@@ -1660,7 +1660,11 @@ async function connect(){
 
     $('connection').hidden=true;
     $('catalog-note').textContent='Precios internos de Pentagrama · HomeEasy.';
-    $('tariff-date').textContent='Tarifas '+catalog.version+' · vigentes hasta '+catalog.validThrough+'.';
+    const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/Bogota'});
+    const stale=Boolean(catalog.validThrough&&today>catalog.validThrough);
+    $('tariff-date').textContent=stale
+      ? 'Actualización Pentagrama pendiente · usando el último snapshot certificado ('+catalog.version+').'
+      : 'Tarifas '+catalog.version+' · vigentes hasta '+catalog.validThrough+'.';
 
     if(!state.items.length)state.items.push(newItem());
     state.items=state.items.map(item=>{
