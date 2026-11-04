@@ -339,11 +339,11 @@ class PentagramaPhase2 {
       throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
     }
 
-    // El Agent recorre el catálogo dentro de un único trabajo con heartbeat.
-    // Evita miles de entregas catalog pequeñas y conserva un único lifecycle.
-    const inventory = await this.gateway.dispatch('catalogInventory', {}, {
-      lockKey: 'catalog-inventory:full'
-    });
+    // El inventario se divide por endpoint/ruta. Cada llamada termina de forma
+    // independiente y PentagramaCatalogInventory conserva reintentos acotados.
+    // Así un catálogo grande no depende de un único job del Agent ni pierde todo
+    // el avance al alcanzar el hard-timeout de una operación monolítica.
+    const inventory = await this.inventory.scan();
 
     const result = publicInventorySummary(inventory);
     this.store.updateOperation(operationId, {
@@ -387,9 +387,7 @@ class PentagramaPhase2 {
   async fullCatalogInventory() {
     if (!this.gateway) throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
     if (!this.inventory) throw Object.assign(new Error('Pentagrama catalog inventory is unavailable'), { code: 'AGENT_OFFLINE' });
-    return this.gateway.dispatch('catalogInventory', {}, {
-      lockKey: 'catalog-inventory:full'
-    });
+    return this.inventory.scan();
   }
 
   inventoryAudit(sourceProducts, inventory) {
@@ -1937,7 +1935,8 @@ class PentagramaPhase2 {
   fail(id, error) { this.store.updateOperation(id, { state: 'failed', stage: 'FAILED', error: { code: String(error.code || 'PENTAGRAMA_SYNC_FAILED'), message: String(error.message || 'Sync failed').slice(0, 300) } }); }
   status() {
     const scheduler = this.store.schedulerState();
-    return { latestScan: this.publicScan(this.store.latestScan()), nextScheduledCheck: this.store.state.nextScheduledCheck,
+    const latestScan = typeof this.store.latestVisibleScan === 'function' ? this.store.latestVisibleScan() : this.store.latestScan();
+    return { latestScan: this.publicScan(latestScan), nextScheduledCheck: this.store.state.nextScheduledCheck,
       lastAutomaticCheck: scheduler.lastRunAt, automaticResult: scheduler.lastResult };
   }
 }

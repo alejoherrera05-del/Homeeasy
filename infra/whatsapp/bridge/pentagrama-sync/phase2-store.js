@@ -55,6 +55,13 @@ class Phase2Store {
   addHistory(value) { this.state.history.unshift(value); this.state.history = this.state.history.slice(0, 100); this.save(); }
   publicHistory() { return this.state.history.slice(0, 50); }
   latestScan() { return this.state.scans[0] || null; }
+  latestVisibleScan() {
+    return this.state.scans.find(scan => {
+      if (String(scan && scan.mode || '') !== 'maintenance_rules') return true;
+      return (Array.isArray(scan.results) && scan.results.length > 0) ||
+        (Array.isArray(scan.catalogActions) && scan.catalogActions.length > 0);
+    }) || null;
+  }
 
   schedulerState() {
     this.state.scheduler = { lock: null, lastPeriod: null, lastRunAt: null, lastResult: null, ...(this.state.scheduler || {}) };

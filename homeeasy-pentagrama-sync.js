@@ -68,7 +68,7 @@
     if (!online) { tone = 'error'; label = 'Sin agente disponible'; }
     else if (errors) { tone = 'error'; label = 'Requiere atención'; }
     else if (changes || catalogPending) { tone = 'pending'; label = 'Actualizaciones disponibles'; }
-    else if (scan && partial) { tone = 'success'; label = 'Precios al día'; }
+    else if (scan && partial) { tone = 'success'; label = 'Operativo · cobertura parcial'; }
     else if (scan) { tone = 'success'; label = 'Sincronizado'; }
     return { tone, label, online, totalAgents: (agents || []).length, changes, catalogPending, review, errors,
       checked: certified, certified, total, partial, unmapped, pentagramaProducts: Number(audit.pentagramaProducts || 0) };
@@ -341,17 +341,16 @@
       confirmButtonColor: '#a6455a'
     });
     if (!confirm.isConfirmed) return;
+    const previousScan = state.scan;
     state.busy = true; state.error = null; renderAll();
     try {
       // Primero resolvemos migraciones de certificación ya conocidas. Es rápido y
       // evita reconstruir Enrollables o recorrer el catálogo completo sin necesidad.
       let started = await request('/api/pentagrama-sync/maintenance-rules', 'POST', {});
-      await poll(started.operation.id, 'scan');
-      await refresh({ resetSelection: true });
-
-      let audit = state.scan && state.scan.catalogAudit || {};
-      let certifiedMaintenance = Number(audit.maintenanceRuleChanges || 0);
+      const ruleOperation = await poll(started.operation.id, 'scan');
+      let certifiedMaintenance = Number(ruleOperation.result && ruleOperation.result.counts && ruleOperation.result.counts.STRUCTURE_CHANGED || 0);
       if (certifiedMaintenance) {
+        await refresh({ resetSelection: true });
         await Swal.fire({
           icon: 'info',
           title: 'Correcciones certificadas listas',
@@ -365,7 +364,7 @@
       started = await request('/api/pentagrama-sync/scan', 'POST', {});
       await poll(started.operation.id, 'scan');
       await refresh({ resetSelection: true });
-      audit = state.scan && state.scan.catalogAudit || {};
+      let audit = state.scan && state.scan.catalogAudit || {};
       const pending = Number(audit.newReferences || 0) + Number(audit.discontinued || 0) + Number(audit.renamed || 0) + Number(audit.structureChanged || 0) + Number(audit.bindingConflicts || 0);
       certifiedMaintenance = Number(audit.maintenanceRuleChanges || 0);
       await Swal.fire({
@@ -379,8 +378,13 @@
         confirmButtonColor: '#a6455a'
       });
     } catch (error) {
-      state.error = error; setProgress(null);
-      await Swal.fire({ icon: 'error', title: 'El mantenimiento no pudo completarse', text: friendlyError(error), confirmButtonColor: '#a6455a' });
+      state.error = error; state.scan = previousScan; setProgress(null);
+      await Swal.fire({
+        icon: 'error',
+        title: 'El mantenimiento no pudo completarse',
+        html: `${esc(friendlyError(error))}<br><br><b>El catálogo vigente permanece activo y no se modificaron tarifas.</b>`,
+        confirmButtonColor: '#a6455a'
+      });
     } finally {
       state.busy = false; renderAll();
     }
