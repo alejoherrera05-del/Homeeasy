@@ -17,6 +17,12 @@ test('installer starts the native WinExe without PowerShell or a console window'
   assert.doesNotMatch(installer, /powershell\.exe/i);
 });
 
+test('upgrades reuse the existing Windows service and always restart it', () => {
+  assert.match(installer, /Parameters: "install"[^\r\n]+Check: not ServiceExists/);
+  assert.match(installer, /function ServiceExists\(\): Boolean/);
+  assert.match(installer, /Parameters: "start"/);
+});
+
 test('build compiles a DPI-aware native Windows application', () => {
   assert.match(build, /target:winexe/);
   assert.match(build, /win32manifest/);
