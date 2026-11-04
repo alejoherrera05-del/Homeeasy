@@ -1,6 +1,8 @@
 'use strict';
 
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
 const DEFAULT_PORT = 38461;
 const SESSION_COOKIE_NAMES = new Set(['.ASPXAUTH', 'ASP.NET_SessionId', 'cf_clearance']);
@@ -65,12 +67,26 @@ function json(res, statusCode, payload, origin) {
   res.end(body);
 }
 
+function extensionIdFromPublicKey(key) {
+  const crypto = require('crypto');
+  const digest = crypto.createHash('sha256').update(Buffer.from(String(key || ''), 'base64')).digest().subarray(0, 16);
+  const alphabet = 'abcdefghijklmnop';
+  let id = '';
+  for (const byte of digest) id += alphabet[byte >> 4] + alphabet[byte & 15];
+  return id;
+}
+
 class PentagramaSessionBridge {
   constructor(options = {}) {
     this.host = String(options.host || '127.0.0.1');
-    this.port = Number(options.port || process.env.PENTAGRAMA_SESSION_BRIDGE_PORT || DEFAULT_PORT);
-    this.extensionId = String(options.extensionId || process.env.PENTAGRAMA_SESSION_BRIDGE_EXTENSION_ID || '').trim();
-    this.allowedOrigin = this.extensionId ? `chrome-extension://${this.extensionId}` : '';
+    this.port = Number(options.port === undefined ? (process.env.PENTAGRAMA_SESSION_BRIDGE_PORT || DEFAULT_PORT) : options.port);
+    const configuredIds = Array.isArray(options.extensionIds) ? options.extensionIds : [options.extensionId || process.env.PENTAGRAMA_SESSION_BRIDGE_EXTENSION_ID || ''];
+    this.extensionIds = Array.from(new Set(configuredIds.map(value => String(value || '').trim()).filter(Boolean)));
+    this.extensionId = this.extensionIds[0] || '';
+    this.allowedOrigins = new Set(this.extensionIds.map(id => `chrome-extension://${id}`));
+    this.extensionPackagePath = String(options.extensionPackagePath || '').trim();
+    this.extensionVersion = String(options.extensionVersion || '1.0.0').trim();
+    this.browserStatusPath = String(options.browserStatusPath || '').trim();
     this.login = String(options.login || '');
     this.password = String(options.password || '');
     this.baseUrl = String(options.baseUrl || 'https://pedidos.persianaspentagrama.com').replace(/\/$/, '');
@@ -89,7 +105,7 @@ class PentagramaSessionBridge {
   }
 
   configured() {
-    return Boolean(this.allowedOrigin && this.login && this.password);
+    return Boolean(this.allowedOrigins.size && this.login && this.password);
   }
 
   status() {
@@ -116,8 +132,24 @@ class PentagramaSessionBridge {
     // the known HomeEasy extension origin. The custom marker forces a CORS
     // preflight for ordinary web pages, so originless extension-worker calls can
     // be accepted without opening the endpoint to arbitrary sites.
-    const originAllowed = !origin || origin === this.allowedOrigin;
-    return Boolean(this.allowedOrigin && originAllowed && marker === '1');
+    const originAllowed = !origin || this.allowedOrigins.has(origin);
+    return Boolean(this.allowedOrigins.size && originAllowed && marker === '1');
+  }
+
+  _writeBrowserStatus(extra = {}) {
+    if (!this.browserStatusPath) return;
+    try {
+      fs.mkdirSync(path.dirname(this.browserStatusPath), { recursive: true });
+      const temporary = `${this.browserStatusPath}.${process.pid}.tmp`;
+      fs.writeFileSync(temporary, JSON.stringify({
+        connected: Boolean(this.browserOnlineAt && (Date.now() - Date.parse(this.browserOnlineAt)) < 45000),
+        browser: this.browser,
+        extensionId: this.extensionId,
+        updatedAt: new Date().toISOString(),
+        ...extra
+      }), { encoding: 'utf8', mode: 0o600 });
+      fs.renameSync(temporary, this.browserStatusPath);
+    } catch (_) {}
   }
 
   _wake() {
@@ -152,6 +184,7 @@ class PentagramaSessionBridge {
 
   async nextBrowserRequest(waitMs = 25000) {
     this.browserOnlineAt = new Date().toISOString();
+    this._writeBrowserStatus({ connected: true, seenAt: this.browserOnlineAt });
     if (this.browserQueue.length) return this.browserQueue.shift();
     const timeout = Math.max(1000, Math.min(30000, Number(waitMs || 25000)));
     await new Promise(resolve => {
@@ -167,11 +200,13 @@ class PentagramaSessionBridge {
       this.browserPollWaiters.add(finish);
     });
     this.browserOnlineAt = new Date().toISOString();
+    this._writeBrowserStatus({ connected: true, seenAt: this.browserOnlineAt });
     return this.browserQueue.length ? this.browserQueue.shift() : null;
   }
 
   resolveBrowserRequest(id, payload = {}) {
     this.browserOnlineAt = new Date().toISOString();
+    this._writeBrowserStatus({ connected: true, seenAt: this.browserOnlineAt });
     const pending = this.browserPending.get(String(id || ''));
     if (!pending) return false;
     if (payload && payload.ok === false) {
@@ -193,9 +228,11 @@ class PentagramaSessionBridge {
     this.cookies = cookies;
     this.updatedAt = new Date().toISOString();
     this.browser = payload.browser ? String(payload.browser).slice(0, 120) : null;
+    this.browserOnlineAt = new Date().toISOString();
     this.needsSession = false;
     this.loginRequested = false;
     this.reason = null;
+    this._writeBrowserStatus({ connected: true, seenAt: this.browserOnlineAt, sessionUpdatedAt: this.updatedAt });
     this._wake();
     return this.status();
   }
@@ -254,6 +291,30 @@ class PentagramaSessionBridge {
 
   async _handle(req, res) {
     const origin = String(req.headers.origin || '');
+    const requestUrl = new URL(req.url, `http://${this.host}:${this.port}`);
+    if (req.method === 'GET' && requestUrl.pathname === '/extension/update.xml') {
+      if (!this.extensionId || !this.extensionPackagePath) {
+        return json(res, 404, { ok: false, code: 'SESSION_BRIDGE_EXTENSION_NOT_CONFIGURED' });
+      }
+      const codebase = `http://${this.host}:${this.port}/extension/homeeasy-session-bridge.crx`;
+      const body = Buffer.from(`<?xml version="1.0" encoding="UTF-8"?><gupdate xmlns="http://www.google.com/update2/response" protocol="2.0"><app appid="${this.extensionId}"><updatecheck codebase="${codebase}" version="${this.extensionVersion}" /></app></gupdate>`);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.setHeader('Content-Length', body.length);
+      res.setHeader('Cache-Control', 'no-store');
+      return res.end(body);
+    }
+    if (req.method === 'GET' && requestUrl.pathname === '/extension/homeeasy-session-bridge.crx') {
+      if (!this.extensionPackagePath || !fs.existsSync(this.extensionPackagePath)) {
+        return json(res, 404, { ok: false, code: 'SESSION_BRIDGE_EXTENSION_PACKAGE_MISSING' });
+      }
+      const stat = fs.statSync(this.extensionPackagePath);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/x-chrome-extension');
+      res.setHeader('Content-Length', stat.size);
+      res.setHeader('Cache-Control', 'no-store');
+      return fs.createReadStream(this.extensionPackagePath).pipe(res);
+    }
     if (req.method === 'OPTIONS') {
       if (!this._allowed(req)) return json(res, 403, { ok: false, code: 'SESSION_BRIDGE_ORIGIN_REJECTED' });
       res.statusCode = 204;
@@ -315,6 +376,7 @@ class PentagramaSessionBridge {
       server.on('error', reject);
       server.listen(this.port, this.host, () => {
         this.server = server;
+        this.port = server.address().port;
         resolve(this);
       });
     });
@@ -333,5 +395,6 @@ module.exports = Object.freeze({
   SESSION_COOKIE_NAMES,
   PentagramaSessionBridge,
   normalizeCookies,
-  hasAuth
+  hasAuth,
+  extensionIdFromPublicKey
 });

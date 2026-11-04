@@ -26,6 +26,7 @@ const SECRETS_PATH = path.join(ROOT, 'secrets.dpapi');
 const ENROLLMENT_PATH = path.join(__dirname, '..', 'enrollment.key');
 const HEALTH_PATH = String(process.env.HOMEEASY_AGENT_HEALTH_FILE || path.join(ROOT, 'runtime-health.json'));
 const UPDATE_STATUS_PATH = String(process.env.HOMEEASY_AGENT_UPDATE_STATUS_FILE || path.join(ROOT, 'update-status.json'));
+const BROWSER_STATUS_PATH = String(process.env.HOMEEASY_AGENT_BROWSER_STATUS_FILE || path.join(ROOT, 'browser-bridge-status.json'));
 const logger = new Logger(path.join(ROOT, 'logs'));
 let stopping = false;
 
@@ -199,7 +200,12 @@ async function main() {
   const api = new AgentApi({ serverUrl: config.serverUrl, caPath: path.resolve(path.dirname(CONFIG_PATH), config.caFile || 'server.crt') });
   const secrets = await provision(api, agentIdentity);
   const sessionBridge = new PentagramaSessionBridge({
-    extensionId: 'cmijhfckibhbdhneapoknlbmfadfmogn',
+    extensionIds: Array.isArray(config.extensionIds) && config.extensionIds.length
+      ? config.extensionIds
+      : ['cmijhfckibhbdhneapoknlbmfadfmogn'],
+    extensionPackagePath: path.resolve(path.dirname(CONFIG_PATH), config.extensionPackage || 'browser-extension/homeeasy-session-bridge.crx'),
+    extensionVersion: config.extensionVersion || '1.0.3',
+    browserStatusPath: BROWSER_STATUS_PATH,
     login: secrets.pentagrama.login,
     password: secrets.pentagrama.password,
     baseUrl: secrets.pentagrama.baseUrl
