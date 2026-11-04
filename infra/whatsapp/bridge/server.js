@@ -14,7 +14,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.18.9';
+const BRIDGE_VERSION = '0.19.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -28,6 +28,7 @@ const PENTAGRAMA_MODE = String(process.env.PENTAGRAMA_MODE || 'direct').toLowerC
 const AGENT_TLS_PORT = Number(process.env.PENTAGRAMA_AGENT_TLS_PORT || 0);
 const AGENT_TLS_CERT = String(process.env.PENTAGRAMA_AGENT_TLS_CERT || '');
 const AGENT_TLS_KEY = String(process.env.PENTAGRAMA_AGENT_TLS_KEY || '');
+const AGENT_UPDATE_DIR = String(process.env.PENTAGRAMA_AGENT_UPDATE_DIR || path.join(DATA_DIR, 'updates'));
 const IDEMPOTENCY_FILE = path.join(DATA_DIR, 'idempotency.json');
 const AMBIGUOUS_LOCK_MS = 15 * 60 * 1000;
 const DOCUMENT_PERMISSIONS = Object.freeze({
@@ -98,6 +99,52 @@ function bearerToken(req) {
   return match ? match[1] : '';
 }
 
+function readAgentUpdateManifest() {
+  const manifestPath = path.join(AGENT_UPDATE_DIR, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const fileName = path.basename(String(manifest.fileName || ''));
+  if (!fileName || fileName !== String(manifest.fileName || '') || !/^[A-Fa-f0-9]{64}$/.test(String(manifest.sha256 || ''))) {
+    throw Object.assign(new Error('Agent update manifest is invalid'), { code: 'AGENT_UPDATE_MANIFEST_INVALID', statusCode: 503 });
+  }
+  return { ...manifest, fileName };
+}
+
+function agentUpdateManifestResponse() {
+  try {
+    const manifest = readAgentUpdateManifest();
+    return {
+      version: String(manifest.version || ''),
+      sha256: String(manifest.sha256).toUpperCase(),
+      sizeBytes: Number(manifest.sizeBytes || 0),
+      publishedAt: manifest.publishedAt || null,
+      downloadPath: `/api/pentagrama-agent/update-package?version=${encodeURIComponent(String(manifest.version || ''))}`
+    };
+  } catch (error) {
+    if (error.code === 'AGENT_UPDATE_MANIFEST_INVALID') throw error;
+    throw Object.assign(new Error('Agent update is not published'), { code: 'AGENT_UPDATE_NOT_AVAILABLE', statusCode: 404 });
+  }
+}
+
+function sendAgentUpdatePackage(res, requestedVersion) {
+  const manifest = readAgentUpdateManifest();
+  if (String(requestedVersion || '') !== String(manifest.version || '')) {
+    throw Object.assign(new Error('Agent update version is not available'), { code: 'AGENT_UPDATE_NOT_AVAILABLE', statusCode: 404 });
+  }
+  const file = path.resolve(AGENT_UPDATE_DIR, manifest.fileName);
+  if (path.dirname(file) !== path.resolve(AGENT_UPDATE_DIR) || !fs.existsSync(file)) {
+    throw Object.assign(new Error('Agent update package is not available'), { code: 'AGENT_UPDATE_NOT_AVAILABLE', statusCode: 404 });
+  }
+  const stat = fs.statSync(file);
+  res.writeHead(200, {
+    'Content-Type': 'application/octet-stream',
+    'Content-Length': stat.size,
+    'Content-Disposition': `attachment; filename="${manifest.fileName}"`,
+    'Cache-Control': 'private, no-store',
+    'X-Content-Type-Options': 'nosniff'
+  });
+  fs.createReadStream(file).pipe(res);
+}
+
 async function handleAgentRequest(req, res) {
   const url = new URL(req.url, 'https://agent.homeeasy.local');
   if (req.method === 'GET' && url.pathname === '/health') {
@@ -110,6 +157,12 @@ async function handleAgentRequest(req, res) {
   }
   if (!url.pathname.startsWith('/api/pentagrama-agent/')) return json(res, 404, { ok: false, error: 'Not found' });
   const agent = pentagramaAgents.authenticate(req.headers['x-homeeasy-installation-id'], bearerToken(req));
+  if (req.method === 'GET' && url.pathname === '/api/pentagrama-agent/update-manifest') {
+    return json(res, 200, agentUpdateManifestResponse());
+  }
+  if (req.method === 'GET' && url.pathname === '/api/pentagrama-agent/update-package') {
+    return sendAgentUpdatePackage(res, url.searchParams.get('version'));
+  }
   if (req.method === 'POST' && url.pathname === '/api/pentagrama-agent/heartbeat') {
     return json(res, 200, pentagramaAgents.heartbeat(agent, await readJsonBody(req)));
   }
