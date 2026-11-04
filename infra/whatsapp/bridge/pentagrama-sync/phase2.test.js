@@ -295,17 +295,13 @@ test('public scan keeps only the summary of the heavy local model and removes wr
 });
 
 
-test('read-only inventory operation uses one agent-side catalog lifecycle and publishes only a compact summary', async () => {
+test('read-only inventory operation uses the resumable crawler and publishes only a compact summary', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-inventory-operation-'));
   const store = new Phase2Store({ dataDir: directory });
-  const calls = [];
-
-  const gateway = {
-    dispatch: async (type, payload, options) => {
-      calls.push({ type, payload, options });
-      assert.equal(type, 'catalogInventory');
-      assert.deepEqual(payload, {});
-      assert.equal(options.lockKey, 'catalog-inventory:full');
+  let scans = 0;
+  const inventory = {
+    scan: async () => {
+      scans += 1;
       return {
         checkedAt: '2026-10-20T12:00:00.000Z',
         counts: { roots: 2, discoveredRoots: 3, excludedRoots: 1, leaves: 2, products: 4, duplicateAppearances: 0 },
@@ -326,7 +322,8 @@ test('read-only inventory operation uses one agent-side catalog lifecycle and pu
     enrollablesRegistry: { products: {} },
     pricing: {},
     homeeasyCost: {},
-    gateway
+    gateway: { dispatch: async () => { throw new Error('unexpected direct dispatch'); } },
+    inventory
   });
 
   const operation = service.startInventory({ email: 'test@example.com' });
@@ -337,8 +334,7 @@ test('read-only inventory operation uses one agent-side catalog lifecycle and pu
   const completed = store.operationById(operation.id);
   assert.equal(completed.state, 'completed');
   assert.equal(completed.stage, 'COMPLETED');
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].type, 'catalogInventory');
+  assert.equal(scans, 1);
   assert.equal(completed.result.counts.roots, 2);
   assert.equal(completed.result.counts.discoveredRoots, 3);
   assert.equal(completed.result.counts.excludedRoots, 1);

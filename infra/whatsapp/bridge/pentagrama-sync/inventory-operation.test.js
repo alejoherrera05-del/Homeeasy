@@ -32,7 +32,18 @@ function waitForTerminal(store, id, limit = 100) {
   });
 }
 
-test('read-only inventory is orchestrated as one catalogInventory job with a compact result', async () => {
+test('empty maintenance scan never hides the last usable pricing scan', () => {
+  const store = tempStore('pentagrama-visible-scan-');
+  store.addScan({ id: 'pricing', mode: 'quick', results: [{ id: 'enrollable-1' }], catalogActions: [] });
+  store.addScan({ id: 'empty-maintenance', mode: 'maintenance_rules', results: [], catalogActions: [] });
+  assert.equal(store.latestScan().id, 'empty-maintenance');
+  assert.equal(store.latestVisibleScan().id, 'pricing');
+
+  store.addScan({ id: 'actionable-maintenance', mode: 'maintenance_rules', results: [{ id: 'rule-1' }], catalogActions: [{ id: 'rule-1' }] });
+  assert.equal(store.latestVisibleScan().id, 'actionable-maintenance');
+});
+
+test('read-only inventory uses the resumable inventory crawler and publishes a compact result', async () => {
   const store = tempStore('pentagrama-inventory-operation-');
   const updates = [];
   const originalUpdate = store.updateOperation.bind(store);
@@ -41,13 +52,10 @@ test('read-only inventory is orchestrated as one catalogInventory job with a com
     return originalUpdate(id, patch);
   };
 
-  const calls = [];
-  const gateway = {
-    dispatch: async (type, payload, options) => {
-      calls.push({ type, payload: JSON.parse(JSON.stringify(payload || {})) });
-      assert.equal(type, 'catalogInventory');
-      assert.deepEqual(payload, {});
-      assert.equal(options.lockKey, 'catalog-inventory:full');
+  let scans = 0;
+  const inventory = {
+    scan: async () => {
+      scans += 1;
       return {
         checkedAt: '2026-10-20T00:00:00.000Z',
         counts: { roots: 2, discoveredRoots: 2, excludedRoots: 0, leaves: 3, products: 3 },
@@ -95,7 +103,8 @@ test('read-only inventory is orchestrated as one catalogInventory job with a com
     mappings: [],
     pricing: {},
     homeeasyCost: {},
-    gateway,
+    gateway: { dispatch: async () => { throw new Error('unexpected direct dispatch'); } },
+    inventory,
     inventoryOptions: {
       wait: async () => {},
       retryWindowMs: 1000
@@ -127,8 +136,7 @@ test('read-only inventory is orchestrated as one catalogInventory job with a com
   });
 
   assert.equal('products' in completed.result, false);
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].type, 'catalogInventory');
+  assert.equal(scans, 1);
 
   assert.deepEqual(completed.progress, {
     status: 'COMPLETED',
@@ -150,9 +158,8 @@ test('inventory records a temporary Agent outage as a controlled failed operatio
     return originalUpdate(id, patch);
   };
 
-  const gateway = {
-    dispatch: async type => {
-      assert.equal(type, 'catalogInventory');
+  const inventory = {
+    scan: async () => {
       throw Object.assign(new Error('temporarily offline'), { code: 'AGENT_OFFLINE' });
     }
   };
@@ -162,7 +169,8 @@ test('inventory records a temporary Agent outage as a controlled failed operatio
     mappings: [],
     pricing: {},
     homeeasyCost: {},
-    gateway,
+    gateway: { dispatch: async () => { throw new Error('unexpected direct dispatch'); } },
+    inventory,
     inventoryOptions: {
       wait: async () => {},
       retryWindowMs: 1000,
