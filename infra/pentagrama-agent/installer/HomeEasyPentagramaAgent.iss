@@ -1,4 +1,4 @@
-#define AgentVersion "1.6.1"
+#define AgentVersion "1.6.2"
 #include "..\build\stage\browser-extension.iss"
 
 [Setup]
@@ -22,6 +22,8 @@ SetupIconFile=..\build\stage\assets\homeeasy-agent.ico
 UninstallDisplayIcon={app}\assets\homeeasy-agent.ico
 UninstallDisplayName=HomeEasy Pentagrama Agent
 SetupLogging=yes
+CloseApplications=force
+RestartApplications=yes
 
 [Languages]
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
@@ -31,10 +33,12 @@ Source: "..\build\stage\runtime\*"; DestDir: "{app}\runtime"; Flags: ignoreversi
 Source: "..\build\stage\app\*"; DestDir: "{app}\app"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\build\stage\HomeEasyPentagramaAgent.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\build\stage\HomeEasyPentagramaAgent.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\build\stage\HomeEasyPentagramaAgent.UI.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\build\stage\assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{commonstartup}\HomeEasy Pentagrama Agent"; Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\app\src\tray.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\assets\homeeasy-agent.ico"
+Name: "{commonstartup}\HomeEasy Pentagrama Agent"; Filename: "{app}\HomeEasyPentagramaAgent.UI.exe"; Parameters: "--startup"; WorkingDir: "{app}"; IconFilename: "{app}\assets\homeeasy-agent.ico"
+Name: "{group}\HomeEasy Pentagrama Agent"; Filename: "{app}\HomeEasyPentagramaAgent.UI.exe"; WorkingDir: "{app}"; IconFilename: "{app}\assets\homeeasy-agent.ico"
 
 [Registry]
 Root: HKLM; Subkey: "Software\Policies\Google\Chrome\ExtensionInstallForcelist"; ValueType: string; ValueName: "99"; ValueData: "{#BrowserExtensionId};http://127.0.0.1:38461/extension/update.xml"; Flags: uninsdeletevalue
@@ -44,7 +48,7 @@ Root: HKLM; Subkey: "Software\Policies\BraveSoftware\Brave\ExtensionInstallForce
 [Run]
 Filename: "{app}\HomeEasyPentagramaAgent.exe"; Parameters: "install"; Flags: runhidden waituntilterminated; StatusMsg: "Instalando servicio HomeEasy Pentagrama Agent..."
 Filename: "{app}\HomeEasyPentagramaAgent.exe"; Parameters: "start"; Flags: runhidden waituntilterminated; StatusMsg: "Iniciando HomeEasy Pentagrama Agent..."
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\app\src\tray.ps1"""; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent; Description: "Mostrar estado de HomeEasy Pentagrama Agent"
+Filename: "{app}\HomeEasyPentagramaAgent.UI.exe"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent; Description: "Abrir HomeEasy Pentagrama Agent"
 
 [UninstallRun]
 Filename: "{app}\HomeEasyPentagramaAgent.exe"; Parameters: "stop"; Flags: runhidden waituntilterminated skipifdoesntexist
