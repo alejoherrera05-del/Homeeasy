@@ -84,6 +84,15 @@ Copy-Item -LiteralPath (Join-Path $agentRoot 'service\HomeEasyPentagramaAgent.xm
 
 Copy-Item -LiteralPath (Join-Path $agentRoot 'package.json') -Destination $appStage
 Copy-Item -LiteralPath (Join-Path $agentRoot 'src') -Destination $appStage -Recurse
+$frameworkRoot = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
+$csc = Join-Path $frameworkRoot 'csc.exe'
+if (-not (Test-Path -LiteralPath $csc)) { throw 'Microsoft .NET Framework C# compiler was not found.' }
+$uiSource = Join-Path $agentRoot 'ui\HomeEasyPentagramaAgent.UI.cs'
+$uiOutput = Join-Path $stage 'HomeEasyPentagramaAgent.UI.exe'
+$uiManifest = Join-Path $agentRoot 'ui\app.manifest'
+$wpfRoot = Join-Path $frameworkRoot 'WPF'
+& $csc /nologo /target:winexe /optimize+ /platform:anycpu /win32icon:"$iconPath" /win32manifest:"$uiManifest" /out:"$uiOutput" /reference:"$(Join-Path $wpfRoot 'PresentationCore.dll')" /reference:"$(Join-Path $wpfRoot 'PresentationFramework.dll')" /reference:"$(Join-Path $wpfRoot 'WindowsBase.dll')" /reference:"$(Join-Path $frameworkRoot 'System.Xaml.dll')" /reference:"$(Join-Path $frameworkRoot 'System.Windows.Forms.dll')" /reference:"$(Join-Path $frameworkRoot 'System.Drawing.dll')" /reference:"$(Join-Path $frameworkRoot 'System.Web.Extensions.dll')" "$uiSource"
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $uiOutput)) { throw "Native HomeEasy UI compilation failed with exit code $LASTEXITCODE." }
 $extensionStage = Join-Path $stage 'browser-extension-source'
 Copy-Item -LiteralPath (Join-Path $agentRoot 'session-bridge-extension') -Destination $extensionStage -Recurse
 $extensionResultPath = Join-Path $stage 'browser-extension.json'
