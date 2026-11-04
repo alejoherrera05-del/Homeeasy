@@ -37,6 +37,10 @@ function writePrivate(file, value) {
 }
 function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+function isDiscardablePendingResultError(error) {
+  return ['AGENT_JOB_NOT_FOUND', 'AGENT_JOB_RESULT_EXPIRED'].includes(String(error && error.code || ''));
+}
+
 function writeRuntimeHealth(runtime = {}) {
   try {
     fs.mkdirSync(path.dirname(HEALTH_PATH), { recursive: true });
@@ -231,21 +235,31 @@ async function main() {
   while (!stopping) {
     try {
       if (pendingResult) {
-        const acknowledgment = await api.post('/api/pentagrama-agent/result', pendingResult.body, headers);
-        if (acknowledgment && acknowledgment.late) {
-          logger.warn('job_result_late', {
+        try {
+          const acknowledgment = await api.post('/api/pentagrama-agent/result', pendingResult.body, headers);
+          if (acknowledgment && acknowledgment.late) {
+            logger.warn('job_result_late', {
+              jobId: pendingResult.body.jobId,
+              type: pendingResult.type,
+              durationMs: Date.now() - pendingResult.started
+            });
+          }
+          logger[pendingResult.body.ok ? 'info' : 'warn'](pendingResult.body.ok ? 'job_completed' : 'job_failed', {
             jobId: pendingResult.body.jobId,
             type: pendingResult.type,
+            code: pendingResult.body.error && pendingResult.body.error.code,
             durationMs: Date.now() - pendingResult.started
           });
+          pendingResult = null;
+        } catch (error) {
+          if (!isDiscardablePendingResultError(error)) throw error;
+          logger.warn('job_result_discarded', {
+            jobId: pendingResult.body.jobId,
+            type: pendingResult.type,
+            code: error.code
+          });
+          pendingResult = null;
         }
-        logger[pendingResult.body.ok ? 'info' : 'warn'](pendingResult.body.ok ? 'job_completed' : 'job_failed', {
-          jobId: pendingResult.body.jobId,
-          type: pendingResult.type,
-          code: pendingResult.body.error && pendingResult.body.error.code,
-          durationMs: Date.now() - pendingResult.started
-        });
-        pendingResult = null;
       }
       runtime = { status: 'idle', phase: 'POLLING', updatedAt: new Date().toISOString() };
       writeRuntimeHealth(runtime);
@@ -306,4 +320,4 @@ if (require.main === module) {
   main().catch(error => { logger.error('startup_failed', { code: error.code || 'STARTUP_FAILED', message: error.message }); process.exit(1); });
 }
 
-module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, startJobHeartbeat, writeRuntimeHealth, CATALOG_OPERATIONS });
+module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, startJobHeartbeat, writeRuntimeHealth, isDiscardablePendingResultError, CATALOG_OPERATIONS });
