@@ -2,6 +2,7 @@ param(
   [Parameter(Mandatory = $true)][string]$ServerUrl,
   [Parameter(Mandatory = $true)][string]$EnrollmentToken,
   [Parameter(Mandatory = $true)][string]$CertificatePath,
+  [Parameter(Mandatory = $true)][string]$ExtensionPrivateKeyPath,
   [string]$OutputDirectory = '',
   [string]$InnoCompiler = ''
 )
@@ -15,6 +16,7 @@ $cache = Join-Path $buildRoot 'cache'
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $buildRoot 'output' }
 if (-not $EnrollmentToken.Trim()) { throw 'EnrollmentToken is required.' }
 if (-not (Test-Path -LiteralPath $CertificatePath)) { throw 'CertificatePath does not exist.' }
+if (-not (Test-Path -LiteralPath $ExtensionPrivateKeyPath)) { throw 'ExtensionPrivateKeyPath does not exist.' }
 
 if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $stage,$cache,$OutputDirectory | Out-Null
@@ -82,10 +84,43 @@ Copy-Item -LiteralPath (Join-Path $agentRoot 'service\HomeEasyPentagramaAgent.xm
 
 Copy-Item -LiteralPath (Join-Path $agentRoot 'package.json') -Destination $appStage
 Copy-Item -LiteralPath (Join-Path $agentRoot 'src') -Destination $appStage -Recurse
-Copy-Item -LiteralPath (Join-Path $agentRoot 'session-bridge-extension') -Destination (Join-Path $appStage 'session-bridge-extension') -Recurse
+$extensionStage = Join-Path $stage 'browser-extension-source'
+Copy-Item -LiteralPath (Join-Path $agentRoot 'session-bridge-extension') -Destination $extensionStage -Recurse
+$extensionResultPath = Join-Path $stage 'browser-extension.json'
+& node (Join-Path $agentRoot 'scripts\prepare-extension.js') (Join-Path $agentRoot 'session-bridge-extension') $extensionStage $ExtensionPrivateKeyPath $extensionResultPath
+if ($LASTEXITCODE -ne 0) { throw "Extension preparation failed with exit code $LASTEXITCODE." }
+$extensionResult = Get-Content -LiteralPath $extensionResultPath -Raw | ConvertFrom-Json
+$extensionId = [string]$extensionResult.id
+
+$browserCandidates = @(
+  "$env:ProgramFiles\BraveSoftware\Brave-Browser\Application\brave.exe",
+  "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+  "$env:ProgramFiles(x86)\Microsoft\Edge\Application\msedge.exe"
+)
+$browserPacker = $browserCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+if (-not $browserPacker) { throw 'Chrome, Edge or Brave is required to package the HomeEasy extension.' }
+$packedCrx = "$extensionStage.crx"
+$packedPem = "$extensionStage.pem"
+Remove-Item -LiteralPath $packedCrx,$packedPem -Force -ErrorAction SilentlyContinue
+& $browserPacker "--pack-extension=$extensionStage" "--pack-extension-key=$ExtensionPrivateKeyPath"
+for ($attempt = 0; $attempt -lt 50 -and -not (Test-Path -LiteralPath $packedCrx); $attempt += 1) {
+  Start-Sleep -Milliseconds 200
+}
+if (-not (Test-Path -LiteralPath $packedCrx)) { throw 'Browser extension CRX was not generated.' }
+$browserExtensionStage = Join-Path $appStage 'browser-extension'
+New-Item -ItemType Directory -Force -Path $browserExtensionStage | Out-Null
+Copy-Item -LiteralPath $packedCrx -Destination (Join-Path $browserExtensionStage 'homeeasy-session-bridge.crx')
+$extensionVersion = [string]$extensionResult.version
+Set-Content -LiteralPath (Join-Path $stage 'browser-extension.iss') -Value "#define BrowserExtensionId `"$extensionId`"" -Encoding ascii
 Copy-Item -LiteralPath (Join-Path $repoRoot 'infra\whatsapp\bridge\pentagrama-sync') -Destination (Join-Path $appStage 'core') -Recurse
 Copy-Item -LiteralPath $CertificatePath -Destination (Join-Path $appStage 'server.crt')
-@{ serverUrl = $ServerUrl; caFile = 'server.crt' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $appStage 'config.json') -Encoding utf8NoBOM
+@{
+  serverUrl = $ServerUrl
+  caFile = 'server.crt'
+  extensionIds = @($extensionId, 'cmijhfckibhbdhneapoknlbmfadfmogn')
+  extensionPackage = 'browser-extension/homeeasy-session-bridge.crx'
+  extensionVersion = $extensionVersion
+} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $appStage 'config.json') -Encoding utf8NoBOM
 Set-Content -LiteralPath (Join-Path $appStage 'enrollment.key') -Value $EnrollmentToken -Encoding utf8NoBOM -NoNewline
 
 if (-not $InnoCompiler) {

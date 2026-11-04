@@ -8,6 +8,8 @@ const path = require('path');
 
 const extensionRoot = path.join(__dirname, '..', 'session-bridge-extension');
 const manifest = JSON.parse(fs.readFileSync(path.join(extensionRoot, 'manifest.json'), 'utf8'));
+const installer = fs.readFileSync(path.join(__dirname, '..', 'installer', 'HomeEasyPentagramaAgent.iss'), 'utf8');
+const build = fs.readFileSync(path.join(__dirname, '..', 'build.ps1'), 'utf8');
 
 function extensionIdFromKey(key) {
   const digest = crypto.createHash('sha256').update(Buffer.from(String(key), 'base64')).digest().subarray(0, 16);
@@ -37,4 +39,14 @@ test('extension does not request broad all-sites permission', () => {
   const permissions = manifest.host_permissions || [];
   assert.equal(permissions.includes('<all_urls>'), false);
   assert.equal(permissions.some(value => /^https?:\/\/\*\//.test(value)), false);
+});
+
+test('single setup packages and registers the extension for supported Chromium browsers', () => {
+  assert.match(build, /ExtensionPrivateKeyPath/);
+  assert.match(build, /homeeasy-session-bridge\.crx/);
+  assert.match(build, /extensionIds/);
+  assert.match(installer, /Google\\Chrome\\ExtensionInstallForcelist/);
+  assert.match(installer, /Microsoft\\Edge\\ExtensionInstallForcelist/);
+  assert.match(installer, /BraveSoftware\\Brave\\ExtensionInstallForcelist/);
+  assert.match(installer, /extension\/update\.xml/);
 });

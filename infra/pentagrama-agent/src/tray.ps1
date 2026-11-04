@@ -5,6 +5,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 $dataRoot = Join-Path $env:ProgramData 'HomeEasy\PentagramaAgent'
 $healthPath = Join-Path $dataRoot 'runtime-health.json'
 $updatePath = Join-Path $dataRoot 'update-status.json'
+$browserPath = Join-Path $dataRoot 'browser-bridge-status.json'
 $appRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $iconPath = Join-Path $appRoot 'assets\homeeasy-agent.ico'
 $logoPath = Join-Path $appRoot 'assets\homeeasy-logo.png'
@@ -20,20 +21,25 @@ function Read-JsonFile([string]$Path) {
 function Get-AgentState {
   $health = Read-JsonFile $healthPath
   $update = Read-JsonFile $updatePath
+  $browser = Read-JsonFile $browserPath
+  $browserConnected = $false
+  if ($browser -and $browser.updatedAt) {
+    try { $browserConnected = [bool]$browser.connected -and (((Get-Date) - ([DateTimeOffset]::Parse($browser.updatedAt).LocalDateTime)).TotalSeconds -lt 120) } catch {}
+  }
   $fresh = $false
   if ($health -and $health.updatedAt) {
     try { $fresh = ((Get-Date) - ([DateTimeOffset]::Parse($health.updatedAt).LocalDateTime)).TotalSeconds -lt 120 } catch {}
   }
   if (-not $fresh) {
-    return @{ Level='error'; Title='Agente desconectado'; Detail='El servicio no está enviando heartbeat.'; Health=$health; Update=$update }
+    return @{ Level='error'; Title='Agente desconectado'; Detail='El servicio no está enviando heartbeat.'; Health=$health; Update=$update; BrowserConnected=$browserConnected }
   }
   if ($health.status -eq 'recovering' -or $health.code) {
-    return @{ Level='warning'; Title='Agente reconectando'; Detail=('Código: ' + [string]$health.code); Health=$health; Update=$update }
+    return @{ Level='warning'; Title='Agente reconectando'; Detail=('Código: ' + [string]$health.code); Health=$health; Update=$update; BrowserConnected=$browserConnected }
   }
   if ($health.status -eq 'running') {
-    return @{ Level='working'; Title='Agente trabajando'; Detail=('Proceso: ' + [string]$health.jobType); Health=$health; Update=$update }
+    return @{ Level='working'; Title='Agente trabajando'; Detail=('Proceso: ' + [string]$health.jobType); Health=$health; Update=$update; BrowserConnected=$browserConnected }
   }
-  return @{ Level='ok'; Title='Agente activado'; Detail='Conectado y listo para Pentagrama.'; Health=$health; Update=$update }
+  return @{ Level='ok'; Title='Agente activado'; Detail='Conectado y listo para Pentagrama.'; Health=$health; Update=$update; BrowserConnected=$browserConnected }
 }
 
 function Open-External([string]$Target) {
@@ -174,7 +180,8 @@ function Refresh-Ui {
   $statusTitle.Text = $state.Title
   $statusDetail.Text = $state.Detail
   $version = if ($state.Health -and $state.Health.version) { [string]$state.Health.version } else { 'desconocida' }
-  $versionLabel.Text = 'Versión ' + $version + ' · actualizaciones automáticas activas'
+  $extensionText = if ($state.BrowserConnected) { 'extensión conectada' } else { 'extensión instalándose o esperando navegador' }
+  $versionLabel.Text = 'Versión ' + $version + ' · ' + $extensionText
   $statusItem.Text = $state.Title
   switch ($state.Level) {
     'ok' { $dot.ForeColor = [System.Drawing.Color]::SeaGreen }

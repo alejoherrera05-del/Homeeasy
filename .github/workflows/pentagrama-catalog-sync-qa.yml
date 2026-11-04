@@ -38,12 +38,16 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/pentagrama-agent/src/agent.js'
       - 'infra/pentagrama-agent/src/session-bridge.js'
+      - 'infra/pentagrama-agent/src/tray.ps1'
+      - 'infra/pentagrama-agent/src/updater.js'
+      - 'infra/pentagrama-agent/scripts/prepare-extension.js'
       - 'infra/pentagrama-agent/session-bridge-extension/background.js'
       - 'infra/pentagrama-agent/session-bridge-extension/content.js'
       - 'infra/pentagrama-agent/session-bridge-extension/manifest.json'
       - 'infra/pentagrama-agent/test/agent.test.js'
       - 'infra/pentagrama-agent/test/session-bridge.test.js'
       - 'infra/pentagrama-agent/test/session-bridge-extension.test.js'
+      - 'infra/pentagrama-agent/test/updater.test.js'
       - 'infra/pentagrama-agent/build.ps1'
       - 'infra/pentagrama-agent/installer/HomeEasyPentagramaAgent.iss'
       - 'infra/pentagrama-agent/package.json'
@@ -84,12 +88,16 @@ on:
       - 'infra/whatsapp/bridge/pentagrama-agents/gateway.js'
       - 'infra/pentagrama-agent/src/agent.js'
       - 'infra/pentagrama-agent/src/session-bridge.js'
+      - 'infra/pentagrama-agent/src/tray.ps1'
+      - 'infra/pentagrama-agent/src/updater.js'
+      - 'infra/pentagrama-agent/scripts/prepare-extension.js'
       - 'infra/pentagrama-agent/session-bridge-extension/background.js'
       - 'infra/pentagrama-agent/session-bridge-extension/content.js'
       - 'infra/pentagrama-agent/session-bridge-extension/manifest.json'
       - 'infra/pentagrama-agent/test/agent.test.js'
       - 'infra/pentagrama-agent/test/session-bridge.test.js'
       - 'infra/pentagrama-agent/test/session-bridge-extension.test.js'
+      - 'infra/pentagrama-agent/test/updater.test.js'
       - 'infra/pentagrama-agent/build.ps1'
       - 'infra/pentagrama-agent/installer/HomeEasyPentagramaAgent.iss'
       - 'infra/pentagrama-agent/package.json'
@@ -124,6 +132,8 @@ jobs:
           node --check infra/whatsapp/bridge/pentagrama-agents/gateway.js
           node --check infra/pentagrama-agent/src/agent.js
           node --check infra/pentagrama-agent/src/session-bridge.js
+          node --check infra/pentagrama-agent/src/updater.js
+          node --check infra/pentagrama-agent/scripts/prepare-extension.js
           node --check infra/pentagrama-agent/session-bridge-extension/background.js
           node --check infra/pentagrama-agent/session-bridge-extension/content.js
           cp apps-script/ETAPA_10B_COSTOS_PENTAGRAMA.gs /tmp/ETAPA_10B_COSTOS_PENTAGRAMA.js
@@ -155,7 +165,7 @@ jobs:
       - name: HomeEasy sync transport tests
         run: node --test infra/whatsapp/bridge/pentagrama-sync/homeeasy-sync.test.js
       - name: Agent tests
-        run: node --test infra/pentagrama-agent/test/agent.test.js
+        run: node --test infra/pentagrama-agent/test/agent.test.js infra/pentagrama-agent/test/updater.test.js
       - name: Session Bridge tests
         run: node --test infra/pentagrama-agent/test/session-bridge.test.js infra/pentagrama-agent/test/session-bridge-extension.test.js
       - name: Agent package consistency
