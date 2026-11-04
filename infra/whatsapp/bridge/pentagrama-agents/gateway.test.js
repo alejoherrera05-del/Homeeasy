@@ -117,8 +117,16 @@ test('late result after timeout is acknowledged and the agent is not double-book
 });
 
 test('latest agent version never regresses below the shipped or minimum version', () => {
-  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.5.5');
+  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.6.0');
   assert.equal(fixture({ latestVersion: '1.6.0' }).latestVersion, '1.6.0');
+});
+
+test('newer Agents are never offered a downgrade', () => {
+  const gateway = fixture({ latestVersion: '1.6.0' });
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  const heartbeat = gateway.heartbeat(agent, { version: '1.7.0' });
+  assert.equal(heartbeat.updateAvailable, false);
 });
 
 test('dispatcher sends only allowlisted work and returns price, catalog or live resolver results', async () => {

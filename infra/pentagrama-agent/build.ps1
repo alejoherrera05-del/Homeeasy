@@ -20,7 +20,46 @@ if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -F
 New-Item -ItemType Directory -Force -Path $stage,$cache,$OutputDirectory | Out-Null
 $appStage = Join-Path $stage 'app'
 $runtimeStage = Join-Path $stage 'runtime'
-New-Item -ItemType Directory -Force -Path $appStage,$runtimeStage | Out-Null
+$assetsStage = Join-Path $stage 'assets'
+New-Item -ItemType Directory -Force -Path $appStage,$runtimeStage,$assetsStage | Out-Null
+
+$logoPath = Join-Path $repoRoot 'logohomeeasy.png'
+if (-not (Test-Path -LiteralPath $logoPath)) { throw 'HomeEasy logo was not found.' }
+Copy-Item -LiteralPath $logoPath -Destination (Join-Path $assetsStage 'homeeasy-logo.png')
+Add-Type -AssemblyName System.Drawing
+$sourceImage = [System.Drawing.Image]::FromFile($logoPath)
+$iconBitmap = New-Object System.Drawing.Bitmap 256,256
+$graphics = [System.Drawing.Graphics]::FromImage($iconBitmap)
+$graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+$graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+$graphics.DrawImage($sourceImage, 0, 0, 256, 256)
+$pngStream = New-Object System.IO.MemoryStream
+$iconBitmap.Save($pngStream, [System.Drawing.Imaging.ImageFormat]::Png)
+$pngBytes = $pngStream.ToArray()
+$graphics.Dispose()
+$iconBitmap.Dispose()
+$sourceImage.Dispose()
+$pngStream.Dispose()
+$iconPath = Join-Path $assetsStage 'homeeasy-agent.ico'
+$iconStream = [System.IO.File]::Create($iconPath)
+$iconWriter = New-Object System.IO.BinaryWriter($iconStream)
+try {
+  $iconWriter.Write([UInt16]0)
+  $iconWriter.Write([UInt16]1)
+  $iconWriter.Write([UInt16]1)
+  $iconWriter.Write([Byte]0)
+  $iconWriter.Write([Byte]0)
+  $iconWriter.Write([Byte]0)
+  $iconWriter.Write([Byte]0)
+  $iconWriter.Write([UInt16]1)
+  $iconWriter.Write([UInt16]32)
+  $iconWriter.Write([UInt32]$pngBytes.Length)
+  $iconWriter.Write([UInt32]22)
+  $iconWriter.Write($pngBytes)
+} finally {
+  $iconWriter.Dispose()
+  $iconStream.Dispose()
+}
 
 $nodeVersion = '22.18.0'
 $nodeArchive = Join-Path $cache "node-v$nodeVersion-win-x64.zip"
@@ -63,4 +102,14 @@ if (-not $InnoCompiler -or -not (Test-Path -LiteralPath $InnoCompiler)) { throw 
 if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE." }
 $setup = Join-Path $OutputDirectory 'HomeEasy-Pentagrama-Agent-Setup.exe'
 if (-not (Test-Path -LiteralPath $setup)) { throw 'Setup executable was not generated.' }
-Get-FileHash -Algorithm SHA256 -LiteralPath $setup | Select-Object Path,Hash
+$package = Get-Content -LiteralPath (Join-Path $agentRoot 'package.json') -Raw | ConvertFrom-Json
+$hash = Get-FileHash -Algorithm SHA256 -LiteralPath $setup
+$manifest = [ordered]@{
+  version = [string]$package.version
+  fileName = 'HomeEasy-Pentagrama-Agent-Setup.exe'
+  sha256 = [string]$hash.Hash
+  sizeBytes = [long](Get-Item -LiteralPath $setup).Length
+  publishedAt = [DateTime]::UtcNow.ToString('o')
+}
+$manifest | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $OutputDirectory 'manifest.json') -Encoding utf8NoBOM
+$hash | Select-Object Path,Hash

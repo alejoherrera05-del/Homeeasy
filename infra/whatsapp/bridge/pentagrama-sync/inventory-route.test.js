@@ -20,7 +20,16 @@ test('catalog inventory endpoint is read-only and asynchronous', () => {
 });
 
 test('bridge version identifies the inventory-readonly deployment', () => {
-  assert.match(server, /const BRIDGE_VERSION = '0\.18\.9';/);
+  assert.match(server, /const BRIDGE_VERSION = '0\.19\.0';/);
+});
+
+test('Agent updates are authenticated, path-confined and private', () => {
+  const authenticateAt = server.indexOf('pentagramaAgents.authenticate');
+  const manifestAt = server.indexOf("url.pathname === '/api/pentagrama-agent/update-manifest'");
+  assert.ok(authenticateAt > 0 && manifestAt > authenticateAt);
+  assert.match(server, /path\.basename\(String\(manifest\.fileName/);
+  assert.match(server, /'Cache-Control': 'private, no-store'/);
+  assert.match(server, /AGENT_UPDATE_CHECKSUM_MISMATCH|sha256/);
 });
 
 test('internal Pentagrama scan/apply/rollback use scheduler service context', () => {

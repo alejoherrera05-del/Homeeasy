@@ -8,6 +8,7 @@ const { AgentApi } = require('./api');
 const { Logger } = require('./logger');
 const dpapi = require('./dpapi');
 const { PentagramaSessionBridge } = require('./session-bridge');
+const { AgentUpdater } = require('./updater');
 let createPentagramaSync;
 try {
   ({ createPentagramaSync } = require('../core'));
@@ -24,6 +25,7 @@ const PRIVATE_KEY_PATH = path.join(ROOT, 'private-key.dpapi');
 const SECRETS_PATH = path.join(ROOT, 'secrets.dpapi');
 const ENROLLMENT_PATH = path.join(__dirname, '..', 'enrollment.key');
 const HEALTH_PATH = String(process.env.HOMEEASY_AGENT_HEALTH_FILE || path.join(ROOT, 'runtime-health.json'));
+const UPDATE_STATUS_PATH = String(process.env.HOMEEASY_AGENT_UPDATE_STATUS_FILE || path.join(ROOT, 'update-status.json'));
 const logger = new Logger(path.join(ROOT, 'logs'));
 let stopping = false;
 
@@ -211,6 +213,7 @@ async function main() {
     browserTransport: request => sessionBridge.browserRequest(request, Math.max(150000, Number(request && request.timeoutMs || 0)))
   });
   const headers = authHeaders(agentIdentity, secrets);
+  const updater = new AgentUpdater({ api, headers, currentVersion: VERSION, root: ROOT, statusPath: UPDATE_STATUS_PATH });
   let pentagrama = { status: 'unknown', checkedAt: null };
   let runtime = { status: 'idle', phase: 'STARTED', updatedAt: new Date().toISOString() };
   let failures = 0;
@@ -244,6 +247,11 @@ async function main() {
       if (heartbeat.updateAvailable && announcedUpdate !== String(heartbeat.latestVersion || '')) {
         announcedUpdate = String(heartbeat.latestVersion || '');
         logger.warn('update_available', { currentVersion: VERSION, latestVersion: heartbeat.latestVersion });
+        updater.installIfAvailable(heartbeat.latestVersion).then(result => {
+          if (!result.started) return;
+          logger.info('update_started', { currentVersion: VERSION, latestVersion: result.version });
+          setTimeout(() => process.exit(0), 1500).unref();
+        }).catch(error => logger.warn('update_failed', { code: error.code || 'AGENT_UPDATE_FAILED', latestVersion: heartbeat.latestVersion }));
       }
       const delivery = await api.post('/api/pentagrama-agent/poll', { ...agentIdentity, version: VERSION, pentagrama, runtime }, headers);
       failures = 0;

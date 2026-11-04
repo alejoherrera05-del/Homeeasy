@@ -6,7 +6,7 @@ const path = require('path');
 
 const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot']);
 const MIN_AGENT_VERSION = '1.5.3';
-const LATEST_AGENT_VERSION = '1.5.5';
+const LATEST_AGENT_VERSION = '1.6.0';
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_BUSY',
@@ -229,7 +229,7 @@ class PentagramaAgentGateway {
       ok: true,
       serverTime: agent.lastSeen,
       latestVersion: this.latestVersion,
-      updateAvailable: Boolean(agent.version && agent.version !== this.latestVersion)
+      updateAvailable: Boolean(agent.version && agent.version !== this.latestVersion && versionAtLeast(this.latestVersion, agent.version))
     };
   }
 
