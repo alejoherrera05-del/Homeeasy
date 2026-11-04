@@ -151,3 +151,9 @@ test('session bridge accepts both the current and legacy extension origins', () 
     assert.equal(bridge._allowed({ headers: { origin: `chrome-extension://${id}`, 'x-homeeasy-session-bridge': '1' } }), true);
   }
 });
+
+test('browser extension treats Pentagrama HTTP 500 HTML as an expired session', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'session-bridge-extension', 'background.js'), 'utf8');
+  assert.match(source, /Number\(result\.status\) === 500 && \/\^\\s\*<\//);
+  assert.match(source, /freshLoginUrl\(LOGIN_URL\)/);
+});

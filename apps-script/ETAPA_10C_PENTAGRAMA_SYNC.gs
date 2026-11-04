@@ -285,7 +285,7 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
         const configRow = Number(configRows.VIGENTE_HASTA || 0);
         if (!configRow) throw new Error("No existe VIGENTE_HASTA en la configuración.");
         const configBefore = configSheet.getRange(configRow, 1, 1, HOMEEASY_COST_CONFIG_HEADERS.length).getValues()[0];
-        if (String(configBefore[1] || "") !== expectedValidity) throw new Error("La vigencia local cambió después del escaneo.");
+        if (normalizarFechaCostos10B_(configBefore[1]) !== expectedValidity) throw new Error("La vigencia local cambió después del escaneo.");
         if (proposedValidity !== expectedValidity) {
           snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_CONFIG_SHEET, configRow, "VIGENTE_HASTA", configBefore, true, "CATALOG_RENEW_VALIDITY"));
           writes.push({ sheet: configSheet, row: configRow, values: ["VIGENTE_HASTA", proposedValidity, "Renovado atómicamente tras QA Pentagrama"], mutation: mutation, kind: kind, skipQa: true });
@@ -296,7 +296,7 @@ function aplicarCambiosCatalogoPentagramaSync10C_(ss, data, authValidation) {
         productValues.forEach(function(before, index) {
           const id = String(before[0] || "").trim();
           const active = before[12] === true || String(before[12]).toUpperCase() === "TRUE";
-          if (!certifiedSet.has(id) || !active || String(before[13] || "").toUpperCase() !== "VIGENTE" || String(before[14] || "") >= proposedValidity) return;
+          if (!certifiedSet.has(id) || !active || String(before[13] || "").toUpperCase() !== "VIGENTE" || normalizarFechaCostos10B_(before[14]) >= proposedValidity) return;
           const row = index + 2; const values = before.slice(); values[14] = proposedValidity; values[18] = "Pentagrama Sync"; values[19] = new Date();
           snapshots.push(snapshotV2Sync10C_(snapshotId, historyId, scanId, HOMEEASY_COST_SHEET, row, id, before, true, "CATALOG_RENEW_VALIDITY"));
           writes.push({ sheet: productSheet, row: row, values: values, mutation: mutation, kind: kind, skipQa: true });
