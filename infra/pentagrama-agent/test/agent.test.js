@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 process.env.HOMEEASY_AGENT_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-agent-test-'));
-const { decryptEnvelope, publicError, runJob, startJobHeartbeat } = require('../src/agent');
+const { decryptEnvelope, publicError, runJob, startJobHeartbeat, isDiscardablePendingResultError } = require('../src/agent');
 const { Logger } = require('../src/logger');
 
 test('agent decrypts the hybrid registration envelope', () => {
@@ -74,4 +74,10 @@ test('logs redact secret-shaped fields and rotate safely', () => {
 test('error classification marks transport failures but not credential rejection', () => {
   assert.equal(publicError({ code: 'ETIMEDOUT', message: 'timeout' }).infrastructure, true);
   assert.equal(publicError({ code: 'PENTAGRAMA_SESSION_EXPIRED', message: 'bad credentials' }).infrastructure, false);
+});
+
+test('expired pending results are discarded so heartbeat polling can recover', () => {
+  assert.equal(isDiscardablePendingResultError({ code: 'AGENT_JOB_NOT_FOUND' }), true);
+  assert.equal(isDiscardablePendingResultError({ code: 'AGENT_JOB_RESULT_EXPIRED' }), true);
+  assert.equal(isDiscardablePendingResultError({ code: 'AGENT_TRANSPORT_ERROR' }), false);
 });

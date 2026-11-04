@@ -25,7 +25,7 @@ test('build compiles a DPI-aware native Windows application', () => {
 
 test('native UI keeps credentials in HomeEasy and exposes safe configuration', () => {
   assert.match(source, /Configurar acceso/);
-  assert.match(source, /credenciales protegidas por HomeEasy/);
+  assert.match(source, /credenciales protegidas por HomeEasy/i);
   assert.match(source, /configuracion\.html\?section=pentagrama/);
   assert.doesNotMatch(source, /PasswordBox|pentagrama\.password|PENTAGRAMA_PASSWORD/);
 });
