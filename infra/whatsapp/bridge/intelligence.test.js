@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
-const { createIntelligence, resolveAssociation, RESPONSE_STYLE } = require('./intelligence');
+const { createIntelligence, resolveAssociation, RESPONSE_STYLE, commercialLeadContext, isGenericLeadQuestion } = require('./intelligence');
 
 function record(id, text, overrides) {
   return { id, chatId: '573001112233@c.us', phone: '573001112233', lid: null,
@@ -33,6 +33,125 @@ function setup(items, overrides) {
   });
   return { dataDir, intelligence, cleanup: () => fs.rmSync(dataDir, { recursive: true, force: true }) };
 }
+
+
+test('generic campaign questions never imply a product without verified evidence', () => {
+  for (const question of ['Qué costo tiene?', '¿Qué precio tiene?', 'Me das información?', 'Quiero cotizar', 'Qué es eso?']) {
+    assert.equal(isGenericLeadQuestion(question), true, question);
+    const g = commercialLeadContext(record('lead', question), {}, []);
+    assert.equal(g.product, null);
+    assert.equal(g.nextInformation, 'PRODUCT');
+  }
+  assert.equal(isGenericLeadQuestion('Para mi sala quiero Onda Serena'), false);
+  const unverified = commercialLeadContext(record('lead', 'Qué costo tiene?', {
+    commercialOrigin: { verified: false, headline: 'Onda Serena' }
+  }), {}, []);
+  assert.equal(unverified.product, null);
+});
+
+test('verified Meta referral can identify known product but cannot assert missing measurements', () => {
+  const lead = record('meta', 'Qué costo tiene?', {
+    commercialOrigin: { verified: true, headline: 'Persianas Onda Serena', platform: 'FACEBOOK' }
+  });
+  const g = commercialLeadContext(lead, {}, []);
+  assert.equal(g.product, 'Onda Serena');
+  assert.equal(g.productSource, 'VERIFIED_REFERRAL');
+  assert.equal(g.hasMeasurements, false);
+  assert.equal(g.nextInformation, 'MEASUREMENTS');
+  assert.equal(g.originVerified, true);
+});
+
+test('commercial guidance remembers dimensions from one recent opportunity and avoids re-asking', () => {
+  const client = {};
+  const date = '2026-11-05T13:00:00.000Z';
+  const product = { product: 'Onda Serena', status: 'OPEN', updatedAt: '2026-11-05T12:00:00.000Z',
+    measurements: [{ width: 1.8, height: 1.5, unit: 'm' }], environments: [] };
+  const g = commercialLeadContext(record('quote', 'Qué costo tiene?', { at: date }), client, [product]);
+  assert.equal(g.product, 'Onda Serena');
+  assert.equal(g.nextInformation, 'ENVIRONMENT');
+  const completed = commercialLeadContext(record('quote', 'Qué costo tiene?', { at: date }), client,
+    [{ ...product, environments: ['habitación'] }]);
+  assert.equal(completed.nextInformation, 'QUOTE_REVIEW');
+  const ambiguous = commercialLeadContext(record('quote', 'Qué costo tiene?', { at: date }), client,
+    [product, { ...product, product: 'Blackout' }]);
+  assert.equal(ambiguous.product, null);
+});
+
+test('REVIEW drafts respond to generic lead naturally and never send or create visits', async t => {
+  const item = record('meta-lead', 'Qué costo tiene?', { at: '2026-11-05T12:00:00.000Z' });
+  const env = setup([item], { analyze: async () => ({
+    result: result({ intent: 'QUOTE_REQUEST', nextAction: 'REQUEST_QUOTE_DETAILS',
+      suggestedResponse: '¡Hola! Con gusto te cotizamos.' })
+  }) });
+  t.after(env.cleanup);
+  const r = await env.intelligence.process({}, { limit: 1 });
+  assert.equal(r.processed, 1);
+  const analysis = env.intelligence.list({}).items[0];
+  assert.match(analysis.result.suggestedResponse, /^Hola, cómo estás\? 😊/);
+  assert.match(analysis.result.suggestedResponse, /qué estás buscando para tu ventana/i);
+  assert.doesNotMatch(analysis.result.suggestedResponse, /soy Daniela|soy un bot/i);
+  assert.equal(analysis.audit.sent, false);
+  assert.equal(analysis.audit.agendaCreated, false);
+});
+
+test('REVIEW asks dimensions for evidence-backed Onda Serena, not generic product questions', async t => {
+  const item = record('meta-product', 'Qué precio tiene?', {
+    at: '2026-11-05T12:00:00.000Z',
+    commercialOrigin: { verified: true, headline: 'Onda Serena', platform: 'INSTAGRAM' }
+  });
+  const env = setup([item], { analyze: async () => ({
+    result: result({ suggestedResponse: '¡Hola! Me cuentas qué buscas?' })
+  }) });
+  t.after(env.cleanup);
+  await env.intelligence.process({}, {});
+  const analysis = env.intelligence.list({}).items[0];
+  assert.equal(analysis.result.productInterest, 'Onda Serena');
+  assert.match(analysis.result.suggestedResponse, /medidas aproximadas de tu ventana/i);
+  assert.equal(analysis.audit.sent, false);
+});
+
+test('HomeEasy natural language never claims measurements belong to a product', async t => {
+  const item = record('natural-onda', 'Qué precio tiene?', { at: '2026-11-05T13:00:00.000Z' });
+  const known = [{
+    clientId: 'same-customer', product: 'Onda Serena', status: 'OPEN',
+    updatedAt: '2026-11-05T12:00:00.000Z', measurements: [{ width: 1.8, height: 1.5, unit: 'm' }],
+    environments: []
+  }];
+  const knownContext = commercialLeadContext(item, {}, known);
+  assert.equal(knownContext.nextInformation, 'ENVIRONMENT');
+  const proposal = require('./intelligence').applyLeadReview(
+    result({ productInterest: 'Onda Serena' }), knownContext
+  ).suggestedResponse;
+  assert.match(proposal, /gracias por las medidas/i);
+  assert.match(proposal, /esa cortina sería para/);
+  assert.doesNotMatch(proposal, /medidas de Onda Serena|te ayudo con Onda Serena/i);
+  const sheer = require('./intelligence').applyLeadReview(
+    result({ productInterest: 'Sheer Elegance' }), {
+      ...knownContext, product: 'Sheer Elegance'
+    }
+  ).suggestedResponse;
+  assert.match(sheer, /esa persiana sería para/);
+});
+
+test('a panel japonés uses a natural masculine article in a client reply', () => {
+  const lead = require('./intelligence').applyLeadReview(
+    result({ productInterest: 'Panel Japonés' }), {
+      genericQuestion: true, product: 'Panel Japonés',
+      hasMeasurements: true, environmentKnown: false, nextInformation: 'ENVIRONMENT'
+    }
+  );
+  assert.match(lead.suggestedResponse, /ese panel japonés sería/);
+  assert.doesNotMatch(lead.suggestedResponse, /esa panel japonés sería/);
+});
+
+test('sales prompt contract names campaign CTA, verified context and no fabricated quotes', () => {
+  const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
+  assert.match(server, /leadGuidance/);
+  assert.match(server, /pregunta predefinida del anuncio/);
+  assert.match(server, /No presupongas el producto/);
+  assert.match(server, /tarifas certificadas/);
+  assert.match(server, /sin fingir que Daniela escribió/);
+});
 
 test('acceptance: Onda Serena + visita stays in REVIEW and does not confirm availability', async t => {
   const env = setup([record('m1', 'Hola, quiero información de las persianas onda serena. Puedo agendar una visita?')], {
