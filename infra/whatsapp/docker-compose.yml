@@ -60,6 +60,8 @@ services:
       HOMMY_INBOX_ENABLED: ${HOMMY_INBOX_ENABLED:-false}
       HOMMY_INBOX_WEBHOOK_SECRET: ${HOMMY_INBOX_WEBHOOK_SECRET:-}
       HOMMY_INBOX_MAX_BODY_KB: ${HOMMY_INBOX_MAX_BODY_KB:-256}
+      HOMMY_INTELLIGENCE_ENABLED: ${HOMMY_INTELLIGENCE_ENABLED:-false}
+      HOMMY_BACKEND_URL: ${HOMMY_BACKEND_URL:-https://homeeasy-hommy-staging.onrender.com}
     volumes:
       - ./data/bridge:/app/data
       - ./maintenance-runtime:/app/maintenance

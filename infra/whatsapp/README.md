@@ -161,6 +161,25 @@ El kill switch persistente usa `POST /api/whatsapp/inbox/disable`; para retirar 
 marcador usa `POST /api/whatsapp/inbox/enable`. Ambos requieren `config.write`. La bandera
 `HOMMY_INBOX_ENABLED=false` siempre prevalece.
 
+### Inteligencia comercial Hommy (REVIEW)
+
+Esta fase depende del PR #104 (`feat/hommy-whatsapp-inbox-shadow`, base `dcd018b`). No envía mensajes ni crea citas. El
+procesamiento es explícito, usa la sesión y permisos actuales de HomeEasy y queda apagado
+por defecto con `HOMMY_INTELLIGENCE_ENABLED=false`.
+
+```text
+POST /api/whatsapp/intelligence/process   (cotizaciones.read)
+GET  /api/whatsapp/intelligence?offset=0&limit=50   (cotizaciones.read)
+POST /api/whatsapp/intelligence/disable   (config.write)
+POST /api/whatsapp/intelligence/enable    (config.write)
+```
+
+Despliegue conservador: actualizar el Bridge dejando la bandera en `false`, comprobar
+`/health` y `/api/whatsapp/status`, y verificar que WAHA siga `WORKING`. La habilitación
+posterior requiere autorización expresa, cambiar sólo la bandera y ejecutar el proceso
+manualmente con un usuario autorizado. El estado recuperable vive en
+`data/bridge/hommy-intelligence`; el rollback del actualizador también lo respalda.
+
 ### Estado WhatsApp
 
 ```text

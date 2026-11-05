@@ -260,6 +260,55 @@ async function readFollowupDetail(req, number) {
   return data;
 }
 
+async function readFollowupList(req) {
+  const token = String(req && req.headers && req.headers['x-homeeasy-session'] || '').trim();
+  const deviceMeta = requestDeviceMeta(req);
+  if (!token) throw authError('HomeEasy session required', 401);
+  if (!deviceMeta.dispositivoId) {
+    throw authError('HomeEasy device context required', 401, { code: 'DEVICE_CONTEXT_REQUIRED' });
+  }
+
+  let response;
+  try {
+    response = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        tipo: 'GET_SEGUIMIENTO_INTELIGENTE',
+        appSessionToken: token,
+        meta: {
+          dispositivoId: deviceMeta.dispositivoId,
+          dispositivoNombre: String(deviceMeta.dispositivoNombre || 'HomeEasy Web').trim().slice(0, 120),
+          plataforma: String(deviceMeta.plataforma || '').trim().slice(0, 80),
+          navegador: String(deviceMeta.navegador || '').trim().slice(0, 80),
+          pagina: 'hommy-intelligence-review',
+          versionApp: '0.8.0',
+          origen: 'HomeEasy WhatsApp Bridge'
+        }
+      }),
+      redirect: 'follow',
+      signal: AbortSignal.timeout(18000)
+    });
+  } catch (_) {
+    throw authError('HomeEasy follow-up service unavailable', 502, { code: 'FOLLOWUP_UPSTREAM_UNAVAILABLE' });
+  }
+  const text = await response.text().catch(() => '');
+  let data = null;
+  try { data = JSON.parse(text); } catch (_) {}
+  if (!response.ok || !data) {
+    throw authError('HomeEasy follow-up service returned an invalid response', 502, { code: 'FOLLOWUP_UPSTREAM_INVALID' });
+  }
+  const code = String(data.code || '').trim();
+  if (code === 'PERMISSION_DENIED') throw authError('HomeEasy permission denied', 403, { code });
+  if (['APP_SESSION_EXPIRED', 'APP_SESSION_REJECTED', 'NO_SESSION'].includes(code)) {
+    throw authError('HomeEasy session is not valid', 401, { code });
+  }
+  if (!['ok', 'success'].includes(String(data.status || '').toLowerCase())) {
+    throw authError('HomeEasy follow-up list unavailable', 502, code ? { code } : undefined);
+  }
+  return data;
+}
+
 
 function assertPermission(actor, required) {
   if (!required || actor && actor.internal) return true;
@@ -296,6 +345,7 @@ module.exports = Object.freeze({
   isInternal,
   authorize,
   readFollowupDetail,
+  readFollowupList,
   assertPermission,
   publicActor
 });

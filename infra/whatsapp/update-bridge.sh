@@ -19,6 +19,7 @@ BRIDGE_FILES=(
   operations.js
   conversation.js
   inbox.js
+  intelligence.js
   maintenance.js
   Dockerfile
   package.json
@@ -100,8 +101,8 @@ if [[ -z "${WAHA_API_KEY:-}" || -z "${BRIDGE_TOKEN:-}" ]]; then
   echo "WAHA_API_KEY o BRIDGE_TOKEN no están configurados en .env."
   exit 1
 fi
-if [[ "${HOMMY_INBOX_ENABLED:-false}" == "true" ]]; then
-  echo "HOMMY_INBOX_ENABLED ya está activo. Este despliegue inicial exige false o variable ausente."
+if [[ "${HOMMY_INTELLIGENCE_ENABLED:-false}" == "true" ]]; then
+  echo "HOMMY_INTELLIGENCE_ENABLED ya está activo. El despliegue inicial exige false o variable ausente."
   exit 1
 fi
 
@@ -160,6 +161,9 @@ for file in "${BRIDGE_FILES[@]}"; do
 done
 if [[ -d "$INSTALL_DIR/data/bridge/hommy-inbox" ]]; then
   tar -czf "$BACKUP_DIR/hommy-inbox.tar.gz" -C "$INSTALL_DIR/data/bridge" hommy-inbox
+fi
+if [[ -d "$INSTALL_DIR/data/bridge/hommy-intelligence" ]]; then
+  tar -czf "$BACKUP_DIR/hommy-intelligence.tar.gz" -C "$INSTALL_DIR/data/bridge" hommy-intelligence
 fi
 find "$INSTALL_DIR/data/bridge" -maxdepth 2 -type f -printf '%P\t%s bytes\n' \
   >"$BACKUP_DIR/data-bridge-manifest.txt"
