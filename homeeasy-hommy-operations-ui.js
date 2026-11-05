@@ -66,6 +66,7 @@
       '<button type="button" id="heHommyToggle" class="he-hommy-ops-btn primary" disabled>Pausar Hommy</button>' +
       '<button type="button" id="heHommyGroupLink" class="he-hommy-ops-btn">Vincular grupo</button>' +
       '<button type="button" id="heHommyGroupToggle" class="he-hommy-ops-btn" hidden>Activar grupo</button>' +
+      '<button type="button" id="heHommyCommands" class="he-hommy-ops-btn">Órdenes (0)</button>' +
       '<button type="button" id="heHommyRefresh" class="he-hommy-ops-btn">Actualizar</button></div>' +
       '<div id="heHommyNote" class="he-hommy-ops-foot" role="status">Esta función no desconecta WhatsApp ni afecta los comprobantes.</div>';
     panel.appendChild(card);
@@ -73,6 +74,7 @@
     document.getElementById('heHommyRefresh').addEventListener('click', () => load(true));
     document.getElementById('heHommyGroupLink').addEventListener('click', linkTeamGroup);
     document.getElementById('heHommyGroupToggle').addEventListener('click', toggleTeamGroup);
+    document.getElementById('heHommyCommands').addEventListener('click', viewTeamCommands);
     mounted = true;
     if (panel.classList.contains('active')) load(false);
   }
@@ -101,6 +103,7 @@
         control.team && control.team.enabled ? 'Grupo habilitado' :
         control.team && control.team.configured ? 'Grupo listo, inactivo' : 'Grupo sin vincular';
       document.getElementById('heHommyTasks').textContent = String(control.pendingTasks || 0);
+      document.getElementById('heHommyCommands').textContent = 'Órdenes (' + String(control.pendingTeamCommands || 0) + ')';
       toggleButton.textContent = control.mode === 'REVIEW' ? 'Pausar Hommy' : 'Reanudar supervisión';
       toggleButton.disabled = !canConfigure();
       noteEl.textContent = 'El interruptor controla solo la inteligencia comercial. WhatsApp, pedidos, recibos y Pentagrama siguen disponibles.';
@@ -209,10 +212,10 @@
         loadMembers();
       },
       preConfirm:() => {
-        if (loadingMembers) return global.Swal.showValidationMessage('Estamos consultando los participantes.');
+        if (loadingMembers) { global.Swal.showValidationMessage('Estamos consultando los participantes.'); return false; }
         const groupId = document.getElementById('heHommyGroupSelect').value;
         const selected = Array.from(document.querySelectorAll('input[name="heHommyTeamMember"]:checked')).map(el => el.value);
-        if (!selected.length) return global.Swal.showValidationMessage('Selecciona al menos una cuenta autorizada.');
+        if (!selected.length) { global.Swal.showValidationMessage('Selecciona al menos una cuenta autorizada.'); return false; }
         return { groupId, allowedSenders:selected, enabled:true };
       }
     });
@@ -223,6 +226,41 @@
     } catch (e) {
       await load(false);
       global.Swal.fire({ icon:'error', title:'No se pudo vincular el grupo',
+        text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
+    }
+  }
+
+  async function viewTeamCommands() {
+    if (!global.Swal || !global.HomeEasyWhatsApp.hommyWorkspace) return;
+    try {
+      const payload = await global.HomeEasyWhatsApp.hommyWorkspace(20);
+      const commands = Array.isArray(payload.teamCommands) ? payload.teamCommands : [];
+      await global.Swal.fire({
+        title:'Órdenes del equipo',
+        html:'<div id="heHommyCommandList" style="display:grid;gap:9px;max-height:50vh;overflow:auto;text-align:left"></div>',
+        confirmButtonText:'Cerrar', confirmButtonColor:'#a6455a', width:510,
+        didOpen:() => {
+          const node = document.getElementById('heHommyCommandList');
+          if (!commands.length) { node.textContent = 'Aún no hay órdenes del grupo registradas.'; return; }
+          for (const item of commands) {
+            const card = document.createElement('div');
+            card.style.cssText = 'border:1px solid #ede6e9;border-radius:12px;padding:12px';
+            const heading = document.createElement('strong');
+            heading.style.cssText = 'display:block;font-size:12px;color:#a6455a';
+            heading.textContent = item.status === 'REVIEW_REQUIRED' ? 'Pendiente de revisión' : 'Consulta registrada';
+            const question = document.createElement('p');
+            question.style.cssText = 'font-size:12px;margin:7px 0';
+            question.textContent = item.command || '';
+            const preview = document.createElement('small');
+            preview.style.cssText = 'font-size:11px;color:#81777d;line-height:1.4';
+            preview.textContent = item.preview || '';
+            card.append(heading, question, preview);
+            node.appendChild(card);
+          }
+        }
+      });
+    } catch (e) {
+      global.Swal.fire({ icon:'error', title:'No se pudieron consultar las órdenes',
         text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
     }
   }
