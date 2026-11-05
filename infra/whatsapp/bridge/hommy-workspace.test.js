@@ -104,6 +104,27 @@ test('instructions to contact a customer remain pending approval and no outbound
   assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ id: 'send2' })).reason, 'DISABLED');
 });
 
+test('damaged optional workspace fails closed without blocking Bridge startup or overwriting the file', t => {
+  const v = setup(); t.after(v.cleanup);
+  const file = path.join(v.options.dataDir, 'hommy-workspace', 'state.json');
+  fs.writeFileSync(file, '{bad-json', { mode: 0o600 });
+  const recovered = createHommyWorkspace(v.options);
+  assert.equal(recovered.status().available, false);
+  assert.equal(recovered.status().mode, 'PAUSED');
+  assert.equal(recovered.ingestSignedGroupEvent(groupEvent()).accepted, false);
+  assert.throws(() => recovered.configure({ mode: 'REVIEW' }), x => x.statusCode === 503);
+  assert.equal(fs.readFileSync(file, 'utf8'), '{bad-json');
+});
+
+test('optional UI does not touch Hommy chat and uses authorized client methods', () => {
+  const js = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'homeeasy-hommy-operations-ui.js'), 'utf8');
+  const config = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'configuracion.html'), 'utf8');
+  assert.match(config, /homeeasy-hommy-operations-ui\.js/);
+  assert.match(js, /panel-integraciones/);
+  assert.match(js, /HomeEasyWhatsApp\.saveHommyControl/);
+  assert.doesNotMatch(js, /restart\(|bootstrap\(|Hommychat\.html|document\.body\.innerHTML/);
+});
+
 test('server endpoints require authorization and verified HMAC before group capture', () => {
   const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
   const scope = server.slice(server.indexOf("if (req.method === 'POST' && url.pathname === '/api/whatsapp/webhook')"));
