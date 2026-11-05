@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const operational = require('./operational-overview');
 
 const LABELS = Object.freeze(['NUEVO', 'COTIZACION', 'VISITA', 'SEGUIMIENTO', 'VENTA', 'PENDIENTE', 'ATENCION_HUMANA']);
 const STATUSES = Object.freeze(['PENDIENTE', 'EN_CURSO', 'COMPLETADA', 'CANCELADA']);
@@ -76,6 +77,7 @@ function createHommyWorkspace(options = {}) {
   const hasClient = options.hasClient || (() => false);
   const session = clean(options.session || 'homeeasy', 120);
   const limit = 250;
+  const readOverview = operational.createOverview(options.dataDir || '/app/data');
 
   function persist(action, actor) {
     if (corrupted) throw err('Hommy workspace requires recovery; other Bridge services remain available', 'HOMMY_WORKSPACE_UNAVAILABLE', 503);
@@ -220,13 +222,11 @@ function createHommyWorkspace(options = {}) {
     const body = clean(p.body || p.text || p.caption, 700);
     if (!/^hommy\b[,\s:!?-]*/i.test(body)) return { accepted: false, reason: 'NOT_MENTIONED' };
     const command = body.replace(/^hommy\b[,\s:!?-]*/i, '').trim();
-    const query = command.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const info = /^(?:pendientes|que pendientes|mensajes sin responder)\b/.test(query);
-    const pending = data.tasks.filter(t => ['PENDIENTE', 'EN_CURSO'].includes(t.status)).length;
-    const preview = info ?
-      (pending ? 'Hay ' + pending + ' tareas registradas pendientes en HomeEasy.' : 'No hay tareas manuales registradas pendientes. Esto no incluye chats sin revisar.') :
-      'Solicitud recibida. Identifica al cliente y revisa la acción en HomeEasy antes de cualquier envío.';
-    const status = info ? 'INFORMATION' : 'REVIEW_REQUIRED';
+    const queryType = operational.classify(command);
+    const status = queryType ? 'INFORMATION' : 'REVIEW_REQUIRED';
+    const preview = queryType
+      ? operational.preview(queryType, data.tasks, data.labels, readOverview())
+      : 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de enviar mensajes.';
     data.commands.push({ id, at: new Date().toISOString(), author, command: command.slice(0, 500), preview, status });
     data.commands = data.commands.slice(-limit);
     data.seen.push(id);

@@ -10,6 +10,7 @@ COPY conversation.js ./
 COPY inbox.js ./
 COPY intelligence.js ./
 COPY hommy-workspace.js ./
+COPY operational-overview.js ./
 COPY maintenance.js ./
 COPY pentagrama-sync ./pentagrama-sync
 COPY pentagrama-agents ./pentagrama-agents
