@@ -1,6 +1,6 @@
 services:
   waha:
-    image: devlikeapro/waha:chrome-2026.9.1
+    image: devlikeapro/waha:chrome-2026.10.1
     container_name: homeeasy-waha
     restart: unless-stopped
     env_file:
@@ -16,6 +16,9 @@ services:
       WHATSAPP_RESTART_ALL_SESSIONS: "true"
       WAHA_AUTO_START_DELAY_SECONDS: "5"
       WAHA_PRINT_QR: "true"
+      WHATSAPP_HOOK_URL: ${HOMMY_INBOX_WEBHOOK_URL:-}
+      WHATSAPP_HOOK_EVENTS: message
+      WHATSAPP_HOOK_HMAC_KEY: ${HOMMY_INBOX_WEBHOOK_SECRET:-}
       WAHA_CLIENT_DEVICE_NAME: HomeEasy
       WAHA_CLIENT_BROWSER_NAME: Chrome
     volumes:
@@ -54,6 +57,9 @@ services:
       HOMEEASY_PENTAGRAMA_SYNC_KEY: ${HOMEEASY_PENTAGRAMA_SYNC_KEY:-}
       MAX_BODY_MB: ${MAX_BODY_MB:-18}
       DATA_DIR: /app/data
+      HOMMY_INBOX_ENABLED: ${HOMMY_INBOX_ENABLED:-false}
+      HOMMY_INBOX_WEBHOOK_SECRET: ${HOMMY_INBOX_WEBHOOK_SECRET:-}
+      HOMMY_INBOX_MAX_BODY_KB: ${HOMMY_INBOX_MAX_BODY_KB:-256}
     volumes:
       - ./data/bridge:/app/data
       - ./maintenance-runtime:/app/maintenance
