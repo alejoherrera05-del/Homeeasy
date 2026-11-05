@@ -1149,8 +1149,10 @@ async function handle(req, res) {
     const raw = await wahaRequest('GET', '/api/' + encodeURIComponent(WAHA_SESSION) +
       '/groups?limit=30&offset=0', undefined, 'application/json', 8000);
     const rows = Array.isArray(raw) ? raw : Array.isArray(raw.items) ? raw.items : [];
+    const jid = id => typeof id === 'string' ? id
+      : id && typeof id === 'object' ? String(id._serialized || id.id || '') : '';
     const groups = rows.map(row => ({
-      id: String(row.id || row.group && row.group.id || ''),
+      id: jid(row.id || row.group && row.group.id),
       subject: String(row.subject || row.name || row.group && row.group.subject || 'Grupo sin nombre').slice(0, 100)
     })).filter(g => /^\d{8,22}(?:-\d{1,22})?@g\.us$/.test(g.id)).slice(0, 30);
     return json(res, 200, { ok: true, groups });
@@ -1165,8 +1167,9 @@ async function handle(req, res) {
       '/groups/' + encodeURIComponent(groupId) + '/participants/v2', undefined, 'application/json', 8000);
     const rows = Array.isArray(raw) ? raw : Array.isArray(raw.participants) ? raw.participants : [];
     const members = rows.map(row => ({
-      id: String(row.id || ''), role: String(row.role || 'participant')
-    })).filter(m => /^\d{8,22}@(c\.us|lid)$/.test(m.id)).slice(0, 100);
+      id: jid(row.id), role: String(row.role || 'participant')
+    })).filter(m => /^\d{8,22}@(c\.us|lid)$/.test(m.id) &&
+      m.role !== 'left').slice(0, 100);
     return json(res, 200, { ok: true, groupId, members });
   }
 
