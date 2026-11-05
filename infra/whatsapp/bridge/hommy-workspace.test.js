@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { createHommyWorkspace, LABELS } = require('./hommy-workspace');
+const { createHommyWorkspace, LABELS, mappedSenderAlias } = require('./hommy-workspace');
 
 const CID = 'client_' + 'a'.repeat(20);
 const STAFF = '573001112233@c.us';
@@ -102,6 +102,60 @@ test('instructions to contact a customer remain pending approval and no outbound
   assert.equal(v.workspace.status().pendingTeamCommands, 1);
   v.workspace.configure({ mode: 'PAUSED' });
   assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ id: 'send2' })).reason, 'DISABLED');
+});
+
+test('verified WEBJS LID mapping identifies the allowed group member without weakening whitelist', t => {
+  const v = setup(); t.after(v.cleanup);
+  v.workspace.configure({ team: { groupId: GROUP, allowedSenders: [STAFF], enabled: true } });
+  const lid = '123456789012345@lid';
+  const event = groupEvent({ author: lid, id: 'lid-proof' });
+  assert.equal(v.workspace.ingestSignedGroupEvent(event).reason, 'UNAUTHORIZED_AUTHOR');
+  assert.equal(mappedSenderAlias(lid, { lid, pn: STAFF }), STAFF);
+  const accepted = v.workspace.ingestSignedGroupEvent(event, { lid, pn: STAFF });
+  assert.equal(accepted.accepted, true);
+  assert.equal(accepted.status, 'INFORMATION');
+  assert.equal(v.workspace.dashboard().teamCommands.length, 1);
+  assert.equal(v.workspace.ingestSignedGroupEvent(event, { lid, pn: STAFF }).reason, 'DUPLICATE');
+});
+
+test('invalid or unrelated LID mappings cannot elevate a stranger or wrong group', t => {
+  const v = setup(); t.after(v.cleanup);
+  v.workspace.configure({ team: { groupId: GROUP, allowedSenders: [STAFF], enabled: true } });
+  const other = '123456789012345@lid';
+  const stranger = groupEvent({ author: other, id: 'stranger' });
+  const wrongPair = { lid: '987654321098765@lid', pn: STAFF };
+  const noPhone = { lid: other, pn: null };
+  assert.equal(mappedSenderAlias(other, wrongPair), '');
+  assert.equal(mappedSenderAlias(other, noPhone), '');
+  assert.equal(v.workspace.ingestSignedGroupEvent(stranger, wrongPair).reason, 'UNAUTHORIZED_AUTHOR');
+  assert.equal(v.workspace.ingestSignedGroupEvent(stranger, noPhone).reason, 'UNAUTHORIZED_AUTHOR');
+  assert.equal(v.workspace.ingestSignedGroupEvent(stranger, { lid: other, pn: '573999999999@c.us' }).reason, 'UNAUTHORIZED_AUTHOR');
+  assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ author: other, id: 'wrong-group', group: '987654321012@g.us' }),
+    { lid: other, pn: STAFF }).reason, 'OTHER_GROUP');
+  assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ author: other, id: 'own', fromMe: true }),
+    { lid: other, pn: STAFF }).reason, 'NOT_INBOUND');
+  assert.equal(v.workspace.dashboard().teamCommands.length, 0);
+});
+
+test('reverse LID lookup authorizes phone-backed event only via WAHA-confirmed pair', t => {
+  const v = setup(); t.after(v.cleanup);
+  const lid = '123456789012345@lid';
+  v.workspace.configure({ team: { groupId: GROUP, allowedSenders: [lid], enabled: true } });
+  const alias = mappedSenderAlias(STAFF, { lid, pn: STAFF });
+  assert.equal(alias, lid);
+  assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ author: STAFF }), { lid, pn: STAFF }).accepted, true);
+});
+
+test('webhook performs a bounded read-only LID lookup after signature verification', () => {
+  const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
+  const segment = server.slice(server.indexOf("url.pathname === '/api/whatsapp/webhook'"),
+    server.indexOf("url.pathname === '/api/whatsapp/inbox'"));
+  assert.match(segment, /hommyInbox\.ingest\(raw, req\.headers\)/);
+  assert.match(segment, /wahaRequest\('GET'/);
+  assert.match(segment, /\/lids\/pn\//);
+  assert.match(segment, /2500/);
+  assert.ok(segment.indexOf('hommyInbox.ingest(raw, req.headers)') < segment.indexOf("wahaRequest('GET'"));
+  assert.doesNotMatch(segment, /wahaRequest\('POST'|sendText|sendDocument|force-recreate/);
 });
 
 test('damaged optional workspace fails closed without blocking Bridge startup or overwriting the file', t => {
