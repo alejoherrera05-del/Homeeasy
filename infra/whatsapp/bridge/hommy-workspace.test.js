@@ -183,6 +183,87 @@ test('webhook performs a bounded read-only LID lookup after signature verificati
   assert.doesNotMatch(segment, /wahaRequest\('POST'|sendText|sendDocument|force-recreate/);
 });
 
+test('team activity counts informational queries separately from pending review actions', t => {
+  const v = setup(); t.after(v.cleanup);
+  v.workspace.configure({ team: { groupId: GROUP, allowedSenders: [STAFF], enabled: true } });
+  v.workspace.ingestSignedGroupEvent(groupEvent({ id: 'info-1' }));
+  assert.equal(v.workspace.status().totalTeamCommands, 1);
+  assert.equal(v.workspace.status().pendingTeamCommands, 0);
+  v.workspace.ingestSignedGroupEvent(groupEvent({ id: 'action-1', body: 'Hommy, avisa al cliente que vamos en camino' }));
+  assert.equal(v.workspace.status().totalTeamCommands, 2);
+  assert.equal(v.workspace.status().pendingTeamCommands, 1);
+});
+
+test('internal replies are off by default and may only be enabled for an authorized group in REVIEW', t => {
+  const v = setup(); t.after(v.cleanup);
+  assert.equal(v.workspace.status().team.replyEnabled, false);
+  assert.throws(() => v.workspace.configure({ team: { replyEnabled: true } }), /active group/);
+  v.workspace.configure({ team: { groupId: GROUP, allowedSenders: [STAFF], enabled: true } });
+  assert.equal(v.workspace.status().team.replyEnabled, false);
+  assert.throws(() => v.workspace.configure({ team: { replyEnabled: 'true' } }), /active group/);
+  v.workspace.configure({ team: { replyEnabled: true } });
+  assert.equal(v.workspace.status().team.replyEnabled, true);
+  v.workspace.configure({ mode: 'PAUSED' });
+  assert.equal(v.workspace.status().team.replyEnabled, false);
+  assert.equal(v.workspace.status().mode, 'PAUSED');
+  v.workspace.configure({ mode: 'REVIEW' });
+  assert.equal(v.workspace.status().team.replyEnabled, false);
+});
+
+test('only authorized informational group queries can reserve a single durable reply', t => {
+  const v = setup(); t.after(v.cleanup);
+  v.workspace.configure({ team: { groupId: GROUP, allowedSenders: [STAFF], enabled: true } });
+  const received = v.workspace.ingestSignedGroupEvent(groupEvent({ id:'test-info' }));
+  assert.equal(received.accepted, true);
+  assert.equal(v.workspace.reserveTeamReply('test-info'), null);
+  v.workspace.configure({ team: { replyEnabled:true } });
+  const reserved = v.workspace.reserveTeamReply('test-info');
+  assert.ok(reserved);
+  assert.equal(reserved.groupId, GROUP);
+  assert.match(reserved.text, /No hay tareas manuales registradas/i);
+  assert.equal(v.workspace.reserveTeamReply('test-info'), null);
+  const restarted = createHommyWorkspace(v.options);
+  assert.equal(restarted.reserveTeamReply('test-info'), null);
+  assert.equal(restarted.dashboard().teamCommands[0].replyStatus, 'SENDING');
+  assert.equal(restarted.finishTeamReply('test-info', false), true);
+  assert.equal(restarted.dashboard().teamCommands[0].replyStatus, 'UNKNOWN');
+  assert.equal(restarted.reserveTeamReply('test-info'), null);
+  assert.equal(restarted.finishTeamReply('test-info', true), false);
+  assert.equal(v.workspace.reserveTeamReply('another-id'), null);
+});
+
+test('internal reply cannot be sent for instructions, strangers, wrong groups or while paused', t => {
+  const v = setup(); t.after(v.cleanup);
+  v.workspace.configure({ team: { groupId: GROUP, allowedSenders: [STAFF], enabled:true, replyEnabled:true } });
+  const action = v.workspace.ingestSignedGroupEvent(groupEvent({ id:'no-send-action', body:'Hommy, avisa al cliente' }));
+  assert.equal(action.status, 'REVIEW_REQUIRED');
+  assert.equal(v.workspace.reserveTeamReply(action.id), null);
+  assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ id:'other-group', group:'987654321012@g.us' })).accepted, false);
+  assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ id:'other-author', author:'573999999999@c.us' })).accepted, false);
+  assert.equal(v.workspace.reserveTeamReply('other-group'), null);
+  assert.equal(v.workspace.reserveTeamReply('other-author'), null);
+  const info = v.workspace.ingestSignedGroupEvent(groupEvent({ id:'before-pause' }));
+  assert.equal(info.status, 'INFORMATION');
+  v.workspace.configure({ mode:'PAUSED' });
+  assert.equal(v.workspace.reserveTeamReply(info.id), null);
+});
+
+test('group response sender has fixed group destination and durable duplicate lock', () => {
+  const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
+  const webhook = server.slice(server.indexOf("url.pathname === '/api/whatsapp/webhook'"),
+    server.indexOf("url.pathname === '/api/whatsapp/inbox'"));
+  assert.match(webhook, /hommyWorkspace\.reserveTeamReply\(group\.id\)/);
+  assert.match(webhook, /group\.status === 'INFORMATION'/);
+  assert.match(webhook, /chatId: reserved\.groupId/);
+  assert.match(webhook, /hommyWorkspace\.finishTeamReply\(reserved\.commandId, true\)/);
+  assert.match(webhook, /hommyWorkspace\.finishTeamReply\(reserved\.commandId, false\)/);
+  assert.doesNotMatch(webhook, /phone:|cliente\.telefono|cotizacion|sendDocument/);
+  const js = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'homeeasy-hommy-operations-ui.js'), 'utf8');
+  assert.match(js, /totalTeamCommands/);
+  assert.match(js, /team:\{ replyEnabled: enabled \}/);
+  assert.match(js, /Activar respuestas internas/);
+});
+
 test('damaged optional workspace fails closed without blocking Bridge startup or overwriting the file', t => {
   const v = setup(); t.after(v.cleanup);
   const file = path.join(v.options.dataDir, 'hommy-workspace', 'state.json');
