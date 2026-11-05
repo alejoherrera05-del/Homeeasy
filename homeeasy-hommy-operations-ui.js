@@ -66,7 +66,8 @@
       '<button type="button" id="heHommyToggle" class="he-hommy-ops-btn primary" disabled>Pausar Hommy</button>' +
       '<button type="button" id="heHommyGroupLink" class="he-hommy-ops-btn">Vincular grupo</button>' +
       '<button type="button" id="heHommyGroupToggle" class="he-hommy-ops-btn" hidden>Activar grupo</button>' +
-      '<button type="button" id="heHommyCommands" class="he-hommy-ops-btn">Órdenes (0)</button>' +
+      '<button type="button" id="heHommyReplies" class="he-hommy-ops-btn" hidden>Activar respuestas internas</button>' +
+      '<button type="button" id="heHommyCommands" class="he-hommy-ops-btn">Actividad (0)</button>' +
       '<button type="button" id="heHommyRefresh" class="he-hommy-ops-btn">Actualizar</button></div>' +
       '<div id="heHommyNote" class="he-hommy-ops-foot" role="status">Esta función no desconecta WhatsApp ni afecta los comprobantes.</div>';
     panel.appendChild(card);
@@ -75,6 +76,7 @@
     document.getElementById('heHommyGroupLink').addEventListener('click', linkTeamGroup);
     document.getElementById('heHommyGroupToggle').addEventListener('click', toggleTeamGroup);
     document.getElementById('heHommyCommands').addEventListener('click', viewTeamCommands);
+    document.getElementById('heHommyReplies').addEventListener('click', toggleTeamReplies);
     mounted = true;
     if (panel.classList.contains('active')) load(false);
   }
@@ -97,16 +99,21 @@
       teamToggle.hidden = !(teamState && teamState.configured);
       teamToggle.disabled = !canConfigure();
       teamToggle.textContent = teamState && teamState.enabled ? 'Pausar grupo' : 'Activar grupo';
+      const replyToggle = document.getElementById('heHommyReplies');
+      replyToggle.hidden = !(teamState && teamState.enabled);
+      replyToggle.disabled = !canConfigure() || control.mode !== 'REVIEW';
+      replyToggle.textContent = teamState && teamState.replyEnabled === true ?
+        'Desactivar respuestas internas' : 'Activar respuestas internas';
       modeEl.className = 'he-hommy-ops-status' + (control.mode === 'REVIEW' ? ' review' : '');
       modeEl.textContent = control.mode === 'REVIEW' ? 'Supervisado' : 'Pausado';
       document.getElementById('heHommyGroup').textContent =
         control.team && control.team.enabled ? 'Grupo habilitado' :
         control.team && control.team.configured ? 'Grupo listo, inactivo' : 'Grupo sin vincular';
       document.getElementById('heHommyTasks').textContent = String(control.pendingTasks || 0);
-      document.getElementById('heHommyCommands').textContent = 'Órdenes (' + String(control.pendingTeamCommands || 0) + ')';
+      document.getElementById('heHommyCommands').textContent = 'Actividad (' + String(control.totalTeamCommands || 0) + ')';
       toggleButton.textContent = control.mode === 'REVIEW' ? 'Pausar Hommy' : 'Reanudar supervisión';
       toggleButton.disabled = !canConfigure();
-      noteEl.textContent = 'El interruptor controla solo la inteligencia comercial. WhatsApp, pedidos, recibos y Pentagrama siguen disponibles.';
+      noteEl.textContent = 'Las respuestas al grupo son independientes y están apagadas salvo autorización. Nunca se envían mensajes a clientes desde este control.';
       if (notify && global.Swal) global.Swal.fire({ toast:true, position:'top-end', timer:1500,
         showConfirmButton:false, icon:'success', title:'Estado de Hommy actualizado' });
     } catch (e) {
@@ -124,7 +131,7 @@
     if (global.Swal) {
       const confirmation = await global.Swal.fire({
         icon:'question', title: mode === 'PAUSED' ? 'Pausar la atención de Hommy?' : 'Reanudar Hommy supervisado?',
-        text:'No se desconectará WhatsApp. No se enviarán mensajes automáticos.',
+        text:'No se desconectará WhatsApp ni se enviarán mensajes a clientes. La pausa apaga también las respuestas internas.',
         showCancelButton:true, confirmButtonText:mode === 'PAUSED'?'Pausar':'Reanudar',
         cancelButtonText:'Cancelar', confirmButtonColor:'#a6455a'
       });
@@ -263,6 +270,35 @@
       });
     } catch (e) {
       global.Swal.fire({ icon:'error', title:'No se pudieron consultar las órdenes',
+        text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
+    }
+  }
+
+  async function toggleTeamReplies() {
+    if (!canConfigure() || loading || currentMode !== 'REVIEW' ||
+        !teamState || !teamState.enabled || !global.Swal) return;
+    const enabled = teamState.replyEnabled !== true;
+    const confirmation = await global.Swal.fire({
+      icon: enabled ? 'warning' : 'question',
+      title: enabled ? 'Activar respuestas informativas al equipo?' : 'Apagar las respuestas internas?',
+      text: enabled ?
+        'Hommy podrá contestar únicamente consultas informativas en este grupo autorizado. No podrá escribir a clientes, enviar cotizaciones ni ejecutar órdenes comerciales.' :
+        'Hommy seguirá registrando instrucciones, pero dejará de responder dentro del grupo.',
+      showCancelButton: true,
+      confirmButtonText: enabled ? 'Activar respuestas internas' : 'Desactivar',
+      cancelButtonText: 'Cancelar', confirmButtonColor: '#a6455a'
+    });
+    if (!confirmation.isConfirmed) return;
+    loading = true;
+    document.getElementById('heHommyReplies').disabled = true;
+    try {
+      await global.HomeEasyWhatsApp.saveHommyControl({ team:{ replyEnabled: enabled }, revision });
+      loading = false;
+      await load(true);
+    } catch (e) {
+      loading = false;
+      await load(false);
+      global.Swal.fire({ icon:'error', title:'No se pudo cambiar este permiso',
         text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
     }
   }
