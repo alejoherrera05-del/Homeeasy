@@ -138,6 +138,29 @@ la cookie Pentagrama ni las credenciales configuradas.
 GET /health
 ```
 
+### Inbox Hommy SHADOW
+
+La recepción queda desactivada por defecto. WAHA entrega únicamente eventos `message` al
+Bridge y firma el cuerpo crudo con HMAC-SHA512.
+
+```text
+POST /api/whatsapp/webhook
+X-Webhook-Hmac-Algorithm: sha512
+X-Webhook-Hmac: ...
+```
+
+Los administradores consultan el inbox privado con paginación:
+
+```text
+GET /api/whatsapp/inbox?offset=0&limit=50
+X-HomeEasy-Session: ...
+X-HomeEasy-Device-Id: ...
+```
+
+El kill switch persistente usa `POST /api/whatsapp/inbox/disable`; para retirar el
+marcador usa `POST /api/whatsapp/inbox/enable`. Ambos requieren `config.write`. La bandera
+`HOMMY_INBOX_ENABLED=false` siempre prevalece.
+
 ### Estado WhatsApp
 
 ```text

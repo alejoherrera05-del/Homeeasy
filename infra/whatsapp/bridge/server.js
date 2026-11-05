@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const auth = require('./auth');
 const ops = require('./operations');
 const conversation = require('./conversation');
+const { createInbox } = require('./inbox');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
@@ -22,6 +23,9 @@ const WAHA_SESSION = String(process.env.WAHA_SESSION || 'homeeasy');
 const BRIDGE_TOKEN = String(process.env.BRIDGE_TOKEN || '');
 const MAX_BODY_MB = Math.max(2, Number(process.env.MAX_BODY_MB || 18));
 const MAX_BODY_BYTES = MAX_BODY_MB * 1024 * 1024;
+const HOMMY_INBOX_ENABLED = String(process.env.HOMMY_INBOX_ENABLED || 'false').toLowerCase() === 'true';
+const HOMMY_INBOX_MAX_BODY_BYTES = Math.max(16, Math.min(1024, Number(process.env.HOMMY_INBOX_MAX_BODY_KB || 256) || 256)) * 1024;
+const HOMMY_INBOX_WEBHOOK_SECRET = String(process.env.HOMMY_INBOX_WEBHOOK_SECRET || '');
 const REMOTE_PDF_MAX_BYTES = Math.min(MAX_BODY_BYTES, 18 * 1024 * 1024);
 const DATA_DIR = String(process.env.DATA_DIR || '/app/data');
 const PENTAGRAMA_MODE = String(process.env.PENTAGRAMA_MODE || 'direct').toLowerCase();
@@ -57,6 +61,12 @@ if (!WAHA_API_KEY || !BRIDGE_TOKEN) {
 }
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
+const hommyInbox = createInbox({
+  dataDir: DATA_DIR,
+  enabled: HOMMY_INBOX_ENABLED,
+  session: WAHA_SESSION,
+  webhookSecret: HOMMY_INBOX_WEBHOOK_SECRET
+});
 
 function json(res, statusCode, payload) {
   const body = JSON.stringify(payload);
@@ -90,6 +100,24 @@ async function readJsonBody(req) {
         reject(Object.assign(new Error('Invalid JSON body'), { statusCode: 400 }));
       }
     });
+    req.on('error', reject);
+  });
+}
+
+async function readRawBody(req, maxBytes) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        reject(Object.assign(new Error('Request body too large'), { statusCode: 413 }));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
 }
@@ -948,6 +976,33 @@ async function handle(req, res) {
     });
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/webhook') {
+    const contentType = String(req.headers['content-type'] || '').toLowerCase();
+    if (!contentType.startsWith('application/json')) {
+      return json(res, 415, { ok: false, error: 'Content-Type application/json required' });
+    }
+    const result = hommyInbox.ingest(await readRawBody(req, HOMMY_INBOX_MAX_BODY_BYTES), req.headers);
+    return json(res, 202, result);
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/inbox') {
+    await auth.authorize(req, 'config.read');
+    return json(res, 200, { ok: true, ...hommyInbox.list({
+      offset: url.searchParams.get('offset'),
+      limit: url.searchParams.get('limit')
+    }) });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/inbox/disable') {
+    await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, inbox: hommyInbox.disable() });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/inbox/enable') {
+    await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, inbox: hommyInbox.enable() });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/pentagrama-sync/status') {
     await auth.authorize(req, 'config.read');
     return json(res, 200, { ok: true, ...pentagramaPhase2.status(), agents: pentagramaAgents.list() });
@@ -1079,6 +1134,7 @@ async function handle(req, res) {
       ok: true,
       whatsapp: publicSession(session),
       bridge: { version: BRIDGE_VERSION, serverTime: new Date().toISOString(), storage: ops.storageStatus() },
+      inbox: hommyInbox.status(),
       actor: auth.publicActor(actor),
       capabilities: capabilities(actor)
     });
@@ -1220,7 +1276,7 @@ const server = http.createServer((req, res) => {
   Promise.resolve().then(() => {
     const pathname = new URL(req.url, 'http://bridge.local').pathname;
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) &&
-        !['/api/whatsapp/maintenance', '/api/pentagrama-sync/check', '/api/pentagrama-sync/price', '/api/pentagrama-sync/live-price'].includes(pathname)) {
+        !['/api/whatsapp/webhook', '/api/whatsapp/maintenance', '/api/pentagrama-sync/check', '/api/pentagrama-sync/price', '/api/pentagrama-sync/live-price'].includes(pathname)) {
       done = maintenance.track();
     }
     return handle(req, res);

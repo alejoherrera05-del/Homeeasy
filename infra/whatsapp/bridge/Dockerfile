@@ -7,6 +7,7 @@ COPY server.js ./
 COPY auth.js ./
 COPY operations.js ./
 COPY conversation.js ./
+COPY inbox.js ./
 COPY maintenance.js ./
 COPY pentagrama-sync ./pentagrama-sync
 COPY pentagrama-agents ./pentagrama-agents
