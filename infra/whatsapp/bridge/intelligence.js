@@ -135,11 +135,12 @@ function normalizeText(value) {
 
 
 const LEAD_PRODUCTS = Object.freeze([
-  { name: 'Onda Serena', pattern: /\bonda serena\b/i },
-  { name: 'Sheer Elegance', pattern: /\bsheer elegance\b/i },
-  { name: 'Sheer Vertesse', pattern: /\bsheer vertesse\b/i },
-  { name: 'Panel Japonés', pattern: /\bpanel(?:es)? japones(?:es)?\b/i },
-  { name: 'Blackout', pattern: /\bblackout\b|\bblack out\b/i }
+  { name: 'Onda Serena', kind: 'cortina', pattern: /\bonda serena\b/i },
+  { name: 'Sheer Elegance', kind: 'persiana', pattern: /\bsheer elegance\b/i },
+  { name: 'Sheer Vertesse', kind: 'persiana', pattern: /\bsheer vertesse\b/i },
+  { name: 'Panel Japonés', kind: 'panel japonés', pattern: /\bpanel(?:es)? japones(?:es)?\b/i },
+  // Blackout is a material/opacity choice: it can refer to a curtain or a blind.
+  { name: 'Blackout', kind: 'opción blackout', pattern: /\bblackout\b|\bblack out\b/i }
 ]);
 
 function mentionedProducts(value) {
@@ -195,15 +196,16 @@ function applyLeadReview(result, guidance) {
       result.nextAction === 'STOP_CONTACT' || result.nextAction === 'HUMAN_REVIEW' ||
       guidance.nextInformation === 'QUOTE_REVIEW') return result;
   const product = guidance.product;
+  const description = LEAD_PRODUCTS.find(item => item.name === product)?.kind || 'cortina o persiana';
   let reply;
   if (!product) {
-    reply = 'Claro que sí, con mucho gusto te ayudo. Me cuentas qué tipo de persiana estás buscando?';
+    reply = 'Claro que sí, con mucho gusto te ayudo. Me cuentas qué estás buscando para tu ventana?';
   } else if (!guidance.hasMeasurements) {
-    reply = 'Claro que sí, con mucho gusto te ayudo con ' + product +
-      '. Me regalas por favor el ancho y el alto aproximados de tu ventana?';
+    reply = 'Claro que sí, con mucho gusto. Me regalas por favor las medidas aproximadas de tu ventana? El ancho y el alto.';
   } else {
-    reply = 'Perfecto, ya tengo las medidas de ' + product +
-      '. Me cuentas si sería para una habitación, sala u otro espacio?';
+    reply = 'Perfecto, muchas gracias por las medidas 😊 Me cuentas si ' +
+      (description === 'opción blackout' ? 'sería para' : 'esa ' + description + ' sería para') +
+      ' una habitación, la sala u otro espacio?';
   }
   return {
     ...result, productInterest: product,
