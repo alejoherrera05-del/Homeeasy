@@ -326,7 +326,7 @@ function updateCommercialMemory(state, client, memory, record, result, match) {
   client.commitments = uniqueStrings(client.commitments, extracted.commitments, 30, 300);
   client.importantDates = uniqueStrings(client.importantDates, extracted.importantDates, 30, 120);
   client.pendingQuestions = uniqueStrings(client.pendingQuestions, [...extracted.pendingQuestions, ...result.pendingInformation], 30, 300);
-  if (match.quote && match.quote.number) client.quoteNumbers = uniqueStrings(client.quoteNumbers, [match.quote.number], 30, 80);
+  if (match && match.quote && match.quote.number) client.quoteNumbers = uniqueStrings(client.quoteNumbers, [match.quote.number], 30, 80);
   const origin = record.commercialOrigin;
   if (origin && origin.verified === true) {
     const origins = [...client.commercialOrigins, origin];
@@ -335,10 +335,26 @@ function updateCommercialMemory(state, client, memory, record, result, match) {
   client.conversationSummary = result.commercialSummary;
   memory.summary = result.commercialSummary;
 
-  const opportunityKey = normalizeText(result.productInterest || 'general').replace(/[^a-z0-9]+/g, '-');
-  const opportunityId = stableId('opportunity', `${client.id}:${opportunityKey}`);
-  const opportunity = state.opportunities[opportunityId] || {
-    id: opportunityId, clientId: client.id, product: result.productInterest || null,
+  const product = result.productInterest || null;
+  const environment = extracted.environment || null;
+  const quoteNumber = match && match.quote ? clean(match.quote.number, 80) : '';
+  const existing = Object.values(state.opportunities).filter(item => item.clientId === client.id);
+  const productKey = normalizeText(product || 'general');
+  const environmentKey = normalizeText(environment || '');
+  const matchedQuote = quoteNumber ? existing.find(item => (item.quoteNumbers || []).includes(quoteNumber)) : null;
+  const choices = existing.filter(item => {
+    if (normalizeText(item.product || 'general') !== productKey) return false;
+    if (quoteNumber && (item.quoteNumbers || []).length && !(item.quoteNumbers || []).includes(quoteNumber)) return false;
+    if (environmentKey && (item.environments || []).length &&
+        !(item.environments || []).some(value => normalizeText(value) === environmentKey)) return false;
+    const elapsed = Date.parse(record.at || '') - Date.parse(item.updatedAt || item.createdAt || '');
+    return !Number.isFinite(elapsed) || (elapsed >= 0 && elapsed <= 60 * 86400000);
+  });
+  // Only attach to a unique compatible opportunity; never merge ambiguous purchases.
+  const selected = matchedQuote || (choices.length === 1 ? choices[0] : null);
+  const opportunityId = selected ? selected.id : stableId('opportunity', `${client.id}:${record.id}`);
+  const opportunity = selected || {
+    id: opportunityId, clientId: client.id, product,
     environments: [], measurements: [], quoteNumbers: [], commitments: [], importantDates: [], pendingQuestions: [],
     status: 'OPEN', createdAt: new Date().toISOString()
   };
@@ -346,7 +362,7 @@ function updateCommercialMemory(state, client, memory, record, result, match) {
   opportunity.environments = uniqueStrings(opportunity.environments, extracted.environment ? [extracted.environment] : [], 20, 180);
   opportunity.measurements = Array.from(new Map([...opportunity.measurements, ...extracted.measurements]
     .map(item => [JSON.stringify(item), item])).values()).slice(-30);
-  opportunity.quoteNumbers = uniqueStrings(opportunity.quoteNumbers, match.quote ? [match.quote.number] : [], 20, 80);
+  opportunity.quoteNumbers = uniqueStrings(opportunity.quoteNumbers, match && match.quote ? [match.quote.number] : [], 20, 80);
   opportunity.commitments = uniqueStrings(opportunity.commitments, extracted.commitments, 20, 300);
   opportunity.importantDates = uniqueStrings(opportunity.importantDates, extracted.importantDates, 20, 120);
   opportunity.pendingQuestions = uniqueStrings(opportunity.pendingQuestions, [...extracted.pendingQuestions, ...result.pendingInformation], 30, 300);
@@ -392,19 +408,77 @@ function reconcileAnalyses(state) {
   return reconciled;
 }
 
+
+function migrateLegacyMemory(state, inbox) {
+  const canonical = new Map();
+  for (const analysis of state.analyses) {
+    const id = clean(analysis && analysis.sourceMessageId, 260);
+    if (id && !(analysis.reconciliation && analysis.reconciliation.status === 'DUPLICATE') && !canonical.has(id)) canonical.set(id, analysis);
+  }
+  const records = [];
+  let offset = 0;
+  let pages = 0;
+  while (offset !== null) {
+    if (++pages > 100000) throw new Error('Inbox migration safety limit exceeded');
+    const page = inbox.list({ offset, limit: 100 });
+    const items = Array.isArray(page && page.items) ? page.items : [];
+    records.push(...items);
+    const next = page && page.pagination ? page.pagination.nextOffset : null;
+    offset = Number.isInteger(next) && next > offset ? next : null;
+  }
+  for (const record of records.reverse()) {
+    const id = clean(record && record.id, 260);
+    if (!id || state.processed[id]?.status !== 'DONE') continue;
+    const analysis = canonical.get(id);
+    const match = publicAssociation(analysis && analysis.association);
+    const client = ensureClient(state, record, match);
+    const memory = appendConversationMessage(state, record, client);
+    if (analysis && analysis.result) {
+      const opportunity = updateCommercialMemory(state, client, memory, record, analysis.result, match);
+      analysis.clientId = client.id;
+      analysis.opportunityId = opportunity.id;
+      memory.lastAnalysisId = analysis.id;
+    }
+  }
+  // Older conversations may exist even if inbox retention omitted their events.
+  for (const [chatId, previous] of Object.entries(state.conversations)) {
+    if (!previous || previous.clientId || !Array.isArray(previous.messages)) continue;
+    const phone = chatId.endsWith('@c.us') || chatId.endsWith('@s.whatsapp.net')
+      ? conversation.phoneDigits(chatId.split('@')[0]) : '';
+    const client = ensureClient(state, { chatId, phone, phoneVerified: Boolean(phone) }, { status: 'UNKNOWN' });
+    previous.id = previous.id || stableId('conversation', chatId);
+    previous.chatId = chatId;
+    previous.clientId = client.id;
+    previous.createdAt = previous.createdAt || previous.messages[0]?.at || new Date().toISOString();
+    previous.updatedAt = previous.updatedAt || previous.createdAt;
+    previous.humanTakeover = previous.humanTakeover === true;
+    previous.lastHumanInterventionAt = previous.lastHumanInterventionAt || null;
+    previous.summary = previous.summary || '';
+  }
+}
+
 function createIntelligence(options) {
   const opts = options && typeof options === 'object' ? options : {};
   if (!opts.inbox || typeof opts.inbox.list !== 'function') throw new Error('Inbox dependency is required');
   if (typeof opts.resolveMatch !== 'function' || typeof opts.analyze !== 'function') throw new Error('Intelligence dependencies are required');
   const dataDir = path.resolve(String(opts.dataDir || '/app/data'), 'hommy-intelligence');
-  const stateFile = path.join(dataDir, 'state.json');
+  // V1 remains untouched and rollback-readable by Bridge 0.20.0.
+  const legacyStateFile = path.join(dataDir, 'state.json');
+  const stateFile = path.join(dataDir, 'state-v2.json');
   const disabledFile = path.join(dataDir, DISABLED_FILE);
   const configured = opts.enabled === true;
   const maxAnalyses = Math.max(100, Math.min(5000, Number(opts.maxAnalyses || 1000)));
   fs.mkdirSync(dataDir, { recursive: true, mode: 0o700 });
-  const state = readState(stateFile);
+  const hasV2 = fs.existsSync(stateFile);
+  const hasLegacy = fs.existsSync(legacyStateFile);
+  const state = readState(hasV2 ? stateFile : legacyStateFile);
   const reconciledAtStartup = reconcileAnalyses(state);
-  if (reconciledAtStartup) atomicWrite(stateFile, state);
+  if (!hasV2 && hasLegacy) {
+    migrateLegacyMemory(state, opts.inbox);
+    atomicWrite(stateFile, state);
+  } else if (reconciledAtStartup) {
+    atomicWrite(stateFile, state);
+  }
   let processQueue = Promise.resolve();
 
   function enabled() { return configured && !fs.existsSync(disabledFile); }
