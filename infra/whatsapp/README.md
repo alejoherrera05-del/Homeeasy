@@ -73,6 +73,31 @@ Cuando WAHA muestre el QR:
 
 Salir de los logs con `Ctrl+C` no detiene WAHA.
 
+## Fase 3E · Consultas operativas verificables en el grupo (Bridge 0.25.0)
+
+El grupo privado de Hommy responde a consultas informativas de solo lectura:
+`pendientes`, `resumen`, `cotizaciones`, `visitas`, `seguimientos` y
+`clientes`, después de verificar la firma del webhook, el grupo exacto y el
+remitente autorizado. Los comandos que incluyen acciones o destinos a clientes
+permanecen en `REVIEW_REQUIRED`, sin envíos a clientes.
+
+Las respuestas se basan en tareas y etiquetas internas y en
+`hommy-intelligence/state-v2.json` (solo conversaciones analizadas).
+El lector utiliza una caché por identidad y fecha del archivo, evita
+consultas de red y limita el tamaño de lectura a 8 MiB. Si la memoria falta,
+está dañada o excede ese límite, informa que no está disponible en lugar de
+inventar cantidades.
+
+**Interpretación:** una oportunidad abierta no es una venta, una solicitud de
+visita no es una cita confirmada y un número de cotización asociado no prueba
+que la cotización fue enviada. Por ahora las respuestas no cubren todos los
+mensajes sin analizar ni la agenda operativa completa.
+
+Permanece el control independiente `replyEnabled` y su deduplicación
+persistente. WAHA, Pentagrama, HomeEasy Hommychat y los módulos existentes
+no cambian. La entrega de esta versión debe realizarse solo con el
+actualizador protegido, respaldando el Bridge y preservando WAHA.
+
 ## Comprobar el estado
 
 ```bash

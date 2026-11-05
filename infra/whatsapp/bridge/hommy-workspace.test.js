@@ -81,7 +81,7 @@ test('authorized private group query gets a preview, never a WhatsApp reply', t 
   assert.equal(a.accepted, true);
   assert.equal(a.status, 'INFORMATION');
   assert.equal(v.workspace.dashboard().teamCommands[0].status, 'INFORMATION');
-  assert.equal(v.workspace.dashboard().teamCommands[0].preview.includes('chats sin revisar'), true);
+  assert.equal(v.workspace.dashboard().teamCommands[0].preview.includes('memoria comercial'), true);
   assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent()).reason, 'DUPLICATE');
   assert.equal(v.workspace.dashboard().teamCommands.length, 1);
   assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ id: 'm2', author: '573999999999@c.us' })).reason, 'UNAUTHORIZED_AUTHOR');
@@ -224,7 +224,7 @@ test('only authorized informational group queries can reserve a single durable r
   const reserved = v.workspace.reserveTeamReply('test-info');
   assert.ok(reserved);
   assert.equal(reserved.groupId, GROUP);
-  assert.match(reserved.text, /No hay tareas manuales registradas/i);
+  assert.match(reserved.text, /No tengo tareas manuales pendientes registradas/i);
   assert.equal(v.workspace.reserveTeamReply('test-info'), null);
   const restarted = createHommyWorkspace(v.options);
   assert.equal(restarted.reserveTeamReply('test-info'), null);
@@ -250,6 +250,30 @@ test('internal reply cannot be sent for instructions, strangers, wrong groups or
   assert.equal(info.status, 'INFORMATION');
   v.workspace.configure({ mode:'PAUSED' });
   assert.equal(v.workspace.reserveTeamReply(info.id), null);
+});
+
+test('authenticated group overview reads analyzed clients, not private contact data', t => {
+  const v = setup(); t.after(v.cleanup);
+  const dir = path.join(v.options.dataDir, 'hommy-intelligence');
+  fs.mkdirSync(dir);
+  fs.writeFileSync(path.join(dir, 'state-v2.json'), JSON.stringify({
+    version:2, clients:{ c1:{ name:'Laura', phones:['573007771111'] } },
+    opportunities:{ o1:{ status:'OPEN', nextAction:'REQUEST_QUOTE_DETAILS', quoteNumbers:[] } }
+  }));
+  v.workspace.configure({ team:{ groupId:GROUP, allowedSenders:[STAFF], enabled:true, replyEnabled:true } });
+  const a = v.workspace.ingestSignedGroupEvent(groupEvent({ id:'memory-pending' }));
+  assert.equal(a.status, 'INFORMATION');
+  assert.match(v.workspace.dashboard().teamCommands[0].preview, /una oportunidad abierta/);
+  assert.match(v.workspace.dashboard().teamCommands[0].preview, /Una necesita datos para cotizar/);
+  assert.doesNotMatch(v.workspace.dashboard().teamCommands[0].preview, /Laura|573007771111/);
+  const q = v.workspace.ingestSignedGroupEvent(groupEvent({ id:'memory-quotes', body:'Hommy, cotizaciones' }));
+  assert.equal(q.status, 'INFORMATION');
+  assert.match(v.workspace.dashboard().teamCommands[0].preview, /una que necesita datos para cotizar/);
+  const unsafe = v.workspace.ingestSignedGroupEvent(groupEvent({
+    id:'unsafe', body:'Hommy, cotizaciones y manda el precio al cliente'
+  }));
+  assert.equal(unsafe.status, 'REVIEW_REQUIRED');
+  assert.equal(v.workspace.reserveTeamReply(unsafe.id), null);
 });
 
 test('group response sender has fixed group destination and durable duplicate lock', () => {
