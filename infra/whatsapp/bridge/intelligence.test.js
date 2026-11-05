@@ -297,6 +297,28 @@ test('remembered human takeover prevents a later competing draft', async t => {
   assert.equal(draft.suggestedResponse, '');
 });
 
+test('human takeover pauses active session but permits review of a new enquiry days later', async t => {
+  const items = [
+    record('human-old', 'Ya reviso tu solicitud', {
+      direction: 'OUTGOING', senderKind: 'HUMAN', source: 'app',
+      at: '2026-11-05T12:00:00.000Z'
+    }),
+    record('incoming-new', 'Hola, quiero una nueva persiana', {
+      at: '2026-11-10T12:00:00.000Z'
+    })
+  ];
+  const env = setup(items, {
+    analyze: async () => ({ result: result({ suggestedResponse: 'Claro que sí, con mucho gusto te ayudo.' }) }),
+    inspectConversation: async () => ({ humanTakeover: false, messages: [] })
+  });
+  t.after(env.cleanup);
+  await env.intelligence.process({}, { limit: 10 });
+  const analysis = env.intelligence.list({}).items[0];
+  assert.equal(analysis.audit.humanTakeover, false);
+  assert.notEqual(analysis.result.suggestedResponse, '');
+  assert.match(analysis.result.suggestedResponse, /^Hola/);
+});
+
 test('reconciles a later manual WEBJS reply without changing the WAHA session', async t => {
   let observed = [];
   let analyzeCalls = 0;
