@@ -134,6 +134,11 @@ async function analyzeWithHommy(input, requestContext) {
 async function inspectHumanTakeover(record) {
   const params = new URLSearchParams({ limit: '30', downloadMedia: 'false' });
   const fetched = await fetchConversationMessagesCandidate(String(record.chatId || ''), params);
+  if (!fetched.ok) {
+    throw Object.assign(new Error('Could not verify human intervention in WAHA'), {
+      code: 'HUMAN_TAKEOVER_CHECK_UNAVAILABLE'
+    });
+  }
   const incomingAt = conversation.timestampMs(record.at);
   const messages = conversation.normalizeMessages(fetched.data, { limit: 30 });
   return { humanTakeover: messages.some(item => item.direction === 'OUTGOING' &&

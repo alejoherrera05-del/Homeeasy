@@ -12,6 +12,11 @@ ROLLBACK_IMAGE="homeeasy-whatsapp-bridge:rollback-$RELEASE_ID"
 EXPECTED_VERSION=""
 ROLLBACK_READY=false
 BRIDGE_LOCAL_PORT=""
+INBOX_ENABLED_BEFORE=""
+INBOX_COUNT_BEFORE=0
+INBOX_EVENTS_FILE=""
+INBOX_BYTES_BEFORE=0
+INBOX_PREFIX_SHA_BEFORE=""
 
 BRIDGE_FILES=(
   server.js
@@ -128,6 +133,26 @@ if [[ "$(echo "$WAHA_STATE" | jq -r '.status // empty')" != "WORKING" ]]; then
   exit 1
 fi
 
+STATUS_BEFORE="$(curl -fsS \
+  -H "X-HomeEasy-Token: $BRIDGE_TOKEN" \
+  "http://127.0.0.1:$BRIDGE_LOCAL_PORT/api/whatsapp/status")"
+if ! echo "$STATUS_BEFORE" | jq -e '.inbox | type == "object"' >/dev/null; then
+  echo "El Bridge actual no expuso el estado del inbox. No se modifica." >&2
+  exit 1
+fi
+INBOX_ENABLED_BEFORE="$(echo "$STATUS_BEFORE" | jq -r '.inbox.enabled | tostring')"
+INBOX_COUNT_BEFORE="$(echo "$STATUS_BEFORE" | jq -r '.inbox.count // 0')"
+if [[ ! "$INBOX_COUNT_BEFORE" =~ ^[0-9]+$ ]]; then
+  echo "El Bridge actual devolvió un conteo de inbox inválido. No se modifica." >&2
+  exit 1
+fi
+INBOX_EVENTS_FILE="$INSTALL_DIR/data/bridge/hommy-inbox/events.ndjson"
+if [[ -f "$INBOX_EVENTS_FILE" ]]; then
+  INBOX_BYTES_BEFORE="$(stat -c %s "$INBOX_EVENTS_FILE")"
+  INBOX_PREFIX_SHA_BEFORE="$(head -c "$INBOX_BYTES_BEFORE" "$INBOX_EVENTS_FILE" | openssl dgst -sha256 -r | awk '{print $1}')"
+fi
+echo "Inbox previo: enabled=$INBOX_ENABLED_BEFORE count=$INBOX_COUNT_BEFORE bytes=$INBOX_BYTES_BEFORE"
+
 echo "Descargando Bridge desde $SOURCE_REF..."
 git clone --depth 1 --branch "$SOURCE_REF" "$REPO_URL" "$TMP_DIR/repo" >/dev/null 2>&1
 SOURCE_COMMIT="$(git -C "$TMP_DIR/repo" rev-parse HEAD)"
@@ -182,7 +207,7 @@ INSTALL_DIR="$INSTALL_DIR"
 BACKUP_DIR="$BACKUP_DIR"
 ROLLBACK_IMAGE="$ROLLBACK_IMAGE"
 BRIDGE_LOCAL_PORT="$BRIDGE_LOCAL_PORT"
-BRIDGE_FILES=(server.js auth.js operations.js conversation.js inbox.js maintenance.js Dockerfile package.json)
+BRIDGE_FILES=(server.js auth.js operations.js conversation.js inbox.js intelligence.js maintenance.js Dockerfile package.json)
 for file in "\${BRIDGE_FILES[@]}"; do
   if [[ -f "\$BACKUP_DIR/bridge/\$file" ]]; then
     cp -a -- "\$BACKUP_DIR/bridge/\$file" "\$INSTALL_DIR/bridge/\$file"
@@ -244,12 +269,33 @@ if [[ "$(echo "$STATUS" | jq -r '.whatsapp.status // empty')" != "WORKING" ]]; t
   echo "WhatsApp dejó de estar WORKING después del reemplazo del Bridge." >&2
   false
 fi
-if [[ "$(echo "$STATUS" | jq -r '.inbox.enabled // false')" != "false" ]]; then
-  echo "El inbox debe quedar desactivado en el primer despliegue." >&2
+INBOX_ENABLED_AFTER="$(echo "$STATUS" | jq -r '.inbox.enabled | tostring')"
+INBOX_COUNT_AFTER="$(echo "$STATUS" | jq -r '.inbox.count // 0')"
+if [[ "$INBOX_ENABLED_AFTER" != "$INBOX_ENABLED_BEFORE" ]]; then
+  echo "El despliegue cambió el estado del inbox: antes=$INBOX_ENABLED_BEFORE después=$INBOX_ENABLED_AFTER" >&2
   false
 fi
 if ! echo "$STATUS" | jq -e '.inbox | type == "object"' >/dev/null; then
   echo "El Bridge no expuso el estado del inbox esperado." >&2
+  false
+fi
+if [[ ! "$INBOX_COUNT_AFTER" =~ ^[0-9]+$ ]] || (( INBOX_COUNT_AFTER < INBOX_COUNT_BEFORE )); then
+  echo "El despliegue perdió registros del inbox: antes=$INBOX_COUNT_BEFORE después=$INBOX_COUNT_AFTER" >&2
+  false
+fi
+if (( INBOX_BYTES_BEFORE > 0 )); then
+  if [[ ! -f "$INBOX_EVENTS_FILE" ]] || (( $(stat -c %s "$INBOX_EVENTS_FILE") < INBOX_BYTES_BEFORE )); then
+    echo "El archivo persistente del inbox fue eliminado o truncado." >&2
+    false
+  fi
+  INBOX_PREFIX_SHA_AFTER="$(head -c "$INBOX_BYTES_BEFORE" "$INBOX_EVENTS_FILE" | openssl dgst -sha256 -r | awk '{print $1}')"
+  if [[ "$INBOX_PREFIX_SHA_AFTER" != "$INBOX_PREFIX_SHA_BEFORE" ]]; then
+    echo "Los registros existentes del inbox fueron modificados durante el despliegue." >&2
+    false
+  fi
+fi
+if [[ "$(echo "$STATUS" | jq -r '.intelligence.enabled // false')" != "false" ]]; then
+  echo "Hommy Intelligence debe permanecer desactivado en el primer despliegue." >&2
   false
 fi
 
@@ -258,8 +304,8 @@ ROLLBACK_READY=false
 
 echo
 echo "Bridge actualizado correctamente desde $SOURCE_REF ($SOURCE_COMMIT)."
-echo "WAHA y Pentagrama no fueron modificados. Inbox SHADOW permanece desactivado."
+echo "WAHA y Pentagrama no fueron modificados. Inbox SHADOW conservó enabled=$INBOX_ENABLED_AFTER y $INBOX_COUNT_AFTER registros."
 echo "Respaldo: $BACKUP_DIR"
 echo "Rollback: $BACKUP_DIR/rollback.sh"
 echo
-echo "La activación del webhook requiere una operación separada y autorizada sobre WAHA."
+echo "Hommy Intelligence permanece desactivado hasta una activación separada y autorizada."

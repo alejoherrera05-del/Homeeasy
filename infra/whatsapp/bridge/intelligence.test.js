@@ -203,6 +203,51 @@ test('human intervention suppresses a competing draft', async t => {
   assert.equal(analysis.audit.humanTakeover, true);
 });
 
+test('a WAHA inspection failure is safe, auditable and retryable', async t => {
+  const item = record('m16', '¿Me confirmas?');
+  let inspectionFails = true;
+  const env = setup([item], {
+    inspectConversation: async () => {
+      if (inspectionFails) throw Object.assign(new Error('WAHA unavailable'), { code: 'HUMAN_TAKEOVER_CHECK_UNAVAILABLE' });
+      return { humanTakeover: false };
+    }
+  });
+  t.after(env.cleanup);
+  const failed = await env.intelligence.process({}, {});
+  assert.equal(failed.processed, 0);
+  assert.equal(failed.errors[0].code, 'HUMAN_TAKEOVER_CHECK_UNAVAILABLE');
+  assert.equal(env.intelligence.list({}).items.length, 0);
+
+  inspectionFails = false;
+  const retried = await env.intelligence.process({}, {});
+  assert.equal(retried.processed, 1);
+  assert.equal(env.intelligence.list({}).items[0].audit.attempts, 2);
+});
+
+test('paginates the full inbox and processes the oldest backlog beyond 100 records', async t => {
+  const chronological = Array.from({ length: 150 }, (_, index) => record(
+    `backlog-${String(index + 1).padStart(3, '0')}`,
+    `Mensaje ${index + 1}`,
+    { at: new Date(Date.UTC(2026, 10, 5, 12, index)).toISOString() }
+  ));
+  const newest = chronological.slice().reverse();
+  const dataDir = fs.mkdtempSync(path.join(__dirname, '.test-hommy-intelligence-'));
+  t.after(() => fs.rmSync(dataDir, { recursive: true, force: true }));
+  const analyzed = [];
+  const intelligence = createIntelligence({
+    dataDir, enabled: true,
+    inbox: { list: ({ offset, limit }) => {
+      const items = newest.slice(offset, offset + limit);
+      return { items, pagination: { nextOffset: offset + items.length < newest.length ? offset + items.length : null } };
+    } },
+    resolveMatch: async () => ({ status: 'UNKNOWN' }),
+    analyze: async input => { analyzed.push(input.record.id); return { result: result() }; }
+  });
+  const output = await intelligence.process({}, { limit: 2 });
+  assert.equal(output.scanned, 150);
+  assert.deepEqual(analyzed, ['backlog-001', 'backlog-002']);
+});
+
 test('rejects malformed AI output and records an auditable error', async t => {
   const env = setup([record('m13', 'Hola')], { analyze: async () => ({ result: 'no-json' }) });
   t.after(env.cleanup);
@@ -230,6 +275,19 @@ test('server contract keeps processing protected, REVIEW-only and disabled by de
   assert.match(server, /HOMMY_INTELLIGENCE_ENABLED \|\| 'false'/);
   assert.match(server, /\/api\/whatsapp\/intelligence\/process[\s\S]{0,220}authorize\(req, 'cotizaciones\.read'\)/);
   assert.match(server, /mode: 'REVIEW'/);
+  assert.match(server, /if \(!fetched\.ok\)[\s\S]{0,180}HUMAN_TAKEOVER_CHECK_UNAVAILABLE/);
   assert.match(compose, /HOMMY_INTELLIGENCE_ENABLED: \$\{HOMMY_INTELLIGENCE_ENABLED:-false\}/);
   assert.doesNotMatch(server, /hommyIntelligence[\s\S]{0,80}sendText/);
+});
+
+test('deployment contract preserves the inbox and rolls intelligence.js back', () => {
+  const updater = fs.readFileSync(path.join(__dirname, '..', 'update-bridge.sh'), 'utf8');
+  const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '..', '.github', 'workflows', 'pentagrama-inventory-readonly-qa.yml'), 'utf8');
+  assert.match(updater, /INBOX_ENABLED_AFTER.*!=.*INBOX_ENABLED_BEFORE/);
+  assert.match(updater, /INBOX_COUNT_AFTER < INBOX_COUNT_BEFORE/);
+  assert.match(updater, /INBOX_PREFIX_SHA_AFTER.*!=.*INBOX_PREFIX_SHA_BEFORE/);
+  assert.match(updater, /BRIDGE_FILES=\(server\.js auth\.js operations\.js conversation\.js inbox\.js intelligence\.js/);
+  assert.doesNotMatch(updater, /inbox\.enabled[^\n]+!= "false"/);
+  assert.match(workflow, /BRIDGE_VERSION = '\\d\+\\\.\\d\+\\\.\\d\+'/);
+  assert.doesNotMatch(workflow, /BRIDGE_VERSION = '0\.19\.2'/);
 });

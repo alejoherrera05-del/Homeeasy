@@ -231,12 +231,28 @@ function createIntelligence(options) {
   async function process(requestContext, processOptions) {
     if (!enabled()) return { ok: true, skipped: true, reason: 'DISABLED', intelligence: status() };
     const max = Math.max(1, Math.min(50, Number(processOptions && processOptions.limit || 20) || 20));
-    const inboxItems = opts.inbox.list({ offset: 0, limit: 100 }).items.slice().reverse();
-    const candidates = inboxItems.filter(item => {
-      const current = state.processed[String(item.id || '')];
-      return !current || current.status !== 'DONE';
-    }).slice(0, max);
-    const outcome = { ok: true, processed: 0, duplicates: inboxItems.length - candidates.length, errors: [] };
+    const candidatesNewestFirst = [];
+    let offset = 0;
+    let scanned = 0;
+    let completed = 0;
+    while (offset !== null) {
+      const page = opts.inbox.list({ offset, limit: 100 });
+      const items = page && Array.isArray(page.items) ? page.items : [];
+      for (const item of items) {
+        scanned += 1;
+        const current = state.processed[String(item && item.id || '')];
+        if (current && current.status === 'DONE') {
+          completed += 1;
+          continue;
+        }
+        candidatesNewestFirst.push(item);
+        if (candidatesNewestFirst.length > max) candidatesNewestFirst.shift();
+      }
+      const next = page && page.pagination ? page.pagination.nextOffset : null;
+      offset = Number.isInteger(next) && next > offset ? next : null;
+    }
+    const candidates = candidatesNewestFirst.reverse();
+    const outcome = { ok: true, processed: 0, duplicates: completed, scanned, errors: [] };
 
     for (const record of candidates) {
       const id = clean(record.id, 260);
