@@ -17,6 +17,10 @@ INBOX_COUNT_BEFORE=0
 INBOX_EVENTS_FILE=""
 INBOX_BYTES_BEFORE=0
 INBOX_PREFIX_SHA_BEFORE=""
+INTELLIGENCE_CONFIGURED_BEFORE=""
+INTELLIGENCE_ENABLED_BEFORE=""
+INTELLIGENCE_KILL_SWITCH_BEFORE=""
+INTELLIGENCE_ANALYSES_BEFORE=0
 
 BRIDGE_FILES=(
   server.js
@@ -51,6 +55,12 @@ rollback() {
   set +e
   echo "Restaurando Bridge anterior desde $BACKUP_DIR..." >&2
   restore_files
+  # Older Bridge versions must never write to an active V2 migration.
+  if [[ -f "$INSTALL_DIR/data/bridge/hommy-intelligence/state-v2.json" ]]; then
+    printf '%s\n' "Rollback pendiente de reconciliacion $(date -u +%FT%TZ)" > "$INSTALL_DIR/data/bridge/hommy-intelligence/disabled"
+    chmod 600 "$INSTALL_DIR/data/bridge/hommy-intelligence/disabled"
+    echo "Intelligence desactivada temporalmente por rollback con estado V2." >&2
+  fi
   docker image tag "$ROLLBACK_IMAGE" homeeasy-whatsapp-bridge:local
   cd "$INSTALL_DIR"
   docker compose up -d --no-deps --force-recreate bridge
@@ -106,13 +116,13 @@ if [[ -z "${WAHA_API_KEY:-}" || -z "${BRIDGE_TOKEN:-}" ]]; then
   echo "WAHA_API_KEY o BRIDGE_TOKEN no están configurados en .env."
   exit 1
 fi
-if [[ "${HOMMY_INTELLIGENCE_ENABLED:-false}" == "true" ]]; then
-  echo "HOMMY_INTELLIGENCE_ENABLED ya está activo. El despliegue inicial exige false o variable ausente."
+echo "Preflight de producción (sin cambios)..."
+docker compose config -q
+if ! docker compose config --format json | jq -e --arg expected "${HOMMY_INTELLIGENCE_ENABLED:-false}" \
+  '(.services.bridge.environment.HOMMY_INTELLIGENCE_ENABLED | ascii_downcase) == ($expected | ascii_downcase)' >/dev/null; then
+  echo "La bandera de inteligencia efectiva en Compose no coincide con .env." >&2
   exit 1
 fi
-
-echo "Preflight de producción (sin cambios)..."
-docker compose config >/dev/null
 docker compose ps
 echo "WAHA en ejecución: $(docker inspect homeeasy-waha --format '{{.Config.Image}}')"
 echo "Bridge actual: $(docker inspect homeeasy-whatsapp-bridge --format '{{.Config.Image}}')"
@@ -141,6 +151,14 @@ if ! echo "$STATUS_BEFORE" | jq -e '.inbox | type == "object"' >/dev/null; then
   exit 1
 fi
 INBOX_ENABLED_BEFORE="$(echo "$STATUS_BEFORE" | jq -r '.inbox.enabled | tostring')"
+INTELLIGENCE_CONFIGURED_BEFORE="$(echo "$STATUS_BEFORE" | jq -r '.intelligence.configured | tostring')"
+INTELLIGENCE_ENABLED_BEFORE="$(echo "$STATUS_BEFORE" | jq -r '.intelligence.enabled | tostring')"
+INTELLIGENCE_KILL_SWITCH_BEFORE="$(echo "$STATUS_BEFORE" | jq -r '.intelligence.killSwitch | tostring')"
+INTELLIGENCE_ANALYSES_BEFORE="$(echo "$STATUS_BEFORE" | jq -r '.intelligence.analyses // 0')"
+if [[ "$INTELLIGENCE_CONFIGURED_BEFORE" == "null" || "$INTELLIGENCE_ENABLED_BEFORE" == "null" || "$INTELLIGENCE_KILL_SWITCH_BEFORE" == "null" ]]; then
+  echo "El Bridge no expuso el estado completo de Intelligence; no se modifica." >&2
+  exit 1
+fi
 INBOX_COUNT_BEFORE="$(echo "$STATUS_BEFORE" | jq -r '.inbox.count // 0')"
 if [[ ! "$INBOX_COUNT_BEFORE" =~ ^[0-9]+$ ]]; then
   echo "El Bridge actual devolvió un conteo de inbox inválido. No se modifica." >&2
@@ -215,6 +233,11 @@ for file in "\${BRIDGE_FILES[@]}"; do
     rm -f -- "\$INSTALL_DIR/bridge/\$file"
   fi
 done
+if [[ -f "\$INSTALL_DIR/data/bridge/hommy-intelligence/state-v2.json" ]]; then
+  printf '%s\n' "Rollback pendiente de reconciliacion" > "\$INSTALL_DIR/data/bridge/hommy-intelligence/disabled"
+  chmod 600 "\$INSTALL_DIR/data/bridge/hommy-intelligence/disabled"
+  echo "Intelligence desactivada temporalmente por rollback con estado V2." >&2
+fi
 docker image tag "\$ROLLBACK_IMAGE" homeeasy-whatsapp-bridge:local
 cd "\$INSTALL_DIR"
 docker compose up -d --no-deps --force-recreate bridge
@@ -294,8 +317,19 @@ if (( INBOX_BYTES_BEFORE > 0 )); then
     false
   fi
 fi
-if [[ "$(echo "$STATUS" | jq -r '.intelligence.enabled // false')" != "false" ]]; then
-  echo "Hommy Intelligence debe permanecer desactivado en el primer despliegue." >&2
+INTELLIGENCE_CONFIGURED_AFTER="$(echo "$STATUS" | jq -r '.intelligence.configured | tostring')"
+INTELLIGENCE_ENABLED_AFTER="$(echo "$STATUS" | jq -r '.intelligence.enabled | tostring')"
+INTELLIGENCE_KILL_SWITCH_AFTER="$(echo "$STATUS" | jq -r '.intelligence.killSwitch | tostring')"
+INTELLIGENCE_ANALYSES_AFTER="$(echo "$STATUS" | jq -r '.intelligence.analyses // 0')"
+if [[ "$INTELLIGENCE_CONFIGURED_AFTER" != "$INTELLIGENCE_CONFIGURED_BEFORE" ||
+      "$INTELLIGENCE_ENABLED_AFTER" != "$INTELLIGENCE_ENABLED_BEFORE" ||
+      "$INTELLIGENCE_KILL_SWITCH_AFTER" != "$INTELLIGENCE_KILL_SWITCH_BEFORE" ]]; then
+  echo "El despliegue modificó la configuración/kill switch de Intelligence." >&2
+  false
+fi
+if [[ ! "$INTELLIGENCE_ANALYSES_AFTER" =~ ^[0-9]+$ ]] ||
+   (( INTELLIGENCE_ANALYSES_AFTER < INTELLIGENCE_ANALYSES_BEFORE )); then
+  echo "El despliegue perdió análisis de Intelligence." >&2
   false
 fi
 
@@ -308,4 +342,4 @@ echo "WAHA y Pentagrama no fueron modificados. Inbox SHADOW conservó enabled=$I
 echo "Respaldo: $BACKUP_DIR"
 echo "Rollback: $BACKUP_DIR/rollback.sh"
 echo
-echo "Hommy Intelligence permanece desactivado hasta una activación separada y autorizada."
+echo "Hommy Intelligence conservó enabled=$INTELLIGENCE_ENABLED_AFTER y killSwitch=$INTELLIGENCE_KILL_SWITCH_AFTER."
