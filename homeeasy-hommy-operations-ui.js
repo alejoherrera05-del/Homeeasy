@@ -172,7 +172,7 @@
         '<p>Selecciona el grupo privado y las cuentas personales que podrán darle instrucciones a Hommy.</p>' +
         '<select id="heHommyGroupSelect" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:12px"></select>' +
         '<div id="heHommyMembers" style="display:grid;gap:9px"></div>' +
-        '<p style="color:#817980;font-size:11px">Hommy solo registrará las órdenes para revisión. No responderá al grupo ni a clientes todavía.</p></div>',
+        '<p style="color:#817980;font-size:11px">Confirma la identidad de cada participante antes de autorizarlo. Si aparece un ID privado (@lid), no es necesariamente su número de celular. Hommy solo registrará órdenes; no enviará mensajes.</p></div>',
       showCancelButton:true, confirmButtonText:'Vincular grupo', cancelButtonText:'Cancelar',
       confirmButtonColor:'#a6455a', width:490,
       didOpen:() => {
@@ -198,8 +198,10 @@
               const input = document.createElement('input');
               input.type='checkbox'; input.name='heHommyTeamMember'; input.value=member.id;
               const caption = document.createElement('span');
-              const digits = String(member.id || '').split('@')[0];
-              caption.textContent = 'Cuenta terminada en ' + digits.slice(-4) + ' · ' + (member.role || 'participante');
+              const rawId = String(member.id || '');
+              const suffix = rawId.split('@')[0].slice(-4);
+              caption.textContent = (rawId.endsWith('@lid') ? 'ID privado de WhatsApp · ' : 'Número terminado en ') +
+                suffix + ' · ' + (member.role || 'participante');
               label.append(input, caption);
               node.appendChild(label);
             }
