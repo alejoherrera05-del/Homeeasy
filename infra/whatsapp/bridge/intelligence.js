@@ -203,8 +203,9 @@ function applyLeadReview(result, guidance) {
   } else if (!guidance.hasMeasurements) {
     reply = 'Claro que sí, con mucho gusto. Me regalas por favor las medidas aproximadas de tu ventana? El ancho y el alto.';
   } else {
+    const article = description === 'panel japonés' ? 'ese ' : 'esa ';
     reply = 'Perfecto, muchas gracias por las medidas 😊 Me cuentas si ' +
-      (description === 'opción blackout' ? 'sería para' : 'esa ' + description + ' sería para') +
+      (description === 'opción blackout' ? 'sería para' : article + description + ' sería para') +
       ' una habitación, la sala u otro espacio?';
   }
   return {
