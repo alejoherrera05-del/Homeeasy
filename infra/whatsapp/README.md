@@ -170,15 +170,32 @@ por defecto con `HOMMY_INTELLIGENCE_ENABLED=false`.
 ```text
 POST /api/whatsapp/intelligence/process   (cotizaciones.read)
 GET  /api/whatsapp/intelligence?offset=0&limit=50   (cotizaciones.read)
+GET  /api/whatsapp/intelligence/memory?offset=0&limit=50   (cotizaciones.read)
 POST /api/whatsapp/intelligence/disable   (config.write)
 POST /api/whatsapp/intelligence/enable    (config.write)
 ```
 
-Despliegue conservador: actualizar el Bridge dejando la bandera en `false`, comprobar
-`/health` y `/api/whatsapp/status`, y verificar que WAHA siga `WORKING`. La habilitación
-posterior requiere autorización expresa, cambiar sólo la bandera y ejecutar el proceso
-manualmente con un usuario autorizado. El estado recuperable vive en
-`data/bridge/hommy-intelligence`; el rollback del actualizador también lo respalda.
+Despliegue conservador: la primera instalación mantiene `HOMMY_INTELLIGENCE_ENABLED=false`,
+pero las actualizaciones de una instalación existente **conservan** la bandera y los kill switches
+exactamente como estaban (incluido el entorno de producción que ya usa REVIEW activado).
+El actualizador comprueba `/health`, `/api/whatsapp/status` y que WAHA continúe `WORKING`.
+Nunca habilita envíos automáticos ni crea citas.
+
+La migración de memoria crea `data/bridge/hommy-intelligence/state-v2.json` y **no modifica**
+el histórico `state.json` V1. Los análisis ya completados se relacionan con los registros
+persistidos del inbox sin llamar otra vez a la IA; las auditorías duplicadas se conservan
+identificadas como tales. El actualizador respalda los datos y, si vuelve a un Bridge anterior
+con un estado V2 presente, deja Intelligence bajo kill switch (`disabled`) para impedir
+que un proceso antiguo escriba sobre la memoria nueva. El inbox sigue recibiendo mensajes;
+la reactivación exige revisar y reconciliar el estado antes de quitar ese marcador.
+El rollback **no restaura automáticamente archivos de mensajes antiguos** sobre los nuevos.
+
+La memoria comercial separa clientes, conversaciones y oportunidades. El teléfono
+normalizado sólo se usa como identidad estable cuando WAHA lo verificó; los LID sin
+resolver permanecen como contactos provisionales. El procesador reconcilia los salientes
+con el historial WEBJS de WAHA sin cambiar la sesión; además acepta `message.any` si se
+habilita expresamente más adelante. El campo `source` distingue acciones `app` y `api`.
+Los salientes humanos pausan el borrador; ningún evento de esta fase envía respuestas.
 
 ### Estado WhatsApp
 

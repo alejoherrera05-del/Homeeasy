@@ -80,13 +80,35 @@ test('persists a valid incoming message and exposes only bounded metadata', t =>
   assert.equal(page.pagination.nextOffset, null);
 });
 
-test('ignores own messages, groups, status and broadcasts', t => {
+test('captures outgoing messages and still ignores groups, status and broadcasts', t => {
   const inbox = createInbox({ dataDir: tempDir(t), enabled: true, session: 'homeeasy', webhookSecret: SECRET });
-  assert.equal(ingest(inbox, event({ payload: { fromMe: true } })).reason, 'OUTGOING');
+  assert.equal(ingest(inbox, event({ event: 'message.any', payload: { id: 'out-human', fromMe: true, source: 'app' } })).accepted, true);
+  const outgoing = inbox.list({}).items[0];
+  assert.equal(outgoing.direction, 'OUTGOING');
+  assert.equal(outgoing.senderKind, 'HUMAN');
   assert.equal(ingest(inbox, event({ payload: { id: 'group-1', from: '120363000000@g.us' } })).reason, 'GROUP');
   assert.equal(ingest(inbox, event({ payload: { id: 'status-1', from: 'status@broadcast' } })).reason, 'STATUS');
   assert.equal(ingest(inbox, event({ payload: { id: 'broadcast-1', from: '123@broadcast' } })).reason, 'BROADCAST');
-  assert.equal(inbox.status().count, 0);
+  assert.equal(inbox.status().count, 1);
+});
+
+test('distinguishes system sends and preserves only verified Meta referral metadata', t => {
+  const inbox = createInbox({ dataDir: tempDir(t), enabled: true, session: 'homeeasy', webhookSecret: SECRET });
+  ingest(inbox, event({ payload: { id: 'out-api', fromMe: true, source: 'api', body: 'Mensaje enviado por el sistema' } }));
+  ingest(inbox, event({ payload: { id: 'meta-in', body: 'Qué precio tiene?', ctwaContext: {
+    sourceType: 'INSTAGRAM', sourceId: 'ad-123', sourceUrl: 'https://instagram.com/example',
+    headline: 'Persianas para tu hogar', secret: 'not-stored'
+  } } }));
+  const items = inbox.list({ limit: 10 }).items;
+  const system = items.find(item => item.id === 'out-api');
+  const meta = items.find(item => item.id === 'meta-in');
+  assert.equal(system.senderKind, 'SYSTEM');
+  assert.deepEqual(meta.commercialOrigin, {
+    channel: 'WHATSAPP', campaign: 'META', platform: 'INSTAGRAM', verified: true,
+    sourceId: 'ad-123', sourceUrl: 'https://instagram.com/example',
+    headline: 'Persianas para tu hogar', body: null
+  });
+  assert.doesNotMatch(JSON.stringify(meta), /not-stored/);
 });
 
 test('deduplicates message ids across process restarts', t => {

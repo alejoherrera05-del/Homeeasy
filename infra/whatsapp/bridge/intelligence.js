@@ -5,7 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 const conversation = require('./conversation');
 
-const STATE_VERSION = 1;
+const STATE_VERSION = 2;
 const DISABLED_FILE = 'disabled';
 const INTENTS = new Set([
   'INFORMATION_REQUEST', 'PRODUCT_QUESTION', 'VISIT_REQUEST', 'QUOTE_REQUEST',
@@ -16,23 +16,32 @@ const ACTIONS = new Set([
   'PREPARE_RESPONSE', 'COLLECT_VISIT_DETAILS', 'REQUEST_QUOTE_DETAILS',
   'HUMAN_REVIEW', 'STOP_CONTACT', 'WAIT'
 ]);
+const RESPONSE_STYLE = Object.freeze({
+  locale: 'es-CO', mode: 'REVIEW', greetNewConversation: true,
+  tone: 'cercano, paciente, amable y profesional', shortNaturalSentences: true,
+  occasionalEmoji: true, neverImpersonateHuman: true, neverRepeatKnownQuestions: true
+});
 
 function clean(value, maxLength) {
   return conversation.clean(value, maxLength || 1000);
 }
 
 function emptyState() {
-  return { version: STATE_VERSION, processed: {}, analyses: [], conversations: {} };
+  return { version: STATE_VERSION, processed: {}, analyses: [], conversations: {},
+    clients: {}, opportunities: {}, identityIndex: {} };
 }
 
 function readState(file) {
   try {
     const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
-    return parsed && parsed.version === STATE_VERSION ? {
+    return parsed && [1, STATE_VERSION].includes(parsed.version) ? {
       version: STATE_VERSION,
       processed: parsed.processed && typeof parsed.processed === 'object' ? parsed.processed : {},
       analyses: Array.isArray(parsed.analyses) ? parsed.analyses : [],
-      conversations: parsed.conversations && typeof parsed.conversations === 'object' ? parsed.conversations : {}
+      conversations: parsed.conversations && typeof parsed.conversations === 'object' ? parsed.conversations : {},
+      clients: parsed.clients && typeof parsed.clients === 'object' ? parsed.clients : {},
+      opportunities: parsed.opportunities && typeof parsed.opportunities === 'object' ? parsed.opportunities : {},
+      identityIndex: parsed.identityIndex && typeof parsed.identityIndex === 'object' ? parsed.identityIndex : {}
     } : emptyState();
   } catch (error) {
     if (error.code === 'ENOENT') return emptyState();
@@ -59,6 +68,34 @@ function stringArray(value, maxItems, maxLength) {
   return value.map(item => clean(item, maxLength)).filter(Boolean).slice(0, maxItems);
 }
 
+function measurements(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(item => {
+    const source = item && typeof item === 'object' ? item : {};
+    const width = Number(source.width);
+    const height = Number(source.height);
+    const unit = clean(source.unit, 12).toLowerCase();
+    if ((!Number.isFinite(width) && !Number.isFinite(height)) || !['mm', 'cm', 'm'].includes(unit)) return null;
+    return { label: clean(source.label, 120) || null,
+      width: Number.isFinite(width) && width > 0 ? width : null,
+      height: Number.isFinite(height) && height > 0 ? height : null, unit };
+  }).filter(Boolean).slice(0, 20);
+}
+
+function memoryFields(value) {
+  const source = value && typeof value === 'object' ? value : {};
+  return {
+    providedName: clean(source.providedName, 180) || null,
+    environment: clean(source.environment, 180) || null,
+    measurements: measurements(source.measurements),
+    privacyRequirements: stringArray(source.privacyRequirements, 10, 240),
+    lightingRequirements: stringArray(source.lightingRequirements, 10, 240),
+    commitments: stringArray(source.commitments, 12, 300),
+    importantDates: stringArray(source.importantDates, 12, 120),
+    pendingQuestions: stringArray(source.pendingQuestions, 12, 300)
+  };
+}
+
 function validateResult(raw) {
   const source = parseJson(raw);
   const intent = clean(source.intent, 50).toUpperCase();
@@ -83,7 +120,8 @@ function validateResult(raw) {
     suggestedResponse: clean(source.suggestedResponse, 1800),
     nextAction,
     reason: clean(source.reason, 800),
-    confidence
+    confidence,
+    memory: memoryFields(source.memory)
   };
   if (!result.commercialSummary || !result.reason) {
     throw Object.assign(new Error('Incomplete Hommy result'), { code: 'HOMMY_SCHEMA_INVALID' });
@@ -124,23 +162,29 @@ function applyGuardrails(result, record, inspection) {
   if (negotiation) {
     return { ...result, intent: 'NEGOTIATION', humanInterventionRequired: true, nextAction: 'HUMAN_REVIEW' };
   }
+  // No fabricated commitments are acceptable, even in a visit request.
+  if (unverifiedCommitment) {
+    return { ...result, humanInterventionRequired: true, suggestedResponse: '', nextAction: 'HUMAN_REVIEW',
+      reason: `${result.reason} El borrador contenía una condición comercial o disponibilidad no verificada.` };
+  }
   if (visit) {
     const pending = new Set(result.pendingInformation);
-    ['Nombre', 'Dirección o barrio', 'Horarios preferidos'].forEach(item => pending.add(item));
-    const product = explicitProduct ? ` sobre ${explicitProduct}` : '';
+    const known = inspection && inspection.client || {};
+    if (!result.pendingInformation.length) {
+      if (!known.name && !result.memory?.providedName) pending.add('Nombre');
+      if (!known.address) pending.add('Dirección o barrio');
+      if (!known.preferredSchedule) pending.add('Horarios preferidos');
+    }
+    const draft = clean(result.suggestedResponse, 1800);
+    const suggestion = /pendiente|confirmar|disponibilidad/i.test(normalizeText(draft))
+      ? draft : `${draft ? draft + '\n\n' : ''}La visita queda pendiente de confirmar según disponibilidad.`;
     return {
-      ...result, productInterest: explicitProduct,
-      intent: 'VISIT_REQUEST',
+      ...result, productInterest: explicitProduct, intent: 'VISIT_REQUEST',
       secondaryIntents: Array.from(new Set([...result.secondaryIntents, 'INFORMATION_REQUEST', ...(quote ? ['QUOTE_REQUEST'] : [])])),
-      pendingInformation: Array.from(pending).slice(0, 12),
-      suggestedResponse: `¡Hola! Claro, con gusto te ayudamos${product} y preparamos la solicitud de visita. ¿Nos compartes tu nombre, dirección o barrio, y los horarios que te sirven? La visita queda pendiente de confirmar según disponibilidad.`,
+      pendingInformation: Array.from(pending).slice(0, 12), suggestedResponse: suggestion,
       nextAction: result.humanInterventionRequired ? 'HUMAN_REVIEW' : 'COLLECT_VISIT_DETAILS',
       reason: `${result.reason} La visita queda pendiente de consultar y confirmar según disponibilidad real.`.trim()
     };
-  }
-  if (unverifiedCommitment) {
-    return { ...result, humanInterventionRequired: true, suggestedResponse: '', nextAction: 'HUMAN_REVIEW',
-      reason: `${result.reason} El borrador contenía una condición comercial o disponibilidad no verificada.`.trim() };
   }
   if (quote) {
     return { ...result, productInterest: explicitProduct, intent: 'QUOTE_REQUEST',
@@ -148,6 +192,20 @@ function applyGuardrails(result, record, inspection) {
   }
   if (productQuestion) return { ...result, productInterest: explicitProduct, intent: 'PRODUCT_QUESTION' };
   return result;
+}
+
+function applyResponseStyle(result, context) {
+  if (!result.suggestedResponse || result.nextAction === 'STOP_CONTACT' || result.humanInterventionRequired) return result;
+  const isNewConversation = Boolean(context && context.isNewConversation);
+  let draft = result.suggestedResponse.replace(/[¡¿]/g, '').trim();
+  const greeting = /^(hola|buenos d[ií]as|buenas)\b/i;
+  if (isNewConversation && !greeting.test(draft)) {
+    draft = `Hola, cómo estás? 😊\n\n${draft}`;
+  } else if (!isNewConversation && greeting.test(draft)) {
+    draft = draft.replace(/^(?:hola|buenos d[ií]as|buenas)[^\n.!?]*[.!?]?\s*/i, '').trim();
+    if (!draft) draft = 'Claro que sí, con mucho gusto te ayudo.';
+  }
+  return { ...result, suggestedResponse: draft };
 }
 
 function resolveAssociation(rows, record) {
@@ -188,17 +246,255 @@ function publicAssociation(match) {
   };
 }
 
+function stableId(prefix, value) {
+  return `${prefix}_${crypto.createHash('sha256').update(String(value || '')).digest('hex').slice(0, 20)}`;
+}
+
+function uniqueStrings(existing, incoming, maxItems, maxLength) {
+  const values = [...(Array.isArray(existing) ? existing : []), ...(Array.isArray(incoming) ? incoming : [])]
+    .map(item => clean(item, maxLength)).filter(Boolean);
+  return Array.from(new Map(values.map(item => [normalizeText(item), item])).values()).slice(-maxItems);
+}
+
+function identityKeys(record) {
+  const source = record && typeof record === 'object' ? record : {};
+  const phone = conversation.phoneDigits(source.phone);
+  const phoneFromChat = /@(?:c\.us|s\.whatsapp\.net)$/i.test(String(source.chatId || ''));
+  const verifiedPhone = phone && (source.phoneVerified === true || phoneFromChat) ? `phone:${phone}` : '';
+  const lid = clean(source.lid || /@lid$/i.test(String(source.chatId || '')) && source.chatId || '', 200).toLowerCase();
+  return { primary: verifiedPhone || (lid ? `lid:${lid}` : `chat:${clean(source.chatId, 200).toLowerCase()}`),
+    phoneKey: verifiedPhone, lidKey: lid ? `lid:${lid}` : '' };
+}
+
+function ensureClient(state, record, match) {
+  const keys = identityKeys(record);
+  const knownIds = [keys.phoneKey, keys.lidKey, keys.primary].map(key => key && state.identityIndex[key]).filter(Boolean);
+  const clientId = knownIds[0] || stableId('client', keys.primary);
+  const now = new Date().toISOString();
+  const client = state.clients[clientId] || {
+    id: clientId, provisional: !keys.phoneKey, name: null, phones: [], lids: [],
+    products: [], environments: [], measurements: [], privacyRequirements: [], lightingRequirements: [],
+    quoteNumbers: [], commitments: [], importantDates: [], pendingQuestions: [], commercialOrigins: [],
+    lastHumanInterventionAt: null, conversationSummary: '', identityConflicts: [], createdAt: now, updatedAt: now
+  };
+  if (keys.phoneKey) {
+    const owner = state.identityIndex[keys.phoneKey];
+    if (!owner || owner === clientId) {
+      client.provisional = false;
+      client.phones = uniqueStrings(client.phones, [keys.phoneKey.slice(6)], 10, 20);
+      state.identityIndex[keys.phoneKey] = clientId;
+    } else client.identityConflicts = uniqueStrings(client.identityConflicts, [keys.phoneKey], 20, 220);
+  }
+  if (keys.lidKey) {
+    const owner = state.identityIndex[keys.lidKey];
+    if (!owner || owner === clientId) {
+      client.lids = uniqueStrings(client.lids, [keys.lidKey.slice(4)], 10, 200);
+      state.identityIndex[keys.lidKey] = clientId;
+    } else client.identityConflicts = uniqueStrings(client.identityConflicts, [keys.lidKey], 20, 220);
+  }
+  if (!state.identityIndex[keys.primary]) state.identityIndex[keys.primary] = clientId;
+  if (match && match.status === 'MATCHED' && match.client && match.client.name) client.name = clean(match.client.name, 180);
+  client.updatedAt = now;
+  state.clients[clientId] = client;
+  return client;
+}
+
+function appendConversationMessage(state, record, client) {
+  const chatId = clean(record.chatId, 200);
+  const memory = state.conversations[chatId] || {
+    id: stableId('conversation', chatId), chatId, clientId: client.id, messages: [],
+    conversationToken: null, summary: '', humanTakeover: false, lastHumanInterventionAt: null,
+    createdAt: record.at || new Date().toISOString()
+  };
+  const message = { id: clean(record.id, 260), at: record.at || null,
+    direction: record.direction === 'OUTGOING' ? 'OUTGOING' : 'INCOMING',
+    senderKind: clean(record.senderKind || (record.direction === 'OUTGOING' ? 'OUTGOING_UNKNOWN' : 'CUSTOMER'), 40),
+    text: clean(record.text, 4000) };
+  // V1 conversations lacked these fields; upgrade them in place during replay.
+  memory.id = memory.id || stableId('conversation', chatId);
+  memory.chatId = chatId;
+  memory.createdAt = memory.createdAt || (memory.messages[0] && memory.messages[0].at) || record.at || new Date().toISOString();
+  if (!memory.messages.some(item => item.id === message.id)) memory.messages.push(message);
+  memory.messages = memory.messages.slice(-80);
+  memory.clientId = client.id;
+  memory.updatedAt = new Date().toISOString();
+  if (message.direction === 'OUTGOING' && message.senderKind !== 'SYSTEM') {
+    memory.humanTakeover = true;
+    memory.lastHumanInterventionAt = message.at || memory.updatedAt;
+    client.lastHumanInterventionAt = memory.lastHumanInterventionAt;
+  }
+  state.conversations[chatId] = memory;
+  return memory;
+}
+
+function updateCommercialMemory(state, client, memory, record, result, match) {
+  const extracted = result.memory || memoryFields({});
+  const providedName = extracted.providedName && normalizeText(record.text).includes(normalizeText(extracted.providedName))
+    ? extracted.providedName : null;
+  if (!client.name && providedName) client.name = providedName;
+  client.products = uniqueStrings(client.products, result.productInterest ? [result.productInterest] : [], 30, 180);
+  client.environments = uniqueStrings(client.environments, extracted.environment ? [extracted.environment] : [], 20, 180);
+  const knownMeasurements = [...client.measurements, ...extracted.measurements];
+  client.measurements = Array.from(new Map(knownMeasurements.map(item => [JSON.stringify(item), item])).values()).slice(-30);
+  client.privacyRequirements = uniqueStrings(client.privacyRequirements, extracted.privacyRequirements, 20, 240);
+  client.lightingRequirements = uniqueStrings(client.lightingRequirements, extracted.lightingRequirements, 20, 240);
+  client.commitments = uniqueStrings(client.commitments, extracted.commitments, 30, 300);
+  client.importantDates = uniqueStrings(client.importantDates, extracted.importantDates, 30, 120);
+  client.pendingQuestions = uniqueStrings(client.pendingQuestions, [...extracted.pendingQuestions, ...result.pendingInformation], 30, 300);
+  if (match && match.quote && match.quote.number) client.quoteNumbers = uniqueStrings(client.quoteNumbers, [match.quote.number], 30, 80);
+  const origin = record.commercialOrigin;
+  if (origin && origin.verified === true) {
+    const origins = [...client.commercialOrigins, origin];
+    client.commercialOrigins = Array.from(new Map(origins.map(item => [JSON.stringify(item), item])).values()).slice(-20);
+  }
+  client.conversationSummary = result.commercialSummary;
+  memory.summary = result.commercialSummary;
+
+  const product = result.productInterest || null;
+  const environment = extracted.environment || null;
+  const quoteNumber = match && match.quote ? clean(match.quote.number, 80) : '';
+  const existing = Object.values(state.opportunities).filter(item => item.clientId === client.id);
+  const productKey = normalizeText(product || 'general');
+  const environmentKey = normalizeText(environment || '');
+  const matchedQuote = quoteNumber ? existing.find(item => (item.quoteNumbers || []).includes(quoteNumber)) : null;
+  const choices = existing.filter(item => {
+    if (normalizeText(item.product || 'general') !== productKey) return false;
+    if (quoteNumber && (item.quoteNumbers || []).length && !(item.quoteNumbers || []).includes(quoteNumber)) return false;
+    if (environmentKey && (item.environments || []).length &&
+        !(item.environments || []).some(value => normalizeText(value) === environmentKey)) return false;
+    const elapsed = Date.parse(record.at || '') - Date.parse(item.updatedAt || item.createdAt || '');
+    return !Number.isFinite(elapsed) || (elapsed >= 0 && elapsed <= 60 * 86400000);
+  });
+  // Only attach to a unique compatible opportunity; never merge ambiguous purchases.
+  const selected = matchedQuote || (choices.length === 1 ? choices[0] : null);
+  const opportunityId = selected ? selected.id : stableId('opportunity', `${client.id}:${record.id}`);
+  const opportunity = selected || {
+    id: opportunityId, clientId: client.id, product,
+    environments: [], measurements: [], quoteNumbers: [], commitments: [], importantDates: [], pendingQuestions: [],
+    status: 'OPEN', createdAt: record.at || new Date().toISOString()
+  };
+  opportunity.product = opportunity.product || result.productInterest || null;
+  opportunity.environments = uniqueStrings(opportunity.environments, extracted.environment ? [extracted.environment] : [], 20, 180);
+  opportunity.measurements = Array.from(new Map([...opportunity.measurements, ...extracted.measurements]
+    .map(item => [JSON.stringify(item), item])).values()).slice(-30);
+  opportunity.quoteNumbers = uniqueStrings(opportunity.quoteNumbers, match && match.quote ? [match.quote.number] : [], 20, 80);
+  opportunity.commitments = uniqueStrings(opportunity.commitments, extracted.commitments, 20, 300);
+  opportunity.importantDates = uniqueStrings(opportunity.importantDates, extracted.importantDates, 20, 120);
+  opportunity.pendingQuestions = uniqueStrings(opportunity.pendingQuestions, [...extracted.pendingQuestions, ...result.pendingInformation], 30, 300);
+  opportunity.summary = result.commercialSummary;
+  opportunity.nextAction = result.nextAction;
+  opportunity.updatedAt = record.at || new Date().toISOString();
+  state.opportunities[opportunityId] = opportunity;
+  client.updatedAt = opportunity.updatedAt;
+  return opportunity;
+}
+
+function mergeObservedOutgoing(state, conversationMemory, client, messages) {
+  let added = 0;
+  for (const message of Array.isArray(messages) ? messages : []) {
+    if (!message || message.direction !== 'OUTGOING' || !message.id) continue;
+    const existed = conversationMemory.messages.some(item => item.id === message.id);
+    appendConversationMessage(state, {
+      id: message.id, chatId: conversationMemory.chatId, at: message.at,
+      direction: 'OUTGOING', senderKind: String(message.source || '').toLowerCase() === 'api' ? 'SYSTEM' : 'HUMAN',
+      source: message.source, text: message.text
+    }, client);
+    if (!existed) added += 1;
+  }
+  return added;
+}
+
+function reconcileAnalyses(state) {
+  const canonical = new Map();
+  let reconciled = 0;
+  for (const analysis of state.analyses) {
+    const messageId = clean(analysis && analysis.sourceMessageId, 260);
+    if (!messageId) continue;
+    if (!canonical.has(messageId)) {
+      canonical.set(messageId, analysis.id);
+      continue;
+    }
+    if (!analysis.reconciliation || analysis.reconciliation.status !== 'DUPLICATE') {
+      analysis.reconciliation = { status: 'DUPLICATE', canonicalAnalysisId: canonical.get(messageId),
+        reconciledAt: new Date().toISOString() };
+      reconciled += 1;
+    }
+  }
+  return reconciled;
+}
+
+
+function migrateLegacyMemory(state, inbox) {
+  const canonical = new Map();
+  for (const analysis of state.analyses) {
+    const id = clean(analysis && analysis.sourceMessageId, 260);
+    if (id && !(analysis.reconciliation && analysis.reconciliation.status === 'DUPLICATE') && !canonical.has(id)) canonical.set(id, analysis);
+  }
+  const records = [];
+  let offset = 0;
+  let pages = 0;
+  while (offset !== null) {
+    if (++pages > 100000) throw new Error('Inbox migration safety limit exceeded');
+    const page = inbox.list({ offset, limit: 100 });
+    const items = Array.isArray(page && page.items) ? page.items : [];
+    records.push(...items);
+    const next = page && page.pagination ? page.pagination.nextOffset : null;
+    offset = Number.isInteger(next) && next > offset ? next : null;
+  }
+  for (const record of records.reverse()) {
+    const id = clean(record && record.id, 260);
+    if (!id || (state.processed[id]?.status !== 'DONE' && !canonical.has(id))) continue;
+    const analysis = canonical.get(id);
+    const match = publicAssociation(analysis && analysis.association);
+    const client = ensureClient(state, record, match);
+    const memory = appendConversationMessage(state, record, client);
+    if (analysis && analysis.result) {
+      const opportunity = updateCommercialMemory(state, client, memory, record, analysis.result, match);
+      analysis.clientId = client.id;
+      analysis.opportunityId = opportunity.id;
+      memory.lastAnalysisId = analysis.id;
+    }
+  }
+  // Older conversations may exist even if inbox retention omitted their events.
+  for (const [chatId, previous] of Object.entries(state.conversations)) {
+    if (!previous || previous.clientId || !Array.isArray(previous.messages)) continue;
+    const phone = chatId.endsWith('@c.us') || chatId.endsWith('@s.whatsapp.net')
+      ? conversation.phoneDigits(chatId.split('@')[0]) : '';
+    const client = ensureClient(state, { chatId, phone, phoneVerified: Boolean(phone) }, { status: 'UNKNOWN' });
+    previous.id = previous.id || stableId('conversation', chatId);
+    previous.chatId = chatId;
+    previous.clientId = client.id;
+    previous.createdAt = previous.createdAt || previous.messages[0]?.at || new Date().toISOString();
+    previous.updatedAt = previous.updatedAt || previous.createdAt;
+    previous.humanTakeover = previous.humanTakeover === true;
+    previous.lastHumanInterventionAt = previous.lastHumanInterventionAt || null;
+    previous.summary = previous.summary || '';
+  }
+}
+
 function createIntelligence(options) {
   const opts = options && typeof options === 'object' ? options : {};
   if (!opts.inbox || typeof opts.inbox.list !== 'function') throw new Error('Inbox dependency is required');
   if (typeof opts.resolveMatch !== 'function' || typeof opts.analyze !== 'function') throw new Error('Intelligence dependencies are required');
   const dataDir = path.resolve(String(opts.dataDir || '/app/data'), 'hommy-intelligence');
-  const stateFile = path.join(dataDir, 'state.json');
+  // V1 remains untouched and rollback-readable by Bridge 0.20.0.
+  const legacyStateFile = path.join(dataDir, 'state.json');
+  const stateFile = path.join(dataDir, 'state-v2.json');
   const disabledFile = path.join(dataDir, DISABLED_FILE);
   const configured = opts.enabled === true;
   const maxAnalyses = Math.max(100, Math.min(5000, Number(opts.maxAnalyses || 1000)));
   fs.mkdirSync(dataDir, { recursive: true, mode: 0o700 });
-  const state = readState(stateFile);
+  const hasV2 = fs.existsSync(stateFile);
+  const hasLegacy = fs.existsSync(legacyStateFile);
+  const state = readState(hasV2 ? stateFile : legacyStateFile);
+  const reconciledAtStartup = reconcileAnalyses(state);
+  if (!hasV2 && hasLegacy) {
+    migrateLegacyMemory(state, opts.inbox);
+    atomicWrite(stateFile, state);
+  } else if (reconciledAtStartup) {
+    atomicWrite(stateFile, state);
+  }
+  let processQueue = Promise.resolve();
 
   function enabled() { return configured && !fs.existsSync(disabledFile); }
   function save() {
@@ -209,7 +505,9 @@ function createIntelligence(options) {
     const processed = Object.values(state.processed);
     return { configured, enabled: enabled(), killSwitch: fs.existsSync(disabledFile),
       analyses: state.analyses.length, completed: processed.filter(item => item.status === 'DONE').length,
-      errors: processed.filter(item => item.status === 'ERROR').length };
+      errors: processed.filter(item => item.status === 'ERROR').length,
+      clients: Object.keys(state.clients).length, opportunities: Object.keys(state.opportunities).length,
+      reconciledDuplicates: state.analyses.filter(item => item.reconciliation && item.reconciliation.status === 'DUPLICATE').length };
   }
   function disable() {
     fs.writeFileSync(disabledFile, `${new Date().toISOString()}\n`, { encoding: 'utf8', mode: 0o600 });
@@ -228,7 +526,24 @@ function createIntelligence(options) {
       nextOffset: offset + items.length < state.analyses.length ? offset + items.length : null } };
   }
 
-  async function process(requestContext, processOptions) {
+  function memory(query) {
+    const source = query && typeof query === 'object' ? query : {};
+    const limit = Math.max(1, Math.min(100, Number(source.limit || 50) || 50));
+    const offset = Math.max(0, Number(source.offset || 0) || 0);
+    const allClients = Object.values(state.clients).sort((a, b) => Date.parse(b.updatedAt || 0) - Date.parse(a.updatedAt || 0));
+    const clients = allClients.slice(offset, offset + limit);
+    const ids = new Set(clients.map(item => item.id));
+    const conversations = Object.values(state.conversations).filter(item => ids.has(item.clientId)).map(item => ({
+      id: item.id, chatId: item.chatId, clientId: item.clientId, messages: item.messages,
+      summary: item.summary || '', humanTakeover: item.humanTakeover === true,
+      lastHumanInterventionAt: item.lastHumanInterventionAt || null, updatedAt: item.updatedAt || null
+    }));
+    const opportunities = Object.values(state.opportunities).filter(item => ids.has(item.clientId));
+    return { clients, conversations, opportunities, pagination: { offset, limit, total: allClients.length,
+      nextOffset: offset + clients.length < allClients.length ? offset + clients.length : null } };
+  }
+
+  async function processUnlocked(requestContext, processOptions) {
     if (!enabled()) return { ok: true, skipped: true, reason: 'DISABLED', intelligence: status() };
     const max = Math.max(1, Math.min(50, Number(processOptions && processOptions.limit || 20) || 20));
     const candidatesNewestFirst = [];
@@ -253,40 +568,91 @@ function createIntelligence(options) {
     }
     const candidates = candidatesNewestFirst.reverse();
     const outcome = { ok: true, processed: 0, duplicates: completed, scanned, errors: [] };
+    const candidateChats = new Set(candidates.map(item => clean(item && item.chatId, 200)));
+    if (typeof opts.inspectConversation === 'function') {
+      const storedConversations = Object.values(state.conversations)
+        .filter(item => item && item.chatId && !candidateChats.has(item.chatId))
+        .sort((a, b) => Date.parse(b.updatedAt || 0) - Date.parse(a.updatedAt || 0)).slice(0, 20);
+      for (const stored of storedConversations) {
+        const client = state.clients[stored.clientId];
+        if (!client) continue;
+        const last = stored.messages.length ? stored.messages[stored.messages.length - 1] : {};
+        try {
+          const inspection = await opts.inspectConversation({ chatId: stored.chatId, at: last.at || stored.updatedAt }, requestContext);
+          mergeObservedOutgoing(state, stored, client, inspection && inspection.messages);
+        } catch (error) {
+          outcome.errors.push({ conversationId: stored.id,
+            code: clean(error && error.code || 'HUMAN_TAKEOVER_CHECK_UNAVAILABLE', 80) });
+        }
+      }
+      save();
+    }
 
     for (const record of candidates) {
       const id = clean(record.id, 260);
       const chatId = clean(record.chatId, 200);
+      const existingAnalysis = state.analyses.find(item => item.sourceMessageId === id &&
+        !(item.reconciliation && item.reconciliation.status === 'DUPLICATE'));
+      if (existingAnalysis) {
+        state.processed[id] = { status: 'DONE', attempts: Number(state.processed[id] && state.processed[id].attempts || 1),
+          analysisId: existingAnalysis.id, updatedAt: new Date().toISOString(), reconciled: true };
+        completed += 1;
+        save();
+        continue;
+      }
       const previous = state.processed[id] || {};
       state.processed[id] = { status: 'PROCESSING', attempts: Number(previous.attempts || 0) + 1,
         updatedAt: new Date().toISOString() };
       save();
       try {
-        const memory = state.conversations[chatId] || { messages: [], conversationToken: null };
         const match = publicAssociation(await opts.resolveMatch(record, requestContext));
+        const client = ensureClient(state, record, match);
+        const prior = state.conversations[chatId];
+        const previousMessage = prior && Array.isArray(prior.messages) ? prior.messages[prior.messages.length - 1] : null;
+        const elapsed = Date.parse(record.at || '') - Date.parse(previousMessage && previousMessage.at || '');
+        const newConversation = !previousMessage || (Number.isFinite(elapsed) && elapsed > 24 * 3600000);
+        const conversationMemory = appendConversationMessage(state, record, client);
+        if (record.direction === 'OUTGOING') {
+          state.processed[id] = { status: 'DONE', attempts: state.processed[id].attempts,
+            memoryOnly: true, updatedAt: new Date().toISOString() };
+          outcome.processed += 1;
+          save();
+          continue;
+        }
         const inspection = typeof opts.inspectConversation === 'function'
           ? await opts.inspectConversation(record, requestContext) : { humanTakeover: false };
-        const contextMessages = [...memory.messages, { id, at: record.at, direction: 'INCOMING', text: clean(record.text, 4000) }]
-          .filter((item, index, all) => item.id && all.findIndex(other => other.id === item.id) === index).slice(-12);
+        mergeObservedOutgoing(state, conversationMemory, client, inspection && inspection.messages);
+        // A human response controls the current session, not the customer's entire lifetime.
+        const humanTakeover = (conversationMemory.humanTakeover === true && !newConversation) || inspection.humanTakeover === true;
+        const contextMessages = conversationMemory.messages.slice(-12);
+        const clientOpportunities = Object.values(state.opportunities).filter(item => item.clientId === client.id);
         const analyzed = await opts.analyze({ record, match, messages: contextMessages,
-          conversationToken: memory.conversationToken || null }, requestContext);
-        const guarded = applyGuardrails(validateResult(analyzed.result), record, inspection);
+          client, opportunities: clientOpportunities, responseStyle: RESPONSE_STYLE,
+          conversationToken: conversationMemory.conversationToken || null }, requestContext);
+        const guarded = applyResponseStyle(
+          applyGuardrails(validateResult(analyzed.result), record, { humanTakeover, client }),
+          { isNewConversation: newConversation }
+        );
+        const opportunity = updateCommercialMemory(state, client, conversationMemory, record, guarded, match);
         const analysisId = crypto.createHash('sha256').update(id).digest('hex').slice(0, 24);
         const analysis = {
           id: analysisId, sourceMessageId: id, chatId, at: record.at || null,
-          processedAt: new Date().toISOString(), association: match, result: guarded,
+          processedAt: new Date().toISOString(), clientId: client.id, opportunityId: opportunity.id,
+          association: match, result: guarded,
           audit: { mode: 'REVIEW', sent: false, agendaCreated: false,
             actor: requestContext && requestContext.actor ? requestContext.actor : null,
-            humanTakeover: Boolean(inspection && inspection.humanTakeover), attempts: state.processed[id].attempts }
+            humanTakeover, attempts: state.processed[id].attempts }
         };
-        state.analyses.push(analysis);
-        state.conversations[chatId] = {
-          messages: contextMessages,
-          conversationToken: clean(analyzed.conversationToken, 2000) || memory.conversationToken || null,
-          lastAnalysisId: analysisId,
-          humanTakeover: Boolean(inspection && inspection.humanTakeover),
-          updatedAt: new Date().toISOString()
-        };
+        if (!state.analyses.some(item => item.sourceMessageId === id &&
+          !(item.reconciliation && item.reconciliation.status === 'DUPLICATE'))) state.analyses.push(analysis);
+        conversationMemory.conversationToken = clean(analyzed.conversationToken, 2000) || conversationMemory.conversationToken || null;
+        conversationMemory.lastAnalysisId = analysisId;
+        conversationMemory.humanTakeover = humanTakeover;
+        if (humanTakeover && !conversationMemory.lastHumanInterventionAt) {
+          conversationMemory.lastHumanInterventionAt = new Date().toISOString();
+          client.lastHumanInterventionAt = conversationMemory.lastHumanInterventionAt;
+        }
+        conversationMemory.updatedAt = new Date().toISOString();
         state.processed[id] = { status: 'DONE', attempts: state.processed[id].attempts,
           analysisId, updatedAt: new Date().toISOString() };
         outcome.processed += 1;
@@ -301,7 +667,13 @@ function createIntelligence(options) {
     return { ...outcome, intelligence: status() };
   }
 
-  return Object.freeze({ process, list, status, disable, enable });
+  function process(requestContext, processOptions) {
+    const task = processQueue.then(() => processUnlocked(requestContext, processOptions));
+    processQueue = task.catch(() => undefined);
+    return task;
+  }
+
+  return Object.freeze({ process, list, memory, status, disable, enable });
 }
 
-module.exports = Object.freeze({ createIntelligence, validateResult, applyGuardrails, resolveAssociation });
+module.exports = Object.freeze({ createIntelligence, validateResult, applyGuardrails, resolveAssociation, RESPONSE_STYLE });

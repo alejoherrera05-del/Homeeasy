@@ -16,7 +16,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.20.0';
+const BRIDGE_VERSION = '0.21.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -102,8 +102,9 @@ function intelligencePrompt(input) {
   const association = input.match.status === 'MATCHED'
     ? `Cliente verificado: ${input.match.client.name || 'sin nombre'} (${input.match.client.cedula || 'sin cédula'}). Cotización inequívoca: ${input.match.quote ? input.match.quote.number : 'ninguna'}.`
     : `Contacto ${input.match.status.toLowerCase()}; no asocies ni inventes clientes o cotizaciones.`;
-  const history = input.messages.map(item => `${item.direction === 'INCOMING' ? 'Cliente' : 'HomeEasy'}: ${item.text}`).join('\n');
-  return `Actúa como Hommy, asesor comercial transparente de HomeEasy, en español colombiano natural, breve y profesional. MODO REVIEW: analiza y prepara un borrador; nunca envíes, confirmes agenda, disponibilidad, entrega, precio, descuento o condición no verificada. No te hagas pasar por una persona. Aplica el playbook comercial existente. ${association}\n\nConversación:\n${history}\n\nDevuelve EXCLUSIVAMENTE JSON válido con: intent (INFORMATION_REQUEST, PRODUCT_QUESTION, VISIT_REQUEST, QUOTE_REQUEST, NEGOTIATION, COMPLAINT, DO_NOT_CONTACT u OTHER), secondaryIntents (arreglo), productInterest (texto o null), commercialSummary, pendingInformation (arreglo), temperature (HIGH, ACTIVE, WAITING, RISK o COLD), humanInterventionRequired (booleano), suggestedResponse, nextAction (PREPARE_RESPONSE, COLLECT_VISIT_DETAILS, REQUEST_QUOTE_DETAILS, HUMAN_REVIEW, STOP_CONTACT o WAIT), reason y confidence (0 a 1). Una visita sólo se solicita y queda pendiente de disponibilidad real.`;
+  const history = input.messages.map(item => `${item.direction === 'INCOMING' ? 'Cliente' : item.senderKind === 'SYSTEM' ? 'Sistema HomeEasy' : 'Asesor HomeEasy'}: ${item.text}`).join('\n');
+  const known = JSON.stringify({ client: input.client || null, opportunities: input.opportunities || [] });
+  return `Actúa como Hommy, asesor comercial transparente de HomeEasy. MODO REVIEW: analiza y prepara un borrador; nunca envíes, confirmes agenda, disponibilidad, entrega, precio, descuento o condición no verificada. No te hagas pasar por Daniela, Alejandro ni otra persona. ${association}\n\nMemoria conocida (no vuelvas a preguntar estos datos): ${known}\n\nConversación:\n${history}\n\nEstilo: español colombiano cotidiano, cercano, paciente y amable; frases cortas, buena ortografía, emojis ocasionales y sin lenguaje de chatbot. Saluda y ofrece ayuda sólo al comenzar una conversación nueva; no repitas presentación.\n\nDevuelve EXCLUSIVAMENTE JSON válido con: intent (INFORMATION_REQUEST, PRODUCT_QUESTION, VISIT_REQUEST, QUOTE_REQUEST, NEGOTIATION, COMPLAINT, DO_NOT_CONTACT u OTHER), secondaryIntents (arreglo), productInterest (texto o null), commercialSummary, pendingInformation (arreglo), temperature (HIGH, ACTIVE, WAITING, RISK o COLD), humanInterventionRequired (booleano), suggestedResponse, nextAction (PREPARE_RESPONSE, COLLECT_VISIT_DETAILS, REQUEST_QUOTE_DETAILS, HUMAN_REVIEW, STOP_CONTACT o WAIT), reason, confidence (0 a 1) y memory. memory debe incluir sólo datos expresamente presentes: providedName, environment, measurements [{label,width,height,unit mm|cm|m}], privacyRequirements, lightingRequirements, commitments, importantDates y pendingQuestions. Usa null o arreglos vacíos cuando falte información. Una visita sólo se solicita y queda pendiente de disponibilidad real.`;
 }
 
 async function analyzeWithHommy(input, requestContext) {
@@ -141,7 +142,7 @@ async function inspectHumanTakeover(record) {
   }
   const incomingAt = conversation.timestampMs(record.at);
   const messages = conversation.normalizeMessages(fetched.data, { limit: 30 });
-  return { humanTakeover: messages.some(item => item.direction === 'OUTGOING' &&
+  return { messages, humanTakeover: messages.some(item => item.direction === 'OUTGOING' &&
     conversation.timestampMs(item.at) > incomingAt && String(item.source || '').toLowerCase() !== 'api') };
 }
 
@@ -1088,6 +1089,13 @@ async function handle(req, res) {
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/intelligence') {
     await auth.authorize(req, 'cotizaciones.read');
     return json(res, 200, { ok: true, mode: 'REVIEW', ...hommyIntelligence.list({
+      offset: url.searchParams.get('offset'), limit: url.searchParams.get('limit')
+    }) });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/intelligence/memory') {
+    await auth.authorize(req, 'cotizaciones.read');
+    return json(res, 200, { ok: true, mode: 'REVIEW', ...hommyIntelligence.memory({
       offset: url.searchParams.get('offset'), limit: url.searchParams.get('limit')
     }) });
   }

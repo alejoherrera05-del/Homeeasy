@@ -12,7 +12,7 @@
 
     if (global.HomeEasyWhatsApp) return;
 
-    const VERSION = '0.8.0';
+    const VERSION = '0.9.0';
     const BASE_URL = 'https://api.homeeasy.com.co';
     const REQUEST_TIMEOUT_MS = 25000;
     const RECOVERY_BUTTON_ID = 'heWaRecover';
@@ -311,6 +311,13 @@
         });
     }
 
+    function hommyCommercialMemory(options) {
+        const opts = options || {};
+        const offset = Math.max(0, Number(opts.offset || 0) || 0);
+        const limit = Math.max(1, Math.min(100, Number(opts.limit || 50) || 50));
+        return request('/api/whatsapp/intelligence/memory?offset=' + encodeURIComponent(offset) + '&limit=' + encodeURIComponent(limit));
+    }
+
     function connectedPhone(statusPayload) {
         const raw = statusPayload && statusPayload.whatsapp && statusPayload.whatsapp.me
             ? String(statusPayload.whatsapp.me.id || '')
@@ -566,6 +573,7 @@
         sendFollowup,
         hommyIntelligence,
         processHommyIntelligence,
+        hommyCommercialMemory,
         maintenance: () => request('/api/whatsapp/maintenance'),
         diagnose,
         maintain: body => request('/api/whatsapp/maintenance', { method: 'POST', body }),
