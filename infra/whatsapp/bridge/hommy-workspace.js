@@ -55,7 +55,7 @@ function createHommyWorkspace(options = {}) {
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   const defaults = () => ({
     version: 1, revision: 0, mode: options.intelligenceEnabled ? 'REVIEW' : 'PAUSED',
-    team: { enabled: false, groupId: '', allowedSenders: [] },
+    team: { enabled: false, groupId: '', allowedSenders: [], replyEnabled: false },
     labels: {}, tasks: [], commands: [], seen: [], audit: []
   });
   // A damaged optional workspace must never prevent the WhatsApp/Pentagrama Bridge from starting.
@@ -91,7 +91,8 @@ function createHommyWorkspace(options = {}) {
       team: { enabled: data.team.enabled,
         configured: validGroup(data.team.groupId) && data.team.allowedSenders.length > 0,
         groupId: data.team.groupId || null, authorizedSenders: data.team.allowedSenders.length,
-        replyEnabled: false },
+        replyEnabled: data.team.replyEnabled === true },
+      totalTeamCommands: data.commands.length,
       labeledClients: Object.keys(data.labels).length,
       pendingTasks: data.tasks.filter(t => ['PENDIENTE', 'EN_CURSO'].includes(t.status)).length,
       pendingTeamCommands: data.commands.filter(c => c.status === 'REVIEW_REQUIRED').length };
@@ -108,15 +109,20 @@ function createHommyWorkspace(options = {}) {
       const groupId = body.team.groupId === undefined ? data.team.groupId : clean(body.team.groupId, 90);
       const senders = body.team.allowedSenders === undefined ? data.team.allowedSenders : body.team.allowedSenders;
       const enabled = body.team.enabled === undefined ? data.team.enabled : body.team.enabled;
+      const replyEnabled = body.team.replyEnabled === undefined ? data.team.replyEnabled === true : body.team.replyEnabled;
       if ((groupId && !validGroup(groupId)) || typeof enabled !== 'boolean' ||
+          typeof replyEnabled !== 'boolean' ||
           !Array.isArray(senders) || senders.length > 5 || senders.some(s => !validSender(s)) ||
-          (enabled && (!groupId || !senders.length))) {
-        throw err('Exact group ID and authorized sender IDs are required');
+          (enabled && (!groupId || !senders.length)) ||
+          (replyEnabled && (!enabled || !groupId || !senders.length))) {
+        throw err('Exact group ID, authorized sender IDs and active group are required');
       }
-      team = { groupId, allowedSenders: [...new Set(senders)], enabled };
+      team = { groupId, allowedSenders: [...new Set(senders)], enabled,
+        replyEnabled: enabled && replyEnabled };
     }
     if (body.mode !== undefined) data.mode = body.mode;
     if (team) data.team = team;
+    if (data.mode !== 'REVIEW') data.team.replyEnabled = false;
     persist('CONFIGURE', actor);
     return status();
   }
