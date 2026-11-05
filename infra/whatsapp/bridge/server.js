@@ -17,7 +17,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.23.2';
+const BRIDGE_VERSION = '0.24.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -1095,7 +1095,27 @@ async function handle(req, res) {
         }
       }
       const group = hommyWorkspace.ingestSignedGroupEvent(event, mapping);
-      if (group.accepted) return json(res, 202, { ...result, team: { accepted: true, status: group.status } });
+      if (group.accepted) {
+        const reserved = group.status === 'INFORMATION' ? hommyWorkspace.reserveTeamReply(group.id) : null;
+        if (reserved) {
+          // Only our configured and verified team group is a permitted destination.
+          // This is NOT a general-purpose customer sending endpoint.
+          try {
+            await wahaRequest('POST', '/api/sendText', {
+              session: WAHA_SESSION,
+              chatId: reserved.groupId,
+              text: reserved.text
+            }, 'application/json', 6000);
+            hommyWorkspace.finishTeamReply(reserved.commandId, true);
+          } catch (replyError) {
+            // A network failure could have occurred after WAHA accepted the send.
+            // UNKNOWN is terminal until a human reconciles it; never auto-retry.
+            hommyWorkspace.finishTeamReply(reserved.commandId, false);
+            console.error('Hommy team reply unconfirmed:', replyError.statusCode || replyError.code || 'WAHA_ERROR');
+          }
+        }
+        return json(res, 202, { ...result, team: { accepted: true, status: group.status } });
+      }
     }
     return json(res, 202, result);
   }
