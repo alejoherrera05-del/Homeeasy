@@ -226,7 +226,7 @@ function createHommyWorkspace(options = {}) {
     const status = queryType ? 'INFORMATION' : 'REVIEW_REQUIRED';
     const preview = queryType
       ? operational.preview(queryType, data.tasks, data.labels, readOverview())
-      : 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de enviar mensajes.';
+      : 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
     data.commands.push({ id, at: new Date().toISOString(), author, command: command.slice(0, 500), preview, status });
     data.commands = data.commands.slice(-limit);
     data.seen.push(id);
