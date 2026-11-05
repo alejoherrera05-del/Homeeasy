@@ -177,6 +177,33 @@ function createHommyWorkspace(options = {}) {
     return !corrupted && data.team.allowedSenders.includes(clean(value, 90));
   }
 
+  // Synchronous reservation persisted BEFORE any outbound request.
+  // Only an already-authenticated, authorized INFORMATION query may get a group reply.
+  // The ID comes from a stored command, not from arbitrary API input or model output.
+  function reserveTeamReply(id) {
+    if (corrupted || data.mode !== 'REVIEW' || !data.team.enabled ||
+        data.team.replyEnabled !== true || !validGroup(data.team.groupId)) return null;
+    const command = data.commands.find(c => c.id === clean(id, 260));
+    if (!command || command.status !== 'INFORMATION' || command.replyStatus) return null;
+    const text = clean(command.preview, 600);
+    if (!text) return null;
+    command.replyStatus = 'SENDING';
+    command.replyStartedAt = new Date().toISOString();
+    persist('TEAM_REPLY_RESERVED', { profile: { uid: 'system' } });
+    return Object.freeze({ commandId: command.id, groupId: data.team.groupId, text });
+  }
+
+  function finishTeamReply(id, success) {
+    if (corrupted) return false;
+    const command = data.commands.find(c => c.id === clean(id, 260));
+    if (!command || command.replyStatus !== 'SENDING') return false;
+    command.replyStatus = success === true ? 'SENT' : 'UNKNOWN';
+    command.replyFinishedAt = new Date().toISOString();
+    persist(command.replyStatus === 'SENT' ? 'TEAM_REPLY_SENT' : 'TEAM_REPLY_UNCONFIRMED',
+      { profile: { uid: 'system' } });
+    return true;
+  }
+
   function ingestSignedGroupEvent(event, verifiedMapping) {
     if (corrupted || data.mode !== 'REVIEW' || !data.team.enabled) return { accepted: false, reason: 'DISABLED' };
     if (!event || event.session !== session || !['message', 'message.any'].includes(event.event))
@@ -209,7 +236,7 @@ function createHommyWorkspace(options = {}) {
   }
 
   return Object.freeze({ status, configure, putLabels, createTask, updateTask, dashboard,
-    isAuthorizedSender, ingestSignedGroupEvent });
+    isAuthorizedSender, ingestSignedGroupEvent, reserveTeamReply, finishTeamReply });
 }
 
 module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias });
