@@ -10,13 +10,14 @@ const ops = require('./operations');
 const conversation = require('./conversation');
 const { createInbox } = require('./inbox');
 const { createIntelligence, resolveAssociation } = require('./intelligence');
+const { createHommyWorkspace } = require('./hommy-workspace');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.22.0';
+const BRIDGE_VERSION = '0.23.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -152,6 +153,10 @@ async function inspectHumanTakeover(record) {
 const hommyIntelligence = createIntelligence({
   dataDir: DATA_DIR, enabled: HOMMY_INTELLIGENCE_ENABLED, inbox: hommyInbox,
   resolveMatch: resolveIntelligenceMatch, analyze: analyzeWithHommy, inspectConversation: inspectHumanTakeover
+});
+const hommyWorkspace = createHommyWorkspace({
+  dataDir: DATA_DIR, session: WAHA_SESSION, intelligenceEnabled: HOMMY_INTELLIGENCE_ENABLED,
+  hasClient: hommyIntelligence.hasClient
 });
 
 function json(res, statusCode, payload) {
@@ -290,7 +295,7 @@ async function handleAgentRequest(req, res) {
   return json(res, 404, { ok: false, error: 'Not found' });
 }
 
-async function wahaRequest(method, route, body, accept = 'application/json') {
+async function wahaRequest(method, route, body, accept = 'application/json', timeoutMs = 90000) {
   const response = await fetch(`${WAHA_BASE_URL}${route}`, {
     method,
     headers: {
@@ -299,7 +304,7 @@ async function wahaRequest(method, route, body, accept = 'application/json') {
       ...(body ? { 'Content-Type': 'application/json' } : {})
     },
     body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(90000)
+    signal: AbortSignal.timeout(timeoutMs)
   });
 
   const contentType = response.headers.get('content-type') || '';
@@ -1067,7 +1072,12 @@ async function handle(req, res) {
     if (!contentType.startsWith('application/json')) {
       return json(res, 415, { ok: false, error: 'Content-Type application/json required' });
     }
-    const result = hommyInbox.ingest(await readRawBody(req, HOMMY_INBOX_MAX_BODY_BYTES), req.headers);
+    const raw = await readRawBody(req, HOMMY_INBOX_MAX_BODY_BYTES);
+    const result = hommyInbox.ingest(raw, req.headers); // HMAC and session verified first.
+    if (hommyWorkspace.status().team.enabled) {
+      const group = hommyWorkspace.ingestSignedGroupEvent(JSON.parse(raw.toString('utf8')));
+      if (group.accepted) return json(res, 202, { ...result, team: { accepted: true, status: group.status } });
+    }
     return json(res, 202, result);
   }
 
@@ -1105,6 +1115,10 @@ async function handle(req, res) {
 
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/intelligence/process') {
     const actor = await auth.authorize(req, 'cotizaciones.read');
+    if (hommyWorkspace.status().mode !== 'REVIEW') {
+      throw Object.assign(new Error('Hommy is paused; inbox and WhatsApp remain available'),
+        { code: 'HOMMY_PAUSED', statusCode: 409 });
+    }
     const payload = await readJsonBody(req);
     const result = await hommyIntelligence.process({ req, actor: auth.publicActor(actor) }, { limit: payload.limit });
     return json(res, 200, result);
@@ -1118,6 +1132,64 @@ async function handle(req, res) {
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/intelligence/enable') {
     await auth.authorize(req, 'config.write');
     return json(res, 200, { ok: true, intelligence: hommyIntelligence.enable() });
+  }
+
+  // Hommy commercial operations are isolated from WAHA session management.
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/control') {
+    await auth.authorize(req, 'config.read');
+    return json(res, 200, { ok: true, control: hommyWorkspace.status() });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/control') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, control: hommyWorkspace.configure(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/groups') {
+    // Read-only, explicit UI request; no group mutation and no session restart.
+    await auth.authorize(req, 'config.write');
+    const raw = await wahaRequest('GET', '/api/' + encodeURIComponent(WAHA_SESSION) +
+      '/groups?limit=30&offset=0', undefined, 'application/json', 8000);
+    const rows = Array.isArray(raw) ? raw : Array.isArray(raw.items) ? raw.items : [];
+    const jid = id => typeof id === 'string' ? id
+      : id && typeof id === 'object' ? String(id._serialized || id.id || '') : '';
+    const groups = rows.map(row => ({
+      id: jid(row.id || row.group && row.group.id),
+      subject: String(row.subject || row.name || row.group && row.group.subject || 'Grupo sin nombre').slice(0, 100)
+    })).filter(g => /^\d{8,22}(?:-\d{1,22})?@g\.us$/.test(g.id)).slice(0, 30);
+    return json(res, 200, { ok: true, groups });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/group-members') {
+    await auth.authorize(req, 'config.write');
+    const groupId = String(url.searchParams.get('groupId') || '');
+    if (!/^\d{8,22}(?:-\d{1,22})?@g\.us$/.test(groupId)) {
+      throw Object.assign(new Error('Invalid group ID'), { statusCode: 400 });
+    }
+    const raw = await wahaRequest('GET', '/api/' + encodeURIComponent(WAHA_SESSION) +
+      '/groups/' + encodeURIComponent(groupId) + '/participants/v2', undefined, 'application/json', 8000);
+    const rows = Array.isArray(raw) ? raw : Array.isArray(raw.participants) ? raw.participants : [];
+    const jid = id => typeof id === 'string' ? id
+      : id && typeof id === 'object' ? String(id._serialized || id.id || '') : '';
+    const members = rows.map(row => ({
+      id: jid(row.id), role: String(row.role || 'participant')
+    })).filter(m => /^\d{8,22}@(c\.us|lid)$/.test(m.id) &&
+      m.role !== 'left').slice(0, 100);
+    return json(res, 200, { ok: true, groupId, members });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/workspace') {
+    await auth.authorize(req, 'cotizaciones.read');
+    return json(res, 200, { ok: true, ...hommyWorkspace.dashboard({ limit: url.searchParams.get('limit') }) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/labels') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, ...hommyWorkspace.putLabels(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/tasks') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 201, { ok: true, task: hommyWorkspace.createTask(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/tasks/status') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, task: hommyWorkspace.updateTask(await readJsonBody(req), actor) });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/pentagrama-sync/status') {
@@ -1253,6 +1325,7 @@ async function handle(req, res) {
       bridge: { version: BRIDGE_VERSION, serverTime: new Date().toISOString(), storage: ops.storageStatus() },
       inbox: hommyInbox.status(),
       intelligence: hommyIntelligence.status(),
+      hommyWorkspace: hommyWorkspace.status(),
       actor: auth.publicActor(actor),
       capabilities: capabilities(actor)
     });

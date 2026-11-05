@@ -318,6 +318,29 @@
         return request('/api/whatsapp/intelligence/memory?offset=' + encodeURIComponent(offset) + '&limit=' + encodeURIComponent(limit));
     }
 
+    // Standalone Hommy Operations API; never affects the WhatsApp connection or HomeEasy login.
+    function hommyControl() { return request('/api/whatsapp/hommy/control'); }
+    function saveHommyControl(config) {
+        return request('/api/whatsapp/hommy/control', { method: 'POST', body: config || {} });
+    }
+    function hommyGroups() { return request('/api/whatsapp/hommy/groups'); }
+    function hommyGroupMembers(groupId) {
+        return request('/api/whatsapp/hommy/group-members?groupId=' + encodeURIComponent(String(groupId || '')));
+    }
+    function hommyWorkspace(limit) {
+        const size = Math.min(100, Math.max(1, Number(limit) || 30));
+        return request('/api/whatsapp/hommy/workspace?limit=' + encodeURIComponent(size));
+    }
+    function saveHommyLabels(clientId, labels) {
+        return request('/api/whatsapp/hommy/labels', { method: 'POST', body: { clientId, labels } });
+    }
+    function createHommyTask(clientId, title) {
+        return request('/api/whatsapp/hommy/tasks', { method: 'POST', body: { clientId, title } });
+    }
+    function updateHommyTask(taskId, status) {
+        return request('/api/whatsapp/hommy/tasks/status', { method: 'POST', body: { taskId, status } });
+    }
+
     function connectedPhone(statusPayload) {
         const raw = statusPayload && statusPayload.whatsapp && statusPayload.whatsapp.me
             ? String(statusPayload.whatsapp.me.id || '')
@@ -574,6 +597,14 @@
         hommyIntelligence,
         processHommyIntelligence,
         hommyCommercialMemory,
+        hommyControl,
+        saveHommyControl,
+        hommyGroups,
+        hommyGroupMembers,
+        hommyWorkspace,
+        saveHommyLabels,
+        createHommyTask,
+        updateHommyTask,
         maintenance: () => request('/api/whatsapp/maintenance'),
         diagnose,
         maintain: body => request('/api/whatsapp/maintenance', { method: 'POST', body }),

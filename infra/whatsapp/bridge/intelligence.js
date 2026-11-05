@@ -759,7 +759,8 @@ function createIntelligence(options) {
     return task;
   }
 
-  return Object.freeze({ process, list, memory, status, disable, enable });
+  return Object.freeze({ process, list, memory, status, disable, enable,
+    hasClient: clientId => Object.prototype.hasOwnProperty.call(state.clients, String(clientId || '')) });
 }
 
 module.exports = Object.freeze({ createIntelligence, validateResult, applyGuardrails, resolveAssociation,

@@ -214,6 +214,37 @@ envía mensajes, no crea citas y no activa un trabajador automático. La memoria
 V2 creada en la fase anterior permanece en `state-v2.json`. Los ajustes de
 estilo no reescriben los análisis históricos.
 
+### Fase 3C · Operaciones comerciales aisladas
+
+Bridge 0.23.0 incluye un módulo privado `hommy-workspace.js`, separado del envío
+de documentos, WAHA y Pentagrama. Su almacenamiento vive en
+`data/bridge/hommy-workspace/state.json` con escritura atómica, respaldo y
+auditoría. Si el archivo se daña, el módulo se pausa sin impedir que arranque el
+resto del Bridge.
+
+- `GET /api/whatsapp/hommy/control` (`config.read`): modo, grupo y pendientes.
+- `POST /api/whatsapp/hommy/control` (`config.write`): solo `PAUSED` o `REVIEW`.
+- `GET /api/whatsapp/hommy/workspace` (`cotizaciones.read`): etiquetas, tareas y comandos capturados.
+- `POST /api/whatsapp/hommy/labels` (`config.write`): etiquetas internas para un cliente existente.
+- `POST /api/whatsapp/hommy/tasks` y `.../tasks/status` (`config.write`): tareas auditables.
+
+Pausar la inteligencia impide iniciar nuevos análisis de REVIEW y captar nuevos
+comandos de grupo; **no desactiva el inbox ni WAHA**, tampoco impide enviar
+documentos o realizar operaciones Pentagrama.
+
+El grupo privado está desactivado por defecto. Para escucharlo hace falta
+configurarlo explícitamente con su ID `@g.us` exacto y una lista de remitentes
+verificados `@c.us` o `@lid`. Solo se considera un mensaje dirigido
+expresamente a Hommy y firmado por el webhook actual. Los comandos se
+**registran para revisión**: este módulo no envía respuestas al grupo ni mensajes
+a clientes y no tiene acceso a los métodos de envío de WAHA.
+
+La tarjeta de Configuración → Integraciones permite pausar y reanudar REVIEW
+siempre que la sesión tenga `config.write`. Se monta en un archivo JavaScript
+opcional independiente; no modifica Hommychat, voz, log-in ni estilos globales.
+Las etiquetas de HomeEasy son la fuente principal; la futura sincronización
+con las etiquetas nativas de WhatsApp será explícita y verificable.
+
 ### Estado WhatsApp
 
 ```text
