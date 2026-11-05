@@ -180,7 +180,10 @@ test('webhook performs a bounded read-only LID lookup after signature verificati
   assert.match(segment, /\/lids\/pn\//);
   assert.match(segment, /2500/);
   assert.ok(segment.indexOf('hommyInbox.ingest(raw, req.headers)') < segment.indexOf("wahaRequest('GET'"));
-  assert.doesNotMatch(segment, /wahaRequest\('POST'|sendText|sendDocument|force-recreate/);
+  assert.match(segment, /group\.status === 'INFORMATION'/);
+  assert.match(segment, /hommyWorkspace\.reserveTeamReply\(group\.id\)/);
+  assert.match(segment, /chatId: reserved\.groupId/);
+  assert.doesNotMatch(segment, /sendDocument|force-recreate/);
 });
 
 test('team activity counts informational queries separately from pending review actions', t => {
