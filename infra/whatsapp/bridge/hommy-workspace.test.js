@@ -122,6 +122,10 @@ test('optional UI does not touch Hommy chat and uses authorized client methods',
   assert.match(config, /homeeasy-hommy-operations-ui\.js/);
   assert.match(js, /panel-integraciones/);
   assert.match(js, /HomeEasyWhatsApp\.saveHommyControl/);
+  // The optional card must refresh when the user opens Integraciones after login.
+  assert.match(js, /homeeasy:whatsapp-status/);
+  assert.match(js, /\[data-section="integraciones"\]/);
+  assert.match(js, /load\(false\)/);
   assert.doesNotMatch(js, /restart\(|bootstrap\(|Hommychat\.html|document\.body\.innerHTML/);
 });
 

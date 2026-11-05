@@ -280,7 +280,24 @@
   }
 
   global.addEventListener('homeeasy:page-auth-ready', mount);
-  global.addEventListener('homeeasy:whatsapp-status', mount);
+  // The shared Integraciones panel emits status after it loads. Refresh Hommy too,
+  // even if our optional card was mounted earlier while the panel was hidden.
+  global.addEventListener('homeeasy:whatsapp-status', () => {
+    mount();
+    if (mounted && document.getElementById('panel-integraciones')?.classList.contains('active')) {
+      load(false);
+    }
+  });
+  // Also handle explicit navigation if the WhatsApp status request is delayed or fails.
+  document.addEventListener('click', event => {
+    if (!event.target?.closest?.('[data-section="integraciones"]')) return;
+    Promise.resolve().then(() => {
+      mount();
+      if (mounted && document.getElementById('panel-integraciones')?.classList.contains('active')) {
+        load(false);
+      }
+    });
+  });
   document.addEventListener('DOMContentLoaded', mount, { once: true });
   mount();
   global.HomeEasyHommyOperationsUI = Object.freeze({ VERSION: '0.1.0' });
