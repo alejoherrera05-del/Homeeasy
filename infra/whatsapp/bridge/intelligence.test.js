@@ -429,6 +429,111 @@ test('blocks unverified prices, delivery promises and availability from drafts',
   assert.equal(review.suggestedResponse, '');
 });
 
+
+test('migrates completed V1 Onda Serena into V2 without rerunning AI or deleting the legacy state', t => {
+  const dataDir = fs.mkdtempSync(path.join(__dirname, '.test-hommy-v1migration-'));
+  t.after(() => fs.rmSync(dataDir, { recursive: true, force: true }));
+  const dir = path.join(dataDir, 'hommy-intelligence');
+  fs.mkdirSync(dir, { recursive: true });
+  const item = record('legacy-onda', 'Hola, quiero Onda Serena y una visita', {
+    at: '2026-11-05T12:00:00.000Z', phoneVerified: true
+  });
+  const legacy = {
+    version: 1,
+    processed: { 'legacy-onda': { status: 'DONE', attempts: 2, analysisId: 'old-a' } },
+    analyses: [
+      { id: 'old-a', sourceMessageId: 'legacy-onda', chatId: item.chatId,
+        result: result({ productInterest: 'Onda Serena',
+          commercialSummary: 'Quiere Onda Serena y una visita.', pendingInformation: ['Dirección o barrio'] }),
+        association: { status: 'UNKNOWN' }, audit: { sent: false, agendaCreated: false } },
+      { id: 'old-b', sourceMessageId: 'legacy-onda', chatId: item.chatId,
+        result: result({ productInterest: 'Onda Serena' }), association: { status: 'UNKNOWN' },
+        audit: { sent: false, agendaCreated: false } }
+    ],
+    conversations: {
+      [item.chatId]: { messages: [{ id: item.id, at: item.at, direction: 'INCOMING', text: item.text }],
+        conversationToken: 'existing-secret-token' }
+    }
+  };
+  const v1Text = JSON.stringify(legacy);
+  const v1File = path.join(dir, 'state.json');
+  fs.writeFileSync(v1File, v1Text, { mode: 0o600 });
+  let analysisCalls = 0;
+  const options = {
+    dataDir, enabled: true,
+    inbox: { list: () => ({ items: [item], pagination: { nextOffset: null } }) },
+    resolveMatch: async () => ({ status: 'UNKNOWN' }),
+    analyze: async () => { analysisCalls += 1; return { result: result() }; },
+    inspectConversation: async () => ({ humanTakeover: false })
+  };
+  const instance = createIntelligence(options);
+  const memory = instance.memory({ limit: 10 });
+  assert.equal(fs.readFileSync(v1File, 'utf8'), v1Text);
+  assert.equal(fs.existsSync(path.join(dir, 'state-v2.json')), true);
+  assert.equal(memory.clients.length, 1);
+  assert.deepEqual(memory.clients[0].products, ['Onda Serena']);
+  assert.equal(memory.conversations.length, 1);
+  assert.ok(memory.conversations[0].id);
+  assert.equal(memory.conversations[0].messages.length, 1);
+  assert.equal(memory.opportunities.length, 1);
+  assert.equal(instance.status().reconciledDuplicates, 1);
+  assert.equal(instance.list({}).items.length, 2);
+  assert.equal(instance.list({}).items.filter(x => x.reconciliation?.status === 'DUPLICATE').length, 1);
+  const restarted = createIntelligence(options);
+  assert.equal(restarted.memory({}).opportunities.length, 1);
+  assert.equal(restarted.memory({}).conversations[0].messages.length, 1);
+  assert.equal(analysisCalls, 0);
+});
+
+test('keeps separate Onda Serena opportunities by room and by later purchase cycle', async t => {
+  const entries = [
+    record('room-1', 'Onda Serena para la sala', { at: '2026-11-05T12:00:00.000Z' }),
+    record('room-2', 'Otra Onda Serena para la habitación', { at: '2026-11-05T12:05:00.000Z' }),
+    record('room-3', 'Quiero otra Onda Serena para la habitación', { at: '2027-02-10T12:00:00.000Z' })
+  ];
+  const env = setup(entries, { analyze: async input => ({
+    result: result({ productInterest: 'Onda Serena',
+      memory: { environment: input.record.id === 'room-1' ? 'sala' : 'habitación' } })
+  }) });
+  t.after(env.cleanup);
+  const result3 = await env.intelligence.process({}, { limit: 10 });
+  assert.equal(result3.processed, 3);
+  const opportunities = env.intelligence.memory({ limit: 10 }).opportunities;
+  assert.equal(opportunities.length, 3);
+  assert.equal(opportunities.filter(x => x.product === 'Onda Serena').length, 3);
+  assert.equal(opportunities.filter(x => x.environments.includes('habitación')).length, 2);
+});
+
+test('greeting depends on chat session, never repeats per message and returns after days', async t => {
+  const entries = [
+    record('greet-a', 'Hola, deseo una visita', { at: '2026-11-05T12:00:00.000Z' }),
+    record('greet-b', 'Es para la sala, quiero visita', { at: '2026-11-05T12:03:00.000Z' }),
+    record('greet-c', 'Retomemos la visita', { at: '2026-11-08T12:00:00.000Z' })
+  ];
+  const env = setup(entries, { analyze: async () => ({
+    result: result({ suggestedResponse: '¡Hola! Claro que sí, con mucho gusto te ayudo con la visita.' })
+  }) });
+  t.after(env.cleanup);
+  await env.intelligence.process({}, { limit: 10 });
+  const drafts = Object.fromEntries(env.intelligence.list({}).items.map(item => [item.sourceMessageId, item.result.suggestedResponse]));
+  assert.match(drafts['greet-a'], /^Hola/);
+  assert.doesNotMatch(drafts['greet-b'], /^Hola/);
+  assert.match(drafts['greet-c'], /^Hola/);
+  assert.ok(Object.values(drafts).every(text => !/[¡¿]/.test(text)));
+  assert.ok(Object.values(drafts).every(text => /pendiente|confirmar|disponibilidad/i.test(text)));
+});
+
+test('deployment safeguards preserve active intelligence and make V2 rollback read-only', () => {
+  const updater = fs.readFileSync(path.join(__dirname, '..', 'update-bridge.sh'), 'utf8');
+  assert.doesNotMatch(updater, /El despliegue inicial exige false/);
+  assert.match(updater, /INTELLIGENCE_ENABLED_BEFORE/);
+  assert.match(updater, /INTELLIGENCE_KILL_SWITCH_AFTER/);
+  assert.match(updater, /state-v2\.json/);
+  assert.match(updater, /hommy-intelligence\/disabled/);
+  assert.match(updater, /--no-deps --force-recreate bridge/);
+  assert.doesNotMatch(updater, /--force-recreate waha/);
+});
+
 test('server contract keeps processing protected, REVIEW-only and disabled by default', () => {
   const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
   const compose = fs.readFileSync(path.join(__dirname, '..', 'docker-compose.yml'), 'utf8');
