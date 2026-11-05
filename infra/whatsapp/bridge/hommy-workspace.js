@@ -27,6 +27,18 @@ function mappedSenderAlias(author, mapping) {
 }
 
 
+
+function shouldResolveTeamAlias(event, team, author, alreadyAllowed, session) {
+  if (!team || !team.enabled || !validGroup(team.groupId)) return false;
+  if (!event || event.session !== session || !['message', 'message.any'].includes(event.event)) return false;
+  const payload = event.payload;
+  if (!payload || typeof payload !== 'object' || payload.fromMe === true || payload.key?.fromMe === true) return false;
+  if (clean(payload.chatId || payload.from, 90) !== team.groupId) return false;
+  if (alreadyAllowed || !validSender(author)) return false;
+  const message = clean(payload.body || payload.text || payload.caption, 700);
+  return /^hommy\b(?:[,\s:!?-]|$)/i.test(message);
+}
+
 function saveAtomic(file, data) {
   const temp = file + '.' + process.pid + '.tmp';
   try {
@@ -194,4 +206,4 @@ function createHommyWorkspace(options = {}) {
     isAuthorizedSender, ingestSignedGroupEvent });
 }
 
-module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias });
+module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias });

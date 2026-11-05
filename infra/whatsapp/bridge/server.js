@@ -10,14 +10,14 @@ const ops = require('./operations');
 const conversation = require('./conversation');
 const { createInbox } = require('./inbox');
 const { createIntelligence, resolveAssociation } = require('./intelligence');
-const { createHommyWorkspace } = require('./hommy-workspace');
+const { createHommyWorkspace, shouldResolveTeamAlias } = require('./hommy-workspace');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.23.1';
+const BRIDGE_VERSION = '0.23.2';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -1084,10 +1084,7 @@ async function handle(req, res) {
       let mapping = null;
       // Only consult WAHA for a valid message from OUR configured group,
       // explicitly addressing Hommy, with an unrecognized sender identifier.
-      if (event.session === WAHA_SESSION && event.event === 'message' &&
-          groupId === team.groupId && !payload.fromMe && !payload.key?.fromMe &&
-          /^hommy\\b[,\\s:!?-]*/i.test(text) && !hommyWorkspace.isAuthorizedSender(author) &&
-          /^\\d{8,22}@(c\\.us|lid)$/.test(author)) {
+      if (shouldResolveTeamAlias(event, team, author, hommyWorkspace.isAuthorizedSender(author), WAHA_SESSION)) {
         try {
           const route = author.endsWith('@lid') ? '/lids/' : '/lids/pn/';
           mapping = await wahaRequest('GET',

@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { createHommyWorkspace, LABELS, mappedSenderAlias } = require('./hommy-workspace');
+const { createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias } = require('./hommy-workspace');
 
 const CID = 'client_' + 'a'.repeat(20);
 const STAFF = '573001112233@c.us';
@@ -104,6 +104,30 @@ test('instructions to contact a customer remain pending approval and no outbound
   assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ id: 'send2' })).reason, 'DISABLED');
 });
 
+test('lookup predicate recognizes actual private-group commands (runtime regression)', () => {
+  const team = { enabled:true, groupId:GROUP };
+  const author = '123456789012345@lid';
+  const event = groupEvent({ author, body:'Hommy, pendientes' });
+  assert.equal(shouldResolveTeamAlias(event, team, author, false, 'homeeasy'), true);
+  assert.equal(shouldResolveTeamAlias(groupEvent({ author, body:'Hommy: qué pendientes tenemos?' }),
+    team, author, false, 'homeeasy'), true);
+  assert.equal(shouldResolveTeamAlias(groupEvent({ author, body:'hommy quieres cotizar?' }),
+    team, author, false, 'homeeasy'), true);
+  assert.equal(shouldResolveTeamAlias(groupEvent({ author, body:'Hommyabc, pendientes' }),
+    team, author, false, 'homeeasy'), false);
+  assert.equal(shouldResolveTeamAlias(groupEvent({ author, body:'Buenos días Hommy, pendientes' }),
+    team, author, false, 'homeeasy'), false);
+  assert.equal(shouldResolveTeamAlias(event, team, author, true, 'homeeasy'), false);
+  assert.equal(shouldResolveTeamAlias(event, { ...team, enabled:false }, author, false, 'homeeasy'), false);
+  assert.equal(shouldResolveTeamAlias(event, team, 'untrusted', false, 'homeeasy'), false);
+  assert.equal(shouldResolveTeamAlias(groupEvent({ author, group:'11111111111@g.us' }),
+    team, author, false, 'homeeasy'), false);
+  assert.equal(shouldResolveTeamAlias(groupEvent({ author, session:'wrong' }),
+    team, author, false, 'homeeasy'), false);
+  assert.equal(shouldResolveTeamAlias(groupEvent({ author, fromMe:true }),
+    team, author, false, 'homeeasy'), false);
+});
+
 test('verified WEBJS LID mapping identifies the allowed group member without weakening whitelist', t => {
   const v = setup(); t.after(v.cleanup);
   v.workspace.configure({ team: { groupId: GROUP, allowedSenders: [STAFF], enabled: true } });
@@ -152,6 +176,7 @@ test('webhook performs a bounded read-only LID lookup after signature verificati
     server.indexOf("url.pathname === '/api/whatsapp/inbox'"));
   assert.match(segment, /hommyInbox\.ingest\(raw, req\.headers\)/);
   assert.match(segment, /wahaRequest\('GET'/);
+  assert.match(segment, /shouldResolveTeamAlias\(event, team, author/);
   assert.match(segment, /\/lids\/pn\//);
   assert.match(segment, /2500/);
   assert.ok(segment.indexOf('hommyInbox.ingest(raw, req.headers)') < segment.indexOf("wahaRequest('GET'"));
