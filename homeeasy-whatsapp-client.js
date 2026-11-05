@@ -323,6 +323,10 @@
     function saveHommyControl(config) {
         return request('/api/whatsapp/hommy/control', { method: 'POST', body: config || {} });
     }
+    function hommyGroups() { return request('/api/whatsapp/hommy/groups'); }
+    function hommyGroupMembers(groupId) {
+        return request('/api/whatsapp/hommy/group-members?groupId=' + encodeURIComponent(String(groupId || '')));
+    }
     function hommyWorkspace(limit) {
         const size = Math.min(100, Math.max(1, Number(limit) || 30));
         return request('/api/whatsapp/hommy/workspace?limit=' + encodeURIComponent(size));
@@ -595,6 +599,8 @@
         hommyCommercialMemory,
         hommyControl,
         saveHommyControl,
+        hommyGroups,
+        hommyGroupMembers,
         hommyWorkspace,
         saveHommyLabels,
         createHommyTask,
