@@ -1166,6 +1166,8 @@ async function handle(req, res) {
     const raw = await wahaRequest('GET', '/api/' + encodeURIComponent(WAHA_SESSION) +
       '/groups/' + encodeURIComponent(groupId) + '/participants/v2', undefined, 'application/json', 8000);
     const rows = Array.isArray(raw) ? raw : Array.isArray(raw.participants) ? raw.participants : [];
+    const jid = id => typeof id === 'string' ? id
+      : id && typeof id === 'object' ? String(id._serialized || id.id || '') : '';
     const members = rows.map(row => ({
       id: jid(row.id), role: String(row.role || 'participant')
     })).filter(m => /^\d{8,22}@(c\.us|lid)$/.test(m.id) &&
