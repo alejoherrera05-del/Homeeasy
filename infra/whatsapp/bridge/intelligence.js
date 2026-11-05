@@ -162,23 +162,27 @@ function applyGuardrails(result, record, inspection) {
   if (negotiation) {
     return { ...result, intent: 'NEGOTIATION', humanInterventionRequired: true, nextAction: 'HUMAN_REVIEW' };
   }
+  // No fabricated commitments are acceptable, even in a visit request.
+  if (unverifiedCommitment) {
+    return { ...result, humanInterventionRequired: true, suggestedResponse: '', nextAction: 'HUMAN_REVIEW',
+      reason: `${result.reason} El borrador contenía una condición comercial o disponibilidad no verificada.` };
+  }
   if (visit) {
     const pending = new Set(result.pendingInformation);
-    ['Nombre', 'Dirección o barrio', 'Horarios preferidos'].forEach(item => pending.add(item));
-    const product = explicitProduct ? ` sobre ${explicitProduct}` : '';
+    const known = inspection && inspection.client || {};
+    if (!pending.size && !known.name && !result.memory?.providedName) pending.add('Nombre');
+    if (!pending.size && !known.address) pending.add('Dirección o barrio');
+    if (!pending.size && !known.preferredSchedule) pending.add('Horarios preferidos');
+    const draft = clean(result.suggestedResponse, 1800);
+    const suggestion = /pendiente|confirmar|disponibilidad/i.test(normalizeText(draft))
+      ? draft : `${draft ? draft + '\n\n' : ''}La visita queda pendiente de confirmar según disponibilidad.`;
     return {
-      ...result, productInterest: explicitProduct,
-      intent: 'VISIT_REQUEST',
+      ...result, productInterest: explicitProduct, intent: 'VISIT_REQUEST',
       secondaryIntents: Array.from(new Set([...result.secondaryIntents, 'INFORMATION_REQUEST', ...(quote ? ['QUOTE_REQUEST'] : [])])),
-      pendingInformation: Array.from(pending).slice(0, 12),
-      suggestedResponse: `¡Hola! Claro, con gusto te ayudamos${product} y preparamos la solicitud de visita. ¿Nos compartes tu nombre, dirección o barrio, y los horarios que te sirven? La visita queda pendiente de confirmar según disponibilidad.`,
+      pendingInformation: Array.from(pending).slice(0, 12), suggestedResponse: suggestion,
       nextAction: result.humanInterventionRequired ? 'HUMAN_REVIEW' : 'COLLECT_VISIT_DETAILS',
       reason: `${result.reason} La visita queda pendiente de consultar y confirmar según disponibilidad real.`.trim()
     };
-  }
-  if (unverifiedCommitment) {
-    return { ...result, humanInterventionRequired: true, suggestedResponse: '', nextAction: 'HUMAN_REVIEW',
-      reason: `${result.reason} El borrador contenía una condición comercial o disponibilidad no verificada.`.trim() };
   }
   if (quote) {
     return { ...result, productInterest: explicitProduct, intent: 'QUOTE_REQUEST',
@@ -189,12 +193,18 @@ function applyGuardrails(result, record, inspection) {
 }
 
 function applyResponseStyle(result, context) {
-  const source = context && typeof context === 'object' ? context : {};
   if (!result.suggestedResponse || result.nextAction === 'STOP_CONTACT' || result.humanInterventionRequired) return result;
-  if (source.isNewConversation && !/^[¡¿]?\s*(hola|buenos d[ií]as|buenas)/i.test(result.suggestedResponse)) {
-    return { ...result, suggestedResponse: `Hola, cómo estás? 😊\n\n${result.suggestedResponse}` };
+  const isNewConversation = Boolean(context && context.isNewConversation);
+  let draft = result.suggestedResponse.replace(/[¡¿]/g, '').trim();
+  const greeting = /^(hola|buenos d[ií]as|buenas)\\b/i;
+  if (isNewConversation && !greeting.test(draft)) {
+    draft = `Hola, cómo estás? 😊\\n\\n${draft}`;
+  } else if (!isNewConversation && greeting.test(draft)) {
+    // Keep the ongoing conversation natural: one greeting per session.
+    draft = draft.replace(/^(?:hola|buenos d[ií]as|buenas)[^\\n.!?]*[.!?]?\\s*/i, '').trim();
+    if (!draft) draft = 'Claro que sí, con mucho gusto te ayudo.';
   }
-  return result;
+  return { ...result, suggestedResponse: draft };
 }
 
 function resolveAssociation(rows, record) {
@@ -592,6 +602,10 @@ function createIntelligence(options) {
       try {
         const match = publicAssociation(await opts.resolveMatch(record, requestContext));
         const client = ensureClient(state, record, match);
+        const prior = state.conversations[chatId];
+        const previousMessage = prior && Array.isArray(prior.messages) ? prior.messages[prior.messages.length - 1] : null;
+        const elapsed = Date.parse(record.at || '') - Date.parse(previousMessage && previousMessage.at || '');
+        const newConversation = !previousMessage || (Number.isFinite(elapsed) && elapsed > 24 * 3600000);
         const conversationMemory = appendConversationMessage(state, record, client);
         if (record.direction === 'OUTGOING') {
           state.processed[id] = { status: 'DONE', attempts: state.processed[id].attempts,
@@ -609,10 +623,9 @@ function createIntelligence(options) {
         const analyzed = await opts.analyze({ record, match, messages: contextMessages,
           client, opportunities: clientOpportunities, responseStyle: RESPONSE_STYLE,
           conversationToken: conversationMemory.conversationToken || null }, requestContext);
-        const incomingCount = conversationMemory.messages.filter(item => item.direction === 'INCOMING').length;
         const guarded = applyResponseStyle(
-          applyGuardrails(validateResult(analyzed.result), record, { humanTakeover }),
-          { isNewConversation: incomingCount === 1 }
+          applyGuardrails(validateResult(analyzed.result), record, { humanTakeover, client }),
+          { isNewConversation: newConversation }
         );
         const opportunity = updateCommercialMemory(state, client, conversationMemory, record, guarded, match);
         const analysisId = crypto.createHash('sha256').update(id).digest('hex').slice(0, 24);
