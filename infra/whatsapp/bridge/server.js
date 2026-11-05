@@ -10,6 +10,7 @@ const ops = require('./operations');
 const conversation = require('./conversation');
 const { createInbox } = require('./inbox');
 const { createIntelligence, resolveAssociation } = require('./intelligence');
+const { createHommyWorkspace } = require('./hommy-workspace');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
@@ -152,6 +153,10 @@ async function inspectHumanTakeover(record) {
 const hommyIntelligence = createIntelligence({
   dataDir: DATA_DIR, enabled: HOMMY_INTELLIGENCE_ENABLED, inbox: hommyInbox,
   resolveMatch: resolveIntelligenceMatch, analyze: analyzeWithHommy, inspectConversation: inspectHumanTakeover
+});
+const hommyWorkspace = createHommyWorkspace({
+  dataDir: DATA_DIR, session: WAHA_SESSION, intelligenceEnabled: HOMMY_INTELLIGENCE_ENABLED,
+  hasClient: hommyIntelligence.hasClient
 });
 
 function json(res, statusCode, payload) {
@@ -1067,7 +1072,12 @@ async function handle(req, res) {
     if (!contentType.startsWith('application/json')) {
       return json(res, 415, { ok: false, error: 'Content-Type application/json required' });
     }
-    const result = hommyInbox.ingest(await readRawBody(req, HOMMY_INBOX_MAX_BODY_BYTES), req.headers);
+    const raw = await readRawBody(req, HOMMY_INBOX_MAX_BODY_BYTES);
+    const result = hommyInbox.ingest(raw, req.headers); // HMAC and session verified first.
+    if (hommyWorkspace.status().team.enabled) {
+      const group = hommyWorkspace.ingestSignedGroupEvent(JSON.parse(raw.toString('utf8')));
+      if (group.accepted) return json(res, 202, { ...result, team: { accepted: true, status: group.status } });
+    }
     return json(res, 202, result);
   }
 
@@ -1105,6 +1115,10 @@ async function handle(req, res) {
 
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/intelligence/process') {
     const actor = await auth.authorize(req, 'cotizaciones.read');
+    if (hommyWorkspace.status().mode !== 'REVIEW') {
+      throw Object.assign(new Error('Hommy is paused; inbox and WhatsApp remain available'),
+        { code: 'HOMMY_PAUSED', statusCode: 409 });
+    }
     const payload = await readJsonBody(req);
     const result = await hommyIntelligence.process({ req, actor: auth.publicActor(actor) }, { limit: payload.limit });
     return json(res, 200, result);
@@ -1118,6 +1132,32 @@ async function handle(req, res) {
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/intelligence/enable') {
     await auth.authorize(req, 'config.write');
     return json(res, 200, { ok: true, intelligence: hommyIntelligence.enable() });
+  }
+
+  // Hommy commercial operations are isolated from WAHA session management.
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/control') {
+    await auth.authorize(req, 'config.read');
+    return json(res, 200, { ok: true, control: hommyWorkspace.status() });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/control') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, control: hommyWorkspace.configure(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/workspace') {
+    await auth.authorize(req, 'cotizaciones.read');
+    return json(res, 200, { ok: true, ...hommyWorkspace.dashboard({ limit: url.searchParams.get('limit') }) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/labels') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, ...hommyWorkspace.putLabels(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/tasks') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 201, { ok: true, task: hommyWorkspace.createTask(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/tasks/status') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, task: hommyWorkspace.updateTask(await readJsonBody(req), actor) });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/pentagrama-sync/status') {
@@ -1253,6 +1293,7 @@ async function handle(req, res) {
       bridge: { version: BRIDGE_VERSION, serverTime: new Date().toISOString(), storage: ops.storageStatus() },
       inbox: hommyInbox.status(),
       intelligence: hommyIntelligence.status(),
+      hommyWorkspace: hommyWorkspace.status(),
       actor: auth.publicActor(actor),
       capabilities: capabilities(actor)
     });
