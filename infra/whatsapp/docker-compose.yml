@@ -1,6 +1,6 @@
 services:
   waha:
-    image: devlikeapro/waha:chrome-2026.9.1
+    image: devlikeapro/waha:chrome-2026.10.1
     container_name: homeeasy-waha
     restart: unless-stopped
     env_file:
