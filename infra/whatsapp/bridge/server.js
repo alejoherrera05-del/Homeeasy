@@ -17,7 +17,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.23.0';
+const BRIDGE_VERSION = '0.23.1';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -1075,7 +1075,29 @@ async function handle(req, res) {
     const raw = await readRawBody(req, HOMMY_INBOX_MAX_BODY_BYTES);
     const result = hommyInbox.ingest(raw, req.headers); // HMAC and session verified first.
     if (hommyWorkspace.status().team.enabled) {
-      const group = hommyWorkspace.ingestSignedGroupEvent(JSON.parse(raw.toString('utf8')));
+      const event = JSON.parse(raw.toString('utf8')); // Already authenticated by Inbox HMAC.
+      const payload = event && event.payload || {};
+      const team = hommyWorkspace.status().team;
+      const author = String(payload.author || payload.participant || payload.key?.participant || '').trim();
+      const text = String(payload.body || payload.text || payload.caption || '');
+      const groupId = String(payload.chatId || payload.from || '');
+      let mapping = null;
+      // Only consult WAHA for a valid message from OUR configured group,
+      // explicitly addressing Hommy, with an unrecognized sender identifier.
+      if (event.session === WAHA_SESSION && event.event === 'message' &&
+          groupId === team.groupId && !payload.fromMe && !payload.key?.fromMe &&
+          /^hommy\\b[,\\s:!?-]*/i.test(text) && !hommyWorkspace.isAuthorizedSender(author) &&
+          /^\\d{8,22}@(c\\.us|lid)$/.test(author)) {
+        try {
+          const route = author.endsWith('@lid') ? '/lids/' : '/lids/pn/';
+          mapping = await wahaRequest('GET',
+            '/api/' + encodeURIComponent(WAHA_SESSION) + route + encodeURIComponent(author),
+            undefined, 'application/json', 2500);
+        } catch (_) {
+          // Fail closed: no mapping, no permission; never delay customer inbox or send messages.
+        }
+      }
+      const group = hommyWorkspace.ingestSignedGroupEvent(event, mapping);
       if (group.accepted) return json(res, 202, { ...result, team: { accepted: true, status: group.status } });
     }
     return json(res, 202, result);
