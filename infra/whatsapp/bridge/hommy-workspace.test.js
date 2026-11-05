@@ -29,6 +29,7 @@ test('workspace starts REVIEW in a currently enabled Bridge without affecting WA
   assert.equal(s.mode, 'REVIEW');
   assert.equal(s.team.enabled, false);
   assert.equal(s.team.replyEnabled, false);
+  assert.equal(s.team.replySupported, true);
   assert.equal(s.pendingTasks, 0);
   assert.equal(s.pendingTeamCommands, 0);
   assert.deepEqual([...LABELS].includes('VISITA'), true);
@@ -264,6 +265,7 @@ test('group response sender has fixed group destination and durable duplicate lo
   const js = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'homeeasy-hommy-operations-ui.js'), 'utf8');
   assert.match(js, /totalTeamCommands/);
   assert.match(js, /team:\{ replyEnabled: enabled \}/);
+  assert.match(js, /teamState\.replySupported === true/);
   assert.match(js, /Activar respuestas internas/);
 });
 
