@@ -125,6 +125,21 @@ test('optional UI does not touch Hommy chat and uses authorized client methods',
   assert.doesNotMatch(js, /restart\(|bootstrap\(|Hommychat\.html|document\.body\.innerHTML/);
 });
 
+test('group discovery is read-only, role-protected and time-bounded', () => {
+  const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
+  const groups = server.slice(server.indexOf("url.pathname === '/api/whatsapp/hommy/groups'"));
+  const members = server.slice(server.indexOf("url.pathname === '/api/whatsapp/hommy/group-members'"));
+  assert.match(groups.slice(0, 500), /auth.authorize\(req, 'config.write'\)/);
+  assert.match(groups.slice(0, 500), /wahaRequest\('GET'/);
+  assert.match(groups.slice(0, 500), /8000/);
+  assert.match(members.slice(0, 600), /auth.authorize\(req, 'config.write'\)/);
+  assert.match(members.slice(0, 600), /wahaRequest\('GET'/);
+  assert.doesNotMatch(groups.slice(0, 1200), /wahaRequest\('POST'/);
+  const client = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'homeeasy-whatsapp-client.js'), 'utf8');
+  assert.match(client, /hommyGroups/);
+  assert.match(client, /hommyGroupMembers/);
+});
+
 test('server endpoints require authorization and verified HMAC before group capture', () => {
   const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
   const scope = server.slice(server.indexOf("if (req.method === 'POST' && url.pathname === '/api/whatsapp/webhook')"));
