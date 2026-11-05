@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node server.js",
     "check": "node --check server.js",
-    "test": "node --test inbox.test.js intelligence.test.js hommy-workspace.test.js pentagrama-sync/*.test.js pentagrama-agents/*.test.js",
+    "test": "node --test inbox.test.js intelligence.test.js hommy-workspace.test.js operational-overview.test.js pentagrama-sync/*.test.js pentagrama-agents/*.test.js",
     "test:inbox": "node --test inbox.test.js",
     "test:intelligence": "node --test intelligence.test.js",
     "test:pentagrama-sync": "node --test pentagrama-sync/*.test.js pentagrama-agents/*.test.js"
