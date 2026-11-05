@@ -133,6 +133,85 @@ function normalizeText(value) {
   return clean(value, 4000).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
+
+const LEAD_PRODUCTS = Object.freeze([
+  { name: 'Onda Serena', pattern: /\bonda serena\b/i },
+  { name: 'Sheer Elegance', pattern: /\bsheer elegance\b/i },
+  { name: 'Sheer Vertesse', pattern: /\bsheer vertesse\b/i },
+  { name: 'Panel Japonés', pattern: /\bpanel(?:es)? japones(?:es)?\b/i },
+  { name: 'Blackout', pattern: /\bblackout\b|\bblack out\b/i }
+]);
+
+function mentionedProducts(value) {
+  const text = normalizeText(value);
+  return LEAD_PRODUCTS.filter(item => item.pattern.test(text)).map(item => item.name);
+}
+
+function isGenericLeadQuestion(value) {
+  const text = normalizeText(value).replace(/[¿?¡!.,;:]/g, ' ').replace(/\s+/g, ' ').trim()
+    .replace(/^(?:hola|buenos dias|buenas tardes|buenas noches)\s+/, '');
+  return /^(?:que (?:precio|costo|valor) tiene|cuanto (?:cuesta|vale)|me (?:das|puedes dar|regalas) (?:mas )?informacion|quiero (?:mas )?informacion|quisiera informacion|que es eso|como funciona|quiero cotizar|necesito cotizar)$/.test(text);
+}
+
+// A prefilled Meta question does not independently establish what product the customer wants.
+function commercialLeadContext(record, client, opportunities) {
+  const currentProducts = mentionedProducts(record && record.text);
+  const origin = record && record.commercialOrigin;
+  const originVerified = Boolean(origin && origin.verified === true);
+  const campaignProducts = originVerified
+    ? mentionedProducts((origin.headline || '') + ' ' + (origin.body || '')) : [];
+  const active = (Array.isArray(opportunities) ? opportunities : []).filter(item => {
+    if (!item || item.status !== 'OPEN' || !item.product) return false;
+    const age = Date.parse(record && record.at || '') - Date.parse(item.updatedAt || item.createdAt || '');
+    return Number.isFinite(age) && age >= 0 && age <= 14 * 86400000;
+  });
+  const activeProducts = Array.from(new Set(active.map(item => item.product)));
+  const product = currentProducts.length === 1 ? currentProducts[0]
+    : currentProducts.length > 1 ? null
+    : campaignProducts.length === 1 ? campaignProducts[0]
+    : campaignProducts.length > 1 ? null
+    : activeProducts.length === 1 ? activeProducts[0] : null;
+  const productOpportunities = product ? active.filter(item => normalizeText(item.product) === normalizeText(product)) : [];
+  const relevant = productOpportunities.length === 1 ? productOpportunities[0] : null;
+  const hasMeasurements = Boolean(relevant && Array.isArray(relevant.measurements) &&
+    relevant.measurements.some(m => m && Number(m.width) > 0 && Number(m.height) > 0));
+  const environmentKnown = Boolean(relevant && Array.isArray(relevant.environments) && relevant.environments.length);
+  return {
+    genericQuestion: isGenericLeadQuestion(record && record.text),
+    originVerified,
+    product,
+    productSource: currentProducts.length === 1 ? 'MESSAGE'
+      : campaignProducts.length === 1 && product ? 'VERIFIED_REFERRAL'
+      : activeProducts.length === 1 && product ? 'RECENT_OPPORTUNITY' : 'UNKNOWN',
+    hasMeasurements,
+    environmentKnown,
+    nextInformation: !product ? 'PRODUCT' : !hasMeasurements ? 'MEASUREMENTS'
+      : !environmentKnown ? 'ENVIRONMENT' : 'QUOTE_REVIEW'
+  };
+}
+
+function applyLeadReview(result, guidance) {
+  if (!guidance || !guidance.genericQuestion || result.humanInterventionRequired ||
+      result.nextAction === 'STOP_CONTACT' || result.nextAction === 'HUMAN_REVIEW' ||
+      guidance.nextInformation === 'QUOTE_REVIEW') return result;
+  const product = guidance.product;
+  let reply;
+  if (!product) {
+    reply = 'Claro que sí, con mucho gusto te ayudo. Me cuentas qué tipo de persiana estás buscando?';
+  } else if (!guidance.hasMeasurements) {
+    reply = 'Claro que sí, con mucho gusto te ayudo con ' + product +
+      '. Me regalas por favor el ancho y el alto aproximados de tu ventana?';
+  } else {
+    reply = 'Perfecto, ya tengo las medidas de ' + product +
+      '. Me cuentas si sería para una habitación, sala u otro espacio?';
+  }
+  return {
+    ...result, productInterest: product,
+    intent: 'INFORMATION_REQUEST', nextAction: product ? 'REQUEST_QUOTE_DETAILS' : 'PREPARE_RESPONSE',
+    suggestedResponse: reply
+  };
+}
+
 function applyGuardrails(result, record, inspection) {
   const text = normalizeText(record && record.text);
   const stop = /\b(no me (?:escriban|contacten)|no (?:escriban|contacten) mas|dejen de (?:escribirme|contactarme)|stop|cancelar suscripcion|dar de baja)\b/i.test(text);
@@ -626,11 +705,15 @@ function createIntelligence(options) {
         const humanTakeover = (conversationMemory.humanTakeover === true && !newConversation) || inspection.humanTakeover === true;
         const contextMessages = conversationMemory.messages.slice(-12);
         const clientOpportunities = Object.values(state.opportunities).filter(item => item.clientId === client.id);
+        const leadGuidance = commercialLeadContext(record, client, clientOpportunities);
         const analyzed = await opts.analyze({ record, match, messages: contextMessages,
-          client, opportunities: clientOpportunities, responseStyle: RESPONSE_STYLE,
+          client, opportunities: clientOpportunities, leadGuidance, responseStyle: RESPONSE_STYLE,
           conversationToken: conversationMemory.conversationToken || null }, requestContext);
         const guarded = applyResponseStyle(
-          applyGuardrails(validateResult(analyzed.result), record, { humanTakeover, client }),
+          applyLeadReview(
+            applyGuardrails(validateResult(analyzed.result), record, { humanTakeover, client }),
+            leadGuidance
+          ),
           { isNewConversation: newConversation }
         );
         const opportunity = updateCommercialMemory(state, client, conversationMemory, record, guarded, match);
@@ -676,4 +759,5 @@ function createIntelligence(options) {
   return Object.freeze({ process, list, memory, status, disable, enable });
 }
 
-module.exports = Object.freeze({ createIntelligence, validateResult, applyGuardrails, resolveAssociation, RESPONSE_STYLE });
+module.exports = Object.freeze({ createIntelligence, validateResult, applyGuardrails, resolveAssociation,
+  RESPONSE_STYLE, commercialLeadContext, applyLeadReview, isGenericLeadQuestion });
