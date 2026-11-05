@@ -12,6 +12,7 @@
   let loading = false;
   let revision = null;
   let currentMode = '';
+  let teamState = null;
 
   function canConfigure() {
     return Boolean(global.HomeEasyAuth && typeof global.HomeEasyAuth.hasPermission === 'function' &&
@@ -63,11 +64,15 @@
       '<div class="he-hommy-ops-item"><b id="heHommyTasks">—</b><small>Tareas pendientes</small></div>' +
       '</div><div class="he-hommy-ops-actions">' +
       '<button type="button" id="heHommyToggle" class="he-hommy-ops-btn primary" disabled>Pausar Hommy</button>' +
+      '<button type="button" id="heHommyGroupLink" class="he-hommy-ops-btn">Vincular grupo</button>' +
+      '<button type="button" id="heHommyGroupToggle" class="he-hommy-ops-btn" hidden>Activar grupo</button>' +
       '<button type="button" id="heHommyRefresh" class="he-hommy-ops-btn">Actualizar</button></div>' +
       '<div id="heHommyNote" class="he-hommy-ops-foot" role="status">Esta función no desconecta WhatsApp ni afecta los comprobantes.</div>';
     panel.appendChild(card);
     document.getElementById('heHommyToggle').addEventListener('click', toggle);
     document.getElementById('heHommyRefresh').addEventListener('click', () => load(true));
+    document.getElementById('heHommyGroupLink').addEventListener('click', linkTeamGroup);
+    document.getElementById('heHommyGroupToggle').addEventListener('click', toggleTeamGroup);
     mounted = true;
     if (panel.classList.contains('active')) load(false);
   }
@@ -84,6 +89,12 @@
       const control = payload && payload.control || {};
       revision = control.revision;
       currentMode = control.mode;
+      teamState = control.team || null;
+      document.getElementById('heHommyGroupLink').disabled = !canConfigure();
+      const teamToggle = document.getElementById('heHommyGroupToggle');
+      teamToggle.hidden = !(teamState && teamState.configured);
+      teamToggle.disabled = !canConfigure();
+      teamToggle.textContent = teamState && teamState.enabled ? 'Pausar grupo' : 'Activar grupo';
       modeEl.className = 'he-hommy-ops-status' + (control.mode === 'REVIEW' ? ' review' : '');
       modeEl.textContent = control.mode === 'REVIEW' ? 'Supervisado' : 'Pausado';
       document.getElementById('heHommyGroup').textContent =
@@ -127,6 +138,104 @@
       await load(false);
       if (global.Swal) global.Swal.fire({icon:'error',title:'No se pudo cambiar el modo',
         text:e.message || 'Vuelve a intentar.',confirmButtonColor:'#a6455a'});
+    }
+  }
+
+
+  // The group and member identities come from read-only WAHA endpoints.
+  // No group is created or mutated by this wizard.
+  async function linkTeamGroup() {
+    if (!canConfigure() || loading || !global.Swal) return;
+    const api = global.HomeEasyWhatsApp;
+    let groups;
+    try {
+      const payload = await api.hommyGroups();
+      groups = Array.isArray(payload.groups) ? payload.groups : [];
+    } catch (e) {
+      global.Swal.fire({ icon:'error', title:'No se pudieron consultar los grupos',
+        text:e.message || 'WhatsApp no respondió.', confirmButtonColor:'#a6455a' });
+      return;
+    }
+    if (!groups.length) {
+      global.Swal.fire({ icon:'info', title:'No hay grupos disponibles',
+        text:'Crea el grupo en WhatsApp Business y regresa para vincularlo.',
+        confirmButtonColor:'#a6455a' });
+      return;
+    }
+    let loadingMembers = false;
+    const result = await global.Swal.fire({
+      title:'Vincular grupo de HomeEasy',
+      html:'<div style="display:grid;gap:12px;text-align:left;font-size:13px">' +
+        '<p>Selecciona el grupo privado y las cuentas personales que podrán darle instrucciones a Hommy.</p>' +
+        '<select id="heHommyGroupSelect" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:12px"></select>' +
+        '<div id="heHommyMembers" style="display:grid;gap:9px"></div>' +
+        '<p style="color:#817980;font-size:11px">Hommy solo registrará las órdenes para revisión. No responderá al grupo ni a clientes todavía.</p></div>',
+      showCancelButton:true, confirmButtonText:'Vincular grupo', cancelButtonText:'Cancelar',
+      confirmButtonColor:'#a6455a', width:490,
+      didOpen:() => {
+        const select = document.getElementById('heHommyGroupSelect');
+        for (const group of groups) {
+          const option = document.createElement('option');
+          option.value = group.id; option.textContent = group.subject || group.id;
+          select.appendChild(option);
+        }
+        async function loadMembers() {
+          const node = document.getElementById('heHommyMembers');
+          node.replaceChildren();
+          node.textContent = 'Consultando participantes...';
+          loadingMembers = true;
+          try {
+            const payload = await api.hommyGroupMembers(select.value);
+            if (select.value !== payload.groupId && payload.groupId) return;
+            node.replaceChildren();
+            const members = Array.isArray(payload.members) ? payload.members : [];
+            for (const member of members) {
+              const label = document.createElement('label');
+              label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #eee;border-radius:10px';
+              const input = document.createElement('input');
+              input.type='checkbox'; input.name='heHommyTeamMember'; input.value=member.id;
+              const caption = document.createElement('span');
+              const digits = String(member.id || '').split('@')[0];
+              caption.textContent = 'Cuenta terminada en ' + digits.slice(-4) + ' · ' + (member.role || 'participante');
+              label.append(input, caption);
+              node.appendChild(label);
+            }
+            if (!members.length) node.textContent = 'No se pudieron identificar los participantes de este grupo.';
+          } catch (e) {
+            node.textContent = 'No se pudieron consultar los participantes. Prueba otro grupo.';
+          } finally { loadingMembers = false; }
+        }
+        select.addEventListener('change', loadMembers);
+        loadMembers();
+      },
+      preConfirm:() => {
+        if (loadingMembers) return global.Swal.showValidationMessage('Estamos consultando los participantes.');
+        const groupId = document.getElementById('heHommyGroupSelect').value;
+        const selected = Array.from(document.querySelectorAll('input[name="heHommyTeamMember"]:checked')).map(el => el.value);
+        if (!selected.length) return global.Swal.showValidationMessage('Selecciona al menos una cuenta autorizada.');
+        return { groupId, allowedSenders:selected, enabled:true };
+      }
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await api.saveHommyControl({ team:result.value, revision });
+      await load(true);
+    } catch (e) {
+      await load(false);
+      global.Swal.fire({ icon:'error', title:'No se pudo vincular el grupo',
+        text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
+    }
+  }
+
+  async function toggleTeamGroup() {
+    if (!canConfigure() || loading || !teamState || !teamState.configured) return;
+    try {
+      await global.HomeEasyWhatsApp.saveHommyControl({ team:{ enabled: !teamState.enabled }, revision });
+      await load(true);
+    } catch (e) {
+      await load(false);
+      if (global.Swal) global.Swal.fire({ icon:'error', title:'No se pudo actualizar el grupo',
+        text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
     }
   }
 
