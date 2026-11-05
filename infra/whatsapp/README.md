@@ -245,6 +245,32 @@ opcional independiente; no modifica Hommychat, voz, log-in ni estilos globales.
 Las etiquetas de HomeEasy son la fuente principal; la futura sincronización
 con las etiquetas nativas de WhatsApp será explícita y verificable.
 
+### Fase 3D · Respuestas internas opcionales (Bridge 0.24.0)
+
+Las consultas informativas reconocidas en el **grupo privado autorizado** pueden
+recibir una respuesta directa en el mismo grupo. Esta capacidad está
+**desactivada por defecto** y debe habilitarse explícitamente en
+Configuración → Integraciones → `Activar respuestas internas`.
+No se conceden permisos para enviar mensajes a clientes ni para ejecutar órdenes
+comerciales desde el grupo.
+
+- El webhook se verifica mediante la firma HMAC y la sesión WAHA existente.
+- Solo participan remitentes de la lista de integrantes autorizados; LID/PN se
+  reconcilia únicamente con datos consultados a WAHA y nunca con texto del chat.
+- Solo comandos `INFORMATION` como `Hommy, pendientes` generan respuestas.
+  Las instrucciones sobre clientes permanecen en `REVIEW_REQUIRED`.
+- El destino de envío está limitado al ID del grupo configurado. No se aceptan
+  destinos variables ni mensajes generados arbitrariamente.
+- Cada respuesta se reserva en almacenamiento persistente *antes* de enviarse;
+  un webhook duplicado o un reinicio no vuelve a disparar el mismo envío.
+  Ante un error de red el estado es `UNKNOWN` y no hay reintentos automáticos.
+- `PAUSED` apaga las respuestas internas, sin desconectar WAHA.
+- El botón **Actividad (N)** cuenta todas las consultas registradas. El contador
+  de revisiones pendientes sigue disponible por separado en el estado de operaciones.
+
+Los mensajes anteriores a esta activación **no se responden retrospectivamente**.
+No se habilita ninguna automatización de respuestas a clientes.
+
 ### Estado WhatsApp
 
 ```text
