@@ -91,7 +91,7 @@ function createHommyWorkspace(options = {}) {
       team: { enabled: data.team.enabled,
         configured: validGroup(data.team.groupId) && data.team.allowedSenders.length > 0,
         groupId: data.team.groupId || null, authorizedSenders: data.team.allowedSenders.length,
-        replyEnabled: data.team.replyEnabled === true },
+        replyEnabled: data.team.replyEnabled === true, replySupported: true },
       totalTeamCommands: data.commands.length,
       labeledClients: Object.keys(data.labels).length,
       pendingTasks: data.tasks.filter(t => ['PENDIENTE', 'EN_CURSO'].includes(t.status)).length,

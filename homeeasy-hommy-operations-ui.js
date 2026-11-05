@@ -100,7 +100,7 @@
       teamToggle.disabled = !canConfigure();
       teamToggle.textContent = teamState && teamState.enabled ? 'Pausar grupo' : 'Activar grupo';
       const replyToggle = document.getElementById('heHommyReplies');
-      replyToggle.hidden = !(teamState && teamState.enabled);
+      replyToggle.hidden = !(teamState && teamState.enabled && teamState.replySupported === true);
       replyToggle.disabled = !canConfigure() || control.mode !== 'REVIEW';
       replyToggle.textContent = teamState && teamState.replyEnabled === true ?
         'Desactivar respuestas internas' : 'Activar respuestas internas';
