@@ -133,6 +133,17 @@ test('HomeEasy natural language never claims measurements belong to a product', 
   assert.match(sheer, /esa persiana sería para/);
 });
 
+test('a panel japonés uses a natural masculine article in a client reply', () => {
+  const lead = require('./intelligence').applyLeadReview(
+    result({ productInterest: 'Panel Japonés' }), {
+      genericQuestion: true, product: 'Panel Japonés',
+      hasMeasurements: true, environmentKnown: false, nextInformation: 'ENVIRONMENT'
+    }
+  );
+  assert.match(lead.suggestedResponse, /ese panel japonés sería/);
+  assert.doesNotMatch(lead.suggestedResponse, /esa panel japonés sería/);
+});
+
 test('sales prompt contract names campaign CTA, verified context and no fabricated quotes', () => {
   const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
   assert.match(server, /leadGuidance/);
