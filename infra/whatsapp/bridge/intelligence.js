@@ -170,9 +170,11 @@ function applyGuardrails(result, record, inspection) {
   if (visit) {
     const pending = new Set(result.pendingInformation);
     const known = inspection && inspection.client || {};
-    if (!pending.size && !known.name && !result.memory?.providedName) pending.add('Nombre');
-    if (!pending.size && !known.address) pending.add('Dirección o barrio');
-    if (!pending.size && !known.preferredSchedule) pending.add('Horarios preferidos');
+    if (!result.pendingInformation.length) {
+      if (!known.name && !result.memory?.providedName) pending.add('Nombre');
+      if (!known.address) pending.add('Dirección o barrio');
+      if (!known.preferredSchedule) pending.add('Horarios preferidos');
+    }
     const draft = clean(result.suggestedResponse, 1800);
     const suggestion = /pendiente|confirmar|disponibilidad/i.test(normalizeText(draft))
       ? draft : `${draft ? draft + '\n\n' : ''}La visita queda pendiente de confirmar según disponibilidad.`;
@@ -196,12 +198,11 @@ function applyResponseStyle(result, context) {
   if (!result.suggestedResponse || result.nextAction === 'STOP_CONTACT' || result.humanInterventionRequired) return result;
   const isNewConversation = Boolean(context && context.isNewConversation);
   let draft = result.suggestedResponse.replace(/[¡¿]/g, '').trim();
-  const greeting = /^(hola|buenos d[ií]as|buenas)\\b/i;
+  const greeting = /^(hola|buenos d[ií]as|buenas)\b/i;
   if (isNewConversation && !greeting.test(draft)) {
-    draft = `Hola, cómo estás? 😊\\n\\n${draft}`;
+    draft = `Hola, cómo estás? 😊\n\n${draft}`;
   } else if (!isNewConversation && greeting.test(draft)) {
-    // Keep the ongoing conversation natural: one greeting per session.
-    draft = draft.replace(/^(?:hola|buenos d[ií]as|buenas)[^\\n.!?]*[.!?]?\\s*/i, '').trim();
+    draft = draft.replace(/^(?:hola|buenos d[ií]as|buenas)[^\n.!?]*[.!?]?\s*/i, '').trim();
     if (!draft) draft = 'Claro que sí, con mucho gusto te ayudo.';
   }
   return { ...result, suggestedResponse: draft };
@@ -309,6 +310,10 @@ function appendConversationMessage(state, record, client) {
     direction: record.direction === 'OUTGOING' ? 'OUTGOING' : 'INCOMING',
     senderKind: clean(record.senderKind || (record.direction === 'OUTGOING' ? 'OUTGOING_UNKNOWN' : 'CUSTOMER'), 40),
     text: clean(record.text, 4000) };
+  // V1 conversations lacked these fields; upgrade them in place during replay.
+  memory.id = memory.id || stableId('conversation', chatId);
+  memory.chatId = chatId;
+  memory.createdAt = memory.createdAt || (memory.messages[0] && memory.messages[0].at) || record.at || new Date().toISOString();
   if (!memory.messages.some(item => item.id === message.id)) memory.messages.push(message);
   memory.messages = memory.messages.slice(-80);
   memory.clientId = client.id;
@@ -438,7 +443,7 @@ function migrateLegacyMemory(state, inbox) {
   }
   for (const record of records.reverse()) {
     const id = clean(record && record.id, 260);
-    if (!id || state.processed[id]?.status !== 'DONE') continue;
+    if (!id || (state.processed[id]?.status !== 'DONE' && !canonical.has(id))) continue;
     const analysis = canonical.get(id);
     const match = publicAssociation(analysis && analysis.association);
     const client = ensureClient(state, record, match);
