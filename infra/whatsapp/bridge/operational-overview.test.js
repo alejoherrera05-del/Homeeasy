@@ -24,7 +24,7 @@ test('counts only open analyzed opportunities without inventing confirmed events
   assert.match(preview('VISITS',[],{},s),/no tengo una agenda confirmada/);
   assert.match(preview('QUOTES',[],{},s),/No puedo confirmar envíos ni valores/);
   assert.doesNotMatch(preview('SUMMARY',[],{},s),/Laura|Andrés/);
-  assert.match(preview('FOLLOWUP',[{status:'PENDIENTE'}],{a:['SEGUIMIENTO']},s),/1 clientes/);
+  assert.match(preview('FOLLOWUP',[{status:'PENDIENTE'}],{a:['SEGUIMIENTO']},s),/un cliente/);
 });
 test('reads the local snapshot lazily, refreshes after atomic write and fails closed', t => {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'hommy-overview-'));

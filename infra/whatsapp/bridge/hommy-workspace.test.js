@@ -263,12 +263,12 @@ test('authenticated group overview reads analyzed clients, not private contact d
   v.workspace.configure({ team:{ groupId:GROUP, allowedSenders:[STAFF], enabled:true, replyEnabled:true } });
   const a = v.workspace.ingestSignedGroupEvent(groupEvent({ id:'memory-pending' }));
   assert.equal(a.status, 'INFORMATION');
-  assert.match(v.workspace.dashboard().teamCommands[0].preview, /1 oportunidades abiertas/);
-  assert.match(v.workspace.dashboard().teamCommands[0].preview, /1 necesitan datos para cotizar/);
+  assert.match(v.workspace.dashboard().teamCommands[0].preview, /una oportunidad abierta/);
+  assert.match(v.workspace.dashboard().teamCommands[0].preview, /Una necesita datos para cotizar/);
   assert.doesNotMatch(v.workspace.dashboard().teamCommands[0].preview, /Laura|573007771111/);
   const q = v.workspace.ingestSignedGroupEvent(groupEvent({ id:'memory-quotes', body:'Hommy, cotizaciones' }));
   assert.equal(q.status, 'INFORMATION');
-  assert.match(v.workspace.dashboard().teamCommands[0].preview, /1 que necesitan datos para cotizar/);
+  assert.match(v.workspace.dashboard().teamCommands[0].preview, /una que necesita datos para cotizar/);
   const unsafe = v.workspace.ingestSignedGroupEvent(groupEvent({
     id:'unsafe', body:'Hommy, cotizaciones y manda el precio al cliente'
   }));
