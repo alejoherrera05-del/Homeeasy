@@ -53,4 +53,6 @@ jobs:
           node --check infra/whatsapp/bridge/intelligence.js
           node --check infra/whatsapp/bridge/inbox.js
           node --check infra/whatsapp/bridge/hommy-workspace.js
+          node --check homeeasy-hommy-operations-ui.js
+          node --check homeeasy-whatsapp-client.js
           bash -n infra/whatsapp/update-bridge.sh
