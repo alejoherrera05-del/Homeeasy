@@ -14,6 +14,19 @@ const validClient = id => /^client_[a-f0-9]{20}$/.test(id);
 const validGroup = id => /^\d{8,22}(?:-\d{1,22})?@g\.us$/.test(id);
 const validSender = id => /^\d{8,22}@(c\.us|lid)$/.test(id);
 
+function mappedSenderAlias(author, mapping) {
+  // The caller must fetch 'mapping' from WAHA after authenticating the webhook.
+  // Never accept an alternate identity supplied within an incoming chat message.
+  if (!validSender(author) || !mapping || typeof mapping !== 'object' || Array.isArray(mapping)) return '';
+  const lid = clean(mapping.lid, 90);
+  const pn = clean(mapping.pn, 90);
+  if (!/^\d{8,22}@lid$/.test(lid) || !/^\d{8,22}@c\.us$/.test(pn)) return '';
+  if (author === lid) return pn;
+  if (author === pn) return lid;
+  return '';
+}
+
+
 function saveAtomic(file, data) {
   const temp = file + '.' + process.pid + '.tmp';
   try {
@@ -142,7 +155,11 @@ function createHommyWorkspace(options = {}) {
 
   // The Bridge calls this only AFTER inbox.ingest authenticates the HMAC and session.
   // No customer or team-group messages are sent from this code path.
-  function ingestSignedGroupEvent(event) {
+  function isAuthorizedSender(value) {
+    return !corrupted && data.team.allowedSenders.includes(clean(value, 90));
+  }
+
+  function ingestSignedGroupEvent(event, verifiedMapping) {
     if (corrupted || data.mode !== 'REVIEW' || !data.team.enabled) return { accepted: false, reason: 'DISABLED' };
     if (!event || event.session !== session || !['message', 'message.any'].includes(event.event))
       return { accepted: false, reason: 'UNSUPPORTED_EVENT' };
@@ -150,7 +167,9 @@ function createHommyWorkspace(options = {}) {
     if (!p || typeof p !== 'object' || p.fromMe || p.key?.fromMe) return { accepted: false, reason: 'NOT_INBOUND' };
     if (clean(p.chatId || p.from, 90) !== data.team.groupId) return { accepted: false, reason: 'OTHER_GROUP' };
     const author = clean(p.author || p.participant || p.key?.participant, 90);
-    if (!data.team.allowedSenders.includes(author)) return { accepted: false, reason: 'UNAUTHORIZED_AUTHOR' };
+    const matchingAlias = mappedSenderAlias(author, verifiedMapping);
+    if (!isAuthorizedSender(author) && !isAuthorizedSender(matchingAlias))
+      return { accepted: false, reason: 'UNAUTHORIZED_AUTHOR' };
     const id = clean(p.id || p.messageId || p.key?.id, 260);
     if (!id || data.seen.includes(id)) return { accepted: false, reason: id ? 'DUPLICATE' : 'MISSING_ID' };
     const body = clean(p.body || p.text || p.caption, 700);
@@ -171,7 +190,8 @@ function createHommyWorkspace(options = {}) {
     return { accepted: true, id, status };
   }
 
-  return Object.freeze({ status, configure, putLabels, createTask, updateTask, dashboard, ingestSignedGroupEvent });
+  return Object.freeze({ status, configure, putLabels, createTask, updateTask, dashboard,
+    isAuthorizedSender, ingestSignedGroupEvent });
 }
 
-module.exports = Object.freeze({ createHommyWorkspace, LABELS });
+module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias });
