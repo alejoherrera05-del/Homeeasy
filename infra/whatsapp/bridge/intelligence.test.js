@@ -88,7 +88,7 @@ test('REVIEW drafts respond to generic lead naturally and never send or create v
   assert.equal(r.processed, 1);
   const analysis = env.intelligence.list({}).items[0];
   assert.match(analysis.result.suggestedResponse, /^Hola, cómo estás\? 😊/);
-  assert.match(analysis.result.suggestedResponse, /qué tipo de persiana/i);
+  assert.match(analysis.result.suggestedResponse, /qué estás buscando para tu ventana/i);
   assert.doesNotMatch(analysis.result.suggestedResponse, /soy Daniela|soy un bot/i);
   assert.equal(analysis.audit.sent, false);
   assert.equal(analysis.audit.agendaCreated, false);
@@ -106,8 +106,31 @@ test('REVIEW asks dimensions for evidence-backed Onda Serena, not generic produc
   await env.intelligence.process({}, {});
   const analysis = env.intelligence.list({}).items[0];
   assert.equal(analysis.result.productInterest, 'Onda Serena');
-  assert.match(analysis.result.suggestedResponse, /ancho y el alto aproximados/i);
+  assert.match(analysis.result.suggestedResponse, /medidas aproximadas de tu ventana/i);
   assert.equal(analysis.audit.sent, false);
+});
+
+test('HomeEasy natural language never claims measurements belong to a product', async t => {
+  const item = record('natural-onda', 'Qué precio tiene?', { at: '2026-11-05T13:00:00.000Z' });
+  const known = [{
+    clientId: 'same-customer', product: 'Onda Serena', status: 'OPEN',
+    updatedAt: '2026-11-05T12:00:00.000Z', measurements: [{ width: 1.8, height: 1.5, unit: 'm' }],
+    environments: []
+  }];
+  const knownContext = commercialLeadContext(item, {}, known);
+  assert.equal(knownContext.nextInformation, 'ENVIRONMENT');
+  const proposal = require('./intelligence').applyLeadReview(
+    result({ productInterest: 'Onda Serena' }), knownContext
+  ).suggestedResponse;
+  assert.match(proposal, /gracias por las medidas/i);
+  assert.match(proposal, /esa cortina sería para/);
+  assert.doesNotMatch(proposal, /medidas de Onda Serena|te ayudo con Onda Serena/i);
+  const sheer = require('./intelligence').applyLeadReview(
+    result({ productInterest: 'Sheer Elegance' }), {
+      ...knownContext, product: 'Sheer Elegance'
+    }
+  ).suggestedResponse;
+  assert.match(sheer, /esa persiana sería para/);
 });
 
 test('sales prompt contract names campaign CTA, verified context and no fabricated quotes', () => {
