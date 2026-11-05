@@ -197,6 +197,23 @@ con el historial WEBJS de WAHA sin cambiar la sesión; además acepta `message.a
 habilita expresamente más adelante. El campo `source` distingue acciones `app` y `api`.
 Los salientes humanos pausan el borrador; ningún evento de esta fase envía respuestas.
 
+### Fase 3B · Contexto comercial de campañas (REVIEW solamente)
+
+El procesador reconoce preguntas cortas habituales de anuncios de clic a WhatsApp
+(por ejemplo, `Qué costo tiene?`, `Me das información?` y `Quiero cotizar`).
+Estas preguntas **no prueban qué producto busca el cliente**.
+
+El borrador consulta el producto si no existe evidencia, pide ancho y alto si
+existe un producto reconocido sin medidas y evita volver a solicitar medidas ya
+registradas para una oportunidad reciente e inequívoca. El origen de anuncio
+se utiliza únicamente si WAHA aportó metadatos de referencia verificados.
+Cuando falta contexto o hay intereses ambiguos, no se inventan datos ni precios.
+
+Los mensajes siguen siendo borradores privados en modo `REVIEW`: esta fase no
+envía mensajes, no crea citas y no activa un trabajador automático. La memoria
+V2 creada en la fase anterior permanece en `state-v2.json`. Los ajustes de
+estilo no reescriben los análisis históricos.
+
 ### Estado WhatsApp
 
 ```text
