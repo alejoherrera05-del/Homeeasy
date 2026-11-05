@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
-const { createIntelligence, resolveAssociation } = require('./intelligence');
+const { createIntelligence, resolveAssociation, RESPONSE_STYLE } = require('./intelligence');
 
 function record(id, text, overrides) {
   return { id, chatId: '573001112233@c.us', phone: '573001112233', lid: null,
@@ -63,6 +63,67 @@ test('deduplicates already processed inbox messages', async t => {
   await env.intelligence.process({}, {});
   assert.equal(calls, 1);
   assert.equal(env.intelligence.list({}).items.length, 1);
+});
+
+test('serializes simultaneous processing requests and creates one final analysis', async t => {
+  let calls = 0;
+  const env = setup([record('concurrent-1', 'Quiero información')], {
+    analyze: async () => {
+      calls += 1;
+      await new Promise(resolve => setTimeout(resolve, 25));
+      return { result: result() };
+    }
+  });
+  t.after(env.cleanup);
+  await Promise.all([env.intelligence.process({}, {}), env.intelligence.process({}, {})]);
+  assert.equal(calls, 1);
+  assert.equal(env.intelligence.list({}).items.filter(item => item.sourceMessageId === 'concurrent-1').length, 1);
+});
+
+test('keeps one stable client by verified phone and separates unresolved LIDs', async t => {
+  const env = setup([
+    record('identity-1', 'Hola'),
+    record('identity-2', 'Regresé', { at: '2026-11-06T12:00:00.000Z' }),
+    record('lid-a', 'Hola', { chatId: '111@lid', phone: null, lid: '111@lid' }),
+    record('lid-b', 'Hola', { chatId: '222@lid', phone: null, lid: '222@lid' })
+  ]);
+  t.after(env.cleanup);
+  await env.intelligence.process({}, { limit: 10 });
+  const memory = env.intelligence.memory({ limit: 20 });
+  assert.equal(memory.clients.length, 3);
+  const phoneClient = memory.clients.find(item => item.phones.includes('573001112233'));
+  assert.ok(phoneClient);
+  assert.equal(memory.conversations.filter(item => item.clientId === phoneClient.id)[0].messages.length, 2);
+  assert.equal(memory.clients.filter(item => item.provisional).length, 2);
+});
+
+test('stores several commercial opportunities for the same client', async t => {
+  const env = setup([
+    record('opp-1', 'Busco Onda Serena para una habitación'),
+    record('opp-2', 'También quiero paneles japoneses para la sala', { at: '2026-11-06T12:00:00.000Z' })
+  ], { analyze: async input => ({ result: result(input.record.id === 'opp-1' ? {
+    productInterest: 'Onda Serena', memory: { environment: 'habitación' }
+  } : { productInterest: 'Paneles japoneses', memory: { environment: 'sala' } }) }) });
+  t.after(env.cleanup);
+  await env.intelligence.process({}, { limit: 10 });
+  const memory = env.intelligence.memory({});
+  assert.equal(memory.clients.length, 1);
+  assert.deepEqual(memory.opportunities.map(item => item.product).sort(), ['Onda Serena', 'Paneles japoneses'].sort());
+});
+
+test('stores Colombian response rules and greets only the new-conversation draft', async t => {
+  const env = setup([
+    record('style-1', 'Necesito ayuda'),
+    record('style-2', 'Es para la sala', { at: '2026-11-05T12:01:00.000Z' })
+  ], { analyze: async () => ({ result: result({ suggestedResponse: 'Claro que sí, con mucho gusto te ayudo.' }) }) });
+  t.after(env.cleanup);
+  assert.equal(RESPONSE_STYLE.locale, 'es-CO');
+  assert.equal(RESPONSE_STYLE.neverImpersonateHuman, true);
+  assert.equal(RESPONSE_STYLE.neverRepeatKnownQuestions, true);
+  await env.intelligence.process({}, { limit: 10 });
+  const drafts = Object.fromEntries(env.intelligence.list({}).items.map(item => [item.sourceMessageId, item.result.suggestedResponse]));
+  assert.match(drafts['style-1'], /^Hola, cómo estás\? 😊/);
+  assert.equal(drafts['style-2'], 'Claro que sí, con mucho gusto te ayudo.');
 });
 
 test('keeps LID without phone and new contacts unknown', async t => {
@@ -203,6 +264,57 @@ test('human intervention suppresses a competing draft', async t => {
   assert.equal(analysis.audit.humanTakeover, true);
 });
 
+test('outgoing human and system messages update memory without generating analyses', async t => {
+  const items = [
+    record('out-system', 'Mensaje de sistema', { direction: 'OUTGOING', senderKind: 'SYSTEM', source: 'api' }),
+    record('out-human', 'Hola, soy Daniela y ya te ayudo', { direction: 'OUTGOING', senderKind: 'HUMAN', source: 'app', at: '2026-11-05T12:01:00.000Z' })
+  ];
+  let analyzeCalls = 0;
+  const env = setup(items, { analyze: async () => { analyzeCalls += 1; return { result: result() }; } });
+  t.after(env.cleanup);
+  await env.intelligence.process({}, { limit: 10 });
+  const memory = env.intelligence.memory({});
+  assert.equal(analyzeCalls, 0);
+  assert.equal(env.intelligence.list({}).items.length, 0);
+  assert.equal(memory.conversations[0].messages.length, 2);
+  assert.equal(memory.conversations[0].humanTakeover, true);
+  assert.equal(memory.clients[0].lastHumanInterventionAt, '2026-11-05T12:01:00.000Z');
+});
+
+test('remembered human takeover prevents a later competing draft', async t => {
+  const items = [record('human-first', 'Ya te atiendo', { direction: 'OUTGOING', senderKind: 'HUMAN', source: 'app', at: '2026-11-05T12:00:00.000Z' })];
+  const dataDir = fs.mkdtempSync(path.join(__dirname, '.test-hommy-intelligence-'));
+  t.after(() => fs.rmSync(dataDir, { recursive: true, force: true }));
+  const intelligence = createIntelligence({ dataDir, enabled: true,
+    inbox: { list: () => ({ items: items.slice().reverse(), pagination: {} }) },
+    resolveMatch: async () => ({ status: 'UNKNOWN' }), analyze: async () => ({ result: result() }),
+    inspectConversation: async () => ({ humanTakeover: false }) });
+  await intelligence.process({}, {});
+  items.push(record('customer-after', 'Gracias, necesito Onda Serena', { at: '2026-11-05T12:02:00.000Z' }));
+  await intelligence.process({}, {});
+  const draft = intelligence.list({}).items[0].result;
+  assert.equal(draft.humanInterventionRequired, true);
+  assert.equal(draft.suggestedResponse, '');
+});
+
+test('reconciles a later manual WEBJS reply without changing the WAHA session', async t => {
+  let observed = [];
+  let analyzeCalls = 0;
+  const env = setup([record('poll-incoming', 'Necesito información', { at: '2026-11-05T12:00:00.000Z' })], {
+    analyze: async () => { analyzeCalls += 1; return { result: result() }; },
+    inspectConversation: async () => ({ humanTakeover: false, messages: observed })
+  });
+  t.after(env.cleanup);
+  await env.intelligence.process({}, {});
+  observed = [{ id: 'manual-from-app', at: '2026-11-05T12:05:00.000Z', direction: 'OUTGOING',
+    source: 'app', text: 'Hola, ya te ayudo con esto.' }];
+  await env.intelligence.process({}, {});
+  const memory = env.intelligence.memory({});
+  assert.equal(analyzeCalls, 1);
+  assert.equal(memory.conversations[0].messages.some(item => item.id === 'manual-from-app'), true);
+  assert.equal(memory.conversations[0].humanTakeover, true);
+});
+
 test('a WAHA inspection failure is safe, auditable and retryable', async t => {
   const item = record('m16', '¿Me confirmas?');
   let inspectionFails = true;
@@ -248,6 +360,54 @@ test('paginates the full inbox and processes the oldest backlog beyond 100 recor
   assert.deepEqual(analyzed, ['backlog-001', 'backlog-002']);
 });
 
+test('persists customer memory, verified Meta origin and Onda Serena analysis across restart', async t => {
+  const item = record('memory-restart', 'Soy Laura. Quiero Onda Serena para mi habitación de 2 m por 1.8 m', {
+    commercialOrigin: { channel: 'WHATSAPP', campaign: 'META', platform: 'FACEBOOK', verified: true, sourceId: 'ad-9' }
+  });
+  const env = setup([item], { resolveMatch: async () => ({ status: 'MATCHED',
+    client: { cedula: '55', name: 'Laura Gómez' }, quote: null }),
+  analyze: async () => ({ result: result({ productInterest: 'Onda Serena',
+    commercialSummary: 'Laura busca Onda Serena para una habitación.',
+    memory: { providedName: 'Laura', environment: 'habitación', measurements: [{ width: 2, height: 1.8, unit: 'm' }],
+      commitments: ['Enviar fotos'], importantDates: ['2026-11-10'] }
+  }) }) });
+  t.after(env.cleanup);
+  const processed = await env.intelligence.process({}, {});
+  assert.equal(processed.processed, 1);
+  const restarted = createIntelligence({ dataDir: env.dataDir, enabled: true,
+    inbox: { list: () => ({ items: [item], pagination: {} }) },
+    resolveMatch: async () => ({ status: 'UNKNOWN' }), analyze: async () => ({ result: result() }) });
+  const memory = restarted.memory({});
+  assert.equal(memory.clients[0].name, 'Laura Gómez');
+  assert.ok(memory.clients[0].products.includes('Onda Serena'));
+  assert.equal(memory.clients[0].measurements[0].unit, 'm');
+  assert.deepEqual(memory.clients[0].importantDates, ['2026-11-10']);
+  assert.equal(memory.clients[0].commercialOrigins[0].sourceId, 'ad-9');
+  assert.doesNotMatch(JSON.stringify(memory), /context-1|conversationToken/);
+  const analysis = restarted.list({}).items[0];
+  assert.equal(analysis.result.productInterest, 'Onda Serena');
+  assert.equal(analysis.audit.sent, false);
+  assert.equal(analysis.audit.agendaCreated, false);
+});
+
+test('reconciles legacy duplicate analyses without deleting original audit records', t => {
+  const dataDir = fs.mkdtempSync(path.join(__dirname, '.test-hommy-intelligence-'));
+  t.after(() => fs.rmSync(dataDir, { recursive: true, force: true }));
+  const stateDir = path.join(dataDir, 'hommy-intelligence');
+  fs.mkdirSync(stateDir, { recursive: true });
+  fs.writeFileSync(path.join(stateDir, 'state.json'), JSON.stringify({ version: 1, processed: {}, conversations: {}, analyses: [
+    { id: 'a1', sourceMessageId: 'duplicate-real', processedAt: '2026-11-05T12:00:00.000Z' },
+    { id: 'a2', sourceMessageId: 'duplicate-real', processedAt: '2026-11-05T12:00:01.000Z' }
+  ] }));
+  const intelligence = createIntelligence({ dataDir, enabled: true,
+    inbox: { list: () => ({ items: [], pagination: {} }) },
+    resolveMatch: async () => ({ status: 'UNKNOWN' }), analyze: async () => ({ result: result() }) });
+  const analyses = intelligence.list({}).items;
+  assert.equal(analyses.length, 2);
+  assert.equal(analyses.filter(item => item.reconciliation && item.reconciliation.status === 'DUPLICATE').length, 1);
+  assert.equal(intelligence.status().reconciledDuplicates, 1);
+});
+
 test('rejects malformed AI output and records an auditable error', async t => {
   const env = setup([record('m13', 'Hola')], { analyze: async () => ({ result: 'no-json' }) });
   t.after(env.cleanup);
@@ -274,6 +434,7 @@ test('server contract keeps processing protected, REVIEW-only and disabled by de
   const compose = fs.readFileSync(path.join(__dirname, '..', 'docker-compose.yml'), 'utf8');
   assert.match(server, /HOMMY_INTELLIGENCE_ENABLED \|\| 'false'/);
   assert.match(server, /\/api\/whatsapp\/intelligence\/process[\s\S]{0,220}authorize\(req, 'cotizaciones\.read'\)/);
+  assert.match(server, /\/api\/whatsapp\/intelligence\/memory[\s\S]{0,180}authorize\(req, 'cotizaciones\.read'\)/);
   assert.match(server, /mode: 'REVIEW'/);
   assert.match(server, /if \(!fetched\.ok\)[\s\S]{0,180}HUMAN_TAKEOVER_CHECK_UNAVAILABLE/);
   assert.match(compose, /HOMMY_INTELLIGENCE_ENABLED: \$\{HOMMY_INTELLIGENCE_ENABLED:-false\}/);

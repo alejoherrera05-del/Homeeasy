@@ -74,11 +74,44 @@ function publicMedia(payload) {
   };
 }
 
+function outgoingSource(payload) {
+  return conversation.clean(payload && (payload.source || payload._data && payload._data.source) || '', 40).toLowerCase();
+}
+
+function senderKind(payload, fromMe) {
+  if (!fromMe) return 'CUSTOMER';
+  const source = outgoingSource(payload);
+  if (source === 'api') return 'SYSTEM';
+  if (['web', 'app', 'ios', 'android'].includes(source)) return 'HUMAN';
+  return 'OUTGOING_UNKNOWN';
+}
+
+function commercialOrigin(payload) {
+  const source = payload && typeof payload === 'object' ? payload : {};
+  const context = source.ctwaContext || source.referral || source._data && (source._data.ctwaContext || source._data.referral);
+  if (!context || typeof context !== 'object' || Array.isArray(context)) {
+    return { channel: 'WHATSAPP', campaign: null, platform: null, verified: false };
+  }
+  const sourceType = conversation.clean(context.sourceType || context.source_type || '', 60).toUpperCase();
+  const platform = /INSTAGRAM/.test(sourceType) ? 'INSTAGRAM' : /FACEBOOK|FB/.test(sourceType) ? 'FACEBOOK' : null;
+  const sourceId = conversation.clean(context.sourceId || context.source_id || context.adId || context.ad_id || '', 180);
+  const sourceUrl = conversation.clean(context.sourceUrl || context.source_url || '', 500);
+  if (!sourceId && !sourceUrl && !sourceType) {
+    return { channel: 'WHATSAPP', campaign: null, platform: null, verified: false };
+  }
+  return {
+    channel: 'WHATSAPP', campaign: 'META', platform, verified: true,
+    sourceId: sourceId || null, sourceUrl: sourceUrl || null,
+    headline: conversation.clean(context.headline || '', 240) || null,
+    body: conversation.clean(context.body || '', 500) || null
+  };
+}
+
 function normalizeEvent(event, expectedSession) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) {
     throw Object.assign(new Error('Invalid WAHA event'), { statusCode: 400 });
   }
-  if (conversation.clean(event.event, 40) !== 'message') {
+  if (!['message', 'message.any'].includes(conversation.clean(event.event, 40))) {
     return { accepted: false, reason: 'UNSUPPORTED_EVENT' };
   }
   const session = conversation.clean(event.session, 120);
@@ -89,9 +122,7 @@ function normalizeEvent(event, expectedSession) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     throw Object.assign(new Error('Invalid WAHA message payload'), { statusCode: 400 });
   }
-  if (payload.fromMe === true || payload.key && payload.key.fromMe === true) {
-    return { accepted: false, reason: 'OUTGOING' };
-  }
+  const fromMe = payload.fromMe === true || Boolean(payload.key && payload.key.fromMe === true);
   const excluded = ignoredKind(payload);
   if (excluded) return { accepted: false, reason: excluded };
 
@@ -103,7 +134,7 @@ function normalizeEvent(event, expectedSession) {
   const media = publicMedia(payload);
   if (!normalized && !text && !media.present) return { accepted: false, reason: 'EMPTY' };
 
-  const chatId = jid(payload.chatId || payload.from);
+  const chatId = jid(payload.chatId || (fromMe ? payload.to : payload.from));
   const kind = jidKind(chatId);
   if (!['PHONE', 'LID'].includes(kind)) return { accepted: false, reason: 'UNSUPPORTED_CHAT' };
   const lid = kind === 'LID' ? chatId : jidKind(payload.participant) === 'LID' ? jid(payload.participant) : '';
@@ -119,13 +150,17 @@ function normalizeEvent(event, expectedSession) {
       engine: conversation.clean(event.engine, 30).toUpperCase(),
       at,
       receivedAt: new Date().toISOString(),
-      direction: 'INCOMING',
+      direction: fromMe ? 'OUTGOING' : 'INCOMING',
+      senderKind: senderKind(payload, fromMe),
+      source: outgoingSource(payload) || null,
       chatId,
       phone: phone || null,
+      phoneVerified: Boolean(phone && (kind === 'PHONE' || firstPhoneCandidate(payload))),
       lid: lid || null,
       text,
       messageType: conversation.clean(payload.type || payload._data && payload._data.type || (media.present ? 'media' : 'chat'), 60),
-      media
+      media,
+      commercialOrigin: commercialOrigin(payload)
     }
   };
 }

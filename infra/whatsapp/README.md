@@ -170,6 +170,7 @@ por defecto con `HOMMY_INTELLIGENCE_ENABLED=false`.
 ```text
 POST /api/whatsapp/intelligence/process   (cotizaciones.read)
 GET  /api/whatsapp/intelligence?offset=0&limit=50   (cotizaciones.read)
+GET  /api/whatsapp/intelligence/memory?offset=0&limit=50   (cotizaciones.read)
 POST /api/whatsapp/intelligence/disable   (config.write)
 POST /api/whatsapp/intelligence/enable    (config.write)
 ```
@@ -179,6 +180,13 @@ Despliegue conservador: actualizar el Bridge dejando la bandera en `false`, comp
 posterior requiere autorización expresa, cambiar sólo la bandera y ejecutar el proceso
 manualmente con un usuario autorizado. El estado recuperable vive en
 `data/bridge/hommy-intelligence`; el rollback del actualizador también lo respalda.
+
+La memoria comercial separa clientes, conversaciones y oportunidades. El teléfono
+normalizado sólo se usa como identidad estable cuando WAHA lo verificó; los LID sin
+resolver permanecen como contactos provisionales. El procesador reconcilia los salientes
+con el historial WEBJS de WAHA sin cambiar la sesión; además acepta `message.any` si se
+habilita expresamente más adelante. El campo `source` distingue acciones `app` y `api`.
+Los salientes humanos pausan el borrador; ningún evento de esta fase envía respuestas.
 
 ### Estado WhatsApp
 
