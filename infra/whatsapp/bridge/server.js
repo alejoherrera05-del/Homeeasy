@@ -295,7 +295,7 @@ async function handleAgentRequest(req, res) {
   return json(res, 404, { ok: false, error: 'Not found' });
 }
 
-async function wahaRequest(method, route, body, accept = 'application/json') {
+async function wahaRequest(method, route, body, accept = 'application/json', timeoutMs = 90000) {
   const response = await fetch(`${WAHA_BASE_URL}${route}`, {
     method,
     headers: {
@@ -304,7 +304,7 @@ async function wahaRequest(method, route, body, accept = 'application/json') {
       ...(body ? { 'Content-Type': 'application/json' } : {})
     },
     body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(90000)
+    signal: AbortSignal.timeout(timeoutMs)
   });
 
   const contentType = response.headers.get('content-type') || '';
@@ -1143,6 +1143,33 @@ async function handle(req, res) {
     const actor = await auth.authorize(req, 'config.write');
     return json(res, 200, { ok: true, control: hommyWorkspace.configure(await readJsonBody(req), actor) });
   }
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/groups') {
+    // Read-only, explicit UI request; no group mutation and no session restart.
+    await auth.authorize(req, 'config.write');
+    const raw = await wahaRequest('GET', '/api/' + encodeURIComponent(WAHA_SESSION) +
+      '/groups?limit=30&offset=0', undefined, 'application/json', 8000);
+    const rows = Array.isArray(raw) ? raw : Array.isArray(raw.items) ? raw.items : [];
+    const groups = rows.map(row => ({
+      id: String(row.id || row.group && row.group.id || ''),
+      subject: String(row.subject || row.name || row.group && row.group.subject || 'Grupo sin nombre').slice(0, 100)
+    })).filter(g => /^\d{8,22}(?:-\d{1,22})?@g\.us$/.test(g.id)).slice(0, 30);
+    return json(res, 200, { ok: true, groups });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/group-members') {
+    await auth.authorize(req, 'config.write');
+    const groupId = String(url.searchParams.get('groupId') || '');
+    if (!/^\d{8,22}(?:-\d{1,22})?@g\.us$/.test(groupId)) {
+      throw Object.assign(new Error('Invalid group ID'), { statusCode: 400 });
+    }
+    const raw = await wahaRequest('GET', '/api/' + encodeURIComponent(WAHA_SESSION) +
+      '/groups/' + encodeURIComponent(groupId) + '/participants/v2', undefined, 'application/json', 8000);
+    const rows = Array.isArray(raw) ? raw : Array.isArray(raw.participants) ? raw.participants : [];
+    const members = rows.map(row => ({
+      id: String(row.id || ''), role: String(row.role || 'participant')
+    })).filter(m => /^\d{8,22}@(c\.us|lid)$/.test(m.id)).slice(0, 100);
+    return json(res, 200, { ok: true, members });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/workspace') {
     await auth.authorize(req, 'cotizaciones.read');
     return json(res, 200, { ok: true, ...hommyWorkspace.dashboard({ limit: url.searchParams.get('limit') }) });
