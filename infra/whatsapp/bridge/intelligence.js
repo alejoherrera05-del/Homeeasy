@@ -622,7 +622,8 @@ function createIntelligence(options) {
         const inspection = typeof opts.inspectConversation === 'function'
           ? await opts.inspectConversation(record, requestContext) : { humanTakeover: false };
         mergeObservedOutgoing(state, conversationMemory, client, inspection && inspection.messages);
-        const humanTakeover = conversationMemory.humanTakeover === true || inspection.humanTakeover === true;
+        // A human response controls the current session, not the customer's entire lifetime.
+        const humanTakeover = (conversationMemory.humanTakeover === true && !newConversation) || inspection.humanTakeover === true;
         const contextMessages = conversationMemory.messages.slice(-12);
         const clientOpportunities = Object.values(state.opportunities).filter(item => item.clientId === client.id);
         const analyzed = await opts.analyze({ record, match, messages: contextMessages,
