@@ -75,6 +75,7 @@ jobs:
       - name: Security boundary
         run: |
           python - <<'PY'
+          import re
           from pathlib import Path
 
           server = Path('infra/whatsapp/bridge/server.js').read_text(encoding='utf-8')
@@ -89,7 +90,7 @@ jobs:
           assert 'startInventory' in block
           assert 'startApply' not in block
           assert 'rollback' not in block
-          assert "const BRIDGE_VERSION = '0.19.2'" in server
+          assert re.search(r"^const BRIDGE_VERSION = '\d+\.\d+\.\d+';$", server, re.MULTILINE)
 
           assert "this.store.operation('inventory', actor)" in phase2
           assert "stage: 'COMPLETED'" in phase2

@@ -9,13 +9,14 @@ const auth = require('./auth');
 const ops = require('./operations');
 const conversation = require('./conversation');
 const { createInbox } = require('./inbox');
+const { createIntelligence, resolveAssociation } = require('./intelligence');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.19.2';
+const BRIDGE_VERSION = '0.20.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -26,6 +27,8 @@ const MAX_BODY_BYTES = MAX_BODY_MB * 1024 * 1024;
 const HOMMY_INBOX_ENABLED = String(process.env.HOMMY_INBOX_ENABLED || 'false').toLowerCase() === 'true';
 const HOMMY_INBOX_MAX_BODY_BYTES = Math.max(16, Math.min(1024, Number(process.env.HOMMY_INBOX_MAX_BODY_KB || 256) || 256)) * 1024;
 const HOMMY_INBOX_WEBHOOK_SECRET = String(process.env.HOMMY_INBOX_WEBHOOK_SECRET || '');
+const HOMMY_INTELLIGENCE_ENABLED = String(process.env.HOMMY_INTELLIGENCE_ENABLED || 'false').toLowerCase() === 'true';
+const HOMMY_BACKEND_URL = String(process.env.HOMMY_BACKEND_URL || 'https://homeeasy-hommy-staging.onrender.com').replace(/\/$/, '');
 const REMOTE_PDF_MAX_BYTES = Math.min(MAX_BODY_BYTES, 18 * 1024 * 1024);
 const DATA_DIR = String(process.env.DATA_DIR || '/app/data');
 const PENTAGRAMA_MODE = String(process.env.PENTAGRAMA_MODE || 'direct').toLowerCase();
@@ -66,6 +69,85 @@ const hommyInbox = createInbox({
   enabled: HOMMY_INBOX_ENABLED,
   session: WAHA_SESSION,
   webhookSecret: HOMMY_INBOX_WEBHOOK_SECRET
+});
+
+function followupRows(payload) {
+  const source = payload && typeof payload === 'object' ? payload : {};
+  for (const value of [source.cotizaciones, source.items, source.data, source.resultados]) {
+    if (Array.isArray(value)) return value;
+  }
+  return [];
+}
+
+async function resolveIntelligenceMatch(record, requestContext) {
+  const req = requestContext && requestContext.req ? requestContext.req : requestContext;
+  if (!conversation.phoneDigits(record && record.phone)) return resolveAssociation([], record);
+  const rows = followupRows(await auth.readFollowupList(req));
+  return resolveAssociation(rows, record);
+}
+
+function hommyMetaHeader(req) {
+  if (req && req.headers && req.headers['x-homeeasy-meta']) return String(req.headers['x-homeeasy-meta']);
+  const headers = req && req.headers ? req.headers : {};
+  const decode = value => { try { return decodeURIComponent(String(value || '')); } catch (_) { return String(value || ''); } };
+  return Buffer.from(JSON.stringify({
+    dispositivoId: decode(headers['x-homeeasy-device-id']),
+    dispositivoNombre: decode(headers['x-homeeasy-device-name']),
+    plataforma: decode(headers['x-homeeasy-platform']), navegador: decode(headers['x-homeeasy-browser']),
+    pagina: 'hommy-intelligence-review', origen: 'HomeEasy WhatsApp Bridge'
+  }), 'utf8').toString('base64url');
+}
+
+function intelligencePrompt(input) {
+  const association = input.match.status === 'MATCHED'
+    ? `Cliente verificado: ${input.match.client.name || 'sin nombre'} (${input.match.client.cedula || 'sin cédula'}). Cotización inequívoca: ${input.match.quote ? input.match.quote.number : 'ninguna'}.`
+    : `Contacto ${input.match.status.toLowerCase()}; no asocies ni inventes clientes o cotizaciones.`;
+  const history = input.messages.map(item => `${item.direction === 'INCOMING' ? 'Cliente' : 'HomeEasy'}: ${item.text}`).join('\n');
+  return `Actúa como Hommy, asesor comercial transparente de HomeEasy, en español colombiano natural, breve y profesional. MODO REVIEW: analiza y prepara un borrador; nunca envíes, confirmes agenda, disponibilidad, entrega, precio, descuento o condición no verificada. No te hagas pasar por una persona. Aplica el playbook comercial existente. ${association}\n\nConversación:\n${history}\n\nDevuelve EXCLUSIVAMENTE JSON válido con: intent (INFORMATION_REQUEST, PRODUCT_QUESTION, VISIT_REQUEST, QUOTE_REQUEST, NEGOTIATION, COMPLAINT, DO_NOT_CONTACT u OTHER), secondaryIntents (arreglo), productInterest (texto o null), commercialSummary, pendingInformation (arreglo), temperature (HIGH, ACTIVE, WAITING, RISK o COLD), humanInterventionRequired (booleano), suggestedResponse, nextAction (PREPARE_RESPONSE, COLLECT_VISIT_DETAILS, REQUEST_QUOTE_DETAILS, HUMAN_REVIEW, STOP_CONTACT o WAIT), reason y confidence (0 a 1). Una visita sólo se solicita y queda pendiente de disponibilidad real.`;
+}
+
+async function analyzeWithHommy(input, requestContext) {
+  const req = requestContext && requestContext.req ? requestContext.req : requestContext;
+  const token = String(req && req.headers && req.headers['x-homeeasy-session'] || '').trim();
+  let response;
+  try {
+    response = await fetch(`${HOMMY_BACKEND_URL}/api/hommy/chat`, {
+      method: 'POST', signal: AbortSignal.timeout(120000),
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json',
+        'X-HomeEasy-Session': token, 'X-HomeEasy-Meta': hommyMetaHeader(req) },
+      body: JSON.stringify({ message: intelligencePrompt(input), conversationToken: input.conversationToken || null })
+    });
+  } catch (_) {
+    throw Object.assign(new Error('Hommy backend unavailable'), { code: 'HOMMY_BACKEND_UNAVAILABLE' });
+  }
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload) {
+    const error = new Error('Hommy backend rejected the analysis');
+    error.code = payload && payload.code ? String(payload.code) : `HOMMY_HTTP_${response.status}`;
+    throw error;
+  }
+  const data = payload.data && typeof payload.data === 'object' ? payload.data : {};
+  return { result: payload.answer || payload.reply || payload.message || data.answer || data.reply || payload.data,
+    conversationToken: payload.conversationToken || null };
+}
+
+async function inspectHumanTakeover(record) {
+  const params = new URLSearchParams({ limit: '30', downloadMedia: 'false' });
+  const fetched = await fetchConversationMessagesCandidate(String(record.chatId || ''), params);
+  if (!fetched.ok) {
+    throw Object.assign(new Error('Could not verify human intervention in WAHA'), {
+      code: 'HUMAN_TAKEOVER_CHECK_UNAVAILABLE'
+    });
+  }
+  const incomingAt = conversation.timestampMs(record.at);
+  const messages = conversation.normalizeMessages(fetched.data, { limit: 30 });
+  return { humanTakeover: messages.some(item => item.direction === 'OUTGOING' &&
+    conversation.timestampMs(item.at) > incomingAt && String(item.source || '').toLowerCase() !== 'api') };
+}
+
+const hommyIntelligence = createIntelligence({
+  dataDir: DATA_DIR, enabled: HOMMY_INTELLIGENCE_ENABLED, inbox: hommyInbox,
+  resolveMatch: resolveIntelligenceMatch, analyze: analyzeWithHommy, inspectConversation: inspectHumanTakeover
 });
 
 function json(res, statusCode, payload) {
@@ -1003,6 +1085,30 @@ async function handle(req, res) {
     return json(res, 200, { ok: true, inbox: hommyInbox.enable() });
   }
 
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/intelligence') {
+    await auth.authorize(req, 'cotizaciones.read');
+    return json(res, 200, { ok: true, mode: 'REVIEW', ...hommyIntelligence.list({
+      offset: url.searchParams.get('offset'), limit: url.searchParams.get('limit')
+    }) });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/intelligence/process') {
+    const actor = await auth.authorize(req, 'cotizaciones.read');
+    const payload = await readJsonBody(req);
+    const result = await hommyIntelligence.process({ req, actor: auth.publicActor(actor) }, { limit: payload.limit });
+    return json(res, 200, result);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/intelligence/disable') {
+    await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, intelligence: hommyIntelligence.disable() });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/intelligence/enable') {
+    await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok: true, intelligence: hommyIntelligence.enable() });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/pentagrama-sync/status') {
     await auth.authorize(req, 'config.read');
     return json(res, 200, { ok: true, ...pentagramaPhase2.status(), agents: pentagramaAgents.list() });
@@ -1135,6 +1241,7 @@ async function handle(req, res) {
       whatsapp: publicSession(session),
       bridge: { version: BRIDGE_VERSION, serverTime: new Date().toISOString(), storage: ops.storageStatus() },
       inbox: hommyInbox.status(),
+      intelligence: hommyIntelligence.status(),
       actor: auth.publicActor(actor),
       capabilities: capabilities(actor)
     });
