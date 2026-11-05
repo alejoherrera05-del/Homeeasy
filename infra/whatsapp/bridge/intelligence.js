@@ -371,7 +371,7 @@ function updateCommercialMemory(state, client, memory, record, result, match) {
   const opportunity = selected || {
     id: opportunityId, clientId: client.id, product,
     environments: [], measurements: [], quoteNumbers: [], commitments: [], importantDates: [], pendingQuestions: [],
-    status: 'OPEN', createdAt: new Date().toISOString()
+    status: 'OPEN', createdAt: record.at || new Date().toISOString()
   };
   opportunity.product = opportunity.product || result.productInterest || null;
   opportunity.environments = uniqueStrings(opportunity.environments, extracted.environment ? [extracted.environment] : [], 20, 180);
@@ -383,7 +383,7 @@ function updateCommercialMemory(state, client, memory, record, result, match) {
   opportunity.pendingQuestions = uniqueStrings(opportunity.pendingQuestions, [...extracted.pendingQuestions, ...result.pendingInformation], 30, 300);
   opportunity.summary = result.commercialSummary;
   opportunity.nextAction = result.nextAction;
-  opportunity.updatedAt = new Date().toISOString();
+  opportunity.updatedAt = record.at || new Date().toISOString();
   state.opportunities[opportunityId] = opportunity;
   client.updatedAt = opportunity.updatedAt;
   return opportunity;
