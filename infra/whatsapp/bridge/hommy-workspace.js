@@ -33,18 +33,27 @@ function createHommyWorkspace(options = {}) {
     team: { enabled: false, groupId: '', allowedSenders: [] },
     labels: {}, tasks: [], commands: [], seen: [], audit: []
   });
-  const data = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : defaults();
-  if (data.version !== 1 || !['PAUSED', 'REVIEW'].includes(data.mode) ||
-      !data.team || !Array.isArray(data.team.allowedSenders) ||
-      !data.labels || !Array.isArray(data.tasks) || !Array.isArray(data.commands) ||
-      !Array.isArray(data.seen) || !Array.isArray(data.audit)) {
-    throw err('Hommy workspace data is invalid', 'HOMMY_WORKSPACE_INVALID', 503);
+  // A damaged optional workspace must never prevent the WhatsApp/Pentagrama Bridge from starting.
+  // Keep the damaged file untouched for manual recovery and disable only these operations.
+  let corrupted = false;
+  let data = defaults();
+  try {
+    if (fs.existsSync(file)) data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (data.version !== 1 || !['PAUSED', 'REVIEW'].includes(data.mode) ||
+        !data.team || !Array.isArray(data.team.allowedSenders) ||
+        !data.labels || !Array.isArray(data.tasks) || !Array.isArray(data.commands) ||
+        !Array.isArray(data.seen) || !Array.isArray(data.audit)) throw Error('Invalid workspace schema');
+  } catch (_) {
+    corrupted = true;
+    data = defaults();
+    data.mode = 'PAUSED';
   }
   const hasClient = options.hasClient || (() => false);
   const session = clean(options.session || 'homeeasy', 120);
   const limit = 250;
 
   function persist(action, actor) {
+    if (corrupted) throw err('Hommy workspace requires recovery; other Bridge services remain available', 'HOMMY_WORKSPACE_UNAVAILABLE', 503);
     data.revision++;
     data.audit.push({ at: new Date().toISOString(), action,
       actor: clean(actor && actor.profile && actor.profile.uid || 'system', 120) });
@@ -53,7 +62,7 @@ function createHommyWorkspace(options = {}) {
   }
 
   function status() {
-    return { mode: data.mode, revision: data.revision, availableLabels: LABELS,
+    return { available: !corrupted, mode: corrupted ? 'PAUSED' : data.mode, revision: data.revision, availableLabels: LABELS,
       team: { enabled: data.team.enabled,
         configured: validGroup(data.team.groupId) && data.team.allowedSenders.length > 0,
         groupId: data.team.groupId || null, authorizedSenders: data.team.allowedSenders.length,
@@ -64,6 +73,7 @@ function createHommyWorkspace(options = {}) {
   }
 
   function configure(body, actor) {
+    if (corrupted) throw err('Hommy workspace requires recovery', 'HOMMY_WORKSPACE_UNAVAILABLE', 503);
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw err('Invalid configuration');
     if (body.revision !== undefined && body.revision !== data.revision) throw err('Refresh Hommy settings', 'HOMMY_REVISION_CONFLICT', 409);
     if (body.mode !== undefined && !['PAUSED', 'REVIEW'].includes(body.mode)) throw err('Only PAUSED and REVIEW are supported');
@@ -133,7 +143,7 @@ function createHommyWorkspace(options = {}) {
   // The Bridge calls this only AFTER inbox.ingest authenticates the HMAC and session.
   // No customer or team-group messages are sent from this code path.
   function ingestSignedGroupEvent(event) {
-    if (data.mode !== 'REVIEW' || !data.team.enabled) return { accepted: false, reason: 'DISABLED' };
+    if (corrupted || data.mode !== 'REVIEW' || !data.team.enabled) return { accepted: false, reason: 'DISABLED' };
     if (!event || event.session !== session || !['message', 'message.any'].includes(event.event))
       return { accepted: false, reason: 'UNSUPPORTED_EVENT' };
     const p = event.payload;
