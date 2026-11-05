@@ -1167,7 +1167,7 @@ async function handle(req, res) {
     const members = rows.map(row => ({
       id: String(row.id || ''), role: String(row.role || 'participant')
     })).filter(m => /^\d{8,22}@(c\.us|lid)$/.test(m.id)).slice(0, 100);
-    return json(res, 200, { ok: true, members });
+    return json(res, 200, { ok: true, groupId, members });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/workspace') {
