@@ -80,3 +80,25 @@ test('notebook enforces unique topics and notes never edit themselves',t=>{
     x=>x.code==='HOMMY_NOTE_NOT_FOUND');
   assert.equal(PRODUCT_FACTS.length,7);
 });
+
+
+test('Bridge web desk contracts require authenticated permissions and do not add customer auto sends',()=>{
+  const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
+  const updater=fs.readFileSync(path.join(__dirname,'..','update-bridge.sh'),'utf8');
+  const ui=fs.readFileSync(path.join(__dirname,'..','..','..','homeeasy-hommy-operations-ui.js'),'utf8');
+  assert.match(server,/const hommyDesk = createHommyDesk/);
+  for(const route of [
+    '/api/whatsapp/hommy/desk',
+    '/api/whatsapp/hommy/desk/catalog',
+    '/api/whatsapp/hommy/desk/notes',
+    '/api/whatsapp/hommy/desk/notes/edit',
+    '/api/whatsapp/hommy/desk/notes/archive'
+  ]) assert.ok(server.includes(route),route);
+  assert.match(server,/const actor = await auth\.authorize\(req, 'config\.write'\);[\s\S]*?hommyDesk\.installCatalog/);
+  assert.match(server,/hommyWorkspace\.reserveTeamCatalog\(group\.id\)/);
+  assert.match(server,/chatId: reservedCatalog\.groupId/);
+  assert.doesNotMatch(server,/chatId:\s*.*(?:customer|record\.chatId).*catalog/i);
+  assert.match(updater,/hommy-desk\.js/);
+  assert.match(updater,/hommy-desk\.tar\.gz/);
+  assert.match(ui,/Escritorio y memoria/);
+});
