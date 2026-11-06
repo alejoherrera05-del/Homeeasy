@@ -144,3 +144,26 @@ test('reads the local snapshot lazily, refreshes after atomic write and fails cl
   assert.equal(read().available,false);
   assert.match(preview('PENDING',[],{},read()),/No pude consultar/);
 });
+
+
+test('understands conversational requests without requiring command phrases', () => {
+  const examples = [
+    ['Oye, ¿cómo vamos con las visitas?', 'VISITS'],
+    ['Hommy, me cuentas cómo van las cotizaciones?', null],
+    ['Mira, ¿cómo van las cotizaciones?', 'QUOTES'],
+    ['Me cuentas cómo vamos con las visitas?', 'VISITS'],
+    ['Oye, ¿qué nos falta por hacer?', 'PENDING'],
+    ['¿Cómo va la cosa?', 'SUMMARY'],
+    ['¿Cómo va HomeEasy?', 'SUMMARY'],
+    ['¿Qué tal los seguimientos?', 'FOLLOWUP'],
+    ['¿Cuántos clientes conoces?', 'CLIENTS']
+  ];
+  for (const [question, expected] of examples) assert.equal(classify(question), expected, question);
+  for (const question of [
+    '¿Cómo van las visitas de Camilo?',
+    '¿Cuántos clientes atendiste hoy por WhatsApp?',
+    '¿Cómo van las visitas y confirma la de mañana?',
+    'Dile a Laura cómo van las visitas',
+    '¿Cómo van las cotizaciones y qué descuento les damos?'
+  ]) assert.equal(classify(question), null, question);
+});
