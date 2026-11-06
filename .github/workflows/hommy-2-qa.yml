@@ -21,6 +21,15 @@ on:
       - '.python-version'
       - 'tests/**'
       - '.github/workflows/hommy-2-qa.yml'
+  pull_request:
+    branches:
+      - hommy-2.0
+    paths:
+      - 'hommy_backend/**'
+      - 'servidor.py'
+      - 'tests/**'
+      - '.env.example'
+      - '.github/workflows/hommy-2-qa.yml'
   workflow_dispatch:
 
 permissions:
@@ -192,6 +201,7 @@ jobs:
           retention-days: 7
 
       - name: Verify Hommy staging live contracts
+        if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
           BASE='https://homeeasy-hommy-staging.onrender.com'
