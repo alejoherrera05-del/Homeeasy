@@ -357,6 +357,10 @@
             { method:'POST', binaryBody:file, timeoutMs:120000 });
     }
 
+    function setHommyCatalogAutomation(customerCatalogEnabled) {
+        return request('/api/whatsapp/hommy/desk/automation',
+            {method:'POST',body:{customerCatalogEnabled:customerCatalogEnabled===true}});
+    }
     function saveHommyDeskNote(topic, text, visibility) {
         return request('/api/whatsapp/hommy/desk/notes',
             {method:'POST',body:{topic,text,visibility}});
@@ -636,6 +640,7 @@
         updateHommyTask,
         hommyDesk,
         uploadHommyCatalog,
+        setHommyCatalogAutomation,
         saveHommyDeskNote,
         editHommyDeskNote,
         archiveHommyDeskNote,
