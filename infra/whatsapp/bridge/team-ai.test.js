@@ -5,7 +5,7 @@ const fs=require('fs');
 const os=require('os');
 const path=require('path');
 const {ReadableStream}=require('node:stream/web');
-const {createTeamAI,readFacts,validateEndpoint,validateReply}=require('./team-ai');
+const {createTeamAI,readFacts,validateEndpoint,validateReply,boundedTimeoutMs}=require('./team-ai');
 
 const BACKEND='https://homeeasy-hommy-staging.onrender.com';
 const ENDPOINT=BACKEND+'/api/hommy/team/interpret';
@@ -95,4 +95,26 @@ test('network and response errors fail closed, without fallback messages or retr
  const unavailable=createTeamAI({enabled:true,serviceToken:KEY,backendUrl:BACKEND,endpoint:ENDPOINT,
   fetcher:async()=>response({kind:'ANSWER',text:'Tiene 18 ofertas.'},503)});
  assert.equal((await unavailable.interpret({question:'hola'})).kind,'UNAVAILABLE');
+});
+
+test('team inference default allows response beyond legacy 6.5 seconds, with hard cap and no retries',()=>{
+ assert.equal(boundedTimeoutMs(),9500);
+ assert.equal(boundedTimeoutMs(null),9500);
+ assert.equal(boundedTimeoutMs(6500),6500);
+ assert.equal(boundedTimeoutMs(9500),9500);
+ assert.equal(boundedTimeoutMs(99999),9500);
+ assert.equal(boundedTimeoutMs(400),1000);
+ assert.equal(boundedTimeoutMs(-1),9500);
+});
+
+test('aborted team request reports TIMEOUT without sending anything or retrying',async()=>{
+ let attempts=0;
+ const ai=createTeamAI({enabled:true,serviceToken:KEY,backendUrl:BACKEND,
+  endpoint:ENDPOINT,timeoutMs:9500,fetcher:async()=>{
+   attempts++;
+   const ex=new Error('request timeout');ex.name='TimeoutError';throw ex;
+  }});
+ const result=await ai.interpret({question:'¿Cómo va Onda Serena?'});
+ assert.deepEqual(result,{kind:'UNAVAILABLE',reason:'TIMEOUT'});
+ assert.equal(attempts,1);
 });

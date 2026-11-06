@@ -101,12 +101,20 @@ async function readBoundedJson(response) {
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
+// The inference API may return successfully after the previous 6.5s bridge cutoff.
+// Keep this deadline bounded; there is still exactly one request and no retry.
+function boundedTimeoutMs(value) {
+  const requested = Number(value);
+  const configured = Number.isFinite(requested) && requested > 0 ? requested : 9500;
+  return Math.max(1000, Math.min(9500, configured));
+}
+
 function createTeamAI(options = {}) {
   const token = String(options.serviceToken || '').trim();
   const url = validateEndpoint(options.endpoint, options.backendUrl);
   const enabled = options.enabled === true && token.length >= 32 && Boolean(url);
   const fetcher = options.fetcher || fetch;
-  const timeoutMs = Math.max(1000, Math.min(9500, Number(options.timeoutMs) || 6500));
+  const timeoutMs = boundedTimeoutMs(options.timeoutMs);
   const memoryRoot = options.dataDir || '/app/data';
 
   async function interpret(input) {
@@ -139,8 +147,11 @@ function createTeamAI(options = {}) {
       if (!response || response.status !== 200) return {kind:'UNAVAILABLE',reason:'HTTP_ERROR'};
       const answer = await readBoundedJson(response);
       return validateReply(answer, payload);
-    } catch (_) {
-      return {kind:'UNAVAILABLE',reason:'SERVICE_UNAVAILABLE'};
+    } catch (error) {
+      // Keep private inputs out of logs but distinguish a bounded timeout from
+      // other transport failures for safe, accurate operator diagnostics.
+      const timedOut = error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+      return {kind:'UNAVAILABLE',reason:timedOut ? 'TIMEOUT' : 'SERVICE_UNAVAILABLE'};
     }
   }
 
@@ -148,5 +159,5 @@ function createTeamAI(options = {}) {
 }
 
 module.exports = Object.freeze({
-  createTeamAI,readFacts,validateEndpoint,validateReply
+  createTeamAI,readFacts,validateEndpoint,validateReply,boundedTimeoutMs
 });
