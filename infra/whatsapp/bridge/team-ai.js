@@ -78,7 +78,7 @@ function validateReply(data, request) {
   if (text.length < 6 || text.length > MAX_REPLY || /[\x00-\x08\x0b\x0e-\x1f]/.test(text) ||
       /(?:https?:\/\/|www\.|<script|api[_ -]?key|bearer\s|sk-proj-)/i.test(text) ||
       /\b\d{8,}\b/.test(text) || /(?:[$€]|\bCOP\b|\bpesos\b)/i.test(text) ||
-      /\b(?:ya (?:le )?(?:escrib[ií]|envi[eé]|confirm[eé]|agend[eé])|la cita (?:qued[oó]|est[aá]) confirmada)\b/i.test(text)) {
+      /\b(?:ya (?:le )?(?:escrib[ií]|envi[eé]|confirm[eé]|agend[eé])|la cita (?:qued[oó]|est[aá]) confirmada)(?=$|[\s.,!?])/i.test(text)) {
     return {kind:'UNAVAILABLE'};
   }
   const grounding = JSON.stringify({question:request.question,facts:request.facts});

@@ -221,7 +221,7 @@ test('webhook performs a bounded read-only LID lookup after signature verificati
   assert.match(segment, /\/lids\/pn\//);
   assert.match(segment, /2500/);
   assert.ok(segment.indexOf('hommyInbox.ingest(raw, req.headers)') < segment.indexOf("wahaRequest('GET'"));
-  assert.match(segment, /group\.status === 'INFORMATION'/);
+  assert.match(segment, /if \(group\.accepted\)/);
   assert.match(segment, /hommyWorkspace\.reserveTeamReply\(group\.id\)/);
   assert.match(segment, /chatId: reserved\.groupId/);
   assert.doesNotMatch(segment, /sendDocument|force-recreate/);
@@ -355,7 +355,7 @@ test('group response sender has fixed group destination and durable duplicate lo
   const webhook = server.slice(server.indexOf("url.pathname === '/api/whatsapp/webhook'"),
     server.indexOf("url.pathname === '/api/whatsapp/inbox'"));
   assert.match(webhook, /hommyWorkspace\.reserveTeamReply\(group\.id\)/);
-  assert.match(webhook, /group\.status === 'INFORMATION'/);
+  assert.match(webhook, /if \(group\.accepted\)/);
   assert.match(webhook, /chatId: reserved\.groupId/);
   assert.match(webhook, /hommyWorkspace\.finishTeamReply\(reserved\.commandId, true\)/);
   assert.match(webhook, /hommyWorkspace\.finishTeamReply\(reserved\.commandId, false\)/);
