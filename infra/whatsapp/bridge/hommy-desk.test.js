@@ -85,6 +85,7 @@ test('notebook enforces unique topics and notes never edit themselves',t=>{
 test('Bridge web desk contracts require authenticated permissions and do not add customer auto sends',()=>{
   const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
   const updater=fs.readFileSync(path.join(__dirname,'..','update-bridge.sh'),'utf8');
+  const dockerfile=fs.readFileSync(path.join(__dirname,'Dockerfile'),'utf8');
   const ui=fs.readFileSync(path.join(__dirname,'..','..','..','homeeasy-hommy-operations-ui.js'),'utf8');
   assert.match(server,/const hommyDesk = createHommyDesk/);
   for(const route of [
@@ -99,6 +100,7 @@ test('Bridge web desk contracts require authenticated permissions and do not add
   assert.match(server,/chatId: reservedCatalog\.groupId/);
   assert.doesNotMatch(server,/chatId:\s*.*(?:customer|record\.chatId).*catalog/i);
   assert.match(updater,/hommy-desk\.js/);
+  assert.match(dockerfile,/COPY hommy-desk\.js \.\//);
   assert.match(updater,/hommy-desk\.tar\.gz/);
   assert.match(ui,/Escritorio y memoria/);
 });
