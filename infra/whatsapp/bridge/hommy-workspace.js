@@ -321,7 +321,7 @@ function createHommyWorkspace(options = {}) {
       'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
     data.commands.push({ id, at: new Date().toISOString(), author,
       originGroupId:data.team.groupId, authorizedSenderId,
-      aiRequest:aiConfigured, command: command.slice(0, 500), preview, status });
+      aiRequest:aiMode, command: command.slice(0, 500), preview, status });
     data.commands = data.commands.slice(-limit);
     data.seen.push(id);
     data.seen = data.seen.slice(-limit);
