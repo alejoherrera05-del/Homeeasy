@@ -87,7 +87,7 @@ test('REVIEW drafts respond to generic lead naturally and never send or create v
   const r = await env.intelligence.process({}, { limit: 1 });
   assert.equal(r.processed, 1);
   const analysis = env.intelligence.list({}).items[0];
-  assert.match(analysis.result.suggestedResponse, /^Hola, cómo estás\? 😊/);
+  assert.match(analysis.result.suggestedResponse, /^Hola, ¿cómo estás\? 😊/);
   assert.match(analysis.result.suggestedResponse, /qué estás buscando para tu ventana/i);
   assert.doesNotMatch(analysis.result.suggestedResponse, /soy Daniela|soy un bot/i);
   assert.equal(analysis.audit.sent, false);
@@ -241,7 +241,7 @@ test('stores Colombian response rules and greets only the new-conversation draft
   assert.equal(RESPONSE_STYLE.neverRepeatKnownQuestions, true);
   await env.intelligence.process({}, { limit: 10 });
   const drafts = Object.fromEntries(env.intelligence.list({}).items.map(item => [item.sourceMessageId, item.result.suggestedResponse]));
-  assert.match(drafts['style-1'], /^Hola, cómo estás\? 😊/);
+  assert.match(drafts['style-1'], /^Hola, ¿cómo estás\? 😊/);
   assert.equal(drafts['style-2'], 'Claro que sí, con mucho gusto te ayudo.');
 });
 
@@ -660,7 +660,7 @@ test('greeting depends on chat session, never repeats per message and returns af
   assert.match(drafts['greet-a'], /^Hola/);
   assert.doesNotMatch(drafts['greet-b'], /^Hola/);
   assert.match(drafts['greet-c'], /^Hola/);
-  assert.ok(Object.values(drafts).every(text => !/[¡¿]/.test(text)));
+  assert.ok(Object.values(drafts).every(text => !/¡{2}|¿{2}/.test(text)));
   assert.ok(Object.values(drafts).every(text => /pendiente|confirmar|disponibilidad/i.test(text)));
 });
 
@@ -765,4 +765,24 @@ test('reception proposals stay in REVIEW and cannot themselves send catalog or l
   assert.equal(catalog.result.nextAction,'HUMAN_REVIEW');
   assert.equal(location.result.nextAction,'HUMAN_REVIEW');
   assert.ok(analyses.some(a=>/Soy Hommy/.test(a.result.suggestedResponse)));
+});
+
+test('response style respects opening punctuation and avoids greeting twice', async t => {
+  const items=[
+    record('punct-1','Buenas tardes, deseo cotizar',{at:'2026-11-05T12:00:00.000Z'}),
+    record('punct-2','Es para una habitación',{at:'2026-11-05T12:02:00.000Z'})
+  ];
+  const env=setup(items,{analyze: async () => ({result:result({
+    suggestedResponse:'¡Hola! ¿Cómo estás? Con gusto revisamos lo que necesitas.'
+  })})});
+  t.after(env.cleanup);
+  const processed=await env.intelligence.process({}, {limit:2});
+  assert.equal(processed.processed,2);
+  const all=env.intelligence.list({limit:5}).items;
+  const first=all.find(x=>x.sourceMessageId==='punct-1').result.suggestedResponse;
+  const second=all.find(x=>x.sourceMessageId==='punct-2').result.suggestedResponse;
+  assert.match(first,/^¡Hola!/);
+  assert.doesNotMatch(first,/Hola.*Hola/);
+  assert.doesNotMatch(second,/^¡?Hola/);
+  assert.match(second,/Con gusto revisamos/);
 });
