@@ -169,7 +169,8 @@ const teamAI = createTeamAI({
 const hommyWorkspace = createHommyWorkspace({
   dataDir: DATA_DIR, session: WAHA_SESSION, intelligenceEnabled: HOMMY_INTELLIGENCE_ENABLED,
   hasClient: hommyIntelligence.hasClient, teamAiAvailable: teamAI.available,
-  hasDeskCatalog: () => hommyDesk.catalogStatus().installed
+  hasDeskCatalog: () => hommyDesk.catalogStatus().installed,
+  saveDeskNote: (note,sender) => hommyDesk.addNote(note,{profile:{uid:sender}})
 });
 
 function json(res, statusCode, payload) {
