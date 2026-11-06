@@ -44,7 +44,7 @@ function createHommyDesk(options = {}) {
   const stateFile = path.join(dir,'notes.json');
   const catalogFile = path.join(dir,CATALOG_NAME);
   fs.mkdirSync(dir,{recursive:true,mode:0o700});
-  let state = {version:1,revision:0,notes:[],audit:[]};
+  let state = {version:1,revision:0,notes:[],audit:[],settings:{customerCatalogAutoReply:false}};
   let unavailable = false;
   try {
     if (fs.existsSync(stateFile)) state=JSON.parse(fs.readFileSync(stateFile,'utf8'));
@@ -52,7 +52,7 @@ function createHommyDesk(options = {}) {
         !Array.isArray(state.audit) || !Number.isInteger(state.revision)) throw Error('Invalid desk state');
   } catch (_) {
     unavailable=true;
-    state={version:1,revision:0,notes:[],audit:[]};
+    state={version:1,revision:0,notes:[],audit:[],settings:{customerCatalogAutoReply:false}};
   }
 
   function requireAvailable() {
@@ -110,6 +110,22 @@ function createHommyDesk(options = {}) {
       return catalogStatus();
     } finally { if(fs.existsSync(temp)) fs.unlinkSync(temp); }
   }
+  function customerCatalogEnabled() {
+    return !unavailable && state.settings &&
+      state.settings.customerCatalogAutoReply === true &&
+      catalogStatus().installed === true;
+  }
+  function setCustomerCatalogAutomation(enabled,actor) {
+    requireAvailable();
+    if (enabled === true && !catalogStatus().installed)
+      throw fail('Instala el PDF oficial antes de activar respuestas automáticas.',
+        'HOMMY_CATALOG_REQUIRED',409);
+    if(!state.settings || typeof state.settings!=='object')state.settings={};
+    state.settings.customerCatalogAutoReply=enabled===true;
+    commit('CATALOG_AUTOMATION_CHANGED',actor);
+    return {customerCatalogEnabled:customerCatalogEnabled()};
+  }
+
   function notesFor(kind='TEAM') {
     return state.notes.filter(note=>note.active===true &&
       (kind==='TEAM'||note.visibility==='PUBLIC'))
@@ -156,6 +172,7 @@ function createHommyDesk(options = {}) {
   function dashboard(){
     return {available:!unavailable,revision:state.revision,
       catalog:catalogStatus(),
+      automation:{customerCatalogEnabled:customerCatalogEnabled()},
       notes:state.notes.filter(x=>x.active).map(x=>({...x})).reverse(),
       catalogProducts:PRODUCT_FACTS.map(x=>x.split(':')[0])};
   }
@@ -165,7 +182,8 @@ function createHommyDesk(options = {}) {
       catalogInstalled:catalogStatus().installed};
   }
   return Object.freeze({dashboard,installCatalog,readCatalog,catalogStatus,
-    addNote,editNote,archiveNote,approvedContext});
+    addNote,editNote,archiveNote,approvedContext,
+    customerCatalogEnabled,setCustomerCatalogAutomation});
 }
 
 module.exports=Object.freeze({createHommyDesk,PRODUCT_FACTS,CATALOG_NAME,CATALOG_MAX_BYTES});
