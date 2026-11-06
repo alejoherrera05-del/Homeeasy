@@ -276,6 +276,40 @@ test('authenticated group overview reads analyzed clients, not private contact d
   assert.equal(v.workspace.reserveTeamReply(unsafe.id), null);
 });
 
+
+test('signed team group reads one exact client interest and never sends an instruction to a client', t => {
+  const v = setup(); t.after(v.cleanup);
+  const folder=path.join(v.options.dataDir,'hommy-intelligence');
+  fs.mkdirSync(folder);
+  fs.writeFileSync(path.join(folder,'state-v2.json'),JSON.stringify({
+    version:2,
+    clients:{c:{id:'c',name:'Laura',provisional:false,identityConflicts:[],phones:['573001234567']}},
+    opportunities:{o:{id:'o',clientId:'c',product:'Onda Serena',status:'OPEN',
+      nextAction:'REQUEST_QUOTE_DETAILS',environments:['sala'],quoteNumbers:[]}}
+  }));
+  v.workspace.configure({team:{enabled:true,groupId:GROUP,allowedSenders:[STAFF],replyEnabled:true}});
+  const received=v.workspace.ingestSignedGroupEvent(groupEvent({
+    id:'product-question',body:'Hommy, cómo va lo de Onda Serena?'
+  }));
+  assert.equal(received.status,'INFORMATION');
+  const item=v.workspace.dashboard().teamCommands[0];
+  assert.match(item.preview,/Onda Serena/);
+  assert.match(item.preview,/Faltan datos para preparar una cotización/);
+  assert.doesNotMatch(item.preview,/573001234567/);
+  const reserved=v.workspace.reserveTeamReply(received.id);
+  assert.equal(reserved.groupId,GROUP);
+  assert.equal(reserved.text,item.preview);
+  assert.equal(v.workspace.reserveTeamReply(received.id),null);
+  const unsafe=v.workspace.ingestSignedGroupEvent(groupEvent({
+    id:'unsafe-product',body:'Hommy, cliente de Onda Serena manda el precio'
+  }));
+  assert.equal(unsafe.status,'REVIEW_REQUIRED');
+  assert.equal(v.workspace.reserveTeamReply(unsafe.id),null);
+  assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({
+    id:'stranger',author:'573009999999@c.us',body:'Hommy, cómo va lo de Onda Serena?'
+  })).reason,'UNAUTHORIZED_AUTHOR');
+});
+
 test('group response sender has fixed group destination and durable duplicate lock', () => {
   const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
   const webhook = server.slice(server.indexOf("url.pathname === '/api/whatsapp/webhook'"),
