@@ -215,6 +215,57 @@ function applyLeadReview(result, guidance) {
   };
 }
 
+// Human-sounding first-contact drafts for clearly understood requests.
+// This helper only shapes REVIEW proposals; it does not read external files,
+// send WhatsApp messages or claim that an attachment was delivered.
+function applyReceptionReview(result, record, context = {}) {
+  if (!result || !record || record.direction === 'OUTGOING' ||
+      result.nextAction === 'STOP_CONTACT' || result.humanInterventionRequired === true)
+    return result;
+  const input = normalizeText(record.text).replace(/[¿?¡!.,;:]+/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+  if (!input || input.length > 180) return result;
+  // A greeting alone can be drafted without claiming a booking or a sale.
+  if (/^(?:hola|holi|buenas|buenos dias|buenas tardes|buenas noches|hola buenas|hola buenos dias|hola buenas tardes|hola buenas noches)(?: como estas| que tal)?$/.test(input)) {
+    if (!['INFORMATION_REQUEST','OTHER','PRODUCT_QUESTION'].includes(result.intent)) return result;
+    return { ...result, intent: 'INFORMATION_REQUEST', nextAction: 'PREPARE_RESPONSE',
+      suggestedResponse: context.isNewConversation
+        ? 'Hola, ¿cómo estás? 😊 Soy Hommy, el asistente virtual de HomeEasy. Cuéntame, ¿en qué puedo ayudarte?'
+        : 'Con gusto 😊 Cuéntame, ¿en qué puedo ayudarte?',
+      reason: 'Saludo recibido. Se propone una respuesta breve y transparente.' };
+  }
+  // Do not override mixed requests: these need the full commercial interpreter.
+  if (/\b(?:precio|cuesta|valor|descuento|cotiz|visita|cita|medidas|instal|reclamo|queja|garantia|devolucion|cancel|no me contacten|no me escriban)\b/.test(input))
+    return result;
+
+  const catalog = /\b(?:catalogo|catalogos|catalogue)\b/.test(input) &&
+    /\b(?:enviar|envias|enviarme|compart|pasar|pasas|mand|muestras|ver|mostrar|quiero|quisiera|tienes|tienen|puedo)\b/.test(input);
+  const location = /\b(?:ubicacion|direccion|donde estan|donde quedan|como llego|como llegar)\b/.test(input) &&
+    /\b(?:ubicacion|direccion|donde estan|donde quedan|como llego|como llegar)\b/.test(input);
+  const hours = /\b(?:horario|horarios|a que hora abren|a que hora cierran)\b/.test(input);
+  const human = /\b(?:hablar con (?:un|una|algun|alguna) (?:asesor|persona)|atencion humana|me atienda una persona|comunicarme con (?:un|una) asesor)\b/.test(input);
+  const requests = [catalog, location, hours, human].filter(Boolean).length;
+  if (requests !== 1 || !['INFORMATION_REQUEST','OTHER','PRODUCT_QUESTION'].includes(result.intent))
+    return result;
+  const asset = catalog ? 'CATALOG' : location ? 'LOCATION' : hours ? 'HOURS' : 'HUMAN';
+  const drafts = {
+    CATALOG: '¡Claro que sí! 😊 Con gusto te comparto nuestro catálogo actualizado.',
+    LOCATION: '¡Claro! 📍 Con gusto te comparto la ubicación de HomeEasy.',
+    HOURS: '¡Claro! Con gusto te confirmo nuestro horario de atención.',
+    HUMAN: 'Claro, con gusto. Un asesor de HomeEasy puede continuar contigo.'
+  };
+  return {
+    ...result, intent: 'INFORMATION_REQUEST', nextAction: 'HUMAN_REVIEW',
+    humanInterventionRequired: true, requiredAsset: asset,
+    suggestedResponse: drafts[asset],
+    reason: 'Borrador para revisión: ' + (
+      asset === 'CATALOG' ? 'adjuntar el catálogo vigente aprobado antes de enviar.' :
+      asset === 'LOCATION' ? 'verificar y adjuntar la dirección o enlace oficial antes de enviar.' :
+      asset === 'HOURS' ? 'verificar el horario vigente antes de enviar.' :
+      'derivar la conversación a un asesor disponible antes de responder.')
+  };
+}
+
 function applyGuardrails(result, record, inspection) {
   const text = normalizeText(record && record.text);
   const stop = /\b(no me (?:escriban|contacten)|no (?:escriban|contacten) mas|dejen de (?:escribirme|contactarme)|stop|cancelar suscripcion|dar de baja)\b/i.test(text);
@@ -713,9 +764,12 @@ function createIntelligence(options) {
           client, opportunities: clientOpportunities, leadGuidance, responseStyle: RESPONSE_STYLE,
           conversationToken: conversationMemory.conversationToken || null }, requestContext);
         const guarded = applyResponseStyle(
-          applyLeadReview(
-            applyGuardrails(validateResult(analyzed.result), record, { humanTakeover, client }),
-            leadGuidance
+          applyReceptionReview(
+            applyLeadReview(
+              applyGuardrails(validateResult(analyzed.result), record, { humanTakeover, client }),
+              leadGuidance
+            ),
+            record, { isNewConversation: newConversation }
           ),
           { isNewConversation: newConversation }
         );
