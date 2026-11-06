@@ -33,6 +33,7 @@ BRIDGE_FILES=(
   operational-overview.js
   team-ai.js
   hommy-desk.js
+  hommy-self-check.js
   maintenance.js
   Dockerfile
   package.json
@@ -235,7 +236,7 @@ INSTALL_DIR="$INSTALL_DIR"
 BACKUP_DIR="$BACKUP_DIR"
 ROLLBACK_IMAGE="$ROLLBACK_IMAGE"
 BRIDGE_LOCAL_PORT="$BRIDGE_LOCAL_PORT"
-BRIDGE_FILES=(server.js auth.js operations.js conversation.js inbox.js intelligence.js hommy-workspace.js operational-overview.js team-ai.js hommy-desk.js maintenance.js Dockerfile package.json)
+BRIDGE_FILES=(server.js auth.js operations.js conversation.js inbox.js intelligence.js hommy-workspace.js operational-overview.js team-ai.js hommy-desk.js hommy-self-check.js maintenance.js Dockerfile package.json)
 for file in "\${BRIDGE_FILES[@]}"; do
   if [[ -f "\$BACKUP_DIR/bridge/\$file" ]]; then
     cp -a -- "\$BACKUP_DIR/bridge/\$file" "\$INSTALL_DIR/bridge/\$file"
