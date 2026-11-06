@@ -395,7 +395,7 @@ test('AI group reply remains pending until verified answer and deduplicates all 
  const options={...v.options,teamAiAvailable:true};
  const w=createHommyWorkspace(options);
  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
- const event=groupEvent({id:'natural-ai',body:'Oye Hommy, cómo va lo de la Onda Serena?'});
+ const event=groupEvent({id:'natural-ai',body:'Oye Hommy, qué deberíamos mejorar al atender clientes interesados en Onda Serena?'});
  const received=w.ingestSignedGroupEvent(event,null,{aiEnabled:true});
  assert.equal(received.status,'AI_PENDING');
  assert.equal(w.reserveTeamReply(received.id),null);
@@ -570,4 +570,33 @@ test('hybrid fast path answers exact read-only summaries without invoking AI', t
   }),null,{aiEnabled:true});
   assert.notEqual(action.status,'INFORMATION');
   assert.equal(w.reserveTeamReply(action.id),null);
+});
+
+
+test('hybrid product lookup uses verified memory and does not contact the AI or customers',t=>{
+  const v=setup();t.after(v.cleanup);
+  const folder=path.join(v.options.dataDir,'hommy-intelligence');
+  fs.mkdirSync(folder);
+  fs.writeFileSync(path.join(folder,'state-v2.json'),JSON.stringify({
+    version:2,
+    clients:{c:{id:'c',name:'Laura',provisional:false,identityConflicts:[]}},
+    opportunities:{o:{id:'o',clientId:'c',product:'Onda Serena',status:'OPEN',
+      nextAction:'REQUEST_QUOTE_DETAILS',environments:['sala'],quoteNumbers:[]}}
+  }));
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const direct=w.ingestSignedGroupEvent(groupEvent({
+    id:'fast-product',body:'Hommy, cómo vamos con la cortina Onda Serena?'
+  }),null,{aiEnabled:true});
+  assert.equal(direct.status,'INFORMATION');
+  assert.equal(w.teamAIRequest(direct.id),null);
+  const reserved=w.reserveTeamReply(direct.id);
+  assert.match(reserved.text,/Onda Serena/);
+  assert.match(reserved.text,/faltan datos/);
+  assert.equal(w.reserveTeamReply(direct.id),null);
+  const unsafe=w.ingestSignedGroupEvent(groupEvent({
+    id:'mixed-product-action',body:'Hommy, envía el precio de Onda Serena al cliente'
+  }),null,{aiEnabled:true});
+  assert.equal(unsafe.status,'AI_PENDING');
+  assert.equal(w.reserveTeamReply(unsafe.id),null);
 });
