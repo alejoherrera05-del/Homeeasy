@@ -88,7 +88,7 @@ class TeamOnlyContractTests(unittest.TestCase):
                 "/api/hommy/team/interpret", json=payload(), headers=self.auth_headers()
             )
         self.assertEqual(response.status_code, 503)
-        self.assertEqual(response.json["code"], "TEAM_SERVICE_DISABLED")
+        self.assertEqual(response.json["error"]["code"], "TEAM_SERVICE_DISABLED")
 
     def test_requires_dedicated_secret_not_a_homeeasy_session(self):
         with patch.dict(os.environ, {
@@ -104,7 +104,7 @@ class TeamOnlyContractTests(unittest.TestCase):
                     "/api/hommy/team/interpret", json=payload(), headers=headers
                 )
                 self.assertEqual(result.status_code, 401, headers)
-                self.assertEqual(result.json["code"], "TEAM_UNAUTHORIZED")
+                self.assertEqual(result.json["error"]["code"], "TEAM_UNAUTHORIZED")
         with patch.dict(os.environ, {
             "HOMMY_TEAM_AI_SERVICE_TOKEN": "",
             "HOMMY_TEAM_SERVICE_ENABLED": "true",
@@ -153,7 +153,7 @@ class TeamOnlyContractTests(unittest.TestCase):
             lambda p: p["facts"]["opportunities"][0].update({"customerName": "Laura"}),
             lambda p: p.update({"version": 7}),
             lambda p: p["facts"].update({"knownClients": True}),
-            lambda p: p["history"].append({"question": "a", "answer": "b"}),
+            lambda p: p["history"].extend([{"question": "a", "answer": "b"}] * 3),
             lambda p: p["facts"]["opportunities"][0].update({"rooms": ["casa de Laura"]}),
         ]:
             data = payload()
