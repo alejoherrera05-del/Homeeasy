@@ -269,7 +269,8 @@
             heading.style.cssText = 'display:block;font-size:12px;color:#a6455a';
             heading.textContent = item.status === 'REVIEW_REQUIRED' ? 'Pendiente de revisión' :
               item.status === 'AI_PENDING' ? 'Interpretando consulta' :
-              item.status === 'AI_UNAVAILABLE' ? 'Motor IA no disponible' : 'Consulta registrada';
+              item.status === 'AI_UNAVAILABLE' ? 'Motor IA no disponible' :
+              item.status === 'AI_RATE_LIMITED' ? 'Límite de consultas' : 'Consulta registrada';
             const question = document.createElement('p');
             question.style.cssText = 'font-size:12px;margin:7px 0';
             question.textContent = item.command || '';

@@ -81,7 +81,8 @@ function validateReply(data, request) {
       /\b(?:ya (?:le )?(?:escrib[ií]|envi[eé]|confirm[eé]|agend[eé])|la cita (?:qued[oó]|est[aá]) confirmada)(?=$|[\s.,!?])/i.test(text)) {
     return {kind:'UNAVAILABLE'};
   }
-  const grounding = JSON.stringify({question:request.question,facts:request.facts});
+  // Never allow an unverified number just because a team member mentioned it.
+  const grounding = JSON.stringify(request.facts);
   const allowedDigits = new Set((grounding.match(/\d+(?:[.,]\d+)?/g)||[]));
   if ((text.match(/\d+(?:[.,]\d+)?/g)||[]).some(n=>!allowedDigits.has(n)))
     return {kind:'UNAVAILABLE'};

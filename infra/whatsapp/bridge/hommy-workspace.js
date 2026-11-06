@@ -281,22 +281,29 @@ function createHommyWorkspace(options = {}) {
     const body = clean(p.body || p.text || p.caption, 700);
     const command = extractTeamRequest(body);
     if (!command) return { accepted: false, reason: 'NOT_MENTIONED' };
+    const authorizedSenderId = isAuthorizedSender(author) ? author : matchingAlias;
     const aiRequested = data.team.aiEnabled === true && data.team.replyEnabled === true;
-    const aiMode = aiRequested && controls.aiEnabled === true && options.teamAiAvailable === true;
-    const aiUnavailable = aiRequested && !aiMode;
-    const queryType = aiMode || aiUnavailable ? null : operational.classify(command);
+    const aiConfigured = aiRequested && controls.aiEnabled === true && options.teamAiAvailable === true;
+    const aiCountLastMinute = data.commands.filter(item =>
+      item.aiRequest === true && item.authorizedSenderId === authorizedSenderId &&
+      Date.parse(item.at) >= Date.now() - 60000).length;
+    const aiRateLimited = aiConfigured && aiCountLastMinute >= 4;
+    const aiMode = aiConfigured && !aiRateLimited;
+    const aiUnavailable = aiRequested && !aiConfigured;
+    const queryType = aiRequested ? null : operational.classify(command);
     const clientDetail = aiMode || queryType ? null : lookupClient(command);
-    const status = aiMode ? 'AI_PENDING' : aiUnavailable ? 'AI_UNAVAILABLE' :
+    const status = aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
+      aiUnavailable ? 'AI_UNAVAILABLE' :
       queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
     const preview = aiMode ? 'Consulta pendiente de interpretación segura.' :
+      aiRateLimited ? 'Se alcanzó el límite de consultas de este integrante; inténtalo nuevamente después.' :
       aiUnavailable ? 'El motor de inteligencia no está configurado; no se envió ninguna respuesta.' :
       queryType ? operational.preview(queryType, data.tasks, data.labels, readOverview()) :
       clientDetail !== null ? clientDetail :
       'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
-    const authorizedSenderId = isAuthorizedSender(author) ? author : matchingAlias;
     data.commands.push({ id, at: new Date().toISOString(), author,
       originGroupId:data.team.groupId, authorizedSenderId,
-      command: command.slice(0, 500), preview, status });
+      aiRequest:aiConfigured, command: command.slice(0, 500), preview, status });
     data.commands = data.commands.slice(-limit);
     data.seen.push(id);
     data.seen = data.seen.slice(-limit);

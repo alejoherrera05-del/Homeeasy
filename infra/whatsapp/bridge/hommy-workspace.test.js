@@ -443,6 +443,23 @@ test('AI outage, group change, member revocation and unsafe actions never trigge
  assert.equal(old.status,'INFORMATION');
 });
 
+test('team conversational mode limits each authorized member to four AI requests per minute',t=>{
+ const v=setup();t.after(v.cleanup);
+ const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+ w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+ for(let i=0;i<4;i++){
+  const g=w.ingestSignedGroupEvent(groupEvent({id:'rate-'+i,body:'Hommy, un resumen por favor'}),null,{aiEnabled:true});
+  assert.equal(g.status,'AI_PENDING');
+ }
+ const limited=w.ingestSignedGroupEvent(groupEvent({id:'rate-4',body:'Hommy, otra pregunta'}),null,{aiEnabled:true});
+ assert.equal(limited.status,'AI_RATE_LIMITED');
+ assert.equal(w.teamAIRequest(limited.id),null);
+ assert.equal(w.reserveTeamReply(limited.id),null);
+ const other=w.ingestSignedGroupEvent(groupEvent({id:'second-member',author:'573009999999@c.us'}),
+  null,{aiEnabled:true});
+ assert.equal(other.reason,'UNAUTHORIZED_AUTHOR');
+});
+
 test('group AI is only invoked after signed webhook and its output stays pinned to the team group',()=>{
  const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
  const segment=server.slice(server.indexOf("url.pathname === '/api/whatsapp/webhook'"),

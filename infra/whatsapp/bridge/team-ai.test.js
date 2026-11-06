@@ -56,6 +56,9 @@ test('untrusted reply cannot claim a sent message, quote, phone number, URL or f
  const data={question:'cómo va Onda Serena',facts:{knownClients:1,openOpportunities:1}};
  assert.equal(validateReply({kind:'ANSWER',text:'Tengo 3 clientes.'},data).kind,'UNAVAILABLE');
  assert.equal(validateReply({kind:'ANSWER',text:'Ya le envié la cotización.'},data).kind,'UNAVAILABLE');
+ assert.equal(validateReply({kind:'ANSWER',text:'Son 77 oportunidades.'},
+   {question:'¿tenemos 77 oportunidades?',facts:{openOpportunities:1}}).kind,'UNAVAILABLE');
+
  assert.equal(validateReply({kind:'ANSWER',text:'Cuesta $120000.'},data).kind,'UNAVAILABLE');
  assert.equal(validateReply({kind:'ANSWER',text:'Llama al 573001234567.'},data).kind,'UNAVAILABLE');
  assert.equal(validateReply({kind:'ANSWER',text:'Mira https://ejemplo.com'},data).kind,'UNAVAILABLE');
