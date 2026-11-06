@@ -196,12 +196,17 @@ fi
 
 echo "Validando Hommy en un contenedor temporal aislado (sin red ni WhatsApp)..."
 # Tests run against the freshly downloaded code, not the currently running
-# Bridge. A failure aborts BEFORE backups, file replacement or any restart.
+# Bridge. Several structural tests inspect the root UI and parent updater, so
+# the entire clone must be mounted read-only (a Bridge-only /test mount makes
+# five correct tests fail with ENOENT). No network, extra Linux caps or writes
+# to the clone are permitted. A failure aborts BEFORE replacement or restart.
 docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges \
   --tmpfs /tmp:rw,nosuid,nodev,size=32m \
-  --mount "type=bind,source=$SOURCE_BRIDGE,target=/test,readonly" \
-  --workdir /test --entrypoint node homeeasy-whatsapp-bridge:local \
-  --test /test/hommy-workspace.test.js /test/team-ai.test.js /test/hommy-desk.test.js
+  --mount "type=bind,source=$TMP_DIR/repo,target=/repo,readonly" \
+  --workdir /repo/infra/whatsapp/bridge --entrypoint node homeeasy-whatsapp-bridge:local \
+  --test /repo/infra/whatsapp/bridge/hommy-workspace.test.js \
+         /repo/infra/whatsapp/bridge/team-ai.test.js \
+         /repo/infra/whatsapp/bridge/hommy-desk.test.js
 
 echo "Preparando respaldo recuperable en $BACKUP_DIR..."
 mkdir -p "$BACKUP_DIR/bridge"
