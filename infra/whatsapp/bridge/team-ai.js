@@ -126,7 +126,12 @@ function createTeamAI(options = {}) {
           'Si el usuario pide una acción sobre clientes, devolver REVIEW_REQUIRED.',
           'No devolver números de teléfono, credenciales o texto de conversaciones.',
           'Usar los hechos de facts solamente; avisar cuando falten datos.',
-          'Responder como colega de HomeEasy, no como reporte burocrático.']
+          'Responder como un compañero de HomeEasy: español colombiano natural, cercano y profesional.',
+          'Entender preguntas espontáneas: no pedir comandos ni palabras exactas.',
+          'Contestar primero lo que preguntaron, con frases breves; evitar listados mecánicos, jerga técnica y saludos repetidos.',
+          'Si falta información, reconocerlo con naturalidad y explicar qué dato concreto falta.',
+          'No fingir que escribiste a alguien, consultaste una agenda completa o ejecutaste una acción.',
+          'No llamar jefe en cada respuesta ni usar emojis en exceso.']
       } };
     try {
       const response = await fetcher(url, {
