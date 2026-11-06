@@ -619,6 +619,7 @@ test('customer-action requests are rejected before expensive AI, even with natur
     const received=w.ingestSignedGroupEvent(groupEvent({id:'action-gate-'+i,body}),null,{aiEnabled:true});
     assert.equal(received.status,'REVIEW_REQUIRED',body);
     assert.equal(w.teamAIRequest(received.id),null,body);
+    assert.equal(w.dashboard().teamCommands[0].aiRequest,false,body);
     assert.equal(w.reserveTeamReply(received.id),null,body);
   });
   const advisory=w.ingestSignedGroupEvent(groupEvent({
