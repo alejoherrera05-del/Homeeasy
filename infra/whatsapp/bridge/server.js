@@ -1088,8 +1088,10 @@ async function maybeSendCustomerCatalog(record) {
   const customerStop=/(?:no me (?:escriban|contacten)|no (?:enviar|mandar|escribir)|dar de baja|stop)/i;
   if (messages.some(item=>item.direction==='INCOMING' &&
       customerStop.test(String(item.text||'')))) return null;
+  // Any recently outbound message may be a human takeover. WAHA's
+  // "source" label cannot reliably distinguish the owner from an integration.
+  // When in doubt, do not compete with an existing conversation.
   if (messages.some(item=>item.direction==='OUTGOING' &&
-      String(item.source||'').toLowerCase()!=='api' &&
       Date.now()-Date.parse(item.at||'')<24*3600000)) return null;
   const catalog=hommyDesk.readCatalog();
   const lock={state:'SENDING',filename:catalog.filename,chatId:record.chatId,
