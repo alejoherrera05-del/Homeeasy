@@ -8,11 +8,11 @@ const crypto = require('crypto');
 const auth = require('./auth');
 const ops = require('./operations');
 const conversation = require('./conversation');
-const { createInbox } = require('./inbox');
+const { createInbox, normalizeEvent } = require('./inbox');
 const { createIntelligence, resolveAssociation } = require('./intelligence');
 const { createHommyWorkspace, shouldResolveTeamAlias } = require('./hommy-workspace');
 const { createTeamAI } = require('./team-ai');
-const { createHommyDesk } = require('./hommy-desk');
+const { createHommyDesk, wantsCustomerCatalog } = require('./hommy-desk');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
@@ -1055,6 +1055,69 @@ function documentPermission(payload, actor) {
   return documentType;
 }
 
+async function maybeSendCustomerCatalog(record) {
+  // OFF unless the owner explicitly enabled this, with a catalog installed.
+  // Only an authenticated inbound WAHA webhook reaches this method.
+  if (!hommyDesk.customerCatalogEnabled() ||
+      hommyWorkspace.status().mode !== 'REVIEW' ||
+      !record || record.direction !== 'INCOMING' ||
+      !/^\d{8,15}@c\.us$/.test(String(record.chatId || '')) ||
+      record.media?.present || !wantsCustomerCatalog(record.text)) return null;
+  const sentAt = Date.parse(record.at || '');
+  if (!Number.isFinite(sentAt) || sentAt > Date.now()+60000 ||
+      Date.now()-sentAt > 120000) return null;
+  // At most one catalog per customer per day even if WAHA redelivers events.
+  const day = new Date().toISOString().slice(0,10);
+  const key = 'hommy-auto-catalog:'+record.chatId+':'+day;
+  if (idempotency[key]) return null;
+  const session = await getSession();
+  if (!session || session.status !== 'WORKING') return null;
+  // Fail closed when we cannot verify a real WAHA conversation, an existing
+  // human handoff, or a newer client request. Never compete with a person.
+  let observed;
+  try {
+    observed = await wahaRequest('GET',
+      '/api/'+encodeURIComponent(WAHA_SESSION)+'/chats/'+
+      encodeURIComponent(record.chatId)+'/messages?limit=30&downloadMedia=false',
+      undefined,'application/json',6500);
+  } catch (_) { return null; }
+  const messages = conversation.normalizeMessages(observed,{limit:30});
+  if (!messages.some(item=>item.id===record.id && item.direction==='INCOMING')) return null;
+  const newest=messages[messages.length-1];
+  if (!newest || newest.id!==record.id) return null;
+  const customerStop=/(?:no me (?:escriban|contacten)|no (?:enviar|mandar|escribir)|dar de baja|stop)/i;
+  if (messages.some(item=>item.direction==='INCOMING' &&
+      customerStop.test(String(item.text||'')))) return null;
+  if (messages.some(item=>item.direction==='OUTGOING' &&
+      String(item.source||'').toLowerCase()!=='api' &&
+      Date.now()-Date.parse(item.at||'')<24*3600000)) return null;
+  const catalog=hommyDesk.readCatalog();
+  const lock={state:'SENDING',filename:catalog.filename,chatId:record.chatId,
+    startedAt:new Date().toISOString(),messageId:null};
+  idempotency[key]=lock;
+  persistIdempotency();
+  try {
+    const result=await wahaRequest('POST','/api/sendFile',{
+      session:WAHA_SESSION,chatId:record.chatId,
+      caption:'¡Claro! Aquí te compartimos nuestro catálogo de persianas y cortinas de HomeEasy. 😊',
+      file:{mimetype:'application/pdf',filename:catalog.filename,
+        data:catalog.bytes.toString('base64')}
+    },'application/json',90000);
+    lock.state='SENT';
+    lock.messageId=result && (result.id||result.messageId)||null;
+    lock.sentAt=new Date().toISOString();
+  } catch(e) {
+    // The remote request may have reached WhatsApp. Never resend blindly.
+    lock.state='UNKNOWN';
+    lock.errorAt=new Date().toISOString();
+    console.error('Hommy auto catalog delivery unconfirmed:',
+      e.statusCode||e.code||'WAHA_ERROR');
+  }
+  idempotency[key]=lock;
+  persistIdempotency();
+  return {state:lock.state};
+}
+
 async function handle(req, res) {
   const url = new URL(req.url, 'http://bridge.local');
 
@@ -1088,8 +1151,8 @@ async function handle(req, res) {
     }
     const raw = await readRawBody(req, HOMMY_INBOX_MAX_BODY_BYTES);
     const result = hommyInbox.ingest(raw, req.headers); // HMAC and session verified first.
+    const event = JSON.parse(raw.toString('utf8')); // HMAC authenticated above.
     if (hommyWorkspace.status().team.enabled) {
-      const event = JSON.parse(raw.toString('utf8')); // Already authenticated by Inbox HMAC.
       const payload = event && event.payload || {};
       const team = hommyWorkspace.status().team;
       const author = String(payload.author || payload.participant || payload.key?.participant || '').trim();
@@ -1159,6 +1222,18 @@ async function handle(req, res) {
           }
         }
         return json(res, 202, { ...result, team: { accepted: true, status: group.status } });
+      }
+    }
+    if (result.accepted && hommyDesk.customerCatalogEnabled()) {
+      try {
+        const normalized=normalizeEvent(event,WAHA_SESSION);
+        if(normalized.accepted) {
+          const delivery=await maybeSendCustomerCatalog(normalized.record);
+          if(delivery) return json(res,202,{...result,catalog:{delivery:delivery.state}});
+        }
+      } catch(e) {
+        // Customer inbox remains operational if catalog delivery is unavailable.
+        console.error('Hommy catalog automation unavailable:',e.code||'ERROR');
       }
     }
     return json(res, 202, result);
@@ -1270,6 +1345,14 @@ async function handle(req, res) {
       throw Object.assign(new Error('Content-Type application/pdf required'),{statusCode:415});
     const bytes = await readRawBody(req, 12 * 1024 * 1024);
     return json(res, 201, { ok:true, catalog:hommyDesk.installCatalog(bytes, actor) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/desk/automation') {
+    const actor = await auth.authorize(req, 'config.write');
+    const payload=await readJsonBody(req);
+    if(typeof payload.customerCatalogEnabled!=='boolean')
+      throw Object.assign(new Error('customerCatalogEnabled must be boolean'),{statusCode:400});
+    return json(res,200,{ok:true,automation:
+      hommyDesk.setCustomerCatalogAutomation(payload.customerCatalogEnabled,actor)});
   }
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/desk/notes') {
     const actor = await auth.authorize(req, 'config.write');
