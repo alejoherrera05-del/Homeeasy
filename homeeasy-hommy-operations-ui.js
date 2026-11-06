@@ -305,6 +305,11 @@
           const heading=document.createElement('strong');
           heading.textContent='Cuenta autorizada ···' + String(member.senderId||'').split('@')[0].slice(-4);
           heading.style.fontSize='12px';
+          const recent=document.createElement('small');
+          recent.style.cssText='font-size:11px;color:#8d8388;line-height:1.5;overflow-wrap:anywhere';
+          recent.textContent=member.lastCommand?
+            'Última solicitud a Hommy: “'+member.lastCommand+'”' :
+            'Aún no hay solicitudes registradas de esta cuenta';
           const input=document.createElement('input');
           input.type='text'; input.maxLength=28;
           input.placeholder='Nombre: Ale, Daniela...';
@@ -322,7 +327,7 @@
             ['NONE','Sin vocativos']
           ],member.profile && member.profile.address || 'NAME');
           address.className='heHommyMemberAddress';
-          card.append(heading,input,role,address);
+          card.append(heading,recent,input,role,address);
           container.appendChild(card);
         }
       },
