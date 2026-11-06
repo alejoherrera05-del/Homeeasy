@@ -375,10 +375,10 @@ function createHommyWorkspace(options = {}) {
       memoryReply = 'Lo anoté como propuesta, pero todavía no lo guardaré. Confírmame con “Hommy, guarda esa nota” y lo agregaré a mi bloc interno.';
     } else if(approveMemory) {
       const previous = data.commands.filter(item => item.authorizedSenderId===authorizedSenderId &&
-        item.originGroupId===data.team.groupId && item.noteCandidate &&
-        item.noteSaved!==true && item.replyStatus==='SENT' &&
-        Date.parse(item.at)>=Date.now()-10*60*1000).slice(-1)[0];
-      if(!previous || typeof options.saveDeskNote!=='function') {
+        item.originGroupId===data.team.groupId).slice(-1)[0];
+      const canConfirm = previous && previous.noteCandidate && previous.noteSaved!==true &&
+        previous.replyStatus==='SENT' && Date.parse(previous.at)>=Date.now()-10*60*1000;
+      if(!canConfirm || typeof options.saveDeskNote!=='function') {
         memoryReply = 'No encuentro una nota reciente pendiente de confirmar. Dime “Hommy, recuerda que…” y luego la guardamos.';
       } else {
         try {
