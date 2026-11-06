@@ -58,26 +58,37 @@ function preview(type,tasks,labels,s) {
     if (s.visitDetails) text += ' ' + phrase(s.visitDetails, 'Una necesita', 'necesitan') + ' información de visita.';
     return text + ' No todas requieren respuesta; solo cuento conversaciones analizadas.';
   }
-  if (type === 'SUMMARY') return 'En HomeEasy hay ' + tasksText + '.' +
-    (ok ? ' Hommy conoce ' + phrase(s.clients, 'un cliente analizado', 'clientes analizados') +
-      ' y ' + phrase(s.open, 'una oportunidad abierta', 'oportunidades abiertas') + '.' :
-      ' No pude consultar la memoria comercial.') +
-    ' Todavía no cubre todos los chats ni la agenda.';
-  if (type === 'QUOTES') return ok
-    ? 'Veo ' + phrase(s.quotes, 'una oportunidad con referencia de cotización', 'oportunidades con referencia de cotización') +
-      ' y ' + phrase(s.quoteDetails, 'una que necesita', 'que necesitan') +
-      ' datos para cotizar. No puedo confirmar envíos ni valores desde aquí.'
-    : 'No pude consultar la memoria de cotizaciones.';
-  if (type === 'VISITS') return ok
-    ? 'Veo ' + phrase(s.visitDetails, 'una oportunidad que necesita', 'oportunidades que necesitan') +
-      ' información de visita. Todavía no tengo una agenda confirmada.'
-    : 'No pude consultar la memoria y todavía no tengo la agenda de visitas confirmadas.';
-  if (type === 'FOLLOWUP') return 'Hay ' + phrase(f, 'un cliente con etiqueta Seguimiento', 'clientes con etiqueta Seguimiento') +
-    ' y ' + tasksText + '. No incluye todos los chats sin responder.';
+  if (type === 'SUMMARY') return 'Te cuento: en el tablero tengo ' + tasksText + '.' +
+    (ok ? ' En las conversaciones que he analizado aparecen ' +
+      phrase(s.clients, 'un cliente', 'clientes') + ' y ' +
+      phrase(s.open, 'una oportunidad abierta', 'oportunidades abiertas') + '.' :
+      ' Ahora mismo no pude consultar la memoria comercial.') +
+    ' Es un resumen parcial; no incluye todos los chats ni la agenda.';
+  if (type === 'QUOTES') {
+    if (!ok) return 'Ahora mismo no pude consultar la memoria de cotizaciones.';
+    const referenced = s.quotes
+      ? 'Tengo ' + phrase(s.quotes, 'una oportunidad con referencia de cotización', 'oportunidades con referencia de cotización')
+      : 'No veo referencias de cotización entre las conversaciones analizadas';
+    const needing = s.quoteDetails
+      ? 'También veo ' + phrase(s.quoteDetails, 'una que necesita', 'que necesitan') + ' datos para cotizar.'
+      : 'No veo oportunidades marcadas como pendientes de datos para cotizar.';
+    return referenced + '. ' + needing + ' No puedo confirmar envíos ni valores desde aquí.';
+  }
+  if (type === 'VISITS') {
+    if (!ok) return 'Ahora mismo no pude consultar la memoria comercial y todavía no tengo una agenda confirmada.';
+    const detail = s.visitDetails
+      ? 'En lo que he revisado hay ' + phrase(s.visitDetails, 'una oportunidad que necesita', 'oportunidades que necesitan') + ' información para la visita.'
+      : 'En las conversaciones analizadas no veo visitas marcadas como pendientes de datos.';
+    return detail + ' Eso no significa que no haya citas: todavía no tengo una agenda confirmada.';
+  }
+  if (type === 'FOLLOWUP') return (f
+    ? 'Tengo ' + phrase(f, 'un cliente con etiqueta Seguimiento', 'clientes con etiqueta Seguimiento') + '.'
+    : 'Por ahora no tengo clientes marcados con la etiqueta Seguimiento.') +
+    ' En tareas manuales hay ' + tasksText + '. No incluye todos los chats sin responder.';
   if (type === 'CLIENTS') return ok
-    ? 'Hommy conoce ' + phrase(s.clients, 'un cliente analizado', 'clientes analizados') +
-      '; no son todos los contactos de WhatsApp.'
-    : 'No pude consultar la memoria de clientes.';
+    ? 'En las conversaciones analizadas tengo registrados ' + phrase(s.clients, 'un cliente', 'clientes') +
+      '. No es el total de contactos de WhatsApp.'
+    : 'Por ahora no pude consultar la memoria de clientes.';
   return null;
 }
 
