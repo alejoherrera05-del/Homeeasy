@@ -239,9 +239,8 @@ function applyReceptionReview(result, record, context = {}) {
     return result;
 
   const catalog = /\b(?:catalogo|catalogos|catalogue)\b/.test(input) &&
-    /\b(?:enviar|envias|enviarme|compart|pasar|pasas|mand|muestras|ver|mostrar|quiero|quisiera|tienes|tienen|puedo)\b/.test(input);
-  const location = /\b(?:ubicacion|direccion|donde estan|donde quedan|como llego|como llegar)\b/.test(input) &&
-    /\b(?:ubicacion|direccion|donde estan|donde quedan|como llego|como llegar)\b/.test(input);
+    /\b(?:envia\w*|enviar\w*|compart\w*|pas\w*|mand\w*|muestr\w*|ver|mostrar\w*|quiero|quisiera|tien\w*|pued\w*|necesito|regalas)\b/.test(input);
+  const location = /\b(?:ubicacion|direccion|donde estan|donde quedan|como llego|como llegar)\b/.test(input);
   const hours = /\b(?:horario|horarios|a que hora abren|a que hora cierran)\b/.test(input);
   const human = /\b(?:hablar con (?:un|una|algun|alguna) (?:asesor|persona)|atencion humana|me atienda una persona|comunicarme con (?:un|una) asesor)\b/.test(input);
   const requests = [catalog, location, hours, human].filter(Boolean).length;
@@ -818,4 +817,4 @@ function createIntelligence(options) {
 }
 
 module.exports = Object.freeze({ createIntelligence, validateResult, applyGuardrails, resolveAssociation,
-  RESPONSE_STYLE, commercialLeadContext, applyLeadReview, isGenericLeadQuestion });
+  RESPONSE_STYLE, commercialLeadContext, applyLeadReview, applyReceptionReview, isGenericLeadQuestion });
