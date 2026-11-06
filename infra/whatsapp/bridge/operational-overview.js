@@ -84,7 +84,7 @@ function parseClientQuery(value) {
   const q = normalize(value).replace(/^(?:oye|hola|hey|ey|porfa|por favor)[, ]+/, '');
   if (!q || q.length > 180) return null;
   // A mixed query is always a REVIEW action. A product word does not authorize sending.
-  const actionWords = /\b(?:manda\w*|mandale\w*|envia\w*|escribe\w*|avisale\w*|avisa\w*|responde\w*|etiqueta\w*|marca\w*|borra\w*|elimina\w*|contacta\w*|confirma\w*|llama\w*|agenda\w*|reserva\w*|programa\w*|crea\w*|cotiza\w*)\b/;
+  const actionWords = /\b(?:manda\w*|mandale\w*|dile\w*|diles\w*|dame\w*|pasame\w*|envia\w*|escribe\w*|avisale\w*|avisa\w*|responde\w*|etiqueta\w*|marca\w*|borra\w*|elimina\w*|contacta\w*|confirma\w*|llama\w*|agenda\w*|reserva\w*|programa\w*|crea\w*|cotiza\w*)\b/;
   if (actionWords.test(q)) return null;
   const productAliases = [
     { canonical: 'Onda Serena', match: /\bonda serena\b/ },

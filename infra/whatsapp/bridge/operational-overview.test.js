@@ -73,6 +73,8 @@ test('natural WhatsApp phrasing selects the curtain, never a fictional client', 
     'cómo va lo de la onda serena y avísale al cliente',
     'Onda Serena, envíale un precio por WhatsApp',
     'cliente Laura y avísale',
+    'qué sabemos de la Onda Serena y dile a Laura que la visita es mañana',
+    'como va lo de Onda Serena y pásame el teléfono',
     'me pasas el teléfono de Laura',
     'marca la visita y agenda para el lunes',
     'dile a Laura que va el técnico'
