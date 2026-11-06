@@ -53,12 +53,14 @@ function requiresCustomerAction(value) {
 }
 
 // A team member can ask for their OWN approved catalog in ordinary language.
+// Accept common polite endings like "por fa" without relaxing the approved
+// group or customer-recipient safety checks.
 // Any named client/destination or mixed instruction stays in human review.
 function ownCatalogRequest(value) {
   const q=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .toLowerCase().replace(/[¿?¡!.,;:]+/g,' ').replace(/\s+/g,' ').trim();
   if(q.length>150)return false;
-  return /^(?:(?:oye|hola|por favor)\s+)?(?:enviame|mandame|pasame|comparteme|dame|me envias|me mandas|me pasas|me compartes|me puedes enviar|puedes enviarme|me podrias enviar|quisiera|necesito|quiero)\s+(?:por favor\s+)?(?:(?:el|un|nuestro)\s+)?catalogo(?:\s+(?:oficial|de\s+homeeasy|de\s+persianas(?:\s+y\s+cortinas)?))?(?:\s+por favor)?$/.test(q);
+  return /^(?:(?:oye|hola|por favor)\s+)?(?:enviame|mandame|pasame|comparteme|dame|me envias|me mandas|me pasas|me compartes|me puedes enviar|puedes enviarme|me podrias enviar|quisiera|necesito|quiero)\s+(?:por favor\s+)?(?:(?:el|un|nuestro)\s+)?catalogo(?:\s+(?:oficial|de\s+homeeasy|de\s+persianas(?:\s+y\s+cortinas)?))?(?:\s+(?:por favor|por fa|porfis|porfi))?$/.test(q);
 }
 
 // Staff can teach a fact to Hommy in two explicit turns. Proposals are not
