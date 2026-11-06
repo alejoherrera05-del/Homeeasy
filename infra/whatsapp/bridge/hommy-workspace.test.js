@@ -367,6 +367,99 @@ test('group response sender has fixed group destination and durable duplicate lo
   assert.match(js, /Activar respuestas internas/);
 });
 
+test('conversational mode requires a configured service and two independent opt-ins',t=>{
+ const v=setup();t.after(v.cleanup);
+ assert.equal(v.workspace.status().team.aiAvailable,false);
+ assert.equal(v.workspace.status().team.aiEnabled,false);
+ v.workspace.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true}});
+ assert.throws(()=>v.workspace.configure({team:{aiEnabled:true}}),/active group/);
+ const yes={...v.options,teamAiAvailable:true};
+ const ai=createHommyWorkspace(yes);
+ assert.equal(ai.status().team.aiAvailable,true);
+ assert.equal(ai.status().team.aiEnabled,false);
+ ai.configure({team:{aiEnabled:true}});
+ assert.equal(ai.status().team.aiEnabled,true);
+ ai.configure({team:{replyEnabled:false}});
+ assert.equal(ai.status().team.aiEnabled,false);
+ assert.equal(ai.status().team.replyEnabled,false);
+ ai.configure({team:{replyEnabled:true,aiEnabled:true}});
+ ai.configure({mode:'PAUSED'});
+ assert.equal(ai.status().team.aiEnabled,false);
+ assert.equal(ai.status().team.replyEnabled,false);
+ ai.configure({mode:'REVIEW'});
+ assert.equal(ai.status().team.aiEnabled,false);
+});
+
+test('AI group reply remains pending until verified answer and deduplicates all sends',t=>{
+ const v=setup();t.after(v.cleanup);
+ const options={...v.options,teamAiAvailable:true};
+ const w=createHommyWorkspace(options);
+ w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+ const event=groupEvent({id:'natural-ai',body:'Oye Hommy, cómo va lo de la Onda Serena?'});
+ const received=w.ingestSignedGroupEvent(event,null,{aiEnabled:true});
+ assert.equal(received.status,'AI_PENDING');
+ assert.equal(w.reserveTeamReply(received.id),null);
+ assert.equal(w.ingestSignedGroupEvent(event,null,{aiEnabled:true}).reason,'DUPLICATE');
+ const input=w.teamAIRequest(received.id);
+ assert.match(input.question,/Onda Serena/);
+ assert.equal(input.history.length,0);
+ const result=w.completeTeamAI(received.id,{kind:'ANSWER',text:'Sobre Onda Serena tengo una oportunidad. Aún nos faltan datos para cotizar.'});
+ assert.equal(result.ready,true);
+ assert.equal(w.completeTeamAI(received.id,{kind:'ANSWER',text:'Otra respuesta'}).ready,false);
+ const reserved=w.reserveTeamReply(received.id);
+ assert.equal(reserved.groupId,GROUP);
+ assert.match(reserved.text,/faltan datos/);
+ assert.equal(w.reserveTeamReply(received.id),null);
+ const restarted=createHommyWorkspace(options);
+ assert.equal(restarted.reserveTeamReply(received.id),null);
+ restarted.finishTeamReply(received.id,true);
+ assert.equal(restarted.dashboard().teamCommands[0].replyStatus,'SENT');
+});
+
+test('AI outage, group change, member revocation and unsafe actions never trigger customer or group sends',t=>{
+ const v=setup();t.after(v.cleanup);
+ const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+ w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+ const first=w.ingestSignedGroupEvent(groupEvent({id:'unavailable',body:'Hommy, y la visita?'}),null,{aiEnabled:true});
+ assert.equal(w.completeTeamAI(first.id,{kind:'UNAVAILABLE'}).status,'AI_UNAVAILABLE');
+ assert.equal(w.reserveTeamReply(first.id),null);
+ const second=w.ingestSignedGroupEvent(groupEvent({id:'requires-human',body:'Hommy, envíale un precio a Laura'}),null,{aiEnabled:true});
+ assert.equal(w.completeTeamAI(second.id,{kind:'REVIEW_REQUIRED'}).status,'REVIEW_REQUIRED');
+ assert.equal(w.reserveTeamReply(second.id),null);
+ const pending=w.ingestSignedGroupEvent(groupEvent({id:'group-changed',body:'Hommy, qué sabemos?'}),null,{aiEnabled:true});
+ w.configure({team:{groupId:'120363987654321012@g.us',allowedSenders:[STAFF],enabled:true}});
+ w.completeTeamAI(pending.id,{kind:'ANSWER',text:'Esta respuesta no debe ir al nuevo grupo.'});
+ assert.equal(w.reserveTeamReply(pending.id),null);
+ const revoked=w.ingestSignedGroupEvent(groupEvent({
+  id:'revoked',group:'120363987654321012@g.us',body:'Hommy, novedades?'
+ }),null,{aiEnabled:true});
+ w.configure({team:{allowedSenders:['573008888888@c.us']}});
+ w.completeTeamAI(revoked.id,{kind:'ANSWER',text:'Tampoco podemos responder a alguien revocado.'});
+ assert.equal(w.reserveTeamReply(revoked.id),null);
+ w.configure({team:{aiEnabled:false}});
+ const old=w.ingestSignedGroupEvent(groupEvent({
+  id:'static-fallback',group:'120363987654321012@g.us',author:'573008888888@c.us'
+ }));
+ assert.equal(old.status,'INFORMATION');
+});
+
+test('group AI is only invoked after signed webhook and its output stays pinned to the team group',()=>{
+ const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
+ const segment=server.slice(server.indexOf("url.pathname === '/api/whatsapp/webhook'"),
+   server.indexOf("url.pathname === '/api/whatsapp/inbox'"));
+ assert.match(segment,/hommyInbox\.ingest\(raw, req\.headers\)/);
+ assert.match(segment,/hommyWorkspace\.ingestSignedGroupEvent\(event, mapping, \{ aiEnabled: teamAI\.available \}\)/);
+ assert.match(segment,/teamAI\.interpret\(request\)/);
+ assert.ok(segment.indexOf('hommyInbox.ingest(raw, req.headers)') < segment.indexOf('teamAI.interpret(request)'));
+ assert.match(segment,/hommyWorkspace\.reserveTeamReply\(group\.id\)/);
+ assert.match(segment,/chatId: reserved\.groupId/);
+ assert.doesNotMatch(segment,/chatId: req\.body|phone: reserved|customer.*sendText/);
+ const ui=fs.readFileSync(path.join(__dirname,'..','..','..','homeeasy-hommy-operations-ui.js'),'utf8');
+ assert.match(ui,/teamState\.aiAvailable/);
+ assert.match(ui,/team:\{ aiEnabled: enabled \}/);
+ assert.match(ui,/Activar conversación natural/);
+});
+
 test('damaged optional workspace fails closed without blocking Bridge startup or overwriting the file', t => {
   const v = setup(); t.after(v.cleanup);
   const file = path.join(v.options.dataDir, 'hommy-workspace', 'state.json');

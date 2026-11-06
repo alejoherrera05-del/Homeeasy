@@ -1,3 +1,46 @@
+## Fase 3G · Contrato del motor conversacional (preparado, NO activar)
+
+Esta fase introduce el módulo opcional `team-ai.js` para que las preguntas libres
+del grupo puedan interpretarse mediante el **motor de IA de Hommy**, sin crear
+una nueva cuenta de WhatsApp ni recurrir a respuestas por expresiones regulares.
+
+**Importante:** el backend de Render debe implementar y probar primero
+`POST /api/hommy/team/interpret`; ese endpoint no está verificado ni se presume
+existente. La autenticación es de servicio a servicio con el encabezado
+`Authorization: Bearer <HOMMY_TEAM_AI_SERVICE_TOKEN>`. La credencial es distinta
+del token de HomeEasy, de WAHA y del token del Bridge. No se reutiliza ni
+almacena una sesión humana de HomeEasy. El endpoint debe verificar la credencial
+mediante comparación en tiempo constante y devolver únicamente
+`{"kind":"ANSWER","text":"<respuesta en español>"}` o
+`{"kind":"REVIEW_REQUIRED"}`, sin acceso a herramientas de escritura.
+
+La solicitud incluye `purpose: HOME_EASY_TEAM_READ_ONLY`, la pregunta del miembro
+autorizado, hasta tres intercambios del grupo y un resumen de datos comerciales
+**sin nombres de clientes, teléfonos, texto de clientes, números de cotización
+ni IDs internos**. Los datos incompletos o no disponibles se informan como
+desconocidos; nunca se convierten en cero confirmado.
+
+Requisitos para activar, todos simultáneos:
+
+- Backend Render verificado, HTTPS y URL exacta dentro del origen permitido
+  `HOMMY_BACKEND_URL`, sin redirecciones ni URL arbitraria.
+- Variables **solo en secretos del VPS**, jamás en GitHub:
+  `HOMMY_TEAM_AI_ENABLED=true`,
+  `HOMMY_TEAM_AI_URL=https://.../api/hommy/team/interpret`,
+  `HOMMY_TEAM_AI_SERVICE_TOKEN=<clave larga de servicio>`.
+- Grupo autorizado, modo `REVIEW`, respuestas internas activadas y aprobación
+  independiente del propietario en Integraciones → **Activar conversación natural**.
+- El adaptador espera hasta 6,5 s; si hay error, no inventa respuestas ni reintenta.
+  Los duplicados quedan bloqueados de forma persistente antes del envío.
+- Los comandos que implican escribir a clientes, programar citas, cambiar precios
+  o modificar datos deben devolver `REVIEW_REQUIRED`, sin ejecutar acciones.
+- La habilitación de IA del grupo **no habilita la atención automática de clientes**.
+
+La red privada de Render no alcanza directamente a Hetzner. Para este despliegue
+se requiere comunicación pública HTTPS con autenticación propia y límites de tasa
+en Render; no basta un hostname interno privado. La instalación de esta rama
+no activa nada hasta que las condiciones anteriores se verifiquen.
+
 # HomeEasy WhatsApp · Fase 1
 
 Esta carpeta contiene la infraestructura aislada para probar **WAHA + WEBJS** antes de tocar los módulos de producción de HomeEasy.
