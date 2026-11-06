@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import threading
 import time
@@ -17,6 +18,7 @@ from hommy_backend.engine import HommyEngine, HommyEngineError
 from hommy_backend.followup import FollowupError, FollowupPlanner, require_followup_permission
 from hommy_backend.realtime import RealtimeError, create_call
 from hommy_backend.tools import ToolPermissionError, execute_tool
+from hommy_backend.team import TeamServiceError, require_service_token, interpret_team
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
@@ -255,6 +257,41 @@ def hommy_chat():
         rounds=int(metrics.get("rounds") or 0),
     )
     return jsonify({"ok": True, **result})
+
+
+
+@app.post("/api/hommy/team/interpret", provide_automatic_options=False)
+def hommy_team_interpret():
+    """Bridge-only read-only interpretation. No browser session, CRM tools or messages."""
+    started = time.perf_counter()
+    if os.getenv("HOMMY_TEAM_SERVICE_ENABLED", "false").strip().lower() != "true":
+        return json_error("Servicio del equipo no habilitado.", "TEAM_SERVICE_DISABLED", 503)
+    try:
+        require_service_token(request.headers.get("Authorization", ""))
+    except TeamServiceError as error:
+        return json_error("Acceso no autorizado." if error.status == 401 else "Servicio no configurado.",
+                          error.code, error.status)
+
+    rate_limiter.check("team-service:authenticated", limit=24)
+    if not request.is_json:
+        return json_error("Se requiere JSON.", "TEAM_JSON_REQUIRED", 415)
+    if request.content_length is None or request.content_length > 12 * 1024:
+        return json_error("Solicitud demasiado grande.", "TEAM_REQUEST_TOO_LARGE", 413)
+    body = request.get_data(cache=False)
+    if len(body) > 12 * 1024:
+        return json_error("Solicitud demasiado grande.", "TEAM_REQUEST_TOO_LARGE", 413)
+    try:
+        payload = json.loads(body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return json_error("Solicitud JSON inválida.", "TEAM_INVALID_JSON", 400)
+
+    try:
+        result = interpret_team(payload)
+    except TeamServiceError as error:
+        return json_error("No fue posible completar esta consulta.", error.code, error.status)
+    log_timing("team_interpret", total_ms=(time.perf_counter() - started) * 1000)
+    # Contract with the Bridge: do not put "ok" or UI metadata in this payload.
+    return jsonify(result)
 
 
 @app.post("/api/hommy/bootstrap", provide_automatic_options=False)
