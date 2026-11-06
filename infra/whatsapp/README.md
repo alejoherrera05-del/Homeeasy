@@ -73,6 +73,25 @@ Cuando WAHA muestre el QR:
 
 Salir de los logs con `Ctrl+C` no detiene WAHA.
 
+## Fase 3F · Búsqueda puntual y segura de oportunidades (Bridge 0.26.0)
+
+Un integrante autorizado puede preguntar por un cliente con nombre **exacto**
+(por ejemplo `Hommy, qué sabemos de Laura?`) o por el nombre de un producto
+comercial reconocido (por ejemplo `Hommy, cómo va lo de Onda Serena?`).
+Hommy consulta exclusivamente la memoria V2 previamente analizada y no
+examina chats nuevos ni obtiene información externa.
+
+La búsqueda es de solo lectura, con límite de 8 MiB y caché por archivo.
+Nunca incluye teléfonos, documentos de identidad ni textos de mensajes en
+la respuesta. Si hay más de un cliente u oportunidad compatible, pide otra
+referencia en vez de elegir arbitrariamente. Cuando no hay coincidencia,
+indica la cobertura parcial de su memoria.
+
+Las preguntas mezcladas con acciones como «envía precio» o «confirma visita»
+**no generan respuestas automáticas**: permanecen en revisión. Ninguna
+herramienta de esta fase envía mensajes a clientes o confirma citas.
+Las protecciones del grupo y el estado de supervisión siguen intactos.
+
 ## Fase 3E · Consultas operativas verificables en el grupo (Bridge 0.25.0)
 
 El grupo privado de Hommy responde a consultas informativas de solo lectura:
