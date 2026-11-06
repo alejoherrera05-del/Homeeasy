@@ -235,7 +235,7 @@ function applyReceptionReview(result, record, context = {}) {
       reason: 'Saludo recibido. Se propone una respuesta breve y transparente.' };
   }
   // Do not override mixed requests: these need the full commercial interpreter.
-  if (/\b(?:precio|cuesta|valor|descuento|cotiz|visita|cita|medidas|instal|reclamo|queja|garantia|devolucion|cancel|no me contacten|no me escriban)\b/.test(input))
+  if (/\b(?:precio|cuesta|valor|descuento\w*|cotiz\w*|visita\w*|cita\w*|medidas|instal\w*|reclamo\w*|queja\w*|garantia|devolucion\w*|cancel\w*|no me contacten|no me escriban)\b/.test(input))
     return result;
 
   const catalog = /\b(?:catalogo|catalogos|catalogue)\b/.test(input) &&
