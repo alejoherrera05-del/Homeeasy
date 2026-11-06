@@ -597,6 +597,31 @@ test('hybrid product lookup uses verified memory and does not contact the AI or 
   const unsafe=w.ingestSignedGroupEvent(groupEvent({
     id:'mixed-product-action',body:'Hommy, envía el precio de Onda Serena al cliente'
   }),null,{aiEnabled:true});
-  assert.equal(unsafe.status,'AI_PENDING');
+  assert.equal(unsafe.status,'REVIEW_REQUIRED');
+  assert.equal(w.teamAIRequest(unsafe.id),null);
   assert.equal(w.reserveTeamReply(unsafe.id),null);
+});
+
+
+test('customer-action requests are rejected before expensive AI, even with natural wording',t=>{
+  const v=setup();t.after(v.cleanup);
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const actions=[
+    'Hommy, dile a Camilo que voy para Novaterra',
+    'Hommy, puedes enviarle el catálogo a Laura?',
+    'Hommy, cómo van las visitas y confirma la de mañana',
+    'Hommy, avísale que llego tarde',
+    'Hommy, responde al cliente que ya voy en camino'
+  ];
+  actions.forEach((body,i)=>{
+    const received=w.ingestSignedGroupEvent(groupEvent({id:'action-gate-'+i,body}),null,{aiEnabled:true});
+    assert.equal(received.status,'REVIEW_REQUIRED',body);
+    assert.equal(w.teamAIRequest(received.id),null,body);
+    assert.equal(w.reserveTeamReply(received.id),null,body);
+  });
+  const advisory=w.ingestSignedGroupEvent(groupEvent({
+    id:'advisory-safe',body:'Hommy, qué le digo a un cliente interesado en cortinas?'
+  }),null,{aiEnabled:true});
+  assert.equal(advisory.status,'AI_PENDING');
 });
