@@ -550,7 +550,7 @@ test('reconciles legacy duplicate analyses without deleting original audit recor
 });
 
 test('rejects malformed AI output and records an auditable error', async t => {
-  const env = setup([record('m13', 'Hola')], { analyze: async () => ({ result: 'no-json' }) });
+  const env = setup([record('m13', 'Necesito una propuesta para mis ventanas')], { analyze: async () => ({ result: 'no-json' }) });
   t.after(env.cleanup);
   const output = await env.intelligence.process({}, {});
   assert.equal(output.processed, 0);
@@ -785,4 +785,42 @@ test('response style respects opening punctuation and avoids greeting twice', as
   assert.doesNotMatch(first,/Hola.*Hola/);
   assert.doesNotMatch(second,/^¡?Hola/);
   assert.match(second,/Con gusto revisamos/);
+});
+
+
+test('first-contact fast path prepares a verified REVIEW draft without invoking model', async t => {
+  const records=[
+    record('quick-1','Hola',{at:'2026-11-05T12:00:00.000Z',chatId:'573001111111@c.us',phone:'573001111111'}),
+    record('quick-2','Me compartes el catálogo?',{at:'2026-11-05T12:00:01.000Z',chatId:'573002222222@c.us',phone:'573002222222'}),
+    record('quick-3','Dónde están ubicados?',{at:'2026-11-05T12:00:02.000Z',chatId:'573003333333@c.us',phone:'573003333333'}),
+    record('quick-4','Qué tipo de tela me recomiendas para la sala?',{at:'2026-11-05T12:00:03.000Z',chatId:'573004444444@c.us',phone:'573004444444'})
+  ];
+  let modelCalls=0;
+  const env=setup(records,{analyze:async()=>{modelCalls++;return {result:result()};}});
+  t.after(env.cleanup);
+  const outcome=await env.intelligence.process({}, {limit:4});
+  assert.equal(outcome.processed,4);
+  assert.equal(modelCalls,1);
+  const byId=Object.fromEntries(env.intelligence.list({limit:10}).items.map(a=>[a.sourceMessageId,a]));
+  for(const id of ['quick-1','quick-2','quick-3']) {
+    assert.equal(byId[id].result.receptionRoute,'LOCAL');
+    assert.equal(byId[id].audit.mode,'REVIEW');
+    assert.equal(byId[id].audit.sent,false);
+  }
+  assert.equal(byId['quick-2'].result.requiredAsset,'CATALOG');
+  assert.equal(byId['quick-3'].result.requiredAsset,'LOCATION');
+  assert.equal(byId['quick-4'].result.receptionRoute,undefined);
+});
+
+test('local reception does not bypass human takeover or misinterpret combined requests', async t => {
+  const { fastReceptionResult }=require('./intelligence');
+  const humanGreeting=fastReceptionResult(record('human-1','Hola'),{isNewConversation:true,humanTakeover:true});
+  assert.equal(humanGreeting,null);
+  assert.equal(fastReceptionResult(record('combo-1','Me mandas el catálogo y una cotización?'),
+    {isNewConversation:true}),null);
+  assert.equal(fastReceptionResult(record('optout-1','No me contacten, necesito el catálogo'),
+    {isNewConversation:true}),null);
+  const greeting=fastReceptionResult(record('hello-1','Hola'),{isNewConversation:true});
+  assert.equal(greeting.receptionRoute,'LOCAL');
+  assert.equal(greeting.nextAction,'PREPARE_RESPONSE');
 });
