@@ -78,6 +78,7 @@ function createHommyWorkspace(options = {}) {
   const session = clean(options.session || 'homeeasy', 120);
   const limit = 250;
   const readOverview = operational.createOverview(options.dataDir || '/app/data');
+  const lookupClient = operational.createClientLookup(options.dataDir || '/app/data');
 
   function persist(action, actor) {
     if (corrupted) throw err('Hommy workspace requires recovery; other Bridge services remain available', 'HOMMY_WORKSPACE_UNAVAILABLE', 503);
@@ -223,9 +224,11 @@ function createHommyWorkspace(options = {}) {
     if (!/^hommy\b[,\s:!?-]*/i.test(body)) return { accepted: false, reason: 'NOT_MENTIONED' };
     const command = body.replace(/^hommy\b[,\s:!?-]*/i, '').trim();
     const queryType = operational.classify(command);
-    const status = queryType ? 'INFORMATION' : 'REVIEW_REQUIRED';
+    const clientDetail = queryType ? null : lookupClient(command);
+    const status = queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
     const preview = queryType
       ? operational.preview(queryType, data.tasks, data.labels, readOverview())
+      : clientDetail !== null ? clientDetail
       : 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
     data.commands.push({ id, at: new Date().toISOString(), author, command: command.slice(0, 500), preview, status });
     data.commands = data.commands.slice(-limit);

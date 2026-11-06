@@ -73,4 +73,100 @@ function preview(type,tasks,labels,s) {
     : 'No pude consultar la memoria de clientes.';
   return null;
 }
-module.exports = Object.freeze({ classify, summarize, createOverview, preview });
+
+const KNOWN_PRODUCTS = Object.freeze([
+  'Onda Serena', 'Sheer Elegance', 'Sheer Vertesse', 'Panel Japonés', 'Blackout'
+]);
+
+// Only narrow, explicitly informational searches. Mixed instructions are never
+// promoted to INFORMATION, regardless of the product or client mentioned.
+function parseClientQuery(value) {
+  const q = normalize(value);
+  const match = /^(?:cliente (?:de |que busca |interesado en )?|que sabemos de (?:el cliente de |la cortina |la persiana )?|que paso con (?:el cliente de )?|como va lo de |estado de )(.*?)$/.exec(q);
+  if (!match) return null;
+  let target = match[1].replace(/^(?:la |el |las |los )?(?:cortina|persiana|panel)(?:s|es)? (?:de )?/, '').trim();
+  if (target.length < 3 || target.length > 80 ||
+      /\b(?:manda|envi[aá]|escribe|avisa|responde|etiqueta|borra|elimina|contacta|confirma|llama|agenda|descuento|precio)\b/.test(target)) return null;
+  const product = KNOWN_PRODUCTS.find(p => normalize(p) === target);
+  return { kind: product ? 'PRODUCT' : 'NAME', target, product: product || null };
+}
+
+function clientReport(state, request) {
+  if (!state || state.version !== 2 || !state.clients || !state.opportunities ||
+      Array.isArray(state.clients) || Array.isArray(state.opportunities)) {
+    return 'No pude consultar la memoria comercial. No voy a adivinar datos de clientes.';
+  }
+  const clients = Object.values(state.clients).filter(c => c && c.id);
+  const opportunities = Object.values(state.opportunities).filter(o => o && o.clientId);
+  let matches;
+  if (request.kind === 'PRODUCT') {
+    matches = opportunities.filter(o => normalize(o.product) === normalize(request.product));
+    if (matches.length > 1) return 'Encontré ' + matches.length +
+      ' oportunidades relacionadas con ' + request.product +
+      '. Necesito un cliente o espacio específico para distinguirlas; no voy a mezclar las conversaciones.';
+    if (!matches.length) return 'No encuentro una oportunidad de ' + request.product +
+      ' en la memoria que Hommy ya analizó. No he revisado todos los chats de WhatsApp.';
+  } else {
+    const candidateClients = clients.filter(c => normalize(c.name) === request.target);
+    if (candidateClients.length > 1) return 'Encuentro más de un cliente con ese nombre en la memoria. ' +
+      'Necesito otra referencia para saber de cuál hablamos.';
+    if (!candidateClients.length) return 'No encuentro ese nombre exacto en los clientes analizados. ' +
+      'Si me dices qué cortina o persiana busca, puedo consultar por producto.';
+    const id = candidateClients[0].id;
+    matches = opportunities.filter(o => o.clientId === id);
+    if (matches.length > 1) return 'Encontré ' + matches.length +
+      ' oportunidades para ese cliente. Dime qué producto buscas y así evitamos mezclar pedidos.';
+    if (!matches.length) return 'Encuentro al cliente en la memoria, pero todavía no hay una oportunidad comercial analizada para mostrar.';
+  }
+  const opportunity = matches[0];
+  const client = clients.find(c => c.id === opportunity.clientId);
+  const product = String(opportunity.product || 'un producto aún sin definir').slice(0, 75);
+  const environment = Array.isArray(opportunity.environments) ?
+    opportunity.environments.find(x => typeof x === 'string' && x.length < 80) : null;
+  const next = {
+    REQUEST_QUOTE_DETAILS: 'Faltan datos para preparar una cotización.',
+    COLLECT_VISIT_DETAILS: 'Falta completar información de la visita; no está confirmada.',
+    HUMAN_REVIEW: 'Requiere revisión del equipo.',
+    WAIT: 'El último análisis indicó esperar.',
+    PREPARE_RESPONSE: 'Hay una respuesta propuesta para revisar.',
+    STOP_CONTACT: 'No debemos contactar a esa persona.'
+  }[opportunity.nextAction] || 'No hay un próximo paso verificado.';
+  const verifiedName = request.kind === 'NAME' ? null :
+    client && client.provisional === false && !((client.identityConflicts || []).length) &&
+      typeof client.name === 'string' ? client.name.slice(0, 65) : null;
+  let response = 'Según la última conversación analizada, ' +
+    (verifiedName ? verifiedName + ' tiene ' : 'hay ') +
+    (opportunity.status === 'OPEN' ? 'una oportunidad abierta' : 'una oportunidad registrada') +
+    ' relacionada con ' + product + '.';
+  if (environment) response += ' Espacio: ' + environment.slice(0, 75) + '.';
+  response += ' ' + next;
+  if (Array.isArray(opportunity.quoteNumbers) && opportunity.quoteNumbers.length)
+    response += ' Tiene referencia de cotización, pero no puedo confirmar que se haya enviado.';
+  return response.slice(0, 750);
+}
+
+function createClientLookup(root) {
+  const file = path.join(path.resolve(String(root)), 'hommy-intelligence', 'state-v2.json');
+  let key = '', cache = null;
+  return function lookup(text) {
+    const request = parseClientQuery(text);
+    if (!request) return null;
+    try {
+      const st = fs.statSync(file);
+      if (!st.isFile() || st.size > 8 * 1024 * 1024)
+        return 'No pude consultar la memoria comercial. No voy a adivinar datos de clientes.';
+      const next = [st.ino, st.mtimeMs, st.size].join(':');
+      if (!cache || key !== next) {
+        cache = JSON.parse(fs.readFileSync(file, 'utf8'));
+        key = next;
+      }
+      return clientReport(cache, request);
+    } catch (_) {
+      cache = null;
+      key = '';
+      return 'No pude consultar la memoria comercial. No voy a adivinar datos de clientes.';
+    }
+  };
+}
+
+module.exports = Object.freeze({ classify, summarize, createOverview, preview, parseClientQuery, clientReport, createClientLookup });
