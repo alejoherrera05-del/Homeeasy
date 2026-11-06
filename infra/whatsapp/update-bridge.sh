@@ -32,6 +32,7 @@ BRIDGE_FILES=(
   hommy-workspace.js
   operational-overview.js
   team-ai.js
+  hommy-desk.js
   maintenance.js
   Dockerfile
   package.json
@@ -214,6 +215,9 @@ fi
 if [[ -d "$INSTALL_DIR/data/bridge/hommy-workspace" ]]; then
   tar -czf "$BACKUP_DIR/hommy-workspace.tar.gz" -C "$INSTALL_DIR/data/bridge" hommy-workspace
 fi
+if [[ -d "$INSTALL_DIR/data/bridge/hommy-desk" ]]; then
+  tar -czf "$BACKUP_DIR/hommy-desk.tar.gz" -C "$INSTALL_DIR/data/bridge" hommy-desk
+fi
 find "$INSTALL_DIR/data/bridge" -maxdepth 2 -type f -printf '%P\t%s bytes\n' \
   >"$BACKUP_DIR/data-bridge-manifest.txt"
 printf '%s\n' "$SOURCE_REF" >"$BACKUP_DIR/source-ref.txt"
@@ -258,10 +262,10 @@ for file in "${BRIDGE_FILES[@]}"; do
 done
 
 echo "Preparando almacenamiento privado del inbox..."
-mkdir -p "$INSTALL_DIR/data/bridge/hommy-inbox"
-chown 1000:1000 "$INSTALL_DIR/data/bridge" "$INSTALL_DIR/data/bridge/hommy-inbox"
+mkdir -p "$INSTALL_DIR/data/bridge/hommy-inbox" "$INSTALL_DIR/data/bridge/hommy-desk"
+chown 1000:1000 "$INSTALL_DIR/data/bridge" "$INSTALL_DIR/data/bridge/hommy-inbox" "$INSTALL_DIR/data/bridge/hommy-desk"
 chmod 750 "$INSTALL_DIR/data/bridge"
-chmod 700 "$INSTALL_DIR/data/bridge/hommy-inbox"
+chmod 700 "$INSTALL_DIR/data/bridge/hommy-inbox" "$INSTALL_DIR/data/bridge/hommy-desk"
 
 echo "Construyendo únicamente homeeasy-whatsapp-bridge:local..."
 docker compose build bridge
