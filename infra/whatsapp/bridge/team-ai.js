@@ -121,8 +121,8 @@ function createTeamAI(options = {}) {
         const desk = options.getDeskContext();
         if (desk && desk.source === 'HOMEEASY_APPROVED_DESK') {
           facts.approvedDesk = {
-            notes: Array.isArray(desk.notes) ? desk.notes.slice(-20).map(n => ({
-              topic: limited(n.topic,70), text: limited(n.text,500)
+            notes: Array.isArray(desk.notes) ? desk.notes.slice(-12).map(n => ({
+              topic: limited(n.topic,70), text: limited(n.text,400)
             })) : [],
             catalogProducts: Array.isArray(desk.catalogProducts) ?
               desk.catalogProducts.slice(0,10).map(n=>limited(n,240)) : [],
@@ -136,6 +136,16 @@ function createTeamAI(options = {}) {
       .map(h => ({ question: limited(h.question,220), answer: limited(h.answer,400) })) : [];
     // No customer messages or phone identifiers in payload; group member identity
     // is authenticated on the Bridge before this function is called.
+    // Sender identity is verified against the admin-managed group allowlist
+    // by hommy-workspace. Neither raw author IDs nor customer names reach AI.
+    const identity=input && input.speaker && typeof input.speaker==='object' ?
+      input.speaker : null;
+    const speakerName=identity && /^[\\p{L}]+(?:[ '\\-][\\p{L}]+)*$/u.test(String(identity.name||'')) &&
+      String(identity.name).length<=28 ? String(identity.name) : '';
+    const speakerRole=identity && ['OWNER','MANAGER','TEAM'].includes(identity.role) ?
+      identity.role : 'TEAM';
+    const speakerAddress=identity && ['NAME','JEFE','NONE'].includes(identity.address) ?
+      identity.address : 'NONE';
     const payload = { version:1, purpose:'HOME_EASY_TEAM_READ_ONLY',
       question, history, facts, style:{
         locale:'es-CO',tone:'natural_whatsapp',shortSentences:true,
@@ -150,7 +160,15 @@ function createTeamAI(options = {}) {
           'Contestar primero lo que preguntaron, con frases breves; evitar listados mecánicos, jerga técnica y saludos repetidos.',
           'Si falta información, reconocerlo con naturalidad y explicar qué dato concreto falta.',
           'No fingir que escribiste a alguien, consultaste una agenda completa o ejecutaste una acción.',
-          'No llamar jefe en cada respuesta ni usar emojis en exceso.']
+          'No llamar jefe en cada respuesta ni usar emojis en exceso.',
+          ...(speakerName?[
+            'Hablas con '+speakerName+'; su rol confirmado es '+speakerRole+'. Es miembro autorizado del equipo, no un cliente.',
+            speakerAddress==='JEFE' ?
+              'Prefiere que lo llames jefe '+speakerName+' ocasionalmente; no repitas el vocativo en cada mensaje.' :
+              speakerAddress==='NAME' ?
+              'Puedes llamarlo '+speakerName+' de vez en cuando; evita repetir su nombre en cada respuesta.' :
+              'Reconoce su identidad pero no uses tratamientos ni su nombre salvo que lo pida.'
+          ]:[])]
       } };
     try {
       const response = await fetcher(url, {
