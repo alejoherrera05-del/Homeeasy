@@ -456,6 +456,37 @@ docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
 
 El script muestra el estado del catálogo y de las notas, después consulta la IA **real del equipo** usando la configuración de servicio ya existente, registra el tiempo y las respuestas de dos preguntas consecutivas, y no llama a WAHA ni envía ningún WhatsApp. No muestra tokens. Si el servicio de equipo está desactivado, registra `TEAM_AI_NOT_CONFIGURED` sin fingir una respuesta. No sustituye las pruebas de extremo a extremo de envíos con WhatsApp.
 
+## Hommy 0.29 — personalidad y reconocimiento verificado del equipo
+
+El Bridge reconoce miembros únicamente por su identificador de WhatsApp
+autorizado en el grupo privado. Nunca confía en nombres escritos dentro del
+chat ni en nombres de clientes.
+
+En **HomeEasy → Configuración → Integraciones → Personalizar equipo**,
+el administrador asigna nombre (p. ej. Ale o Daniela), función (dirección,
+gerencia o equipo) y forma de trato (nombre, «jefe» ocasional o sin vocativos).
+El Bridge guarda esos perfiles en su volumen persistente
+`/app/data/hommy-workspace/state.json`, con los mismos controles de acceso
+que la lista de remitentes autorizados.
+
+- `GET /api/whatsapp/hommy/team-members` requiere `config.write` y solo
+  entrega los identificadores ya autorizados y sus propios perfiles.
+- El envío explícito del catálogo al grupo es una acción segura directa de
+  WAHA. Usa un texto cercano y el nombre verificado si hay perfil.
+- Cuando el administrador activa **Conversación natural**, las preguntas
+  libres se responden mediante el adaptador de IA del equipo. Se pasa solo
+  nombre, función y preferencia de trato validados; nunca teléfono, ID de
+  WhatsApp ni identidades de clientes. Sin la activación, las consultas
+  informativas exactas siguen con respuestas locales y supervisadas.
+- El vocativo no se repite en cada respuesta. El motor de IA nunca recibe
+  permisos para escribirle a clientes ni modificar cotizaciones.
+- Los miembros que aún no tengan perfil siguen autorizados para sus
+  funciones existentes y reciben un trato neutro, sin adivinar el nombre.
+
+La actualización del Bridge preserva los mensajes ya enviados, el catálogo,
+los datos del grupo y las notas aprobadas. Los perfiles se asignan expresamente
+desde el panel, pues no sería seguro deducir a quién pertenece cada ID.
+
 ## Hommy 0.28 — Escritorio comercial y memoria aprobada
 
 En `Configuración > Integraciones > Hommy > Escritorio y memoria` se administra el escritorio privado del Bridge:
