@@ -329,13 +329,14 @@ function applyGuardrails(result, record, inspection) {
 function applyResponseStyle(result, context) {
   if (!result.suggestedResponse || result.nextAction === 'STOP_CONTACT' || result.humanInterventionRequired) return result;
   const isNewConversation = Boolean(context && context.isNewConversation);
-  let draft = result.suggestedResponse.replace(/[¡¿]/g, '').trim();
-  const greeting = /^(hola|buenos d[ií]as|buenas)\b/i;
+  let draft = result.suggestedResponse.trim();
+  const greeting = /^¡?\s*(?:hola|buenos d[ií]as|buenas(?: tardes| noches)?)\b/i;
   if (isNewConversation && !greeting.test(draft)) {
-    draft = `Hola, cómo estás? 😊\n\n${draft}`;
+    draft = `Hola, ¿cómo estás? 😊\n\n${draft}`;
   } else if (!isNewConversation && greeting.test(draft)) {
-    draft = draft.replace(/^(?:hola|buenos d[ií]as|buenas)[^\n.!?]*[.!?]?\s*/i, '').trim();
-    if (!draft) draft = 'Claro que sí, con mucho gusto te ayudo.';
+    draft = draft.replace(/^¡?\s*(?:hola|buenos d[ií]as|buenas(?: tardes| noches)?)\b\s*[,!¡.:;-]*\s*/i, '').trim();
+    draft = draft.replace(/^¿?(?:cómo estás|qué tal)\??[!¡.,:\s]*/i, '').trim();
+    if (!draft) draft = 'Con gusto, cuéntame, ¿en qué puedo ayudarte?';
   }
   return { ...result, suggestedResponse: draft };
 }
