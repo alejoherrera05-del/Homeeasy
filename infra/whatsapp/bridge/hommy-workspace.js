@@ -14,6 +14,26 @@ const err = (message, code = 'HOMMY_BAD_INPUT', statusCode = 400) => Object.assi
 const validClient = id => /^client_[a-f0-9]{20}$/.test(id);
 const validGroup = id => /^\d{8,22}(?:-\d{1,22})?@g\.us$/.test(id);
 const validSender = id => /^\d{8,22}@(c\.us|lid)$/.test(id);
+const NAME_PATTERN = /^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u;
+const ROLES = new Set(['OWNER','MANAGER','TEAM']);
+const ADDRESS = new Set(['NAME','JEFE','NONE']);
+function verifiedProfile(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input) ||
+      Object.keys(input).sort().join(',')!=='address,name,role') {
+    throw err('Each team profile must have name, role and address',
+      'HOMMY_TEAM_PROFILE_INVALID');
+  }
+  const name=clean(input.name, 60);
+  if (!NAME_PATTERN.test(name) || name.length<2 || name.length>28 ||
+      !ROLES.has(input.role) || !ADDRESS.has(input.address)) {
+    throw err('Invalid private team profile', 'HOMMY_TEAM_PROFILE_INVALID');
+  }
+  return {name,role:input.role,address:input.address};
+}
+function memberAddress(profile) {
+  if(!profile || profile.address==='NONE') return '';
+  return profile.address==='JEFE' ? 'jefe '+profile.name : profile.name;
+}
 
 function mappedSenderAlias(author, mapping) {
   // The caller must fetch 'mapping' from WAHA after authenticating the webhook.
@@ -103,7 +123,7 @@ function createHommyWorkspace(options = {}) {
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   const defaults = () => ({
     version: 1, revision: 0, mode: options.intelligenceEnabled ? 'REVIEW' : 'PAUSED',
-    team: { enabled: false, groupId: '', allowedSenders: [], replyEnabled: false, aiEnabled: false },
+    team: { enabled: false, groupId: '', allowedSenders: [], replyEnabled: false, aiEnabled: false, profiles: {} },
     labels: {}, tasks: [], commands: [], seen: [], audit: []
   });
   // A damaged optional workspace must never prevent the WhatsApp/Pentagrama Bridge from starting.
@@ -121,6 +141,10 @@ function createHommyWorkspace(options = {}) {
     data = defaults();
     data.mode = 'PAUSED';
   }
+  // Older persistent workspaces remain compatible: profiles are optional until
+  // an authorized administrator assigns a confirmed identity.
+  if (!data.team.profiles || typeof data.team.profiles !== 'object' ||
+      Array.isArray(data.team.profiles)) data.team.profiles = {};
   const hasClient = options.hasClient || (() => false);
   const session = clean(options.session || 'homeeasy', 120);
   const limit = 250;
@@ -201,8 +225,20 @@ function createHommyWorkspace(options = {}) {
           (replyEnabled && (!enabled || !groupId || !senders.length))) {
         throw err('Exact group ID, authorized sender IDs and active group are required');
       }
-      team = { groupId, allowedSenders: [...new Set(senders)], enabled,
-        replyEnabled: enabled && replyEnabled, aiEnabled: enabled && replyEnabled && aiEnabled };
+      const allowedSenders=[...new Set(senders)];
+      const inputProfiles=body.team.profiles === undefined ? data.team.profiles : body.team.profiles;
+      if (!inputProfiles || typeof inputProfiles !== 'object' || Array.isArray(inputProfiles) ||
+          Object.keys(inputProfiles).length>5 ||
+          Object.keys(inputProfiles).some(id=>!allowedSenders.includes(id))) {
+        throw err('Profiles require verified, authorized sender identifiers', 'HOMMY_TEAM_PROFILE_INVALID');
+      }
+      const profiles={};
+      for(const senderId of allowedSenders) {
+        if(Object.hasOwn(inputProfiles,senderId)) profiles[senderId]=verifiedProfile(inputProfiles[senderId]);
+      }
+      team = { groupId, allowedSenders, enabled,
+        replyEnabled: enabled && replyEnabled, aiEnabled: enabled && replyEnabled && aiEnabled,
+        profiles };
     }
     if (body.mode !== undefined) data.mode = body.mode;
     if (team) data.team = team;
@@ -210,6 +246,22 @@ function createHommyWorkspace(options = {}) {
     if (!data.team.enabled || !data.team.replyEnabled || options.teamAiAvailable !== true) data.team.aiEnabled = false;
     persist('CONFIGURE', actor);
     return status();
+  }
+
+  function memberProfiles() {
+    if (corrupted) return [];
+    return data.team.allowedSenders.map(senderId=>({
+      senderId,
+      profile: data.team.profiles[senderId] || null
+    }));
+  }
+  function profileForCommand(commandId) {
+    if(corrupted) return null;
+    const command=data.commands.find(c=>c.id===clean(commandId,260));
+    if(!command || command.originGroupId!==data.team.groupId ||
+       !isAuthorizedSender(command.authorizedSenderId))return null;
+    const profile=data.team.profiles[command.authorizedSenderId];
+    return profile ? {...profile} : null;
   }
 
   function requireClient(value) {
@@ -322,7 +374,9 @@ function createHommyWorkspace(options = {}) {
       Date.parse(c.at) <= Date.parse(target.at) &&
       c.status === 'INFORMATION' && c.replyStatus === 'SENT').slice(-3)
       .map(c => ({question:redact(c.command).slice(0,220),answer:redact(c.preview).slice(0,400)}));
+    const speaker=profileForCommand(id);
     return { question:redact(target.command),history,
+      ...(speaker?{speaker}:{}),
       pendingTasks:data.tasks.filter(t => ['PENDIENTE','EN_CURSO'].includes(t.status)).length };
   }
 
@@ -437,8 +491,8 @@ function createHommyWorkspace(options = {}) {
   }
 
   return Object.freeze({ status, configure, putLabels, createTask, updateTask, dashboard,
-    isAuthorizedSender, ingestSignedGroupEvent, reserveTeamReply, reserveTeamCatalog, finishTeamReply,
+    isAuthorizedSender, memberProfiles, profileForCommand, ingestSignedGroupEvent, reserveTeamReply, reserveTeamCatalog, finishTeamReply,
     teamAIRequest, completeTeamAI });
 }
 
-module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias, extractTeamRequest, ownCatalogRequest });
+module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias, extractTeamRequest, ownCatalogRequest, memberAddress });
