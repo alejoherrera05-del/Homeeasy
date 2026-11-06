@@ -80,7 +80,8 @@ _ACTION_RE = re.compile(
 _FORBIDDEN_RESPONSE = re.compile(
     r"(?:https?://|www\.|<script|bearer\s|sk-proj-|\b\d{8,}\b|"
     r"[$€]|\bCOP\b|\bpesos\b|"
-    r"\bya\s+(?:le\s+)?(?:escrib[ií]|envi[eé]|confirm[eé]|agend[eé])(?=$|[\s.,!?])|"\n    r"\bla cita (?:qued[oó]|est[aá]) confirmada\b",
+    r"\bya\s+(?:le\s+)?(?:escrib[ií]|envi[eé]|confirm[eé]|agend[eé])(?=$|[\s.,!?])|"
+    r"\bla cita (?:qued[oó]|est[aá]) confirmada\b",
     re.IGNORECASE,
 )
 _ALLOWED_PRODUCTS = {"Onda Serena", "Sheer Elegance", "Sheer Vertesse", "Panel Japonés", "Blackout"}
