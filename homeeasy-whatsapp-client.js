@@ -104,10 +104,12 @@
                     'Accept': 'application/json',
                     'X-HomeEasy-Session': token,
                     ...deviceHeaders(),
-                    ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+                    ...(opts.binaryBody !== undefined ? { 'Content-Type': 'application/pdf' } :
+                       opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
                     ...(opts.headers || {})
                 },
-                body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+                body: opts.binaryBody !== undefined ? opts.binaryBody :
+                    opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
                 signal: controller.signal
             });
             try { payload = await response.json(); } catch (error) {
@@ -339,6 +341,33 @@
     }
     function updateHommyTask(taskId, status) {
         return request('/api/whatsapp/hommy/tasks/status', { method: 'POST', body: { taskId, status } });
+    }
+
+    function hommyDesk() {
+        return request('/api/whatsapp/hommy/desk');
+    }
+
+    function uploadHommyCatalog(file) {
+        if (!file || typeof file.size !== 'number' || file.size < 1024 ||
+            file.size > 12 * 1024 * 1024 || !/\.pdf$/i.test(String(file.name || ''))) {
+            return Promise.reject(new HomeEasyWhatsAppError('HOMMY_CATALOG_INVALID',
+                'Selecciona el catálogo oficial en PDF (máximo 12 MB).', null, 400));
+        }
+        return request('/api/whatsapp/hommy/desk/catalog',
+            { method:'POST', binaryBody:file, timeoutMs:120000 });
+    }
+
+    function saveHommyDeskNote(topic, text, visibility) {
+        return request('/api/whatsapp/hommy/desk/notes',
+            {method:'POST',body:{topic,text,visibility}});
+    }
+    function editHommyDeskNote(id, text, visibility) {
+        return request('/api/whatsapp/hommy/desk/notes/edit',
+            {method:'POST',body:{id,text,visibility}});
+    }
+    function archiveHommyDeskNote(id) {
+        return request('/api/whatsapp/hommy/desk/notes/archive',
+            {method:'POST',body:{id}});
     }
 
     function connectedPhone(statusPayload) {
@@ -605,6 +634,11 @@
         saveHommyLabels,
         createHommyTask,
         updateHommyTask,
+        hommyDesk,
+        uploadHommyCatalog,
+        saveHommyDeskNote,
+        editHommyDeskNote,
+        archiveHommyDeskNote,
         maintenance: () => request('/api/whatsapp/maintenance'),
         diagnose,
         maintain: body => request('/api/whatsapp/maintenance', { method: 'POST', body }),
