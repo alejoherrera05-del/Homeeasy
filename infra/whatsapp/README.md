@@ -73,6 +73,21 @@ Cuando WAHA muestre el QR:
 
 Salir de los logs con `Ctrl+C` no detiene WAHA.
 
+## Corrección de lenguaje natural del grupo (Bridge 0.26.1)
+
+Las respuestas del equipo deben reconocer la cortina Onda Serena como producto
+incluso si preguntan «Hommy, cómo va lo de la onda serena?» y pueden invocar a
+Hommy al principio o al final del mensaje («Onda Serena Hommy»). El detector
+comprueba la palabra completa y conserva el control de grupo y remitentes
+autorizados. Cualquier instrucción combinada con acciones comerciales
+sigue pendiente de revisión y **no** contacta clientes.
+
+Se suaviza la redacción de los resúmenes de productos utilizando únicamente
+la memoria comercial analizada. Esto mejora reconocimiento y tono, **pero
+no sustituye un motor conversacional con IA**; integrar semántica avanzada
+requiere autenticación de servicio independiente y restricciones estrictas
+de lectura para proteger los datos de HomeEasy.
+
 ## Fase 3F · Búsqueda puntual y segura de oportunidades (Bridge 0.26.0)
 
 Un integrante autorizado puede preguntar por un cliente con nombre **exacto**
