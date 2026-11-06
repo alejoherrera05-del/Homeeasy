@@ -758,3 +758,54 @@ test('context expires after ten minutes rather than guessing from an old convers
   assert.equal(late.status,'AI_PENDING');
   assert.equal(reloaded.reserveTeamReply(late.id),null);
 });
+
+
+test('a natural catalog request sends only to the configured authorized team group',t=>{
+  const v=setup();t.after(v.cleanup);
+  let installed=true;
+  const opts={...v.options,teamAiAvailable:true,hasDeskCatalog:()=>installed};
+  const w=createHommyWorkspace(opts);
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const req=groupEvent({id:'send-approved-catalog',
+    body:'Oye Homie, ¿me envías el catálogo de HomeEasy, por favor?'});
+  const accepted=w.ingestSignedGroupEvent(req,null,{aiEnabled:true});
+  assert.equal(accepted.status,'CATALOG_READY');
+  assert.equal(w.teamAIRequest(accepted.id),null);
+  assert.equal(w.reserveTeamReply(accepted.id),null);
+  const job=w.reserveTeamCatalog(accepted.id);
+  assert.deepEqual(job,{commandId:accepted.id,groupId:GROUP});
+  assert.equal(w.reserveTeamCatalog(accepted.id),null);
+  assert.equal(w.ingestSignedGroupEvent(req,null,{aiEnabled:true}).reason,'DUPLICATE');
+  assert.equal(w.finishTeamReply(accepted.id,true),true);
+  assert.equal(createHommyWorkspace(opts).reserveTeamCatalog(accepted.id),null);
+  installed=false;
+  const unavailable=w.ingestSignedGroupEvent(groupEvent({id:'catalog-not-installed',
+    body:'Hommy, pásame el catálogo'}),null,{aiEnabled:true});
+  assert.equal(unavailable.status,'INFORMATION');
+  assert.match(w.reserveTeamReply(unavailable.id).text,/no tengo el catálogo PDF instalado/i);
+  assert.equal(w.reserveTeamCatalog(unavailable.id),null);
+});
+test('catalog attachment requests cannot redirect document to customers or unknown groups',t=>{
+  const v=setup();t.after(v.cleanup);
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true,hasDeskCatalog:()=>true});
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const cases=[
+    'Hommy, envía el catálogo a Laura',
+    'Hommy, mándale el catálogo al cliente',
+    'Hommy, envíame el catálogo y confirma una visita',
+    'Hommy, enviar catálogo al celular de Camilo'
+  ];
+  for(const [i,body] of cases.entries()){
+    const r=w.ingestSignedGroupEvent(groupEvent({id:'catalog-unsafe-'+i,body}),null,{aiEnabled:true});
+    assert.equal(r.status,'REVIEW_REQUIRED',body);
+    assert.equal(w.reserveTeamCatalog(r.id),null,body);
+    assert.equal(w.reserveTeamReply(r.id),null,body);
+    assert.equal(w.teamAIRequest(r.id),null,body);
+  }
+  const other=w.ingestSignedGroupEvent(groupEvent({id:'catalog-unauthorized',
+    author:'573009999999@c.us',body:'Hommy, envíame el catálogo'}),null,{aiEnabled:true});
+  assert.equal(other.accepted,false);
+  const wrong=w.ingestSignedGroupEvent(groupEvent({id:'catalog-other-group',
+    group:'120363987654321012@g.us',body:'Hommy, envíame el catálogo'}),null,{aiEnabled:true});
+  assert.equal(wrong.accepted,false);
+});
