@@ -783,10 +783,17 @@ function createIntelligence(options) {
           await opts.analyze({ record, match, messages: contextMessages,
             client, opportunities: clientOpportunities, leadGuidance, responseStyle: RESPONSE_STYLE,
             conversationToken: conversationMemory.conversationToken || null }, requestContext);
+        const validated = validateResult(analyzed.result);
+        // The validator deliberately discards untrusted model-supplied extra
+        // fields. Reattach only metadata computed by the trusted local route.
+        if (local) {
+          validated.receptionRoute = 'LOCAL';
+          if (local.requiredAsset) validated.requiredAsset = local.requiredAsset;
+        }
         const guarded = applyResponseStyle(
           applyReceptionReview(
             applyLeadReview(
-              applyGuardrails(validateResult(analyzed.result), record, { humanTakeover, client }),
+              applyGuardrails(validated, record, { humanTakeover, client }),
               leadGuidance
             ),
             record, { isNewConversation: newConversation }
