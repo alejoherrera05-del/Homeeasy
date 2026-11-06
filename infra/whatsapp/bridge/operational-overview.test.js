@@ -50,6 +50,38 @@ test('client questions resolve only known product names or explicit exact-name i
   ]) assert.equal(parseClientQuery(instruction), null, instruction);
 });
 
+
+test('natural WhatsApp phrasing selects the curtain, never a fictional client', () => {
+  const { parseClientQuery } = require('./operational-overview');
+  const examples = [
+    'cómo va lo de la onda serena?',
+    'Cómo vamos con la Onda Serena',
+    'qué sabemos de la onda serena?',
+    'Onda Serena',
+    'La onda serena',
+    'la cortina Onda Serena',
+    'Oye, cómo va la onda serena?',
+    'tienes novedades de onda serena?',
+    'cliente de la cortina onda serena'
+  ];
+  for (const query of examples) {
+    const actual = parseClientQuery(query);
+    assert.equal(actual?.kind, 'PRODUCT', query);
+    assert.equal(actual.product, 'Onda Serena', query);
+  }
+  const instructions = [
+    'cómo va lo de la onda serena y avísale al cliente',
+    'Onda Serena, envíale un precio por WhatsApp',
+    'cliente Laura y avísale',
+    'qué sabemos de la Onda Serena y dile a Laura que la visita es mañana',
+    'como va lo de Onda Serena y pásame el teléfono',
+    'me pasas el teléfono de Laura',
+    'marca la visita y agenda para el lunes',
+    'dile a Laura que va el técnico'
+  ];
+  for (const query of instructions) assert.equal(parseClientQuery(query), null, query);
+});
+
 test('client memory lookup uses exact identity, ambiguity stops, excludes private numbers', t => {
   const { clientReport, parseClientQuery, createClientLookup } = require('./operational-overview');
   const state = { version:2, clients:{
@@ -64,8 +96,8 @@ test('client memory lookup uses exact identity, ambiguity stops, excludes privat
   const products=clientReport(state,parseClientQuery('cliente de Onda Serena'));
   assert.match(products,/Laura/);
   assert.match(products,/Onda Serena/);
-  assert.match(products,/Falta completar información de la visita; no está confirmada/);
-  assert.match(products,/referencia de cotización, pero no puedo confirmar/);
+  assert.match(products,/Falta completar información de la visita; todavía no hay una cita confirmada/);
+  assert.match(products,/referencia de cotización, aunque no sé si ya se envió/);
   assert.doesNotMatch(products,/573001112233|HE123/);
   state.opportunities.one.environments=['sala - 573001112233'];
   assert.doesNotMatch(clientReport(state,parseClientQuery('cliente de Onda Serena')),/573001112233|Espacio:/);
@@ -75,9 +107,9 @@ test('client memory lookup uses exact identity, ambiguity stops, excludes privat
   state.clients.a.name='Laura';
   const name=clientReport(state,parseClientQuery('qué sabemos de Andrés'));
   assert.match(name,/Sheer Elegance/);
-  assert.match(name,/Faltan datos para preparar una cotización/);
+  assert.match(name,/Por ahora faltan datos para poder cotizar/);
   assert.doesNotMatch(name,/573008888888/);
-  assert.match(clientReport(state,parseClientQuery('cliente Luis')), /No encuentro ese nombre exacto/);
+  assert.match(clientReport(state,parseClientQuery('cliente Luis')), /Con ese nombre todavía no encuentro un cliente/);
   state.opportunities.three={...state.opportunities.one,id:'three',clientId:'b'};
   assert.match(clientReport(state,parseClientQuery('cómo va lo de Onda Serena')), /2 oportunidades/);
   state.clients.c={id:'c',name:'Laura',provisional:false};

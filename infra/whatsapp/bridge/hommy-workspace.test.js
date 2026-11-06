@@ -117,7 +117,7 @@ test('lookup predicate recognizes actual private-group commands (runtime regress
   assert.equal(shouldResolveTeamAlias(groupEvent({ author, body:'Hommyabc, pendientes' }),
     team, author, false, 'homeeasy'), false);
   assert.equal(shouldResolveTeamAlias(groupEvent({ author, body:'Buenos días Hommy, pendientes' }),
-    team, author, false, 'homeeasy'), false);
+    team, author, false, 'homeeasy'), true);
   assert.equal(shouldResolveTeamAlias(event, team, author, true, 'homeeasy'), false);
   assert.equal(shouldResolveTeamAlias(event, { ...team, enabled:false }, author, false, 'homeeasy'), false);
   assert.equal(shouldResolveTeamAlias(event, team, 'untrusted', false, 'homeeasy'), false);
@@ -169,6 +169,46 @@ test('reverse LID lookup authorizes phone-backed event only via WAHA-confirmed p
   const alias = mappedSenderAlias(STAFF, { lid, pn: STAFF });
   assert.equal(alias, lid);
   assert.equal(v.workspace.ingestSignedGroupEvent(groupEvent({ author: STAFF }), { lid, pn: STAFF }).accepted, true);
+});
+
+
+test('team mentions work naturally at beginning, at end or after a greeting', t => {
+  const v = setup(); t.after(v.cleanup);
+  const { extractTeamRequest } = require('./hommy-workspace');
+  const variants = [
+    ['Hommy, cómo va lo de la onda serena?', 'cómo va lo de la onda serena?'],
+    ['Onda Serena Hommy', 'Onda Serena'],
+    ['Oye Hommy, cómo vamos con la Onda Serena?', 'cómo vamos con la Onda Serena?'],
+    ['Hommy, la cortina Onda Serena', 'la cortina Onda Serena']
+  ];
+  const dir=path.join(v.options.dataDir, 'hommy-intelligence');
+  fs.mkdirSync(dir);
+  fs.writeFileSync(path.join(dir, 'state-v2.json'), JSON.stringify({
+    version:2,
+    clients:{ c:{id:'c',name:'Laura',provisional:false,identityConflicts:[]} },
+    opportunities:{ o:{id:'o',clientId:'c',product:'Onda Serena',status:'OPEN',nextAction:'REQUEST_QUOTE_DETAILS',environments:[],quoteNumbers:[]} }
+  }));
+  v.workspace.configure({ team:{ groupId:GROUP, allowedSenders:[STAFF], enabled:true, replyEnabled:true } });
+  for (const [i, [body, command]] of variants.entries()) {
+    assert.equal(extractTeamRequest(body), command, body);
+    const result = v.workspace.ingestSignedGroupEvent(groupEvent({ id:'conversational-' + i, body }));
+    assert.equal(result.accepted, true, body);
+    assert.equal(result.status, 'INFORMATION', body);
+    const preview = v.workspace.dashboard().teamCommands[0].preview;
+    assert.match(preview, /Onda Serena/, body);
+    assert.doesNotMatch(preview, /No encuentro ese nombre exacto/, body);
+  }
+  assert.equal(extractTeamRequest('hommymarketing es otro nombre'), null);
+  assert.equal(extractTeamRequest('Hola a todos, cómo están?'), null);
+  const stranger = v.workspace.ingestSignedGroupEvent(groupEvent({
+    id:'not-authorized', body:'Onda Serena Hommy', author:'573099999999@c.us'
+  }));
+  assert.equal(stranger.reason, 'UNAUTHORIZED_AUTHOR');
+  const action = v.workspace.ingestSignedGroupEvent(groupEvent({
+    id:'unsafe-mixed', body:'Onda Serena Hommy, envía la cotización al cliente'
+  }));
+  assert.equal(action.status, 'REVIEW_REQUIRED');
+  assert.equal(v.workspace.reserveTeamReply(action.id), null);
 });
 
 test('webhook performs a bounded read-only LID lookup after signature verification', () => {
@@ -294,7 +334,7 @@ test('signed team group reads one exact client interest and never sends an instr
   assert.equal(received.status,'INFORMATION');
   const item=v.workspace.dashboard().teamCommands[0];
   assert.match(item.preview,/Onda Serena/);
-  assert.match(item.preview,/Faltan datos para preparar una cotización/);
+  assert.match(item.preview,/Por ahora faltan datos para poder cotizar/);
   assert.doesNotMatch(item.preview,/573001234567/);
   const reserved=v.workspace.reserveTeamReply(received.id);
   assert.equal(reserved.groupId,GROUP);
