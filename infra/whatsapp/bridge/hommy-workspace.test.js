@@ -547,3 +547,27 @@ test('server endpoints require authorization and verified HMAC before group capt
   const source = fs.readFileSync(path.join(__dirname, 'hommy-workspace.js'), 'utf8');
   assert.doesNotMatch(source, /sendText|sendDocument|wahaRequest\(/);
 });
+
+
+test('hybrid fast path answers exact read-only summaries without invoking AI', t => {
+  const v=setup();t.after(v.cleanup);
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const fast=w.ingestSignedGroupEvent(groupEvent({id:'hybrid-summary',body:'Hommy, pendientes'}),null,{aiEnabled:true});
+  assert.equal(fast.status,'INFORMATION');
+  assert.equal(w.teamAIRequest(fast.id),null);
+  const reserved=w.reserveTeamReply(fast.id);
+  assert.ok(reserved);
+  assert.match(reserved.text,/tareas manuales/i);
+  assert.equal(w.reserveTeamReply(fast.id),null);
+  const conversational=w.ingestSignedGroupEvent(groupEvent({
+    id:'hybrid-complex',body:'Hommy, ayúdame a analizar nuestros clientes'
+  }),null,{aiEnabled:true});
+  assert.equal(conversational.status,'AI_PENDING');
+  assert.ok(w.teamAIRequest(conversational.id));
+  const action=w.ingestSignedGroupEvent(groupEvent({
+    id:'hybrid-action',body:'Hommy, avísale al cliente que voy en camino'
+  }),null,{aiEnabled:true});
+  assert.notEqual(action.status,'INFORMATION');
+  assert.equal(w.reserveTeamReply(action.id),null);
+});
