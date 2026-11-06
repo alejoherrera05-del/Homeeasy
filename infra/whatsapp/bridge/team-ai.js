@@ -140,7 +140,7 @@ function createTeamAI(options = {}) {
     // by hommy-workspace. Neither raw author IDs nor customer names reach AI.
     const identity=input && input.speaker && typeof input.speaker==='object' ?
       input.speaker : null;
-    const speakerName=identity && /^[\\p{L}]+(?:[ '\\-][\\p{L}]+)*$/u.test(String(identity.name||'')) &&
+    const speakerName=identity && /^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u.test(String(identity.name||'')) &&
       String(identity.name).length<=28 ? String(identity.name) : '';
     const speakerRole=identity && ['OWNER','MANAGER','TEAM'].includes(identity.role) ?
       identity.role : 'TEAM';
