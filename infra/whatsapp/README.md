@@ -446,6 +446,16 @@ Una vez que WAHA esté `WORKING` y podamos enviar un PDF desde el VPS:
 7. Automatización opcional.
 
 
+### Diagnóstico real sin escribir a clientes
+
+Una vez instalada la versión 0.28.0, desde el VPS se puede ejecutar:
+
+```bash
+docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
+```
+
+El script muestra el estado del catálogo y de las notas, después consulta la IA **real del equipo** usando la configuración de servicio ya existente, registra el tiempo y las respuestas de dos preguntas consecutivas, y no llama a WAHA ni envía ningún WhatsApp. No muestra tokens. Si el servicio de equipo está desactivado, registra `TEAM_AI_NOT_CONFIGURED` sin fingir una respuesta. No sustituye las pruebas de extremo a extremo de envíos con WhatsApp.
+
 ## Hommy 0.28 — Escritorio comercial y memoria aprobada
 
 En `Configuración > Integraciones > Hommy > Escritorio y memoria` se administra el escritorio privado del Bridge:
