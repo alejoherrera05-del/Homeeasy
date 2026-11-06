@@ -62,6 +62,9 @@ services:
       HOMMY_INBOX_MAX_BODY_KB: ${HOMMY_INBOX_MAX_BODY_KB:-256}
       HOMMY_INTELLIGENCE_ENABLED: ${HOMMY_INTELLIGENCE_ENABLED:-false}
       HOMMY_BACKEND_URL: ${HOMMY_BACKEND_URL:-https://homeeasy-hommy-staging.onrender.com}
+      HOMMY_TEAM_AI_ENABLED: ${HOMMY_TEAM_AI_ENABLED:-false}
+      HOMMY_TEAM_AI_URL: ${HOMMY_TEAM_AI_URL:-}
+      HOMMY_TEAM_AI_SERVICE_TOKEN: ${HOMMY_TEAM_AI_SERVICE_TOKEN:-}
     volumes:
       - ./data/bridge:/app/data
       - ./maintenance-runtime:/app/maintenance
