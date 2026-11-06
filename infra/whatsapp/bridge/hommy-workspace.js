@@ -196,6 +196,7 @@ function createHommyWorkspace(options = {}) {
         configured: validGroup(data.team.groupId) && data.team.allowedSenders.length > 0,
         groupId: data.team.groupId || null, authorizedSenders: data.team.allowedSenders.length,
         replyEnabled: data.team.replyEnabled === true, replySupported: true,
+        profiledMembers: Object.keys(data.team.profiles).length,
         aiEnabled: data.team.aiEnabled === true, aiAvailable: options.teamAiAvailable === true },
       totalTeamCommands: data.commands.length,
       labeledClients: Object.keys(data.labels).length,
@@ -226,7 +227,9 @@ function createHommyWorkspace(options = {}) {
         throw err('Exact group ID, authorized sender IDs and active group are required');
       }
       const allowedSenders=[...new Set(senders)];
-      const inputProfiles=body.team.profiles === undefined ? data.team.profiles : body.team.profiles;
+      const inputProfiles=body.team.profiles === undefined ?
+        Object.fromEntries(Object.entries(data.team.profiles).filter(([id])=>allowedSenders.includes(id))) :
+        body.team.profiles;
       if (!inputProfiles || typeof inputProfiles !== 'object' || Array.isArray(inputProfiles) ||
           Object.keys(inputProfiles).length>5 ||
           Object.keys(inputProfiles).some(id=>!allowedSenders.includes(id))) {
