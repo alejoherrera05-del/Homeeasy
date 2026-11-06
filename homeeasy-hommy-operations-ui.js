@@ -67,6 +67,7 @@
       '<button type="button" id="heHommyGroupLink" class="he-hommy-ops-btn">Vincular grupo</button>' +
       '<button type="button" id="heHommyGroupToggle" class="he-hommy-ops-btn" hidden>Activar grupo</button>' +
       '<button type="button" id="heHommyReplies" class="he-hommy-ops-btn" hidden>Activar respuestas internas</button>' +
+      '<button type="button" id="heHommyAI" class="he-hommy-ops-btn" hidden>Activar conversación natural</button>' +
       '<button type="button" id="heHommyCommands" class="he-hommy-ops-btn">Actividad (0)</button>' +
       '<button type="button" id="heHommyRefresh" class="he-hommy-ops-btn">Actualizar</button></div>' +
       '<div id="heHommyNote" class="he-hommy-ops-foot" role="status">Esta función no desconecta WhatsApp ni afecta los comprobantes.</div>';
@@ -77,6 +78,7 @@
     document.getElementById('heHommyGroupToggle').addEventListener('click', toggleTeamGroup);
     document.getElementById('heHommyCommands').addEventListener('click', viewTeamCommands);
     document.getElementById('heHommyReplies').addEventListener('click', toggleTeamReplies);
+    document.getElementById('heHommyAI').addEventListener('click', toggleTeamAI);
     mounted = true;
     if (panel.classList.contains('active')) load(false);
   }
@@ -104,6 +106,13 @@
       replyToggle.disabled = !canConfigure() || control.mode !== 'REVIEW';
       replyToggle.textContent = teamState && teamState.replyEnabled === true ?
         'Desactivar respuestas internas' : 'Activar respuestas internas';
+      const aiToggle = document.getElementById('heHommyAI');
+      aiToggle.hidden = !(teamState && teamState.enabled &&
+        (teamState.aiAvailable === true || teamState.aiEnabled === true));
+      aiToggle.disabled = !canConfigure() || control.mode !== 'REVIEW' ||
+        (teamState.aiEnabled !== true && (teamState.aiAvailable !== true || teamState.replyEnabled !== true));
+      aiToggle.textContent = teamState && teamState.aiEnabled === true ?
+        'Desactivar conversación IA' : 'Activar conversación natural';
       modeEl.className = 'he-hommy-ops-status' + (control.mode === 'REVIEW' ? ' review' : '');
       modeEl.textContent = control.mode === 'REVIEW' ? 'Supervisado' : 'Pausado';
       document.getElementById('heHommyGroup').textContent =
@@ -113,7 +122,9 @@
       document.getElementById('heHommyCommands').textContent = 'Actividad (' + String(control.totalTeamCommands || 0) + ')';
       toggleButton.textContent = control.mode === 'REVIEW' ? 'Pausar Hommy' : 'Reanudar supervisión';
       toggleButton.disabled = !canConfigure();
-      noteEl.textContent = 'Las respuestas al grupo son independientes y están apagadas salvo autorización. Nunca se envían mensajes a clientes desde este control.';
+      noteEl.textContent = teamState && teamState.aiEnabled === true ?
+        'Modo conversación natural del equipo. Solo lectura; las acciones comerciales siguen bajo aprobación.' :
+        'Las respuestas al grupo usan el modo supervisado. El motor IA se habilita por separado y nunca autoriza envíos a clientes.';
       if (notify && global.Swal) global.Swal.fire({ toast:true, position:'top-end', timer:1500,
         showConfirmButton:false, icon:'success', title:'Estado de Hommy actualizado' });
     } catch (e) {
@@ -256,7 +267,9 @@
             card.style.cssText = 'border:1px solid #ede6e9;border-radius:12px;padding:12px';
             const heading = document.createElement('strong');
             heading.style.cssText = 'display:block;font-size:12px;color:#a6455a';
-            heading.textContent = item.status === 'REVIEW_REQUIRED' ? 'Pendiente de revisión' : 'Consulta registrada';
+            heading.textContent = item.status === 'REVIEW_REQUIRED' ? 'Pendiente de revisión' :
+              item.status === 'AI_PENDING' ? 'Interpretando consulta' :
+              item.status === 'AI_UNAVAILABLE' ? 'Motor IA no disponible' : 'Consulta registrada';
             const question = document.createElement('p');
             question.style.cssText = 'font-size:12px;margin:7px 0';
             question.textContent = item.command || '';
@@ -300,6 +313,36 @@
       await load(false);
       global.Swal.fire({ icon:'error', title:'No se pudo cambiar este permiso',
         text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
+    }
+  }
+
+  async function toggleTeamAI() {
+    if (!canConfigure() || loading || currentMode !== 'REVIEW' ||
+        !teamState || !teamState.enabled || !global.Swal) return;
+    const enabled = teamState.aiEnabled !== true;
+    if (enabled && (teamState.aiAvailable !== true || teamState.replyEnabled !== true)) return;
+    const confirmation = await global.Swal.fire({
+      icon: enabled ? 'warning' : 'question',
+      title: enabled ? 'Activar conversación natural de Hommy?' : 'Volver al modo supervisado?',
+      text: enabled ?
+        'Hommy consultará el motor de IA mediante una conexión de servicio protegida. Solo podrá leer resúmenes comerciales y responder en este grupo autorizado. Nunca ejecutará órdenes ni enviará mensajes a clientes.' :
+        'Se apagará el motor conversacional del grupo. El Bridge y WhatsApp seguirán conectados.',
+      showCancelButton: true,
+      confirmButtonText: enabled ? 'Activar conversación natural' : 'Desactivar modo IA',
+      cancelButtonText: 'Cancelar', confirmButtonColor: '#a6455a'
+    });
+    if (!confirmation.isConfirmed) return;
+    loading = true;
+    document.getElementById('heHommyAI').disabled = true;
+    try {
+      await global.HomeEasyWhatsApp.saveHommyControl({ team:{ aiEnabled: enabled }, revision });
+      loading = false;
+      await load(true);
+    } catch (e) {
+      loading = false;
+      await load(false);
+      global.Swal.fire({ icon:'error', title:'No se pudo actualizar el modo de Hommy',
+        text:e.message || 'Vuelve a intentarlo.', confirmButtonColor:'#a6455a' });
     }
   }
 

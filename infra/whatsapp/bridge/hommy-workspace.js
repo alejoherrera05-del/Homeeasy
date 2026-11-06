@@ -128,7 +128,8 @@ function createHommyWorkspace(options = {}) {
       const senders = body.team.allowedSenders === undefined ? data.team.allowedSenders : body.team.allowedSenders;
       const enabled = body.team.enabled === undefined ? data.team.enabled : body.team.enabled;
       const replyEnabled = body.team.replyEnabled === undefined ? data.team.replyEnabled === true : body.team.replyEnabled;
-      const aiEnabled = body.team.aiEnabled === undefined ? data.team.aiEnabled === true : body.team.aiEnabled;
+      const aiEnabled = body.team.aiEnabled === undefined ?
+        enabled && replyEnabled && data.team.aiEnabled === true : body.team.aiEnabled;
       if ((groupId && !validGroup(groupId)) || typeof enabled !== 'boolean' ||
           typeof replyEnabled !== 'boolean' || typeof aiEnabled !== 'boolean' ||
           (aiEnabled && (!replyEnabled || options.teamAiAvailable !== true)) ||
@@ -280,13 +281,15 @@ function createHommyWorkspace(options = {}) {
     const body = clean(p.body || p.text || p.caption, 700);
     const command = extractTeamRequest(body);
     if (!command) return { accepted: false, reason: 'NOT_MENTIONED' };
-    const aiMode = controls.aiEnabled === true && options.teamAiAvailable === true &&
-      data.team.aiEnabled === true && data.team.replyEnabled === true;
-    const queryType = aiMode ? null : operational.classify(command);
+    const aiRequested = data.team.aiEnabled === true && data.team.replyEnabled === true;
+    const aiMode = aiRequested && controls.aiEnabled === true && options.teamAiAvailable === true;
+    const aiUnavailable = aiRequested && !aiMode;
+    const queryType = aiMode || aiUnavailable ? null : operational.classify(command);
     const clientDetail = aiMode || queryType ? null : lookupClient(command);
-    const status = aiMode ? 'AI_PENDING' :
+    const status = aiMode ? 'AI_PENDING' : aiUnavailable ? 'AI_UNAVAILABLE' :
       queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
     const preview = aiMode ? 'Consulta pendiente de interpretación segura.' :
+      aiUnavailable ? 'El motor de inteligencia no está configurado; no se envió ninguna respuesta.' :
       queryType ? operational.preview(queryType, data.tasks, data.labels, readOverview()) :
       clientDetail !== null ? clientDetail :
       'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
