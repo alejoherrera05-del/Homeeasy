@@ -1099,7 +1099,7 @@ async function maybeSendCustomerCatalog(record) {
   try {
     const result=await wahaRequest('POST','/api/sendFile',{
       session:WAHA_SESSION,chatId:record.chatId,
-      caption:'¡Claro! Aquí te compartimos nuestro catálogo de persianas y cortinas de HomeEasy. 😊',
+      caption:'¡Claro! 😊 Te comparto nuestro catálogo de persianas y cortinas. Si te gusta alguna opción, cuéntame cuál y con gusto seguimos.',
       file:{mimetype:'application/pdf',filename:catalog.filename,
         data:catalog.bytes.toString('base64')}
     },'application/json',90000);
