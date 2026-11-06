@@ -188,8 +188,8 @@ def validated_payload(payload: Any) -> dict[str, Any]:
             not isinstance(products, list) or len(products) > 10):
             raise TeamServiceError("TEAM_INVALID_APPROVED_DESK", 400)
         forbidden = re.compile(
-            r"(?:https?://|www\\.|[\\w.+-]+@[\\w.-]+\\.[a-z]{2,}|"
-            r"\\b\\d{8,}\\b|bearer\\s|sk-proj-|api[_ -]?key|"
+            r"(?:https?://|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|"
+            r"\b\d{8,}\b|bearer\s|sk-proj-|api[_ -]?key|"
             r"password|contrase(?:n|ñ)a|token de acceso)",
             re.IGNORECASE,
         )
@@ -201,7 +201,7 @@ def validated_payload(payload: Any) -> dict[str, Any]:
                 not 3 <= len(note["topic"].strip()) <= 70 or
                 not 8 <= len(note["text"].strip()) <= 500 or
                 forbidden.search(note["topic"]) or forbidden.search(note["text"]) or
-                any(ord(c) < 32 and c not in "\\n\\t" for c in note["text"])):
+                any(ord(c) < 32 and c not in "\n\t" for c in note["text"])):
                 raise TeamServiceError("TEAM_INVALID_APPROVED_DESK", 400)
             safe_notes.append({
                 "topic": note["topic"].strip(), "text": note["text"].strip()
