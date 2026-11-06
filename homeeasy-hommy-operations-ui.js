@@ -332,7 +332,7 @@
         for(const card of cards) {
           const name=card.querySelector('.heHommyNickname').value.trim();
           if(!name) continue;
-          if(!/^[\\p{L}]+(?:[ '\\-][\\p{L}]+)*$/u.test(name) ||
+          if(!/^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u.test(name) ||
               name.length<2 || name.length>28) {
             global.Swal.showValidationMessage('Usa solo letras y espacios en los nombres (de 2 a 28 caracteres).');
             return false;
