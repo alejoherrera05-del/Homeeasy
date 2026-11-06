@@ -84,9 +84,10 @@ function parseClientQuery(value) {
   const q = normalize(value);
   const match = /^(?:cliente (?:de |que busca |interesado en )?|que sabemos de (?:el cliente de |la cortina |la persiana )?|que paso con (?:el cliente de )?|como va lo de |estado de )(.*?)$/.exec(q);
   if (!match) return null;
-  let target = match[1].replace(/^(?:la |el |las |los )?(?:cortina|persiana|panel)(?:s|es)? (?:de )?/, '').trim();
+  let target = match[1].replace(/^(?:la |el |las |los )?(?:cortina|persiana)(?:s)? (?:de )?/, '').trim();
   if (target.length < 3 || target.length > 80 ||
-      /\b(?:manda|envi[aá]|escribe|avisa|responde|etiqueta|borra|elimina|contacta|confirma|llama|agenda|descuento|precio)\b/.test(target)) return null;
+      /\s+y\s+/.test(' ' + target + ' ') ||
+      /\b(?:manda\w*|envia\w*|escribe\w*|avisa\w*|responde\w*|etiqueta\w*|borra\w*|elimina\w*|contacta\w*|confirma\w*|llama\w*|agenda\w*|descuento|precio)\b/.test(target)) return null;
   const product = KNOWN_PRODUCTS.find(p => normalize(p) === target);
   return { kind: product ? 'PRODUCT' : 'NAME', target, product: product || null };
 }
