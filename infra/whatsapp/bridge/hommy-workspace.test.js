@@ -181,6 +181,13 @@ test('team mentions work naturally at beginning, at end or after a greeting', t 
     ['Oye Hommy, cómo vamos con la Onda Serena?', 'cómo vamos con la Onda Serena?'],
     ['Hommy, la cortina Onda Serena', 'la cortina Onda Serena']
   ];
+  const dir=path.join(v.options.dataDir, 'hommy-intelligence');
+  fs.mkdirSync(dir);
+  fs.writeFileSync(path.join(dir, 'state-v2.json'), JSON.stringify({
+    version:2,
+    clients:{ c:{id:'c',name:'Laura',provisional:false,identityConflicts:[]} },
+    opportunities:{ o:{id:'o',clientId:'c',product:'Onda Serena',status:'OPEN',nextAction:'REQUEST_QUOTE_DETAILS',environments:[],quoteNumbers:[]} }
+  }));
   v.workspace.configure({ team:{ groupId:GROUP, allowedSenders:[STAFF], enabled:true, replyEnabled:true } });
   for (const [i, [body, command]] of variants.entries()) {
     assert.equal(extractTeamRequest(body), command, body);
