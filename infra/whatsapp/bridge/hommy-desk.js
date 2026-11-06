@@ -25,6 +25,14 @@ const PRODUCT_FACTS = Object.freeze([
   'Onda Serena Velo: cortina de pliegue ondulado con tela traslúcida para luz natural filtrada y una caída fluida.'
 ]);
 
+function wantsCustomerCatalog(value) {
+  let q=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[¿?¡!.,;:]+/g,' ').replace(/\s+/g,' ').trim();
+  if(q.length>170 || !q || /(?:no me|no quiero|no envien|no manden)/.test(q))return false;
+  q=q.replace(/^(?:(?:hola|holi|buenas|buenas tardes|buenos dias|buenas noches|por favor)\s+){1,3}/,'');
+  return /^(?:(?:me (?:puedes|podrias|pueden|podrian)\s+)?(?:enviar|mandar|compartir|pasar)|(?:me (?:envias|mandas|compartes|pasas))|(?:quiero|quisiera|necesito)\s+(?:ver|recibir)?|(?:tienen|tienes)|(?:me regalas))\s+(?:(?:por favor|el|un|su|nuestro)\s+){0,3}catalogo(?:\s+(?:de\s+homeeasy|de\s+persianas(?:\s+y\s+cortinas)?))?(?:\s+por favor)?$/.test(q);
+}
+
 function validateGeneralNote(value) {
   const note = trim(value, 500);
   if (note.length < 8 || note.length > 500 ||
@@ -186,4 +194,4 @@ function createHommyDesk(options = {}) {
     customerCatalogEnabled,setCustomerCatalogAutomation});
 }
 
-module.exports=Object.freeze({createHommyDesk,PRODUCT_FACTS,CATALOG_NAME,CATALOG_MAX_BYTES});
+module.exports=Object.freeze({createHommyDesk,PRODUCT_FACTS,CATALOG_NAME,CATALOG_MAX_BYTES,wantsCustomerCatalog});
