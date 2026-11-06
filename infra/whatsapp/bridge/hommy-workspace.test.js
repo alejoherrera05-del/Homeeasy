@@ -729,3 +729,32 @@ test('AI conversation history never borrows a different colleague previous repli
   assert.match(request.history[0].question,/pendientes/);
   assert.doesNotMatch(JSON.stringify(request.history),/cotizaciones/);
 });
+
+
+test('context expires after ten minutes rather than guessing from an old conversation',t=>{
+  const v=setup();t.after(v.cleanup);
+  const folder=path.join(v.options.dataDir,'hommy-intelligence');fs.mkdirSync(folder);
+  fs.writeFileSync(path.join(folder,'state-v2.json'),JSON.stringify({
+    version:2,clients:{c:{id:'c',name:'Laura'}},
+    opportunities:{o:{id:'o',clientId:'c',product:'Onda Serena',status:'OPEN',
+      nextAction:'REQUEST_QUOTE_DETAILS',environments:[],quoteNumbers:[]}}
+  }));
+  const opts={...v.options,teamAiAvailable:true};
+  const w=createHommyWorkspace(opts);
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const first=w.ingestSignedGroupEvent(groupEvent({id:'expired-original',
+    body:'Homie, ¿cómo vamos con Onda Serena?'}),null,{aiEnabled:true});
+  assert.equal(first.status,'INFORMATION');
+  assert.ok(w.reserveTeamReply(first.id));
+  w.finishTeamReply(first.id,true);
+  const stateFile=path.join(v.options.dataDir,'hommy-workspace','state.json');
+  const state=JSON.parse(fs.readFileSync(stateFile,'utf8'));
+  const record=state.commands.find(c=>c.id===first.id);
+  record.at=new Date(Date.now()-11*60*1000).toISOString();
+  fs.writeFileSync(stateFile,JSON.stringify(state));
+  const reloaded=createHommyWorkspace(opts);
+  const late=reloaded.ingestSignedGroupEvent(groupEvent({id:'expired-followup',
+    body:'Homie, ¿y qué nos falta para concretarla?'}),null,{aiEnabled:true});
+  assert.equal(late.status,'AI_PENDING');
+  assert.equal(reloaded.reserveTeamReply(late.id),null);
+});
