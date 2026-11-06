@@ -785,6 +785,33 @@ test('a natural catalog request sends only to the configured authorized team gro
   assert.match(w.reserveTeamReply(unavailable.id).text,/no tengo el catálogo PDF instalado/i);
   assert.equal(w.reserveTeamCatalog(unavailable.id),null);
 });
+test('real WhatsApp wording "Hommy, envíame el catálogo, por fa" queues PDF for authorized group',t=>{
+  const v=setup();t.after(v.cleanup);
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true,hasDeskCatalog:()=>true});
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const phrases=[
+    'Hommy, envíame el catálogo, por fa',
+    'Hommy, envíame el catálogo, porfis',
+    'Hommy, pásame el catálogo por favor',
+    'Hommy, mándame el catálogo porfi'
+  ];
+  for(const [i,body] of phrases.entries()){
+    const item=w.ingestSignedGroupEvent(groupEvent({id:'natural-catalog-'+i,body}),null,{aiEnabled:true});
+    assert.equal(item.accepted,true,body);
+    assert.equal(item.status,'CATALOG_READY',body);
+    assert.deepEqual(w.reserveTeamCatalog(item.id),{commandId:item.id,groupId:GROUP},body);
+    assert.equal(w.finishTeamReply(item.id,true),true);
+  }
+  for(const [i,body] of [
+    'Hommy, envíame el catálogo por fa a Laura',
+    'Hommy, envíame el catálogo por fa y confírmale la visita',
+    'Hommy, envíame el catálogo por fa al cliente'
+  ].entries()){
+    const item=w.ingestSignedGroupEvent(groupEvent({id:'unsafe-natural-catalog-'+i,body}),null,{aiEnabled:true});
+    assert.equal(item.status,'REVIEW_REQUIRED',body);
+    assert.equal(w.reserveTeamCatalog(item.id),null,body);
+  }
+});
 test('catalog attachment requests cannot redirect document to customers or unknown groups',t=>{
   const v=setup();t.after(v.cleanup);
   const w=createHommyWorkspace({...v.options,teamAiAvailable:true,hasDeskCatalog:()=>true});
