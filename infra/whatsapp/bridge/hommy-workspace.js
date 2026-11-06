@@ -286,13 +286,16 @@ function createHommyWorkspace(options = {}) {
     const authorizedSenderId = isAuthorizedSender(author) ? author : matchingAlias;
     const aiRequested = data.team.aiEnabled === true && data.team.replyEnabled === true;
     const aiConfigured = aiRequested && controls.aiEnabled === true && options.teamAiAvailable === true;
+    // Hybrid fast path: exact, read-only operational questions use the existing
+    // verified local overview, even when conversational AI is enabled.
+    // Unknown questions still go to the AI; client actions remain REVIEW_REQUIRED.
+    const queryType = operational.classify(command);
     const aiCountLastMinute = data.commands.filter(item =>
       item.aiRequest === true && item.authorizedSenderId === authorizedSenderId &&
       Date.parse(item.at) >= Date.now() - 60000).length;
-    const aiRateLimited = aiConfigured && aiCountLastMinute >= 4;
-    const aiMode = aiConfigured && !aiRateLimited;
-    const aiUnavailable = aiRequested && !aiConfigured;
-    const queryType = aiRequested ? null : operational.classify(command);
+    const aiRateLimited = aiConfigured && !queryType && aiCountLastMinute >= 4;
+    const aiMode = aiConfigured && !queryType && !aiRateLimited;
+    const aiUnavailable = aiRequested && !aiConfigured && !queryType;
     const clientDetail = aiMode || queryType ? null : lookupClient(command);
     const status = aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
       aiUnavailable ? 'AI_UNAVAILABLE' :
