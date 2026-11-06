@@ -61,6 +61,19 @@ function ownCatalogRequest(value) {
   return /^(?:(?:oye|hola|por favor)\s+)?(?:enviame|mandame|pasame|comparteme|dame|me envias|me mandas|me pasas|me compartes|me puedes enviar|puedes enviarme|me podrias enviar|quisiera|necesito|quiero)\s+(?:por favor\s+)?(?:(?:el|un|nuestro)\s+)?catalogo(?:\s+(?:oficial|de\s+homeeasy|de\s+persianas(?:\s+y\s+cortinas)?))?(?:\s+por favor)?$/.test(q);
 }
 
+// Staff can teach a fact to Hommy in two explicit turns. Proposals are not
+// customer-facing knowledge; only a confirmed note becomes TEAM-only memory.
+function proposedMemory(value) {
+  const q=clean(value,700).replace(/^[¿¡\s,.:;-]+/,'').trim();
+  const m=/^(?:recuerda que|anota que|aprende que|ten presente que|guarda en tu memoria que)\s+(.+)$/i.exec(q);
+  return m && m[1].trim().length>=8 && m[1].length<=500 ? m[1].trim() : null;
+}
+function confirmsMemory(value) {
+  const q=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[¿?¡!.,;:]+/g,' ').replace(/\s+/g,' ').trim();
+  return /^(?:si\s+)?(?:guarda esa nota|guarda la nota|anota eso|guardalo en tu memoria|confirmo guardar la nota)$/.test(q);
+}
+
 function shouldResolveTeamAlias(event, team, author, alreadyAllowed, session) {
   if (!team || !team.enabled || !validGroup(team.groupId)) return false;
   if (!event || event.session !== session || !['message', 'message.any'].includes(event.event)) return false;
@@ -355,13 +368,36 @@ function createHommyWorkspace(options = {}) {
     // or exact-client lookups bypass network AI. The parser rejects mixed actions.
     // Unknown requests still use the conversational backend when enabled.
     const selfCatalog = ownCatalogRequest(command);
-    const actionRequested = !selfCatalog && requiresCustomerAction(command);
-    const queryType = actionRequested || selfCatalog ? null : operational.classify(command);
-    const localLookup = !actionRequested && !selfCatalog && !queryType && operational.parseClientQuery(command);
+    const pendingMemory = proposedMemory(command);
+    const approveMemory = confirmsMemory(command);
+    let memoryReply = null;
+    if(pendingMemory) {
+      memoryReply = 'Lo anoté como propuesta, pero todavía no lo guardaré. Confírmame con “Hommy, guarda esa nota” y lo agregaré a mi bloc interno.';
+    } else if(approveMemory) {
+      const previous = data.commands.filter(item => item.authorizedSenderId===authorizedSenderId &&
+        item.originGroupId===data.team.groupId && item.noteCandidate &&
+        item.noteSaved!==true && item.replyStatus==='SENT' &&
+        Date.parse(item.at)>=Date.now()-10*60*1000).slice(-1)[0];
+      if(!previous || typeof options.saveDeskNote!=='function') {
+        memoryReply = 'No encuentro una nota reciente pendiente de confirmar. Dime “Hommy, recuerda que…” y luego la guardamos.';
+      } else {
+        try {
+          const title=previous.noteCandidate.split(/\s+/).slice(0,6).join(' ').slice(0,70);
+          options.saveDeskNote({topic:title,text:previous.noteCandidate,visibility:'TEAM'},authorizedSenderId);
+          previous.noteSaved=true;
+          memoryReply = 'Listo, quedó en mi bloc de notas interno. Si quieres que también use esa información con clientes, puedes aprobarla desde mi escritorio.';
+        } catch (_) {
+          memoryReply = 'No pude guardar esa nota. Puede contener datos privados o ya existir una nota con el mismo tema; revísala desde mi escritorio.';
+        }
+      }
+    }
+    const actionRequested = !selfCatalog && !memoryReply && requiresCustomerAction(command);
+    const queryType = actionRequested || selfCatalog || memoryReply ? null : operational.classify(command);
+    const localLookup = !actionRequested && !selfCatalog && !memoryReply && !queryType && operational.parseClientQuery(command);
     const clientDetail = localLookup ? lookupClient(command) : null;
-    const followup = !actionRequested && !selfCatalog && !queryType && !localLookup ?
+    const followup = !actionRequested && !selfCatalog && !memoryReply && !queryType && !localLookup ?
       contextualFollowup(command, authorizedSenderId) : null;
-    const locallyAnswered = Boolean(selfCatalog || queryType || clientDetail !== null || followup !== null);
+    const locallyAnswered = Boolean(selfCatalog || memoryReply || queryType || clientDetail !== null || followup !== null);
     const catalogAvailable = typeof options.hasDeskCatalog==='function' &&
       options.hasDeskCatalog() === true;
     const catalogReady = selfCatalog && data.team.replyEnabled === true && catalogAvailable;
@@ -371,11 +407,12 @@ function createHommyWorkspace(options = {}) {
     const aiRateLimited = aiConfigured && !locallyAnswered && !actionRequested && aiCountLastMinute >= 4;
     const aiMode = aiConfigured && !locallyAnswered && !actionRequested && !aiRateLimited;
     const aiUnavailable = aiRequested && !aiConfigured && !locallyAnswered && !actionRequested;
-    const status = selfCatalog ? (catalogReady ? 'CATALOG_READY' : data.team.replyEnabled ? 'INFORMATION' : 'REVIEW_REQUIRED') :
+    const status = memoryReply ? 'INFORMATION' :
+      selfCatalog ? (catalogReady ? 'CATALOG_READY' : data.team.replyEnabled ? 'INFORMATION' : 'REVIEW_REQUIRED') :
       actionRequested ? 'REVIEW_REQUIRED' : aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
       aiUnavailable ? 'AI_UNAVAILABLE' :
       locallyAnswered ? 'INFORMATION' : 'REVIEW_REQUIRED';
-    const preview = selfCatalog ? (catalogReady ? 'Enviando el catálogo oficial de HomeEasy.' :
+    const preview = memoryReply || (selfCatalog ? (catalogReady ? 'Enviando el catálogo oficial de HomeEasy.' :
       !catalogAvailable ? 'Todavía no tengo el catálogo PDF instalado en mi escritorio. Súbelo desde Configuración > Integraciones.' :
       'El catálogo está instalado, pero las respuestas internas al grupo están desactivadas.') :
       actionRequested ? 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.' :
@@ -385,10 +422,11 @@ function createHommyWorkspace(options = {}) {
       queryType ? operational.preview(queryType, data.tasks, data.labels, readOverview()) :
       clientDetail !== null ? clientDetail :
       followup !== null ? followup :
-      'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
+      'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.');
     data.commands.push({ id, at: new Date().toISOString(), author,
       originGroupId:data.team.groupId, authorizedSenderId,
-      aiRequest:aiMode, command: command.slice(0, 500), preview, status });
+      aiRequest:aiMode, command: command.slice(0, 500),
+      noteCandidate:pendingMemory || null, preview, status });
     data.commands = data.commands.slice(-limit);
     data.seen.push(id);
     data.seen = data.seen.slice(-limit);
