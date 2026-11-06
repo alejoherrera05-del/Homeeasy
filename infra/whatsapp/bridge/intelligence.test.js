@@ -698,3 +698,71 @@ test('deployment contract preserves the inbox and rolls intelligence.js back', (
   assert.match(workflow, /BRIDGE_VERSION = '\\d\+\\\.\\d\+\\\.\\d\+'/);
   assert.doesNotMatch(workflow, /BRIDGE_VERSION = '0\.19\.2'/);
 });
+
+
+test('reception understands a natural greeting and introduces Hommy transparently', () => {
+  const { applyReceptionReview } = require('./intelligence');
+  const first = applyReceptionReview(result(), record('greeting-1', 'Hola, buenas tardes'), {isNewConversation:true});
+  assert.equal(first.nextAction, 'PREPARE_RESPONSE');
+  assert.match(first.suggestedResponse, /Soy Hommy, el asistente virtual de HomeEasy/);
+  assert.match(first.suggestedResponse, /en qué puedo ayudarte/);
+  const familiar = applyReceptionReview(result(), record('greeting-2', 'Buenas'), {isNewConversation:false});
+  assert.doesNotMatch(familiar.suggestedResponse, /Soy Hommy|Hola, cómo estás/);
+});
+
+test('catalog, address and hours requests require current approved assets and human review', () => {
+  const { applyReceptionReview } = require('./intelligence');
+  const scenarios = [
+    ['¿Me compartes el catálogo, por favor?', 'CATALOG', /catálogo/],
+    ['Hola, ¿me envías el catálogo?', 'CATALOG', /catálogo/],
+    ['¿Dónde están ubicados?', 'LOCATION', /ubicación/],
+    ['¿Me pasas la dirección?', 'LOCATION', /ubicación/],
+    ['¿Qué horarios manejan?', 'HOURS', /horario/],
+    ['¿Puedo hablar con un asesor?', 'HUMAN', /asesor/]
+  ];
+  for(const [question, asset, draft] of scenarios) {
+    const out = applyReceptionReview(result(), record('resource-1',question),{isNewConversation:true});
+    assert.equal(out.nextAction,'HUMAN_REVIEW',question);
+    assert.equal(out.humanInterventionRequired,true,question);
+    assert.equal(out.requiredAsset,asset,question);
+    assert.match(out.suggestedResponse,draft,question);
+    assert.doesNotMatch(out.suggestedResponse,/https?:|@|calle \d+|ya envi[eé]|ya compart[ií]/i,question);
+  }
+});
+
+test('reception never overrides complaints, stop instructions, mixed pricing or human takeover', () => {
+  const { applyReceptionReview } = require('./intelligence');
+  const blocked = result({ intent:'DO_NOT_CONTACT',nextAction:'STOP_CONTACT', suggestedResponse:'' });
+  assert.deepEqual(applyReceptionReview(blocked,record('stop-1','Hola')),blocked);
+  const human = result({ intent:'COMPLAINT',nextAction:'HUMAN_REVIEW',humanInterventionRequired:true,suggestedResponse:'' });
+  assert.deepEqual(applyReceptionReview(human,record('complaint-1','¿Dónde están ubicados?')),human);
+  const mixed = result({ intent:'INFORMATION_REQUEST',nextAction:'PREPARE_RESPONSE',
+    suggestedResponse:'Nuestro equipo puede ayudarte.' });
+  assert.deepEqual(applyReceptionReview(mixed,record('mixed-1','¿Me mandas catálogo y una cotización?')),mixed);
+  assert.deepEqual(applyReceptionReview(mixed,record('outbound-1','Hola',{direction:'OUTGOING'})),mixed);
+});
+
+test('reception proposals stay in REVIEW and cannot themselves send catalog or location', async t => {
+  const items=[
+    record('recept-1','Hola',{at:'2026-11-05T12:00:00.000Z',chatId:'573001112233@c.us'}),
+    record('recept-2','Me compartes el catálogo por favor?',{at:'2026-11-05T12:00:10.000Z',chatId:'573009999999@c.us',phone:'573009999999'}),
+    record('recept-3','Dónde están ubicados?',{at:'2026-11-05T12:00:20.000Z',chatId:'573008888888@c.us',phone:'573008888888'})
+  ];
+  const env=setup(items);t.after(env.cleanup);
+  const finished=await env.intelligence.process({}, {limit:3});
+  assert.equal(finished.processed,3);
+  const analyses=env.intelligence.list({limit:10}).items;
+  assert.equal(analyses.length,3);
+  for(const a of analyses) {
+    assert.equal(a.audit.sent,false);
+    assert.equal(a.audit.agendaCreated,false);
+    assert.equal(a.result.mode,'REVIEW');
+  }
+  const catalog=analyses.find(a=>a.result.requiredAsset==='CATALOG');
+  const location=analyses.find(a=>a.result.requiredAsset==='LOCATION');
+  assert.ok(catalog);
+  assert.ok(location);
+  assert.equal(catalog.result.nextAction,'HUMAN_REVIEW');
+  assert.equal(location.result.nextAction,'HUMAN_REVIEW');
+  assert.ok(analyses.some(a=>/Soy Hommy/.test(a.result.suggestedResponse)));
+});
