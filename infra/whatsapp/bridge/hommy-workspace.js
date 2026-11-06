@@ -43,6 +43,15 @@ function extractTeamRequest(value) {
   return content || null;
 }
 
+// Conservative action gate: a request to contact a customer or change commercial
+// state is never promoted to a read-only query or passed to the conversational
+// read-only model. It stays in the existing human-review workflow.
+function requiresCustomerAction(value) {
+  const q = String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  return /\b(?:envia\w*|enviar\w*|manda\w*|mandar\w*|dile\b|diles\b|avisale\w*|avisar\w*|escribe\w*|escribir\w*|responde\w*|responder\w*|contacta\w*|contactar\w*|llama\w*|llamar\w*|agenda\w*|agendar\w*|confirma\w*|confirmar\w*|cancela\w*|cancelar\w*|borra\w*|borrar\w*|elimina\w*|eliminar\w*|modifica\w*|modificar\w*|descuenta\w*)\b/.test(q);
+}
+
 function shouldResolveTeamAlias(event, team, author, alreadyAllowed, session) {
   if (!team || !team.enabled || !validGroup(team.groupId)) return false;
   if (!event || event.session !== session || !['message', 'message.any'].includes(event.event)) return false;
@@ -289,20 +298,22 @@ function createHommyWorkspace(options = {}) {
     // Local fast path: preapproved, read-only summaries and unambiguous product
     // or exact-client lookups bypass network AI. The parser rejects mixed actions.
     // Unknown requests still use the conversational backend when enabled.
-    const queryType = operational.classify(command);
-    const localLookup = !queryType && operational.parseClientQuery(command);
+    const actionRequested = requiresCustomerAction(command);
+    const queryType = actionRequested ? null : operational.classify(command);
+    const localLookup = !actionRequested && !queryType && operational.parseClientQuery(command);
     const clientDetail = localLookup ? lookupClient(command) : null;
     const locallyAnswered = Boolean(queryType || clientDetail !== null);
     const aiCountLastMinute = data.commands.filter(item =>
       item.aiRequest === true && item.authorizedSenderId === authorizedSenderId &&
       Date.parse(item.at) >= Date.now() - 60000).length;
-    const aiRateLimited = aiConfigured && !locallyAnswered && aiCountLastMinute >= 4;
-    const aiMode = aiConfigured && !locallyAnswered && !aiRateLimited;
-    const aiUnavailable = aiRequested && !aiConfigured && !locallyAnswered;
-    const status = aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
+    const aiRateLimited = aiConfigured && !locallyAnswered && !actionRequested && aiCountLastMinute >= 4;
+    const aiMode = aiConfigured && !locallyAnswered && !actionRequested && !aiRateLimited;
+    const aiUnavailable = aiRequested && !aiConfigured && !locallyAnswered && !actionRequested;
+    const status = actionRequested ? 'REVIEW_REQUIRED' : aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
       aiUnavailable ? 'AI_UNAVAILABLE' :
       queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
-    const preview = aiMode ? 'Consulta pendiente de interpretación segura.' :
+    const preview = actionRequested ? 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.' :
+      aiMode ? 'Consulta pendiente de interpretación segura.' :
       aiRateLimited ? 'Se alcanzó el límite de consultas de este integrante; inténtalo nuevamente después.' :
       aiUnavailable ? 'El motor de inteligencia no está configurado; no se envió ninguna respuesta.' :
       queryType ? operational.preview(queryType, data.tasks, data.labels, readOverview()) :
