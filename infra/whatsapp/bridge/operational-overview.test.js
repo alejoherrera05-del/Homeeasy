@@ -67,6 +67,12 @@ test('client memory lookup uses exact identity, ambiguity stops, excludes privat
   assert.match(products,/Falta completar información de la visita; no está confirmada/);
   assert.match(products,/referencia de cotización, pero no puedo confirmar/);
   assert.doesNotMatch(products,/573001112233|HE123/);
+  state.opportunities.one.environments=['sala - 573001112233'];
+  assert.doesNotMatch(clientReport(state,parseClientQuery('cliente de Onda Serena')),/573001112233|Espacio:/);
+  state.opportunities.one.environments=['sala'];
+  state.clients.a.name='Laura 573001112233';
+  assert.doesNotMatch(clientReport(state,parseClientQuery('cliente de Onda Serena')),/573001112233/);
+  state.clients.a.name='Laura';
   const name=clientReport(state,parseClientQuery('qué sabemos de Andrés'));
   assert.match(name,/Sheer Elegance/);
   assert.match(name,/Faltan datos para preparar una cotización/);

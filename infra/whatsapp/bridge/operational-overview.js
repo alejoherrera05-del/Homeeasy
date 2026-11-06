@@ -122,8 +122,15 @@ function clientReport(state, request) {
   const opportunity = matches[0];
   const client = clients.find(c => c.id === opportunity.clientId);
   const product = String(opportunity.product || 'un producto aún sin definir').slice(0, 75);
+  const safeRooms = new Map([
+    ['sala','sala'], ['comedor','comedor'], ['sala comedor','sala-comedor'],
+    ['habitacion','habitación'], ['habitacion principal','habitación principal'],
+    ['alcoba','alcoba'], ['alcoba principal','alcoba principal'], ['estudio','estudio'],
+    ['oficina','oficina'], ['cocina','cocina'], ['bano','baño'],
+    ['balcon','balcón'], ['terraza','terraza'], ['patio','patio']
+  ]);
   const environment = Array.isArray(opportunity.environments) ?
-    opportunity.environments.find(x => typeof x === 'string' && x.length < 80) : null;
+    opportunity.environments.map(x => safeRooms.get(normalize(x))).find(Boolean) : null;
   const next = {
     REQUEST_QUOTE_DETAILS: 'Faltan datos para preparar una cotización.',
     COLLECT_VISIT_DETAILS: 'Falta completar información de la visita; no está confirmada.',
@@ -132,9 +139,10 @@ function clientReport(state, request) {
     PREPARE_RESPONSE: 'Hay una respuesta propuesta para revisar.',
     STOP_CONTACT: 'No debemos contactar a esa persona.'
   }[opportunity.nextAction] || 'No hay un próximo paso verificado.';
+  const name = client && typeof client.name === 'string' ? client.name.trim() : '';
   const verifiedName = request.kind === 'NAME' ? null :
     client && client.provisional === false && !((client.identityConflicts || []).length) &&
-      typeof client.name === 'string' ? client.name.slice(0, 65) : null;
+      /^[A-Za-zÀ-ÿ'’.\s-]{2,65}$/u.test(name) ? name : null;
   let response = 'Según la última conversación analizada, ' +
     (verifiedName ? verifiedName + ' tiene ' : 'hay ') +
     (opportunity.status === 'OPEN' ? 'una oportunidad abierta' : 'una oportunidad registrada') +
