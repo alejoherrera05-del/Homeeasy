@@ -265,6 +265,9 @@
         '<p id="heHommyCatalogStatus" style="color:#81777d">Consultando...</p>' +
         '<input type="file" id="heHommyCatalogFile" accept="application/pdf,.pdf" style="width:100%;margin:8px 0">' +
         '<button type="button" id="heHommyCatalogUpload" class="he-hommy-ops-btn primary">Guardar PDF en su escritorio</button>' +
+        '<label style="display:flex;gap:9px;align-items:flex-start;margin-top:13px"><input id="heHommyCatalogAuto" type="checkbox">' +
+        '<span>Enviar el PDF automáticamente a clientes que soliciten únicamente el catálogo</span></label>' +
+        '<small style="display:block;margin-top:5px;color:#81777d">Desactivado por defecto. Solo opera con solicitudes claras, sin intervención humana reciente y con control de duplicados.</small>' +
         '<small style="display:block;margin-top:8px;color:#81777d">Sube la versión oficial optimizada (máximo 12 MB). ' +
         'Se guarda en el VPS, no se hace público en Internet.</small></section>' +
         '<section style="padding:14px;border:1px solid #eee;border-radius:14px">' +
@@ -293,6 +296,7 @@
         const visibility = document.getElementById('heHommyNoteVisibility');
         const fileInput = document.getElementById('heHommyCatalogFile');
         const uploadButton = document.getElementById('heHommyCatalogUpload');
+        const autoToggle = document.getElementById('heHommyCatalogAuto');
         const saveButton = document.getElementById('heHommyNoteSave');
         const report = (message, error) => {
           feedback.textContent = message;
@@ -312,6 +316,8 @@
           catalog.textContent = item.installed ?
             'Listo para enviar al grupo · ' + (item.bytes/1048576).toFixed(1) + ' MB · ' + (item.filename || '') :
             'Aún no hay un catálogo instalado en el VPS.';
+          autoToggle.checked = Boolean(response.automation && response.automation.customerCatalogEnabled);
+          autoToggle.disabled = !item.installed;
           notesNode.replaceChildren();
           const notes = Array.isArray(response.notes) ? response.notes : [];
           if (!notes.length) notesNode.textContent = 'Todavía no hay notas aprobadas.';
@@ -347,6 +353,25 @@
             notesNode.append(box);
           }
         }
+        autoToggle.addEventListener('change', async () => {
+          const enabled=autoToggle.checked;
+          if (busy) {autoToggle.checked=!enabled;return;}
+          if (enabled && !global.confirm(
+            '¿Activar el envío automático del catálogo a clientes que lo soliciten expresamente? ' +
+            'Hommy solo enviará el PDF aprobado y se retirará si detecta atención humana.')) {
+            autoToggle.checked=false; return;
+          }
+          busy=true;autoToggle.disabled=true;
+          try {
+            await api.setHommyCatalogAutomation(enabled);
+            await refresh();
+            report(enabled ? 'Envío automático de catálogo habilitado.' :
+              'Envío automático de catálogo desactivado.');
+          } catch(e) {
+            await refresh().catch(()=>{});
+            report(e.message||'No se pudo cambiar la automatización.',true);
+          } finally {busy=false;}
+        });
         uploadButton.addEventListener('click', async () => {
           if (busy || !fileInput.files || !fileInput.files[0]) {
             report('Selecciona el catálogo oficial en PDF.', true); return;
