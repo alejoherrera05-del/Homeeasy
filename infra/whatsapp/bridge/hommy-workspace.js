@@ -286,17 +286,19 @@ function createHommyWorkspace(options = {}) {
     const authorizedSenderId = isAuthorizedSender(author) ? author : matchingAlias;
     const aiRequested = data.team.aiEnabled === true && data.team.replyEnabled === true;
     const aiConfigured = aiRequested && controls.aiEnabled === true && options.teamAiAvailable === true;
-    // Hybrid fast path: exact, read-only operational questions use the existing
-    // verified local overview, even when conversational AI is enabled.
-    // Unknown questions still go to the AI; client actions remain REVIEW_REQUIRED.
+    // Local fast path: preapproved, read-only summaries and unambiguous product
+    // or exact-client lookups bypass network AI. The parser rejects mixed actions.
+    // Unknown requests still use the conversational backend when enabled.
     const queryType = operational.classify(command);
+    const localLookup = !queryType && operational.parseClientQuery(command);
+    const clientDetail = localLookup ? lookupClient(command) : null;
+    const locallyAnswered = Boolean(queryType || clientDetail !== null);
     const aiCountLastMinute = data.commands.filter(item =>
       item.aiRequest === true && item.authorizedSenderId === authorizedSenderId &&
       Date.parse(item.at) >= Date.now() - 60000).length;
-    const aiRateLimited = aiConfigured && !queryType && aiCountLastMinute >= 4;
-    const aiMode = aiConfigured && !queryType && !aiRateLimited;
-    const aiUnavailable = aiRequested && !aiConfigured && !queryType;
-    const clientDetail = aiMode || queryType ? null : lookupClient(command);
+    const aiRateLimited = aiConfigured && !locallyAnswered && aiCountLastMinute >= 4;
+    const aiMode = aiConfigured && !locallyAnswered && !aiRateLimited;
+    const aiUnavailable = aiRequested && !aiConfigured && !locallyAnswered;
     const status = aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
       aiUnavailable ? 'AI_UNAVAILABLE' :
       queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
