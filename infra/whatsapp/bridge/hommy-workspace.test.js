@@ -77,6 +77,18 @@ test('approved team names are persisted per verified sender, never guessed from 
   w.configure({team:{allowedSenders:[STAFF]}});
   assert.equal(w.status().team.profiledMembers,1);
   assert.equal(w.memberProfiles()[0].profile.name,'Ale');
+  const summary=w.ingestSignedGroupEvent(groupEvent({id:'ale-first-summary',
+    body:'Hommy, pendientes',author:STAFF}),null,{aiEnabled:true});
+  assert.equal(summary.status,'INFORMATION');
+  const firstReply=w.reserveTeamReply(summary.id);
+  assert.match(firstReply.text,/jefe Ale/);
+  w.finishTeamReply(summary.id,true);
+  const second=w.ingestSignedGroupEvent(groupEvent({id:'ale-second-summary',
+    body:'Hommy, cotizaciones',author:STAFF}),null,{aiEnabled:true});
+  assert.equal(second.status,'INFORMATION');
+  const nextReply=w.reserveTeamReply(second.id);
+  assert.doesNotMatch(nextReply.text,/jefe Ale/);
+
 });
 
 test('pausing only blocks Hommy workflow and persists across restart', t => {
@@ -908,7 +920,7 @@ test('approved teammate can teach Hommy a fact only with a second confirmation',
   assert.equal(written.length,1);
   assert.equal(written[0].note.visibility,'TEAM');
   assert.equal(written[0].sender,STAFF);
-  assert.match(w.reserveTeamReply(final.id).text,/quedó en mi bloc/);
+  assert.match(w.reserveTeamReply(final.id).text,/ya quedó guardado en mi memoria/);
   w.finishTeamReply(final.id,true);
   const repeated=w.ingestSignedGroupEvent(groupEvent({id:'teach-again',
     body:'Hommy guarda esa nota'}),null,{aiEnabled:true});
