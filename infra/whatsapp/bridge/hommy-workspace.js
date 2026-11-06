@@ -343,8 +343,21 @@ function createHommyWorkspace(options = {}) {
           options.teamAiAvailable !== true)) ||
         (command.originGroupId && command.originGroupId !== data.team.groupId) ||
         (command.authorizedSenderId && !isAuthorizedSender(command.authorizedSenderId))) return null;
-    const text = clean(command.preview, 600);
+    let text = clean(command.preview, 600);
     if (!text) return null;
+    const profile=profileForCommand(id);
+    // A warm first reply, not a name/honorific robot on every line. AI
+    // replies handle personalization themselves using verified identity.
+    if(profile && command.aiRequest!==true) {
+      const prior=data.commands.some(c=>c.id!==id && c.originGroupId===data.team.groupId &&
+        c.authorizedSenderId===command.authorizedSenderId && c.replyStatus==='SENT' &&
+        Date.parse(c.at)>=Date.parse(command.at)-2*60*60*1000 &&
+        Date.parse(c.at)<Date.parse(command.at));
+      const vocative=memberAddress(profile);
+      if(!prior && vocative && !/^[¡!]?(?:hola|listo|claro|de una)[,!]/i.test(text)) {
+        text='¡Claro, '+vocative+'! '+text;
+      }
+    }
     command.replyStatus = 'SENDING';
     command.replyStartedAt = new Date().toISOString();
     persist('TEAM_REPLY_RESERVED', { profile: { uid: 'system' } });
@@ -431,20 +444,20 @@ function createHommyWorkspace(options = {}) {
     const approveMemory = confirmsMemory(command);
     let memoryReply = null;
     if(pendingMemory) {
-      memoryReply = 'Lo anoté como propuesta, pero todavía no lo guardaré. Confírmame con “Hommy, guarda esa nota” y lo agregaré a mi bloc interno.';
+      memoryReply = 'Dale, lo tengo como propuesta. ¿Me confirmas con “Hommy, guarda esa nota” para dejarlo fijo?';
     } else if(approveMemory) {
       const previous = data.commands.filter(item => item.authorizedSenderId===authorizedSenderId &&
         item.originGroupId===data.team.groupId).slice(-1)[0];
       const canConfirm = previous && previous.noteCandidate && previous.noteSaved!==true &&
         previous.replyStatus==='SENT' && Date.parse(previous.at)>=Date.now()-10*60*1000;
       if(!canConfirm || typeof options.saveDeskNote!=='function') {
-        memoryReply = 'No encuentro una nota reciente pendiente de confirmar. Dime “Hommy, recuerda que…” y luego la guardamos.';
+        memoryReply = 'No encuentro una nota reciente por guardar. Dime “Hommy, recuerda que…” y lo anotamos.';
       } else {
         try {
           const title=previous.noteCandidate.split(/\s+/).slice(0,6).join(' ').slice(0,70);
           options.saveDeskNote({topic:title,text:previous.noteCandidate,visibility:'TEAM'},authorizedSenderId);
           previous.noteSaved=true;
-          memoryReply = 'Listo, quedó en mi bloc de notas interno. Si quieres que también use esa información con clientes, puedes aprobarla desde mi escritorio.';
+          memoryReply = 'Listo, ya quedó guardado en mi memoria. Para usarlo también con clientes, puedes aprobarlo desde mi escritorio.';
         } catch (_) {
           memoryReply = 'No pude guardar esa nota. Puede contener datos privados o ya existir una nota con el mismo tema; revísala desde mi escritorio.';
         }
