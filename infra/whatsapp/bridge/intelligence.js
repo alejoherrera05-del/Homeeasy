@@ -265,6 +265,22 @@ function applyReceptionReview(result, record, context = {}) {
   };
 }
 
+// Read-only fast track for narrow first-contact messages. Keep complex or
+// mixed requests on the model; never send messages or promise resources.
+function fastReceptionResult(record, context = {}) {
+  if (!record || record.direction === 'OUTGOING' || context.humanTakeover === true) return null;
+  const baseline = {
+    intent: 'INFORMATION_REQUEST', secondaryIntents: [], productInterest: null,
+    commercialSummary: 'El contacto escribió una solicitud inicial de atención.',
+    pendingInformation: [], temperature: 'ACTIVE', humanInterventionRequired: false,
+    suggestedResponse: '', nextAction: 'PREPARE_RESPONSE',
+    reason: 'Solicitud sencilla de atención.', confidence: 1, memory: memoryFields({})
+  };
+  const shaped = applyReceptionReview(baseline, record, context);
+  if (shaped === baseline) return null;
+  return { ...shaped, mode: 'REVIEW', receptionRoute: 'LOCAL' };
+}
+
 function applyGuardrails(result, record, inspection) {
   const text = normalizeText(record && record.text);
   const stop = /\b(no me (?:escriban|contacten)|no (?:escriban|contacten) mas|dejen de (?:escribirme|contactarme)|stop|cancelar suscripcion|dar de baja)\b/i.test(text);
@@ -760,9 +776,13 @@ function createIntelligence(options) {
         const contextMessages = conversationMemory.messages.slice(-12);
         const clientOpportunities = Object.values(state.opportunities).filter(item => item.clientId === client.id);
         const leadGuidance = commercialLeadContext(record, client, clientOpportunities);
-        const analyzed = await opts.analyze({ record, match, messages: contextMessages,
-          client, opportunities: clientOpportunities, leadGuidance, responseStyle: RESPONSE_STYLE,
-          conversationToken: conversationMemory.conversationToken || null }, requestContext);
+        const local = fastReceptionResult(record, {
+          isNewConversation: newConversation, humanTakeover
+        });
+        const analyzed = local ? { result: local, conversationToken: null } :
+          await opts.analyze({ record, match, messages: contextMessages,
+            client, opportunities: clientOpportunities, leadGuidance, responseStyle: RESPONSE_STYLE,
+            conversationToken: conversationMemory.conversationToken || null }, requestContext);
         const guarded = applyResponseStyle(
           applyReceptionReview(
             applyLeadReview(
@@ -818,4 +838,4 @@ function createIntelligence(options) {
 }
 
 module.exports = Object.freeze({ createIntelligence, validateResult, applyGuardrails, resolveAssociation,
-  RESPONSE_STYLE, commercialLeadContext, applyLeadReview, applyReceptionReview, isGenericLeadQuestion });
+  RESPONSE_STYLE, commercialLeadContext, applyLeadReview, applyReceptionReview, fastReceptionResult, isGenericLeadQuestion });
