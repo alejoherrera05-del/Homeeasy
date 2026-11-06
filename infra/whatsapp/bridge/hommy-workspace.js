@@ -36,7 +36,7 @@ function extractTeamRequest(value) {
   const mention = /\bhommy\b/i.exec(raw);
   if (!mention) return null;
   let before = raw.slice(0, mention.index).replace(/^[\s,¿¡,:!?-]+|[\s,¿¡,:!?-]+$/g, '');
-  let after = raw.slice(mention.index + mention[0].length).replace(/^[\s,¿¡,:!?-]+|[\s,¿¡,:!?-]+$/g, '');
+  let after = raw.slice(mention.index + mention[0].length).replace(/^[\s,¿¡,:!?-]+/g, '').trim();
   if (/^(?:oye|hola|hey|buenos dias|buenos días|buenas tardes|buenas noches)$/i.test(before)) before = '';
   let content = [before, after].filter(Boolean).join(' ').trim();
   content = content.replace(/^(?:oye|hola|hey|buenos d[ií]as|buenas tardes|buenas noches)[, ]+/i, '').trim();

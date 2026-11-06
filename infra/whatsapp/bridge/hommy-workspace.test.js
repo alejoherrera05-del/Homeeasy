@@ -117,7 +117,7 @@ test('lookup predicate recognizes actual private-group commands (runtime regress
   assert.equal(shouldResolveTeamAlias(groupEvent({ author, body:'Hommyabc, pendientes' }),
     team, author, false, 'homeeasy'), false);
   assert.equal(shouldResolveTeamAlias(groupEvent({ author, body:'Buenos días Hommy, pendientes' }),
-    team, author, false, 'homeeasy'), false);
+    team, author, false, 'homeeasy'), true);
   assert.equal(shouldResolveTeamAlias(event, team, author, true, 'homeeasy'), false);
   assert.equal(shouldResolveTeamAlias(event, { ...team, enabled:false }, author, false, 'homeeasy'), false);
   assert.equal(shouldResolveTeamAlias(event, team, 'untrusted', false, 'homeeasy'), false);
