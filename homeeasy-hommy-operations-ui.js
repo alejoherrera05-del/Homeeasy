@@ -66,6 +66,7 @@
       '<button type="button" id="heHommyToggle" class="he-hommy-ops-btn primary" disabled>Pausar Hommy</button>' +
       '<button type="button" id="heHommyGroupLink" class="he-hommy-ops-btn">Vincular grupo</button>' +
       '<button type="button" id="heHommyGroupToggle" class="he-hommy-ops-btn" hidden>Activar grupo</button>' +
+      '<button type="button" id="heHommyProfiles" class="he-hommy-ops-btn" hidden>Personalizar integrantes</button>' +
       '<button type="button" id="heHommyReplies" class="he-hommy-ops-btn" hidden>Activar respuestas internas</button>' +
       '<button type="button" id="heHommyAI" class="he-hommy-ops-btn" hidden>Activar conversación natural</button>' +
       '<button type="button" id="heHommyCommands" class="he-hommy-ops-btn">Actividad (0)</button>' +
@@ -76,6 +77,7 @@
     document.getElementById('heHommyToggle').addEventListener('click', toggle);
     document.getElementById('heHommyRefresh').addEventListener('click', () => load(true));
     document.getElementById('heHommyGroupLink').addEventListener('click', linkTeamGroup);
+    document.getElementById('heHommyProfiles').addEventListener('click', editTeamProfiles);
     document.getElementById('heHommyGroupToggle').addEventListener('click', toggleTeamGroup);
     document.getElementById('heHommyCommands').addEventListener('click', viewTeamCommands);
     document.getElementById('heHommyDesk').addEventListener('click', openDesk);
@@ -102,6 +104,11 @@
       const teamToggle = document.getElementById('heHommyGroupToggle');
       teamToggle.hidden = !(teamState && teamState.configured);
       teamToggle.disabled = !canConfigure();
+      const profileButton = document.getElementById('heHommyProfiles');
+      profileButton.hidden = !(teamState && teamState.configured);
+      profileButton.disabled = !canConfigure();
+      profileButton.textContent = 'Personalizar equipo' + (teamState && teamState.profiledMembers ?
+        ' (' + teamState.profiledMembers + ')' : '');
       teamToggle.textContent = teamState && teamState.enabled ? 'Pausar grupo' : 'Activar grupo';
       const replyToggle = document.getElementById('heHommyReplies');
       replyToggle.hidden = !(teamState && teamState.enabled && teamState.replySupported === true);
@@ -249,6 +256,114 @@
       await load(false);
       global.Swal.fire({ icon:'error', title:'No se pudo vincular el grupo',
         text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
+    }
+  }
+
+  // Identities are assigned only by an authorized administrator to the
+  // exact preapproved WhatsApp IDs; we never trust a nickname inside a chat.
+  async function editTeamProfiles() {
+    if (!canConfigure() || loading || !teamState || !teamState.configured ||
+        !global.Swal || !global.HomeEasyWhatsApp.hommyTeamMembers) return;
+    let members;
+    try {
+      const result = await global.HomeEasyWhatsApp.hommyTeamMembers();
+      members = Array.isArray(result.members) ? result.members : [];
+    } catch (e) {
+      global.Swal.fire({icon:'error',title:'No se pudieron cargar los integrantes',
+        text:e.message || 'Revisa el Bridge y vuelve a intentar.',confirmButtonColor:'#a6455a'});
+      return;
+    }
+    if(!members.length) {
+      global.Swal.fire({icon:'info',title:'No hay integrantes autorizados',
+        text:'Vincula las cuentas del grupo antes de personalizar las respuestas.'});
+      return;
+    }
+    const pick = (options,selected) => {
+      const node=document.createElement('select');
+      node.style.cssText='width:100%;padding:10px;border:1px solid #e6dfe2;border-radius:10px;background:white';
+      for(const [value,label] of options) {
+        const option=document.createElement('option');
+        option.value=value;option.textContent=label;
+        option.selected=value===selected;
+        node.appendChild(option);
+      }
+      return node;
+    };
+    const result = await global.Swal.fire({
+      title:'¿Cómo debe hablar Hommy con el equipo?',
+      width:600,
+      html:'<p style="text-align:left;font-size:13px;line-height:1.6;color:#62565d">Asigna el nombre y trato de cada cuenta autorizada. Hommy sabrá quién le habla, sin repetir el nombre o “jefe” en cada respuesta. No cambia permisos ni envía mensajes a clientes.</p>' +
+        '<div id="heHommyProfileRows" style="display:grid;gap:12px;margin-top:15px;text-align:left"></div>',
+      showCancelButton:true, confirmButtonText:'Guardar personalización',
+      cancelButtonText:'Cancelar',confirmButtonColor:'#a6455a',
+      didOpen:() => {
+        const container=document.getElementById('heHommyProfileRows');
+        for(const member of members) {
+          const card=document.createElement('div');
+          card.style.cssText='display:grid;gap:9px;padding:14px;border:1px solid #eee;border-radius:13px;background:#fbfafb';
+          card.dataset.memberId=member.senderId;
+          const heading=document.createElement('strong');
+          heading.textContent='Cuenta autorizada ···' + String(member.senderId||'').split('@')[0].slice(-4);
+          heading.style.fontSize='12px';
+          const input=document.createElement('input');
+          input.type='text'; input.maxLength=28;
+          input.placeholder='Nombre: Ale, Daniela...';
+          input.value=member.profile && member.profile.name || '';
+          input.style.cssText='width:100%;padding:11px;border:1px solid #e6dfe2;border-radius:10px;box-sizing:border-box';
+          input.setAttribute('aria-label','Nombre de esta cuenta autorizada');
+          input.className='heHommyNickname';
+          const role=pick([
+            ['OWNER','Dirección / propietario'],['MANAGER','Gerencia'],['TEAM','Equipo']
+          ],member.profile && member.profile.role || 'TEAM');
+          role.className='heHommyMemberRole';
+          const address=pick([
+            ['NAME','Por su nombre (natural)'],
+            ['JEFE','“Jefe” + nombre (de vez en cuando)'],
+            ['NONE','Sin vocativos']
+          ],member.profile && member.profile.address || 'NAME');
+          address.className='heHommyMemberAddress';
+          card.append(heading,input,role,address);
+          container.appendChild(card);
+        }
+      },
+      preConfirm:() => {
+        const profiles={};
+        const cards=document.querySelectorAll('#heHommyProfileRows [data-member-id]');
+        for(const card of cards) {
+          const name=card.querySelector('.heHommyNickname').value.trim();
+          if(!name) continue;
+          if(!/^[\\p{L}]+(?:[ '\\-][\\p{L}]+)*$/u.test(name) ||
+              name.length<2 || name.length>28) {
+            global.Swal.showValidationMessage('Usa solo letras y espacios en los nombres (de 2 a 28 caracteres).');
+            return false;
+          }
+          profiles[card.dataset.memberId]={
+            name,
+            role:card.querySelector('.heHommyMemberRole').value,
+            address:card.querySelector('.heHommyMemberAddress').value
+          };
+        }
+        if(!Object.keys(profiles).length) {
+          global.Swal.showValidationMessage('Escribe al menos un nombre para que Hommy pueda reconocerlo.');
+          return false;
+        }
+        return profiles;
+      }
+    });
+    if(!result.isConfirmed) return;
+    try {
+      await global.HomeEasyWhatsApp.saveHommyControl({
+        team:{profiles:result.value},revision
+      });
+      await load(true);
+      global.Swal.fire({icon:'success',title:'Equipo personalizado',
+        text:'Hommy reconoce ahora los nombres configurados de estos integrantes.',
+        confirmButtonColor:'#a6455a'});
+    } catch (e) {
+      await load(false);
+      global.Swal.fire({icon:'error',title:'No se pudo guardar el equipo',
+        text:e.message || 'Revisa los permisos e inténtalo de nuevo.',
+        confirmButtonColor:'#a6455a'});
     }
   }
 
