@@ -10,7 +10,7 @@ const ops = require('./operations');
 const conversation = require('./conversation');
 const { createInbox, normalizeEvent } = require('./inbox');
 const { createIntelligence, resolveAssociation } = require('./intelligence');
-const { createHommyWorkspace, shouldResolveTeamAlias } = require('./hommy-workspace');
+const { createHommyWorkspace, shouldResolveTeamAlias, memberAddress } = require('./hommy-workspace');
 const { createTeamAI } = require('./team-ai');
 const { createHommyDesk, wantsCustomerCatalog } = require('./hommy-desk');
 const maintenance = require('./maintenance');
@@ -19,7 +19,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.28.1';
+const BRIDGE_VERSION = '0.29.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -1189,9 +1189,16 @@ async function handle(req, res) {
           if (reservedCatalog) {
             try {
               const catalog = hommyDesk.readCatalog();
+              const profile=hommyWorkspace.profileForCommand(reservedCatalog.commandId);
+              const to=memberAddress(profile);
+              // File delivery itself is deterministic, authorized and immediate.
+              // Name/title comes only from the admin-approved, sender-bound profile.
+              const caption=to ?
+                '¡Listo, '+to+'! Te paso el catálogo de HomeEasy por aquí. Si quieres revisar alguna referencia, me dices.' :
+                '¡Listo! Te comparto el catálogo de HomeEasy por aquí. Si quieres revisar alguna referencia, me dices.';
               await wahaRequest('POST', '/api/sendFile', {
                 session: WAHA_SESSION, chatId: reservedCatalog.groupId,
-                caption: 'Aquí tienes el catálogo oficial de persianas y cortinas de HomeEasy.',
+                caption,
                 file: { mimetype:'application/pdf', filename:catalog.filename,
                   data:catalog.bytes.toString('base64') }
               }, 'application/json', 90000);
@@ -1302,6 +1309,12 @@ async function handle(req, res) {
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/control') {
     const actor = await auth.authorize(req, 'config.write');
     return json(res, 200, { ok: true, control: hommyWorkspace.configure(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/team-members') {
+    // Team identifiers are private: only administrators with config.write may
+    // see and edit verified member profiles. Never expose these to the model.
+    await auth.authorize(req, 'config.write');
+    return json(res, 200, {ok:true,members:hommyWorkspace.memberProfiles()});
   }
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/groups') {
     // Read-only, explicit UI request; no group mutation and no session restart.
