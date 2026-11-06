@@ -56,6 +56,7 @@ jobs:
           node --check infra/whatsapp/bridge/operational-overview.js
           node --check infra/whatsapp/bridge/team-ai.js
           node --check infra/whatsapp/bridge/hommy-desk.js
+          node --check infra/whatsapp/bridge/hommy-self-check.js
           node --check homeeasy-hommy-operations-ui.js
           node --check homeeasy-whatsapp-client.js
           bash -n infra/whatsapp/update-bridge.sh
