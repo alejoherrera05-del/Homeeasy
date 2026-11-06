@@ -362,19 +362,22 @@ function createHommyWorkspace(options = {}) {
     const followup = !actionRequested && !selfCatalog && !queryType && !localLookup ?
       contextualFollowup(command, authorizedSenderId) : null;
     const locallyAnswered = Boolean(selfCatalog || queryType || clientDetail !== null || followup !== null);
-    const catalogReady = selfCatalog && typeof options.hasDeskCatalog==='function' &&
+    const catalogAvailable = typeof options.hasDeskCatalog==='function' &&
       options.hasDeskCatalog() === true;
+    const catalogReady = selfCatalog && data.team.replyEnabled === true && catalogAvailable;
     const aiCountLastMinute = data.commands.filter(item =>
       item.aiRequest === true && item.authorizedSenderId === authorizedSenderId &&
       Date.parse(item.at) >= Date.now() - 60000).length;
     const aiRateLimited = aiConfigured && !locallyAnswered && !actionRequested && aiCountLastMinute >= 4;
     const aiMode = aiConfigured && !locallyAnswered && !actionRequested && !aiRateLimited;
     const aiUnavailable = aiRequested && !aiConfigured && !locallyAnswered && !actionRequested;
-    const status = selfCatalog ? (catalogReady ? 'CATALOG_READY' : 'INFORMATION') :
+    const status = selfCatalog ? (catalogReady ? 'CATALOG_READY' : data.team.replyEnabled ? 'INFORMATION' : 'REVIEW_REQUIRED') :
       actionRequested ? 'REVIEW_REQUIRED' : aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
       aiUnavailable ? 'AI_UNAVAILABLE' :
       locallyAnswered ? 'INFORMATION' : 'REVIEW_REQUIRED';
-    const preview = selfCatalog ? (catalogReady ? 'Enviando el catálogo oficial de HomeEasy.' : 'Todavía no tengo el catálogo PDF instalado en mi escritorio. Súbelo desde Configuración > Integraciones.') :
+    const preview = selfCatalog ? (catalogReady ? 'Enviando el catálogo oficial de HomeEasy.' :
+      !catalogAvailable ? 'Todavía no tengo el catálogo PDF instalado en mi escritorio. Súbelo desde Configuración > Integraciones.' :
+      'El catálogo está instalado, pero las respuestas internas al grupo están desactivadas.') :
       actionRequested ? 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.' :
       aiMode ? 'Consulta pendiente de interpretación segura.' :
       aiRateLimited ? 'Se alcanzó el límite de consultas de este integrante; inténtalo nuevamente después.' :
