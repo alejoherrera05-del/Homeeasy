@@ -189,6 +189,47 @@ class TeamOnlyContractTests(unittest.TestCase):
         self.assertTrue(params["text"]["format"]["strict"])
         self.assertLessEqual(len(params["input"][1]["content"]), 12000)
 
+    def test_fast_team_model_uses_no_reasoning_without_changing_primary_hommy(self):
+        with patch.dict(os.environ, {
+            "OPENAI_API_KEY": "test-only-key",
+            "HOMMY_MODEL": "gpt-5.6-terra",
+            "HOMMY_TEAM_MODEL": "gpt-5.4-mini",
+        }, clear=False):
+            os.environ.pop("HOMMY_TEAM_REASONING_EFFORT", None)
+            fake = FakeClient()
+            result = interpret_team(payload(), client=fake)
+            self.assertEqual(result["kind"], "ANSWER")
+            params = fake.responses.calls[0]
+            self.assertEqual(params["model"], "gpt-5.4-mini")
+            self.assertEqual(params["reasoning"], {"effort": "none"})
+            self.assertEqual(os.environ["HOMMY_MODEL"], "gpt-5.6-terra")
+            self.assertEqual(params["store"], False)
+            self.assertNotIn("tools", params)
+
+    def test_primary_model_still_defaults_to_low_reasoning_without_team_override(self):
+        with patch.dict(os.environ, {
+            "OPENAI_API_KEY": "test-only-key",
+            "HOMMY_MODEL": "gpt-5.6-terra",
+        }, clear=False):
+            os.environ.pop("HOMMY_TEAM_MODEL", None)
+            os.environ.pop("HOMMY_TEAM_REASONING_EFFORT", None)
+            fake = FakeClient()
+            interpret_team(payload(), client=fake)
+            self.assertEqual(fake.responses.calls[0]["model"], "gpt-5.6-terra")
+            self.assertEqual(fake.responses.calls[0]["reasoning"], {"effort": "low"})
+
+    def test_rejects_invalid_model_effort_without_calling_openai(self):
+        with patch.dict(os.environ, {
+            "OPENAI_API_KEY": "test-only-key",
+            "HOMMY_TEAM_MODEL": "gpt-5.4-mini",
+            "HOMMY_TEAM_REASONING_EFFORT": "unlimited",
+        }):
+            fake = FakeClient()
+            with self.assertRaises(TeamServiceError) as context:
+                interpret_team(payload(), client=fake)
+            self.assertEqual(context.exception.code, "TEAM_MODEL_CONFIG_INVALID")
+            self.assertEqual(fake.responses.calls, [])
+
     def test_blocks_unverified_claims_and_personal_details(self):
         facts = payload()["facts"]
         for text in [
