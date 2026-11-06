@@ -4,15 +4,25 @@ const path = require('path');
 const normalize = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .toLowerCase().replace(/[¿?¡!.,;:]+/g, ' ').replace(/\s+/g, ' ').trim();
 function classify(text) {
-  const q = normalize(text);
-  if (/^(pendientes|que pendientes tenemos|que tenemos pendientes?|que hay pendientes?|tareas pendientes|resumen de pendientes)$/.test(q)) return 'PENDING';
-  if (/^(resumen|resumen comercial|estado comercial|como vamos|reporte comercial)$/.test(q)) return 'SUMMARY';
-  if (/^(cotizaciones|cotizaciones pendientes|cotizaciones por revisar|que cotizaciones tenemos|como van las cotizaciones)$/.test(q)) return 'QUOTES';
-  if (/^(visitas|visitas pendientes|visitas por confirmar|que visitas tenemos|como van las visitas)$/.test(q)) return 'VISITS';
-  if (/^(seguimiento|seguimientos|seguimientos pendientes|clientes en seguimiento)$/.test(q)) return 'FOLLOWUP';
-  if (/^(clientes|clientes registrados|cuantos clientes tenemos)$/.test(q)) return 'CLIENTS';
+  // These are natural spoken questions, not commands the owner must memorize.
+  // Only whole, clearly informational sentences qualify for the local fast path.
+  // Mentions of today's activity, delivery, a specific customer, or combined
+  // requests stay with the conversational interpreter instead of guessing.
+  let q = normalize(text);
+  q = q.replace(/^(?:(?:oye|mira|hola|hey|ey|bueno|porfa|por favor|una pregunta|jefe)\\s+){1,3}/, '');
+  q = q.replace(/^(?:me cuentas|cuentame|puedes contarme|me dices|dime|sabes)\\s+(?:por favor\\s+)?(?:como vamos con|como van|que tenemos de|que tenemos en|que hay de|que hay en)\\s+/, '$1');
+  const patterns = [
+    ['PENDING', /^(?:pendientes|que pendientes tenemos|que tenemos pendiente[s]?|que hay pendiente[s]?|tareas pendientes|resumen de pendientes|como vamos con los pendientes|como vamos de pendientes|que nos falta por hacer)$/],
+    ['SUMMARY', /^(?:resumen|resumen comercial|estado comercial|como vamos|como va todo|como va la cosa|como esta la cosa|que tal vamos|que tal vamos con el negocio|reporte comercial|como va homeeasy|como vamos con homeeasy)$/],
+    ['QUOTES', /^(?:cotizaciones|cotizaciones pendientes|cotizaciones por revisar|que cotizaciones tenemos|como van las cotizaciones|como vamos con las cotizaciones|que tal van las cotizaciones|que tenemos de cotizaciones|que hay de cotizaciones)$/],
+    ['VISITS', /^(?:visitas|visitas pendientes|visitas por confirmar|que visitas tenemos|como van las visitas|como vamos con las visitas|que tal van las visitas|que hay de las visitas|que tenemos de visitas)$/],
+    ['FOLLOWUP', /^(?:seguimiento|seguimientos|seguimientos pendientes|clientes en seguimiento|como van los seguimientos|como vamos con los seguimientos|que tal los seguimientos)$/],
+    ['CLIENTS', /^(?:clientes|clientes registrados|cuantos clientes tenemos|cuantos clientes conoces|que clientes tenemos registrados)$/]
+  ];
+  for (const [type, pattern] of patterns) if (pattern.test(q)) return type;
   return null;
 }
+
 function summarize(state) {
   if (!state || state.version !== 2 || !state.clients || !state.opportunities ||
     Array.isArray(state.clients) || Array.isArray(state.opportunities)) throw Error('INVALID_MEMORY');
