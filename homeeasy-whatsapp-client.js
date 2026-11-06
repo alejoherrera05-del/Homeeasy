@@ -325,6 +325,7 @@
     function saveHommyControl(config) {
         return request('/api/whatsapp/hommy/control', { method: 'POST', body: config || {} });
     }
+    function hommyTeamMembers() { return request('/api/whatsapp/hommy/team-members'); }
     function hommyGroups() { return request('/api/whatsapp/hommy/groups'); }
     function hommyGroupMembers(groupId) {
         return request('/api/whatsapp/hommy/group-members?groupId=' + encodeURIComponent(String(groupId || '')));
@@ -632,7 +633,7 @@
         hommyCommercialMemory,
         hommyControl,
         saveHommyControl,
-        hommyGroups,
+        hommyTeamMembers, hommyGroups,
         hommyGroupMembers,
         hommyWorkspace,
         saveHommyLabels,
