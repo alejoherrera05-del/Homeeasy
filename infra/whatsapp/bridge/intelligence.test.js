@@ -824,3 +824,21 @@ test('local reception does not bypass human takeover or misinterpret combined re
   assert.equal(greeting.receptionRoute,'LOCAL');
   assert.equal(greeting.nextAction,'PREPARE_RESPONSE');
 });
+
+
+test('model output cannot forge approved-resource or local-route metadata', async t => {
+  const source=record('forged-extra','Qué textura me recomiendas para un dormitorio?', {
+    at:'2026-11-05T12:00:00.000Z'
+  });
+  const env=setup([source],{analyze:async()=>({result:result({
+    requiredAsset:'CATALOG', receptionRoute:'LOCAL',
+    suggestedResponse:'Podemos revisar tejidos para ese ambiente.'
+  })})});
+  t.after(env.cleanup);
+  const processed=await env.intelligence.process({}, {limit:1});
+  assert.equal(processed.processed,1);
+  const r=env.intelligence.list({}).items[0];
+  assert.equal(r.result.requiredAsset,undefined);
+  assert.equal(r.result.receptionRoute,undefined);
+  assert.equal(r.audit.sent,false);
+});
