@@ -207,6 +207,8 @@ function createHommyWorkspace(options = {}) {
         data.team.replyEnabled !== true || !validGroup(data.team.groupId)) return null;
     const command = data.commands.find(c => c.id === clean(id, 260));
     if (!command || command.status !== 'INFORMATION' || command.replyStatus ||
+        (command.aiRequest === true && (data.team.aiEnabled !== true ||
+          options.teamAiAvailable !== true)) ||
         (command.originGroupId && command.originGroupId !== data.team.groupId) ||
         (command.authorizedSenderId && !isAuthorizedSender(command.authorizedSenderId))) return null;
     const text = clean(command.preview, 600);

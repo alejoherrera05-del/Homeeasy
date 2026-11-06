@@ -416,6 +416,24 @@ test('AI group reply remains pending until verified answer and deduplicates all 
  assert.equal(restarted.dashboard().teamCommands[0].replyStatus,'SENT');
 });
 
+test('disabling conversational mode cancels a late AI reply even if group replies stay enabled',t=>{
+ const v=setup();t.after(v.cleanup);
+ const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+ w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+ const msg=w.ingestSignedGroupEvent(groupEvent({id:'turned-off-during-ai',body:'Hommy, cómo va la cortina?'}),
+   null,{aiEnabled:true});
+ assert.equal(msg.status,'AI_PENDING');
+ w.configure({team:{aiEnabled:false}});
+ assert.equal(w.status().team.aiEnabled,false);
+ assert.equal(w.status().team.replyEnabled,true);
+ w.completeTeamAI(msg.id,{kind:'ANSWER',text:'Respuesta antigua que ya no debe enviarse.'});
+ assert.equal(w.reserveTeamReply(msg.id),null);
+ const normal=w.ingestSignedGroupEvent(groupEvent({id:'still-in-review',body:'Hommy, pendientes'}),
+   null,{aiEnabled:true});
+ assert.equal(normal.status,'INFORMATION');
+ assert.ok(w.reserveTeamReply(normal.id));
+});
+
 test('AI outage, group change, member revocation and unsafe actions never trigger customer or group sends',t=>{
  const v=setup();t.after(v.cleanup);
  const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
