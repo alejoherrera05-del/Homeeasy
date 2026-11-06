@@ -12,6 +12,7 @@ const { createInbox } = require('./inbox');
 const { createIntelligence, resolveAssociation } = require('./intelligence');
 const { createHommyWorkspace, shouldResolveTeamAlias } = require('./hommy-workspace');
 const { createTeamAI } = require('./team-ai');
+const { createHommyDesk } = require('./hommy-desk');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
@@ -158,14 +159,16 @@ const hommyIntelligence = createIntelligence({
   dataDir: DATA_DIR, enabled: HOMMY_INTELLIGENCE_ENABLED, inbox: hommyInbox,
   resolveMatch: resolveIntelligenceMatch, analyze: analyzeWithHommy, inspectConversation: inspectHumanTakeover
 });
+const hommyDesk = createHommyDesk({ dataDir: DATA_DIR });
 const teamAI = createTeamAI({
   enabled: HOMMY_TEAM_AI_ENABLED, endpoint: HOMMY_TEAM_AI_URL,
   backendUrl: HOMMY_BACKEND_URL, serviceToken: HOMMY_TEAM_AI_SERVICE_TOKEN,
-  dataDir: DATA_DIR
+  dataDir: DATA_DIR, getDeskContext: () => hommyDesk.approvedContext('TEAM')
 });
 const hommyWorkspace = createHommyWorkspace({
   dataDir: DATA_DIR, session: WAHA_SESSION, intelligenceEnabled: HOMMY_INTELLIGENCE_ENABLED,
-  hasClient: hommyIntelligence.hasClient, teamAiAvailable: teamAI.available
+  hasClient: hommyIntelligence.hasClient, teamAiAvailable: teamAI.available,
+  hasDeskCatalog: () => hommyDesk.catalogStatus().installed
 });
 
 function json(res, statusCode, payload) {
@@ -1111,6 +1114,28 @@ async function handle(req, res) {
             {kind:'UNAVAILABLE',reason:'DISABLED'};
           hommyWorkspace.completeTeamAI(group.id, decision);
         }
+        // The only file delivery authorized here is the catalog to OUR
+        // verified, preconfigured team group after an explicit "enviame"
+        // request. This is never a customer sending path.
+        if (group.status === 'CATALOG_READY') {
+          const reservedCatalog = hommyWorkspace.reserveTeamCatalog(group.id);
+          if (reservedCatalog) {
+            try {
+              const catalog = hommyDesk.readCatalog();
+              await wahaRequest('POST', '/api/sendFile', {
+                session: WAHA_SESSION, chatId: reservedCatalog.groupId,
+                caption: 'Aquí tienes el catálogo oficial de persianas y cortinas de HomeEasy.',
+                file: { mimetype:'application/pdf', filename:catalog.filename,
+                  data:catalog.bytes.toString('base64') }
+              }, 'application/json', 90000);
+              hommyWorkspace.finishTeamReply(reservedCatalog.commandId, true);
+            } catch (catalogError) {
+              hommyWorkspace.finishTeamReply(reservedCatalog.commandId, false);
+              console.error('Hommy team catalog unconfirmed:',
+                catalogError.statusCode || catalogError.code || 'WAHA_ERROR');
+            }
+          }
+        }
         // Authorization, group ID and durable SENDING state are rechecked after
         // any slow external service call. Never send to arbitrary destinations.
         const reserved = hommyWorkspace.reserveTeamReply(group.id);
@@ -1229,6 +1254,32 @@ async function handle(req, res) {
     })).filter(m => /^\d{8,22}@(c\.us|lid)$/.test(m.id) &&
       m.role !== 'left').slice(0, 100);
     return json(res, 200, { ok: true, groupId, members });
+  }
+
+  // Hommy desk: private catalog bytes and a human-approved business notebook.
+  // This route is never reachable from webhook text or customer content.
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/desk') {
+    await auth.authorize(req, 'config.read');
+    return json(res, 200, { ok:true, ...hommyDesk.dashboard() });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/desk/catalog') {
+    const actor = await auth.authorize(req, 'config.write');
+    if (String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase() !== 'application/pdf')
+      throw Object.assign(new Error('Content-Type application/pdf required'),{statusCode:415});
+    const bytes = await readRawBody(req, 12 * 1024 * 1024);
+    return json(res, 201, { ok:true, catalog:hommyDesk.installCatalog(bytes, actor) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/desk/notes') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 201, { ok:true, note:hommyDesk.addNote(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/desk/notes/edit') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok:true, note:hommyDesk.editNote(await readJsonBody(req), actor) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp/hommy/desk/notes/archive') {
+    const actor = await auth.authorize(req, 'config.write');
+    return json(res, 200, { ok:true, archived:hommyDesk.archiveNote(await readJsonBody(req), actor) });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/whatsapp/hommy/workspace') {
