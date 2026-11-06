@@ -25,3 +25,17 @@ La rama hommy-2.0 tiene despliegue automatico: un merge provoca un deploy. No fu
 Render Free puede tener arranque frio y superar el timeout de Bridge. Ante error no hay reintentos ni mensajes inventados.
 
 La memoria disponible al Bridge sigue siendo una vista parcial de oportunidades analizadas; no equivale a la agenda confirmada ni todos los chats.
+
+## Ajuste de baja latencia (solo grupo)
+
+Se puede seleccionar un modelo rápido exclusivamente para la ruta privada mediante
+`HOMMY_TEAM_MODEL=gpt-5.4-mini`. En ese modelo, el esfuerzo de razonamiento
+predeterminado es `none`, manteniendo respuestas JSON estrictas y controles de
+privacidad. `HOMMY_MODEL` y el chat web principal no cambian.
+
+El modelo principal se mantiene con razonamiento `low`. También se admite
+`HOMMY_TEAM_REASONING_EFFORT=none|low`, con validación estricta.
+
+Probar al menos una pregunta informativa real por la ruta segura ANTES de
+habilitar el modo del grupo. Si Render Free inicia en frío, la latencia total
+puede superar el plazo del Bridge aunque la inferencia del modelo sea rápida.

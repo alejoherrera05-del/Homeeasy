@@ -213,6 +213,15 @@ def interpret_team(payload: dict[str, Any], *, client: Any = None) -> dict[str, 
         timeout = max(2.0, min(float(os.getenv("HOMMY_TEAM_OPENAI_TIMEOUT_SECONDS", "5.5")), 6.0))
         client = OpenAI(api_key=api_key, timeout=timeout, max_retries=0)
     model = os.getenv("HOMMY_TEAM_MODEL", os.getenv("HOMMY_MODEL", "gpt-5.6-terra")).strip()
+    if not model:
+        raise TeamServiceError("TEAM_MODEL_NOT_CONFIGURED", 503)
+    effort = os.getenv("HOMMY_TEAM_REASONING_EFFORT", "").strip().lower()
+    if not effort:
+        # Reasoning-free mini inference is faster for brief internal WhatsApp Q&A;
+        # the full Hommy chat model remains unchanged.
+        effort = "none" if model in {"gpt-5.4-mini", "gpt-5.4-nano"} else "low"
+    if effort not in {"none", "low"}:
+        raise TeamServiceError("TEAM_MODEL_CONFIG_INVALID", 503)
     try:
         response = client.responses.create(
             model=model,
@@ -224,7 +233,7 @@ def interpret_team(payload: dict[str, Any], *, client: Any = None) -> dict[str, 
                 "type": "json_schema", "name": "hommy_team_reply_v1",
                 "strict": True, "schema": SCHEMA,
             }},
-            reasoning={"effort": "low"}, max_output_tokens=360,
+            reasoning={"effort": effort}, max_output_tokens=360,
             store=False,
         )
         if getattr(response, "status", "completed") != "completed":
