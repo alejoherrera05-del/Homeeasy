@@ -627,3 +627,105 @@ test('customer-action requests are rejected before expensive AI, even with natur
   }),null,{aiEnabled:true});
   assert.equal(advisory.status,'AI_PENDING');
 });
+
+
+test('Hommy understands friendly name variants and a grounded follow-up with no command syntax',t=>{
+  const v=setup();t.after(v.cleanup);
+  const dir=path.join(v.options.dataDir,'hommy-intelligence');fs.mkdirSync(dir);
+  fs.writeFileSync(path.join(dir,'state-v2.json'),JSON.stringify({
+    version:2,clients:{c:{id:'c',name:'Laura',provisional:false,identityConflicts:[]}},
+    opportunities:{o:{id:'o',clientId:'c',product:'Onda Serena',status:'OPEN',
+      nextAction:'REQUEST_QUOTE_DETAILS',environments:['sala'],quoteNumbers:[]}}
+  }));
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const first=w.ingestSignedGroupEvent(groupEvent({
+    id:'conversation-a',body:'Oye Homie, ¿cómo vamos con Onda Serena?'
+  }),null,{aiEnabled:true});
+  assert.equal(first.status,'INFORMATION');
+  assert.match(w.reserveTeamReply(first.id).text,/Onda Serena/);
+  assert.equal(w.finishTeamReply(first.id,true),true);
+  const second=w.ingestSignedGroupEvent(groupEvent({
+    id:'conversation-b',body:'Homy, ¿y qué nos falta para concretarla?'
+  }),null,{aiEnabled:true});
+  assert.equal(second.status,'INFORMATION');
+  assert.equal(w.teamAIRequest(second.id),null);
+  const reply=w.reserveTeamReply(second.id);
+  assert.match(reply.text,/faltan datos para poder cotizar/);
+  assert.doesNotMatch(reply.text,/cita confirmada|precio:|573001/);
+  assert.equal(reply.groupId,GROUP);
+  assert.equal(w.reserveTeamReply(second.id),null);
+  assert.equal(require('./hommy-workspace').extractTeamRequest('homiedesign no es una mención'),null);
+});
+
+test('follow-up memory is speaker-scoped, delivery-scoped and interrupted by an action',t=>{
+  const v=setup();t.after(v.cleanup);
+  const dir=path.join(v.options.dataDir,'hommy-intelligence');fs.mkdirSync(dir);
+  fs.writeFileSync(path.join(dir,'state-v2.json'),JSON.stringify({
+    version:2,clients:{c:{id:'c',name:'Laura'}},
+    opportunities:{o:{id:'o',clientId:'c',product:'Onda Serena',status:'OPEN',
+      nextAction:'COLLECT_VISIT_DETAILS',environments:[],quoteNumbers:[]}}
+  }));
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+  const OTHER='573009999999@c.us';
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF,OTHER],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const original=w.ingestSignedGroupEvent(groupEvent({id:'context-original',
+    body:'Hommy, ¿cómo va Onda Serena?'}),null,{aiEnabled:true});
+  assert.equal(original.status,'INFORMATION');
+  // Not enough to compose a reply: WhatsApp delivery must be confirmed.
+  assert.equal(w.ingestSignedGroupEvent(groupEvent({id:'context-not-yet-sent',
+    body:'Hommy, ¿y qué falta?'}),null,{aiEnabled:true}).status,'AI_PENDING');
+  const reply=w.reserveTeamReply(original.id);
+  assert.ok(reply);
+  assert.equal(w.finishTeamReply(original.id,true),true);
+  const stranger=w.ingestSignedGroupEvent(groupEvent({id:'context-other',
+    author:OTHER,body:'Hommy, ¿y qué falta?'}),null,{aiEnabled:true});
+  assert.equal(stranger.status,'AI_PENDING');
+  // The same member's more recent unanswered turn interrupts the topic chain.
+  const interrupted=w.ingestSignedGroupEvent(groupEvent({id:'context-interrupted',
+    body:'Hommy, ¿y qué sigue?'}),null,{aiEnabled:true});
+  assert.equal(interrupted.status,'AI_PENDING');
+  const fresh=w.ingestSignedGroupEvent(groupEvent({id:'context-fresh',
+    body:'Hommy, ¿cómo va Onda Serena?'}),null,{aiEnabled:true});
+  assert.equal(fresh.status,'INFORMATION');
+  assert.ok(w.reserveTeamReply(fresh.id));
+  w.finishTeamReply(fresh.id,true);
+  const follow=w.ingestSignedGroupEvent(groupEvent({id:'context-visit',
+    body:'Hommy, ¿y qué falta para concretarla?'}),null,{aiEnabled:true});
+  assert.equal(follow.status,'INFORMATION');
+  const grounded=w.reserveTeamReply(follow.id);
+  assert.match(grounded.text,/visita/);
+  assert.match(grounded.text,/no tengo una cita confirmada/i);
+  w.finishTeamReply(follow.id,true);
+  const action=w.ingestSignedGroupEvent(groupEvent({id:'context-action',
+    body:'Hommy, avísale a Laura que voy en camino'}),null,{aiEnabled:true});
+  assert.equal(action.status,'REVIEW_REQUIRED');
+  assert.equal(w.reserveTeamReply(action.id),null);
+  const afterAction=w.ingestSignedGroupEvent(groupEvent({id:'context-after-action',
+    body:'Hommy, ¿y qué falta?'}),null,{aiEnabled:true});
+  assert.equal(afterAction.status,'AI_PENDING');
+});
+
+test('AI conversation history never borrows a different colleague previous replies',t=>{
+  const v=setup();t.after(v.cleanup);
+  const OTHER='573009999999@c.us';
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true});
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF,OTHER],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const a=w.ingestSignedGroupEvent(groupEvent({id:'history-one',
+    body:'Hommy, pendientes',author:STAFF}),null,{aiEnabled:true});
+  assert.equal(a.status,'INFORMATION');
+  assert.ok(w.reserveTeamReply(a.id));
+  w.finishTeamReply(a.id,true);
+  const b=w.ingestSignedGroupEvent(groupEvent({id:'history-other',
+    body:'Hommy, cotizaciones',author:OTHER}),null,{aiEnabled:true});
+  assert.equal(b.status,'INFORMATION');
+  assert.ok(w.reserveTeamReply(b.id));
+  w.finishTeamReply(b.id,true);
+  const follow=w.ingestSignedGroupEvent(groupEvent({id:'history-question',
+    body:'Hommy, ¿qué podemos hacer para mejorar?',author:STAFF}),null,{aiEnabled:true});
+  assert.equal(follow.status,'AI_PENDING');
+  const request=w.teamAIRequest(follow.id);
+  assert.equal(request.history.length,1);
+  assert.match(request.history[0].question,/pendientes/);
+  assert.doesNotMatch(JSON.stringify(request.history),/cotizaciones/);
+});
