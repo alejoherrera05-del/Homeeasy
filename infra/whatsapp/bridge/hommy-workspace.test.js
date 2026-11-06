@@ -809,3 +809,55 @@ test('catalog attachment requests cannot redirect document to customers or unkno
     group:'120363987654321012@g.us',body:'Hommy, envíame el catálogo'}),null,{aiEnabled:true});
   assert.equal(wrong.accepted,false);
 });
+
+
+test('approved teammate can teach Hommy a fact only with a second confirmation',t=>{
+  const v=setup();t.after(v.cleanup);
+  const written=[];
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true,
+    saveDeskNote:(note,sender)=>{written.push({note,sender});return {id:'note_1'};}});
+  const OTHER='573009999999@c.us';
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF,OTHER],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const suggest=w.ingestSignedGroupEvent(groupEvent({id:'teach-propose',
+    body:'Oye Homie, recuerda que las citas siempre deben confirmarse con el equipo'}),null,{aiEnabled:true});
+  assert.equal(suggest.status,'INFORMATION');
+  assert.equal(w.teamAIRequest(suggest.id),null);
+  assert.equal(w.dashboard().teamCommands[0].noteCandidate.includes('citas'),true);
+  assert.equal(written.length,0);
+  // An unconfirmed proposal is not memory, even after another person confirms.
+  assert.ok(w.reserveTeamReply(suggest.id));
+  w.finishTeamReply(suggest.id,true);
+  const stranger=w.ingestSignedGroupEvent(groupEvent({id:'teach-other',
+    author:OTHER,body:'Hommy guarda esa nota'}),null,{aiEnabled:true});
+  assert.equal(stranger.status,'INFORMATION');
+  assert.equal(written.length,0);
+  const final=w.ingestSignedGroupEvent(groupEvent({id:'teach-confirm',
+    body:'Hommy, sí, guarda esa nota'}),null,{aiEnabled:true});
+  assert.equal(final.status,'INFORMATION');
+  assert.equal(written.length,1);
+  assert.equal(written[0].note.visibility,'TEAM');
+  assert.equal(written[0].sender,STAFF);
+  assert.match(w.reserveTeamReply(final.id).text,/quedó en mi bloc/);
+  w.finishTeamReply(final.id,true);
+  const repeated=w.ingestSignedGroupEvent(groupEvent({id:'teach-again',
+    body:'Hommy guarda esa nota'}),null,{aiEnabled:true});
+  assert.equal(repeated.status,'INFORMATION');
+  assert.equal(written.length,1);
+});
+
+test('an unrelated teammate instruction interrupts a pending memory confirmation',t=>{
+  const v=setup();t.after(v.cleanup);const written=[];
+  const w=createHommyWorkspace({...v.options,teamAiAvailable:true,
+    saveDeskNote:note=>written.push(note)});
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true,aiEnabled:true}});
+  const proposed=w.ingestSignedGroupEvent(groupEvent({id:'teach-old',
+    body:'Hommy recuerda que las cotizaciones requieren revisión humana'}),null,{aiEnabled:true});
+  w.reserveTeamReply(proposed.id);w.finishTeamReply(proposed.id,true);
+  const intermission=w.ingestSignedGroupEvent(groupEvent({id:'teach-interrupted',
+    body:'Hommy, pendientes'}),null,{aiEnabled:true});
+  assert.equal(intermission.status,'INFORMATION');
+  const after=w.ingestSignedGroupEvent(groupEvent({id:'teach-wrong-target',
+    body:'Hommy guarda la nota'}),null,{aiEnabled:true});
+  assert.equal(after.status,'INFORMATION');
+  assert.equal(written.length,0);
+});
