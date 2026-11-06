@@ -245,10 +245,12 @@ function obtenerEstadoCostos10B_(ss) {
 
 function obtenerOpcionesCostos10B_(ss) {
   const catalog = cargarCatalogoCostos10B_(ss, false);
+  // Mantener visibles los enrollables certificados aunque venza el snapshot.
+  // calcularCotizacionCostos10B_ ya permite la tarifa anterior con advertencia.
   const products = catalog.products.filter(function(p) {
     return p.active && p.family !== "complemento-enrollable" && (p.family !== "enrollable" ||
       (p.method === "area" && p.rateCents > 0 && p.status === "VIGENTE" && p.pricesIncludeVat && p.currency === "COP" &&
-       catalog.validThrough >= fechaBogota10B_() && p.validThrough >= fechaBogota10B_() && !/institucional|m[aá]s de 30/i.test(p.name)));
+       !(/institucional|m[aá]s de 30/i.test(p.name))));
   }).map(function(p) {
     const rules = p.rules || {};
     if (p.family === "enrollable") return {
