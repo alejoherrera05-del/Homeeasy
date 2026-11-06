@@ -349,10 +349,11 @@ function createHommyWorkspace(options = {}) {
     // A warm first reply, not a name/honorific robot on every line. AI
     // replies handle personalization themselves using verified identity.
     if(profile && command.aiRequest!==true) {
-      const prior=data.commands.some(c=>c.id!==id && c.originGroupId===data.team.groupId &&
+      const index=data.commands.findIndex(c=>c.id===id);
+      const prior=data.commands.slice(0,index).some(c=>
+        c.originGroupId===data.team.groupId &&
         c.authorizedSenderId===command.authorizedSenderId && c.replyStatus==='SENT' &&
-        Date.parse(c.at)>=Date.parse(command.at)-2*60*60*1000 &&
-        Date.parse(c.at)<Date.parse(command.at));
+        Date.parse(c.at)>=Date.parse(command.at)-2*60*60*1000);
       const vocative=memberAddress(profile);
       if(!prior && vocative && !/^[¡!]?(?:hola|listo|claro|de una)[,!]/i.test(text)) {
         text='¡Claro, '+vocative+'! '+text;
