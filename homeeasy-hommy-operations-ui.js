@@ -69,6 +69,7 @@
       '<button type="button" id="heHommyReplies" class="he-hommy-ops-btn" hidden>Activar respuestas internas</button>' +
       '<button type="button" id="heHommyAI" class="he-hommy-ops-btn" hidden>Activar conversación natural</button>' +
       '<button type="button" id="heHommyCommands" class="he-hommy-ops-btn">Actividad (0)</button>' +
+      '<button type="button" id="heHommyDesk" class="he-hommy-ops-btn primary">Escritorio y memoria</button>' +
       '<button type="button" id="heHommyRefresh" class="he-hommy-ops-btn">Actualizar</button></div>' +
       '<div id="heHommyNote" class="he-hommy-ops-foot" role="status">Esta función no desconecta WhatsApp ni afecta los comprobantes.</div>';
     panel.appendChild(card);
@@ -77,6 +78,7 @@
     document.getElementById('heHommyGroupLink').addEventListener('click', linkTeamGroup);
     document.getElementById('heHommyGroupToggle').addEventListener('click', toggleTeamGroup);
     document.getElementById('heHommyCommands').addEventListener('click', viewTeamCommands);
+    document.getElementById('heHommyDesk').addEventListener('click', openDesk);
     document.getElementById('heHommyReplies').addEventListener('click', toggleTeamReplies);
     document.getElementById('heHommyAI').addEventListener('click', toggleTeamAI);
     mounted = true;
@@ -248,6 +250,134 @@
       global.Swal.fire({ icon:'error', title:'No se pudo vincular el grupo',
         text:e.message || 'Vuelve a intentar.', confirmButtonColor:'#a6455a' });
     }
+  }
+
+  async function openDesk() {
+    if (!canConfigure() || !global.Swal ||
+        !global.HomeEasyWhatsApp || !global.HomeEasyWhatsApp.hommyDesk) return;
+    const api = global.HomeEasyWhatsApp;
+    await global.Swal.fire({
+      title: 'Escritorio de Hommy',
+      width: 620,
+      html: '<div style="display:grid;gap:14px;text-align:left;font-size:13px">' +
+        '<section style="padding:14px;border:1px solid #eee;border-radius:14px">' +
+        '<strong>Catálogo oficial</strong>' +
+        '<p id="heHommyCatalogStatus" style="color:#81777d">Consultando...</p>' +
+        '<input type="file" id="heHommyCatalogFile" accept="application/pdf,.pdf" style="width:100%;margin:8px 0">' +
+        '<button type="button" id="heHommyCatalogUpload" class="he-hommy-ops-btn primary">Guardar PDF en su escritorio</button>' +
+        '<small style="display:block;margin-top:8px;color:#81777d">Sube la versión oficial optimizada (máximo 12 MB). ' +
+        'Se guarda en el VPS, no se hace público en Internet.</small></section>' +
+        '<section style="padding:14px;border:1px solid #eee;border-radius:14px">' +
+        '<strong>Bloc de notas</strong>' +
+        '<p style="color:#81777d">Hommy puede usar hechos comerciales aprobados. ' +
+        'La memoria de clientes es independiente; no escribas aquí datos personales ni contraseñas.</p>' +
+        '<input id="heHommyNoteTopic" maxlength="70" placeholder="Tema: p. ej. garantía" ' +
+        'style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:9px;margin:5px 0">' +
+        '<textarea id="heHommyNoteText" maxlength="500" rows="3" ' +
+        'placeholder="¿Qué debe recordar Hommy?" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:9px"></textarea>' +
+        '<select id="heHommyNoteVisibility" style="width:100%;padding:10px;margin:7px 0;border:1px solid #ddd;border-radius:9px">' +
+        '<option value="TEAM">Solo para el equipo</option><option value="PUBLIC">Puede usarlo para responder clientes</option></select>' +
+        '<button type="button" id="heHommyNoteSave" class="he-hommy-ops-btn primary">Guardar nota aprobada</button>' +
+        '<div id="heHommyDeskNotes" style="max-height:230px;overflow:auto;display:grid;gap:8px;margin-top:12px"></div></section>' +
+        '<p id="heHommyDeskFeedback" role="status" style="color:#81777d"></p></div>',
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#a6455a',
+      didOpen: () => {
+        let editingId = '';
+        let busy = false;
+        const feedback = document.getElementById('heHommyDeskFeedback');
+        const catalog = document.getElementById('heHommyCatalogStatus');
+        const notesNode = document.getElementById('heHommyDeskNotes');
+        const topic = document.getElementById('heHommyNoteTopic');
+        const body = document.getElementById('heHommyNoteText');
+        const visibility = document.getElementById('heHommyNoteVisibility');
+        const fileInput = document.getElementById('heHommyCatalogFile');
+        const uploadButton = document.getElementById('heHommyCatalogUpload');
+        const saveButton = document.getElementById('heHommyNoteSave');
+        const report = (message, error) => {
+          feedback.textContent = message;
+          feedback.style.color = error ? '#ae344f' : '#278448';
+        };
+        const makeButton = (label, fn) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = label;
+          button.className = 'he-hommy-ops-btn';
+          button.addEventListener('click', fn);
+          return button;
+        };
+        async function refresh() {
+          const response = await api.hommyDesk();
+          const item = response && response.catalog || {};
+          catalog.textContent = item.installed ?
+            'Listo para enviar al grupo · ' + (item.bytes/1048576).toFixed(1) + ' MB · ' + (item.filename || '') :
+            'Aún no hay un catálogo instalado en el VPS.';
+          notesNode.replaceChildren();
+          const notes = Array.isArray(response.notes) ? response.notes : [];
+          if (!notes.length) notesNode.textContent = 'Todavía no hay notas aprobadas.';
+          for (const note of notes) {
+            const box = document.createElement('div');
+            box.style.cssText = 'padding:10px;border:1px solid #eee;border-radius:10px';
+            const title = document.createElement('strong');
+            title.textContent = note.topic || '';
+            const text = document.createElement('p');
+            text.style.cssText = 'margin:5px 0;color:#62575c;white-space:pre-wrap;overflow-wrap:anywhere';
+            text.textContent = note.text || '';
+            const kind = document.createElement('small');
+            kind.style.cssText = 'display:block;color:#867b81;margin-bottom:5px';
+            kind.textContent = note.visibility === 'PUBLIC' ? 'Visible en respuestas comerciales' : 'Solo equipo';
+            const actions = document.createElement('div');
+            actions.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap';
+            actions.append(makeButton('Editar', () => {
+              editingId = note.id;
+              topic.value = note.topic || '';
+              topic.disabled = true;
+              body.value = note.text || '';
+              visibility.value = note.visibility || 'TEAM';
+              saveButton.textContent = 'Actualizar nota';
+              topic.focus();
+            }), makeButton('Archivar', async () => {
+              if (busy || !global.confirm('¿Archivar esta nota de Hommy?')) return;
+              busy = true;
+              try { await api.archiveHommyDeskNote(note.id); await refresh(); report('Nota archivada.'); }
+              catch(e) { report(e.message || 'No se pudo archivar.',true); }
+              finally {busy = false;}
+            }));
+            box.append(title,text,kind,actions);
+            notesNode.append(box);
+          }
+        }
+        uploadButton.addEventListener('click', async () => {
+          if (busy || !fileInput.files || !fileInput.files[0]) {
+            report('Selecciona el catálogo oficial en PDF.', true); return;
+          }
+          busy = true; uploadButton.disabled = true;
+          try {
+            const file = fileInput.files[0];
+            const response = await api.uploadHommyCatalog(file);
+            if (!response || !response.catalog || response.catalog.installed !== true)
+              throw new Error('No se confirmó la instalación.');
+            await refresh();
+            report('Catálogo oficial guardado. Hommy ya puede enviártelo en el grupo.');
+          } catch(e) { report(e.message || 'No se pudo guardar el PDF.',true); }
+          finally {busy = false; uploadButton.disabled = false;}
+        });
+        saveButton.addEventListener('click', async () => {
+          if (busy) return;
+          busy = true;saveButton.disabled=true;
+          try {
+            if (editingId) await api.editHommyDeskNote(editingId,body.value,visibility.value);
+            else await api.saveHommyDeskNote(topic.value,body.value,visibility.value);
+            topic.value='';topic.disabled=false;body.value='';visibility.value='TEAM';
+            editingId='';saveButton.textContent='Guardar nota aprobada';
+            await refresh();
+            report('Nota guardada en la memoria persistente de Hommy.');
+          } catch(e) {report(e.message || 'No se pudo guardar la nota.',true);}
+          finally {busy=false;saveButton.disabled=false;}
+        });
+        refresh().catch(e=>report(e.message || 'No se pudo consultar el escritorio.',true));
+      }
+    });
   }
 
   async function viewTeamCommands() {
