@@ -5,7 +5,7 @@ const fs=require('fs');
 const os=require('os');
 const path=require('path');
 const crypto=require('crypto');
-const {createHommyDesk,CATALOG_NAME,PRODUCT_FACTS}=require('./hommy-desk');
+const {createHommyDesk,CATALOG_NAME,PRODUCT_FACTS,wantsCustomerCatalog}=require('./hommy-desk');
 
 function setup(t) {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'hommy-desk-test-'));
@@ -101,4 +101,53 @@ test('Bridge web desk contracts require authenticated permissions and do not add
   assert.match(updater,/hommy-desk\.js/);
   assert.match(updater,/hommy-desk\.tar\.gz/);
   assert.match(ui,/Escritorio y memoria/);
+});
+
+
+test('catalog automation stays off until explicitly enabled with a real PDF',t=>{
+  const {root,desk}=setup(t);
+  assert.equal(desk.customerCatalogEnabled(),false);
+  assert.throws(()=>desk.setCustomerCatalogAutomation(true),
+    e=>e.code==='HOMMY_CATALOG_REQUIRED');
+  desk.installCatalog(fakePdf());
+  assert.equal(desk.customerCatalogEnabled(),false);
+  desk.setCustomerCatalogAutomation(true,{profile:{uid:'owner'}});
+  assert.equal(desk.customerCatalogEnabled(),true);
+  assert.equal(createHommyDesk({dataDir:root}).customerCatalogEnabled(),true);
+  desk.setCustomerCatalogAutomation(false);
+  assert.equal(desk.customerCatalogEnabled(),false);
+});
+test('customer catalog classifier allows only explicit, single-purpose requests',()=>{
+  for(const text of [
+    'Hola, ¿me puedes enviar el catálogo?',
+    '¿Me compartes el catálogo de HomeEasy?',
+    'Me mandas el catálogo por favor?',
+    'Quiero ver catálogo',
+    'Necesito el catálogo de persianas y cortinas',
+    'Tienen catálogo?'
+  ]) assert.equal(wantsCustomerCatalog(text),true,text);
+  for(const text of [
+    'No me envíes el catálogo',
+    'No me manden el catálogo',
+    'Catálogo y cotización',
+    'Me pasas el catálogo y me das un descuento?',
+    'Cuánto cuestan las cortinas?',
+    '¿Dónde están ubicados?',
+    'Hommy envía el catálogo a Laura',
+    'Hola, quiero pagar por la instalación'
+  ]) assert.equal(wantsCustomerCatalog(text),false,text);
+});
+test('automatic catalog sending is isolated behind authenticated inbox and human takeover checks',()=>{
+  const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
+  const source=server.slice(server.indexOf('async function maybeSendCustomerCatalog('),
+    server.indexOf('async function handle(req, res)'));
+  assert.match(source,/hommyDesk\.customerCatalogEnabled\(\)/);
+  assert.match(source,/hommyWorkspace\.status\(\)\.mode !== 'REVIEW'/);
+  assert.match(source,/wantsCustomerCatalog\(record\.text\)/);
+  assert.match(source,/wahaRequest\('GET'/);
+  assert.match(source,/OUTGOING/);
+  assert.match(source,/persistIdempotency\(\)/);
+  assert.match(source,/chatId:record\.chatId/);
+  assert.match(server,/hommyInbox\.ingest\(raw, req\.headers\); \/\/ HMAC and session verified first/);
+  assert.match(server,/if \(result\.accepted && hommyDesk\.customerCatalogEnabled\(\)\)/);
 });
