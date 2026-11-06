@@ -269,8 +269,16 @@
       const result = await global.HomeEasyWhatsApp.hommyTeamMembers();
       members = Array.isArray(result.members) ? result.members : [];
     } catch (e) {
-      global.Swal.fire({icon:'error',title:'No se pudieron cargar los integrantes',
-        text:e.message || 'Revisa el Bridge y vuelve a intentar.',confirmButtonColor:'#a6455a'});
+      // GitHub Pages can serve a newer UI while the independently deployed
+      // VPS Bridge is still on an earlier release. HTTP 404 is not an empty
+      // member list; explain the version mismatch instead of "Not found".
+      const oldBridge=e && (e.status===404 || e.code==='WHATSAPP_HTTP_404');
+      global.Swal.fire({icon:oldBridge?'info':'error',
+        title:oldBridge?'Falta actualizar el Bridge de Hommy':'No se pudieron cargar los integrantes',
+        text:oldBridge?
+          'La pantalla ya tiene Personalizar equipo, pero el servidor aún no reconoce esa función. Actualiza el Bridge a la versión 0.29.0 o superior desde el VPS, sin reiniciar WAHA, y vuelve a abrir esta pantalla.' :
+          (e.message || 'Revisa la conexión del Bridge y vuelve a intentar.'),
+        confirmButtonColor:'#a6455a'});
       return;
     }
     if(!members.length) {
