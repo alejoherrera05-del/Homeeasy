@@ -33,7 +33,7 @@ function mappedSenderAlias(author, mapping) {
 // Accept the name at the start or end (and "oye Hommy,..."), with word boundaries.
 function extractTeamRequest(value) {
   const raw = clean(value, 700);
-  const mention = /\bhommy\b/i.exec(raw);
+  const mention = /\b(?:hommy|homie|homy)\b/i.exec(raw);
   if (!mention) return null;
   let before = raw.slice(0, mention.index).replace(/^[\s,¿¡,:!?-]+|[\s,¿¡,:!?-]+$/g, '');
   let after = raw.slice(mention.index + mention[0].length).replace(/^[\s,¿¡,:!?-]+/g, '').trim();
@@ -102,6 +102,36 @@ function createHommyWorkspace(options = {}) {
   const limit = 250;
   const readOverview = operational.createOverview(options.dataDir || '/app/data');
   const lookupClient = operational.createClientLookup(options.dataDir || '/app/data');
+
+  // Follow-ups only use a recently DELIVERED answer for this same team member.
+  // We never infer a customer, quote or visit from another colleague's messages.
+  function contextualFollowup(question, sender) {
+    const q = String(question || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[¿?¡!.,;:]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const missing = /^(?:y\s+)?(?:que\s+(?:nos\s+)?falta|que\s+(?:nos\s+)?hace\s+falta|que\s+queda\s+pendiente|que\s+sigue|ahora\s+que\s+sigue)(?:\s+(?:para\s+(?:concretarl[ao]|cerrarl[ao]|avanzar|terminar)|de\s+(?:eso|esa|este)|con\s+(?:eso|esa|esto)))?$/.test(q);
+    if (!missing) return null;
+    const recent = data.commands.filter(item =>
+      item.authorizedSenderId === sender && item.originGroupId === data.team.groupId &&
+      Date.parse(item.at) <= Date.now() &&
+      Date.parse(item.at) >= Date.now() - 10 * 60 * 1000).slice(-1)[0];
+    if (!recent || recent.status !== 'INFORMATION' || recent.replyStatus !== 'SENT' ||
+        recent.aiRequest === true) return null;
+    const previous = operational.parseClientQuery(recent.command);
+    if (!previous) return null;
+    // Reread the snapshot rather than repeating an old report. Ambiguities,
+    // missing memory and multiple opportunities are never resolved by guessing.
+    const report = lookupClient(recent.command);
+    if (!report || !/tengo una oportunidad (?:abierta|registrada)/i.test(report)) return null;
+    if (report.includes('Por ahora faltan datos para poder cotizar.'))
+      return 'De esa oportunidad todavía faltan datos para poder cotizar. No tengo identificado exactamente cuáles, así que prefiero no inventártelos.';
+    if (report.includes('Falta completar información de la visita; todavía no hay una cita confirmada.'))
+      return 'Para concretar esa visita todavía falta completar información. No tengo una cita confirmada en los datos que he revisado.';
+    if (report.includes('Hay una respuesta preparada, pendiente de revisión.'))
+      return 'Hay una respuesta preparada para esa oportunidad, pero todavía necesita revisión antes de enviarla.';
+    if (report.includes('El último seguimiento quedó en espera.'))
+      return 'Lo último registrado de esa oportunidad es que quedó en espera. No tengo confirmado un paso adicional.';
+    return null;
+  }
 
   function persist(action, actor) {
     if (corrupted) throw err('Hommy workspace requires recovery; other Bridge services remain available', 'HOMMY_WORKSPACE_UNAVAILABLE', 503);
@@ -249,6 +279,9 @@ function createHommyWorkspace(options = {}) {
     const redact = text => clean(text,440).replace(/\b\d{8,}\b/g,'[dato oculto]')
       .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[correo oculto]');
     const history = data.commands.filter(c => c.id !== id && c.originGroupId === data.team.groupId &&
+      c.authorizedSenderId === target.authorizedSenderId &&
+      Date.parse(c.at) >= Date.parse(target.at) - 30 * 60 * 1000 &&
+      Date.parse(c.at) <= Date.parse(target.at) &&
       c.status === 'INFORMATION' && c.replyStatus === 'SENT').slice(-3)
       .map(c => ({question:redact(c.command).slice(0,220),answer:redact(c.preview).slice(0,400)}));
     return { question:redact(target.command),history,
@@ -302,7 +335,9 @@ function createHommyWorkspace(options = {}) {
     const queryType = actionRequested ? null : operational.classify(command);
     const localLookup = !actionRequested && !queryType && operational.parseClientQuery(command);
     const clientDetail = localLookup ? lookupClient(command) : null;
-    const locallyAnswered = Boolean(queryType || clientDetail !== null);
+    const followup = !actionRequested && !queryType && !localLookup ?
+      contextualFollowup(command, authorizedSenderId) : null;
+    const locallyAnswered = Boolean(queryType || clientDetail !== null || followup !== null);
     const aiCountLastMinute = data.commands.filter(item =>
       item.aiRequest === true && item.authorizedSenderId === authorizedSenderId &&
       Date.parse(item.at) >= Date.now() - 60000).length;
@@ -311,13 +346,14 @@ function createHommyWorkspace(options = {}) {
     const aiUnavailable = aiRequested && !aiConfigured && !locallyAnswered && !actionRequested;
     const status = actionRequested ? 'REVIEW_REQUIRED' : aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
       aiUnavailable ? 'AI_UNAVAILABLE' :
-      queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
+      locallyAnswered ? 'INFORMATION' : 'REVIEW_REQUIRED';
     const preview = actionRequested ? 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.' :
       aiMode ? 'Consulta pendiente de interpretación segura.' :
       aiRateLimited ? 'Se alcanzó el límite de consultas de este integrante; inténtalo nuevamente después.' :
       aiUnavailable ? 'El motor de inteligencia no está configurado; no se envió ninguna respuesta.' :
       queryType ? operational.preview(queryType, data.tasks, data.labels, readOverview()) :
       clientDetail !== null ? clientDetail :
+      followup !== null ? followup :
       'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
     data.commands.push({ id, at: new Date().toISOString(), author,
       originGroupId:data.team.groupId, authorizedSenderId,
