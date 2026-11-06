@@ -11,13 +11,14 @@ const conversation = require('./conversation');
 const { createInbox } = require('./inbox');
 const { createIntelligence, resolveAssociation } = require('./intelligence');
 const { createHommyWorkspace, shouldResolveTeamAlias } = require('./hommy-workspace');
+const { createTeamAI } = require('./team-ai');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.26.1';
+const BRIDGE_VERSION = '0.27.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -30,6 +31,9 @@ const HOMMY_INBOX_MAX_BODY_BYTES = Math.max(16, Math.min(1024, Number(process.en
 const HOMMY_INBOX_WEBHOOK_SECRET = String(process.env.HOMMY_INBOX_WEBHOOK_SECRET || '');
 const HOMMY_INTELLIGENCE_ENABLED = String(process.env.HOMMY_INTELLIGENCE_ENABLED || 'false').toLowerCase() === 'true';
 const HOMMY_BACKEND_URL = String(process.env.HOMMY_BACKEND_URL || 'https://homeeasy-hommy-staging.onrender.com').replace(/\/$/, '');
+const HOMMY_TEAM_AI_ENABLED = process.env.HOMMY_TEAM_AI_ENABLED === 'true';
+const HOMMY_TEAM_AI_URL = String(process.env.HOMMY_TEAM_AI_URL || '');
+const HOMMY_TEAM_AI_SERVICE_TOKEN = String(process.env.HOMMY_TEAM_AI_SERVICE_TOKEN || '');
 const REMOTE_PDF_MAX_BYTES = Math.min(MAX_BODY_BYTES, 18 * 1024 * 1024);
 const DATA_DIR = String(process.env.DATA_DIR || '/app/data');
 const PENTAGRAMA_MODE = String(process.env.PENTAGRAMA_MODE || 'direct').toLowerCase();
@@ -154,9 +158,14 @@ const hommyIntelligence = createIntelligence({
   dataDir: DATA_DIR, enabled: HOMMY_INTELLIGENCE_ENABLED, inbox: hommyInbox,
   resolveMatch: resolveIntelligenceMatch, analyze: analyzeWithHommy, inspectConversation: inspectHumanTakeover
 });
+const teamAI = createTeamAI({
+  enabled: HOMMY_TEAM_AI_ENABLED, endpoint: HOMMY_TEAM_AI_URL,
+  backendUrl: HOMMY_BACKEND_URL, serviceToken: HOMMY_TEAM_AI_SERVICE_TOKEN,
+  dataDir: DATA_DIR
+});
 const hommyWorkspace = createHommyWorkspace({
   dataDir: DATA_DIR, session: WAHA_SESSION, intelligenceEnabled: HOMMY_INTELLIGENCE_ENABLED,
-  hasClient: hommyIntelligence.hasClient
+  hasClient: hommyIntelligence.hasClient, teamAiAvailable: teamAI.available
 });
 
 function json(res, statusCode, payload) {
@@ -1094,9 +1103,17 @@ async function handle(req, res) {
           // Fail closed: no mapping, no permission; never delay customer inbox or send messages.
         }
       }
-      const group = hommyWorkspace.ingestSignedGroupEvent(event, mapping);
+      const group = hommyWorkspace.ingestSignedGroupEvent(event, mapping, { aiEnabled: teamAI.available });
       if (group.accepted) {
-        const reserved = group.status === 'INFORMATION' ? hommyWorkspace.reserveTeamReply(group.id) : null;
+        if (group.status === 'AI_PENDING') {
+          const request = hommyWorkspace.teamAIRequest(group.id);
+          const decision = request ? await teamAI.interpret(request) :
+            {kind:'UNAVAILABLE',reason:'DISABLED'};
+          hommyWorkspace.completeTeamAI(group.id, decision);
+        }
+        // Authorization, group ID and durable SENDING state are rechecked after
+        // any slow external service call. Never send to arbitrary destinations.
+        const reserved = hommyWorkspace.reserveTeamReply(group.id);
         if (reserved) {
           // Only our configured and verified team group is a permitted destination.
           // This is NOT a general-purpose customer sending endpoint.

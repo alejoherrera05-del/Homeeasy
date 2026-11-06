@@ -70,7 +70,7 @@ function createHommyWorkspace(options = {}) {
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   const defaults = () => ({
     version: 1, revision: 0, mode: options.intelligenceEnabled ? 'REVIEW' : 'PAUSED',
-    team: { enabled: false, groupId: '', allowedSenders: [], replyEnabled: false },
+    team: { enabled: false, groupId: '', allowedSenders: [], replyEnabled: false, aiEnabled: false },
     labels: {}, tasks: [], commands: [], seen: [], audit: []
   });
   // A damaged optional workspace must never prevent the WhatsApp/Pentagrama Bridge from starting.
@@ -108,7 +108,8 @@ function createHommyWorkspace(options = {}) {
       team: { enabled: data.team.enabled,
         configured: validGroup(data.team.groupId) && data.team.allowedSenders.length > 0,
         groupId: data.team.groupId || null, authorizedSenders: data.team.allowedSenders.length,
-        replyEnabled: data.team.replyEnabled === true, replySupported: true },
+        replyEnabled: data.team.replyEnabled === true, replySupported: true,
+        aiEnabled: data.team.aiEnabled === true, aiAvailable: options.teamAiAvailable === true },
       totalTeamCommands: data.commands.length,
       labeledClients: Object.keys(data.labels).length,
       pendingTasks: data.tasks.filter(t => ['PENDIENTE', 'EN_CURSO'].includes(t.status)).length,
@@ -127,19 +128,23 @@ function createHommyWorkspace(options = {}) {
       const senders = body.team.allowedSenders === undefined ? data.team.allowedSenders : body.team.allowedSenders;
       const enabled = body.team.enabled === undefined ? data.team.enabled : body.team.enabled;
       const replyEnabled = body.team.replyEnabled === undefined ? data.team.replyEnabled === true : body.team.replyEnabled;
+      const aiEnabled = body.team.aiEnabled === undefined ?
+        enabled && replyEnabled && data.team.aiEnabled === true : body.team.aiEnabled;
       if ((groupId && !validGroup(groupId)) || typeof enabled !== 'boolean' ||
-          typeof replyEnabled !== 'boolean' ||
+          typeof replyEnabled !== 'boolean' || typeof aiEnabled !== 'boolean' ||
+          (aiEnabled && (!replyEnabled || options.teamAiAvailable !== true)) ||
           !Array.isArray(senders) || senders.length > 5 || senders.some(s => !validSender(s)) ||
           (enabled && (!groupId || !senders.length)) ||
           (replyEnabled && (!enabled || !groupId || !senders.length))) {
         throw err('Exact group ID, authorized sender IDs and active group are required');
       }
       team = { groupId, allowedSenders: [...new Set(senders)], enabled,
-        replyEnabled: enabled && replyEnabled };
+        replyEnabled: enabled && replyEnabled, aiEnabled: enabled && replyEnabled && aiEnabled };
     }
     if (body.mode !== undefined) data.mode = body.mode;
     if (team) data.team = team;
-    if (data.mode !== 'REVIEW') data.team.replyEnabled = false;
+    if (data.mode !== 'REVIEW') { data.team.replyEnabled = false; data.team.aiEnabled = false; }
+    if (!data.team.enabled || !data.team.replyEnabled || options.teamAiAvailable !== true) data.team.aiEnabled = false;
     persist('CONFIGURE', actor);
     return status();
   }
@@ -201,7 +206,11 @@ function createHommyWorkspace(options = {}) {
     if (corrupted || data.mode !== 'REVIEW' || !data.team.enabled ||
         data.team.replyEnabled !== true || !validGroup(data.team.groupId)) return null;
     const command = data.commands.find(c => c.id === clean(id, 260));
-    if (!command || command.status !== 'INFORMATION' || command.replyStatus) return null;
+    if (!command || command.status !== 'INFORMATION' || command.replyStatus ||
+        (command.aiRequest === true && (data.team.aiEnabled !== true ||
+          options.teamAiAvailable !== true)) ||
+        (command.originGroupId && command.originGroupId !== data.team.groupId) ||
+        (command.authorizedSenderId && !isAuthorizedSender(command.authorizedSenderId))) return null;
     const text = clean(command.preview, 600);
     if (!text) return null;
     command.replyStatus = 'SENDING';
@@ -221,7 +230,44 @@ function createHommyWorkspace(options = {}) {
     return true;
   }
 
-  function ingestSignedGroupEvent(event, verifiedMapping) {
+  function teamAIRequest(id) {
+    if (corrupted || data.mode !== 'REVIEW' || !data.team.enabled ||
+        !data.team.replyEnabled || !data.team.aiEnabled ||
+        options.teamAiAvailable !== true) return null;
+    const target = data.commands.find(c => c.id === clean(id,260));
+    if (!target || target.status !== 'AI_PENDING' || target.originGroupId !== data.team.groupId ||
+        !isAuthorizedSender(target.authorizedSenderId)) return null;
+    const redact = text => clean(text,440).replace(/\b\d{8,}\b/g,'[dato oculto]')
+      .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[correo oculto]');
+    const history = data.commands.filter(c => c.id !== id && c.originGroupId === data.team.groupId &&
+      c.status === 'INFORMATION' && c.replyStatus === 'SENT').slice(-3)
+      .map(c => ({question:redact(c.command).slice(0,220),answer:redact(c.preview).slice(0,400)}));
+    return { question:redact(target.command),history,
+      pendingTasks:data.tasks.filter(t => ['PENDIENTE','EN_CURSO'].includes(t.status)).length };
+  }
+
+  function completeTeamAI(id, decision) {
+    if (corrupted) return {ready:false,reason:'DISABLED'};
+    const command = data.commands.find(c => c.id === clean(id,260));
+    if (!command || command.status !== 'AI_PENDING')
+      return {ready:false,reason:'UNKNOWN_OR_COMPLETED'};
+    if (decision && decision.kind === 'ANSWER' && typeof decision.text === 'string' &&
+        decision.text.trim().length >= 6 && decision.text.length <= 480) {
+      command.status = 'INFORMATION';
+      command.preview = decision.text.trim();
+    } else if (decision && decision.kind === 'REVIEW_REQUIRED') {
+      command.status = 'REVIEW_REQUIRED';
+      command.preview = 'Esta gestión requiere revisión del equipo antes de realizar cualquier acción con clientes.';
+    } else {
+      command.status = 'AI_UNAVAILABLE';
+      command.preview = 'No fue posible consultar el motor de inteligencia en esta ocasión.';
+    }
+    command.aiFinishedAt = new Date().toISOString();
+    persist('TEAM_AI_COMPLETED',{profile:{uid:'system'}});
+    return {ready:command.status === 'INFORMATION',status:command.status};
+  }
+
+  function ingestSignedGroupEvent(event, verifiedMapping, controls = {}) {
     if (corrupted || data.mode !== 'REVIEW' || !data.team.enabled) return { accepted: false, reason: 'DISABLED' };
     if (!event || event.session !== session || !['message', 'message.any'].includes(event.event))
       return { accepted: false, reason: 'UNSUPPORTED_EVENT' };
@@ -237,14 +283,29 @@ function createHommyWorkspace(options = {}) {
     const body = clean(p.body || p.text || p.caption, 700);
     const command = extractTeamRequest(body);
     if (!command) return { accepted: false, reason: 'NOT_MENTIONED' };
-    const queryType = operational.classify(command);
-    const clientDetail = queryType ? null : lookupClient(command);
-    const status = queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
-    const preview = queryType
-      ? operational.preview(queryType, data.tasks, data.labels, readOverview())
-      : clientDetail !== null ? clientDetail
-      : 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
-    data.commands.push({ id, at: new Date().toISOString(), author, command: command.slice(0, 500), preview, status });
+    const authorizedSenderId = isAuthorizedSender(author) ? author : matchingAlias;
+    const aiRequested = data.team.aiEnabled === true && data.team.replyEnabled === true;
+    const aiConfigured = aiRequested && controls.aiEnabled === true && options.teamAiAvailable === true;
+    const aiCountLastMinute = data.commands.filter(item =>
+      item.aiRequest === true && item.authorizedSenderId === authorizedSenderId &&
+      Date.parse(item.at) >= Date.now() - 60000).length;
+    const aiRateLimited = aiConfigured && aiCountLastMinute >= 4;
+    const aiMode = aiConfigured && !aiRateLimited;
+    const aiUnavailable = aiRequested && !aiConfigured;
+    const queryType = aiRequested ? null : operational.classify(command);
+    const clientDetail = aiMode || queryType ? null : lookupClient(command);
+    const status = aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
+      aiUnavailable ? 'AI_UNAVAILABLE' :
+      queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
+    const preview = aiMode ? 'Consulta pendiente de interpretación segura.' :
+      aiRateLimited ? 'Se alcanzó el límite de consultas de este integrante; inténtalo nuevamente después.' :
+      aiUnavailable ? 'El motor de inteligencia no está configurado; no se envió ninguna respuesta.' :
+      queryType ? operational.preview(queryType, data.tasks, data.labels, readOverview()) :
+      clientDetail !== null ? clientDetail :
+      'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.';
+    data.commands.push({ id, at: new Date().toISOString(), author,
+      originGroupId:data.team.groupId, authorizedSenderId,
+      aiRequest:aiConfigured, command: command.slice(0, 500), preview, status });
     data.commands = data.commands.slice(-limit);
     data.seen.push(id);
     data.seen = data.seen.slice(-limit);
@@ -253,7 +314,8 @@ function createHommyWorkspace(options = {}) {
   }
 
   return Object.freeze({ status, configure, putLabels, createTask, updateTask, dashboard,
-    isAuthorizedSender, ingestSignedGroupEvent, reserveTeamReply, finishTeamReply });
+    isAuthorizedSender, ingestSignedGroupEvent, reserveTeamReply, finishTeamReply,
+    teamAIRequest, completeTeamAI });
 }
 
 module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias, extractTeamRequest });
