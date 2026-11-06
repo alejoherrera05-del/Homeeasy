@@ -253,10 +253,14 @@ function createHommyWorkspace(options = {}) {
 
   function memberProfiles() {
     if (corrupted) return [];
-    return data.team.allowedSenders.map(senderId=>({
-      senderId,
-      profile: data.team.profiles[senderId] || null
-    }));
+    return data.team.allowedSenders.map(senderId=>{
+      const recent=data.commands.filter(item=>item.authorizedSenderId===senderId &&
+        item.originGroupId===data.team.groupId).slice(-1)[0];
+      const lastCommand=recent && clean(recent.command,75)
+        .replace(/\b\d{8,}\b/g,'[dato oculto]')
+        .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[correo oculto]') || null;
+      return {senderId,profile:data.team.profiles[senderId] || null,lastCommand};
+    });
   }
   function profileForCommand(commandId) {
     if(corrupted) return null;
