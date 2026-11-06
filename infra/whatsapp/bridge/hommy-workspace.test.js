@@ -442,7 +442,8 @@ test('AI outage, group change, member revocation and unsafe actions never trigge
  assert.equal(w.completeTeamAI(first.id,{kind:'UNAVAILABLE'}).status,'AI_UNAVAILABLE');
  assert.equal(w.reserveTeamReply(first.id),null);
  const second=w.ingestSignedGroupEvent(groupEvent({id:'requires-human',body:'Hommy, envíale un precio a Laura'}),null,{aiEnabled:true});
- assert.equal(w.completeTeamAI(second.id,{kind:'REVIEW_REQUIRED'}).status,'REVIEW_REQUIRED');
+ assert.equal(second.status,'REVIEW_REQUIRED');
+ assert.equal(w.teamAIRequest(second.id),null);
  assert.equal(w.reserveTeamReply(second.id),null);
  const pending=w.ingestSignedGroupEvent(groupEvent({id:'group-changed',body:'Hommy, qué sabemos?'}),null,{aiEnabled:true});
  w.configure({team:{groupId:'120363987654321012@g.us',allowedSenders:[STAFF],enabled:true}});
