@@ -82,14 +82,33 @@ const KNOWN_PRODUCTS = Object.freeze([
 // promoted to INFORMATION, regardless of the product or client mentioned.
 function parseClientQuery(value) {
   const q = normalize(value);
-  const match = /^(?:cliente (?:de |que busca |interesado en )?|que sabemos de (?:el cliente de |la cortina |la persiana )?|que paso con (?:el cliente de )?|como va lo de |estado de )(.*?)$/.exec(q);
-  if (!match) return null;
-  let target = match[1].replace(/^(?:la |el |las |los )?(?:cortina|persiana)(?:s)? (?:de )?/, '').trim();
-  if (target.length < 3 || target.length > 80 ||
-      /\s+y\s+/.test(' ' + target + ' ') ||
-      /\b(?:manda\w*|envia\w*|escribe\w*|avisa\w*|responde\w*|etiqueta\w*|borra\w*|elimina\w*|contacta\w*|confirma\w*|llama\w*|agenda\w*|descuento|precio)\b/.test(target)) return null;
-  const product = KNOWN_PRODUCTS.find(p => normalize(p) === target);
-  return { kind: product ? 'PRODUCT' : 'NAME', target, product: product || null };
+  if (!q || q.length > 180) return null;
+  // A mixed query is always a REVIEW action. A product word does not authorize sending.
+  const actionWords = /\b(?:manda\w*|mandale\w*|envia\w*|escribe\w*|avisale\w*|avisa\w*|responde\w*|etiqueta\w*|marca\w*|borra\w*|elimina\w*|contacta\w*|confirma\w*|llama\w*|agenda\w*|reserva\w*|programa\w*|crea\w*|cotiza\w*)\b/;
+  if (actionWords.test(q)) return null;
+  const productAliases = [
+    { canonical: 'Onda Serena', match: /\bonda serena\b/ },
+    { canonical: 'Sheer Elegance', match: /\bsheer elegance\b/ },
+    { canonical: 'Sheer Vertesse', match: /\bsheer vertesse\b/ },
+    { canonical: 'Panel Japonés', match: /\bpanel japones\b/ },
+    { canonical: 'Blackout', match: /\bblack\s?out\b/ }
+  ];
+  const products = productAliases.filter(p => p.match.test(q));
+  if (products.length > 1) return null;
+  const intent = /^(?:que sabemos|que conoces|que ha pasado|que paso|como va|como vamos|como sigue|en que va|en que quedo|en que estamos|hay novedades|tienes novedades|dime|cuentame|me cuentas|que hay|como esta|estado de|cliente\b|la cortina|la persiana|el panel|sobre\b|de\b)/.test(q);
+  if (products.length === 1) {
+    const product = products[0].canonical;
+    const bare = q.replace(/^(?:sobre\s+)?(?:el|la|los|las)\s+/, '');
+    if (intent || bare === normalize(product)) {
+      return { kind: 'PRODUCT', target: normalize(product), product };
+    }
+    return null;
+  }
+  const named = /^(?:cliente(?:\s+de)?\s+|que sabemos de\s+|que conoces de\s+|que paso con\s+|como va lo de\s+|estado de\s+|cuentame de\s+|dime de\s+)(.+)$/.exec(q);
+  if (!named) return null;
+  const name = named[1].replace(/^(?:el cliente|la cliente|la persona)\s+(?:de\s+)?/, '').trim();
+  if (name.length < 3 || name.length > 65 || /\b(?:precio|cotizacion|visita|persiana|cortina|pedido|cliente|agenda|telefono)\b/.test(name)) return null;
+  return { kind: 'NAME', target: name, product: null };
 }
 
 function clientReport(state, request) {
@@ -105,14 +124,14 @@ function clientReport(state, request) {
     if (matches.length > 1) return 'Encontré ' + matches.length +
       ' oportunidades relacionadas con ' + request.product +
       '. Necesito un cliente o espacio específico para distinguirlas; no voy a mezclar las conversaciones.';
-    if (!matches.length) return 'No encuentro una oportunidad de ' + request.product +
-      ' en la memoria que Hommy ya analizó. No he revisado todos los chats de WhatsApp.';
+    if (!matches.length) return 'Por ahora no tengo registrada una oportunidad de ' + request.product +
+      ' entre las conversaciones que he analizado. Eso no significa que no exista en WhatsApp.';
   } else {
     const candidateClients = clients.filter(c => normalize(c.name) === request.target);
     if (candidateClients.length > 1) return 'Encuentro más de un cliente con ese nombre en la memoria. ' +
       'Necesito otra referencia para saber de cuál hablamos.';
-    if (!candidateClients.length) return 'No encuentro ese nombre exacto en los clientes analizados. ' +
-      'Si me dices qué cortina o persiana busca, puedo consultar por producto.';
+    if (!candidateClients.length) return 'Con ese nombre todavía no encuentro un cliente en mi memoria. ' +
+      'Puede que la conversación esté en WhatsApp, pero no la haya analizado aún.';
     const id = candidateClients[0].id;
     matches = opportunities.filter(o => o.clientId === id);
     if (matches.length > 1) return 'Encontré ' + matches.length +
@@ -132,26 +151,29 @@ function clientReport(state, request) {
   const environment = Array.isArray(opportunity.environments) ?
     opportunity.environments.map(x => safeRooms.get(normalize(x))).find(Boolean) : null;
   const next = {
-    REQUEST_QUOTE_DETAILS: 'Faltan datos para preparar una cotización.',
-    COLLECT_VISIT_DETAILS: 'Falta completar información de la visita; no está confirmada.',
-    HUMAN_REVIEW: 'Requiere revisión del equipo.',
-    WAIT: 'El último análisis indicó esperar.',
-    PREPARE_RESPONSE: 'Hay una respuesta propuesta para revisar.',
-    STOP_CONTACT: 'No debemos contactar a esa persona.'
-  }[opportunity.nextAction] || 'No hay un próximo paso verificado.';
+    REQUEST_QUOTE_DETAILS: 'Por ahora faltan datos para poder cotizar.',
+    COLLECT_VISIT_DETAILS: 'Falta completar información de la visita; todavía no hay una cita confirmada.',
+    HUMAN_REVIEW: 'Hay algo que el equipo debe revisar.',
+    WAIT: 'El último seguimiento quedó en espera.',
+    PREPARE_RESPONSE: 'Hay una respuesta preparada, pendiente de revisión.',
+    STOP_CONTACT: 'Está marcado para no volver a contactar.',
+  }[opportunity.nextAction] || 'Aún no tengo claro cuál sería el siguiente paso.';
   const name = client && typeof client.name === 'string' ? client.name.trim() : '';
   const verifiedName = request.kind === 'NAME' ? null :
     client && client.provisional === false && !((client.identityConflicts || []).length) &&
       /^[A-Za-zÀ-ÿ'’.\s-]{2,65}$/u.test(name) ? name : null;
-  let response = 'Según la última conversación analizada, ' +
-    (verifiedName ? verifiedName + ' tiene ' : 'hay ') +
+  const productText = product === 'Onda Serena' ? 'la cortina Onda Serena' :
+    ['Sheer Elegance','Sheer Vertesse'].includes(product) ? 'la persiana ' + product :
+    product === 'Panel Japonés' ? 'el panel japonés' : product === 'Blackout' ?
+    'la opción blackout' : product;
+  let response = 'Sobre ' + productText + ', tengo ' +
     (opportunity.status === 'OPEN' ? 'una oportunidad abierta' : 'una oportunidad registrada') +
-    ' relacionada con ' + product + '.';
-  if (environment) response += ' Espacio: ' + environment.slice(0, 75) + '.';
+    (verifiedName ? ' de ' + verifiedName : '') + '.';
+  if (environment) response += ' Es para ' + (environment === 'sala' ? 'la sala' : environment === 'comedor' ? 'el comedor' : environment === 'estudio' ? 'el estudio' : environment === 'balcón' ? 'el balcón' : 'el espacio de ' + environment) + '.';
   response += ' ' + next;
   if (Array.isArray(opportunity.quoteNumbers) && opportunity.quoteNumbers.length)
-    response += ' Tiene referencia de cotización, pero no puedo confirmar que se haya enviado.';
-  return response.slice(0, 750);
+    response += ' Hay una referencia de cotización, aunque no sé si ya se envió.';
+  return response.slice(0, 580);
 }
 
 function createClientLookup(root) {

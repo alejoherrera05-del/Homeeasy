@@ -29,6 +29,20 @@ function mappedSenderAlias(author, mapping) {
 
 
 
+// A message addressed to Hommy is natural language, not a slash command.
+// Accept the name at the start or end (and "oye Hommy,..."), with word boundaries.
+function extractTeamRequest(value) {
+  const raw = clean(value, 700);
+  const mention = /\bhommy\b/i.exec(raw);
+  if (!mention) return null;
+  let before = raw.slice(0, mention.index).replace(/^[\s,¿¡,:!?-]+|[\s,¿¡,:!?-]+$/g, '');
+  let after = raw.slice(mention.index + mention[0].length).replace(/^[\s,¿¡,:!?-]+|[\s,¿¡,:!?-]+$/g, '');
+  if (/^(?:oye|hola|hey|buenos dias|buenos días|buenas tardes|buenas noches)$/i.test(before)) before = '';
+  let content = [before, after].filter(Boolean).join(' ').trim();
+  content = content.replace(/^(?:oye|hola|hey|buenos d[ií]as|buenas tardes|buenas noches)[, ]+/i, '').trim();
+  return content || null;
+}
+
 function shouldResolveTeamAlias(event, team, author, alreadyAllowed, session) {
   if (!team || !team.enabled || !validGroup(team.groupId)) return false;
   if (!event || event.session !== session || !['message', 'message.any'].includes(event.event)) return false;
@@ -37,7 +51,7 @@ function shouldResolveTeamAlias(event, team, author, alreadyAllowed, session) {
   if (clean(payload.chatId || payload.from, 90) !== team.groupId) return false;
   if (alreadyAllowed || !validSender(author)) return false;
   const message = clean(payload.body || payload.text || payload.caption, 700);
-  return /^hommy\b(?:[,\s:!?-]|$)/i.test(message);
+  return extractTeamRequest(message) !== null;
 }
 
 function saveAtomic(file, data) {
@@ -221,8 +235,8 @@ function createHommyWorkspace(options = {}) {
     const id = clean(p.id || p.messageId || p.key?.id, 260);
     if (!id || data.seen.includes(id)) return { accepted: false, reason: id ? 'DUPLICATE' : 'MISSING_ID' };
     const body = clean(p.body || p.text || p.caption, 700);
-    if (!/^hommy\b[,\s:!?-]*/i.test(body)) return { accepted: false, reason: 'NOT_MENTIONED' };
-    const command = body.replace(/^hommy\b[,\s:!?-]*/i, '').trim();
+    const command = extractTeamRequest(body);
+    if (!command) return { accepted: false, reason: 'NOT_MENTIONED' };
     const queryType = operational.classify(command);
     const clientDetail = queryType ? null : lookupClient(command);
     const status = queryType || clientDetail !== null ? 'INFORMATION' : 'REVIEW_REQUIRED';
@@ -242,4 +256,4 @@ function createHommyWorkspace(options = {}) {
     isAuthorizedSender, ingestSignedGroupEvent, reserveTeamReply, finishTeamReply });
 }
 
-module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias });
+module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias, extractTeamRequest });
