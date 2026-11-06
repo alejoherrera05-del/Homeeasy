@@ -30,7 +30,7 @@ function wantsCustomerCatalog(value) {
     .toLowerCase().replace(/[¿?¡!.,;:]+/g,' ').replace(/\s+/g,' ').trim();
   if(q.length>170 || !q || /(?:no me|no quiero|no envien|no manden)/.test(q))return false;
   q=q.replace(/^(?:(?:hola|holi|buenas|buenas tardes|buenos dias|buenas noches|por favor)\s+){1,3}/,'');
-  return /^(?:(?:me (?:puedes|podrias|pueden|podrian)\s+)?(?:enviar|mandar|compartir|pasar)|(?:me (?:envias|mandas|compartes|pasas))|(?:quiero|quisiera|necesito)\s+(?:ver|recibir)?|(?:tienen|tienes)|(?:me regalas))\s+(?:(?:por favor|el|un|su|nuestro)\s+){0,3}catalogo(?:\s+(?:de\s+homeeasy|de\s+persianas(?:\s+y\s+cortinas)?))?(?:\s+por favor)?$/.test(q);
+  return /^(?:(?:me (?:puedes|podrias|pueden|podrian)\s+)?(?:enviar|mandar|compartir|pasar)|(?:me (?:envias|mandas|compartes|pasas))|(?:quiero|quisiera|necesito)(?:\s+(?:ver|recibir))?|(?:tienen|tienes)|(?:me regalas))\s+(?:(?:por favor|el|un|su|nuestro)\s+){0,3}catalogo(?:\s+(?:de\s+homeeasy|de\s+persianas(?:\s+y\s+cortinas)?))?(?:\s+por favor)?$/.test(q);
 }
 
 function validateGeneralNote(value) {
