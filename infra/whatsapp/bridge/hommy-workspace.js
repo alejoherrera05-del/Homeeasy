@@ -52,6 +52,15 @@ function requiresCustomerAction(value) {
   return /\b(?:envia\w*|enviar\w*|manda\w*|mandar\w*|dile\b|diles\b|avisale\w*|avisar\w*|escribe\w*|escribir\w*|responde\w*|responder\w*|contacta\w*|contactar\w*|llama\w*|llamar\w*|agenda\w*|agendar\w*|confirma\w*|confirmar\w*|cancela\w*|cancelar\w*|borra\w*|borrar\w*|elimina\w*|eliminar\w*|modifica\w*|modificar\w*|descuenta\w*)\b/.test(q);
 }
 
+// A team member can ask for their OWN approved catalog in ordinary language.
+// Any named client/destination or mixed instruction stays in human review.
+function ownCatalogRequest(value) {
+  const q=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[¿?¡!.,;:]+/g,' ').replace(/\s+/g,' ').trim();
+  if(q.length>150)return false;
+  return /^(?:(?:oye|hola|por favor)\s+)?(?:enviame|mandame|pasame|comparteme|dame|me envias|me mandas|me pasas|me compartes|me puedes enviar|puedes enviarme|me podrias enviar|quisiera|necesito|quiero)\s+(?:por favor\s+)?(?:(?:el|un|nuestro)\s+)?catalogo(?:\s+(?:oficial|de\s+homeeasy|de\s+persianas(?:\s+y\s+cortinas)?))?(?:\s+por favor)?$/.test(q);
+}
+
 function shouldResolveTeamAlias(event, team, author, alreadyAllowed, session) {
   if (!team || !team.enabled || !validGroup(team.groupId)) return false;
   if (!event || event.session !== session || !['message', 'message.any'].includes(event.event)) return false;
@@ -238,6 +247,20 @@ function createHommyWorkspace(options = {}) {
     return !corrupted && data.team.allowedSenders.includes(clean(value, 90));
   }
 
+  function reserveTeamCatalog(id) {
+    if(corrupted||data.mode!=='REVIEW'||!data.team.enabled||
+       data.team.replyEnabled!==true||!validGroup(data.team.groupId)||
+       typeof options.hasDeskCatalog!=='function'||!options.hasDeskCatalog())return null;
+    const command=data.commands.find(c=>c.id===clean(id,260));
+    if(!command||command.status!=='CATALOG_READY'||command.replyStatus||
+       command.originGroupId!==data.team.groupId||
+       !isAuthorizedSender(command.authorizedSenderId))return null;
+    command.replyStatus='SENDING';
+    command.replyStartedAt=new Date().toISOString();
+    persist('TEAM_CATALOG_RESERVED',{profile:{uid:'system'}});
+    return Object.freeze({commandId:command.id,groupId:data.team.groupId});
+  }
+
   // Synchronous reservation persisted BEFORE any outbound request.
   // Only an already-authenticated, authorized INFORMATION query may get a group reply.
   // The ID comes from a stored command, not from arbitrary API input or model output.
@@ -331,23 +354,28 @@ function createHommyWorkspace(options = {}) {
     // Local fast path: preapproved, read-only summaries and unambiguous product
     // or exact-client lookups bypass network AI. The parser rejects mixed actions.
     // Unknown requests still use the conversational backend when enabled.
-    const actionRequested = requiresCustomerAction(command);
-    const queryType = actionRequested ? null : operational.classify(command);
-    const localLookup = !actionRequested && !queryType && operational.parseClientQuery(command);
+    const selfCatalog = ownCatalogRequest(command);
+    const actionRequested = !selfCatalog && requiresCustomerAction(command);
+    const queryType = actionRequested || selfCatalog ? null : operational.classify(command);
+    const localLookup = !actionRequested && !selfCatalog && !queryType && operational.parseClientQuery(command);
     const clientDetail = localLookup ? lookupClient(command) : null;
-    const followup = !actionRequested && !queryType && !localLookup ?
+    const followup = !actionRequested && !selfCatalog && !queryType && !localLookup ?
       contextualFollowup(command, authorizedSenderId) : null;
-    const locallyAnswered = Boolean(queryType || clientDetail !== null || followup !== null);
+    const locallyAnswered = Boolean(selfCatalog || queryType || clientDetail !== null || followup !== null);
+    const catalogReady = selfCatalog && typeof options.hasDeskCatalog==='function' &&
+      options.hasDeskCatalog() === true;
     const aiCountLastMinute = data.commands.filter(item =>
       item.aiRequest === true && item.authorizedSenderId === authorizedSenderId &&
       Date.parse(item.at) >= Date.now() - 60000).length;
     const aiRateLimited = aiConfigured && !locallyAnswered && !actionRequested && aiCountLastMinute >= 4;
     const aiMode = aiConfigured && !locallyAnswered && !actionRequested && !aiRateLimited;
     const aiUnavailable = aiRequested && !aiConfigured && !locallyAnswered && !actionRequested;
-    const status = actionRequested ? 'REVIEW_REQUIRED' : aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
+    const status = selfCatalog ? (catalogReady ? 'CATALOG_READY' : 'INFORMATION') :
+      actionRequested ? 'REVIEW_REQUIRED' : aiMode ? 'AI_PENDING' : aiRateLimited ? 'AI_RATE_LIMITED' :
       aiUnavailable ? 'AI_UNAVAILABLE' :
       locallyAnswered ? 'INFORMATION' : 'REVIEW_REQUIRED';
-    const preview = actionRequested ? 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.' :
+    const preview = selfCatalog ? (catalogReady ? 'Enviando el catálogo oficial de HomeEasy.' : 'Todavía no tengo el catálogo PDF instalado en mi escritorio. Súbelo desde Configuración > Integraciones.') :
+      actionRequested ? 'Solicitud recibida. Hay que identificar al cliente y aprobar la acción en HomeEasy antes de cualquier envío.' :
       aiMode ? 'Consulta pendiente de interpretación segura.' :
       aiRateLimited ? 'Se alcanzó el límite de consultas de este integrante; inténtalo nuevamente después.' :
       aiUnavailable ? 'El motor de inteligencia no está configurado; no se envió ninguna respuesta.' :
@@ -366,8 +394,8 @@ function createHommyWorkspace(options = {}) {
   }
 
   return Object.freeze({ status, configure, putLabels, createTask, updateTask, dashboard,
-    isAuthorizedSender, ingestSignedGroupEvent, reserveTeamReply, finishTeamReply,
+    isAuthorizedSender, ingestSignedGroupEvent, reserveTeamReply, reserveTeamCatalog, finishTeamReply,
     teamAIRequest, completeTeamAI });
 }
 
-module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias, extractTeamRequest });
+module.exports = Object.freeze({ createHommyWorkspace, LABELS, mappedSenderAlias, shouldResolveTeamAlias, extractTeamRequest, ownCatalogRequest });
