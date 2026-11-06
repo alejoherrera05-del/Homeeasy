@@ -657,9 +657,9 @@ test('greeting depends on chat session, never repeats per message and returns af
   t.after(env.cleanup);
   await env.intelligence.process({}, { limit: 10 });
   const drafts = Object.fromEntries(env.intelligence.list({}).items.map(item => [item.sourceMessageId, item.result.suggestedResponse]));
-  assert.match(drafts['greet-a'], /^Hola/);
-  assert.doesNotMatch(drafts['greet-b'], /^Hola/);
-  assert.match(drafts['greet-c'], /^Hola/);
+  assert.match(drafts['greet-a'], /^¡?Hola/);
+  assert.doesNotMatch(drafts['greet-b'], /^¡?Hola/);
+  assert.match(drafts['greet-c'], /^¡?Hola/);
   assert.ok(Object.values(drafts).every(text => !/¡{2}|¿{2}/.test(text)));
   assert.ok(Object.values(drafts).every(text => /pendiente|confirmar|disponibilidad/i.test(text)));
 });
