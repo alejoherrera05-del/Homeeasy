@@ -444,3 +444,17 @@ Una vez que WAHA esté `WORKING` y podamos enviar un PDF desde el VPS:
 5. Pedido y Abono.
 6. Cola/reintentos.
 7. Automatización opcional.
+
+
+## Hommy 0.28 — Escritorio comercial y memoria aprobada
+
+En `Configuración > Integraciones > Hommy > Escritorio y memoria` se administra el escritorio privado del Bridge:
+
+1. **Catálogo oficial en PDF.** Se carga desde el navegador un archivo PDF de hasta 12 MB. El catálogo no queda expuesto como URL pública; se guarda en el volumen persistente del Bridge, en `DATA_DIR/hommy-desk/CATALOGO_HOMEEASY_OFICIAL_WHATSAPP.pdf`, con permisos privados. Utilizar el catálogo optimizado oficial de HomeEasy. No subir el original de más de 20 MB a este formulario.
+2. **Bloc de notas aprobado.** Los usuarios con permiso `config.write` pueden agregar, corregir y archivar información comercial general. Las notas de equipo no se incorporan a las respuestas a clientes; las públicas sí se incluyen en el contexto comercial, como hechos y nunca como instrucciones. Bloquea teléfonos, correos, enlaces y secretos. Las conversaciones de clientes tienen su memoria comercial independiente.
+3. **Solicitud al grupo privado.** Cuando un integrante autorizado del grupo escribe «Hommy, envíame el catálogo», Hommy puede adjuntar el PDF directamente al **mismo grupo autorizado** si están habilitadas las respuestas internas. La petición se registra y se reserva antes del envío para impedir duplicados; si WAHA no confirma la entrega, queda marcada como desconocida y no se reintenta automáticamente.
+4. **Clientes externos.** Las solicitudes de catálogo siguen en modo `REVIEW` hasta validar una estrategia de envío automático y la prioridad de intervención humana. No se autoriza que una instrucción del grupo redirija archivos a clientes arbitrarios.
+5. **Seguridad y persistencia.** El actualizador incluye `hommy-desk.js` y respalda el contenido de `hommy-desk`. Ni WAHA ni Pentagrama necesitan reiniciarse al actualizar el código del Bridge.
+
+Endpoints autenticados (`config.read` / `config.write`): `GET /api/whatsapp/hommy/desk`, `POST /api/whatsapp/hommy/desk/catalog` (cuerpo `application/pdf`), `POST /api/whatsapp/hommy/desk/notes`, `POST /api/whatsapp/hommy/desk/notes/edit`, `POST /api/whatsapp/hommy/desk/notes/archive`.
+
