@@ -131,3 +131,104 @@ test('verified owner name and address preference reach team AI without WhatsApp 
   }});
   assert.equal(unknown.style.constraints.length,12);
 });
+
+
+const DIRECT_KEY='sk-'+'b'.repeat(48);
+function openaiResponse(reply,status='completed') {
+  return response({status,output:[{type:'message',content:[
+    {type:'output_text',text:JSON.stringify(reply)}
+  ]}]});
+}
+test('direct OpenAI mode requires an explicit key and skips Render entirely', async t=>{
+  const root=fixture(t);memory(root);
+  const noKey=createTeamAI({enabled:true,provider:'DIRECT_OPENAI',dataDir:root});
+  assert.equal(noKey.available,false);
+  const noFlag=createTeamAI({enabled:false,provider:'DIRECT_OPENAI',
+    openaiApiKey:DIRECT_KEY,dataDir:root});
+  assert.equal(noFlag.available,false);
+  const noRender=createTeamAI({enabled:true,provider:'DIRECT_OPENAI',
+    openaiApiKey:DIRECT_KEY,dataDir:root});
+  assert.equal(noRender.available,true);
+  assert.equal(noRender.provider,'DIRECT_OPENAI');
+  let seenUrl='',seenRequest,seenHeaders;
+  const ai=createTeamAI({
+    enabled:true,provider:'DIRECT_OPENAI',openaiApiKey:DIRECT_KEY,
+    openaiModel:'gpt-5.4-mini',dataDir:root,
+    getDeskContext:()=>({
+      source:'HOMEEASY_APPROVED_DESK',notes:[
+        {topic:'Visitas',text:'Primero confirmar la disponibilidad del equipo.'}
+      ],catalogInstalled:true,catalogProducts:[
+        'Onda Serena Blackout: oscurece',
+        'Onda Serena Velo: permite paso de luz'
+      ]
+    }),
+    fetcher:async(url,opts)=>{
+      seenUrl=url;seenRequest=JSON.parse(opts.body);seenHeaders=opts.headers;
+      return openaiResponse({kind:'ANSWER',text:'Eres Ale, quien dirige HomeEasy. ¿En qué te ayudo?'});
+    }
+  });
+  const result=await ai.interpret({
+    question:'¿Sabes quién soy yo?',pendingTasks:0,
+    speaker:{name:'Ale',role:'OWNER',address:'JEFE'},
+    history:[{question:'Hola',answer:'Qué hubo'}]
+  });
+  assert.equal(result.kind,'ANSWER');
+  assert.match(result.text,/Eres Ale/);
+  assert.equal(seenUrl,'https://api.openai.com/v1/responses');
+  assert.equal(seenHeaders.Authorization,'Bearer '+DIRECT_KEY);
+  assert.equal(seenRequest.model,'gpt-5.4-mini');
+  assert.equal(seenRequest.store,false);
+  assert.equal(seenRequest.tools,undefined);
+  assert.deepEqual(seenRequest.text.format.required,undefined);
+  assert.equal(seenRequest.text.format.schema.additionalProperties,false);
+  assert.equal(seenRequest.text.format.schema.properties.kind.enum.includes('ANSWER'),true);
+  const user=JSON.parse(seenRequest.input[1].content);
+  assert.equal(user.purpose,'HOME_EASY_TEAM_READ_ONLY');
+  assert.equal(user.history.length,1);
+  assert.ok(user.style.constraints.some(c=>c.includes('Hablas con Ale')));
+  assert.ok(user.facts.approvedDesk.catalogInstalled);
+  assert.doesNotMatch(JSON.stringify(seenRequest),/Claudia|573001234567|HE-001|Contacto privado/);
+  assert.doesNotMatch(JSON.stringify(seenRequest.input),/sk-[a-z]{48}|@c\.us/);
+});
+
+test('direct OpenAI failures and unsafe answers fail closed without fallback or retry', async()=>{
+  let calls=0;
+  const make=(fetcher)=>createTeamAI({
+    enabled:true,provider:'DIRECT_OPENAI',openaiApiKey:DIRECT_KEY,
+    fetcher:async(...args)=>{calls++;return fetcher(...args);}
+  });
+  for(const status of [400,401,403,404,429,500]){
+    const x=await make(async()=>response({error:'redacted'},status))
+      .interpret({question:'Hola'});
+    assert.equal(x.kind,'UNAVAILABLE',String(status));
+    assert.equal(x.reason,'OPENAI_HTTP_'+status);
+  }
+  const empty=await make(async()=>response({status:'completed',output:[]}))
+    .interpret({question:'Hola'});
+  assert.equal(empty.reason,'OPENAI_INVALID_RESPONSE');
+  const incomplete=await make(async()=>openaiResponse({kind:'ANSWER',text:'Hola.'},'incomplete'))
+    .interpret({question:'Hola'});
+  assert.equal(incomplete.kind,'UNAVAILABLE');
+  const injected=await make(async()=>openaiResponse({kind:'ANSWER',text:'Ya le confirmé la cita al cliente.'}))
+    .interpret({question:'¿Qué sigue?'});
+  assert.equal(injected.kind,'UNAVAILABLE');
+  const review=await make(async()=>openaiResponse({kind:'REVIEW_REQUIRED',text:''}))
+    .interpret({question:'Dile al cliente que ya está listo'});
+  assert.equal(review.kind,'REVIEW_REQUIRED');
+  const down=await make(async()=>{throw Error('network unavailable');})
+    .interpret({question:'Hola'});
+  assert.equal(down.kind,'UNAVAILABLE');
+  assert.equal(calls,11); // six HTTP failures + five other calls
+});
+
+test('direct OpenAI rejects invalid model names and malformed response JSON', async()=>{
+  for(const model of ['https://evil.test','bad model','foo/bar','']) {
+    const ai=createTeamAI({enabled:true,provider:'DIRECT_OPENAI',
+      openaiApiKey:DIRECT_KEY,openaiModel:model || '../bad'});
+    assert.equal(ai.available,false,model);
+  }
+  const ai=createTeamAI({enabled:true,provider:'DIRECT_OPENAI',
+    openaiApiKey:DIRECT_KEY,fetcher:async()=>response({status:'completed',
+      output:[{type:'message',content:[{type:'output_text',text:'not json'}]}]})});
+  assert.equal((await ai.interpret({question:'Buenas'})).kind,'UNAVAILABLE');
+});
