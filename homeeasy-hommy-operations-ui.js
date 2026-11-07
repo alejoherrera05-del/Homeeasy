@@ -11,6 +11,7 @@
   let mounted = false;
   let loading = false;
   let revision = null;
+  let configRevision = null;
   let currentMode = '';
   let teamState = null;
 
@@ -98,6 +99,7 @@
       const payload = await global.HomeEasyWhatsApp.hommyControl();
       const control = payload && payload.control || {};
       revision = control.revision;
+      configRevision = Number.isSafeInteger(control.configRevision) ? control.configRevision : null;
       currentMode = control.mode;
       teamState = control.team || null;
       document.getElementById('heHommyGroupLink').disabled = !canConfigure();
@@ -145,6 +147,14 @@
     }
   }
 
+  // Backward compatible: previous Bridge versions expect revision. Updated
+  // Bridges prefer configRevision, which changes only on settings edits, not
+  // when authorized members send messages while the page is open.
+  function configurationPatch(change) {
+    return {...change, revision,
+      ...(configRevision === null ? {} : {configRevision})};
+  }
+
   async function toggle() {
     if (!canConfigure() || loading || !['REVIEW', 'PAUSED'].includes(currentMode)) return;
     const mode = currentMode === 'REVIEW' ? 'PAUSED' : 'REVIEW';
@@ -160,7 +170,7 @@
     loading = true;
     document.getElementById('heHommyToggle').disabled = true;
     try {
-      await global.HomeEasyWhatsApp.saveHommyControl({ mode, revision });
+      await global.HomeEasyWhatsApp.saveHommyControl(configurationPatch({ mode }));
       loading = false;
       await load(true);
     } catch (e) {
@@ -250,7 +260,7 @@
     });
     if (!result.isConfirmed) return;
     try {
-      await api.saveHommyControl({ team:result.value, revision });
+      await api.saveHommyControl(configurationPatch({ team:result.value }));
       await load(true);
     } catch (e) {
       await load(false);
@@ -365,9 +375,9 @@
     });
     if(!result.isConfirmed) return;
     try {
-      await global.HomeEasyWhatsApp.saveHommyControl({
-        team:{profiles:result.value},revision
-      });
+      await global.HomeEasyWhatsApp.saveHommyControl(configurationPatch({
+        team:{profiles:result.value}
+      }));
       await load(true);
       global.Swal.fire({icon:'success',title:'Equipo personalizado',
         text:'Hommy reconoce ahora los nombres configurados de estos integrantes.',
@@ -589,7 +599,7 @@
     loading = true;
     document.getElementById('heHommyReplies').disabled = true;
     try {
-      await global.HomeEasyWhatsApp.saveHommyControl({ team:{ replyEnabled: enabled }, revision });
+      await global.HomeEasyWhatsApp.saveHommyControl(configurationPatch({ team:{ replyEnabled: enabled } }));
       loading = false;
       await load(true);
     } catch (e) {
@@ -619,7 +629,7 @@
     loading = true;
     document.getElementById('heHommyAI').disabled = true;
     try {
-      await global.HomeEasyWhatsApp.saveHommyControl({ team:{ aiEnabled: enabled }, revision });
+      await global.HomeEasyWhatsApp.saveHommyControl(configurationPatch({ team:{ aiEnabled: enabled } }));
       loading = false;
       await load(true);
     } catch (e) {
@@ -633,7 +643,7 @@
   async function toggleTeamGroup() {
     if (!canConfigure() || loading || !teamState || !teamState.configured) return;
     try {
-      await global.HomeEasyWhatsApp.saveHommyControl({ team:{ enabled: !teamState.enabled }, revision });
+      await global.HomeEasyWhatsApp.saveHommyControl(configurationPatch({ team:{ enabled: !teamState.enabled } }));
       await load(true);
     } catch (e) {
       await load(false);
