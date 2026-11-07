@@ -300,9 +300,17 @@ async function sendOnce(config,chatId,firstMessageId,preview,options={}){
   const checked=allowConversation(fresh);
   if(!checked.ok||checked.last.id!==firstMessageId)
     throw Error('CHAT_CHANGED_SEND_ABORTED');
+  // The automated worker checks the persistent emergency switch even after
+  // the final chat re-read. Manual one-customer pilot remains unchanged.
+  if(typeof options.canSend==='function'&&!options.canSend())
+    throw Object.assign(Error('AUTOMATION_DISABLED'),{code:'AUTOMATION_DISABLED'});
   const file=claimSend(chatId,firstMessageId,options.claimDir);
   // Keep the reservation even if WAHA times out after accepting the POST.
   try{
+    if(typeof options.canSend==='function'&&!options.canSend()){
+      finishClaim(file,'CANCELLED');
+      throw Object.assign(Error('AUTOMATION_DISABLED'),{code:'AUTOMATION_DISABLED'});
+    }
     const result=await (options.fetcher||fetch)(
       new URL(config.url).origin+'/api/sendText',{
         method:'POST',
@@ -315,6 +323,7 @@ async function sendOnce(config,chatId,firstMessageId,preview,options={}){
     finishClaim(file,'SENT');
     return {status:'SENT'};
   }catch(e){
+    if(e.code==='AUTOMATION_DISABLED')throw e;
     finishClaim(file,'UNKNOWN');
     throw Error('WAHA_SEND_STATUS_UNKNOWN_CHECK_WHATSAPP_BEFORE_RETRY');
   }
@@ -373,4 +382,4 @@ if(require.main===module)run().catch(e=>{
 });
 module.exports={chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
   firstObservedReply,commercialQuestion,unsupportedProductClaim,
-  listCandidates,readConversation,sendOnce,claimId,claimSend,run,sanitizedForModel,isSendConfirmation};
+  listCandidates,readConversation,sendOnce,claimId,claimSend,run,sanitizedForModel,isSendConfirmation,wahaBase};
