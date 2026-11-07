@@ -91,6 +91,15 @@ test('private phone/email/address are removed before one-chat OpenAI request',as
   assert.match(body.input[1].content,/Conocer la intención/);
   assert.equal(body.model,'gpt-5.4-mini');
 });
+test('bot disclosure is required in the one-customer pilot',()=>{
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'Hola, cuéntame qué espacio necesitas para cotizar las persianas.'}).ok,false);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'¡Hola! Soy Hommy, el asistente virtual de HomeEasy. ¿Para qué espacio buscas persianas?'}).ok,true);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'Soy Hommy, el asistente de HomeEasy. El precio de la persiana es 500 mil pesos.'}).ok,false);
+});
+
 test('unsafe draft or request for money is never sent',()=>{
   for(const text of ['Ya le confirmé la visita de mañana.',
     'El valor es $500.000', 'Consulta https://example.com precios',
