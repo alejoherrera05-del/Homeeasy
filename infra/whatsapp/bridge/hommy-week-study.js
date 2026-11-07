@@ -108,7 +108,7 @@ function publicStats(rows){
     outbound:outgoing.map(m=>m.text).filter(Boolean)};
 }
 function summaryOf(conversations){
-  const intents={},mins=[],excerpts=[];
+  const intents={},mins=[],excerpts=[],pairedStyle=[];
   let incoming=0,outgoing=0,unanswered=0,verifiedMeta=0,verifiedAds=0,metaPosts=0;
   let greet=0,question=0,cta=0,emoji=0;
   for(const c of conversations){
@@ -119,6 +119,20 @@ function summaryOf(conversations){
     if(c.metaKind==='META_AD')verifiedAds++;
     if(c.metaKind==='META_POST')metaPosts++;
     if(s.firstResponseMin!==null)mins.push(s.firstResponseMin);
+    const earliestInbound=c.messages.find(m=>m.direction==='INCOMING');
+    const firstBusinessReply=earliestInbound && c.messages.find(m=>
+      m.direction==='OUTGOING' && Date.parse(m.at)>Date.parse(earliestInbound.at));
+    if(earliestInbound && firstBusinessReply && pairedStyle.length<12){
+      const safeReply=removePersonal(firstBusinessReply.text);
+      if(safeReply && safeReply.length<=180 &&
+         !/\[(?:correo|ubicación|número privado|enlace)\]/.test(safeReply)){
+        pairedStyle.push({
+          origin:c.metaKind||'UNKNOWN',
+          customerIntent:intent(earliestInbound.text),
+          businessReply:safeReply
+        });
+      }
+    }
     for(const type of s.inquiries)intents[type]=(intents[type]||0)+1;
     for(const text of s.outbound){
       if(/^(?:hola|buenas|buenos d[ií]as|buenas tardes)/i.test(text))greet++;
@@ -146,7 +160,7 @@ function summaryOf(conversations){
       questionsPercent:outgoing?Math.round(question*100/outgoing):null,
       nextStepPercent:outgoing?Math.round(cta*100/outgoing):null,
       emojiPercent:outgoing?Math.round(emoji*100/outgoing):null
-    },excerpts};
+    },excerpts,pairedStyle};
 }
 async function jsonGet(url,key,fetcher=fetch){
   const r=await fetcher(url,{method:'GET',headers:{'X-Api-Key':key,
@@ -236,11 +250,13 @@ async function coach(stats,options={}){
   if(!/^[a-z][a-z0-9.-]{2,79}$/.test(model))return {error:'INVALID_MODEL'};
   const examples=stats.excerpts.slice(0,MAX_MODEL_EXAMPLES);
   const input={period:options.period,source:'HOME_EASY_WEEK_OBSERVATIONS',
-    coverage:options.coverage,stats:{...stats,excerpts:examples}};
+    coverage:options.coverage,stats:{...stats,excerpts:examples,
+      pairedStyle:stats.pairedStyle.slice(0,12)}};
   const prompt=[
     'Eres un auditor de atención comercial de HomeEasy (persianas y cortinas, Colombia).',
     'El JSON contiene estadísticas y únicamente FRAGMENTOS ANONIMIZADOS de mensajes SALIENTES de la empresa.',
     'No incluye mensajes originales de clientes; sus intenciones fueron clasificadas localmente.',
+    'pairedStyle enlaza la categoría de la consulta entrante con la respuesta saliente filtrada, nunca con texto crudo del cliente.',
     'Analiza cómo responde el equipo, qué conserva del buen trato y qué puede mejorar al atender publicidad Meta.',
     'No afirmes que un lead viene de Meta si originUnknownChats no tiene evidencia.',
     'No inventes tiempos, conversiones, ventas, citas o prácticas no observadas.',
@@ -298,7 +314,7 @@ async function review(opts={}){
   const report={
     version:1,week:win.week,periodStart:win.start.toISOString(),periodEnd:win.end.toISOString(),
     generatedAt,coverage:data.coverage,
-    metrics:Object.fromEntries(Object.entries(stats).filter(([k])=>k!=='excerpts')),
+    metrics:Object.fromEntries(Object.entries(stats).filter(([k])=>!['excerpts','pairedStyle'].includes(k))),
     study:data.conversations.length?
       await coach(stats,{key:opts.openaiKey||process.env.OPENAI_API_KEY,
         model:opts.model||process.env.HOMMY_TEAM_OPENAI_MODEL,
