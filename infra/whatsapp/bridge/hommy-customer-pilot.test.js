@@ -90,6 +90,8 @@ test('private phone/email/address are removed before one-chat OpenAI request',as
   assert.match(body.input[0].content,/Si el cliente pregunta quién contesta/);
   assert.equal(JSON.parse(body.input[1].content).firstObservedReply,true);
   assert.equal(result.text.includes('asistente virtual'),false);
+  assert.equal(result.text.includes('¡'),false);
+  assert.equal(result.text.includes('¿'),false);
   assert.equal(body.input[1].role,'user');
   assert.doesNotMatch(body.input[1].content,/300 123 4567|@c.us|sk-aaaa/);
   assert.match(body.input[1].content,/Conocer la intención/);
@@ -114,6 +116,25 @@ test('a concise HomeEasy greeting is allowed without claiming to be human',()=>{
     text:'Quiero cotizar una persiana para mi sala.'}]),false);
   assert.equal(validateDraft({kind:'DRAFT',
     text:'Soy Hommy, el asistente de HomeEasy. El precio de la persiana es 500 mil pesos.'}).ok,false);
+});
+
+test('WhatsApp messages automatically omit inverted punctuation, preserving welcome and punctuation',()=>{
+  const first=validateDraft({
+    kind:'DRAFT',
+    text:'¡Hola! 😊 Qué gusto saludarte, soy Hommy de HomeEasy. ¿La persiana es para sala o habitación?'
+  },{firstReply:true});
+  assert.equal(first.ok,true);
+  assert.equal(first.text,'Hola! 😊 Qué gusto saludarte, soy Hommy de HomeEasy. La persiana es para sala o habitación?');
+  assert.doesNotMatch(first.text,/[¡¿]/);
+  const next=validateDraft({kind:'DRAFT',
+    text:'¡Claro! ¿Buscas más luz o privacidad para la sala?'
+  },{firstReply:false});
+  assert.equal(next.ok,true);
+  assert.equal(next.text,'Claro! Buscas más luz o privacidad para la sala?');
+  const blocked=validateDraft({kind:'DRAFT',
+    text:'¡Hola! ¿Qué valor buscas? Te saluda una persona real de HomeEasy.'
+  },{firstReply:false});
+  assert.equal(blocked.ok,false);
 });
 
 test('first observed reply must greet, name Hommy and introduce HomeEasy',()=>{
