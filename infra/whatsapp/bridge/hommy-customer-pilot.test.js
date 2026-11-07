@@ -7,7 +7,8 @@ const path=require('node:path');
 const {
   chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
   listCandidates,sendOnce,sanitizedForModel,firstObservedReply,isSendConfirmation,
-  commercialQuestion,unsupportedProductClaim
+  commercialQuestion,unsupportedProductClaim,isMetaAdAutoGreeting,
+  withoutMetaAdAutoGreetings
 }=require('./hommy-customer-pilot');
 
 const CUSTOMER='573001112233@c.us',GROUP='120363123456789012@g.us';
@@ -52,6 +53,78 @@ test('gender-neutral welcome is used even if model assumes client gender',()=>{
   assert.match(female.text,/Te damos la bienvenida a HomeEasy/);
 });
 
+// The Meta ad uses WhatsApp's "Saludo automático", not a human-authored
+// reply or WhatsApp Business' separate welcome-message setting.
+const META_AD_WELCOME='👋 ¡Te damos la bienvenida a HomeEasy! 🎉 Transformamos tus espacios con persianas y papel de colgadura diseñados para dar estilo, privacidad y funcionalidad ✨ 🎁 Este mes puedes aprovechar hasta 30% de descuento en referencias seleccionadas para renovar tu hogar con elegancia 🏡';
+function adConversation(at=Date.now()-20000){
+  return [
+    {id:'lead',at:new Date(at).toISOString(),direction:'INCOMING',
+      text:'Hola buena tarde',hasMedia:false},
+    {id:'meta',at:new Date(at+1000).toISOString(),direction:'OUTGOING',
+      text:META_AD_WELCOME,hasMedia:false}
+  ];
+}
+test('Meta ad automatic welcome is ignored as takeover but not as customer text',()=>{
+  const rows=adConversation();
+  assert.equal(isMetaAdAutoGreeting(rows[0],rows[1]),true);
+  assert.equal(allowConversation(rows).ok,true);
+  assert.equal(allowConversation(rows).last.id,'lead');
+  assert.equal(allowConversation(rows).metaAdGreetingIgnored,true);
+  assert.equal(firstObservedReply(rows),true);
+  assert.deepEqual(withoutMetaAdAutoGreetings(rows),[rows[0]]);
+});
+test('human reply, generic welcome and delayed ad copy still block Hommy',()=>{
+  const rows=adConversation();
+  assert.equal(allowConversation([...rows,{
+    id:'human',at:new Date(Date.now()-17000).toISOString(),
+    direction:'OUTGOING',text:'Hola, ya estoy revisando tu solicitud'
+  }]).reason,'LAST_MESSAGE_NOT_CUSTOMER');
+  assert.equal(allowConversation([rows[0],{...rows[1],
+    text:'Hola, soy la asesora. Te damos la bienvenida a HomeEasy'
+  }]).reason,'LAST_MESSAGE_NOT_CUSTOMER');
+  assert.equal(allowConversation([rows[0],{...rows[1],
+    at:new Date(Date.parse(rows[0].at)+30000).toISOString()
+  }]).reason,'LAST_MESSAGE_NOT_CUSTOMER');
+  assert.equal(allowConversation([rows[0],{...rows[1],
+    text:META_AD_WELCOME.replace('30%','20%')
+  }]).reason,'LAST_MESSAGE_NOT_CUSTOMER');
+});
+test('Meta ad greeting is removed from model context but the real lead remains',async()=>{
+  let req;
+  const fetcher=async(_url,request)=>{
+    req=JSON.parse(request.body);
+    return {ok:true,json:async()=>({status:'completed',output:[{
+      content:[{type:'output_text',text:JSON.stringify({
+        kind:'DRAFT',text:'Hola 😊 Soy Hommy, de HomeEasy. Gracias por escribirnos. En qué puedo ayudarte?'
+      })}]
+    }]})};
+  };
+  const reply=await draftReply(adConversation(),{apiKey:KEY,fetcher,style:[]});
+  assert.equal(reply.ok,true);
+  const context=JSON.parse(req.input[1].content);
+  assert.equal(context.firstObservedReply,true);
+  assert.equal(context.metaAdAutoGreetingObserved,true);
+  assert.deepEqual(context.conversation.map(x=>x.direction),['INCOMING']);
+  assert.match(context.conversation[0].text,/Hola buena tarde/);
+  assert.doesNotMatch(JSON.stringify(context.conversation),/30%|Transformamos tus espacios/);
+});
+test('sendOnce still rechecks the Meta greeting and sends once to the LID chat',async t=>{
+  const dir=temp(t),lid='123456789012345@lid',sent=[];
+  const messages=[record('lead',now-8,false,'Hola buena tarde'),
+    record('meta',now-7,true,META_AD_WELCOME)];
+  const fetcher=async(_url,request)=>{
+    if(request.method==='GET')
+      return {ok:true,text:async()=>JSON.stringify(messages)};
+    sent.push(JSON.parse(request.body));
+    return {ok:true,status:200};
+  };
+  const result=await sendOnce(CONF,lid,'lead',
+    'Hola 😊 Soy Hommy, de HomeEasy. En qué puedo ayudarte?',
+    {fetcher,claimDir:dir});
+  assert.equal(result.status,'SENT');
+  assert.equal(sent.length,1);
+  assert.equal(sent[0].chatId,lid);
+});
 test('manual unread count -1 is eligible, but groups and ordinary reads are excluded',async()=>{
   assert.equal(unreadOf({unreadCount:-1}),true);
   assert.equal(unreadOf({unreadCount:1}),true);
