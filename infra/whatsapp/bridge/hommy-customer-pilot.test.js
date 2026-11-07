@@ -6,7 +6,8 @@ const os=require('node:os');
 const path=require('node:path');
 const {
   chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
-  listCandidates,sendOnce,sanitizedForModel,firstObservedReply,isSendConfirmation
+  listCandidates,sendOnce,sanitizedForModel,firstObservedReply,isSendConfirmation,
+  commercialQuestion,unsupportedProductClaim
 }=require('./hommy-customer-pilot');
 
 const CUSTOMER='573001112233@c.us',GROUP='120363123456789012@g.us';
@@ -81,6 +82,56 @@ test('sensitive, media and older conversations are left to a human',()=>{
     text:'[Audio]',hasMedia:true}]).reason,'MESSAGE_NOT_TEXT');
   assert.equal(allowConversation([{id:'x',at:'2025-04-01T00:00:00Z',
     direction:'INCOMING',text:'Hola'}]).reason,'MESSAGE_OUTSIDE_7_DAYS');
+});
+test('a Meta ad price quick reply provides intent, NOT evidence of Onda Serena',async()=>{
+  const rows=[{direction:'INCOMING',text:'2️⃣ Cotización y precios'}];
+  const commercial=commercialQuestion(rows);
+  assert.equal(commercial.kind,'UNSPECIFIED_PRODUCT');
+  assert.deepEqual(commercial.productFacts,[]);
+  assert.equal(unsupportedProductClaim(
+    'Hola 😊 Soy Hommy, de HomeEasy. Te ayudo con Onda Serena. Qué necesitas?',
+    commercial),true);
+  assert.equal(unsupportedProductClaim(
+    'Hola 😊 Soy Hommy, de HomeEasy. Te ayudo con tu cotización. Qué tipo de persiana te interesa?',
+    commercial),false);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'Hola 😊 Soy Hommy, de HomeEasy. Con gusto te ayudo a cotizar nuestra Onda Serena. Qué buscas?'},
+    {firstReply:true,commercial}).ok,false);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'Hola 😊 Soy Hommy, de HomeEasy. Con gusto te ayudo con tu cotización. Qué persiana buscas?'},
+    {firstReply:true,commercial}).ok,true);
+});
+test('explicit customer product or request for options permits grounded product descriptions',()=>{
+  const named=commercialQuestion([{direction:'INCOMING',text:'Me interesa Onda Serena'}]);
+  assert.equal(named.kind,'SPECIFIC_PRODUCT');
+  assert.equal(named.productFacts.length,2);
+  assert.equal(unsupportedProductClaim('Nuestra Onda Serena Velo filtra la luz.',named),false);
+  assert.equal(unsupportedProductClaim('Te recomiendo un panel japonés.',named),true);
+  const types=commercialQuestion([{direction:'INCOMING',
+    text:'3️⃣ Tipos de persianas disponibles'}]);
+  assert.equal(types.kind,'PRODUCT_OPTIONS');
+  assert.ok(types.productFacts.length>=5);
+  assert.equal(unsupportedProductClaim('Tenemos Sheer Elegance y panel japonés.',types),false);
+});
+test('model sees no product names for a generic quote and unsupported suggestions are blocked',async()=>{
+  let request;
+  const fake=async(_url,options)=>{
+    request=JSON.parse(options.body);
+    return {ok:true,json:async()=>({
+      status:'completed',output:[{type:'message',content:[{type:'output_text',
+        text:JSON.stringify({kind:'DRAFT',text:
+          'Hola 😊 Soy Hommy, de HomeEasy. Te recomiendo Onda Serena para tu cotización. Qué espacio es?'})
+      }]}]
+    })};
+  };
+  const result=await draftReply([{direction:'INCOMING',text:'Para cotizar'}],
+    {apiKey:KEY,style:[],fetcher:fake});
+  assert.equal(result.ok,false);
+  assert.equal(result.reason,'DRAFT_FAILED_SAFETY_CHECK');
+  const user=JSON.parse(request.input[1].content);
+  assert.equal(user.commercialIntent,'UNSPECIFIED_PRODUCT');
+  assert.deepEqual(user.productFacts,[]);
+  assert.doesNotMatch(JSON.stringify(user),/Onda Serena|Sheer Elegance|Panel Japonés/);
 });
 test('private phone/email/address are removed before one-chat OpenAI request',async()=>{
   assert.doesNotMatch(sanitizedForModel('Escribe al +57 300 123 4567 y a ana@test.co'),
