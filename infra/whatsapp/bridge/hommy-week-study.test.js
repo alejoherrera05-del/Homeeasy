@@ -101,6 +101,24 @@ test('intent taxonomy observes customer messages without claiming paid advertisi
   assert.equal(intent('Necesito medidas para instalar'),'VISITA_MEDIDAS');
   assert.equal(intent('Hola, me interesa'),'INFORMACION_GENERAL');
 });
+test('API-generated automatic replies never become models for human sales style',()=>{
+  const rows=[
+    {direction:'INCOMING',at:'2026-11-07T14:00:00Z',text:'Hola, ¿me ayudas?'},
+    {direction:'OUTGOING',at:'2026-11-07T14:01:00Z',
+      text:'MENSAJE AUTOMATICO: código de pedido',source:'api'},
+    {direction:'OUTGOING',at:'2026-11-07T14:03:00Z',
+      text:'Claro, te ayudo con la referencia que buscas.',source:'web'}
+  ];
+  const metrics=publicStats(rows);
+  assert.equal(metrics.outgoing,1);
+  assert.equal(metrics.automated,1);
+  assert.equal(metrics.firstResponseMin,3);
+  const summary=summaryOf([{messages:rows,metaKind:'UNKNOWN'}]);
+  assert.equal(summary.outgoingMessages,1);
+  assert.equal(summary.automatedOutboundMessages,1);
+  assert.doesNotMatch(JSON.stringify(summary.excerpts),/MENSAJE AUTOMATICO/);
+});
+
 test('weekly study retrieves observed messages without sending texts to WAHA',async t=>{
   const dir=fixture(t),sink=[];
   const report=await review({window:{start,end,week:'2026-11-02'},
