@@ -8,17 +8,38 @@ const path=require('node:path');
 const crypto=require('node:crypto');
 const {createHommyDesk}=require('./hommy-desk');
 const {normalizeMessages,timestampMs}=require('./conversation');
+const {commercialOrigin}=require('./inbox');
 function metaReferralKind(raw){
-  const c=raw?.ctwaContext||raw?.referral||raw?._data?.ctwaContext||raw?._data?.referral;
-  if(!c||typeof c!=='object'||Array.isArray(c))return 'UNKNOWN';
-  const type=String(c.sourceType||c.source_type||'').toLowerCase().trim();
-  const evidence=Boolean(type||c.sourceId||c.source_id||c.sourceUrl||c.source_url||
-    c.adId||c.ad_id);
-  if(!evidence)return 'UNKNOWN';
-  if(['ad','ads','sponsored'].includes(type))return 'META_AD';
+  const origin=raw?.commercialOrigin && raw.commercialOrigin.verified===true ?
+    raw.commercialOrigin : commercialOrigin(raw);
+  if(!origin || origin.verified!==true || origin.campaign!=='META')
+    return 'UNKNOWN';
+  const type=String(origin.sourceType||'').toLowerCase();
+  if(type==='ad')return 'META_AD';
   if(type==='post')return 'META_POST';
   return 'META_REFERRAL_UNCLASSIFIED';
 }
+function isAdMenuReply(text){
+  const normalized=String(text||'').normalize('NFD')
+    .replace(/[\u0300-\u036f\uFE0F\u20E3]/g,'')
+    .replace(/^\s*[1-9]\s*[\-–.)]?\s*/,'')
+    .trim().toLowerCase();
+  return /^(?:para cotizar|cotizaci[oó]n y precios?|tipos? de persianas? disponibles?)$/.test(normalized);
+}
+function normalizeStudyMessages(raw,from){
+  // Existing conversation.normalizeMessages is intentionally limited to 80
+  // items for live workflows. Preserve up to 200 per chat *only* here.
+  const ids=new Set(),rows=[];
+  for(let i=0;i<raw.length;i+=80){
+    for(const m of normalizeMessages(raw.slice(i,i+80),{since:from.toISOString(),limit:80})){
+      if(m.id && ids.has(m.id))continue;
+      if(m.id)ids.add(m.id);
+      rows.push(m);
+    }
+  }
+  return rows.sort((a,b)=>Date.parse(a.at||0)-Date.parse(b.at||0));
+}
+
 function localInboxMetaEvidence(from,root){
   const evidence=new Map();
   const f=path.join(root,'hommy-inbox','events.ndjson');
@@ -83,12 +104,16 @@ function removePersonal(value){
   return cleaned;
 }
 function intent(text){
-  const q=String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  if(/\b(precio|cuanto vale|cuanto valen|cuanto cuesta|cuanto cuestan|valor|cotizacion|cotizar|cuanto sale)\b/.test(q))return 'PRECIO_COTIZACION';
+  const q=String(text||'').normalize('NFD')
+    .replace(/[\u0300-\u036f\uFE0F\u20E3]/g,'')
+    .replace(/^\s*[1-9]\s*[\-–.)]?\s*/,'')
+    .toLowerCase().trim();
+  if(/\b(precios?|cuanto valen?|cuanto cuestan?|valor(?:es)?|cotizacion(?:es)?|cotizar|cuanto sale)\b/.test(q))return 'PRECIO_COTIZACION';
+  if(/\b(tipos? de persianas?|persianas? disponibles?|que (?:tipo|clase) de persianas?|que persianas? (?:tienen|manejan))\b/.test(q))return 'TIPOS_PERSIANAS';
   if(/\b(catalogo|referencias|modelos|fotos|imagenes|opciones)\b/.test(q))return 'CATALOGO_REFERENCIAS';
   if(/\b(visita|medir|medidas|instalacion|instalar|domicilio)\b/.test(q))return 'VISITA_MEDIDAS';
   if(/\b(promocion|descuento|oferta|publicidad)\b/.test(q))return 'PROMOCION';
-  if(/\b(blackout|sheer|screen|panel japones|onda serena|enrollable|cortina|persiana)\b/.test(q))return 'PRODUCTO';
+  if(/\b(blackout|sheer|screen|panel japones|onda serena|enrollable|cortinas?|persianas?)\b/.test(q))return 'PRODUCTO';
   return 'INFORMACION_GENERAL';
 }
 function median(values){
@@ -114,6 +139,7 @@ function publicStats(rows){
 }
 function summaryOf(conversations){
   const intents={},mins=[],excerpts=[],pairedStyle=[];
+  let menuReplies=0,menuPrices=0,menuTypes=0;
   let incoming=0,outgoing=0,automated=0,unanswered=0,verifiedMeta=0,verifiedAds=0,metaPosts=0;
   let greet=0,question=0,cta=0,emoji=0;
   for(const c of conversations){
@@ -139,6 +165,13 @@ function summaryOf(conversations){
       }
     }
     for(const type of s.inquiries)intents[type]=(intents[type]||0)+1;
+    for(const m of c.messages.filter(m=>m.direction==='INCOMING')){
+      if(isAdMenuReply(m.text)){
+        menuReplies++;
+        if(intent(m.text)==='PRECIO_COTIZACION')menuPrices++;
+        if(intent(m.text)==='TIPOS_PERSIANAS')menuTypes++;
+      }
+    }
     for(const text of s.outbound){
       if(/^(?:hola|buenas|buenos d[ií]as|buenas tardes)/i.test(text))greet++;
       if(text.includes('?')||text.includes('¿'))question++;
@@ -161,6 +194,7 @@ function summaryOf(conversations){
     observedFirstReplyMedianMinutes:median(mins),
     observedFirstReplySamples:mins.length,
     inboundIntents:intents,
+    observedMenuSelections:{total:menuReplies,priceOrQuote:menuPrices,productTypes:menuTypes},
     staffReplyStyle:{
       greetingsPercent:outgoing?Math.round(greet*100/outgoing):null,
       questionsPercent:outgoing?Math.round(question*100/outgoing):null,
@@ -295,14 +329,14 @@ async function collectChats(opts={}){
       scanned++;
       if(fetched.origin==='LOCAL_INBOX')usingInbox++;
       if(!fetched.raw.length){failures++;return null}
-      const messages=normalizeMessages(fetched.raw,{since:from.toISOString(),limit:80});
+      const messages=normalizeStudyMessages(fetched.raw,from);
       if(!messages.length)return null;
       const origins=fetched.raw.filter(m=>m.fromMe!==true).map(metaReferralKind);
       const metaKind=origins.includes('META_AD')?'META_AD':
         origins.includes('META_POST')?'META_POST':
         origins.includes('META_REFERRAL_UNCLASSIFIED')?'META_REFERRAL_UNCLASSIFIED':'UNKNOWN';
       return {chatId,messages,metaKind,
-        truncated:fetched.truncated||fetched.raw.length>80};
+        truncated:fetched.truncated};
     }));
     for(const item of got)if(item)conversations.push(item);
   }
@@ -452,5 +486,5 @@ if(require.main===module)main().catch(e=>{
   process.stderr.write('Hommy study: '+String(e.message||'ERROR').slice(0,100)+'\n');
   process.exitCode=1;
 });
-module.exports={weekWindow,chatIdentifier,isDirectChat,metaReferralKind,removePersonal,intent,
+module.exports={weekWindow,chatIdentifier,isDirectChat,metaReferralKind,isAdMenuReply,normalizeStudyMessages,removePersonal,intent,
   publicStats,summaryOf,collectChats,coach,review,approveWeek};
