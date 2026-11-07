@@ -118,7 +118,7 @@ function createCustomerAuto(options={}){
   }
   function limitOk(chatId){
     const x=usage(chatId);
-    return x.total+inFlight<=LIMIT_PER_DAY && x.chat<LIMIT_PER_CHAT_DAY;
+    return x.total+Math.max(1,inFlight)<=LIMIT_PER_DAY && x.chat<LIMIT_PER_CHAT_DAY;
   }
   function status(){
     const ctrl=safeControl();
@@ -129,6 +129,7 @@ function createCustomerAuto(options={}){
       acceptedToday:all.filter(x=>x.outcome==='REQUEST_ACCEPTED').length,
       uncertainToday:all.filter(x=>x.outcome==='SEND_UNKNOWN').length,
       skippedToday:all.filter(x=>x.outcome.startsWith('SKIP_')).length,
+      lastOutcome:all.at(-1)?.outcome||null,
       dailyLimit:LIMIT_PER_DAY,perChatDailyLimit:LIMIT_PER_CHAT_DAY,
       mode:'NEW_INBOUND_ONLY',typing:true};
   }
@@ -176,6 +177,8 @@ function createCustomerAuto(options={}){
   }
   function onInbound(record){
     if(!eventEligible(record))return {queued:false,reason:'NOT_ELIGIBLE'};
+    if(timers.size+ready.size>=80&&!timers.has(record.chatId)&&!ready.has(record.chatId))
+      return {queued:false,reason:'QUEUE_FULL'};
     const chatId=record.chatId;
     if(timers.has(chatId))clearTimeout(timers.get(chatId).timer);
     const job={chatId,id:record.id,at:record.at};
