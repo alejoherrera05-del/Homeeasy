@@ -139,11 +139,20 @@ function replyPolicy(){
     'Devuelve solo un objeto JSON que cumpla el esquema. Máximo 380 caracteres para la respuesta.'
   ].join('\n');
 }
-function validateDraft(raw){
+function askedAboutAutomation(rows){
+  const latest=[...(Array.isArray(rows)?rows:[])].reverse()
+    .find(x=>x.direction==='INCOMING');
+  const q=String(latest?.text||'').normalize('NFD')
+    .replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+  return /\\b(?:bot|robot|ia)\\b|inteligencia artificial|asistente virtual|con quien hablo|quien (?:me )?(?:responde|atiende)/.test(q);
+}
+function validateDraft(raw, options={}){
   if(!raw||raw.kind!=='DRAFT'||typeof raw.text!=='string')
     return {ok:false,reason:'REVIEW_REQUIRED'};
   const t=raw.text.trim();
-  if(t.length<24||t.length>420||/(?:soy (?:una persona|humano|humana|asesor humano|asesora humana)|te habla (?:ale|dani|un asesor|una asesora))/i.test(t) ||
+  if(t.length<24||t.length>420||
+    (!options.allowDisclosure && /\\b(?:soy hommy|asistente virtual|inteligencia artificial|soy (?:un )?bot)\\b/i.test(t)) ||
+    /(?:soy (?:una persona|humano|humana|asesor humano|asesora humana)|te habla (?:ale|dani|un asesor|una asesora))/i.test(t) ||
     /\d/.test(t)||/[\x00-\x08\x0b-\x1f]/.test(t) ||
     /(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|sk-[A-Za-z0-9_-]{15,})/i.test(t)||
     /(?:\+?\d[\s().-]?){8,}\d/g.test(t) ||
@@ -188,7 +197,7 @@ async function draftReply(rows,options={}){
   const text=(body.output||[]).flatMap(x=>(x.content||[])
     .filter(y=>y.type==='output_text').map(y=>y.text)).join('');
   let result;try{result=JSON.parse(text)}catch(_){throw Error('OPENAI_BAD_JSON')}
-  return validateDraft(result);
+  return validateDraft(result,{allowDisclosure:askedAboutAutomation(rows)});
 }
 function claimId(chatId,messageId){
   return crypto.createHash('sha256').update('customer-pilot-v1:'+chatId+':'+messageId)
@@ -281,5 +290,5 @@ if(require.main===module)run().catch(e=>{
     '. No vuelvas a enviar sin revisar WhatsApp.\n');
   process.exitCode=1;
 });
-module.exports={chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,
+module.exports={chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
   listCandidates,readConversation,sendOnce,claimId,claimSend,run,sanitizedForModel};
