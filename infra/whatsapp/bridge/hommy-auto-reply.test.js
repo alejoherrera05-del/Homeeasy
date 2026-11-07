@@ -83,6 +83,18 @@ test('no groups, broadcasts, outgoing, media or empty messages are candidates',t
   assert.equal(validRecord({...x,media:{present:true}}),false);
   assert.equal(validRecord({...x,text:''}),false);
 });
+test('signed new events are debounced into one reply per last customer message',async t=>{
+  const {auto,events,setRows}=fixture(t);
+  auto.enable();
+  const first=event('first');
+  const next=event('second');
+  setRows(rows('second'));
+  assert.equal(auto.onInbound(first).queued,true);
+  assert.equal(auto.onInbound(next).queued,true);
+  await new Promise(resolve=>setTimeout(resolve,110));
+  assert.deepEqual(events.map(e=>e.kind),['typing','send','paused']);
+  assert.equal(auto.status().acceptedToday,1);
+});
 test('one new customer request shows real typing during AI, then sends and stops typing',async t=>{
   const {auto,events}=fixture(t);
   auto.enable();
