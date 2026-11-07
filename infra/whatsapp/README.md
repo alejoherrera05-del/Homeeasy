@@ -456,6 +456,27 @@ docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
 
 El script muestra el estado del catálogo y de las notas, después consulta la IA **real del equipo** usando la configuración de servicio ya existente, registra el tiempo y las respuestas de dos preguntas consecutivas, y no llama a WAHA ni envía ningún WhatsApp. No muestra tokens. Si el servicio de equipo está desactivado, registra `TEAM_AI_NOT_CONFIGURED` sin fingir una respuesta. No sustituye las pruebas de extremo a extremo de envíos con WhatsApp.
 
+## Hommy 0.31.2 — anuncios en Estados y respuestas de menú de WhatsApp
+
+Capturas verificadas de HomeEasy muestran una tarjeta **Anuncio en estados**
+y selecciones iniciales **Para cotizar**, **2️⃣ Cotización y precios**,
+**3️⃣ Tipos de persianas disponibles**. La intención se clasifica por la
+selección comercial, sin tratarla como información general.
+
+Cuando WAHA WEBJS preserva el objeto original
+`_data.message.extendedTextMessage.contextInfo.externalAdReply`, el Inbox
+recupera metadatos limitados como `sourceType=ad` y los conserva como origen
+META comprobado. Si solo existe una imagen, un texto o una referencia sin
+`sourceType=ad`, no se atribuye falsamente a publicidad pagada.
+La tarjeta visible en WhatsApp y los metadatos capturados por WAHA no son
+necesariamente equivalentes. El estudio sigue sin escribir a clientes ni
+aprobar automáticamente recomendaciones. Una muestra limitada se etiqueta
+como parcial.
+
+El estudio ahora mantiene hasta 200 mensajes por chat en lotes de 80
+exclusivamente en el análisis semanal, sin cambiar el límite del flujo
+comercial de conversación en vivo.
+
 ## Hommy 0.31 — estudio privado de atención en WhatsApp (semana actual)
 
 El dueño puede pedir que Hommy estudie la atención real a clientes sin
