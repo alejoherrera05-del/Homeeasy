@@ -141,6 +141,15 @@ test('AI refusal or failure never sends; typing stops in both cases',async t=>{
   assert.equal(await auto.processOne(event()),'SKIP_REVIEW_REQUIRED');
   assert.deepEqual(events.map(e=>e.kind),['typing','paused']);
 });
+test('invalid commercial drafts have a distinct audit outcome but are never sent',async t=>{
+  const {auto,events}=fixture(t,{draftReply:async()=>({
+    ok:false,reason:'DRAFT_FAILED_SAFETY_CHECK'
+  })});
+  auto.enable();
+  assert.equal(await auto.processOne(event()),'SKIP_DRAFT_UNSAFE');
+  assert.deepEqual(events.map(e=>e.kind),['typing','paused']);
+  assert.equal(auto.status().lastOutcome,'SKIP_DRAFT_UNSAFE');
+});
 test('typing API fallback to WAHA presence and paused is supported',async t=>{
   const events=[];
   const {auto}=fixture(t,{fetcher:async(url,req)=>{
@@ -154,12 +163,16 @@ test('typing API fallback to WAHA presence and paused is supported',async t=>{
   assert.ok(events.includes('http://waha:3000/api/homeeasy/presence'));
   assert.ok(events.includes('http://waha:3000/api/stopTyping'));
 });
-test('typing API total failure blocks sending rather than silently skipping presence',async t=>{
-  const events=[];
-  const {auto}=fixture(t,{fetcher:async(url)=>{events.push(url);return {ok:false,status:404}}});
+test('typing API total failure does not silence a safe customer reply',async t=>{
+  const attempts=[];
+  const {auto,events}=fixture(t,{fetcher:async(url)=>{
+    attempts.push(url);
+    return {ok:false,status:404};
+  }});
   auto.enable();
-  assert.equal(await auto.processOne(event()),'SKIP_TYPING_UNAVAILABLE');
-  assert.equal(events.length,2);
+  assert.equal(await auto.processOne(event()),'REQUEST_ACCEPTED');
+  assert.equal(attempts.length,2);
+  assert.deepEqual(events.map(e=>e.kind),['send']);
 });
 test('daily per-chat quota stops repeated automatic replies',async t=>{
   let latest='m0';
