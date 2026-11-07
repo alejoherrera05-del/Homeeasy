@@ -14,6 +14,7 @@ COPY operational-overview.js ./
 COPY team-ai.js ./
 COPY hommy-desk.js ./
 COPY hommy-self-check.js ./
+COPY hommy-week-study.js ./
 COPY maintenance.js ./
 COPY pentagrama-sync ./pentagrama-sync
 COPY pentagrama-agents ./pentagrama-agents
