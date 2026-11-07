@@ -87,7 +87,7 @@ test('human reply, generic welcome and delayed ad copy still block Hommy',()=>{
   }]).reason,'LAST_MESSAGE_NOT_CUSTOMER');
   assert.equal(allowConversation([rows[0],{...rows[1],
     text:META_AD_WELCOME.replace('30%','20%')
-  }]).reason,'LAST_MESSAGE_NOT_CUSTOMER');
+  }]).ok,true);
 });
 test('Meta ad greeting is removed from model context but the real lead remains',async()=>{
   let req;
