@@ -19,7 +19,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.29.1';
+const BRIDGE_VERSION = '0.30.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -33,6 +33,10 @@ const HOMMY_INBOX_WEBHOOK_SECRET = String(process.env.HOMMY_INBOX_WEBHOOK_SECRET
 const HOMMY_INTELLIGENCE_ENABLED = String(process.env.HOMMY_INTELLIGENCE_ENABLED || 'false').toLowerCase() === 'true';
 const HOMMY_BACKEND_URL = String(process.env.HOMMY_BACKEND_URL || 'https://homeeasy-hommy-staging.onrender.com').replace(/\/$/, '');
 const HOMMY_TEAM_AI_ENABLED = process.env.HOMMY_TEAM_AI_ENABLED === 'true';
+const HOMMY_TEAM_AI_PROVIDER = process.env.HOMMY_TEAM_AI_PROVIDER === 'DIRECT_OPENAI' ?
+  'DIRECT_OPENAI' : 'RENDER';
+const HOMMY_TEAM_OPENAI_MODEL = String(process.env.HOMMY_TEAM_OPENAI_MODEL || 'gpt-5.4-mini');
+const HOMMY_TEAM_OPENAI_API_KEY = String(process.env.OPENAI_API_KEY || '');
 const HOMMY_TEAM_AI_URL = String(process.env.HOMMY_TEAM_AI_URL || '');
 const HOMMY_TEAM_AI_SERVICE_TOKEN = String(process.env.HOMMY_TEAM_AI_SERVICE_TOKEN || '');
 const REMOTE_PDF_MAX_BYTES = Math.min(MAX_BODY_BYTES, 18 * 1024 * 1024);
@@ -162,8 +166,10 @@ const hommyIntelligence = createIntelligence({
 });
 const hommyDesk = createHommyDesk({ dataDir: DATA_DIR });
 const teamAI = createTeamAI({
-  enabled: HOMMY_TEAM_AI_ENABLED, endpoint: HOMMY_TEAM_AI_URL,
-  backendUrl: HOMMY_BACKEND_URL, serviceToken: HOMMY_TEAM_AI_SERVICE_TOKEN,
+  enabled: HOMMY_TEAM_AI_ENABLED, provider:HOMMY_TEAM_AI_PROVIDER,
+  endpoint: HOMMY_TEAM_AI_URL, backendUrl: HOMMY_BACKEND_URL,
+  serviceToken: HOMMY_TEAM_AI_SERVICE_TOKEN,
+  openaiApiKey:HOMMY_TEAM_OPENAI_API_KEY,openaiModel:HOMMY_TEAM_OPENAI_MODEL,
   dataDir: DATA_DIR, getDeskContext: () => hommyDesk.approvedContext('TEAM')
 });
 const hommyWorkspace = createHommyWorkspace({
