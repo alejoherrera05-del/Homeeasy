@@ -295,6 +295,21 @@ test('an outgoing human reply or a newer incoming message aborts sending',async 
     /CHAT_CHANGED_SEND_ABORTED/);
   assert.equal(fs.readdirSync(dir).length,0);
 });
+test('emergency stop is checked before a WAHA send even after a draft exists',async t=>{
+  const dir=temp(t);
+  let posts=0;
+  const request=async(_url,opts)=>{
+    if(opts.method==='GET')return {ok:true,text:async()=>JSON.stringify([
+      record('new-in',now,false,'Quiero cotizar')])};
+    posts++;
+    return {ok:true,status:200};
+  };
+  await assert.rejects(()=>sendOnce(CONF,CUSTOMER,'new-in',
+    'Hola 😊 Soy Hommy, de HomeEasy. Qué producto te interesa cotizar?',
+    {fetcher:request,claimDir:dir,canSend:()=>false}),/AUTOMATION_DISABLED/);
+  assert.equal(posts,0);
+  assert.equal(fs.readdirSync(dir).length,0);
+});
 test('a network failure during send becomes UNKNOWN, not an automatic retry',async t=>{
   const dir=temp(t);
   let sends=0;
