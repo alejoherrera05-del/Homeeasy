@@ -14,6 +14,8 @@
   let configRevision = null;
   let currentMode = '';
   let teamState = null;
+  let customerAutoState = null;
+  let customerAutoLoading = false;
 
   function canConfigure() {
     return Boolean(global.HomeEasyAuth && typeof global.HomeEasyAuth.hasPermission === 'function' &&
@@ -33,6 +35,28 @@
       '.he-hommy-ops-title span{display:block;margin-top:4px;font-size:.64rem;color:#8d8388;line-height:1.5}' +
       '.he-hommy-ops-status{font-size:.62rem;font-weight:720;border-radius:999px;padding:7px 10px;background:#f4f2f3;color:#756e72;white-space:nowrap}' +
       '.he-hommy-ops-status.review{background:rgba(52,199,89,.10);color:#278448}' +
+
+      '.he-hommy-auto{margin:0 21px 17px;padding:18px;border:1px solid #eee1e5;background:linear-gradient(125deg,#fffafc 0%,#fff 62%);border-radius:17px}' +
+      '.he-hommy-auto-top{display:flex;align-items:center;justify-content:space-between;gap:15px}' +
+      '.he-hommy-auto-copy{min-width:0;flex:1}' +
+      '.he-hommy-auto-kicker{display:flex;align-items:center;gap:6px;color:#a6455a;font-size:.61rem;font-weight:750;letter-spacing:.035em;text-transform:uppercase}' +
+      '.he-hommy-auto-title{display:block;margin:7px 0 4px;color:#302b2e;font-size:.87rem;font-weight:760;line-height:1.35}' +
+      '.he-hommy-auto-description{margin:0;color:#7f7379;font-size:.66rem;line-height:1.6}' +
+      '.he-hommy-auto-switch{flex:none;display:flex;align-items:center;justify-content:center;border:0;background:transparent;cursor:pointer;padding:10px;margin:-10px;min-width:64px;min-height:52px;border-radius:20px}' +
+      '.he-hommy-auto-switch:focus-visible{outline:3px solid rgba(166,69,90,.45);outline-offset:2px}' +
+      '.he-hommy-auto-switch:disabled{cursor:not-allowed;opacity:.52}' +
+      '.he-hommy-auto-track{position:relative;display:block;width:53px;height:31px;background:#d9d3d6;border-radius:999px;transition:background .18s ease;box-shadow:inset 0 1px 2px rgba(0,0,0,.07)}' +
+      '.he-hommy-auto-thumb{position:absolute;top:3px;left:3px;display:block;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(38,24,29,.15);transition:transform .18s ease}' +
+      '.he-hommy-auto-switch[aria-checked="true"] .he-hommy-auto-track{background:#a6455a}' +
+      '.he-hommy-auto-switch[aria-checked="true"] .he-hommy-auto-thumb{transform:translateX(22px)}' +
+      '.he-hommy-auto-bottom{margin-top:15px;border-top:1px solid #f0e7e9;padding-top:12px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}' +
+      '.he-hommy-auto-state{display:inline-flex;align-items:center;gap:7px;color:#777075;font-size:.65rem;font-weight:740}' +
+      '.he-hommy-auto-dot{width:7px;height:7px;border-radius:50%;background:#b4aab0}' +
+      '.he-hommy-auto-state[data-active="true"]{color:#318354}' +
+      '.he-hommy-auto-state[data-active="true"] .he-hommy-auto-dot{background:#3aa66b}' +
+      '.he-hommy-auto-detail{font-size:.61rem;color:#8c8187;line-height:1.45}' +
+      '@media(max-width:700px){.he-hommy-auto{margin:0 16px 15px;padding:15px}.he-hommy-auto-title{font-size:.83rem}.he-hommy-auto-description{font-size:.65rem}}' +
+      '@media(prefers-reduced-motion:reduce){.he-hommy-auto-track,.he-hommy-auto-thumb{transition:none}}' +
       '.he-hommy-ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 21px 15px}' +
       '.he-hommy-ops-item{background:#f8f7f8;border-radius:14px;padding:12px;min-width:0}' +
       '.he-hommy-ops-item b{display:block;font-size:.76rem;color:#393238;font-weight:740}' +
@@ -60,6 +84,18 @@
       '<div class="he-hommy-ops-title"><strong>Hommy · Atención comercial</strong>' +
       '<span>Control independiente para las conversaciones de clientes y el equipo.</span></div>' +
       '<span class="he-hommy-ops-status" id="heHommyMode">Consultando</span></div>' +
+
+      '<div class="he-hommy-auto" aria-label="Control de respuestas automáticas a clientes">' +
+      '<div class="he-hommy-auto-top"><div class="he-hommy-auto-copy">' +
+      '<span class="he-hommy-auto-kicker"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Clientes por WhatsApp</span>' +
+      '<strong class="he-hommy-auto-title" id="heHommyAutoTitle">Atención automática a clientes</strong>' +
+      '<p class="he-hommy-auto-description">Hommy atiende nuevos mensajes, muestra “escribiendo...” y pasa los casos delicados al equipo.</p>' +
+      '</div><button type="button" class="he-hommy-auto-switch" id="heHommyAutoSwitch" role="switch" ' +
+      'aria-checked="false" aria-labelledby="heHommyAutoTitle" aria-describedby="heHommyAutoInfo" disabled>' +
+      '<span class="he-hommy-auto-track" aria-hidden="true"><span class="he-hommy-auto-thumb"></span></span></button></div>' +
+      '<div class="he-hommy-auto-bottom"><span class="he-hommy-auto-state" id="heHommyAutoStatus" data-active="false" role="status" aria-live="polite">' +
+      '<span class="he-hommy-auto-dot"></span><span id="heHommyAutoStateText">Consultando estado...</span></span>' +
+      '<span class="he-hommy-auto-detail" id="heHommyAutoInfo">El interruptor se sincroniza con el VPS.</span></div></div>' +
       '<div class="he-hommy-ops-grid">' +
       '<div class="he-hommy-ops-item"><b id="heHommyGroup">Grupo sin vincular</b><small>Equipo autorizado</small></div>' +
       '<div class="he-hommy-ops-item"><b id="heHommyTasks">—</b><small>Tareas pendientes</small></div>' +
@@ -76,6 +112,7 @@
       '<div id="heHommyNote" class="he-hommy-ops-foot" role="status">Esta función no desconecta WhatsApp ni afecta los comprobantes.</div>';
     panel.appendChild(card);
     document.getElementById('heHommyToggle').addEventListener('click', toggle);
+    document.getElementById('heHommyAutoSwitch').addEventListener('click', toggleCustomerAuto);
     document.getElementById('heHommyRefresh').addEventListener('click', () => load(true));
     document.getElementById('heHommyGroupLink').addEventListener('click', linkTeamGroup);
     document.getElementById('heHommyProfiles').addEventListener('click', editTeamProfiles);
@@ -91,6 +128,9 @@
   async function load(notify) {
     if (!mounted || loading || !global.HomeEasyWhatsApp.hommyControl) return;
     loading = true;
+    // Independent state: a failed team/desk request must not hide a working
+    // customer emergency switch.
+    void loadCustomerAuto();
     const toggleButton = document.getElementById('heHommyToggle');
     toggleButton.disabled = true;
     const modeEl = document.getElementById('heHommyMode');
@@ -144,6 +184,105 @@
       toggleButton.disabled = true;
     } finally {
       loading = false;
+    }
+  }
+
+  function showCustomerAutoState(note) {
+    const button = document.getElementById('heHommyAutoSwitch');
+    const indicator = document.getElementById('heHommyAutoStatus');
+    const stateText = document.getElementById('heHommyAutoStateText');
+    const info = document.getElementById('heHommyAutoInfo');
+    if (!button || !indicator || !stateText || !info) return;
+    const valid = customerAutoState && typeof customerAutoState.enabled === 'boolean';
+    const active = Boolean(valid && customerAutoState.enabled);
+    button.setAttribute('aria-checked', active ? 'true' : 'false');
+    button.disabled = customerAutoLoading || !valid || !canConfigure() ||
+      (!active && customerAutoState.configured !== true);
+    indicator.dataset.active = active ? 'true' : 'false';
+    stateText.textContent = !valid ? 'Estado no disponible' :
+      active ? 'Activo · respondiendo nuevos mensajes' : 'Apagado · no responde';
+    const accepted = valid ? Number(customerAutoState.acceptedToday || 0) : 0;
+    const pending = valid ? Number(customerAutoState.pending || 0) +
+      Number(customerAutoState.inFlight || 0) : 0;
+    info.textContent = note ||
+      (!valid ? 'No se pudo comprobar el estado en el VPS. No se permiten cambios.' :
+      !customerAutoState.configured ? 'La conexión de OpenAI o WhatsApp no está lista.' :
+      'Hoy: ' + accepted + ' respuestas aceptadas · ' + pending + ' en proceso');
+  }
+
+  async function loadCustomerAuto() {
+    if (!mounted || customerAutoLoading || !global.HomeEasyWhatsApp.hommyCustomerAuto) return;
+    customerAutoLoading = true;
+    showCustomerAutoState('Verificando el estado real con el VPS...');
+    try {
+      const payload = await global.HomeEasyWhatsApp.hommyCustomerAuto();
+      if (!payload || !payload.customerAuto ||
+          typeof payload.customerAuto.enabled !== 'boolean')
+        throw new Error('Estado incompleto de atención automática');
+      customerAutoState = payload.customerAuto;
+      showCustomerAutoState();
+    } catch (e) {
+      customerAutoState = null;
+      showCustomerAutoState(e && e.status === 404 ?
+        'Actualiza el Bridge a Hommy 0.33.1 para usar este control.' :
+        'No se pudo consultar el VPS. Pulsa Actualizar para volver a comprobarlo.');
+    } finally {
+      customerAutoLoading = false;
+      showCustomerAutoState();
+    }
+  }
+
+  async function toggleCustomerAuto() {
+    if (!canConfigure() || customerAutoLoading || !customerAutoState ||
+        typeof customerAutoState.enabled !== 'boolean' ||
+        !global.HomeEasyWhatsApp.setHommyCustomerAuto) return;
+    const old = customerAutoState.enabled;
+    const desired = !old;
+    if (desired) {
+      // A change that sends actual customer messages requires a deliberate
+      // confirmation; switching OFF is immediate with no modal.
+      const description = 'Hommy responderá automáticamente a mensajes NUEVOS de clientes. ' +
+        'No atenderá mensajes antiguos y los casos delicados quedarán para el equipo. ' +
+        'Podrás apagarlo aquí cuando quieras.';
+      if (global.Swal) {
+        const result = await global.Swal.fire({
+          icon:'question', title:'Activar atención automática?',
+          text:description, showCancelButton:true,
+          confirmButtonText:'Sí, activar Hommy', cancelButtonText:'Cancelar',
+          confirmButtonColor:'#a6455a'
+        });
+        if (!result.isConfirmed) return;
+      } else if (!global.confirm || !global.confirm(description)) return;
+    }
+    customerAutoLoading = true;
+    showCustomerAutoState(desired ? 'Activando atención automática...' :
+      'Apagando las respuestas automáticas...');
+    try {
+      const payload = await global.HomeEasyWhatsApp.setHommyCustomerAuto(desired, old);
+      if (!payload || !payload.customerAuto ||
+          payload.customerAuto.enabled !== desired)
+        throw new Error('No se pudo confirmar el cambio en el VPS');
+      customerAutoState = payload.customerAuto;
+      showCustomerAutoState();
+      if (global.Swal) global.Swal.fire({
+        toast:true,position:'top-end',timer:2200,showConfirmButton:false,
+        icon:'success',
+        title:desired ? 'Hommy comenzó a atender nuevos mensajes' :
+          'Respuestas automáticas apagadas'
+      });
+    } catch (e) {
+      customerAutoState = null;
+      showCustomerAutoState('No se confirmó el cambio. Consultando el estado real...');
+      if (global.Swal) global.Swal.fire({
+        icon:'error',title:'No se pudo cambiar la atención automática',
+        text:e && e.status===409 ?
+          'Otra sesión modificó el control. Actualiza el estado y vuelve a intentarlo.' :
+          (e.message || 'No se pudo confirmar el estado del VPS.'),
+        confirmButtonColor:'#a6455a'
+      });
+    } finally {
+      customerAutoLoading = false;
+      await loadCustomerAuto();
     }
   }
 
