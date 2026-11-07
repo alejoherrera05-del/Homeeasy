@@ -5,7 +5,8 @@ const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
 const {
-  weekWindow,chatIdentifier,isDirectChat,metaReferralKind,removePersonal,
+  weekWindow,chatIdentifier,isDirectChat,metaReferralKind,isAdMenuReply,
+  normalizeStudyMessages,removePersonal,
   intent,publicStats,summaryOf,collectChats,coach,review,approveWeek
 }=require('./hommy-week-study');
 
@@ -87,6 +88,47 @@ test('Meta ad and organic/unverified referral sources are clearly distinct',()=>
   assert.equal(metaReferralKind({referral:{source_id:'abc'}}),'META_REFERRAL_UNCLASSIFIED');
   assert.equal(metaReferralKind({body:'Hola, vi su publicidad en Facebook'}),'UNKNOWN');
 });
+test('WhatsApp Status ad visual menu replies map to the correct commercial intention',()=>{
+  const samples=[
+    {body:'Para cotizar',expected:'PRECIO_COTIZACION'},
+    {body:'2️⃣ Cotización y precios',expected:'PRECIO_COTIZACION'},
+    {body:'3️⃣ Tipos de persianas disponibles',expected:'TIPOS_PERSIANAS'}
+  ];
+  for(const sample of samples){
+    assert.equal(intent(sample.body),sample.expected,sample.body);
+    assert.equal(isAdMenuReply(sample.body),true,sample.body);
+  }
+  assert.equal(intent('¿Qué tipos de persianas manejan?'),'TIPOS_PERSIANAS');
+  assert.equal(intent('¿Tienen persianas?'),'PRODUCTO');
+  assert.equal(isAdMenuReply('¿Qué tal las persianas?'),false);
+  assert.equal(metaReferralKind({body:'Anuncio en estados'}),'UNKNOWN');
+});
+test('nested externalAdReply metadata from WEBJS is recognized; ad card text alone is not',()=>{
+  const actual={
+    body:'3️⃣ Tipos de persianas disponibles',
+    _data:{message:{extendedTextMessage:{contextInfo:{externalAdReply:{
+      sourceType:'ad',sourceId:'12345',title:'Anuncio en estados',
+      sourceApp:'whatsapp'
+    }}}}}
+  };
+  assert.equal(metaReferralKind(actual),'META_AD');
+  assert.equal(metaReferralKind({
+    ...actual, _data:undefined
+  }),'UNKNOWN');
+});
+test('full 200-message archive is analyzed without silently truncating at 80',()=>{
+  const initial=1794050000;
+  const all=Array.from({length:140},(_,i)=>message(
+    'm'+i,initial+i*60,i%2===1,
+    i%2?'Hola, aquí estamos para asesorarte en las persianas.':'2️⃣ Cotización y precios'));
+  const normalized=normalizeStudyMessages(all,start);
+  assert.equal(normalized.length,140);
+  const stats=summaryOf([{messages:normalized,metaKind:'META_AD'}]);
+  assert.equal(stats.incomingMessages,70);
+  assert.equal(stats.observedMenuSelections.priceOrQuote,70);
+  assert.equal(stats.inboundIntents.PRECIO_COTIZACION,70);
+});
+
 test('private data is removed before any OpenAI style study',()=>{
   const msg='Hola, Laura, envío a calle 8 #16-17, correo laura@private.test, cel +57 300 333 4499 y precio $1.600.000.';
   const clean=removePersonal(msg);
@@ -130,6 +172,7 @@ test('weekly study retrieves observed messages without sending texts to WAHA',as
   assert.equal(report.metrics.incomingMessages,2);
   assert.equal(report.metrics.outgoingMessages,2);
   assert.equal(report.metrics.confirmedMetaAdChats,1);
+  assert.equal(report.metrics.observedMenuSelections.total,0);
   assert.equal(report.metrics.confirmedMetaPostChats,0);
   assert.equal(report.metrics.originUnknownChats,1);
   assert.equal(report.metrics.inboundAfterLastObservedReply,1);
