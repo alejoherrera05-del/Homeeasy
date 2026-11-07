@@ -151,7 +151,7 @@ function commercialQuestion(rows){
     .map(m=>String(m.text||''));
   const latest=plain(incoming.at(-1)||'');
   const recent=plain(incoming.slice(-MAX_CONTEXT).join(' '));
-  const exploringOptions=/\b(catalogo|referencias|modelos|tipos|opciones|productos|disponibles|cuales (?:tienen|manejan)|que (?:tienen|manejan)|muestrame|mu[eé]strame)\b/.test(latest);
+  const exploringOptions=/\b(catalogo|referencias|modelos|tipos|opciones|productos|disponibles|cuales (?:tienen|manejan)|que (?:tienen|manejan)|que me recomiendas?|cual me recomiendas?|me recomiendas?|que sugieres?|muestrame|mu[eé]strame)\b/.test(latest);
   const requestedProducts=NAMED_PRODUCT_MATCHERS
     .filter(pattern=>pattern.test(recent))
     .map(pattern=>PRODUCT_FACTS.filter(f=>pattern.test(plain(f))));
