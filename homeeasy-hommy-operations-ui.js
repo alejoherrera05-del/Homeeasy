@@ -171,11 +171,11 @@
         control.team && control.team.configured ? 'Grupo listo, inactivo' : 'Grupo sin vincular';
       document.getElementById('heHommyTasks').textContent = String(control.pendingTasks || 0);
       document.getElementById('heHommyCommands').textContent = 'Actividad (' + String(control.totalTeamCommands || 0) + ')';
-      toggleButton.textContent = control.mode === 'REVIEW' ? 'Pausar Hommy' : 'Reanudar supervisión';
+      toggleButton.textContent = control.mode === 'REVIEW' ? 'Pausar supervisión interna' : 'Reanudar supervisión interna';
       toggleButton.disabled = !canConfigure();
       noteEl.textContent = teamState && teamState.aiEnabled === true ?
-        'Modo conversación natural del equipo. Solo lectura; las acciones comerciales siguen bajo aprobación.' :
-        'Las respuestas al grupo usan el modo supervisado. El motor IA se habilita por separado y nunca autoriza envíos a clientes.';
+        'Supervisión y conversación del grupo interno. El envío automático a clientes se controla únicamente con el interruptor de arriba.' :
+        'Las respuestas internas y la atención automática a clientes tienen interruptores independientes. Pausar una no apaga la otra.';
       if (notify && global.Swal) global.Swal.fire({ toast:true, position:'top-end', timer:1500,
         showConfirmButton:false, icon:'success', title:'Estado de Hommy actualizado' });
     } catch (e) {
@@ -213,6 +213,7 @@
   async function loadCustomerAuto() {
     if (!mounted || customerAutoLoading || !global.HomeEasyWhatsApp.hommyCustomerAuto) return;
     customerAutoLoading = true;
+    let errorMessage = '';
     showCustomerAutoState('Verificando el estado real con el VPS...');
     try {
       const payload = await global.HomeEasyWhatsApp.hommyCustomerAuto();
@@ -223,12 +224,12 @@
       showCustomerAutoState();
     } catch (e) {
       customerAutoState = null;
-      showCustomerAutoState(e && e.status === 404 ?
+      errorMessage = e && e.status === 404 ?
         'Actualiza el Bridge a Hommy 0.33.1 para usar este control.' :
-        'No se pudo consultar el VPS. Pulsa Actualizar para volver a comprobarlo.');
+        'No se pudo consultar el VPS. Pulsa Actualizar para volver a comprobarlo.';
     } finally {
       customerAutoLoading = false;
-      showCustomerAutoState();
+      showCustomerAutoState(errorMessage);
     }
   }
 
@@ -300,7 +301,7 @@
     if (global.Swal) {
       const confirmation = await global.Swal.fire({
         icon:'question', title: mode === 'PAUSED' ? 'Pausar la atención de Hommy?' : 'Reanudar Hommy supervisado?',
-        text:'No se desconectará WhatsApp ni se enviarán mensajes a clientes. La pausa apaga también las respuestas internas.',
+        text:'Solo afecta a la supervisión y respuestas del grupo interno. No modifica el interruptor de atención automática a clientes que aparece arriba.',
         showCancelButton:true, confirmButtonText:mode === 'PAUSED'?'Pausar':'Reanudar',
         cancelButtonText:'Cancelar', confirmButtonColor:'#a6455a'
       });
