@@ -456,6 +456,41 @@ docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
 
 El script muestra el estado del catálogo y de las notas, después consulta la IA **real del equipo** usando la configuración de servicio ya existente, registra el tiempo y las respuestas de dos preguntas consecutivas, y no llama a WAHA ni envía ningún WhatsApp. No muestra tokens. Si el servicio de equipo está desactivado, registra `TEAM_AI_NOT_CONFIGURED` sin fingir una respuesta. No sustituye las pruebas de extremo a extremo de envíos con WhatsApp.
 
+## Hommy 0.30 — OpenAI directo en el VPS, sin Render para conversaciones internas
+
+La conversación natural del grupo autorizado puede usar el VPS directamente
+contra https://api.openai.com/v1/responses. No requiere Render para esa función;
+otros módulos de HomeEasy pueden seguir utilizando Render.
+
+Variables privadas para el Bridge (archivo .env del VPS, NUNCA GitHub):
+- HOMMY_TEAM_AI_PROVIDER=DIRECT_OPENAI
+- HOMMY_TEAM_AI_ENABLED=true
+- HOMMY_TEAM_OPENAI_MODEL=gpt-5.4-mini
+- OPENAI_API_KEY=sk-... (la clave real se introduce en secreto)
+
+Sin provider o con provider=RENDER se conserva el adaptador antiguo.
+En modo directo nunca se reenvían preguntas silenciosamente a Render.
+Se mantienen las verificaciones HMAC, identidad, permisos, catálogo,
+memoria aprobada y autorización humana. El modelo no dispone de
+herramientas para enviar mensajes ni editar cotizaciones. La API utiliza
+store=false; consulta las políticas de retención de OpenAI para otros casos.
+
+Instalación:
+1. Instala Bridge v0.30.0 con infra/whatsapp/update-bridge.sh.
+2. Crea una API key desde OpenAI Platform para un proyecto con límite de gasto.
+   No compartas la clave en ChatGPT, WhatsApp, GitHub ni capturas.
+3. En el VPS descarga infra/whatsapp/enable-direct-openai.sh desde main
+   y ejecútalo con sudo. Pide la clave sin eco, verifica acceso al modelo,
+   respalda .env y recrea solamente el Bridge (NO WAHA ni Pentagrama).
+4. Prueba sin enviar WhatsApp:
+   docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
+   Debe decir provider=DIRECT_OPENAI, available=true, y mostrar respuestas
+   reales si hay acceso, créditos y conectividad.
+5. En HomeEasy Integraciones habilita Conversación natural y pregunta en
+   el grupo autorizado. El catálogo y los flujos con clientes no cambian.
+
+La API tiene facturación independiente de ChatGPT Plus.
+
 ## Hommy 0.29 — personalidad y reconocimiento verificado del equipo
 
 El Bridge reconoce miembros únicamente por su identificador de WhatsApp
