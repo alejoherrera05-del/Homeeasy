@@ -122,7 +122,7 @@ function createHommyWorkspace(options = {}) {
   const file = path.join(dir, 'state.json');
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   const defaults = () => ({
-    version: 1, revision: 0, mode: options.intelligenceEnabled ? 'REVIEW' : 'PAUSED',
+    version: 1, revision: 0, configRevision: 0, mode: options.intelligenceEnabled ? 'REVIEW' : 'PAUSED',
     team: { enabled: false, groupId: '', allowedSenders: [], replyEnabled: false, aiEnabled: false, profiles: {} },
     labels: {}, tasks: [], commands: [], seen: [], audit: []
   });
@@ -141,6 +141,12 @@ function createHommyWorkspace(options = {}) {
     data = defaults();
     data.mode = 'PAUSED';
   }
+  // Legacy workspaces had one revision for both settings and message activity.
+  // Preserve the old revision and start a separate configuration revision from
+  // its current value, without rewriting or dropping any persistent records.
+  if (!Number.isSafeInteger(data.configRevision) || data.configRevision < 0)
+    data.configRevision = Number.isSafeInteger(data.revision) && data.revision >= 0 ?
+      data.revision : 0;
   // Older persistent workspaces remain compatible: profiles are optional until
   // an authorized administrator assigns a confirmed identity.
   if (!data.team.profiles || typeof data.team.profiles !== 'object' ||
@@ -184,6 +190,7 @@ function createHommyWorkspace(options = {}) {
   function persist(action, actor) {
     if (corrupted) throw err('Hommy workspace requires recovery; other Bridge services remain available', 'HOMMY_WORKSPACE_UNAVAILABLE', 503);
     data.revision++;
+    if (action === 'CONFIGURE') data.configRevision++;
     data.audit.push({ at: new Date().toISOString(), action,
       actor: clean(actor && actor.profile && actor.profile.uid || 'system', 120) });
     data.audit = data.audit.slice(-limit);
@@ -191,7 +198,8 @@ function createHommyWorkspace(options = {}) {
   }
 
   function status() {
-    return { available: !corrupted, mode: corrupted ? 'PAUSED' : data.mode, revision: data.revision, availableLabels: LABELS,
+    return { available: !corrupted, mode: corrupted ? 'PAUSED' : data.mode, revision: data.revision,
+      configRevision: data.configRevision, availableLabels: LABELS,
       team: { enabled: data.team.enabled,
         configured: validGroup(data.team.groupId) && data.team.allowedSenders.length > 0,
         groupId: data.team.groupId || null, authorizedSenders: data.team.allowedSenders.length,
@@ -207,7 +215,14 @@ function createHommyWorkspace(options = {}) {
   function configure(body, actor) {
     if (corrupted) throw err('Hommy workspace requires recovery', 'HOMMY_WORKSPACE_UNAVAILABLE', 503);
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw err('Invalid configuration');
-    if (body.revision !== undefined && body.revision !== data.revision) throw err('Refresh Hommy settings', 'HOMMY_REVISION_CONFLICT', 409);
+    // New clients use configRevision to ignore unrelated WhatsApp message
+    // activity. Legacy clients still use revision and retain old semantics.
+    if (body.configRevision !== undefined) {
+      if (!Number.isSafeInteger(body.configRevision) || body.configRevision !== data.configRevision)
+        throw err('Refresh Hommy settings', 'HOMMY_REVISION_CONFLICT', 409);
+    } else if (body.revision !== undefined && body.revision !== data.revision) {
+      throw err('Refresh Hommy settings', 'HOMMY_REVISION_CONFLICT', 409);
+    }
     if (body.mode !== undefined && !['PAUSED', 'REVIEW'].includes(body.mode)) throw err('Only PAUSED and REVIEW are supported');
     let team = null;
     if (body.team !== undefined) {
