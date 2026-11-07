@@ -60,3 +60,4 @@ jobs:
           node --check homeeasy-hommy-operations-ui.js
           node --check homeeasy-whatsapp-client.js
           bash -n infra/whatsapp/update-bridge.sh
+          bash -n infra/whatsapp/enable-direct-openai.sh
