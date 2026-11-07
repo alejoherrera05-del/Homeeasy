@@ -43,7 +43,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-save --no-package-lock jsdom@26
-      - run: node --test tests/whatsapp-maintenance.cjs tests/whatsapp-reliability.cjs tests/whatsapp-diagnostics.cjs tests/hommy-auto-switch.cjs
+      - run: node --test tests/whatsapp-maintenance.cjs tests/whatsapp-reliability.cjs tests/whatsapp-diagnostics.cjs tests/hommy-auto-switch.cjs tests/hommy-auto-switch-api.cjs
       - run: python infra/whatsapp/maintenance/test_worker.py
       - name: Hommy Inbox and Intelligence regression tests
         run: node --test infra/whatsapp/bridge/inbox.test.js infra/whatsapp/bridge/intelligence.test.js infra/whatsapp/bridge/hommy-workspace.test.js infra/whatsapp/bridge/operational-overview.test.js infra/whatsapp/bridge/team-ai.test.js infra/whatsapp/bridge/hommy-desk.test.js infra/whatsapp/bridge/hommy-week-study.test.js infra/whatsapp/bridge/hommy-customer-pilot.test.js infra/whatsapp/bridge/hommy-auto-reply.test.js
