@@ -456,6 +456,33 @@ docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
 
 El script muestra el estado del catálogo y de las notas, después consulta la IA **real del equipo** usando la configuración de servicio ya existente, registra el tiempo y las respuestas de dos preguntas consecutivas, y no llama a WAHA ni envía ningún WhatsApp. No muestra tokens. Si el servicio de equipo está desactivado, registra `TEAM_AI_NOT_CONFIGURED` sin fingir una respuesta. No sustituye las pruebas de extremo a extremo de envíos con WhatsApp.
 
+## Hommy 0.33.1 — interruptor ON/OFF de atención comercial en HomeEasy
+
+La página **Configuración > Integraciones > Hommy · Atención comercial**
+incluye un interruptor accesible con estado leído del VPS, rótulos
+**Activo** / **Apagado** y contadores reales de mensajes aceptados y
+conversaciones en curso. El botón de "Pausar supervisión interna" es
+independiente y NO controla respuestas a clientes.
+
+La página usa, con la sesión ya autenticada de HomeEasy:
+- GET /api/whatsapp/hommy/customer-auto (permiso config.read)
+- POST /api/whatsapp/hommy/customer-auto (permiso config.write)
+  con JSON estricto {enabled:boolean,expectedEnabled:boolean}.
+
+El servidor comprueba expectedEnabled para evitar cambios silenciosos
+desde dos sesiones. Al encender pide confirmación porque se escribirán
+mensajes reales; apagar no exige un segundo cuadro de diálogo. El
+interruptor se bloquea si no hay permiso, no hay configuración o no
+se puede consultar el VPS. No se cambia visualmente antes de confirmar
+el estado en el servidor. Se conserva el archivo persistente de control
+que ya podían activar y apagar los comandos del VPS.
+
+Para poner en servicio la interfaz, actualizar solamente el Bridge con
+update-bridge.sh a 0.33.1, abrir configuracion.html desde HomeEasy y
+refrescar la página para cargar los JavaScript actuales. Si la
+interfaz muestra "Bridge anterior", actualizar el VPS, no las claves.
+No reinicia WAHA ni Pentagrama.
+
 ## Hommy 0.33 — atención automática opt-in con escritura real
 
 **Estado inicial: APAGADO.** Hommy Intelligence sigue en modo REVIEW; su
