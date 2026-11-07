@@ -31,6 +31,9 @@ async function main() {
 
   const teamAi = createTeamAI({
     enabled: process.env.HOMMY_TEAM_AI_ENABLED === 'true',
+    provider: process.env.HOMMY_TEAM_AI_PROVIDER || 'RENDER',
+    openaiApiKey: process.env.OPENAI_API_KEY || '',
+    openaiModel: process.env.HOMMY_TEAM_OPENAI_MODEL || 'gpt-5.4-mini',
     endpoint: process.env.HOMMY_TEAM_AI_URL || '',
     // Match server.js fallback exactly; .env may omit HOMMY_BACKEND_URL.
     backendUrl: process.env.HOMMY_BACKEND_URL || 'https://homeeasy-hommy-staging.onrender.com',
@@ -38,7 +41,7 @@ async function main() {
     dataDir:DATA_DIR, timeoutMs:9500,
     getDeskContext: () => desk ? desk.approvedContext('TEAM') : null
   });
-  response({step:'TEAM_AI_CONFIG',available:teamAi.available,
+  response({step:'TEAM_AI_CONFIG',provider:teamAi.provider,available:teamAi.available,
     backendFallbackUsed: !Boolean(process.env.HOMMY_BACKEND_URL)});
   if (!teamAi.available) {
     response({step:'FINISHED',result:'TEAM_AI_NOT_CONFIGURED',
@@ -65,7 +68,7 @@ async function main() {
     else break;
   }
   response({step:'FINISHED',result:'CHECK_COMPLETE',
-    note:'Prueba real del servicio de IA de equipo. No se envió nada por WAHA.'});
+    note:'Prueba real del servicio de IA de equipo; no usa WAHA ni envía mensajes.'});
 }
 
 if (require.main === module) {
