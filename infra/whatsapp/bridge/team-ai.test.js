@@ -116,6 +116,8 @@ test('verified owner name and address preference reach team AI without WhatsApp 
   assert.equal(result.kind,'ANSWER');
   assert.equal(data.style.constraints.length,14);
   assert.ok(data.style.constraints.some(x=>x.includes('Hablas con Ale')));
+  assert.ok(data.style.constraints.some(x=>x.includes('dirección y propiedad de HomeEasy')));
+  assert.doesNotMatch(JSON.stringify(data.style.constraints),/\\b(?:OWNER|MANAGER|TEAM)\\b/);
   assert.ok(data.style.constraints.some(x=>x.includes('jefe Ale')));
   assert.ok(data.style.constraints.every(x=>x.length<=170));
   assert.doesNotMatch(JSON.stringify(data),/@c\\.us|@lid|573001112233/);
@@ -186,6 +188,10 @@ test('direct OpenAI mode requires an explicit key and skips Render entirely', as
   assert.equal(user.purpose,'HOME_EASY_TEAM_READ_ONLY');
   assert.equal(user.history.length,1);
   assert.ok(user.style.constraints.some(c=>c.includes('Hablas con Ale')));
+  assert.ok(user.style.constraints.some(c=>c.includes('dirección y propiedad de HomeEasy')));
+  assert.doesNotMatch(JSON.stringify(seenRequest.input),/\\b(?:OWNER|MANAGER)\\b/);
+  assert.ok(seenRequest.input[0].content.includes('español colombiano'));
+  assert.ok(seenRequest.input[0].content.includes('Evita voseo'));
   assert.ok(user.facts.approvedDesk.catalogInstalled);
   assert.doesNotMatch(JSON.stringify(seenRequest),/Claudia|573001234567|HE-001|Contacto privado/);
   assert.doesNotMatch(JSON.stringify(seenRequest.input),/sk-[a-z]{48}|@c\.us/);
