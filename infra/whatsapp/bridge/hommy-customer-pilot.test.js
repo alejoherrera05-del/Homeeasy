@@ -105,7 +105,8 @@ test('Meta ad greeting is removed from model context but the real lead remains',
   assert.equal(context.firstObservedReply,true);
   assert.equal(context.metaAdAutoGreetingObserved,true);
   assert.deepEqual(context.conversation.map(x=>x.direction),['INCOMING']);
-  assert.match(context.conversation[0].text,/Hola buena tarde/);
+  assert.match(context.conversation[0].text,/^Hola /);
+  assert.doesNotMatch(context.conversation[0].text,/Transformamos tus espacios/);
   assert.doesNotMatch(JSON.stringify(context.conversation),/30%|Transformamos tus espacios/);
 });
 test('sendOnce still rechecks the Meta greeting and sends once to the LID chat',async t=>{
