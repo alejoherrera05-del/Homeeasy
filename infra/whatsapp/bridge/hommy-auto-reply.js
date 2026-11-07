@@ -106,13 +106,16 @@ function createCustomerAuto(options={}){
     for(const [id,v] of Object.entries(rows)){
       if(Number(v?.at||0)<now-OWN_ECHO_MS)delete rows[id];
     }
-    rows[key]={at:now,hash:fingerprint(String(text).trim())};
+    const previous=Array.isArray(rows[key]?.recent)?rows[key].recent:[];
+    rows[key]={at:now,recent:[...previous.filter(x=>now-Number(x.at||0)<=OWN_ECHO_MS),
+      {at:now,hash:fingerprint(String(text).trim())}].slice(-8)};
     writePrivate(ownEchoFile,rows);
   }
   function isOwnOutgoing(chatId,text){
     const row=readPrivate(ownEchoFile)[fingerprint(chatId)];
-    return row&&Date.now()-Number(row.at||0)<=OWN_ECHO_MS &&
-      row.hash===fingerprint(String(text||'').trim());
+    return row&&Array.isArray(row.recent)&&row.recent.some(x=>
+      Date.now()-Number(x.at||0)<=OWN_ECHO_MS &&
+      x.hash===fingerprint(String(text||'').trim()));
   }
   function markHumanTakeover(record){
     const rows=readPrivate(handoffFile),now=Date.now();
