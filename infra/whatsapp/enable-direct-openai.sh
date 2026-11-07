@@ -12,8 +12,8 @@ for cmd in docker python3; do
 done
 BRIDGE_VERSION="$(docker exec homeeasy-whatsapp-bridge node -p \
   "require('fs').readFileSync('/app/server.js','utf8').match(/BRIDGE_VERSION = '([^']+)'/)[1]" 2>/dev/null || true)"
-if [[ "$BRIDGE_VERSION" != "0.30.0" ]]; then
-  echo "Primero instala Bridge 0.30.0; instalado: $BRIDGE_VERSION" >&2
+if [[ "$BRIDGE_VERSION" != 0.30.* ]]; then
+  echo "Primero instala Bridge 0.30.x; instalado: $BRIDGE_VERSION" >&2
   exit 1
 fi
 echo "Clave OpenAI: la escribirás sin que aparezca en pantalla ni en GitHub."
