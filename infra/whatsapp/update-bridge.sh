@@ -34,6 +34,7 @@ BRIDGE_FILES=(
   team-ai.js
   hommy-desk.js
   hommy-self-check.js
+  hommy-week-study.js
   maintenance.js
   Dockerfile
   package.json
@@ -206,7 +207,8 @@ docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges \
   --workdir /repo/infra/whatsapp/bridge --entrypoint node homeeasy-whatsapp-bridge:local \
   --test /repo/infra/whatsapp/bridge/hommy-workspace.test.js \
          /repo/infra/whatsapp/bridge/team-ai.test.js \
-         /repo/infra/whatsapp/bridge/hommy-desk.test.js
+         /repo/infra/whatsapp/bridge/hommy-desk.test.js \
+         /repo/infra/whatsapp/bridge/hommy-week-study.test.js
 
 echo "Preparando respaldo recuperable en $BACKUP_DIR..."
 mkdir -p "$BACKUP_DIR/bridge"
@@ -250,7 +252,7 @@ INSTALL_DIR="$INSTALL_DIR"
 BACKUP_DIR="$BACKUP_DIR"
 ROLLBACK_IMAGE="$ROLLBACK_IMAGE"
 BRIDGE_LOCAL_PORT="$BRIDGE_LOCAL_PORT"
-BRIDGE_FILES=(server.js auth.js operations.js conversation.js inbox.js intelligence.js hommy-workspace.js operational-overview.js team-ai.js hommy-desk.js hommy-self-check.js maintenance.js Dockerfile package.json)
+BRIDGE_FILES=(server.js auth.js operations.js conversation.js inbox.js intelligence.js hommy-workspace.js operational-overview.js team-ai.js hommy-desk.js hommy-self-check.js hommy-week-study.js maintenance.js Dockerfile package.json)
 for file in "\${BRIDGE_FILES[@]}"; do
   if [[ -f "\$BACKUP_DIR/bridge/\$file" ]]; then
     cp -a -- "\$BACKUP_DIR/bridge/\$file" "\$INSTALL_DIR/bridge/\$file"
