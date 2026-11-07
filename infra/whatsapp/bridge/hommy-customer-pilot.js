@@ -95,17 +95,47 @@ function sanitizedForModel(s){
   if(/(?:contrase(?:n|ñ)a|password|c[eé]dula|documento de identidad|tarjeta de cr[eé]dito)/i.test(value))value='[dato privado]';
   return value.slice(0,580);
 }
+// WhatsApp represents the welcome configured INSIDE a Click-to-WhatsApp
+// Meta ad as an OUTGOING message. WAHA's generic "fromMe" flag does not
+// imply a human answered. Only recognize the known HomeEasy ad copy, sent
+// immediately after the customer's message; do not generalize to any quick
+// outgoing message or assume that a customer-authored claim is trustworthy.
+const META_AD_GREETING_WINDOW_MS=15000;
+function metaGreetingText(text){
+  return String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/\s+/g,' ').trim();
+}
+function isMetaAdAutoGreeting(incoming,outgoing){
+  if(incoming?.direction!=='INCOMING'||outgoing?.direction!=='OUTGOING')return false;
+  const before=Date.parse(incoming.at||'');
+  const after=Date.parse(outgoing.at||'');
+  if(!Number.isFinite(before)||!Number.isFinite(after) ||
+    after<before||after-before>META_AD_GREETING_WINDOW_MS)return false;
+  const text=metaGreetingText(outgoing.text);
+  return text.includes('te damos la bienvenida a homeeasy') &&
+    text.includes('transformamos tus espacios con persianas y papel de colgadura') &&
+    text.includes('este mes puedes aprovechar hasta 30% de descuento');
+}
+function withoutMetaAdAutoGreetings(rows){
+  if(!Array.isArray(rows))return [];
+  let lastIncoming=null;
+  return rows.filter(item=>{
+    if(item?.direction==='INCOMING'){lastIncoming=item;return true;}
+    return !isMetaAdAutoGreeting(lastIncoming,item);
+  });
+}
 function allowConversation(rows,now=Date.now()){
   if(!Array.isArray(rows)||!rows.length)return {ok:false,reason:'CHAT_WITHOUT_MESSAGES'};
-  const last=rows.at(-1);
-  if(last.direction!=='INCOMING')return {ok:false,reason:'LAST_MESSAGE_NOT_CUSTOMER'};
+  const effective=withoutMetaAdAutoGreetings(rows);
+  const last=effective.at(-1);
+  if(last?.direction!=='INCOMING')return {ok:false,reason:'LAST_MESSAGE_NOT_CUSTOMER'};
   if(!last.id||!last.at||!last.text||last.hasMedia)return {ok:false,reason:'MESSAGE_NOT_TEXT'};
   const at=Date.parse(last.at);
   if(!Number.isFinite(at)||at>now+60000||at<now-7*86400000)
     return {ok:false,reason:'MESSAGE_OUTSIDE_7_DAYS'};
   if(PROHIBITED.test(rows.map(x=>x.text||'').join(' ')))
     return {ok:false,reason:'HUMAN_REVIEW_REQUIRED'};
-  return {ok:true,last};
+  return {ok:true,last,metaAdGreetingIgnored:effective.length!==rows.length};
 }
 async function readConversation(chatId,config,fetcher){
   const qs=new URLSearchParams({limit:'30',downloadMedia:'false'});
@@ -125,8 +155,9 @@ function firstObservedReply(rows){
   // Distinguishes the first business reply in the observed window from a
   // conversation in which the staff already responded. Never infer an
   // absolute first contact from a bounded WAHA message history.
-  return Array.isArray(rows) && rows.length>0 &&
-    !rows.some(m=>m && m.direction==='OUTGOING');
+  const effective=withoutMetaAdAutoGreetings(rows);
+  return effective.length>0 &&
+    !effective.some(m=>m && m.direction==='OUTGOING');
 }
 // The customer's selected Meta quick-reply communicates an intent, not a
 // specific product. No business product name may be inferred from the ad card
@@ -179,6 +210,7 @@ function replyPolicy(){
     'Debes redactar UNA única respuesta a un cliente REAL de WhatsApp, en español colombiano natural, amable y breve.',
     'Es un piloto controlado. No eres una persona: nunca afirmes ser humano, vendedor real ni una persona concreta. Si te preguntan quién contesta o si es un bot, aclara con transparencia que eres Hommy y que la atención utiliza automatización.',
     'En la primera respuesta observada del negocio, da la bienvenida educadamente y preséntate de forma personal por el nombre de marca Hommy, de HomeEasy. No digas asistente virtual, inteligencia artificial o bot espontáneamente, pero tampoco afirmes ser una persona o un empleado humano. Si el cliente pregunta quién contesta o si es automatizado, explica claramente que eres una IA de HomeEasy.',
+    'Un saludo automático de un anuncio de Meta NO es una respuesta humana ni significa que el cliente esté atendido. Si se detectó tal saludo no repitas el anuncio, sus descuentos ni su texto. Responde al mensaje REAL del cliente sin asumir que escogió un producto del anuncio.',
     'Si firstObservedReply=true, comienza SIEMPRE con un saludo amable y corto (Hola), menciona HomeEasy y preséntate como Hommy. Evita cualquier saludo con género como Bienvenido o Bienvenida: no debes inferir el género del cliente por su nombre, foto o usuario de WhatsApp. Responde enseguida a la intención; NO es obligatorio terminar con una pregunta.',
     'Si firstObservedReply=false, continúa desde el contexto existente y NO repitas la bienvenida o presentación. Si la conversación ya incluye un saludo, no lo dupliques.',
     'Ante una consulta de cotización en primera respuesta, ejemplo de TONO (no texto fijo): Hola! 😊 Soy Hommy, de HomeEasy. Claro, te ayudo a cotizar. Qué tipo de persiana buscas?',
@@ -239,7 +271,7 @@ async function draftReply(rows,options={}){
   const approved=options.style||approvedCommercialStyle();
   const firstReply=firstObservedReply(rows);
   const commercial=commercialQuestion(rows);
-  const messages=rows.slice(-MAX_CONTEXT).map(m=>({
+  const messages=withoutMetaAdAutoGreetings(rows).slice(-MAX_CONTEXT).map(m=>({
     direction:m.direction,
     text:sanitizedForModel(m.text)
   }));
@@ -249,6 +281,7 @@ async function draftReply(rows,options={}){
       {role:'user',content:JSON.stringify({
         purpose:'ONE_CUSTOMER_REPLY_DRAFT',
         firstObservedReply:firstReply,
+        metaAdAutoGreetingObserved:withoutMetaAdAutoGreetings(rows).length<rows.length,
         commercialIntent:commercial.kind,
         productFacts:commercial.productFacts,
         approvedCommercialStyle:approved.slice(-2),
@@ -381,5 +414,6 @@ if(require.main===module)run().catch(e=>{
   process.exitCode=1;
 });
 module.exports={chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
+  isMetaAdAutoGreeting,withoutMetaAdAutoGreetings,
   firstObservedReply,commercialQuestion,unsupportedProductClaim,
   listCandidates,readConversation,sendOnce,claimId,claimSend,run,sanitizedForModel,isSendConfirmation,wahaBase};
