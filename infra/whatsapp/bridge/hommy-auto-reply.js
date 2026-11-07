@@ -8,7 +8,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const crypto=require('node:crypto');
 const {
-  wahaBase,readConversation,allowConversation,draftReply,sendOnce,claimId
+  wahaBase,readConversation,allowConversation,draftReply,sendOnce,claimId,firstObservedReply
 }=require('./hommy-customer-pilot');
 
 const LIMIT_PER_DAY=40;
@@ -40,7 +40,7 @@ function safeQuoteFallback(rows){
     return null;
   if(/\b(urgente|garantia|reclamo|pago|transferencia|factura|devolucion|reembolso|descuento|pedido|cita|visita|agendar|instalar|demanda|promocion|envio)\b/.test(normalized))
     return null;
-  const first=!rows.some(item=>item?.direction==='OUTGOING');
+  const first=firstObservedReply(rows);
   return first?
     'Hola! 😊 Soy Hommy, de HomeEasy. Te ayudo con tu cotización. Tienes algún estilo de persiana en mente?':
     'Claro! 😊 Te ayudo con tu cotización. Tienes algún estilo de persiana en mente o prefieres recomendaciones?';
@@ -240,6 +240,7 @@ function createCustomerAuto(options={}){
       await sleep(900);
     }
     if(!isEnabled())return finish('SKIP_DISABLED');
+    if(check.metaAdGreetingIgnored)recordOutcome('META_AD_GREETING_IGNORED',record);
     // Typing is best-effort UI: a failed WAHA presence endpoint must not
     // cause a safe customer reply to disappear.
     const started=await sendTyping(job.chatId,'typing');
