@@ -13,13 +13,14 @@ const { createIntelligence, resolveAssociation } = require('./intelligence');
 const { createHommyWorkspace, shouldResolveTeamAlias, memberAddress } = require('./hommy-workspace');
 const { createTeamAI } = require('./team-ai');
 const { createHommyDesk, wantsCustomerCatalog } = require('./hommy-desk');
+const { createCustomerAuto } = require('./hommy-auto-reply');
 const maintenance = require('./maintenance');
 const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.32.5';
+const BRIDGE_VERSION = '0.33.0';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -165,6 +166,7 @@ const hommyIntelligence = createIntelligence({
   resolveMatch: resolveIntelligenceMatch, analyze: analyzeWithHommy, inspectConversation: inspectHumanTakeover
 });
 const hommyDesk = createHommyDesk({ dataDir: DATA_DIR });
+const customerAuto = createCustomerAuto({dataDir:DATA_DIR});
 const teamAI = createTeamAI({
   enabled: HOMMY_TEAM_AI_ENABLED, provider:HOMMY_TEAM_AI_PROVIDER,
   endpoint: HOMMY_TEAM_AI_URL, backendUrl: HOMMY_BACKEND_URL,
@@ -1251,6 +1253,19 @@ async function handle(req, res) {
         console.error('Hommy catalog automation unavailable:',e.code||'ERROR');
       }
     }
+    // Only authenticated, fresh, incoming client events accepted by the
+    // durable Inbox may trigger the explicit opt-in autoresponder.
+    // Scheduling is asynchronous; it never delays WAHA webhook ACK.
+    if (result.accepted) {
+      try {
+        const inbound=normalizeEvent(event,WAHA_SESSION);
+        if(inbound.accepted && inbound.record.direction==='INCOMING')
+          customerAuto.onInbound(inbound.record);
+      }catch(e){
+        console.error('Hommy customer auto scheduling skipped:',
+          e.code||'INVALID_EVENT');
+      }
+    }
     return json(res, 202, result);
   }
 
@@ -1538,6 +1553,7 @@ async function handle(req, res) {
       bridge: { version: BRIDGE_VERSION, serverTime: new Date().toISOString(), storage: ops.storageStatus() },
       inbox: hommyInbox.status(),
       intelligence: hommyIntelligence.status(),
+      customerAuto: customerAuto.status(),
       hommyWorkspace: hommyWorkspace.status(),
       actor: auth.publicActor(actor),
       capabilities: capabilities(actor)
