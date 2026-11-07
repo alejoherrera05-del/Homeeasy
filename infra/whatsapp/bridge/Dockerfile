@@ -16,6 +16,7 @@ COPY hommy-desk.js ./
 COPY hommy-self-check.js ./
 COPY hommy-week-study.js ./
 COPY hommy-customer-pilot.js ./
+COPY hommy-auto-reply.js ./
 COPY maintenance.js ./
 COPY pentagrama-sync ./pentagrama-sync
 COPY pentagrama-agents ./pentagrama-agents
