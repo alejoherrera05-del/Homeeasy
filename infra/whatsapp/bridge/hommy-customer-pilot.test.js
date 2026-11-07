@@ -74,7 +74,7 @@ test('private phone/email/address are removed before one-chat OpenAI request',as
       status:'completed',
       output:[{type:'message',content:[{type:'output_text',
         text:JSON.stringify({kind:'DRAFT',
-          text:'¡Hola! Soy Hommy, el asistente virtual de HomeEasy. Claro, te ayudamos a cotizar. ¿La persiana es para sala o habitación?'})
+          text:'¡Hola! 😊 Claro, con gusto te ayudamos a cotizar. ¿La persiana es para sala o habitación?'})
       }]}]
     })};
   };
@@ -86,16 +86,21 @@ test('private phone/email/address are removed before one-chat OpenAI request',as
   assert.equal(body.store,false);
   assert.equal(body.tools,undefined);
   assert.equal(body.input[0].role,'system');
+  assert.match(body.input[0].content,/En la primera intervención habla directamente desde HomeEasy/);
+  assert.match(body.input[0].content,/si es un bot, aclara con transparencia/);
+  assert.equal(result.text.includes('asistente virtual'),false);
   assert.equal(body.input[1].role,'user');
   assert.doesNotMatch(body.input[1].content,/300 123 4567|@c.us|sk-aaaa/);
   assert.match(body.input[1].content,/Conocer la intención/);
   assert.equal(body.model,'gpt-5.4-mini');
 });
-test('bot disclosure is required in the one-customer pilot',()=>{
+test('a concise HomeEasy greeting is allowed without claiming to be human',()=>{
   assert.equal(validateDraft({kind:'DRAFT',
-    text:'Hola, cuéntame qué espacio necesitas para cotizar las persianas.'}).ok,false);
+    text:'¡Hola! 😊 Con gusto te ayudamos a cotizar. ¿La persiana es para sala o habitación?'}).ok,true);
   assert.equal(validateDraft({kind:'DRAFT',
-    text:'¡Hola! Soy Hommy, el asistente virtual de HomeEasy. ¿Para qué espacio buscas persianas?'}).ok,true);
+    text:'Soy una persona real de HomeEasy, cuéntame qué te hace falta.'}).ok,false);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'¡Hola! Soy Hommy, un asistente automatizado de HomeEasy. ¿Cómo te ayudo?'}).ok,true);
   assert.equal(validateDraft({kind:'DRAFT',
     text:'Soy Hommy, el asistente de HomeEasy. El precio de la persiana es 500 mil pesos.'}).ok,false);
 });
