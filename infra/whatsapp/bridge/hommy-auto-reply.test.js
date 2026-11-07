@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
-const {createCustomerAuto,validRecord,todayBogota}=require('./hommy-auto-reply');
+const {createCustomerAuto,validRecord,todayBogota,safeQuoteFallback}=require('./hommy-auto-reply');
 const CHAT='573001234567@c.us';
 const GROUP='120363123456789012@g.us';
 const CONFIG={url:'http://waha:3000/api/homeeasy/',session:'homeeasy',key:'waha-test-key'};
@@ -50,6 +50,30 @@ function fixture(t,overrides={}){
   });
   return {auto,events,setRows:x=>{current=x},dir};
 }
+test('safe quote fallback matches ordinary quotes but not sensitive cases',()=>{
+  assert.match(safeQuoteFallback(rows('q','Quiero cotizar una persiana para mi ventana')),/Hommy, de HomeEasy/);
+  assert.match(safeQuoteFallback([
+    {id:'before',direction:'OUTGOING',text:'Hola'},
+    ...rows('q2','Quiero cotizar una persiana para mi ventana')
+  ]),/Te ayudo con tu cotización/);
+  assert.equal(safeQuoteFallback(rows('x','Necesito garantía de una persiana')),null);
+  assert.equal(safeQuoteFallback(rows('x','Quiero cotizar una persiana para una visita mañana')),null);
+  assert.equal(safeQuoteFallback(rows('x','Quiero cotizar un papel colgadura')),null);
+  assert.equal(safeQuoteFallback(rows('x','Hola buenas tardes')),null);
+});
+test('whitelisted quote receives safe fallback when model requests review',async t=>{
+  const latest=rows('new-msg','Quiero cotizar una persiana para mi ventana');
+  const {auto,events}=fixture(t,{
+    readConversation:async()=>latest,
+    draftReply:async()=>({ok:false,reason:'REVIEW_REQUIRED'})
+  });
+  auto.enable();
+  assert.equal(await auto.processOne(event()),'REQUEST_ACCEPTED');
+  const sent=events.find(x=>x.kind==='send');
+  assert.match(sent.text,/cotización/);
+  assert.equal(auto.status().acceptedToday,1);
+  assert.equal(auto.status().lastOutcome,'REQUEST_ACCEPTED');
+});
 test('disabled by default, only explicit enable opens future-message boundary',t=>{
   const {auto}=fixture(t);
   assert.equal(auto.status().configured,true);
@@ -112,7 +136,30 @@ test('old customer message or human reply blocks all typing and sending',async t
   assert.equal(await auto.processOne(event('m1')),'SKIP_CHAT_CHANGED');
   assert.deepEqual(events,[]);
   setRows(rows('newer'));
-  assert.equal(await auto.processOne(event('old')),'SKIP_CHAT_CHANGED');
+  assert.equal(await auto.processOne(event('old')),'SKIP_CHAT_MISSING_EVENT');
+  assert.deepEqual(events,[]);
+});
+test('transient WAHA chat history lag retries and then replies once',async t=>{
+  let reads=0;
+  const {auto,events}=fixture(t,{
+    readConversation:async()=>{
+      reads++;
+      return reads<=2?rows('older'):rows('new-msg');
+    }
+  });
+  auto.enable();
+  assert.equal(await auto.processOne(event('new-msg')),'REQUEST_ACCEPTED');
+  assert.equal(reads,3);
+  assert.equal(events.filter(x=>x.kind==='send').length,1);
+});
+test('missing webhook message after bounded WAHA reads is audited safely',async t=>{
+  let reads=0;
+  const {auto,events}=fixture(t,{
+    readConversation:async()=>{reads++;return rows('other');}
+  });
+  auto.enable();
+  assert.equal(await auto.processOne(event('new-msg')),'SKIP_CHAT_MISSING_EVENT');
+  assert.equal(reads,3);
   assert.deepEqual(events,[]);
 });
 test('concurrent emergency disable prevents final send and stops typing',async t=>{
@@ -132,7 +179,7 @@ test('sensitive conversation flagged for human review does not trigger typing',a
   const {auto,events,setRows}=fixture(t);
   auto.enable();
   setRows(rows('new-msg','Quiero hacer un reclamo de mi pedido'));
-  assert.equal(await auto.processOne(event()),'SKIP_CHAT_CHANGED');
+  assert.equal(await auto.processOne(event()),'SKIP_HUMAN_REVIEW');
   assert.equal(events.length,0);
 });
 test('AI refusal or failure never sends; typing stops in both cases',async t=>{
@@ -140,6 +187,15 @@ test('AI refusal or failure never sends; typing stops in both cases',async t=>{
   auto.enable();
   assert.equal(await auto.processOne(event()),'SKIP_REVIEW_REQUIRED');
   assert.deepEqual(events.map(e=>e.kind),['typing','paused']);
+});
+test('invalid commercial drafts have a distinct audit outcome but are never sent',async t=>{
+  const {auto,events}=fixture(t,{draftReply:async()=>({
+    ok:false,reason:'DRAFT_FAILED_SAFETY_CHECK'
+  })});
+  auto.enable();
+  assert.equal(await auto.processOne(event()),'SKIP_DRAFT_UNSAFE');
+  assert.deepEqual(events.map(e=>e.kind),['typing','paused']);
+  assert.equal(auto.status().lastOutcome,'SKIP_DRAFT_UNSAFE');
 });
 test('typing API fallback to WAHA presence and paused is supported',async t=>{
   const events=[];
@@ -154,12 +210,16 @@ test('typing API fallback to WAHA presence and paused is supported',async t=>{
   assert.ok(events.includes('http://waha:3000/api/homeeasy/presence'));
   assert.ok(events.includes('http://waha:3000/api/stopTyping'));
 });
-test('typing API total failure blocks sending rather than silently skipping presence',async t=>{
-  const events=[];
-  const {auto}=fixture(t,{fetcher:async(url)=>{events.push(url);return {ok:false,status:404}}});
+test('typing API total failure does not silence a safe customer reply',async t=>{
+  const attempts=[];
+  const {auto,events}=fixture(t,{fetcher:async(url)=>{
+    attempts.push(url);
+    return {ok:false,status:404};
+  }});
   auto.enable();
-  assert.equal(await auto.processOne(event()),'SKIP_TYPING_UNAVAILABLE');
-  assert.equal(events.length,2);
+  assert.equal(await auto.processOne(event()),'REQUEST_ACCEPTED');
+  assert.equal(attempts.length,2);
+  assert.deepEqual(events.map(e=>e.kind),['send']);
 });
 test('daily per-chat quota stops repeated automatic replies',async t=>{
   let latest='m0';

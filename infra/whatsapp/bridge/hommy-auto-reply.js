@@ -24,6 +24,27 @@ function fingerprint(value){
 function todayBogota(ms=Date.now()){
   return new Date(ms-5*3600000).toISOString().slice(0,10);
 }
+// Emergency reply only for a narrow, ordinary sales request that passed
+// the existing allowConversation() safeguards. Never fallback on payments,
+// guarantees, complaints, personal data, or anything requiring a human.
+function safeQuoteFallback(rows){
+  if(!Array.isArray(rows)||rows.length===0)return null;
+  const last=rows.at(-1);
+  if(last?.direction!=='INCOMING'||last.hasMedia)return null;
+  const raw=String(last.text||'').trim();
+  if(!raw||raw.length>220)return null;
+  const normalized=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase();
+  if(!/\b(cotiz\w*|presupuesto|precio|cuanto (?:vale|cuesta))\b/.test(normalized)||
+    !/\b(persiana\w*|cortina\w*|blackout|enrollable\w*|sheer|onda serena)\b/.test(normalized))
+    return null;
+  if(/\b(urgente|garantia|reclamo|pago|transferencia|factura|devolucion|reembolso|descuento|pedido|cita|visita|agendar|instalar|demanda|promocion|envio)\b/.test(normalized))
+    return null;
+  const first=!rows.some(item=>item?.direction==='OUTGOING');
+  return first?
+    'Hola! 😊 Soy Hommy, de HomeEasy. Te ayudo con tu cotización. Tienes algún estilo de persiana en mente?':
+    'Claro! 😊 Te ayudo con tu cotización. Tienes algún estilo de persiana en mente o prefieres recomendaciones?';
+}
 function validRecord(record){
   return Boolean(record&&record.direction==='INCOMING' &&
     SAFE_CHAT.test(String(record.chatId||'')) &&
@@ -198,19 +219,42 @@ function createCustomerAuto(options={}){
     const claimFile=path.resolve(String(env.DATA_DIR||'/app/data'),
       'hommy-customer-pilot',claimId(job.chatId,job.id)+'.json');
     if(fs.existsSync(claimFile))return finish('SKIP_CLAIMED');
-    let rows;
-    try{rows=await getConversation(job.chatId)}
-    catch(_){return finish('SKIP_CHAT_FETCH')}
-    const check=allowConversation(rows);
-    if(!check.ok||check.last.id!==job.id)return finish('SKIP_CHAT_CHANGED');
+    let rows,check;
+    // WAHA webhook delivery can precede chat-history indexing. Retry only
+    // while the signed message is absent from WAHA history; never override
+    // a newer message, a human reply, or a human-review safety decision.
+    for(let attempt=0;attempt<3;attempt++){
+      try{rows=await getConversation(job.chatId)}
+      catch(_){
+        if(attempt===2)return finish('SKIP_CHAT_FETCH');
+        await sleep(900);continue;
+      }
+      check=allowConversation(rows);
+      if(check.ok&&check.last.id===job.id)break;
+      if(rows.some(m=>m?.id===job.id)){
+        return finish(check.reason==='HUMAN_REVIEW_REQUIRED'?
+          'SKIP_HUMAN_REVIEW':'SKIP_CHAT_CHANGED');
+      }
+      if(check.reason==='HUMAN_REVIEW_REQUIRED')return finish('SKIP_HUMAN_REVIEW');
+      if(attempt===2)return finish('SKIP_CHAT_MISSING_EVENT');
+      await sleep(900);
+    }
     if(!isEnabled())return finish('SKIP_DISABLED');
-    // Real WAHA typing indication, not a displayed fake chat bubble.
+    // Typing is best-effort UI: a failed WAHA presence endpoint must not
+    // cause a safe customer reply to disappear.
     const started=await sendTyping(job.chatId,'typing');
-    if(!started)return finish('SKIP_TYPING_UNAVAILABLE');
     try {
-      const draft=await makeDraft(rows);
-      if(!draft?.ok || typeof draft.text!=='string')
-        return finish('SKIP_REVIEW_REQUIRED');
+      let draft=await makeDraft(rows);
+      let fallbackUsed=false;
+      if(!draft?.ok || typeof draft.text!=='string'){
+        // Only whitelisted, safe quote enquiries may use fixed copy.
+        // All other model refusals and rejected drafts stay blocked.
+        const fallback=safeQuoteFallback(rows);
+        if(!fallback)return finish(draft?.reason==='DRAFT_FAILED_SAFETY_CHECK'?
+          'SKIP_DRAFT_UNSAFE':'SKIP_REVIEW_REQUIRED');
+        draft={ok:true,text:fallback};
+        fallbackUsed=true;
+      }
       if(!isEnabled())return finish('SKIP_DISABLED');
       // Hold typing briefly, with a bounded length-based variation.
       const hold=options.typingMs!==undefined?Number(options.typingMs):
@@ -222,6 +266,7 @@ function createCustomerAuto(options={}){
         await deliver(job.chatId,job.id,draft.text,{
           canSend:()=>isEnabled() && limitOk(job.chatId)
         });
+        if(fallbackUsed)recordOutcome('SAFE_QUOTE_FALLBACK_USED',record);
         return finish('REQUEST_ACCEPTED');
       }catch(e){
         if(String(e.code||e.message||'').includes('CHAT_CHANGED'))return finish('SKIP_CHAT_CHANGED');
@@ -230,7 +275,7 @@ function createCustomerAuto(options={}){
         return finish('SEND_UNKNOWN');
       }
     }catch(_){return finish('SKIP_AI_UNAVAILABLE')}
-    finally{await sendTyping(job.chatId,'paused')}
+    finally{if(started)await sendTyping(job.chatId,'paused')}
   }
   function pump(){
     if(!isEnabled())return;
@@ -261,4 +306,4 @@ if(require.main===module)main().catch(e=>{
   console.error('Hommy auto: '+String(e.message||'ERROR').slice(0,90));
   process.exitCode=1;
 });
-module.exports={createCustomerAuto,validRecord,todayBogota,fingerprint};
+module.exports={createCustomerAuto,validRecord,todayBogota,fingerprint,safeQuoteFallback};
