@@ -456,6 +456,52 @@ docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
 
 El script muestra el estado del catálogo y de las notas, después consulta la IA **real del equipo** usando la configuración de servicio ya existente, registra el tiempo y las respuestas de dos preguntas consecutivas, y no llama a WAHA ni envía ningún WhatsApp. No muestra tokens. Si el servicio de equipo está desactivado, registra `TEAM_AI_NOT_CONFIGURED` sin fingir una respuesta. No sustituye las pruebas de extremo a extremo de envíos con WhatsApp.
 
+## Hommy 0.31 — estudio privado de atención en WhatsApp (semana actual)
+
+El dueño puede pedir que Hommy estudie la atención real a clientes sin
+autorizar que el modelo conteste o escriba por WhatsApp.
+
+Con el Bridge actualizado a 0.31.0, ejecutar en el VPS:
+
+    docker exec homeeasy-whatsapp-bridge node /app/hommy-week-study.js study
+
+El diagnóstico consulta la cuenta actual de WAHA en modo SOLO LECTURA:
+GET /api/{session}/chats y GET /api/{session}/chats/{chatId}/messages.
+No descarga archivos, no marca mensajes como leídos, no envía textos ni
+contacta a los clientes. Revisa desde el lunes a las 00:00 (hora de Bogotá)
+hasta el momento de ejecución, con límite de 120 chats, 200 mensajes
+por chat y 12 segundos por consulta; registra si la muestra es parcial.
+
+El informe separa las conversaciones con referencia Meta verificable,
+los anuncios con tipo "ad", los posts con tipo "post" y las de origen
+no demostrado. No interpreta cualquier texto prellenado como campaña
+confirmada. Incluye tipos de consultas, primeras respuestas observadas,
+conversaciones cuyo último mensaje observado es entrante y patrones
+de redacción del equipo. No infiere ventas, conversiones, clientes
+perdidos ni tiempos totales cuando no están documentados.
+
+OpenAI recibe únicamente resúmenes agregados y hasta 18 fragmentos cortos
+filtrados de respuestas SALIENTES del equipo, no las conversaciones crudas de
+los clientes, identificadores de WhatsApp, nombres de contactos o teléfonos.
+No se guardan ejemplos crudos en el informe, no se solicitan herramientas
+ni se autoriza envío de mensajes. El reporte anónimo y las propuestas
+quedan SOLO en el VPS en /app/data/hommy-desk/learning, permisos 0600.
+Aunque se minimizan datos, una revisión humana del resumen sigue siendo
+necesaria antes de aplicar recomendaciones; no debe usarse en lugar
+de un sistema formal de consentimiento o privacidad.
+
+La primera ejecución NO modifica el bloc de memoria de Hommy. El
+administrador puede revisar el JSON que imprime el comando. Para
+aprobar explícitamente la propuesta como nota interna TEAM, ejecutar:
+
+    docker exec homeeasy-whatsapp-bridge node /app/hommy-week-study.js approve 2026-11-02
+
+Sustituir la fecha por el lunes reportado. La aprobación añade una nota
+verificada al bloc interno, NO la publica a clientes ni activa la
+conversación automática. Ejecutar "approve" dos veces sobre el mismo
+estudio falla de forma segura. Antes de usar recomendaciones con clientes,
+revisarlas, entrenar al equipo y actualizar las aprobaciones apropiadas.
+
 ## Hommy 0.30 — OpenAI directo en el VPS, sin Render para conversaciones internas
 
 La conversación natural del grupo autorizado puede usar el VPS directamente
