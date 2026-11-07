@@ -636,7 +636,10 @@
       loading = false;
       await load(false);
       global.Swal.fire({ icon:'error', title:'No se pudo actualizar el modo de Hommy',
-        text:e.message || 'Vuelve a intentarlo.', confirmButtonColor:'#a6455a' });
+        text:e && e.status===409 ?
+          'Otro administrador cambió la configuración. Pulsa Actualizar y vuelve a intentarlo; tus perfiles y archivos siguen guardados.' :
+          (e.message || 'Vuelve a intentarlo.'),
+        confirmButtonColor:'#a6455a' });
     }
   }
 
