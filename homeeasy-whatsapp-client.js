@@ -320,6 +320,20 @@
         return request('/api/whatsapp/intelligence/memory?offset=' + encodeURIComponent(offset) + '&limit=' + encodeURIComponent(limit));
     }
 
+    // True persistent customer autoresponder state; separate from team REVIEW.
+    function hommyCustomerAuto() {
+        return request('/api/whatsapp/hommy/customer-auto');
+    }
+    function setHommyCustomerAuto(enabled, expectedEnabled) {
+        if (typeof enabled !== 'boolean' || typeof expectedEnabled !== 'boolean') {
+            return Promise.reject(new HomeEasyWhatsAppError('HOMMY_AUTO_INVALID_SWITCH',
+                'Es necesario consultar primero el estado real de Hommy.', null, 400));
+        }
+        return request('/api/whatsapp/hommy/customer-auto', {
+            method:'POST', body:{enabled,expectedEnabled}
+        });
+    }
+
     // Standalone Hommy Operations API; never affects the WhatsApp connection or HomeEasy login.
     function hommyControl() { return request('/api/whatsapp/hommy/control'); }
     function saveHommyControl(config) {
@@ -631,6 +645,8 @@
         hommyIntelligence,
         processHommyIntelligence,
         hommyCommercialMemory,
+        hommyCustomerAuto,
+        setHommyCustomerAuto,
         hommyControl,
         saveHommyControl,
         hommyTeamMembers, hommyGroups,
