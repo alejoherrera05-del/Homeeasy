@@ -121,6 +121,12 @@ test('weekly study retrieves observed messages without sending texts to WAHA',as
   assert.equal(sink[0].store,false);
   assert.equal(sink[0].tools,undefined);
   assert.equal(sink[0].model,'gpt-5.4-mini');
+  const aiStats=JSON.parse(sink[0].input[1].content).stats;
+  assert.equal(aiStats.pairedStyle.length,1);
+  assert.equal(aiStats.pairedStyle[0].origin,'META_AD');
+  assert.equal(aiStats.pairedStyle[0].customerIntent,'PRECIO_COTIZACION');
+  assert.match(aiStats.pairedStyle[0].businessReply,/\[cliente\]/);
+  assert.equal(report.metrics.pairedStyle,undefined);
   const actual=JSON.stringify(sink[0].input);
   assert.doesNotMatch(actual,/Laura|573001234567|573008881122|@c\.us|meta-ad-17|¿cuánto cuestan/);
   assert.equal(fs.existsSync(path.join(dir,'reports','week-2026-11-02.json')),true);
