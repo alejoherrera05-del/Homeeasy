@@ -89,6 +89,7 @@ function sanitizedForModel(s){
     .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,'[correo]')
     .replace(/(?:https?:\/\/|www\.)\S+/gi,'[enlace]')
     .replace(/(?:\+?\d[\s().-]?){8,}\d/g,'[teléfono]')
+    .replace(/\b(señor(?:a)?|sr\.?|sra\.?|hola|buenas|claro|perfecto|listo)[, ]{1,3}[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?=[,!. ])/gi,'$1 [cliente]')
     .replace(/\b(?:calle|carrera|cra\.?|cll\.?|diagonal|transversal|barrio|urbanizaci[oó]n|conjunto|torre|apartamento|direcci[oó]n)\b[^,.!?]{0,70}/gi,'[dirección]')
     .replace(/[\x00-\x1f]/g,'').trim();
   if(/(?:contrase(?:n|ñ)a|password|c[eé]dula|documento de identidad|tarjeta de cr[eé]dito)/i.test(value))value='[dato privado]';
@@ -140,7 +141,8 @@ function validateDraft(raw){
   if(!raw||raw.kind!=='DRAFT'||typeof raw.text!=='string')
     return {ok:false,reason:'REVIEW_REQUIRED'};
   const t=raw.text.trim();
-  if(t.length<24||t.length>420||/[\x00-\x08\x0b-\x1f]/.test(t) ||
+  if(t.length<24||t.length>420||!/(?:soy hommy|asistente virtual|asistente de homeeasy)/i.test(t) ||
+    /\d/.test(t)||/[\x00-\x08\x0b-\x1f]/.test(t) ||
     /(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|sk-[A-Za-z0-9_-]{15,})/i.test(t)||
     /(?:\+?\d[\s().-]?){8,}\d/g.test(t) ||
     /(?:[$€]|\bCOP\b|\bpesos\b)/i.test(t)||
