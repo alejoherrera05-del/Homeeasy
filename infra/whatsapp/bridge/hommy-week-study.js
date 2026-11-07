@@ -8,15 +8,38 @@ const path=require('node:path');
 const crypto=require('node:crypto');
 const {createHommyDesk}=require('./hommy-desk');
 const {normalizeMessages,timestampMs}=require('./conversation');
-const {commercialOrigin}=(()=>{const x=require('./inbox');return {
-  // Inbox has its own trusted referral normalization but doesn't export it.
-  commercialOrigin: raw => {
-    const c=raw?.ctwaContext||raw?.referral||raw?._data?.ctwaContext||raw?._data?.referral;
-    return Boolean(c && typeof c==='object' &&
-      (c.sourceId||c.source_id||c.sourceUrl||c.source_url||
-       c.sourceType||c.source_type||c.adId||c.ad_id));
-  }
-};})();
+function metaReferralKind(raw){
+  const c=raw?.ctwaContext||raw?.referral||raw?._data?.ctwaContext||raw?._data?.referral;
+  if(!c||typeof c!=='object'||Array.isArray(c))return 'UNKNOWN';
+  const type=String(c.sourceType||c.source_type||'').toLowerCase().trim();
+  const evidence=Boolean(type||c.sourceId||c.source_id||c.sourceUrl||c.source_url||
+    c.adId||c.ad_id);
+  if(!evidence)return 'UNKNOWN';
+  if(['ad','ads','sponsored'].includes(type))return 'META_AD';
+  if(type==='post')return 'META_POST';
+  return 'META_REFERRAL_UNCLASSIFIED';
+}
+function localInboxMetaEvidence(from,root){
+  const evidence=new Map();
+  const f=path.join(root,'hommy-inbox','events.ndjson');
+  try {
+    const stat=fs.statSync(f);
+    if(!stat.isFile()||stat.size>12*1024*1024)return evidence;
+    for(const line of fs.readFileSync(f,'utf8').split('\n')){
+      if(!line||line.length>20000)continue;
+      let item;try{item=JSON.parse(line)}catch(_){continue}
+      if(!isDirectChat(item.chatId)||timestampMs(item.at)<from.getTime() ||
+          item.direction!=='INCOMING')continue;
+      const origin=item.commercialOrigin;
+      if(origin && origin.verified===true && origin.campaign==='META'){
+        const type=String(origin.sourceType||'').toLowerCase();
+        const kind=type==='ad'?'META_AD':type==='post'?'META_POST':'META_REFERRAL_UNCLASSIFIED';
+        evidence.set(item.chatId,kind);
+      }
+    }
+  }catch(_){/* The inbox may be absent, old or temporarily unavailable. */}
+  return evidence;
+}
 const DATA_DIR=path.resolve(process.env.DATA_DIR||'/app/data');
 const REPORT_DIR=path.join(DATA_DIR,'hommy-desk','learning');
 const UTC_OFFSET=5*3600000; // Colombia UTC-05, year-round.
@@ -54,7 +77,7 @@ function removePersonal(value){
     .replace(/\$\s*\d[\d.,]*/g,'[precio]')
     .replace(/\b(?:calle|carrera|cra\.?|cll\.?|diagonal|transversal|barrio|urbanizaci[oó]n|conjunto|torre|apartamento|apto\.?|direcci[oó]n)\b[^,.!?]{0,85}/gi,'[ubicación]')
     .replace(/\b(?:señor(?:a)?|don|doña|sr\.?|sra\.?)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+/g,'[cliente]')
-    .replace(/\b(?:hola|buenas|claro|perfecto|listo)[, ]{1,3}[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?=[,!. ])/g,'$1 [cliente]')
+    .replace(/\b(hola|buenas|claro|perfecto|listo)[, ]{1,3}[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?=[,!. ])/g,'$1 [cliente]')
     .replace(/\s+/g,' ').trim().slice(0,230);
   if(cleaned.length<20 || /\d{6,}/.test(cleaned) || /[<>]/.test(cleaned))return '';
   return cleaned;
@@ -86,13 +109,15 @@ function publicStats(rows){
 }
 function summaryOf(conversations){
   const intents={},mins=[],excerpts=[];
-  let incoming=0,outgoing=0,unanswered=0,verifiedMeta=0;
+  let incoming=0,outgoing=0,unanswered=0,verifiedMeta=0,verifiedAds=0,metaPosts=0;
   let greet=0,question=0,cta=0,emoji=0;
   for(const c of conversations){
     const s=publicStats(c.messages);
     incoming+=s.incoming;outgoing+=s.outgoing;
     if(s.lastInboundAfterOutbound)unanswered++;
-    if(c.metaVerified)verifiedMeta++;
+    if(c.metaKind!=='UNKNOWN')verifiedMeta++;
+    if(c.metaKind==='META_AD')verifiedAds++;
+    if(c.metaKind==='META_POST')metaPosts++;
     if(s.firstResponseMin!==null)mins.push(s.firstResponseMin);
     for(const type of s.inquiries)intents[type]=(intents[type]||0)+1;
     for(const text of s.outbound){
@@ -109,7 +134,8 @@ function summaryOf(conversations){
     }
   }
   return {chatsExamined:conversations.length,incomingMessages:incoming,
-    outgoingMessages:outgoing,metaOriginVerifiedChats:verifiedMeta,
+    outgoingMessages:outgoing,metaReferralDetectedChats:verifiedMeta,
+    confirmedMetaAdChats:verifiedAds,confirmedMetaPostChats:metaPosts,
     originUnknownChats:conversations.length-verifiedMeta,
     inboundAfterLastObservedReply:unanswered,
     observedFirstReplyMedianMinutes:median(mins),
@@ -176,11 +202,21 @@ async function collectChats(opts={}){
         scanned++;
         const messages=normalizeMessages(raw,{since:from.toISOString(),limit:80});
         if(!messages.length)return null;
-        return {chatId,messages,metaVerified:raw.some(m=>m.fromMe!==true&&commercialOrigin(m)),
-          truncated:incomplete||raw.length>80};
+        const origins=raw.filter(m=>m.fromMe!==true).map(metaReferralKind);
+        const metaKind=origins.includes('META_AD')?'META_AD':
+          origins.includes('META_POST')?'META_POST':
+          origins.includes('META_REFERRAL_UNCLASSIFIED')?'META_REFERRAL_UNCLASSIFIED':'UNKNOWN';
+        return {chatId,messages,metaKind,truncated:incomplete||raw.length>80};
       }catch(e){failures++;return null;}
     }));
     for(const item of got)if(item)conversations.push(item);
+  }
+  const inboxEvidence=localInboxMetaEvidence(from,opts.dataDir||DATA_DIR);
+  for(const item of conversations){
+    const observed=inboxEvidence.get(item.chatId);
+    if(item.metaKind==='UNKNOWN' && observed)item.metaKind=observed;
+    if(item.metaKind==='META_REFERRAL_UNCLASSIFIED' && observed==='META_AD')
+      item.metaKind=observed;
   }
   return {conversations,coverage:{candidateChats:chats.length,chatsFetched:scanned,
     chatsWithMessages:conversations.length,fetchErrors:failures,
@@ -256,7 +292,7 @@ async function review(opts={}){
   const data=await collectChats({key:opts.wahaKey||process.env.WAHA_API_KEY,
     base:opts.base||process.env.WAHA_BASE_URL||'http://waha:3000',
     session:opts.session||process.env.WAHA_SESSION||'homeeasy',
-    from:win.start,fetcher:opts.wahaFetcher});
+    from:win.start,dataDir:opts.dataDir,fetcher:opts.wahaFetcher});
   const stats=summaryOf(data.conversations);
   const generatedAt=new Date().toISOString();
   const report={
@@ -315,5 +351,5 @@ if(require.main===module)main().catch(e=>{
   process.stderr.write('Hommy study: '+String(e.message||'ERROR').slice(0,100)+'\n');
   process.exitCode=1;
 });
-module.exports={weekWindow,chatIdentifier,isDirectChat,removePersonal,intent,
+module.exports={weekWindow,chatIdentifier,isDirectChat,metaReferralKind,removePersonal,intent,
   publicStats,summaryOf,collectChats,coach,review,approveWeek};
