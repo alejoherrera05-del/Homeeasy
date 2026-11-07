@@ -6,7 +6,7 @@ const os=require('node:os');
 const path=require('node:path');
 const {
   chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
-  listCandidates,sendOnce,sanitizedForModel,firstObservedReply
+  listCandidates,sendOnce,sanitizedForModel,firstObservedReply,isSendConfirmation
 }=require('./hommy-customer-pilot');
 
 const CUSTOMER='573001112233@c.us',GROUP='120363123456789012@g.us';
@@ -31,6 +31,26 @@ function wahaList(url,opts){
   ];
   return Promise.resolve({ok:true,text:async()=>JSON.stringify(arr)});
 }
+test('explicit send confirmation accepts case variants but not accidental text',()=>{
+  for(const consent of ['enviar','Enviar','ENVIAR','  enviar  ',' EnViAr '])
+    assert.equal(isSendConfirmation(consent),true,consent);
+  for(const consent of ['', 'si', '1','enviar ahora','enviar porfa','enviarlo','cancelar'])
+    assert.equal(isSendConfirmation(consent),false,consent);
+});
+test('gender-neutral welcome is used even if model assumes client gender',()=>{
+  const draft=validateDraft({kind:'DRAFT',
+    text:'Hola 😊 Bienvenido a HomeEasy, soy Hommy. Con gusto te ayudo con tu cotización. Para qué espacio la necesitas?'
+  },{firstReply:true});
+  assert.equal(draft.ok,true);
+  assert.match(draft.text,/Te damos la bienvenida a HomeEasy/);
+  assert.doesNotMatch(draft.text,/Bienvenido a HomeEasy|[¡¿]/);
+  const female=validateDraft({kind:'DRAFT',
+    text:'Hola 😊 Bienvenida a HomeEasy, soy Hommy. Con gusto te ayudamos con tu cotización. Para sala o habitación?'
+  },{firstReply:true});
+  assert.equal(female.ok,true);
+  assert.match(female.text,/Te damos la bienvenida a HomeEasy/);
+});
+
 test('manual unread count -1 is eligible, but groups and ordinary reads are excluded',async()=>{
   assert.equal(unreadOf({unreadCount:-1}),true);
   assert.equal(unreadOf({unreadCount:1}),true);
