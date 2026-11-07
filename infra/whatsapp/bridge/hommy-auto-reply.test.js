@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
-const {createCustomerAuto,validRecord,todayBogota}=require('./hommy-auto-reply');
+const {createCustomerAuto,validRecord,todayBogota,safeQuoteFallback}=require('./hommy-auto-reply');
 const CHAT='573001234567@c.us';
 const GROUP='120363123456789012@g.us';
 const CONFIG={url:'http://waha:3000/api/homeeasy/',session:'homeeasy',key:'waha-test-key'};
@@ -50,6 +50,30 @@ function fixture(t,overrides={}){
   });
   return {auto,events,setRows:x=>{current=x},dir};
 }
+test('safe quote fallback matches ordinary quotes but not sensitive cases',()=>{
+  assert.match(safeQuoteFallback(rows('q','Quiero cotizar una persiana para mi ventana')),/Hommy, de HomeEasy/);
+  assert.match(safeQuoteFallback([
+    {id:'before',direction:'OUTGOING',text:'Hola'},
+    ...rows('q2','Quiero cotizar una persiana para mi ventana')
+  ]),/Te ayudo con tu cotización/);
+  assert.equal(safeQuoteFallback(rows('x','Necesito garantía de una persiana')),null);
+  assert.equal(safeQuoteFallback(rows('x','Quiero cotizar una persiana para una visita mañana')),null);
+  assert.equal(safeQuoteFallback(rows('x','Quiero cotizar un papel colgadura')),null);
+  assert.equal(safeQuoteFallback(rows('x','Hola buenas tardes')),null);
+});
+test('whitelisted quote receives safe fallback when model requests review',async t=>{
+  const latest=rows('new-msg','Quiero cotizar una persiana para mi ventana');
+  const {auto,events}=fixture(t,{
+    readConversation:async()=>latest,
+    draftReply:async()=>({ok:false,reason:'REVIEW_REQUIRED'})
+  });
+  auto.enable();
+  assert.equal(await auto.processOne(event()),'REQUEST_ACCEPTED');
+  const sent=events.find(x=>x.kind==='send');
+  assert.match(sent.text,/cotización/);
+  assert.equal(auto.status().acceptedToday,1);
+  assert.equal(auto.status().lastOutcome,'REQUEST_ACCEPTED');
+});
 test('disabled by default, only explicit enable opens future-message boundary',t=>{
   const {auto}=fixture(t);
   assert.equal(auto.status().configured,true);
