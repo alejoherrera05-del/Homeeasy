@@ -135,8 +135,9 @@ test('first observed reply must greet, name Hommy and introduce HomeEasy',()=>{
   assert.equal(validateDraft({kind:'DRAFT',
     text:'Te saluda Hommy, de HomeEasy. ¿Necesitas para la sala o habitación?'},
     {firstReply:true}).ok,false);
+  // A new full introduction should not be repeated in an existing conversation.
   assert.equal(validateDraft({kind:'DRAFT',text:valid},
-    {firstReply:false}).ok,true);
+    {firstReply:false}).ok,false);
 });
 test('follow-up prompt understands existing replies and avoids repeating presentation',async()=>{
   let data;
