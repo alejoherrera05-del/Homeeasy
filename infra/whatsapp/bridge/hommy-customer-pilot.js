@@ -113,8 +113,7 @@ function isMetaAdAutoGreeting(incoming,outgoing){
     after<before||after-before>META_AD_GREETING_WINDOW_MS)return false;
   const text=metaGreetingText(outgoing.text);
   return text.includes('te damos la bienvenida a homeeasy') &&
-    text.includes('transformamos tus espacios con persianas y papel de colgadura') &&
-    text.includes('este mes puedes aprovechar hasta 30% de descuento');
+    text.includes('transformamos tus espacios con persianas y papel de colgadura');
 }
 function withoutMetaAdAutoGreetings(rows){
   if(!Array.isArray(rows))return [];
