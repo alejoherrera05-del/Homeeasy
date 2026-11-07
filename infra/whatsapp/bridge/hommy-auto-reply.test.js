@@ -136,7 +136,7 @@ test('old customer message or human reply blocks all typing and sending',async t
   assert.equal(await auto.processOne(event('m1')),'SKIP_CHAT_CHANGED');
   assert.deepEqual(events,[]);
   setRows(rows('newer'));
-  assert.equal(await auto.processOne(event('old')),'SKIP_CHAT_CHANGED');
+  assert.equal(await auto.processOne(event('old')),'SKIP_CHAT_MISSING_EVENT');
   assert.deepEqual(events,[]);
 });
 test('transient WAHA chat history lag retries and then replies once',async t=>{
@@ -179,7 +179,7 @@ test('sensitive conversation flagged for human review does not trigger typing',a
   const {auto,events,setRows}=fixture(t);
   auto.enable();
   setRows(rows('new-msg','Quiero hacer un reclamo de mi pedido'));
-  assert.equal(await auto.processOne(event()),'SKIP_CHAT_CHANGED');
+  assert.equal(await auto.processOne(event()),'SKIP_HUMAN_REVIEW');
   assert.equal(events.length,0);
 });
 test('AI refusal or failure never sends; typing stops in both cases',async t=>{
