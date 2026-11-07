@@ -204,13 +204,14 @@ function createCustomerAuto(options={}){
     const check=allowConversation(rows);
     if(!check.ok||check.last.id!==job.id)return finish('SKIP_CHAT_CHANGED');
     if(!isEnabled())return finish('SKIP_DISABLED');
-    // Real WAHA typing indication, not a displayed fake chat bubble.
+    // Typing is best-effort UI: a failed WAHA presence endpoint must not
+    // cause a safe customer reply to disappear.
     const started=await sendTyping(job.chatId,'typing');
-    if(!started)return finish('SKIP_TYPING_UNAVAILABLE');
     try {
       const draft=await makeDraft(rows);
       if(!draft?.ok || typeof draft.text!=='string')
-        return finish('SKIP_REVIEW_REQUIRED');
+        return finish(draft?.reason==='DRAFT_FAILED_SAFETY_CHECK'?
+          'SKIP_DRAFT_UNSAFE':'SKIP_REVIEW_REQUIRED');
       if(!isEnabled())return finish('SKIP_DISABLED');
       // Hold typing briefly, with a bounded length-based variation.
       const hold=options.typingMs!==undefined?Number(options.typingMs):
@@ -230,7 +231,7 @@ function createCustomerAuto(options={}){
         return finish('SEND_UNKNOWN');
       }
     }catch(_){return finish('SKIP_AI_UNAVAILABLE')}
-    finally{await sendTyping(job.chatId,'paused')}
+    finally{if(started)await sendTyping(job.chatId,'paused')}
   }
   function pump(){
     if(!isEnabled())return;
