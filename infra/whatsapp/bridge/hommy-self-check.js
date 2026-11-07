@@ -38,7 +38,9 @@ async function main() {
     // Match server.js fallback exactly; .env may omit HOMMY_BACKEND_URL.
     backendUrl: process.env.HOMMY_BACKEND_URL || 'https://homeeasy-hommy-staging.onrender.com',
     serviceToken: process.env.HOMMY_TEAM_AI_SERVICE_TOKEN || '',
-    dataDir:DATA_DIR, timeoutMs:9500,
+    // The isolated smoke test can wait longer than a normal WhatsApp reply.
+    // The production Bridge retains its separate, shorter response deadline.
+    dataDir:DATA_DIR, timeoutMs: process.env.HOMMY_TEAM_AI_PROVIDER==='DIRECT_OPENAI' ? 18000 : 9500,
     getDeskContext: () => desk ? desk.approvedContext('TEAM') : null
   });
   response({step:'TEAM_AI_CONFIG',provider:teamAi.provider,available:teamAi.available,
