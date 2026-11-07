@@ -456,6 +456,55 @@ docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
 
 El script muestra el estado del catálogo y de las notas, después consulta la IA **real del equipo** usando la configuración de servicio ya existente, registra el tiempo y las respuestas de dos preguntas consecutivas, y no llama a WAHA ni envía ningún WhatsApp. No muestra tokens. Si el servicio de equipo está desactivado, registra `TEAM_AI_NOT_CONFIGURED` sin fingir una respuesta. No sustituye las pruebas de extremo a extremo de envíos con WhatsApp.
 
+## Hommy 0.33 — atención automática opt-in con escritura real
+
+**Estado inicial: APAGADO.** Hommy Intelligence sigue en modo REVIEW; su
+flag enabled=true no implica respuestas automáticas para clientes.
+
+Después de instalar Bridge 0.33.0 mediante update-bridge.sh, activar
+expresamente desde la consola SSH:
+
+    docker exec homeeasy-whatsapp-bridge node /app/hommy-auto-reply.js enable
+
+Comprobar:
+
+    docker exec homeeasy-whatsapp-bridge node /app/hommy-auto-reply.js status
+
+Apagar inmediatamente, sin reiniciar WAHA ni Pentagrama:
+
+    docker exec homeeasy-whatsapp-bridge node /app/hommy-auto-reply.js disable
+
+Solo procesa webhooks entrantes directos autenticados con HMAC y mensajes
+recibidos después de la activación. No procesa historiales antiguos,
+grupos, estados ni audios. Agrupa mensajes 3,5 segundos, verifica si la
+última respuesta provino de un asesor, inicia escritura real mediante
+WAHA /api/startTyping (con alternativa /api/{session}/presence), consulta
+OpenAI directamente y mantiene la presencia 1,8 a 5,4 segundos adicionales
+antes de enviar. Usa WAHA /api/stopTyping al terminar.
+
+El modelo se basa en el piloto seguro, la memoria comercial aprobada,
+el contexto real y la regla de no presumir productos ni precios.
+No se envían automáticamente respuestas sobre reclamos, garantías,
+devoluciones, cobros, pagos, audios o casos que requieran revisión humana.
+Si el equipo responde primero, la IA deja la conversación intacta.
+
+Límites iniciales de seguridad: máximo 40 peticiones de envío por día de
+Bogotá y 6 por conversación al día. Se atienden 2 chats simultáneamente.
+No hay reintentos automáticos si el resultado de WAHA es incierto.
+Se guarda únicamente una auditoría privada con huellas de chat y estados,
+sin contenido de conversaciones ni números originales.
+
+El control queda en /app/data/hommy-customer-auto/control.json y persiste
+entre actualizaciones. La ruta autorizada /api/whatsapp/status añade
+customerAuto.enabled, activatedAt, pending, inFlight y acceptedToday.
+El indicador visible de escritura depende de WhatsApp y WEBJS y no puede
+garantizarse en cada dispositivo.
+
+Es un modo piloto con supervisión humana; vigilar las respuestas enviadas
+y las oportunidades que quedan pendientes. WAHA HTTP 200 no garantiza
+entrega final. Para una integración comercial plenamente oficial evaluar
+WhatsApp Business Platform.
+
 ## Hommy 0.32 — piloto de respuesta real a una sola clienta
 
 El modo Intelligence permanece en REVIEW: **marcar como no leído un chat NO
