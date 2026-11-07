@@ -97,11 +97,16 @@ function median(values){
 }
 function publicStats(rows){
   const incoming=rows.filter(x=>x.direction==='INCOMING');
-  const outgoing=rows.filter(x=>x.direction==='OUTGOING');
+  // An API-generated document or bot reply is not a human sales practice.
+  const outgoing=rows.filter(x=>x.direction==='OUTGOING' &&
+    String(x.source||'').toLowerCase()!=='api');
+  const automated=rows.filter(x=>x.direction==='OUTGOING' &&
+    String(x.source||'').toLowerCase()==='api');
   const firstIn=incoming[0], firstResponse=firstIn && outgoing.find(x=>Date.parse(x.at)>Date.parse(firstIn.at));
   const lastIn=incoming.at(-1),lastOut=outgoing.at(-1);
   const noReply=Boolean(lastIn && (!lastOut || Date.parse(lastIn.at)>Date.parse(lastOut.at)));
   return {incoming:incoming.length,outgoing:outgoing.length,
+    automated:automated.length,
     firstResponseMin:firstResponse && firstIn ? (Date.parse(firstResponse.at)-Date.parse(firstIn.at))/60000:null,
     lastInboundAfterOutbound:noReply,
     inquiries:incoming.map(m=>intent(m.text)),
@@ -109,11 +114,11 @@ function publicStats(rows){
 }
 function summaryOf(conversations){
   const intents={},mins=[],excerpts=[],pairedStyle=[];
-  let incoming=0,outgoing=0,unanswered=0,verifiedMeta=0,verifiedAds=0,metaPosts=0;
+  let incoming=0,outgoing=0,automated=0,unanswered=0,verifiedMeta=0,verifiedAds=0,metaPosts=0;
   let greet=0,question=0,cta=0,emoji=0;
   for(const c of conversations){
     const s=publicStats(c.messages);
-    incoming+=s.incoming;outgoing+=s.outgoing;
+    incoming+=s.incoming;outgoing+=s.outgoing;automated+=s.automated;
     if(s.lastInboundAfterOutbound)unanswered++;
     if(c.metaKind!=='UNKNOWN')verifiedMeta++;
     if(c.metaKind==='META_AD')verifiedAds++;
@@ -148,7 +153,8 @@ function summaryOf(conversations){
     }
   }
   return {chatsExamined:conversations.length,incomingMessages:incoming,
-    outgoingMessages:outgoing,metaReferralDetectedChats:verifiedMeta,
+    outgoingMessages:outgoing,automatedOutboundMessages:automated,
+    metaReferralDetectedChats:verifiedMeta,
     confirmedMetaAdChats:verifiedAds,confirmedMetaPostChats:metaPosts,
     originUnknownChats:conversations.length-verifiedMeta,
     inboundAfterLastObservedReply:unanswered,
