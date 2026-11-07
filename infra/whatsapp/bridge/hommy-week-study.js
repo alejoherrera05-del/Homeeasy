@@ -168,79 +168,158 @@ function summaryOf(conversations){
       emojiPercent:outgoing?Math.round(emoji*100/outgoing):null
     },excerpts,pairedStyle};
 }
-async function jsonGet(url,key,fetcher=fetch){
+async function jsonGet(url,key,fetcher=fetch,scope='WAHA'){
   const r=await fetcher(url,{method:'GET',headers:{'X-Api-Key':key,
     Accept:'application/json'},signal:AbortSignal.timeout(12000)});
-  if(!r.ok)throw Error('WAHA_HTTP_'+r.status);
-  const text=await r.text();
-  if(text.length>7*1024*1024)throw Error('WAHA_RESPONSE_TOO_LARGE');
-  return JSON.parse(text);
+  // Never expose URLs, chat IDs, tokens or WAHA response bodies in errors.
+  if(!r.ok)throw Object.assign(Error(scope+'_HTTP_'+r.status),{httpStatus:r.status,scope});
+  const response=await r.text();
+  if(response.length>7*1024*1024)throw Error(scope+'_RESPONSE_TOO_LARGE');
+  return JSON.parse(response);
+}
+function localRecords(from,dir=DATA_DIR) {
+  const file=path.join(dir,'hommy-inbox','events.ndjson'),out=[];
+  try {
+    const st=fs.statSync(file);
+    if(!st.isFile()||st.size>12*1024*1024)return out;
+    for(const line of fs.readFileSync(file,'utf8').split('\n')){
+      if(!line || line.length>20000)continue;
+      let item;try{item=JSON.parse(line)}catch(_){continue}
+      if(!isDirectChat(item.chatId)||timestampMs(item.at)<from.getTime() ||
+         !['INCOMING','OUTGOING'].includes(item.direction))continue;
+      out.push(item);
+    }
+  }catch(_){/* Some installations have no inbox yet. */}
+  return out;
+}
+async function listChatCandidates(base,session,key,fetcher,from,records) {
+  const candidates=new Set(),known=new Set(records.map(x=>x.chatId));
+  let discovery='WAHA_CHATS',partial=false,firstError=null;
+  // Different WEBJS builds reject unsupported sortBy fields with 400.
+  // Start with the smallest documented query; fallback to overview and then
+  // the authenticated local Inbox without inventing coverage.
+  const variants=[
+    {name:'WAHA_CHATS',path:'chats'},
+    {name:'WAHA_OVERVIEW',path:'chats/overview'}
+  ];
+  let succeeded=false;
+  for(const variant of variants){
+    try {
+      for(let offset=0;offset<400;offset+=100){
+        const query=new URLSearchParams({limit:'100',offset:String(offset)});
+        const data=await jsonGet(base+'api/'+session+'/'+variant.path+'?'+query,
+          key,fetcher,'WAHA_CHAT_LIST');
+        const arr=arrayData(data);
+        for(const chat of arr){
+          const id=chatIdentifier(chat);
+          if(!id)continue;
+          const last=timestampMs(chat.timestamp||chat.lastMessage?.timestamp||
+            chat.lastMessageTimestamp||chat.messageTimestamp||chat.t);
+          if(last && last<from.getTime())continue;
+          candidates.add(id);
+        }
+        // If the list is larger than 400, scope is deliberately limited.
+        if(arr.length<100)break;
+        if(offset===300)partial=true;
+      }
+      discovery=variant.name;succeeded=true;break;
+    }catch(e){
+      firstError=firstError||String(e.message||'WAHA_CHAT_LIST_FAILED').slice(0,60);
+      candidates.clear();
+    }
+  }
+  if(!succeeded){
+    discovery='LOCAL_INBOX';
+    partial=true; // Never claim a complete week with webhook-only indexing.
+  }
+  // Always include fresh webhook leads missing from a partial chats listing.
+  for(const id of known)candidates.add(id);
+  const sorted=[...candidates].sort();
+  return {chats:sorted.slice(0,MAX_CHATS),discovery,
+    partial:partial||sorted.length>MAX_CHATS,
+    discoveryError:succeeded?null:firstError||'WAHA_CHAT_LIST_FAILED',
+    candidateCount:sorted.length};
+}
+async function fetchChatHistory(chatId,base,session,key,fetcher,from,local){
+  const encoded=encodeURIComponent(chatId);
+  const endpoint=base+'api/'+session+'/chats/'+encoded+'/messages?';
+  const variants=[
+    {kind:'WAHA_FILTERED',extra:{'filter.timestamp.gte':String(Math.floor(from.getTime()/1000))}},
+    {kind:'WAHA_BASIC',extra:{}}
+  ];
+  for(const variant of variants){
+    try {
+      const all=[];let truncated=false;
+      for(let offset=0;offset<MAX_MESSAGES_PER_CHAT;offset+=100){
+        const qs=new URLSearchParams({limit:'100',offset:String(offset),
+          downloadMedia:'false',...variant.extra});
+        const data=await jsonGet(endpoint+qs,key,fetcher,'WAHA_MESSAGES');
+        const arr=arrayData(data);
+        all.push(...arr);
+        if(arr.length<100)break;
+        if(offset===100&&arr.length===100)truncated=true;
+      }
+      return {raw:all,origin:variant.kind,truncated};
+    }catch(e){/* Some releases do not implement timestamp filters. */}
+  }
+  const fromInbox=local.filter(x=>x.chatId===chatId).slice(-MAX_MESSAGES_PER_CHAT)
+    .map(item=>({
+      id:item.id,createdAt:item.at,fromMe:item.direction==='OUTGOING',
+      body:item.text||'',source:item.source||'',
+      referral:item.commercialOrigin?.verified?{
+        source_type:item.commercialOrigin.sourceType||'unknown',
+        source_id:item.commercialOrigin.sourceId||undefined
+      }:undefined
+    }));
+  return {raw:fromInbox,origin:'LOCAL_INBOX',truncated:true};
 }
 async function collectChats(opts={}){
   const key=String(opts.key||'');
   if(key.length<8)throw Error('WAHA_KEY_UNAVAILABLE');
-  const base=new URL(String(opts.base||'http://waha:3000'));
-  if(base.protocol!=='http:'||!['waha','127.0.0.1','localhost'].includes(base.hostname) ||
-     !['3000',''].includes(base.port) ||base.pathname!=='/')throw Error('WAHA_BASE_INVALID');
+  const url=new URL(String(opts.base||'http://waha:3000'));
+  if(url.protocol!=='http:'||!['waha','127.0.0.1','localhost'].includes(url.hostname) ||
+     !['3000',''].includes(url.port) ||url.pathname!=='/')throw Error('WAHA_BASE_INVALID');
   const session=String(opts.session||'homeeasy');
   if(!/^[a-z0-9_-]{2,80}$/i.test(session))throw Error('WAHA_SESSION_INVALID');
   const from=opts.from||weekWindow().start;
   const fetcher=opts.fetcher||fetch;
-  const chats=[];const ids=new Set();let discovered=0;
-  for(let offset=0;offset<400;offset+=100){
-    const query=new URLSearchParams({limit:'100',offset:String(offset),
-      sortBy:'messageTimestamp',sortOrder:'desc'});
-    const arr=arrayData(await jsonGet(base.toString()+'api/'+session+'/chats?'+query,key,fetcher));
-    for(const c of arr){
-      const id=chatIdentifier(c);
-      if(!id||ids.has(id))continue;
-      ids.add(id);discovered++;
-      const last=timestampMs(c.timestamp||c.lastMessage?.timestamp||c.lastMessageTimestamp||
-        c.messageTimestamp||c.t);
-      if(last && last<from.getTime())continue;
-      if(chats.length<MAX_CHATS)chats.push(id);
-    }
-    if(arr.length<100||chats.length>=MAX_CHATS)break;
-  }
+  const dir=opts.dataDir||DATA_DIR;
+  const local=localRecords(from,dir);
+  const found=await listChatCandidates(url.toString(),session,key,fetcher,from,local);
   const conversations=[];
-  let failures=0, truncated=discovered>MAX_CHATS, scanned=0;
-  for(let i=0;i<chats.length;i+=3){
-    const batch=chats.slice(i,i+3);
+  let failures=0,usingInbox=0,scanned=0;
+  for(let i=0;i<found.chats.length;i+=3){
+    const batch=found.chats.slice(i,i+3);
     const got=await Promise.all(batch.map(async chatId=>{
-      try {
-        let raw=[],incomplete=false;
-        for(let offset=0;offset<MAX_MESSAGES_PER_CHAT;offset+=100){
-          const q=new URLSearchParams({limit:'100',offset:String(offset),
-            'filter.timestamp.gte':String(Math.floor(from.getTime()/1000)),
-            downloadMedia:'false'});
-          const item=arrayData(await jsonGet(base.toString()+'api/'+session+'/chats/'+
-            encodeURIComponent(chatId)+'/messages?'+q,key,fetcher));
-          raw=raw.concat(item);
-          if(item.length<100)break;
-          if(offset===100&&item.length===100)incomplete=true;
-        }
-        scanned++;
-        const messages=normalizeMessages(raw,{since:from.toISOString(),limit:80});
-        if(!messages.length)return null;
-        const origins=raw.filter(m=>m.fromMe!==true).map(metaReferralKind);
-        const metaKind=origins.includes('META_AD')?'META_AD':
-          origins.includes('META_POST')?'META_POST':
-          origins.includes('META_REFERRAL_UNCLASSIFIED')?'META_REFERRAL_UNCLASSIFIED':'UNKNOWN';
-        return {chatId,messages,metaKind,truncated:incomplete||raw.length>80};
-      }catch(e){failures++;return null;}
+      const fetched=await fetchChatHistory(chatId,url.toString(),session,key,fetcher,from,local);
+      scanned++;
+      if(fetched.origin==='LOCAL_INBOX')usingInbox++;
+      if(!fetched.raw.length){failures++;return null}
+      const messages=normalizeMessages(fetched.raw,{since:from.toISOString(),limit:80});
+      if(!messages.length)return null;
+      const origins=fetched.raw.filter(m=>m.fromMe!==true).map(metaReferralKind);
+      const metaKind=origins.includes('META_AD')?'META_AD':
+        origins.includes('META_POST')?'META_POST':
+        origins.includes('META_REFERRAL_UNCLASSIFIED')?'META_REFERRAL_UNCLASSIFIED':'UNKNOWN';
+      return {chatId,messages,metaKind,
+        truncated:fetched.truncated||fetched.raw.length>80};
     }));
     for(const item of got)if(item)conversations.push(item);
   }
-  const inboxEvidence=localInboxMetaEvidence(from,opts.dataDir||DATA_DIR);
+  const inboxEvidence=localInboxMetaEvidence(from,dir);
   for(const item of conversations){
     const observed=inboxEvidence.get(item.chatId);
     if(item.metaKind==='UNKNOWN' && observed)item.metaKind=observed;
     if(item.metaKind==='META_REFERRAL_UNCLASSIFIED' && observed==='META_AD')
       item.metaKind=observed;
   }
-  return {conversations,coverage:{candidateChats:chats.length,chatsFetched:scanned,
+  return {conversations,coverage:{
+    discovery:found.discovery,discoveryError:found.discoveryError,
+    candidateChats:found.candidateCount,chatsFetched:scanned,
     chatsWithMessages:conversations.length,fetchErrors:failures,
-    partial:truncated||failures>0||conversations.some(c=>c.truncated),
+    chatsFromInboxOnly:usingInbox,
+    partial:found.partial||usingInbox>0||failures>0||
+      conversations.some(c=>c.truncated),
     maxChats:MAX_CHATS,maxMessagesPerChat:MAX_MESSAGES_PER_CHAT}};
 }
 function safeGuideline(value){
