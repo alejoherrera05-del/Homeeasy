@@ -167,6 +167,68 @@ test('study cannot approve memory automatically; explicit approval is team-only'
   assert.match(writes[0].text,/cercanía/);
   assert.throws(()=>approveWeek('2026-11-02',{reportDir,desk}),/REPORT_NOT_APPROVABLE/);
 });
+test('WAHA 400 on list falls back to read-only overview and still studies chats',async t=>{
+  const dir=fixture(t),requests=[];
+  const fetcher=(url,opts)=>{
+    requests.push(url);
+    assert.equal(opts.method,'GET');
+    if(url.includes('/chats?'))return Promise.resolve({
+      ok:false,status:400,text:async()=>JSON.stringify({error:'Invalid sortBy'})
+    });
+    if(url.includes('/chats/overview?'))return Promise.resolve({
+      ok:true,text:async()=>JSON.stringify(sampleChats)
+    });
+    return wahaMock(url,opts);
+  };
+  const result=await collectChats({key,from:start,dataDir:dir,fetcher});
+  assert.equal(result.coverage.discovery,'WAHA_OVERVIEW');
+  assert.equal(result.coverage.chatsWithMessages,2);
+  assert.equal(result.coverage.discoveryError,null);
+  assert.equal(result.coverage.partial,false);
+  assert.ok(requests.some(x=>x.includes('/chats/overview?')));
+});
+test('when WEBJS does not list chats, local Inbox allows a clearly partial study',async t=>{
+  const dir=fixture(t);
+  const inbox=path.join(dir,'hommy-inbox');fs.mkdirSync(inbox);
+  const event=(id,chatId,at,direction,text,other={})=>
+    ({id,chatId,at,direction,text,source:direction==='OUTGOING'?'web':'',...other});
+  fs.writeFileSync(path.join(inbox,'events.ndjson'),[
+    event('event-1',customer,'2026-11-07T14:00:00Z','INCOMING',
+      '¿Cuánto cuestan las cortinas?',
+      {commercialOrigin:{campaign:'META',verified:true,sourceType:'ad'}}),
+    event('event-2',customer,'2026-11-07T14:02:00Z','OUTGOING',
+      'Hola, Laura, con gusto te orientamos. ¿Las buscas para sala o alcoba?'),
+    event('group','120363123456789012@g.us','2026-11-07T14:01:00Z','INCOMING',
+      'Hommy envía catalogo')
+  ].map(JSON.stringify).join('\n'));
+  let requests=0;
+  const fail=async(url,opts)=>{
+    requests++;
+    assert.equal(opts.method,'GET');
+    return {ok:false,status:400,text:async()=>JSON.stringify({error:'Not supported'})};
+  };
+  const result=await collectChats({key,from:start,dataDir:dir,fetcher:fail});
+  assert.equal(result.coverage.discovery,'LOCAL_INBOX');
+  assert.equal(result.coverage.partial,true);
+  assert.equal(result.coverage.candidateChats,1);
+  assert.equal(result.coverage.chatsFromInboxOnly,1);
+  assert.equal(result.coverage.chatsWithMessages,1);
+  assert.equal(result.conversations[0].metaKind,'META_AD');
+  const stats=summaryOf(result.conversations);
+  assert.equal(stats.incomingMessages,1);
+  assert.equal(stats.outgoingMessages,1);
+  assert.doesNotMatch(JSON.stringify(stats.excerpts),/Laura/);
+  assert.ok(requests>=4);
+});
+test('GET requests strip personal chat IDs and WAHA response bodies from errors',async t=>{
+  const dir=fixture(t);
+  const mock=async()=>({ok:false,status:401,
+    text:async()=>JSON.stringify({phone:'573001112233',token:'secret'})});
+  const result=await collectChats({key,from:start,dataDir:dir,fetcher:mock});
+  assert.equal(result.coverage.partial,true);
+  assert.match(result.coverage.discoveryError,/WAHA_CHAT_LIST_HTTP_401/);
+  assert.doesNotMatch(JSON.stringify(result.coverage),/573001112233|secret|token/);
+});
 test('missing WAHA key and failed network cannot manufacture study data',async t=>{
   const dir=fixture(t);
   await assert.rejects(()=>collectChats({key:'',base:'http://waha:3000',from:start}),/WAHA_KEY_UNAVAILABLE/);
