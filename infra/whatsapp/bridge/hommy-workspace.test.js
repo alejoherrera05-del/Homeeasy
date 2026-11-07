@@ -91,6 +91,54 @@ test('approved team names are persisted per verified sender, never guessed from 
 
 });
 
+test('incoming team messages do not invalidate pending settings edits', t => {
+  const v=setup(); t.after(v.cleanup);
+  const opts={...v.options,teamAiAvailable:true};
+  const w=createHommyWorkspace(opts);
+  w.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true,replyEnabled:true}});
+  const snapshot=w.status();
+  assert.ok(Number.isSafeInteger(snapshot.configRevision));
+  const message=w.ingestSignedGroupEvent(groupEvent({
+    id:'unrelated-activity',body:'Hommy, pendientes'
+  }),null,{aiEnabled:true});
+  assert.equal(message.accepted,true);
+  const next=w.status();
+  assert.ok(next.revision>snapshot.revision);
+  assert.equal(next.configRevision,snapshot.configRevision);
+  // The old revision protocol is still rejected on any intervening activity,
+  // so legacy clients are protected rather than silently accepting stale edits.
+  assert.throws(()=>w.configure({team:{aiEnabled:true},
+    revision:snapshot.revision}),e=>e.code==='HOMMY_REVISION_CONFLICT');
+  // Updated UI passes both revisions. The backend prioritizes the settings-only
+  // revision and must allow the action despite intervening group messages.
+  const toggled=w.configure({team:{aiEnabled:true},
+    revision:snapshot.revision,configRevision:snapshot.configRevision});
+  assert.equal(toggled.team.aiEnabled,true);
+  assert.equal(toggled.configRevision,snapshot.configRevision+1);
+  const restarted=createHommyWorkspace(opts);
+  assert.equal(restarted.status().configRevision,toggled.configRevision);
+  assert.equal(restarted.status().team.aiEnabled,true);
+  assert.throws(()=>restarted.configure({team:{aiEnabled:false},
+    configRevision:snapshot.configRevision}),e=>e.code==='HOMMY_REVISION_CONFLICT');
+  assert.throws(()=>restarted.configure({team:{aiEnabled:false},
+    configRevision:'invalid'}),e=>e.code==='HOMMY_REVISION_CONFLICT');
+});
+
+test('legacy workspace without configuration revision safely migrates on load', t => {
+  const v=setup();t.after(v.cleanup);
+  v.workspace.configure({team:{groupId:GROUP,allowedSenders:[STAFF],enabled:true}});
+  const stateFile=path.join(v.options.dataDir,'hommy-workspace','state.json');
+  const raw=JSON.parse(fs.readFileSync(stateFile,'utf8'));
+  delete raw.configRevision;
+  fs.writeFileSync(stateFile,JSON.stringify(raw));
+  const migrated=createHommyWorkspace(v.options);
+  assert.equal(migrated.status().configRevision,raw.revision);
+  const result=migrated.configure({team:{replyEnabled:true},
+    revision:raw.revision,configRevision:raw.revision});
+  assert.equal(result.team.replyEnabled,true);
+  assert.equal(result.configRevision,raw.revision+1);
+});
+
 test('pausing only blocks Hommy workflow and persists across restart', t => {
   const v = setup(); t.after(v.cleanup);
   const a = v.workspace.status();
