@@ -46,7 +46,7 @@ jobs:
       - run: node --test tests/whatsapp-maintenance.cjs tests/whatsapp-reliability.cjs tests/whatsapp-diagnostics.cjs
       - run: python infra/whatsapp/maintenance/test_worker.py
       - name: Hommy Inbox and Intelligence regression tests
-        run: node --test infra/whatsapp/bridge/inbox.test.js infra/whatsapp/bridge/intelligence.test.js infra/whatsapp/bridge/hommy-workspace.test.js infra/whatsapp/bridge/operational-overview.test.js infra/whatsapp/bridge/team-ai.test.js infra/whatsapp/bridge/hommy-desk.test.js
+        run: node --test infra/whatsapp/bridge/inbox.test.js infra/whatsapp/bridge/intelligence.test.js infra/whatsapp/bridge/hommy-workspace.test.js infra/whatsapp/bridge/operational-overview.test.js infra/whatsapp/bridge/team-ai.test.js infra/whatsapp/bridge/hommy-desk.test.js infra/whatsapp/bridge/hommy-week-study.test.js
       - name: Bridge and updater syntax checks
         run: |
           node --check infra/whatsapp/bridge/server.js
@@ -57,6 +57,7 @@ jobs:
           node --check infra/whatsapp/bridge/team-ai.js
           node --check infra/whatsapp/bridge/hommy-desk.js
           node --check infra/whatsapp/bridge/hommy-self-check.js
+          node --check infra/whatsapp/bridge/hommy-week-study.js
           node --check homeeasy-hommy-operations-ui.js
           node --check homeeasy-whatsapp-client.js
           bash -n infra/whatsapp/update-bridge.sh
