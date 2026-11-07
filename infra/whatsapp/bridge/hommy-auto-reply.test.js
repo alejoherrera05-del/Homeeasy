@@ -74,6 +74,22 @@ test('whitelisted quote receives safe fallback when model requests review',async
   assert.equal(auto.status().acceptedToday,1);
   assert.equal(auto.status().lastOutcome,'REQUEST_ACCEPTED');
 });
+test('Meta-ad automatic greeting does not silence the signed inbound customer message',async t=>{
+  const at=Date.now()-2500;
+  const incoming={id:'new-msg',direction:'INCOMING',at:new Date(at).toISOString(),
+    text:'Hola buena tarde',hasMedia:false};
+  const greeting={id:'meta-welcome',direction:'OUTGOING',
+    at:new Date(at+1000).toISOString(),hasMedia:false,
+    text:'👋 ¡Te damos la bienvenida a HomeEasy! 🎉 Transformamos tus espacios con persianas y papel de colgadura diseñados para dar estilo, privacidad y funcionalidad ✨ 🎁 Este mes puedes aprovechar hasta 30% de descuento en referencias seleccionadas para renovar tu hogar con elegancia 🏡'};
+  const {auto,events,dir}=fixture(t,{
+    readConversation:async()=>[incoming,greeting]
+  });
+  auto.enable();
+  assert.equal(await auto.processOne(event('new-msg')),'REQUEST_ACCEPTED');
+  assert.equal(events.filter(x=>x.kind==='send').length,1);
+  const log=fs.readFileSync(path.join(dir,'hommy-customer-auto','audit.ndjson'),'utf8');
+  assert.match(log,/META_AD_GREETING_IGNORED/);
+});
 test('disabled by default, only explicit enable opens future-message boundary',t=>{
   const {auto}=fixture(t);
   assert.equal(auto.status().configured,true);
