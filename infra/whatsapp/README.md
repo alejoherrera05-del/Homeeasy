@@ -456,6 +456,39 @@ docker exec homeeasy-whatsapp-bridge node /app/hommy-self-check.js
 
 El script muestra el estado del catálogo y de las notas, después consulta la IA **real del equipo** usando la configuración de servicio ya existente, registra el tiempo y las respuestas de dos preguntas consecutivas, y no llama a WAHA ni envía ningún WhatsApp. No muestra tokens. Si el servicio de equipo está desactivado, registra `TEAM_AI_NOT_CONFIGURED` sin fingir una respuesta. No sustituye las pruebas de extremo a extremo de envíos con WhatsApp.
 
+## Hommy 0.32 — piloto de respuesta real a una sola clienta
+
+El modo Intelligence permanece en REVIEW: **marcar como no leído un chat NO
+genera un evento de mensaje nuevo ni activa respuestas automáticas**. Para
+demostrar a Hommy en un chat real sin afectar a los demás, usar el piloto
+interactivo del Bridge.
+
+1. Actualizar el Bridge con update-bridge.sh; esperar v0.32.0.
+2. En el VPS: `docker exec -it homeeasy-whatsapp-bridge node /app/hommy-customer-pilot.js`.
+3. Elegir por número el chat deseado de la lista de chats marcados como no
+   leídos (si WAHA no los identifica, muestra hasta 25 chats recientes
+   y pide elección manual).
+4. Hommy lee en solo lectura los últimos mensajes y valida que el último
+   es entrante y reciente, que no hay una respuesta humana posterior y
+   que no hay reclamos, pagos, garantía ni solicitud de no contacto.
+5. Redacta una respuesta breve con OpenAI directamente desde el VPS,
+   con base en las recomendaciones comerciales previamente aprobadas,
+   si existen, y solicita aprobación humana explícita.
+6. Solo al escribir exactamente ENVIAR, se solicita un envío de texto a
+   esa conversación. El programa marca la combinación chat+mensaje como
+   usada antes de enviar, para impedir repetición incluso si WAHA devuelve
+   un error de conexión después de recibir la orden. No reintenta automáticamente.
+
+El modo es deliberadamente una única respuesta y no cambia WAHA,
+Intelligence, Hommy Desk ni los controles de automación. El texto incluye
+identificación transparente del asistente virtual. Nunca se confirma
+entrega final al cliente basándose únicamente en respuesta HTTP de WAHA:
+verificar la burbuja y estado de entrega en WhatsApp.
+OpenAI recibe solamente hasta 6 mensajes del chat elegido con intentos de
+supresión de teléfonos, direcciones, enlaces y correos; no es una garantía
+absoluta de anonimización. No compartir capturas de la terminal con
+datos privados del cliente.
+
 ## Hommy 0.31.2 — anuncios en Estados y respuestas de menú de WhatsApp
 
 Capturas verificadas de HomeEasy muestran una tarjeta **Anuncio en estados**
