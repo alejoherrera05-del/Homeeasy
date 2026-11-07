@@ -128,6 +128,48 @@ function firstObservedReply(rows){
   return Array.isArray(rows) && rows.length>0 &&
     !rows.some(m=>m && m.direction==='OUTGOING');
 }
+// The customer's selected Meta quick-reply communicates an intent, not a
+// specific product. No business product name may be inferred from the ad card
+// without actual verified creative metadata; this pilot currently only uses
+// the normalized customer message text.
+const NAMED_PRODUCT_MATCHERS=Object.freeze([
+  /\bonda serena\b/i,
+  /\bsheer elegance\b/i,
+  /\bsheer vertesse\b/i,
+  /\bpanel japones\b/i,
+  /\benrollable (?:screen|blackout)\b/i
+]);
+function plain(value){
+  return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+}
+function commercialQuestion(rows){
+  const incoming=(Array.isArray(rows)?rows:[])
+    .filter(m=>m && m.direction==='INCOMING')
+    .map(m=>String(m.text||''));
+  const latest=plain(incoming.at(-1)||'');
+  const recent=plain(incoming.slice(-MAX_CONTEXT).join(' '));
+  const exploringOptions=/\b(catalogo|referencias|modelos|tipos|opciones|productos|disponibles|cuales (?:tienen|manejan)|que (?:tienen|manejan)|muestrame|mu[eé]strame)\b/.test(latest);
+  const requestedProducts=NAMED_PRODUCT_MATCHERS
+    .filter(pattern=>pattern.test(recent))
+    .map(pattern=>PRODUCT_FACTS.filter(f=>pattern.test(plain(f))));
+  const explicitProduct=requestedProducts.flat();
+  const eligibleFacts=exploringOptions?PRODUCT_FACTS.slice(0,7):
+    explicitProduct.slice(0,7);
+  return {
+    kind:exploringOptions?'PRODUCT_OPTIONS':
+      explicitProduct.length?'SPECIFIC_PRODUCT':'UNSPECIFIED_PRODUCT',
+    productFacts:eligibleFacts,
+    // Only actual customer text is evidence; no inferred ad product.
+    recentCustomerText:recent
+  };
+}
+function unsupportedProductClaim(text,commercial){
+  if(!commercial || commercial.kind==='PRODUCT_OPTIONS')return false;
+  const answer=plain(text);
+  const evidence=plain(commercial.recentCustomerText);
+  return NAMED_PRODUCT_MATCHERS.some(pattern=>pattern.test(answer)&&!pattern.test(evidence));
+}
+
 function replyPolicy(){
   return [
     'Representas a HomeEasy, negocio de persianas y cortinas en Colombia. Tu nombre interno es Hommy.',
@@ -137,7 +179,10 @@ function replyPolicy(){
     'Si firstObservedReply=true, comienza SIEMPRE con un saludo amable (Hola), menciona HomeEasy y preséntate como Hommy. Evita cualquier saludo con género como Bienvenido o Bienvenida: no debes inferir el género del cliente por su nombre, foto o usuario de WhatsApp. Usa Qué gusto saludarte, un saludo neutral y cercano. Después responde directamente a la intención y termina con UNA pregunta breve pertinente.',
     'Si firstObservedReply=false, continúa desde el contexto existente y NO repitas la bienvenida o presentación. Si la conversación ya incluye un saludo, no lo dupliques.',
     'Ante una consulta de cotización en primera respuesta, ejemplo de TONO (no texto fijo): Hola 😊 Qué gusto saludarte. Soy Hommy, de HomeEasy, y con mucho gusto te ayudo con tu cotización. La persiana es para sala o habitación?',
-    'Si el cliente seleccionó Para cotizar, Cotización y precios o Tipos de persianas disponibles desde un anuncio, responde esa intención, no preguntes genéricamente en qué le ayudas.',
+    'Si el cliente seleccionó Para cotizar o Cotización y precios desde un anuncio, sabes que quiere cotizar, pero NO sabes qué tipo de persiana o cortina busca. NO supongas que es Onda Serena ni ningún otro producto. Pregunta primero qué producto le interesa y espera su respuesta.',
+    'Solo puedes mencionar referencias específicas cuando el cliente ya nombró esa referencia o pidió conocer opciones de productos. En una consulta genérica de precio, NO enumeres el catálogo ni recomiendes productos concretos.',
+    'Si el cliente pregunta por tipos de persianas disponibles o pide el catálogo, entonces sí responde con opciones pertinentes y una sola pregunta breve.',
+    'Para una cotización sin producto identificado, basta con reconocer la solicitud y preguntar cuál producto o estilo busca. No preguntes por medidas, precio, sala o habitación antes de saber qué quiere cotizar, a menos que el cliente ya lo haya señalado.',
     'Ofrece primero una orientación concreta y formula como máximo UNA pregunta comercial específica y fácil de responder. No pidas tipo, espacio y medidas de una vez; avanza paso a paso.',
     'No inventes precios, disponibilidad, medidas, visitas, citas, entregas, promociones, testimonios ni acciones ya realizadas.',
     'No envíes enlaces, teléfonos, datos sensibles ni información de clientes de otros chats.',
@@ -168,8 +213,10 @@ function validateDraft(raw, options={}){
   const hasGreeting=/^\s*[¡!¿?\s]*(?:hola\b|buen(?:os|as)\s+(?:d[ií]as|tardes|noches)\b|cordial saludo\b)/i.test(t);
   const hasBrand=/\bHomeEasy\b/i.test(t);
   const hasName=/\bHommy\b/i.test(t);
+  const commercial=options.commercial||null;
   if(t.length<24||t.length>420||
     (first && (!hasGreeting||!hasBrand||!hasName)) ||
+    unsupportedProductClaim(t,commercial) ||
     (!options.allowDisclosure && /\b(?:asistente virtual|inteligencia artificial|soy (?:un )?bot)\b/i.test(t)) ||
     (!first && !options.allowDisclosure && /\bsoy hommy\b/i.test(t)) ||
     /(?:soy (?:una persona|humano|humana|asesor humano|asesora humana)|te (?:habla|saluda) (?:una persona|una asesora|un asesor|ale|dani)|(?:persona|asesor(?:a)?) real)/i.test(t) ||
@@ -188,6 +235,7 @@ async function draftReply(rows,options={}){
   if(!/^[a-z][a-z0-9.-]{2,79}$/.test(model))throw Error('OPENAI_MODEL_INVALID');
   const approved=options.style||approvedCommercialStyle();
   const firstReply=firstObservedReply(rows);
+  const commercial=commercialQuestion(rows);
   const messages=rows.slice(-MAX_CONTEXT).map(m=>({
     direction:m.direction,
     text:sanitizedForModel(m.text)
@@ -198,7 +246,8 @@ async function draftReply(rows,options={}){
       {role:'user',content:JSON.stringify({
         purpose:'ONE_CUSTOMER_REPLY_DRAFT',
         firstObservedReply:firstReply,
-        productFacts:PRODUCT_FACTS.slice(0,7),
+        commercialIntent:commercial.kind,
+        productFacts:commercial.productFacts,
         approvedCommercialStyle:approved.slice(-2),
         conversation:messages
       })}],
@@ -221,6 +270,7 @@ async function draftReply(rows,options={}){
   let result;try{result=JSON.parse(text)}catch(_){throw Error('OPENAI_BAD_JSON')}
   return validateDraft(result,{
     firstReply,
+    commercial,
     allowDisclosure:askedAboutAutomation(rows)
   });
 }
@@ -319,5 +369,5 @@ if(require.main===module)run().catch(e=>{
   process.exitCode=1;
 });
 module.exports={chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
-  firstObservedReply,
+  firstObservedReply,commercialQuestion,unsupportedProductClaim,
   listCandidates,readConversation,sendOnce,claimId,claimSend,run,sanitizedForModel,isSendConfirmation};
