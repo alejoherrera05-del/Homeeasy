@@ -77,14 +77,14 @@ function removePersonal(value){
     .replace(/\$\s*\d[\d.,]*/g,'[precio]')
     .replace(/\b(?:calle|carrera|cra\.?|cll\.?|diagonal|transversal|barrio|urbanizaci[oó]n|conjunto|torre|apartamento|apto\.?|direcci[oó]n)\b[^,.!?]{0,85}/gi,'[ubicación]')
     .replace(/\b(?:señor(?:a)?|don|doña|sr\.?|sra\.?)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+/g,'[cliente]')
-    .replace(/\b(hola|buenas|claro|perfecto|listo)[, ]{1,3}[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?=[,!. ])/g,'$1 [cliente]')
+    .replace(/\b(hola|buenas|claro|perfecto|listo)[, ]{1,3}[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?=[,!. ])/gi,'$1 [cliente]')
     .replace(/\s+/g,' ').trim().slice(0,230);
   if(cleaned.length<20 || /\d{6,}/.test(cleaned) || /[<>]/.test(cleaned))return '';
   return cleaned;
 }
 function intent(text){
   const q=String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  if(/\b(precio|cuanto vale|cuanto cuesta|valor|cotizacion|cotizar|cuanto sale)\b/.test(q))return 'PRECIO_COTIZACION';
+  if(/\b(precio|cuanto vale|cuanto valen|cuanto cuesta|cuanto cuestan|valor|cotizacion|cotizar|cuanto sale)\b/.test(q))return 'PRECIO_COTIZACION';
   if(/\b(catalogo|referencias|modelos|fotos|imagenes|opciones)\b/.test(q))return 'CATALOGO_REFERENCIAS';
   if(/\b(visita|medir|medidas|instalacion|instalar|domicilio)\b/.test(q))return 'VISITA_MEDIDAS';
   if(/\b(promocion|descuento|oferta|publicidad)\b/.test(q))return 'PROMOCION';
