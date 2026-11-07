@@ -170,7 +170,7 @@ function validateDraft(raw, options={}){
     (first && (!hasGreeting||!hasBrand||!hasName)) ||
     (!options.allowDisclosure && /\b(?:asistente virtual|inteligencia artificial|soy (?:un )?bot)\b/i.test(t)) ||
     (!first && !options.allowDisclosure && /\bsoy hommy\b/i.test(t)) ||
-    /(?:soy (?:una persona|humano|humana|asesor humano|asesora humana)|te habla (?:ale|dani|un asesor|una asesora))/i.test(t) ||
+    /(?:soy (?:una persona|humano|humana|asesor humano|asesora humana)|te (?:habla|saluda) (?:una persona|una asesora|un asesor|ale|dani)|(?:persona|asesor(?:a)?) real)/i.test(t) ||
     /\d/.test(t)||/[\x00-\x08\x0b-\x1f]/.test(t) ||
     /(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|sk-[A-Za-z0-9_-]{15,})/i.test(t)||
     /(?:\+?\d[\s().-]?){8,}\d/g.test(t) ||
