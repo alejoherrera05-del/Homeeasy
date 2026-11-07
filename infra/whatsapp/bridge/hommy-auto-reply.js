@@ -8,7 +8,8 @@ const fs=require('node:fs');
 const path=require('node:path');
 const crypto=require('node:crypto');
 const {
-  wahaBase,readConversation,allowConversation,draftReply,sendOnce,claimId,firstObservedReply
+  wahaBase,readConversation,allowConversation,draftReply,sendOnce,claimId,firstObservedReply,
+  isMetaAdAutoGreeting
 }=require('./hommy-customer-pilot');
 
 const LIMIT_PER_DAY=40;
@@ -18,6 +19,8 @@ const MAX_AGE_MS=90000;
 const DEBOUNCE_MS=3500;
 const SAFE_CHAT=/^\d{8,22}@(c\.us|lid)$/;
 const RETAIN_AUDIT=1200;
+const HUMAN_HANDOFF_MS=24*60*60*1000;
+const OWN_ECHO_MS=15*60*1000;
 function fingerprint(value){
   return crypto.createHash('sha256').update(String(value)).digest('hex').slice(0,16);
 }
@@ -45,6 +48,25 @@ function safeQuoteFallback(rows){
     'Hola! 😊 Soy Hommy, de HomeEasy. Te ayudo con tu cotización. Tienes algún estilo de persiana en mente?':
     'Claro! 😊 Te ayudo con tu cotización. Tienes algún estilo de persiana en mente o prefieres recomendaciones?';
 }
+function normalizeSalesText(text){
+  return String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().trim();
+}
+// A request explicitly for furniture is not a request for our decoration lines.
+function furnitureReply(rows){
+  const last=[...(Array.isArray(rows)?rows:[])].reverse()
+    .find(x=>x?.direction==='INCOMING');
+  const q=normalizeSalesText(last?.text);
+  if(!q||q.length>500)return null;
+  if(/\b(persianas?|cortinas?|papel (?:de )?colgadura|blackout|enrollables?)\b/.test(q))return null;
+  if(/\b(sofas?|sillones?|juegos? de sala|muebles?|mobiliario|comedores?|colchones?|camas?|cabeceros?|nocheros?|mesas? de comedor|escritorios?|butacas?)\b/.test(q)){
+    return 'En HomeEasy no manejamos muebles ni sofás 😊 Nos especializamos en persianas, cortinas y papel de colgadura.';
+  }
+  if(/\b(tienen|tiene|venden|manejan|busco|quiero|necesito)\b.{0,40}\bsalas?\b/.test(q)){
+    return 'En HomeEasy manejamos persianas, cortinas y papel de colgadura 😊 Te refieres a persianas para la sala o a un juego de sala?';
+  }
+  return null;
+}
 function validRecord(record){
   return Boolean(record&&record.direction==='INCOMING' &&
     SAFE_CHAT.test(String(record.chatId||'')) &&
@@ -57,6 +79,54 @@ function createCustomerAuto(options={}){
   const dir=path.resolve(String(options.dataDir||process.env.DATA_DIR||'/app/data'),'hommy-customer-auto');
   const control=path.join(dir,'control.json');
   const auditPath=path.join(dir,'audit.ndjson');
+  const handoffFile=path.join(dir,'human-takeovers.json');
+  const ownEchoFile=path.join(dir,'own-outgoing.json');
+  const lastInbound=new Map();
+  function readPrivate(file){
+    try{
+      if(fs.statSync(file).size>256000)return {};
+      const x=JSON.parse(fs.readFileSync(file,'utf8'));
+      return x&&typeof x==='object'&&!Array.isArray(x)?x:{};
+    }catch(_){return {}}
+  }
+  function writePrivate(file,rows){
+    fs.mkdirSync(dir,{recursive:true,mode:0o700});
+    const tmp=file+'.'+process.pid+'.tmp';
+    try{
+      fs.writeFileSync(tmp,JSON.stringify(rows),{mode:0o600});
+      fs.renameSync(tmp,file);
+    }finally{if(fs.existsSync(tmp))fs.unlinkSync(tmp)}
+  }
+  function activeHumanTakeover(chatId){
+    return Number(readPrivate(handoffFile)[fingerprint(chatId)]?.until||0)>Date.now();
+  }
+  function reserveOwnOutgoing(chatId,text){
+    const now=Date.now(),key=fingerprint(chatId);
+    const rows=readPrivate(ownEchoFile);
+    for(const [id,v] of Object.entries(rows)){
+      if(Number(v?.at||0)<now-OWN_ECHO_MS)delete rows[id];
+    }
+    rows[key]={at:now,hash:fingerprint(String(text).trim())};
+    writePrivate(ownEchoFile,rows);
+  }
+  function isOwnOutgoing(chatId,text){
+    const row=readPrivate(ownEchoFile)[fingerprint(chatId)];
+    return row&&Date.now()-Number(row.at||0)<=OWN_ECHO_MS &&
+      row.hash===fingerprint(String(text||'').trim());
+  }
+  function markHumanTakeover(record){
+    const rows=readPrivate(handoffFile),now=Date.now();
+    for(const [key,value] of Object.entries(rows)){
+      if(Number(value?.until||0)<=now)delete rows[key];
+    }
+    const key=fingerprint(record.chatId);
+    rows[key]={until:now+HUMAN_HANDOFF_MS,at:new Date().toISOString()};
+    writePrivate(handoffFile,rows);
+    if(timers.has(record.chatId))clearTimeout(timers.get(record.chatId).timer);
+    timers.delete(record.chatId);
+    ready.delete(record.chatId);
+    recordOutcome('HUMAN_TAKEOVER',record);
+  }
   const env=options.env||process.env;
   const configured=String(env.HOMMY_INBOX_ENABLED||'false')==='true' &&
     /^sk-[A-Za-z0-9_-]{30,}$/.test(String(env.OPENAI_API_KEY||'')) &&
@@ -152,7 +222,9 @@ function createCustomerAuto(options={}){
       skippedToday:all.filter(x=>x.outcome.startsWith('SKIP_')).length,
       lastOutcome:all.at(-1)?.outcome||null,
       dailyLimit:LIMIT_PER_DAY,perChatDailyLimit:LIMIT_PER_CHAT_DAY,
-      mode:'NEW_INBOUND_ONLY',typing:true};
+      mode:'NEW_INBOUND_ONLY',typing:true,
+      humanTakeovers:Object.values(readPrivate(handoffFile))
+        .filter(x=>Number(x?.until||0)>Date.now()).length};
   }
   function enable(){
     if(!configured)throw Error('CONFIG_NOT_READY_INBOX_WAHA_OPENAI');
@@ -197,7 +269,13 @@ function createCustomerAuto(options={}){
       now-stamp>=-60000 && now-stamp<=MAX_AGE_MS;
   }
   function onInbound(record){
+    if(validRecord(record)){
+      lastInbound.set(record.chatId,record);
+      if(lastInbound.size>1000)lastInbound.delete(lastInbound.keys().next().value);
+    }
     if(!eventEligible(record))return {queued:false,reason:'NOT_ELIGIBLE'};
+    if(activeHumanTakeover(record.chatId))
+      return {queued:false,reason:'HUMAN_TAKEOVER'};
     if(timers.size+ready.size>=80&&!timers.has(record.chatId)&&!ready.has(record.chatId))
       return {queued:false,reason:'QUEUE_FULL'};
     const chatId=record.chatId;
@@ -211,10 +289,25 @@ function createCustomerAuto(options={}){
     timers.set(chatId,job);
     return {queued:true};
   }
+  function onOutbound(record){
+    if(!record||record.direction!=='OUTGOING'||
+      !SAFE_CHAT.test(String(record.chatId||'')))return {paused:false};
+    const now=Date.now(),at=Date.parse(record.at||'');
+    if(!Number.isFinite(at)||at>now+60000||now-at>MAX_AGE_MS)
+      return {paused:false,reason:'STALE_OUTBOUND'};
+    if(isOwnOutgoing(record.chatId,record.text))
+      return {paused:false,reason:'HOMMY_OWN_REPLY'};
+    const previous=lastInbound.get(record.chatId);
+    if(isMetaAdAutoGreeting(previous,record))
+      return {paused:false,reason:'META_AD_GREETING'};
+    markHumanTakeover(record);
+    return {paused:true,reason:'HUMAN_TAKEOVER'};
+  }
   async function processOne(job){
     const record={id:job.id,chatId:job.chatId};
     const finish=(code)=>{recordOutcome(code,record);return code};
     if(!isEnabled())return finish('SKIP_DISABLED');
+    if(activeHumanTakeover(job.chatId))return finish('SKIP_HUMAN_TAKEOVER');
     if(!limitOk(job.chatId))return finish('SKIP_LIMIT');
     const claimFile=path.resolve(String(env.DATA_DIR||'/app/data'),
       'hommy-customer-pilot',claimId(job.chatId,job.id)+'.json');
@@ -240,12 +333,14 @@ function createCustomerAuto(options={}){
       await sleep(900);
     }
     if(!isEnabled())return finish('SKIP_DISABLED');
+    if(activeHumanTakeover(job.chatId))return finish('SKIP_HUMAN_TAKEOVER');
     if(check.metaAdGreetingIgnored)recordOutcome('META_AD_GREETING_IGNORED',record);
     // Typing is best-effort UI: a failed WAHA presence endpoint must not
     // cause a safe customer reply to disappear.
     const started=await sendTyping(job.chatId,'typing');
     try {
-      let draft=await makeDraft(rows);
+      const furniture=furnitureReply(rows);
+      let draft=furniture?{ok:true,text:furniture}:await makeDraft(rows);
       let fallbackUsed=false;
       if(!draft?.ok || typeof draft.text!=='string'){
         // Only whitelisted, safe quote enquiries may use fixed copy.
@@ -257,21 +352,25 @@ function createCustomerAuto(options={}){
         fallbackUsed=true;
       }
       if(!isEnabled())return finish('SKIP_DISABLED');
+      if(activeHumanTakeover(job.chatId))return finish('SKIP_HUMAN_TAKEOVER');
       // Hold typing briefly, with a bounded length-based variation.
       const hold=options.typingMs!==undefined?Number(options.typingMs):
         Math.min(5400,Math.max(1800,draft.text.length*27));
       await sleep(Math.max(0,hold));
       if(!isEnabled())return finish('SKIP_DISABLED');
+      if(activeHumanTakeover(job.chatId))return finish('SKIP_HUMAN_TAKEOVER');
       if(!limitOk(job.chatId))return finish('SKIP_LIMIT');
       try {
+        reserveOwnOutgoing(job.chatId,draft.text);
         await deliver(job.chatId,job.id,draft.text,{
-          canSend:()=>isEnabled() && limitOk(job.chatId)
+          canSend:()=>isEnabled() && !activeHumanTakeover(job.chatId) && limitOk(job.chatId)
         });
         if(fallbackUsed)recordOutcome('SAFE_QUOTE_FALLBACK_USED',record);
         return finish('REQUEST_ACCEPTED');
       }catch(e){
         if(String(e.code||e.message||'').includes('CHAT_CHANGED'))return finish('SKIP_CHAT_CHANGED');
-        if(String(e.code||e.message||'').includes('AUTOMATION_DISABLED'))return finish('SKIP_DISABLED');
+        if(String(e.code||e.message||'').includes('AUTOMATION_DISABLED'))
+          return finish(activeHumanTakeover(job.chatId)?'SKIP_HUMAN_TAKEOVER':'SKIP_DISABLED');
         if(e.code==='EEXIST')return finish('SKIP_CLAIMED');
         return finish('SEND_UNKNOWN');
       }
@@ -290,7 +389,7 @@ function createCustomerAuto(options={}){
       });
     }
   }
-  return Object.freeze({status,enable,disable,onInbound,processOne,isEnabled,
+  return Object.freeze({status,enable,disable,onInbound,onOutbound,processOne,isEnabled,
     eventEligible,sendTyping});
 }
 async function main(){
@@ -307,4 +406,4 @@ if(require.main===module)main().catch(e=>{
   console.error('Hommy auto: '+String(e.message||'ERROR').slice(0,90));
   process.exitCode=1;
 });
-module.exports={createCustomerAuto,validRecord,todayBogota,fingerprint,safeQuoteFallback};
+module.exports={createCustomerAuto,validRecord,todayBogota,fingerprint,safeQuoteFallback,furnitureReply};
