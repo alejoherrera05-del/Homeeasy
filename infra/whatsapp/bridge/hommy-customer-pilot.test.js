@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
 const {
-  chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,
+  chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
   listCandidates,sendOnce,sanitizedForModel
 }=require('./hommy-customer-pilot');
 
@@ -100,7 +100,14 @@ test('a concise HomeEasy greeting is allowed without claiming to be human',()=>{
   assert.equal(validateDraft({kind:'DRAFT',
     text:'Soy una persona real de HomeEasy, cuéntame qué te hace falta.'}).ok,false);
   assert.equal(validateDraft({kind:'DRAFT',
-    text:'¡Hola! Soy Hommy, un asistente automatizado de HomeEasy. ¿Cómo te ayudo?'}).ok,true);
+    text:'¡Hola! Soy Hommy, un asistente automatizado de HomeEasy. ¿Cómo te ayudo?'}).ok,false);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'¡Hola! Soy Hommy, un asistente automatizado de HomeEasy. ¿Cómo te ayudo?'},
+    {allowDisclosure:true}).ok,true);
+  assert.equal(askedAboutAutomation([{direction:'INCOMING',
+    text:'¿Eres un bot o te atiende una persona?'}]),true);
+  assert.equal(askedAboutAutomation([{direction:'INCOMING',
+    text:'Quiero cotizar una persiana para mi sala.'}]),false);
   assert.equal(validateDraft({kind:'DRAFT',
     text:'Soy Hommy, el asistente de HomeEasy. El precio de la persiana es 500 mil pesos.'}).ok,false);
 });
