@@ -219,11 +219,26 @@ function createCustomerAuto(options={}){
     const claimFile=path.resolve(String(env.DATA_DIR||'/app/data'),
       'hommy-customer-pilot',claimId(job.chatId,job.id)+'.json');
     if(fs.existsSync(claimFile))return finish('SKIP_CLAIMED');
-    let rows;
-    try{rows=await getConversation(job.chatId)}
-    catch(_){return finish('SKIP_CHAT_FETCH')}
-    const check=allowConversation(rows);
-    if(!check.ok||check.last.id!==job.id)return finish('SKIP_CHAT_CHANGED');
+    let rows,check;
+    // WAHA webhook delivery can precede chat-history indexing. Retry only
+    // while the signed message is absent from WAHA history; never override
+    // a newer message, a human reply, or a human-review safety decision.
+    for(let attempt=0;attempt<3;attempt++){
+      try{rows=await getConversation(job.chatId)}
+      catch(_){
+        if(attempt===2)return finish('SKIP_CHAT_FETCH');
+        await sleep(900);continue;
+      }
+      check=allowConversation(rows);
+      if(check.ok&&check.last.id===job.id)break;
+      if(rows.some(m=>m?.id===job.id)){
+        return finish(check.reason==='HUMAN_REVIEW_REQUIRED'?
+          'SKIP_HUMAN_REVIEW':'SKIP_CHAT_CHANGED');
+      }
+      if(check.reason==='HUMAN_REVIEW_REQUIRED')return finish('SKIP_HUMAN_REVIEW');
+      if(attempt===2)return finish('SKIP_CHAT_MISSING_EVENT');
+      await sleep(900);
+    }
     if(!isEnabled())return finish('SKIP_DISABLED');
     // Typing is best-effort UI: a failed WAHA presence endpoint must not
     // cause a safe customer reply to disappear.
