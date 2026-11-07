@@ -6,7 +6,7 @@ const os=require('node:os');
 const path=require('node:path');
 const {
   chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
-  listCandidates,sendOnce,sanitizedForModel
+  listCandidates,sendOnce,sanitizedForModel,firstObservedReply
 }=require('./hommy-customer-pilot');
 
 const CUSTOMER='573001112233@c.us',GROUP='120363123456789012@g.us';
@@ -74,7 +74,7 @@ test('private phone/email/address are removed before one-chat OpenAI request',as
       status:'completed',
       output:[{type:'message',content:[{type:'output_text',
         text:JSON.stringify({kind:'DRAFT',
-          text:'¡Hola! 😊 Claro, con gusto te ayudamos a cotizar. ¿La persiana es para sala o habitación?'})
+          text:'¡Hola! 😊 Qué gusto saludarte. Soy Hommy, de HomeEasy. Con mucho gusto te ayudo a cotizar. ¿La persiana es para sala o habitación?'})
       }]}]
     })};
   };
@@ -86,8 +86,9 @@ test('private phone/email/address are removed before one-chat OpenAI request',as
   assert.equal(body.store,false);
   assert.equal(body.tools,undefined);
   assert.equal(body.input[0].role,'system');
-  assert.match(body.input[0].content,/En la primera intervención habla directamente desde HomeEasy/);
-  assert.match(body.input[0].content,/si es un bot, aclara con transparencia/);
+  assert.match(body.input[0].content,/Si firstObservedReply=true, comienza SIEMPRE/);
+  assert.match(body.input[0].content,/Si el cliente pregunta quién contesta/);
+  assert.equal(JSON.parse(body.input[1].content).firstObservedReply,true);
   assert.equal(result.text.includes('asistente virtual'),false);
   assert.equal(body.input[1].role,'user');
   assert.doesNotMatch(body.input[1].content,/300 123 4567|@c.us|sk-aaaa/);
@@ -104,12 +105,56 @@ test('a concise HomeEasy greeting is allowed without claiming to be human',()=>{
   assert.equal(validateDraft({kind:'DRAFT',
     text:'¡Hola! Soy Hommy, un asistente automatizado de HomeEasy. ¿Cómo te ayudo?'},
     {allowDisclosure:true}).ok,true);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'¡Hola! Soy Hommy, de HomeEasy. Con gusto te ayudamos con tu consulta.'},
+    {firstReply:true}).ok,true);
   assert.equal(askedAboutAutomation([{direction:'INCOMING',
     text:'¿Eres un bot o te atiende una persona?'}]),true);
   assert.equal(askedAboutAutomation([{direction:'INCOMING',
     text:'Quiero cotizar una persiana para mi sala.'}]),false);
   assert.equal(validateDraft({kind:'DRAFT',
     text:'Soy Hommy, el asistente de HomeEasy. El precio de la persiana es 500 mil pesos.'}).ok,false);
+});
+
+test('first observed reply must greet, name Hommy and introduce HomeEasy',()=>{
+  assert.equal(firstObservedReply([{
+    direction:'INCOMING',text:'2️⃣ Cotización y precios'
+  }]),true);
+  assert.equal(firstObservedReply([
+    {direction:'OUTGOING',text:'¡Hola! Gracias por escribirnos.'},
+    {direction:'INCOMING',text:'¿Qué opciones tienen?'}
+  ]),false);
+  const valid='¡Hola! 😊 Te damos la bienvenida a HomeEasy. Soy Hommy. ¿La buscas para sala o habitación?';
+  assert.equal(validateDraft({kind:'DRAFT',text:valid},{firstReply:true}).ok,true);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'¡Claro! Con gusto te ayudamos. ¿Es para sala o habitación?'},
+    {firstReply:true}).ok,false);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'¡Hola! Con gusto te ayudamos con las persianas. ¿Las necesitas para sala?'},
+    {firstReply:true}).ok,false);
+  assert.equal(validateDraft({kind:'DRAFT',
+    text:'Te saluda Hommy, de HomeEasy. ¿Necesitas para la sala o habitación?'},
+    {firstReply:true}).ok,false);
+  assert.equal(validateDraft({kind:'DRAFT',text:valid},
+    {firstReply:false}).ok,true);
+});
+test('follow-up prompt understands existing replies and avoids repeating presentation',async()=>{
+  let data;
+  const fetcher=async(_url,request)=>{
+    data=JSON.parse(request.body);
+    return {ok:true,json:async()=>({status:'completed',output:[{
+      type:'message',content:[{type:'output_text',text:JSON.stringify({
+        kind:'DRAFT',text:'Para la sala, una opción muy linda es Onda Serena Velo. ¿Prefieres luz suave o más privacidad?'
+      })}]
+    }]})};
+  };
+  const result=await draftReply([
+    {direction:'OUTGOING',text:'Hola, soy Hommy, de HomeEasy.'},
+    {direction:'INCOMING',text:'¿Qué me recomiendas para la sala?'}
+  ],{apiKey:KEY,fetcher,style:[]});
+  assert.equal(JSON.parse(data.input[1].content).firstObservedReply,false);
+  assert.equal(result.ok,true);
+  assert.doesNotMatch(result.text,/hola|hommy/i);
 });
 
 test('unsafe draft or request for money is never sent',()=>{
