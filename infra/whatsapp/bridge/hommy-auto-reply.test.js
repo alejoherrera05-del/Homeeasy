@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
-const {createCustomerAuto,validRecord,todayBogota,safeQuoteFallback}=require('./hommy-auto-reply');
+const {createCustomerAuto,validRecord,todayBogota,safeQuoteFallback,furnitureReply}=require('./hommy-auto-reply');
 const CHAT='573001234567@c.us';
 const GROUP='120363123456789012@g.us';
 const CONFIG={url:'http://waha:3000/api/homeeasy/',session:'homeeasy',key:'waha-test-key'};
@@ -90,6 +90,79 @@ test('Meta-ad automatic greeting does not silence the signed inbound customer me
   const log=fs.readFileSync(path.join(dir,'hommy-customer-auto','audit.ndjson'),'utf8');
   assert.match(log,/META_AD_GREETING_IGNORED/);
 });
+test('HomeEasy does not sell sofas, living room sets or dining furniture',()=>{
+  for(const q of ['Sofá','No juegos de sala','Busco un comedor','Tienen muebles','Una cama']){
+    const reply=furnitureReply(rows('f',q));
+    assert.match(reply,/no manejamos muebles ni sofás/,q);
+    assert.match(reply,/persianas, cortinas y papel de colgadura/,q);
+  }
+  assert.equal(furnitureReply(rows('p','Qué cortina combina con mi sofá?')),null);
+  assert.equal(furnitureReply(rows('p','Persianas para sala')),null);
+  assert.match(furnitureReply(rows('p','Ustedes tienen sala?')),/juego de sala/);
+});
+test('furniture enquiry sends a factual scope correction without calling AI',async t=>{
+  let calls=0;
+  const {auto,events}=fixture(t,{
+    readConversation:async()=>rows('f','Sofá'),
+    draftReply:async()=>{calls++;throw Error('AI SHOULD NOT RUN')}
+  });
+  auto.enable();
+  assert.equal(await auto.processOne(event('f')),'REQUEST_ACCEPTED');
+  assert.equal(calls,0);
+  assert.match(events.find(x=>x.kind==='send').text,/no manejamos muebles/);
+});
+test('staff outgoing message pauses only that chat, survives restart and bot stays off',async t=>{
+  const {auto,events,dir}=fixture(t);
+  auto.enable();
+  const human={id:'human-one',chatId:CHAT,direction:'OUTGOING',
+    text:'Hola, soy Daniela de HomeEasy.',at:new Date().toISOString()};
+  assert.deepEqual(auto.onOutbound(human),{paused:true,reason:'HUMAN_TAKEOVER'});
+  assert.equal(auto.status().humanTakeovers,1);
+  assert.equal(auto.onInbound(event('next')).reason,'HUMAN_TAKEOVER');
+  assert.equal(await auto.processOne(event()),'SKIP_HUMAN_TAKEOVER');
+  assert.deepEqual(events,[]);
+  // Reload the worker with exactly the same persistent storage.
+  const reload=createCustomerAuto({
+    dataDir:dir,env:{...ENV,DATA_DIR:dir},wahaConfig:CONFIG,
+    readConversation:async()=>rows(),
+    sendOnce:async()=>{throw Error('MUST NOT SEND')}
+  });
+  assert.equal(reload.status().humanTakeovers,1);
+  assert.equal(reload.onInbound(event('again')).reason,'HUMAN_TAKEOVER');
+  assert.equal(reload.status().enabled,true);
+});
+test('Meta ad greeting is not a human handoff; Hommy own send echo is ignored',async t=>{
+  const {auto,events,setRows}=fixture(t);
+  auto.enable();
+  const lead=event('lead');
+  auto.onInbound(lead);
+  const meta={id:'meta',chatId:CHAT,direction:'OUTGOING',
+    at:new Date(Date.parse(lead.at)+1000).toISOString(),
+    text:'👋 ¡Te damos la bienvenida a HomeEasy! 🎉 Transformamos tus espacios con persianas y papel de colgadura diseñados para dar estilo, privacidad y funcionalidad ✨'};
+  assert.equal(auto.onOutbound(meta).paused,false);
+  assert.equal(auto.status().humanTakeovers,0);
+  setRows(rows('new-msg'));
+  await auto.processOne(event('new-msg'));
+  const sent=events.find(x=>x.kind==='send');
+  assert.ok(sent);
+  assert.equal(auto.onOutbound({id:'echo',chatId:CHAT,direction:'OUTGOING',
+    at:new Date().toISOString(),text:sent.text}).paused,false);
+  assert.equal(auto.status().humanTakeovers,0);
+});
+test('a staff reply while Hommy drafts cancels pending delivery',async t=>{
+  let auto;
+  const {auto:instance,events}=fixture(t,{
+    draftReply:async()=>{
+      auto.onOutbound({id:'human-during-ai',chatId:CHAT,direction:'OUTGOING',
+        text:'Ya te ayudo yo',at:new Date().toISOString()});
+      return {ok:true,text:goodText};
+    }
+  });
+  auto=instance;
+  auto.enable();
+  assert.equal(await auto.processOne(event()),'SKIP_HUMAN_TAKEOVER');
+  assert.equal(events.some(x=>x.kind==='send'),false);
+});
 test('disabled by default, only explicit enable opens future-message boundary',t=>{
   const {auto}=fixture(t);
   assert.equal(auto.status().configured,true);
@@ -144,16 +217,48 @@ test('one new customer request shows real typing during AI, then sends and stops
   assert.equal(events[0].chatId,CHAT);
   assert.equal(auto.status().acceptedToday,1);
 });
-test('old customer message or human reply blocks all typing and sending',async t=>{
+test('old human reply causes persistent takeover and blocks all sending',async t=>{
   const {auto,events,setRows}=fixture(t);
   auto.enable();
   setRows([{id:'m1',direction:'INCOMING',at:new Date().toISOString(),text:'Hola'},
     {id:'from-staff',direction:'OUTGOING',at:new Date().toISOString(),text:'Hola!'}]);
-  assert.equal(await auto.processOne(event('m1')),'SKIP_CHAT_CHANGED');
+  assert.equal(await auto.processOne(event('m1')),'SKIP_HUMAN_TAKEOVER');
   assert.deepEqual(events,[]);
   setRows(rows('newer'));
-  assert.equal(await auto.processOne(event('old')),'SKIP_CHAT_MISSING_EVENT');
+  assert.equal(await auto.processOne(event('old')),'SKIP_HUMAN_TAKEOVER');
   assert.deepEqual(events,[]);
+});
+test('human response in WAHA history pauses later customer messages even without outgoing webhook',async t=>{
+  const start=Date.now()-6*60000;
+  const messages=[
+    {id:'in-first',direction:'INCOMING',at:new Date(start).toISOString(),
+      text:'Hola'},
+    {id:'manual',direction:'OUTGOING',at:new Date(start+60000).toISOString(),
+      text:'Hola, soy Daniela de HomeEasy',source:'app'},
+    {id:'in-later',direction:'INCOMING',at:new Date(start+120000).toISOString(),
+      text:'Quiero ver sofás'}
+  ];
+  const {auto,events}=fixture(t,{readConversation:async()=>messages});
+  auto.enable();
+  assert.equal(await auto.processOne(event('in-later')),'SKIP_HUMAN_TAKEOVER');
+  assert.equal(auto.status().humanTakeovers,1);
+  assert.deepEqual(events,[]);
+});
+test('Meta ad greeting in WAHA history is not treated as human attention',async t=>{
+  const now=Date.now()-25000;
+  const messages=[
+    {id:'old',direction:'INCOMING',at:new Date(now).toISOString(),
+      text:'Hola buena tarde'},
+    {id:'meta',direction:'OUTGOING',at:new Date(now+1000).toISOString(),
+      text:'👋 ¡Te damos la bienvenida a HomeEasy! 🎉 Transformamos tus espacios con persianas y papel de colgadura diseñados para dar estilo, privacidad y funcionalidad ✨'},
+    {id:'new-msg',direction:'INCOMING',at:new Date(now+5000).toISOString(),
+      text:'Quiero una persiana'}
+  ];
+  const {auto,events}=fixture(t,{readConversation:async()=>messages});
+  auto.enable();
+  assert.equal(await auto.processOne(event('new-msg')),'REQUEST_ACCEPTED');
+  assert.equal(auto.status().humanTakeovers,0);
+  assert.equal(events.filter(x=>x.kind==='send').length,1);
 });
 test('transient WAHA chat history lag retries and then replies once',async t=>{
   let reads=0;
