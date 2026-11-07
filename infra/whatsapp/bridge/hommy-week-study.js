@@ -375,6 +375,8 @@ async function coach(stats,options={}){
     'Eres un auditor de atención comercial de HomeEasy (persianas y cortinas, Colombia).',
     'El JSON contiene estadísticas y únicamente FRAGMENTOS ANONIMIZADOS de mensajes SALIENTES de la empresa.',
     'No incluye mensajes originales de clientes; sus intenciones fueron clasificadas localmente.',
+    'Las selecciones de menú de anuncios de WhatsApp como Para cotizar, Cotización y precios y Tipos de persianas disponibles son consultas comerciales explícitas; no las trates como simples saludos.',
+    'Cuando el cliente ya seleccionó la intención, recomienda contestar esa intención sin volver a preguntarle genéricamente en qué le podemos ayudar.',
     'pairedStyle enlaza la categoría de la consulta entrante con la respuesta saliente filtrada, nunca con texto crudo del cliente.',
     'Analiza cómo responde el equipo, qué conserva del buen trato y qué puede mejorar al atender publicidad Meta.',
     'No afirmes que un lead viene de Meta si originUnknownChats no tiene evidencia.',
