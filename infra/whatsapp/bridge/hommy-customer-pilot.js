@@ -143,15 +143,15 @@ function askedAboutAutomation(rows){
   const latest=[...(Array.isArray(rows)?rows:[])].reverse()
     .find(x=>x.direction==='INCOMING');
   const q=String(latest?.text||'').normalize('NFD')
-    .replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
-  return /\\b(?:bot|robot|ia)\\b|inteligencia artificial|asistente virtual|con quien hablo|quien (?:me )?(?:responde|atiende)/.test(q);
+    .replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  return /\b(?:bot|robot|ia)\b|inteligencia artificial|asistente virtual|con quien hablo|quien (?:me )?(?:responde|atiende)/.test(q);
 }
 function validateDraft(raw, options={}){
   if(!raw||raw.kind!=='DRAFT'||typeof raw.text!=='string')
     return {ok:false,reason:'REVIEW_REQUIRED'};
   const t=raw.text.trim();
   if(t.length<24||t.length>420||
-    (!options.allowDisclosure && /\\b(?:soy hommy|asistente virtual|inteligencia artificial|soy (?:un )?bot)\\b/i.test(t)) ||
+    (!options.allowDisclosure && /\b(?:soy hommy|asistente virtual|inteligencia artificial|soy (?:un )?bot)\b/i.test(t)) ||
     /(?:soy (?:una persona|humano|humana|asesor humano|asesora humana)|te habla (?:ale|dani|un asesor|una asesora))/i.test(t) ||
     /\d/.test(t)||/[\x00-\x08\x0b-\x1f]/.test(t) ||
     /(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|sk-[A-Za-z0-9_-]{15,})/i.test(t)||
