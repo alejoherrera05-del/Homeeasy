@@ -88,21 +88,42 @@ function senderKind(payload, fromMe) {
 
 function commercialOrigin(payload) {
   const source = payload && typeof payload === 'object' ? payload : {};
-  const context = source.ctwaContext || source.referral || source._data && (source._data.ctwaContext || source._data.referral);
+  // WAHA WEBJS can expose click-to-chat ad metadata in the original WhatsApp
+  // message, not in top-level referral or ctwaContext. Status ad screenshots
+  // are visual cues; attribution requires actual message metadata.
+  const contextInfo = source._data?.message?.extendedTextMessage?.contextInfo ||
+    source._data?.message?.imageMessage?.contextInfo ||
+    source._data?.message?.videoMessage?.contextInfo ||
+    source._data?.message?.buttonsResponseMessage?.contextInfo ||
+    source._data?.message?.templateButtonReplyMessage?.contextInfo || null;
+  const context = source.ctwaContext || source.referral ||
+    source._data?.ctwaContext || source._data?.referral ||
+    contextInfo?.externalAdReply || source._data?.message?.externalAdReply ||
+    source._data?.externalAdReply;
   if (!context || typeof context !== 'object' || Array.isArray(context)) {
     return { channel: 'WHATSAPP', campaign: null, platform: null, verified: false };
   }
   const sourceType = conversation.clean(context.sourceType || context.source_type || '', 60).toUpperCase();
-  const platform = /INSTAGRAM/.test(sourceType) ? 'INSTAGRAM' : /FACEBOOK|FB/.test(sourceType) ? 'FACEBOOK' : null;
-  const sourceId = conversation.clean(context.sourceId || context.source_id || context.adId || context.ad_id || '', 180);
+  const sourceApp = conversation.clean(context.sourceApp || context.source_app ||
+    contextInfo?.entryPointConversionApp || '', 60).toUpperCase();
+  const platform = /INSTAGRAM/.test(sourceApp) ? 'INSTAGRAM' :
+    /FACEBOOK|FB/.test(sourceApp) ? 'FACEBOOK' :
+    /INSTAGRAM/.test(sourceType) ? 'INSTAGRAM' :
+    /FACEBOOK|FB/.test(sourceType) ? 'FACEBOOK' : null;
+  const sourceId = conversation.clean(context.sourceId || context.source_id ||
+    context.adId || context.ad_id || '', 180);
   const sourceUrl = conversation.clean(context.sourceUrl || context.source_url || '', 500);
+  // A verified click-to-WhatsApp ad may contain sourceType AD even if the
+  // creative URL is missing. Never infer it from customer-authored text alone.
   if (!sourceId && !sourceUrl && !sourceType) {
     return { channel: 'WHATSAPP', campaign: null, platform: null, verified: false };
   }
   return {
     channel: 'WHATSAPP', campaign: 'META', platform, verified: true,
+    ...(sourceType === 'AD' || sourceType === 'POST'
+      ? {sourceType:sourceType.toLowerCase()} : {}),
     sourceId: sourceId || null, sourceUrl: sourceUrl || null,
-    headline: conversation.clean(context.headline || '', 240) || null,
+    headline: conversation.clean(context.headline || context.title || '', 240) || null,
     body: conversation.clean(context.body || '', 500) || null
   };
 }
@@ -262,4 +283,4 @@ function createInbox(options) {
   return Object.freeze({ ingest, list, disable, enable, status });
 }
 
-module.exports = Object.freeze({ createInbox, normalizeEvent, jidKind });
+module.exports = Object.freeze({ createInbox, normalizeEvent, jidKind, commercialOrigin });
