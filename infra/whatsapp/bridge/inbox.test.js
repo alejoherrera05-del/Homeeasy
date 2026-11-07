@@ -111,6 +111,34 @@ test('distinguishes system sends and preserves only verified Meta referral metad
   assert.doesNotMatch(JSON.stringify(meta), /not-stored/);
 });
 
+test('WEBJS externalAdReply in nested ad/status cards is recognized as a verified Meta ad',t=>{
+  const inbox=createInbox({dataDir:tempDir(t),enabled:true,session:'homeeasy',webhookSecret:SECRET});
+  ingest(inbox,event({payload:{
+    id:'status-ad-in',body:'2️⃣ Cotización y precios',
+    _data:{message:{extendedTextMessage:{contextInfo:{
+      externalAdReply:{
+        title:'Anuncio en estados',sourceType:'ad',sourceId:'123-ad',
+        sourceApp:'whatsapp',body:'Consulta los detalles en tu teléfono',
+        privateToken:'SHOULD_NEVER_BE_STORED'
+      }
+    }}}}
+  }}));
+  const item=inbox.list({}).items[0];
+  assert.equal(item.text,'2️⃣ Cotización y precios');
+  assert.equal(item.commercialOrigin.verified,true);
+  assert.equal(item.commercialOrigin.campaign,'META');
+  assert.equal(item.commercialOrigin.sourceType,'ad');
+  assert.equal(item.commercialOrigin.sourceId,'123-ad');
+  assert.doesNotMatch(JSON.stringify(item),/SHOULD_NEVER_BE_STORED/);
+});
+test('unverified status-like customer text alone cannot become verified paid ad',t=>{
+  const inbox=createInbox({dataDir:tempDir(t),enabled:true,session:'homeeasy',webhookSecret:SECRET});
+  ingest(inbox,event({payload:{
+    id:'ad-mention-in',body:'Anuncio en estados, 3️⃣ Tipos de persianas disponibles'
+  }}));
+  assert.equal(inbox.list({}).items[0].commercialOrigin.verified,false);
+});
+
 test('deduplicates message ids across process restarts', t => {
   const dir = tempDir(t);
   const first = createInbox({ dataDir: dir, enabled: true, session: 'homeeasy', webhookSecret: SECRET });
