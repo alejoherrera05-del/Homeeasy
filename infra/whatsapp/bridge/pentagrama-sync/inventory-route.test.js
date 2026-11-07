@@ -20,7 +20,7 @@ test('catalog inventory endpoint is read-only and asynchronous', () => {
 });
 
 test('bridge version is at least the inventory-readonly deployment', () => {
-  const match = server.match(/const BRIDGE_VERSION = '(\\d+)\\.(\\d+)\\.(\\d+)';/);
+  const match = server.match(/const BRIDGE_VERSION = '(\d+)\.(\d+)\.(\d+)';/);
   assert.ok(match, 'Bridge must expose a semantic version');
   const [major, minor] = match.slice(1).map(Number);
   assert.ok(major > 0 || minor >= 27, 'Bridge must retain inventory-readonly release');
