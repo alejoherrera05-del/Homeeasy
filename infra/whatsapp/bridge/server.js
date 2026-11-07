@@ -20,7 +20,7 @@ const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
 
-const BRIDGE_VERSION = '0.33.0';
+const BRIDGE_VERSION = '0.33.1';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -1320,6 +1320,34 @@ async function handle(req, res) {
   if (req.method === 'POST' && url.pathname === '/api/whatsapp/intelligence/enable') {
     await auth.authorize(req, 'config.write');
     return json(res, 200, { ok: true, intelligence: hommyIntelligence.enable() });
+  }
+
+  // Customer auto-replies have an independent, persistent emergency switch.
+  // Only authenticated HomeEasy config administrators can change it. A webhook,
+  // a WhatsApp message or a Hommy AI answer cannot reach these routes.
+  if (url.pathname === '/api/whatsapp/hommy/customer-auto' &&
+      ['GET','POST'].includes(req.method)) {
+    if (req.method === 'GET') {
+      await auth.authorize(req, 'config.read');
+      return json(res, 200, {ok:true,customerAuto:customerAuto.status()});
+    }
+    await auth.authorize(req, 'config.write');
+    const body=await readJsonBody(req);
+    if(!body || typeof body.enabled!=='boolean' ||
+        typeof body.expectedEnabled!=='boolean' ||
+        Object.keys(body).sort().join(',')!=='enabled,expectedEnabled') {
+      throw Object.assign(new Error('Only enabled and expectedEnabled booleans are permitted'), {
+        code:'HOMMY_AUTO_INVALID_CONTROL',statusCode:400
+      });
+    }
+    const now=customerAuto.status();
+    if(now.enabled!==body.expectedEnabled) {
+      throw Object.assign(new Error('El estado de Hommy cambió en otra sesión. Actualiza el control.'),{
+        code:'HOMMY_AUTO_STALE_CONTROL',statusCode:409
+      });
+    }
+    const updated=body.enabled?customerAuto.enable():customerAuto.disable();
+    return json(res,200,{ok:true,customerAuto:updated});
   }
 
   // Hommy commercial operations are isolated from WAHA session management.
