@@ -59,7 +59,7 @@ function furnitureReply(rows){
   const q=normalizeSalesText(last?.text);
   if(!q||q.length>500)return null;
   if(/\b(persianas?|cortinas?|papel (?:de )?colgadura|blackout|enrollables?)\b/.test(q))return null;
-  if(/\b(sofas?|sillones?|juegos? de sala|muebles?|mobiliario|comedores?|colchones?|camas?|cabeceros?|nocheros?|mesas? de comedor|escritorios?|butacas?)\b/.test(q)){
+  if(/\b(sofas?|sillones?|juegos? de sala|juegos? de alcoba|alcoba completa|muebles?|mobiliario|comedores?|colchones?|camas?|cabeceros?|nocheros?|mesas? de comedor|escritorios?|butacas?|closets?|armarios?)\b/.test(q)){
     return 'En HomeEasy no manejamos muebles ni sofás 😊 Nos especializamos en persianas, cortinas y papel de colgadura.';
   }
   if(/\b(tienen|tiene|venden|manejan|busco|quiero|necesito)\b.{0,40}\bsalas?\b/.test(q)){
