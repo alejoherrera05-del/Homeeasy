@@ -134,7 +134,7 @@ function replyPolicy(){
     'Debes redactar UNA única respuesta a un cliente REAL de WhatsApp, en español colombiano natural, amable y breve.',
     'Es un piloto controlado. No eres una persona: nunca afirmes ser humano, vendedor real ni una persona concreta. Si te preguntan quién contesta o si es un bot, aclara con transparencia que eres Hommy y que la atención utiliza automatización.',
     'En la primera respuesta observada del negocio, da la bienvenida educadamente y preséntate de forma personal por el nombre de marca Hommy, de HomeEasy. No digas asistente virtual, inteligencia artificial o bot espontáneamente, pero tampoco afirmes ser una persona o un empleado humano. Si el cliente pregunta quién contesta o si es automatizado, explica claramente que eres una IA de HomeEasy.',
-    'Si firstObservedReply=true, comienza SIEMPRE con un saludo amable (Hola), menciona HomeEasy y preséntate como Hommy. Después responde directamente a la intención y termina con UNA pregunta breve pertinente. Sin omitir saludo ni presentación.',
+    'Si firstObservedReply=true, comienza SIEMPRE con un saludo amable (Hola), menciona HomeEasy y preséntate como Hommy. Evita cualquier saludo con género como Bienvenido o Bienvenida: no debes inferir el género del cliente por su nombre, foto o usuario de WhatsApp. Usa Qué gusto saludarte, un saludo neutral y cercano. Después responde directamente a la intención y termina con UNA pregunta breve pertinente.',
     'Si firstObservedReply=false, continúa desde el contexto existente y NO repitas la bienvenida o presentación. Si la conversación ya incluye un saludo, no lo dupliques.',
     'Ante una consulta de cotización en primera respuesta, ejemplo de TONO (no texto fijo): Hola 😊 Qué gusto saludarte. Soy Hommy, de HomeEasy, y con mucho gusto te ayudo con tu cotización. La persiana es para sala o habitación?',
     'Si el cliente seleccionó Para cotizar, Cotización y precios o Tipos de persianas disponibles desde un anuncio, responde esa intención, no preguntes genéricamente en qué le ayudas.',
@@ -161,7 +161,9 @@ function validateDraft(raw, options={}){
     return {ok:false,reason:'REVIEW_REQUIRED'};
   // WhatsApp brand style: never send leading inverted punctuation, even if
   // a model mistakenly generates it. Keep closing punctuation and accents.
-  const t=raw.text.trim().replace(/[¡¿]/g,'');
+  const t=raw.text.trim().replace(/[¡¿]/g,'')
+    // Preserve a natural greeting without assuming any customer's gender.
+    .replace(/\bBienvenid[oa]\s+a\s+HomeEasy\b/gi,'Te damos la bienvenida a HomeEasy');
   const first=options.firstReply===true;
   const hasGreeting=/^\s*[¡!¿?\s]*(?:hola\b|buen(?:os|as)\s+(?:d[ií]as|tardes|noches)\b|cordial saludo\b)/i.test(t);
   const hasBrand=/\bHomeEasy\b/i.test(t);
@@ -264,6 +266,9 @@ async function sendOnce(config,chatId,firstMessageId,preview,options={}){
     throw Error('WAHA_SEND_STATUS_UNKNOWN_CHECK_WHATSAPP_BEFORE_RETRY');
   }
 }
+function isSendConfirmation(value){
+  return /^enviar$/i.test(String(value||'').trim());
+}
 async function run(options={}){
   if(!process.stdin.isTTY && !options.terminal)throw Error('INTERACTIVE_TERMINAL_REQUIRED');
   const config=options.config||wahaBase();
@@ -297,8 +302,8 @@ async function run(options={}){
     output.write('\nBORRADOR REAL de Hommy para ese chat:\n\n'+preview.text+
       '\n\nSolo se enviará a esta clienta, una vez.\n');
     const consent=String(await terminal.question(
-      'Escribe ENVIAR para autorizar este único mensaje (Enter cancela): ')).trim();
-    if(consent!=='ENVIAR')return output.write('Cancelado. No se envió nada.\n');
+      'Escribe enviar para autorizar este único mensaje (Enter cancela): '));
+    if(!isSendConfirmation(consent))return output.write('Cancelado. No se envió nada.\n');
     const result=await sendOnce(config,chatId,checked.last.id,preview.text,{
       fetcher:options.wahaFetcher,claimDir:options.claimDir
     });
@@ -315,4 +320,4 @@ if(require.main===module)run().catch(e=>{
 });
 module.exports={chatIdOf,unreadOf,allowConversation,draftReply,validateDraft,askedAboutAutomation,
   firstObservedReply,
-  listCandidates,readConversation,sendOnce,claimId,claimSend,run,sanitizedForModel};
+  listCandidates,readConversation,sendOnce,claimId,claimSend,run,sanitizedForModel,isSendConfirmation};
