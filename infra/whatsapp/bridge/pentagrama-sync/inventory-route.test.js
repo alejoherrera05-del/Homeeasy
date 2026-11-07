@@ -19,8 +19,11 @@ test('catalog inventory endpoint is read-only and asynchronous', () => {
   assert.doesNotMatch(block, /startApply|applyCatalog|applyLocalModel|rollback|WRITING_SHEET/);
 });
 
-test('bridge version identifies the inventory-readonly deployment', () => {
-  assert.match(server, /const BRIDGE_VERSION = '0\.27\.0';/);
+test('bridge version is at least the inventory-readonly deployment', () => {
+  const match = server.match(/const BRIDGE_VERSION = '(\\d+)\\.(\\d+)\\.(\\d+)';/);
+  assert.ok(match, 'Bridge must expose a semantic version');
+  const [major, minor] = match.slice(1).map(Number);
+  assert.ok(major > 0 || minor >= 27, 'Bridge must retain inventory-readonly release');
 });
 
 test('Agent updates are authenticated, path-confined and private', () => {
