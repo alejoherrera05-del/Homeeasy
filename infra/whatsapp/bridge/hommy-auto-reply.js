@@ -306,6 +306,27 @@ function createCustomerAuto(options={}){
     markHumanTakeover(record);
     return {paused:true,reason:'HUMAN_TAKEOVER'};
   }
+  // WAHA may be configured with only the "message" hook (incoming only).
+  // Detect human takeover from the chat history itself on EVERY customer reply.
+  // This also covers human replies that arrived while the worker was off.
+  function takeOverFromHistory(chatId,rows){
+    if(!Array.isArray(rows))return false;
+    let previousIncoming=null;
+    const now=Date.now();
+    for(const item of rows){
+      if(item?.direction==='INCOMING'){previousIncoming=item;continue;}
+      if(item?.direction!=='OUTGOING')continue;
+      const at=Date.parse(item.at||'');
+      if(!Number.isFinite(at)||at>now+60000||now-at>HUMAN_HANDOFF_MS)continue;
+      if(isMetaAdAutoGreeting(previousIncoming,item))continue;
+      if(isOwnOutgoing(chatId,item.text))continue;
+      if(!activeHumanTakeover(chatId)){
+        markHumanTakeover({chatId,id:item.id||'history-takeover',at:item.at});
+      }
+      return true;
+    }
+    return false;
+  }
   async function processOne(job){
     const record={id:job.id,chatId:job.chatId};
     const finish=(code)=>{recordOutcome(code,record);return code};
@@ -325,6 +346,9 @@ function createCustomerAuto(options={}){
         if(attempt===2)return finish('SKIP_CHAT_FETCH');
         await sleep(900);continue;
       }
+      // Check EVERY outgoing message before trusting a fresh incoming one:
+      // allowConversation alone only looks at the last message.
+      if(takeOverFromHistory(job.chatId,rows))return finish('SKIP_HUMAN_TAKEOVER');
       check=allowConversation(rows);
       if(check.ok&&check.last.id===job.id)break;
       if(rows.some(m=>m?.id===job.id)){
