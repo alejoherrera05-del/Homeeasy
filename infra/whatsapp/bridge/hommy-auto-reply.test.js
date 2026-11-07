@@ -139,6 +139,29 @@ test('old customer message or human reply blocks all typing and sending',async t
   assert.equal(await auto.processOne(event('old')),'SKIP_CHAT_CHANGED');
   assert.deepEqual(events,[]);
 });
+test('transient WAHA chat history lag retries and then replies once',async t=>{
+  let reads=0;
+  const {auto,events}=fixture(t,{
+    readConversation:async()=>{
+      reads++;
+      return reads<=2?rows('older'):rows('new-msg');
+    }
+  });
+  auto.enable();
+  assert.equal(await auto.processOne(event('new-msg')),'REQUEST_ACCEPTED');
+  assert.equal(reads,3);
+  assert.equal(events.filter(x=>x.kind==='send').length,1);
+});
+test('missing webhook message after bounded WAHA reads is audited safely',async t=>{
+  let reads=0;
+  const {auto,events}=fixture(t,{
+    readConversation:async()=>{reads++;return rows('other');}
+  });
+  auto.enable();
+  assert.equal(await auto.processOne(event('new-msg')),'SKIP_CHAT_MISSING_EVENT');
+  assert.equal(reads,3);
+  assert.deepEqual(events,[]);
+});
 test('concurrent emergency disable prevents final send and stops typing',async t=>{
   let auto;
   const {events,auto:instance}=fixture(t,{
