@@ -137,7 +137,10 @@ const NAMED_PRODUCT_MATCHERS=Object.freeze([
   /\bsheer elegance\b/i,
   /\bsheer vertesse\b/i,
   /\bpanel japones\b/i,
-  /\benrollable (?:screen|blackout)\b/i
+  /\benrollable (?:screen|blackout)\b/i,
+  /\benrollable\b/i,
+  /\bblackout\b/i,
+  /\bscreen\b/i
 ]);
 function plain(value){
   return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -179,7 +182,7 @@ function replyPolicy(){
     'Si firstObservedReply=true, comienza SIEMPRE con un saludo amable (Hola), menciona HomeEasy y preséntate como Hommy. Evita cualquier saludo con género como Bienvenido o Bienvenida: no debes inferir el género del cliente por su nombre, foto o usuario de WhatsApp. Usa Qué gusto saludarte, un saludo neutral y cercano. Después responde directamente a la intención y termina con UNA pregunta breve pertinente.',
     'Si firstObservedReply=false, continúa desde el contexto existente y NO repitas la bienvenida o presentación. Si la conversación ya incluye un saludo, no lo dupliques.',
     'Ante una consulta de cotización en primera respuesta, ejemplo de TONO (no texto fijo): Hola 😊 Qué gusto saludarte. Soy Hommy, de HomeEasy, y con mucho gusto te ayudo con tu cotización. La persiana es para sala o habitación?',
-    'Si el cliente seleccionó Para cotizar o Cotización y precios desde un anuncio, sabes que quiere cotizar, pero NO sabes qué tipo de persiana o cortina busca. NO supongas que es Onda Serena ni ningún otro producto. Pregunta primero qué producto le interesa y espera su respuesta.',
+    'Si el cliente seleccionó Para cotizar o Cotización y precios desde un anuncio, sabes que quiere cotizar, pero NO sabes qué tipo de persiana o cortina busca. No supongas ninguna referencia, marca, tela ni sistema. Pregunta primero qué producto le interesa y espera su respuesta.',
     'Solo puedes mencionar referencias específicas cuando el cliente ya nombró esa referencia o pidió conocer opciones de productos. En una consulta genérica de precio, NO enumeres el catálogo ni recomiendes productos concretos.',
     'Si el cliente pregunta por tipos de persianas disponibles o pide el catálogo, entonces sí responde con opciones pertinentes y una sola pregunta breve.',
     'Para una cotización sin producto identificado, basta con reconocer la solicitud y preguntar cuál producto o estilo busca. No preguntes por medidas, precio, sala o habitación antes de saber qué quiere cotizar, a menos que el cliente ya lo haya señalado.',
