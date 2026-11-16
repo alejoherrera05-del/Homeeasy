@@ -303,7 +303,7 @@ test('stale registered compatible Agent is reported offline, not incompatible', 
 });
 
 
-test('browser-backed and local-model build jobs share the configured long timeout budget', () => {
+test('browser-backed jobs share the inactivity budget and long work cannot be capped below two hours', () => {
   const gateway = fixture({ jobTimeoutMs: 1000, browserJobTimeoutMs: 5000, catalogInventoryJobTimeoutMs: 9000, longJobHardTimeoutMs: 27000 });
   assert.equal(gateway.jobTimeoutMs, 5000);
   assert.equal(gateway.browserJobTimeoutMs, 5000);
@@ -314,7 +314,7 @@ test('browser-backed and local-model build jobs share the configured long timeou
   assert.equal(gateway.timeoutFor('buildLocalEnrollablesSnapshot'), 9000);
   assert.deepEqual(gateway.timeoutPolicyFor('buildLocalEnrollablesSnapshot'), {
     inactivityTimeoutMs: 9000,
-    hardTimeoutMs: 27000,
+    hardTimeoutMs: 2 * 60 * 60 * 1000,
     refreshOnHeartbeat: true
   });
   assert.deepEqual(gateway.timeoutPolicyFor('getPrice'), {

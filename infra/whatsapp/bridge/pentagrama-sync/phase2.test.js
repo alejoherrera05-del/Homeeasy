@@ -37,6 +37,26 @@ test('active maintenance is exposed and duplicate starts reuse the same operatio
   });
 });
 
+test('deep scan stops on a long-job timeout instead of dispatching a second Agent task', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-long-timeout-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const operation = store.operation('scan', { email: 'test@example.test' });
+  let dispatches = 0;
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [],
+    pricing: {},
+    homeeasyCost: {},
+    homeeasy: { catalog: async () => ({ version: 'timeout-v1', products: [{ id: 'enrollable-blackout-matte3' }] }) },
+    gateway: { dispatch: async () => {
+      dispatches += 1;
+      throw Object.assign(new Error('hard timeout'), { code: 'AGENT_HARD_TIMEOUT' });
+    } }
+  });
+  await assert.rejects(service.runScan(operation.id, {}), error => error.code === 'AGENT_HARD_TIMEOUT');
+  assert.equal(dispatches, 1);
+});
+
 test('scan preserves unmapped products and builds a verified multi-case rate proposal', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-'));
   const store = new Phase2Store({ dataDir: directory });
