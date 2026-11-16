@@ -30,7 +30,7 @@ test('technical errors are translated into safe user-facing guidance', () => {
 });
 
 test('deep maintenance polling outlives the backend hard timeout and transient restarts', () => {
-  assert.equal(operationPollingPolicy('scan').deadlineMs, 130 * 60 * 1000);
+  assert.equal(operationPollingPolicy('scan').deadlineMs, 4 * 60 * 60 * 1000);
   assert.equal(operationPollingPolicy('buildLocalEnrollablesSnapshot').deadlineMs, 30 * 60 * 1000);
   assert.equal(operationPollingPolicy('scan').maxIntervalMs, 5000);
   assert.equal(isTransientPollError(Object.assign(new Error('network'))), true);

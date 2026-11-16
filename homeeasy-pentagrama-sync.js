@@ -87,7 +87,7 @@
     return Object.freeze({
       intervalMs: 1000,
       maxIntervalMs: 5000,
-      deadlineMs: scanLike ? 130 * 60 * 1000 : 30 * 60 * 1000
+      deadlineMs: scanLike ? 4 * 60 * 60 * 1000 : 30 * 60 * 1000
     });
   }
 
