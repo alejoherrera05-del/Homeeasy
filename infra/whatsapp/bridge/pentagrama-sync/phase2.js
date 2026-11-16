@@ -1300,6 +1300,9 @@ class PentagramaPhase2 {
           throw Object.assign(new Error('El modelo Enrollables no quedó completamente certificado con evidencia Live actual.'), { code: 'PENTAGRAMA_LOCAL_MODEL_QA_FAILED' });
         }
       } catch (error) {
+        if (['AGENT_TIMEOUT', 'AGENT_HARD_TIMEOUT', 'AGENT_BUSY'].includes(String(error && error.code || ''))) {
+          throw error;
+        }
         localModelCandidate = null;
         localModelError = {
           code: String(error.code || 'PENTAGRAMA_LOCAL_MODEL_FAILED'),
