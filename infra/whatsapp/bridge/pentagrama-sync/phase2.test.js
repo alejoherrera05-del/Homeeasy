@@ -16,6 +16,27 @@ test('change classifier enforces unchanged and review thresholds', () => {
   assert.equal(statusFor(100, 130), 'REVIEW_REQUIRED');
 });
 
+test('active maintenance is exposed and duplicate starts reuse the same operation', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-active-operation-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const active = store.operation('scan', { email: 'first@example.test' });
+  store.updateOperation(active.id, { state: 'running', stage: 'READING_PENTAGRAMA', progress: { products: 42 } });
+  const service = new PentagramaPhase2({ store, mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {} });
+
+  const duplicate = service.startScan({ email: 'second@example.test' }, {});
+  assert.equal(duplicate.id, active.id);
+  assert.equal(store.state.operations.length, 1);
+  assert.deepEqual(service.status().activeOperation, {
+    id: active.id,
+    type: 'scan',
+    state: 'running',
+    stage: 'READING_PENTAGRAMA',
+    createdAt: active.createdAt,
+    updatedAt: store.operationById(active.id).updatedAt,
+    progress: { products: 42 }
+  });
+});
+
 test('scan preserves unmapped products and builds a verified multi-case rate proposal', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-'));
   const store = new Phase2Store({ dataDir: directory });

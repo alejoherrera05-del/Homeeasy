@@ -217,7 +217,10 @@ async function waitForManualCaptcha(tabId, timeoutMs = 120000) {
 
 async function ensurePortalAuthenticated(tabId) {
   let state = await waitTabReady(tabId, 20000).catch(() => null);
-  if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) return true;
+  if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) {
+    await publishSession();
+    return true;
+  }
 
   if (state && state.hasCaptcha) return waitForManualCaptcha(tabId);
 
@@ -227,7 +230,10 @@ async function ensurePortalAuthenticated(tabId) {
 
   while (Date.now() < deadline) {
     state = await waitTabReady(tabId, 5000).catch(() => null);
-    if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) return true;
+    if (state && !state.hasLogin && !/\/(?:User\/)?Login/i.test(String(state.url || ''))) {
+      await publishSession();
+      return true;
+    }
     if (state && state.hasCaptcha) return waitForManualCaptcha(tabId);
     await sleep(350);
   }
@@ -369,7 +375,9 @@ async function browserPollLoop() {
 async function reconcile() {
   try {
     await agent('/v1/status');
-    await chrome.action.setBadgeText({ text: '' });
+    const cookies = await portalCookies();
+    if (hasAuth(cookies)) await publishSession(cookies);
+    else await chrome.action.setBadgeText({ text: '' });
     browserPollLoop();
   } catch (_) {
     await chrome.action.setBadgeText({ text: '?' });

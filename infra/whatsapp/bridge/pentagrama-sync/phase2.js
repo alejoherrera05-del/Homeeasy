@@ -240,30 +240,40 @@ class PentagramaPhase2 {
   }
 
   startScan(actor, context) {
+    const active = this.store.activeOperation && this.store.activeOperation('scan');
+    if (active) return active;
     const operation = this.store.operation('scan', actor);
     setImmediate(() => this.runScan(operation.id, context).catch(error => this.fail(operation.id, error)));
     return operation;
   }
 
   startQuickScan(actor, context) {
+    const active = this.store.activeOperation && this.store.activeOperation('quick_scan');
+    if (active) return active;
     const operation = this.store.operation('quick_scan', actor);
     setImmediate(() => this.runQuickScan(operation.id, context).catch(error => this.fail(operation.id, error)));
     return operation;
   }
 
   startRuleMaintenance(actor, context) {
+    const active = this.store.activeOperation && this.store.activeOperation('maintenance_rules');
+    if (active) return active;
     const operation = this.store.operation('maintenance_rules', actor);
     setImmediate(() => this.runRuleMaintenance(operation.id, context).catch(error => this.fail(operation.id, error)));
     return operation;
   }
 
   startInventory(actor) {
+    const active = this.store.activeOperation && this.store.activeOperation('inventory');
+    if (active) return active;
     const operation = this.store.operation('inventory', actor);
     setImmediate(() => this.runInventory(operation.id).catch(error => this.fail(operation.id, error)));
     return operation;
   }
 
   startEnrollablesAudit(actor) {
+    const active = this.store.activeOperation && this.store.activeOperation('enrollablesAudit');
+    if (active) return active;
     const operation = this.store.operation('enrollablesAudit', actor);
     setImmediate(() => this.runEnrollablesAudit(operation.id).catch(error => this.fail(operation.id, error)));
     return operation;
@@ -1936,7 +1946,12 @@ class PentagramaPhase2 {
   status() {
     const scheduler = this.store.schedulerState();
     const latestScan = typeof this.store.latestVisibleScan === 'function' ? this.store.latestVisibleScan() : this.store.latestScan();
-    return { latestScan: this.publicScan(latestScan), nextScheduledCheck: this.store.state.nextScheduledCheck,
+    const active = this.store.activeOperation && this.store.activeOperation();
+    const activeOperation = active ? {
+      id: active.id, type: active.type, state: active.state, stage: active.stage,
+      createdAt: active.createdAt, updatedAt: active.updatedAt, progress: active.progress || null
+    } : null;
+    return { latestScan: this.publicScan(latestScan), activeOperation, nextScheduledCheck: this.store.state.nextScheduledCheck,
       lastAutomaticCheck: scheduler.lastRunAt, automaticResult: scheduler.lastResult };
   }
 }

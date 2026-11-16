@@ -16,15 +16,15 @@ test('live catalog certification registry is complete and deliberately conservat
     certified: summary.certified,
     reviewRequired: summary.reviewRequired,
     unmapped: summary.unmapped
-  }, { total: 452, exactCandidates: 157, ambiguous: 15, noCandidate: 280, certified: 90, reviewRequired: 82, unmapped: 280 });
+  }, { total: 452, exactCandidates: 157, ambiguous: 15, noCandidate: 280, certified: 145, reviewRequired: 27, unmapped: 280 });
   assert.deepEqual(summary.certifiedStrategies, {
-    RATE_M2: 90, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 0, SPECIAL_CONFIGURATION: 0
+    RATE_M2: 145, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 0, SPECIAL_CONFIGURATION: 0
   });
 });
 
 test('One Click accepts only mappings carrying a complete Pentagrama certificate', () => {
   const accepted = INITIAL_MAPPINGS.filter(mappingIsCertified).map(item => item.homeeasyId).sort();
-  assert.equal(accepted.length, 90);
+  assert.equal(accepted.length, 119);
   assert.ok(accepted.includes('onda-0'));
   assert.ok(accepted.includes('onda-77'));
   assert.ok(!accepted.includes('onda-10'));
@@ -92,21 +92,23 @@ test('Vertical expansion certifies only exact one-code mappings', () => {
   }
 });
 
-test('Panel and Sheer live evidence remain safely outside auto-apply', () => {
+test('Panel and Sheer certification keeps only deployable mappings in One Click', () => {
   const panel = registry.products.filter(item => item.family === 'Panel Japonés');
   const sheer = registry.products.filter(item => item.family === 'Sheer Elegance');
   assert.deepEqual({
     certified: panel.filter(item => item.status === 'CERTIFIED').length,
     review: panel.filter(item => item.status === 'REVIEW_REQUIRED').length,
     unmapped: panel.filter(item => item.status === 'UNMAPPED').length
-  }, { certified: 0, review: 32, unmapped: 1 });
+  }, { certified: 29, review: 3, unmapped: 1 });
   assert.deepEqual({
     certified: sheer.filter(item => item.status === 'CERTIFIED').length,
     review: sheer.filter(item => item.status === 'REVIEW_REQUIRED').length,
     unmapped: sheer.filter(item => item.status === 'UNMAPPED').length
-  }, { certified: 0, review: 31, unmapped: 1 });
-  assert.equal(registry.products.find(item => item.homeeasyId === 'panel-78').casesPassed, 2);
-  assert.match(registry.products.find(item => item.homeeasyId === 'panel-78').reason, /1\.6 m2/);
-  assert.equal(registry.products.find(item => item.homeeasyId === 'sheer-131').status, 'REVIEW_REQUIRED');
-  assert.ok(!INITIAL_MAPPINGS.some(item => item.homeeasyId.startsWith('panel-') || item.homeeasyId.startsWith('sheer-')));
+  }, { certified: 26, review: 5, unmapped: 1 });
+  assert.equal(registry.products.find(item => item.homeeasyId === 'panel-78').casesPassed, 3);
+  assert.match(registry.products.find(item => item.homeeasyId === 'panel-78').reason, /1[.,]6 m[2²]/);
+  assert.equal(registry.products.find(item => item.homeeasyId === 'panel-78').maintenanceRequired, true);
+  assert.equal(registry.products.find(item => item.homeeasyId === 'sheer-131').status, 'CERTIFIED');
+  assert.equal(INITIAL_MAPPINGS.filter(item => item.homeeasyId.startsWith('panel-')).length, 29);
+  assert.ok(!INITIAL_MAPPINGS.some(item => item.homeeasyId.startsWith('sheer-')));
 });

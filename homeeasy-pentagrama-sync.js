@@ -22,6 +22,9 @@
   const ERROR_MESSAGES = Object.freeze({
     AGENT_OFFLINE: 'No hay ningún agente Pentagrama disponible. Enciende uno de los equipos registrados e inténtalo nuevamente.',
     AGENT_TIMEOUT: 'El agente Pentagrama no respondió a tiempo. Verifica que el equipo siga encendido y conectado.',
+    AGENT_HARD_TIMEOUT: 'El mantenimiento superó el límite seguro de dos horas. No se modificaron tarifas; revisa el agente antes de volver a iniciarlo.',
+    AGENT_BUSY: 'El agente Pentagrama ya está ejecutando otra revisión. HomeEasy retomará el trabajo activo sin crear uno duplicado.',
+    AGENT_RESTARTED_LOOP: 'El agente se reinició varias veces durante el mantenimiento. No se modificaron tarifas; revisa la estabilidad del equipo.',
     AGENT_TRANSPORT_ERROR: 'Se perdió la comunicación con el agente Pentagrama. Inténtalo nuevamente cuando la conexión esté estable.',
     PENTAGRAMA_ACCESS_BLOCKED: 'Pentagrama bloqueó la red del agente. Usa un equipo conectado desde una red autorizada.',
     PENTAGRAMA_SESSION_EXPIRED: 'La sesión de Pentagrama no es válida. Revisa la sesión de Brave en el equipo del agente e inténtalo nuevamente.',
@@ -79,7 +82,20 @@
     return filter === 'ALL' ? values : values.filter(item => item.status === filter);
   }
 
-  const publicApi = Object.freeze({ friendlyError, deriveOverview, filterResults, STATUS_LABELS });
+  function operationPollingPolicy(type) {
+    const scanLike = ['scan', 'quick_scan', 'maintenance_rules', 'inventory', 'enrollablesAudit'].includes(String(type || ''));
+    return Object.freeze({
+      intervalMs: 1000,
+      maxIntervalMs: 5000,
+      deadlineMs: scanLike ? 130 * 60 * 1000 : 30 * 60 * 1000
+    });
+  }
+
+  function isTransientPollError(error) {
+    return Boolean(error && !error.operationFailed && (!error.status || error.status === 429 || error.status >= 500));
+  }
+
+  const publicApi = Object.freeze({ friendlyError, deriveOverview, filterResults, operationPollingPolicy, isTransientPollError, STATUS_LABELS });
   global.HomeEasyPentagramaSyncUI = publicApi;
   if (typeof module === 'object' && module.exports) module.exports = publicApi;
   if (typeof document === 'undefined') return;
@@ -318,9 +334,45 @@
     const scanStages = ['QUEUED', 'READING_HOMEEASY', 'READING_PENTAGRAMA', 'COMPARING']; const applyStages = type === 'rollback' ? ['ROLLING_BACK'] : ['PREWRITE_VALIDATION', 'SNAPSHOT', 'WRITING_SHEET', 'QA']; const stages = type === 'scan' ? scanStages : applyStages; const currentIndex = Math.max(0, stages.indexOf(stage));
     box.hidden = false; $('#hePsProgressTitle').textContent = STAGES[stage] || stage; $('#hePsProgressSteps').innerHTML = stages.map((value, index) => `<span class="${index < currentIndex ? 'done' : index === currentIndex ? 'current' : ''}"><i class="fa-solid ${index < currentIndex ? 'fa-check' : 'fa-circle'}"></i>${esc(STAGES[value].replace('…', ''))}</span>`).join('');
   }
-  async function poll(id, type) { const maxPolls = type === 'scan' ? 1200 : 600; for (let index = 0; index < maxPolls; index += 1) { const data = await request('/api/pentagrama-sync/operations/' + encodeURIComponent(id)); const operation = data.operation; setProgress(operation.stage, type || operation.type); if (operation.state === 'completed') { setProgress(null); return operation; } if (operation.state === 'failed') { const error = new Error(operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED'); error.code = operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED'; throw error; } await new Promise(resolve => setTimeout(resolve, 1000)); } const error = new Error('AGENT_TIMEOUT'); error.code = 'AGENT_TIMEOUT'; throw error; }
+  async function poll(id, type) {
+    const policy = operationPollingPolicy(type);
+    const deadline = Date.now() + policy.deadlineMs;
+    let delayMs = policy.intervalMs;
+    while (Date.now() < deadline) {
+      try {
+        const data = await request('/api/pentagrama-sync/operations/' + encodeURIComponent(id));
+        const operation = data.operation;
+        const progressType = ['apply', 'rollback'].includes(String(type || operation.type || '')) ? String(type || operation.type) : 'scan';
+        setProgress(operation.stage, progressType);
+        if (operation.state === 'completed') { setProgress(null); return operation; }
+        if (operation.state === 'failed') {
+          const error = new Error(operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED');
+          error.code = operation.error && operation.error.code || 'PENTAGRAMA_SYNC_FAILED';
+          error.operationFailed = true;
+          throw error;
+        }
+        delayMs = policy.intervalMs;
+      } catch (error) {
+        const transient = isTransientPollError(error);
+        if (!transient) throw error;
+        delayMs = Math.min(policy.maxIntervalMs, Math.max(policy.intervalMs, delayMs * 1.5));
+      }
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+    const error = new Error('AGENT_HARD_TIMEOUT'); error.code = 'AGENT_HARD_TIMEOUT'; throw error;
+  }
   function selectSafeDefaults() { state.selected = new Set((state.scan && state.scan.results || []).filter(isSafe).map(item => item.id)); }
   async function refresh(options = {}) { try { const [status, history] = await Promise.all([request('/api/pentagrama-sync/status'), request('/api/pentagrama-sync/history')]); state.status = status; state.scan = status.latestScan; state.history = history.items || []; state.error = null; if (options.resetSelection) selectSafeDefaults(); renderAll(); } catch (error) { state.error = error; renderOverview(); } }
+
+  async function resumeActiveOperation() {
+    const operation = state.status && state.status.activeOperation;
+    if (!operation || state.busy || !['queued', 'running'].includes(operation.state)) return;
+    state.busy = true; state.error = null; renderAll();
+    const visualType = ['apply', 'rollback'].includes(operation.type) ? operation.type : 'scan';
+    try { await poll(operation.id, operation.type || visualType); await refresh({ resetSelection: true }); }
+    catch (error) { state.error = error; setProgress(null); }
+    finally { state.busy = false; renderAll(); }
+  }
 
   async function scan() {
     if (state.busy) return; state.busy = true; state.error = null; renderAll();
@@ -407,6 +459,6 @@
     catch (error) { state.error = error; setProgress(null); await Swal.fire({ icon: 'error', title: 'No se pudo restaurar', text: friendlyError(error), confirmButtonColor: '#a6455a' }); }
     finally { state.busy = false; renderAll(); }
   }
-  function mount() { if (!can('config.read') || $('#panel-pentagrama')) return; document.querySelector('.content').appendChild(panel()); addNav(); $('#hePsScan').onclick = scan; $('#hePsMaintenance').onclick = maintenance; $('#hePsApply').onclick = apply; $('#hePsMore').onclick = () => { state.limit += 50; renderResults(); }; if (new URLSearchParams(location.search).get('section') === 'pentagrama') activate(); refresh({ resetSelection: true }); }
+  function mount() { if (!can('config.read') || $('#panel-pentagrama')) return; document.querySelector('.content').appendChild(panel()); addNav(); $('#hePsScan').onclick = scan; $('#hePsMaintenance').onclick = maintenance; $('#hePsApply').onclick = apply; $('#hePsMore').onclick = () => { state.limit += 50; renderResults(); }; if (new URLSearchParams(location.search).get('section') === 'pentagrama') activate(); refresh({ resetSelection: true }).then(resumeActiveOperation); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(mount, 600)); else setTimeout(mount, 600);
 })(typeof window !== 'undefined' ? window : globalThis);
