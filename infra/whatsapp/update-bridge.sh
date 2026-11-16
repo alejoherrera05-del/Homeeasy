@@ -41,6 +41,10 @@ BRIDGE_FILES=(
   Dockerfile
   package.json
 )
+BRIDGE_DIRS=(
+  pentagrama-sync
+  pentagrama-agents
+)
 
 cleanup() {
   rm -rf -- "$TMP_DIR"
@@ -48,12 +52,18 @@ cleanup() {
 }
 
 restore_files() {
-  local file
+  local file directory
   for file in "${BRIDGE_FILES[@]}"; do
     if [[ -f "$BACKUP_DIR/bridge/$file" ]]; then
       cp -a -- "$BACKUP_DIR/bridge/$file" "$INSTALL_DIR/bridge/$file"
     else
       rm -f -- "$INSTALL_DIR/bridge/$file"
+    fi
+  done
+  for directory in "${BRIDGE_DIRS[@]}"; do
+    rm -rf -- "$INSTALL_DIR/bridge/$directory"
+    if [[ -d "$BACKUP_DIR/bridge/$directory" ]]; then
+      cp -a -- "$BACKUP_DIR/bridge/$directory" "$INSTALL_DIR/bridge/$directory"
     fi
   done
 }
@@ -190,6 +200,12 @@ for file in "${BRIDGE_FILES[@]}"; do
     exit 1
   fi
 done
+for directory in "${BRIDGE_DIRS[@]}"; do
+  if [[ ! -d "$SOURCE_BRIDGE/$directory" ]]; then
+    echo "El release no contiene infra/whatsapp/bridge/$directory/."
+    exit 1
+  fi
+done
 
 EXPECTED_VERSION="$(sed -n "s/^const BRIDGE_VERSION = '\([^']*\)';/\1/p" "$SOURCE_BRIDGE/server.js" | head -n 1)"
 if [[ -z "$EXPECTED_VERSION" ]]; then
@@ -227,6 +243,11 @@ for file in "${BRIDGE_FILES[@]}"; do
     cp -a -- "$INSTALL_DIR/bridge/$file" "$BACKUP_DIR/bridge/$file"
   fi
 done
+for directory in "${BRIDGE_DIRS[@]}"; do
+  if [[ -d "$INSTALL_DIR/bridge/$directory" ]]; then
+    cp -a -- "$INSTALL_DIR/bridge/$directory" "$BACKUP_DIR/bridge/$directory"
+  fi
+done
 if [[ -d "$INSTALL_DIR/data/bridge/hommy-inbox" ]]; then
   tar -czf "$BACKUP_DIR/hommy-inbox.tar.gz" -C "$INSTALL_DIR/data/bridge" hommy-inbox
 fi
@@ -257,11 +278,18 @@ BACKUP_DIR="$BACKUP_DIR"
 ROLLBACK_IMAGE="$ROLLBACK_IMAGE"
 BRIDGE_LOCAL_PORT="$BRIDGE_LOCAL_PORT"
 BRIDGE_FILES=(server.js auth.js operations.js conversation.js inbox.js intelligence.js hommy-workspace.js operational-overview.js team-ai.js hommy-desk.js hommy-self-check.js hommy-week-study.js hommy-customer-pilot.js hommy-auto-reply.js maintenance.js Dockerfile package.json)
+BRIDGE_DIRS=(pentagrama-sync pentagrama-agents)
 for file in "\${BRIDGE_FILES[@]}"; do
   if [[ -f "\$BACKUP_DIR/bridge/\$file" ]]; then
     cp -a -- "\$BACKUP_DIR/bridge/\$file" "\$INSTALL_DIR/bridge/\$file"
   else
     rm -f -- "\$INSTALL_DIR/bridge/\$file"
+  fi
+done
+for directory in "\${BRIDGE_DIRS[@]}"; do
+  rm -rf -- "\$INSTALL_DIR/bridge/\$directory"
+  if [[ -d "\$BACKUP_DIR/bridge/\$directory" ]]; then
+    cp -a -- "\$BACKUP_DIR/bridge/\$directory" "\$INSTALL_DIR/bridge/\$directory"
   fi
 done
 if [[ -f "\$INSTALL_DIR/data/bridge/hommy-intelligence/state-v2.json" ]]; then
@@ -280,6 +308,11 @@ ROLLBACK_READY=true
 echo "Copiando exclusivamente archivos raíz del Bridge..."
 for file in "${BRIDGE_FILES[@]}"; do
   cp -a -- "$SOURCE_BRIDGE/$file" "$INSTALL_DIR/bridge/$file"
+done
+echo "Copiando módulos versionados de Pentagrama..."
+for directory in "${BRIDGE_DIRS[@]}"; do
+  rm -rf -- "$INSTALL_DIR/bridge/$directory"
+  cp -a -- "$SOURCE_BRIDGE/$directory" "$INSTALL_DIR/bridge/$directory"
 done
 
 echo "Preparando almacenamiento privado del inbox..."
