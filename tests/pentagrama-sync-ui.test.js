@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { deriveOverview, filterResults, friendlyError } = require('../homeeasy-pentagrama-sync.js');
+const { deriveOverview, filterResults, friendlyError, operationPollingPolicy, isTransientPollError } = require('../homeeasy-pentagrama-sync.js');
 
 test('dashboard distinguishes full, partial, actionable and operational error states', () => {
   const agents = [{ online: true }];
@@ -27,4 +27,14 @@ test('technical errors are translated into safe user-facing guidance', () => {
   assert.match(friendlyError({ code: 'PENTAGRAMA_SESSION_EXPIRED' }), /sesión de Pentagrama/);
   assert.match(friendlyError({ code: 'PENTAGRAMA_SCAN_EXPIRED' }), /análisis venció/);
   assert.match(friendlyError({ code: 'QA_FAILED' }), /restaurado automáticamente/);
+});
+
+test('deep maintenance polling outlives the backend hard timeout and transient restarts', () => {
+  assert.equal(operationPollingPolicy('scan').deadlineMs, 130 * 60 * 1000);
+  assert.equal(operationPollingPolicy('buildLocalEnrollablesSnapshot').deadlineMs, 30 * 60 * 1000);
+  assert.equal(operationPollingPolicy('scan').maxIntervalMs, 5000);
+  assert.equal(isTransientPollError(Object.assign(new Error('network'))), true);
+  assert.equal(isTransientPollError(Object.assign(new Error('bridge'), { status: 503 })), true);
+  assert.equal(isTransientPollError(Object.assign(new Error('failed'), { operationFailed: true })), false);
+  assert.equal(isTransientPollError(Object.assign(new Error('session'), { status: 401 })), false);
 });

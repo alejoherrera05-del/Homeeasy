@@ -30,7 +30,7 @@ test('catalog persists as one private fixed PDF and can be read after restart',t
   assert.equal(read.filename,CATALOG_NAME);
   const stored=path.join(root,'hommy-desk',CATALOG_NAME);
   assert.equal(fs.statSync(stored).size,file.length);
-  assert.equal(fs.statSync(stored).mode&0o077,0);
+  if (process.platform !== 'win32') assert.equal(fs.statSync(stored).mode&0o077,0);
 });
 test('rejects non-PDF, incomplete and oversized uploads without overwriting approved file',t=>{
   const {desk}=setup(t);

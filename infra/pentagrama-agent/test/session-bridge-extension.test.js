@@ -10,6 +10,7 @@ const extensionRoot = path.join(__dirname, '..', 'session-bridge-extension');
 const manifest = JSON.parse(fs.readFileSync(path.join(extensionRoot, 'manifest.json'), 'utf8'));
 const installer = fs.readFileSync(path.join(__dirname, '..', 'installer', 'HomeEasyPentagramaAgent.iss'), 'utf8');
 const build = fs.readFileSync(path.join(__dirname, '..', 'build.ps1'), 'utf8');
+const backgroundSource = fs.readFileSync(path.join(extensionRoot, 'background.js'), 'utf8');
 
 function extensionIdFromKey(key) {
   const digest = crypto.createHash('sha256').update(Buffer.from(String(key), 'base64')).digest().subarray(0, 16);
@@ -39,6 +40,11 @@ test('extension does not request broad all-sites permission', () => {
   const permissions = manifest.host_permissions || [];
   assert.equal(permissions.includes('<all_urls>'), false);
   assert.equal(permissions.some(value => /^https?:\/\/\*\//.test(value)), false);
+});
+
+test('extension republishes an existing Pentagrama session during reconciliation', () => {
+  assert.match(backgroundSource, /async function reconcile\(\)[\s\S]*portalCookies\(\)[\s\S]*publishSession\(cookies\)/);
+  assert.match(backgroundSource, /async function ensurePortalAuthenticated\(tabId\)[\s\S]*await publishSession\(\)/);
 });
 
 test('single setup packages and registers the extension for supported Chromium browsers', () => {

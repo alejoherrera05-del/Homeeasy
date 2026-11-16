@@ -77,6 +77,39 @@ test('heartbeat keeps a long-running job online and exposes its real runtime pha
   assert.deepEqual(await pending, { ok: true });
 });
 
+test('idle heartbeat after an Agent restart requeues the interrupted job on the same machine', async () => {
+  const gateway = fixture({ maxJobRestarts: 2 });
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  const pending = gateway.dispatch('buildLocalEnrollablesSnapshot', { source: { version: 'v1' } }, { lockKey: 'restart-recovery' });
+  const first = await gateway.poll(agent);
+  assert.equal(first.job.type, 'buildLocalEnrollablesSnapshot');
+
+  gateway.heartbeat(agent, {
+    version: '1.6.6',
+    runtime: { status: 'idle', phase: 'STARTED' }
+  });
+  const recovered = await gateway.poll(agent);
+  assert.equal(recovered.job.id, first.job.id);
+  assert.equal(gateway.jobs.get(first.job.id).restartCount, 1);
+
+  gateway.complete(agent, { jobId: recovered.job.id, ok: true, result: { recovered: true } });
+  assert.deepEqual(await pending, { recovered: true });
+});
+
+test('repeated Agent restarts fail a job with a bounded actionable error', async () => {
+  const gateway = fixture({ maxJobRestarts: 1 });
+  const registration = register(gateway);
+  const agent = gateway.authenticate(registration.id, registration.token);
+  const pending = gateway.dispatch('buildLocalEnrollablesSnapshot', {}, { lockKey: 'restart-loop' });
+  const first = await gateway.poll(agent);
+  gateway.heartbeat(agent, { runtime: { status: 'idle', phase: 'STARTED' } });
+  const second = await gateway.poll(agent);
+  assert.equal(second.job.id, first.job.id);
+  gateway.heartbeat(agent, { runtime: { status: 'idle', phase: 'STARTED' } });
+  await assert.rejects(pending, error => error.code === 'AGENT_RESTARTED_LOOP');
+});
+
 test('stale busy state never makes an agent appear online', () => {
   const gatewayModule = require('./gateway');
   const agent = { installationId: 'x', lastSeen: '2020-01-01T00:00:00.000Z' };
@@ -117,8 +150,8 @@ test('late result after timeout is acknowledged and the agent is not double-book
 });
 
 test('latest agent version never regresses below the shipped or minimum version', () => {
-  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.6.0');
-  assert.equal(fixture({ latestVersion: '1.6.0' }).latestVersion, '1.6.0');
+  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.6.6');
+  assert.equal(fixture({ latestVersion: '1.6.6' }).latestVersion, '1.6.6');
 });
 
 test('newer Agents are never offered a downgrade', () => {

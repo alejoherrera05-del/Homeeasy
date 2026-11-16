@@ -52,6 +52,12 @@ class Phase2Store {
   addScan(scan) { this.state.scans.unshift(scan); this.state.scans = this.state.scans.slice(0, 24); this.save(); return scan; }
   scan(id) { return this.state.scans.find(item => item.id === id) || null; }
   operationById(id) { return this.state.operations.find(item => item.id === id) || null; }
+  activeOperation(type = null) {
+    return this.state.operations.find(item =>
+      ['queued', 'running'].includes(String(item && item.state || '')) &&
+      (!type || String(item.type || '') === String(type))
+    ) || null;
+  }
   addHistory(value) { this.state.history.unshift(value); this.state.history = this.state.history.slice(0, 100); this.save(); }
   publicHistory() { return this.state.history.slice(0, 50); }
   latestScan() { return this.state.scans[0] || null; }

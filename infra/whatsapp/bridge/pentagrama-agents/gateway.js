@@ -6,7 +6,7 @@ const path = require('path');
 
 const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot']);
 const MIN_AGENT_VERSION = '1.5.3';
-const LATEST_AGENT_VERSION = '1.6.0';
+const LATEST_AGENT_VERSION = '1.6.6';
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_BUSY',
@@ -94,6 +94,7 @@ class PentagramaAgentGateway {
     );
     this.finishedJobRetentionMs = Math.max(60000, Number(options.finishedJobRetentionMs || 30 * 60 * 1000));
     this.lateResultGraceMs = Math.max(60000, Number(options.lateResultGraceMs || 30 * 60 * 1000));
+    this.maxJobRestarts = Math.max(0, Number(options.maxJobRestarts == null ? 3 : options.maxJobRestarts));
     this.agents = new Map();
     this.jobs = new Map();
     this.finishedJobs = new Map();
@@ -223,6 +224,33 @@ class PentagramaAgentGateway {
       if (activeJob && activeJob.agentId === agent.installationId && typeof activeJob.touch === 'function') {
         activeJob.touch();
       }
+      if (agent.runtime.status === 'idle') {
+        const interrupted = Array.from(this.jobs.values()).find(job =>
+          job.agentId === agent.installationId && job.state === 'running'
+        );
+        if (interrupted) {
+          interrupted.restartCount = Number(interrupted.restartCount || 0) + 1;
+          if (interrupted.restartCount <= this.maxJobRestarts) {
+            interrupted.state = 'queued';
+            interrupted.startedAt = null;
+            interrupted.lastRequeuedAt = agent.lastSeen;
+            agent.lastJob = { id: interrupted.id, type: interrupted.type, state: 'queued', at: agent.lastSeen };
+            if (typeof interrupted.touch === 'function') interrupted.touch();
+            const pending = this.pendingPolls.get(agent.installationId);
+            if (pending) pending({ ok: true, job: this.takeJob(agent) });
+          } else {
+            interrupted.state = 'failed';
+            interrupted.completedAt = agent.lastSeen;
+            interrupted.error = {
+              code: 'AGENT_RESTARTED_LOOP',
+              message: 'Pentagrama Agent restarted repeatedly while processing the same job',
+              infrastructure: true
+            };
+            agent.lastJob = { id: interrupted.id, type: interrupted.type, state: 'failed', at: agent.lastSeen };
+            if (typeof interrupted.finish === 'function') interrupted.finish(interrupted);
+          }
+        }
+      }
     }
     this.persist();
     return {
@@ -340,7 +368,7 @@ class PentagramaAgentGateway {
   runOnAgent(agent, type, payload) {
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
-      const job = { id, agentId: agent.installationId, type, payload, state: 'queued', createdAt: new Date().toISOString() };
+      const job = { id, agentId: agent.installationId, type, payload, state: 'queued', restartCount: 0, createdAt: new Date().toISOString() };
       this.agentLeases.set(agent.installationId, { jobId: id, type, expiresAt: Date.now() + this.lateResultGraceMs });
       let timer;
       const policy = this.timeoutPolicyFor(type);
