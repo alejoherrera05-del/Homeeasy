@@ -694,6 +694,8 @@ test('deployment contract preserves the inbox and rolls intelligence.js back', (
   assert.match(updater, /INBOX_COUNT_AFTER < INBOX_COUNT_BEFORE/);
   assert.match(updater, /INBOX_PREFIX_SHA_AFTER.*!=.*INBOX_PREFIX_SHA_BEFORE/);
   assert.match(updater, /BRIDGE_FILES=\(server\.js auth\.js operations\.js conversation\.js inbox\.js intelligence\.js/);
+  assert.match(updater, /BRIDGE_DIRS=\(pentagrama-sync pentagrama-agents\)/);
+  assert.match(updater, /cp -a -- "\$SOURCE_BRIDGE\/\$directory" "\$INSTALL_DIR\/bridge\/\$directory"/);
   assert.doesNotMatch(updater, /inbox\.enabled[^\n]+!= "false"/);
   assert.match(workflow, /BRIDGE_VERSION = '\\d\+\\\.\\d\+\\\.\\d\+'/);
   assert.doesNotMatch(workflow, /BRIDGE_VERSION = '0\.19\.2'/);
