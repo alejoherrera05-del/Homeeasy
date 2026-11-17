@@ -62,8 +62,10 @@ function liveProduct(item, route) {
     productCode: clean(first(item, ['ProductCode', 'productCode', 'Code', 'code'])),
     groupCode: clean(first(item, ['GroupCode', 'groupCode', 'Group', 'group'])),
     associationGroup: clean(first(item, ['GrupAsoc', 'grupAsoc', 'AssociationGroup', 'associationGroup'])),
+    primaryGroup: clean(first(item, ['PrimaryGroup', 'primaryGroup'])) || 'ENROLLABLE',
     calculationType: clean(first(item, ['CalculationType', 'calculationType'])),
     unit: clean(first(item, ['UnidadMedida', 'unidadMedida', 'Unit', 'unit'])),
+    discount: Number(first(item, ['Discount', 'discount'])) || 0,
     routeKey: route.routeKey,
     categories: { ...route.categories },
     path: route.path.slice()
@@ -387,6 +389,12 @@ class PentagramaEnrollablesAudit {
           productCode: product.productCode,
           groupCode: product.groupCode,
           associationGroup: product.associationGroup,
+          primaryGroup: product.primaryGroup,
+          calculationType: product.calculationType || 'NormalProduct',
+          unit: product.unit,
+          discount: product.discount,
+          categories: product.categories,
+          path: product.path,
           name: product.name
         }))
       };

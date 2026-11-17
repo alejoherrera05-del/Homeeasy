@@ -240,7 +240,7 @@ class PentagramaPhase2 {
     this.inventory = options.inventory || (this.gateway && typeof this.gateway.dispatch === 'function'
       ? new PentagramaCatalogInventory({ ...this.inventoryOptions, gateway: this.gateway })
       : null);
-    this.catalogCertifier = options.catalogCertifier || (this.pricing && typeof this.pricing.supplierCost === 'function' ? new CatalogCertifier({ pricing: this.pricing }) : null);
+    this.catalogCertifier = options.catalogCertifier || (this.pricing && typeof this.pricing.supplierCost === 'function' ? new CatalogCertifier({ pricing: this.pricing, gateway: this.gateway }) : null);
     this.store = options.store || new Phase2Store(options);
   }
 
@@ -276,15 +276,15 @@ class PentagramaPhase2 {
     return operation;
   }
 
-  startEnrollablesAudit(actor) {
+  startEnrollablesAudit(actor, context) {
     const active = this.store.activeOperation && this.store.activeOperation('enrollablesAudit');
     if (active) return active;
     const operation = this.store.operation('enrollablesAudit', actor);
-    setImmediate(() => this.runEnrollablesAudit(operation.id).catch(error => this.fail(operation.id, error)));
+    setImmediate(() => this.runEnrollablesAudit(operation.id, context).catch(error => this.fail(operation.id, error)));
     return operation;
   }
 
-  async runEnrollablesAudit(operationId) {
+  async runEnrollablesAudit(operationId, context) {
     this.store.updateOperation(operationId, {
       state: 'running',
       stage: 'READING_ENROLLABLES',
@@ -315,6 +315,37 @@ class PentagramaPhase2 {
     });
 
     const result = await audit.run();
+    this.store.updateOperation(operationId, { stage: 'CERTIFYING_NEW_REFERENCES' });
+    const source = await this.homeeasy.catalog(context);
+    const catalogActions = await this.buildEnrollableCatalogActions(source, result);
+    const integratedRoutes = new Set((source.products || [])
+      .map(item => String(item && item.rules && item.rules.routeKey || '')).filter(Boolean));
+    const catalogChanges = (result.deltas && result.deltas.addedRoutes || [])
+      .filter(route => !integratedRoutes.has(String(route.routeKey || '')))
+      .map(route => ({
+        status: 'NEW', externalKey: `ENROLLABLE_ROUTE:${String(route.routeKey || '')}`,
+        homeeasyId: '', productCode: '', oldName: '', newName: String(route.referenceName || route.routeKey || ''),
+        family: 'Enrollable', routeKey: route.routeKey, productCount: route.productCount,
+        live: { path: ['ENROLLABLE', 'STANDARD/PLATINA SIN CABEZAL', route.groupName, route.referenceName].filter(Boolean) }
+      }));
+    const scan = {
+      id: crypto.randomUUID(), mode: 'enrollables_maintenance', checkedAt: new Date().toISOString(),
+      sourceVersion: source.version, sourceValidThrough: source.validThrough,
+      catalogSummary: { mode: 'ENROLLABLES_TARGETED', checked: result.live && result.live.uniqueIdentities || 0 },
+      localModelCandidate: null, localModelError: null, catalogInventoryAudit: null,
+      enrollablesRouteAudit: result, enrollablesRouteAuditError: null,
+      catalogChanges, catalogActions,
+      catalogAudit: {
+        total: (source.products || []).length,
+        newReferences: catalogChanges.length,
+        catalogAutoApplicable: catalogActions.filter(item => item.autoApplicable === true).length,
+        catalogCertifiedAdditions: catalogActions.filter(item => item.kind === 'ADD' && item.autoApplicable === true).length,
+        catalogReviewRequired: catalogActions.filter(item => item.autoApplicable !== true).length,
+        maintenanceNote: 'Mantenimiento focalizado de nuevas telas Enrollables; no reconstruye las 279 referencias existentes.'
+      },
+      expiresAt: new Date(Date.now() + SCAN_MAX_AGE_MS).toISOString(), counts: {}, results: []
+    };
+    this.store.addScan(scan);
 
     this.store.updateOperation(operationId, {
       state: 'completed',
@@ -328,7 +359,8 @@ class PentagramaPhase2 {
         leaves: result.live.uniqueRoutes,
         products: result.live.uniqueIdentities
       },
-      result
+      scanId: scan.id,
+      result: { ...result, scanId: scan.id, catalogActions: catalogActions.length }
     });
 
     return result;
@@ -695,6 +727,60 @@ class PentagramaPhase2 {
       }
     }
 
+    return actions;
+  }
+
+  async buildEnrollableCatalogActions(source, routeAudit) {
+    if (!this.catalogCertifier || typeof this.catalogCertifier.certifyEnrollableRoute !== 'function') return [];
+    const sourceProducts = Array.isArray(source && source.products) ? source.products : [];
+    const sourceIds = new Set(sourceProducts.map(item => String(item.id || '')));
+    const integratedRoutes = new Set(sourceProducts.map(item => String(item && item.rules && item.rules.routeKey || '')).filter(Boolean));
+    const actions = [];
+    const routes = routeAudit && routeAudit.deltas && routeAudit.deltas.addedRoutes || [];
+    for (const route of routes) {
+      const routeKey = String(route && route.routeKey || '');
+      if (!routeKey || integratedRoutes.has(routeKey)) continue;
+      try {
+        const certified = await this.catalogCertifier.certifyEnrollableRoute(route, source);
+        if (!certified.ok) {
+          actions.push({
+            id: `catalog-review:ENROLLABLE_ROUTE:${routeKey}`,
+            kind: 'REVIEW', family: 'enrollable', status: 'REVIEW_REQUIRED', autoApplicable: false, certified: false,
+            externalKey: `ENROLLABLE_ROUTE:${routeKey}`, reference: String(route.referenceName || routeKey),
+            reason: certified.reason || 'La ruta nueva no pudo certificarse contra Pentagrama Live.', enrollableRoute: route
+          });
+          continue;
+        }
+        if (sourceIds.has(certified.homeeasyId)) {
+          actions.push({
+            id: `catalog-review:ENROLLABLE_ROUTE:${routeKey}`,
+            kind: 'REVIEW', family: 'enrollable', status: 'REVIEW_REQUIRED', autoApplicable: false, certified: false,
+            homeeasyId: certified.homeeasyId, externalKey: certified.externalKey, reference: certified.reference,
+            reason: 'El ID calculado para la nueva tela ya existe con otra ruta.', enrollableRoute: route
+          });
+          continue;
+        }
+        actions.push({
+          id: `catalog-add:ENROLLABLE_ROUTE:${routeKey}`,
+          kind: 'ADD', family: 'enrollable', status: 'NEW', autoApplicable: true, certified: true,
+          homeeasyId: certified.homeeasyId, externalKey: certified.externalKey,
+          productCode: certified.representative.productCode, reference: certified.reference,
+          proposedRate: certified.rate, minHeight: certified.minHeight, minArea: certified.minArea,
+          evidence: certified.evidence, enrollableRoute: route,
+          mutation: {
+            kind: 'ADD', certified: true, homeeasyId: certified.homeeasyId, expectedExternalKey: '',
+            rowValues: certified.rowValues, qaCases: certified.qaCases
+          }
+        });
+      } catch (error) {
+        actions.push({
+          id: `catalog-review:ENROLLABLE_ROUTE:${routeKey}`,
+          kind: 'REVIEW', family: 'enrollable', status: 'ERROR', autoApplicable: false, certified: false,
+          externalKey: `ENROLLABLE_ROUTE:${routeKey}`, reference: String(route.referenceName || routeKey),
+          reason: String(error && (error.code || error.message) || 'PENTAGRAMA_ENROLLABLE_CERTIFICATION_FAILED'), enrollableRoute: route
+        });
+      }
+    }
     return actions;
   }
 
@@ -1344,14 +1430,21 @@ class PentagramaPhase2 {
 
     const inventory = await this.fullCatalogInventory();
     const catalogInventoryAudit = this.inventoryAudit(source.products || [], inventory);
+    const integratedEnrollableRoutes = new Set((source.products || [])
+      .map(item => String(item && item.rules && item.rules.routeKey || '')).filter(Boolean));
+    const unintegratedEnrollableAddedRoutes = (enrollablesRouteAudit && enrollablesRouteAudit.deltas && enrollablesRouteAudit.deltas.addedRoutes || [])
+      .filter(route => !integratedEnrollableRoutes.has(String(route.routeKey || '')));
+    const enrollableCatalogActions = await this.buildEnrollableCatalogActions(source, enrollablesRouteAudit);
     const catalogActions = [
       ...(await this.buildCatalogActions(source, inventory)),
+      ...enrollableCatalogActions,
       ...this.buildRuleMaintenanceActions(source)
     ];
 
     const enrollablesCatalogChanges = [];
     if (enrollablesRouteAudit) {
       for (const route of enrollablesRouteAudit.deltas && enrollablesRouteAudit.deltas.addedRoutes || []) {
+        if (integratedEnrollableRoutes.has(String(route.routeKey || ''))) continue;
         enrollablesCatalogChanges.push({
           status: 'NEW',
           externalKey: 'ENROLLABLE_ROUTE:' + String(route.routeKey || ''),
@@ -1399,11 +1492,12 @@ class PentagramaPhase2 {
     const certificationById = new Map((this.certificationRegistry.products || []).map(item => [item.homeeasyId, item]));
     if (localModelCandidate) {
       const changed = Number(localModelCandidate.summary && localModelCandidate.summary.changed || 0);
-      const routeStructureSafe = Boolean(
-        enrollablesRouteAudit &&
-        enrollablesRouteAudit.routeComparison &&
-        enrollablesRouteAudit.routeComparison.exactReferenceStructure === true
-      );
+      const routeDeltas = enrollablesRouteAudit && enrollablesRouteAudit.deltas || {};
+      const routeStructureSafe = Boolean(enrollablesRouteAudit &&
+        unintegratedEnrollableAddedRoutes.length === 0 &&
+        (routeDeltas.missingRoutes || []).length === 0 &&
+        (routeDeltas.movedExpectedProducts || []).length === 0 &&
+        (routeDeltas.missingExpectedProductsInRoute || []).length === 0);
       results.push({
         id: 'enrollables-local-model',
         homeeasyId: '__enrollables_local_model__',
@@ -1513,7 +1607,7 @@ class PentagramaPhase2 {
         reviewRequired: results.filter(item => item.status === 'REVIEW_REQUIRED').length,
         unmapped: results.filter(item => item.status === 'UNMAPPED').length, strategies: strategyCounts,
         pentagramaProducts: catalogSummary.products,
-        newReferences: Number(catalogInventoryAudit.counts.NEW || 0) + Number(enrollablesRouteAudit && enrollablesRouteAudit.routeComparison && enrollablesRouteAudit.routeComparison.addedRoutes || 0),
+        newReferences: Number(catalogInventoryAudit.counts.NEW || 0) + unintegratedEnrollableAddedRoutes.length,
         discontinued: Number(catalogInventoryAudit.counts.DISCONTINUED || 0) + Number(enrollablesRouteAudit && enrollablesRouteAudit.routeComparison && enrollablesRouteAudit.routeComparison.missingRoutes || 0),
         renamed: Number(catalogInventoryAudit.counts.RENAMED || 0),
         structureChanged: Number(catalogInventoryAudit.counts.STRUCTURE_CHANGED || 0),
@@ -1522,7 +1616,10 @@ class PentagramaPhase2 {
         enrollablesRoutesLive: Number(enrollablesRouteAudit && enrollablesRouteAudit.live && enrollablesRouteAudit.live.relevantUniqueRoutes || 0),
         enrollablesExtraVariants: Number(enrollablesRouteAudit && enrollablesRouteAudit.routeComparison && enrollablesRouteAudit.routeComparison.additionalVariantsInKnownRoutes || 0),
         enrollablesExcludedPortalRoutes: Number(enrollablesRouteAudit && enrollablesRouteAudit.live && enrollablesRouteAudit.live.excludedPortalRoutes || 0),
-        enrollablesStructureExact: Boolean(enrollablesRouteAudit && enrollablesRouteAudit.routeComparison && enrollablesRouteAudit.routeComparison.exactReferenceStructure),
+        enrollablesStructureExact: Boolean(enrollablesRouteAudit && unintegratedEnrollableAddedRoutes.length === 0 &&
+          !(enrollablesRouteAudit.deltas && enrollablesRouteAudit.deltas.missingRoutes || []).length &&
+          !(enrollablesRouteAudit.deltas && enrollablesRouteAudit.deltas.movedExpectedProducts || []).length &&
+          !(enrollablesRouteAudit.deltas && enrollablesRouteAudit.deltas.missingExpectedProductsInRoute || []).length),
         enrollablesRouteAuditError: enrollablesRouteAuditError && enrollablesRouteAuditError.code || null,
         catalogAutoApplicable: catalogActions.filter(item => item.autoApplicable === true).length,
         catalogRateChanges: catalogActions.filter(item => item.kind === 'UPDATE_RATE' && item.autoApplicable === true).length,
@@ -1559,7 +1656,9 @@ class PentagramaPhase2 {
     const ruleActions = actions.filter(item => String(item.kind || '') === 'UPDATE_RULES');
     const renewalActions = actions.filter(item => String(item.kind || '') === 'RENEW_VALIDITY');
     const otherActions = actions.filter(item => !['UPDATE_RULES', 'RENEW_VALIDITY'].includes(String(item.kind || '')));
-    const renameOnly = otherActions.length > 0 && otherActions.every(item => String(item.kind || '') === 'RENAME');
+    const enrollableActions = otherActions.filter(item => String(item.family || '').toLowerCase() === 'enrollable');
+    const inventoryActions = otherActions.filter(item => String(item.family || '').toLowerCase() !== 'enrollable');
+    const renameOnly = inventoryActions.length > 0 && inventoryActions.every(item => String(item.kind || '') === 'RENAME');
     const progressOptions = operationId ? {
       onProgress: async progress => {
         this.store.updateOperation(operationId, {
@@ -1567,18 +1666,18 @@ class PentagramaPhase2 {
           progress: {
             ...progress,
             phase: 'CATALOG_REVALIDATION',
-            selectedActions: otherActions.length,
+            selectedActions: inventoryActions.length,
             scope: renameOnly ? 'CORTINA_RING' : 'FULL_CATALOG'
           }
         });
       }
     } : {};
-    const inventory = otherActions.length ? await this.fullCatalogInventory({
+    const inventory = inventoryActions.length ? await this.fullCatalogInventory({
       ...progressOptions,
       ...(renameOnly ? { rootFilter: ringCatalogRoot } : {})
     }) : { products: [] };
     const liveByKey = new Map((inventory.products || []).map(item => [String(item.externalKey || ''), item]));
-    const source = (ruleActions.length || renewalActions.length) ? await this.homeeasy.catalog(context) : null;
+    const source = (ruleActions.length || renewalActions.length || enrollableActions.length) ? await this.homeeasy.catalog(context) : null;
     const sourceById = new Map((source && source.products || []).map(item => [String(item.id), item]));
     const verified = [];
 
@@ -1638,6 +1737,27 @@ class PentagramaPhase2 {
             rowValues,
             qaCases
           }
+        });
+        continue;
+      }
+      if (String(action.family || '').toLowerCase() === 'enrollable') {
+        if (kind !== 'ADD' || !action.enrollableRoute) {
+          throw Object.assign(new Error('Acción dinámica de Enrollables no soportada.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        }
+        if (sourceById.has(String(action.homeeasyId || ''))) {
+          throw Object.assign(new Error('La nueva tela ya existe en HomeEasy antes de aplicar.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        }
+        const certified = await this.catalogCertifier.certifyEnrollableRoute(action.enrollableRoute, {
+          version: source && source.version || scan.sourceVersion,
+          validThrough: source && source.validThrough || scan.sourceValidThrough
+        });
+        if (!certified.ok || String(certified.homeeasyId) !== String(action.homeeasyId) ||
+          Math.abs(Number(certified.rate) - Number(action.proposedRate)) > 0.005) {
+          throw Object.assign(new Error('La nueva tela dejó de coincidir con la certificación del escaneo.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        }
+        verified.push({
+          ...action,
+          mutation: { ...action.mutation, certified: true, rowValues: certified.rowValues, qaCases: certified.qaCases }
         });
         continue;
       }

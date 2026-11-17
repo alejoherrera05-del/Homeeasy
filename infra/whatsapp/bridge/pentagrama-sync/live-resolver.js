@@ -113,6 +113,36 @@ function fallbackFor(homeeasyId) {
   return { allowed, reason: allowed ? 'HomeEasy local mapping is CERTIFIED' : 'HomeEasy local mapping is not CERTIFIED' };
 }
 
+function dynamicProduct(input = {}) {
+  const raw = input && input.productSpec;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const text = value => String(value === undefined || value === null ? '' : value).trim();
+  const categories = raw.categories && typeof raw.categories === 'object' ? raw.categories : {};
+  const productCode = text(raw.productCode);
+  const groupCode = text(raw.groupCode);
+  const associationGroup = text(raw.associationGroup);
+  if (!productCode || !groupCode || !associationGroup || text(categories.Cat1) !== '4' || text(categories.Cat2) !== '79') {
+    throw Object.assign(new Error('Dynamic Enrollable identity is incomplete'), { code: 'PENTAGRAMA_LIVE_PRODUCT_SPEC_INVALID' });
+  }
+  return Object.freeze({
+    homeeasyId: text(raw.homeeasyId) || `dynamic-${productCode.toLowerCase()}`,
+    reference: text(raw.reference || raw.referenceName || raw.name),
+    productCode,
+    groupCode,
+    associationGroup,
+    primaryGroup: text(raw.primaryGroup) || 'ENROLLABLE',
+    calculationType: text(raw.calculationType) || 'NormalProduct',
+    discount: Number(raw.discount || 0),
+    system: text(raw.system) || 'STANDARD/PLATINA SIN CABEZAL',
+    head: text(raw.head),
+    categories: Object.freeze({
+      Cat1: text(categories.Cat1), Cat2: text(categories.Cat2),
+      Cat3: text(categories.Cat3), Cat4: text(categories.Cat4), Cat5: text(categories.Cat5) || '0'
+    }),
+    dynamic: true
+  });
+}
+
 class PentagramaLiveResolver {
   constructor({ catalog, pricing, vatRate = 0.19 } = {}) {
     this.catalog = catalog;
@@ -121,7 +151,7 @@ class PentagramaLiveResolver {
   }
 
   product(input = {}) {
-    return SUPPORTED_PRODUCTS[String(input.homeeasyId || input.product || '').trim()] || null;
+    return SUPPORTED_PRODUCTS[String(input.homeeasyId || input.product || '').trim()] || dynamicProduct(input);
   }
 
   priceParams(product, width, height, quantity) {
@@ -316,10 +346,10 @@ class PentagramaLiveResolver {
       },
       pricing: { ...base, complements, subtotal, vatRate: this.vatRate, total },
       alternative: alternative ? { id: orientation.id, label: orientation.label, mechanism, requiresConfirmedCost: false } : null,
-      fallback: fallbackFor(product.homeeasyId)
+      fallback: product.dynamic ? { allowed: false, reason: 'Dynamic products require current Pentagrama evidence' } : fallbackFor(product.homeeasyId)
     };
   }
 }
 
 module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, CERTIFIED_FALLBACKS, COMPLEMENTS, attributeOption, defaultMap,
-  dependencyDefaultMap, fixedAmount, hasAttributeField, orientationFor });
+  dependencyDefaultMap, dynamicProduct, fixedAmount, hasAttributeField, orientationFor });
