@@ -9,6 +9,7 @@ const { Logger } = require('./logger');
 const dpapi = require('./dpapi');
 const { PentagramaSessionBridge } = require('./session-bridge');
 const { AgentUpdater } = require('./updater');
+const { startPowerGuard } = require('./power-guard');
 let createPentagramaSync;
 try {
   ({ createPentagramaSync } = require('../core'));
@@ -287,6 +288,7 @@ async function main() {
       runtime = jobHeartbeat.runtime;
       logger.info('job_started', { jobId: delivery.job.id, type: delivery.job.type, phase: runtime.phase });
       let outcome;
+      const powerGuard = startPowerGuard({ logger });
       try {
         const result = await runJob(delivery.job, sync);
         pentagrama = { status: 'ready', checkedAt: new Date().toISOString() };
@@ -295,6 +297,8 @@ async function main() {
         const safeError = publicError(error);
         pentagrama = { status: 'error', checkedAt: new Date().toISOString(), code: safeError.code };
         outcome = { jobId: delivery.job.id, ok: false, error: safeError, pentagrama };
+      } finally {
+        powerGuard.stop();
       }
       jobHeartbeat.stop(outcome.ok ? 'COMPLETED' : 'FAILED');
       runtime = { status: 'idle', phase: outcome.ok ? 'COMPLETED' : 'FAILED', updatedAt: new Date().toISOString() };
