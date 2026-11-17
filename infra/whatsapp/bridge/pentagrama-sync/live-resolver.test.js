@@ -126,6 +126,30 @@ test('live resolver never invents a price for an unmapped product', async () => 
   assert.equal(result.fallback.allowed, false);
 });
 
+test('live resolver accepts a complete current Enrollable identity for targeted new-reference certification', async () => {
+  const { resolver, calls } = fixture();
+  const result = await resolver.resolve({
+    productSpec: {
+      homeeasyId: 'enrollable-blackout-marmol3',
+      reference: 'Mármol 3',
+      productCode: 'ENRSTDBOMARBLA3M',
+      groupCode: '599',
+      associationGroup: 'ENRSTD',
+      primaryGroup: 'ENROLLABLE',
+      calculationType: 'NormalProduct',
+      categories: { Cat1: '4', Cat2: '79', Cat3: '8', Cat4: '2333' }
+    },
+    width: 1.83,
+    height: 2.2,
+    quantity: 1
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.product.productCode, 'ENRSTDBOMARBLA3M');
+  assert.equal(result.product.homeeasyId, 'enrollable-blackout-marmol3');
+  assert.equal(result.fallback.allowed, false);
+  assert.equal(calls.find(call => call[0] === 'alerts')[1].Cat4, '2333');
+});
+
 test('live resolver separates unresolved configuration from explicit non-manufacturability', async () => {
   const unresolvedFixture = fixture({
     catalog: {

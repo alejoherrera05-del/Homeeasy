@@ -10,6 +10,8 @@ const {
   referenceName,
   sourceRowValues
 } = require('./catalog-certifier');
+const structuralProfiles = require('./enrollables-structural-profiles.json');
+const { localFabrication, portalFabricationProfile } = require('./local-model');
 
 function live(overrides = {}) {
   return {
@@ -110,4 +112,58 @@ test('embedded products can be converted into Sheet override rows without losing
   const rules = JSON.parse(row[20]);
   assert.equal(rules.productCode, 'P');
   assert.equal(rules.associationGroup, 'RIECORIN');
+});
+
+test('a genuinely new Enrollable route is priced, structurally certified and converted into one Sheet reference', async () => {
+  const profile = portalFabricationProfile(structuralProfiles.profiles['enrollable-blackout-angora']);
+  const rate = 105707.7;
+  const calls = [];
+  const certifier = new CatalogCertifier({
+    pricing: { supplierCost: async () => ({ total: 1 }) },
+    gateway: {
+      dispatch: async (type, payload) => {
+        assert.equal(type, 'resolveLivePrice');
+        calls.push(payload);
+        const sample = { width: Number(payload.width), height: Number(payload.height) };
+        const fabrication = localFabrication({ rules: { minWidthMm: 250, minHeightMm: 400, fabricationProfile: profile } }, sample, {});
+        if (fabrication.outcome === 'NOT_MANUFACTURABLE') {
+          return { ok: false, outcome: 'NOT_MANUFACTURABLE', code: 'PENTAGRAMA_NOT_MANUFACTURABLE' };
+        }
+        return {
+          ok: true,
+          outcome: fabrication.outcome,
+          configuration: { orientationCode: fabrication.orientationCode, mechanism: fabrication.mechanism },
+          fabrication: {
+            requiresAuthorization: fabrication.requiresAuthorization,
+            warranty: fabrication.warranty
+          },
+          pricing: { total: Math.round(rate * Math.max(sample.width * Math.max(sample.height, 1), 1) * 100) / 100 }
+        };
+      }
+    }
+  });
+  const route = {
+    routeKey: '4|79|8|2333',
+    categories: { Cat1: '4', Cat2: '79', Cat3: '8', Cat4: '2333' },
+    groupName: 'BLACK OUT',
+    referenceName: 'MÁRMOL 3',
+    products: [
+      { name: 'Enrollable Standard Black Out Marmol Alabaster 3 sin Cabezal', productCode: 'ENRSTDBOMARALA3M', groupCode: '599', associationGroup: 'ENRSTD', primaryGroup: 'ENROLLABLE', calculationType: 'NormalProduct', unit: 'UND' },
+      { name: 'Enrollable Standard Black Out Marmol Blanco 3 sin Cabezal', productCode: 'ENRSTDBOMARBLA3M', groupCode: '599', associationGroup: 'ENRSTD', primaryGroup: 'ENROLLABLE', calculationType: 'NormalProduct', unit: 'UND' }
+    ]
+  };
+  const result = await certifier.certifyEnrollableRoute(route, { version: 'v1', validThrough: '2026-12-31' });
+  assert.equal(result.ok, true);
+  assert.equal(result.homeeasyId, 'enrollable-blackout-marmol3');
+  assert.equal(result.reference, 'Mármol 3');
+  assert.equal(result.rate, rate);
+  assert.equal(result.minHeight, 1);
+  assert.equal(result.minArea, 1);
+  assert.equal(result.rowValues.length, 21);
+  assert.equal(result.qaCases.length, 5);
+  const rules = JSON.parse(result.rowValues[20]);
+  assert.equal(rules.routeKey, '4|79|8|2333');
+  assert.equal(rules.variants.length, 2);
+  assert.equal(rules.fabricationProfile.rollWidthMm, 3000);
+  assert.ok(calls.length < 80);
 });
