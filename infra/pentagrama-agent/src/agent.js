@@ -36,6 +36,11 @@ function writePrivate(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, value, { encoding: 'utf8', mode: 0o600 });
 }
+
+function canAttemptUpdate(latestVersion, announcedVersion, retryAt, now = Date.now()) {
+  const latest = String(latestVersion || '');
+  return Boolean(latest) && latest !== String(announcedVersion || '') && Number(now) >= Number(retryAt || 0);
+}
 function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 function isDiscardablePendingResultError(error) {
@@ -229,6 +234,7 @@ async function main() {
   let runtime = { status: 'idle', phase: 'STARTED', updatedAt: new Date().toISOString() };
   let failures = 0;
   let announcedUpdate = '';
+  let updateRetryAt = 0;
   let pendingResult = null;
   logger.info('started', { version: VERSION, installationId: agentIdentity.installationId, hostname: agentIdentity.hostname });
   writeRuntimeHealth(runtime);
@@ -265,14 +271,22 @@ async function main() {
       runtime = { status: 'idle', phase: 'POLLING', updatedAt: new Date().toISOString() };
       writeRuntimeHealth(runtime);
       const heartbeat = await api.post('/api/pentagrama-agent/heartbeat', { ...agentIdentity, version: VERSION, pentagrama, runtime }, headers);
-      if (heartbeat.updateAvailable && announcedUpdate !== String(heartbeat.latestVersion || '')) {
+      if (heartbeat.updateAvailable && canAttemptUpdate(heartbeat.latestVersion, announcedUpdate, updateRetryAt)) {
         announcedUpdate = String(heartbeat.latestVersion || '');
         logger.warn('update_available', { currentVersion: VERSION, latestVersion: heartbeat.latestVersion });
         updater.installIfAvailable(heartbeat.latestVersion).then(result => {
-          if (!result.started) return;
+          if (!result.started) {
+            announcedUpdate = '';
+            updateRetryAt = Date.now() + 60000;
+            return;
+          }
           logger.info('update_started', { currentVersion: VERSION, latestVersion: result.version });
           setTimeout(() => process.exit(0), 1500).unref();
-        }).catch(error => logger.warn('update_failed', { code: error.code || 'AGENT_UPDATE_FAILED', latestVersion: heartbeat.latestVersion }));
+        }).catch(error => {
+          announcedUpdate = '';
+          updateRetryAt = Date.now() + 60000;
+          logger.warn('update_failed', { code: error.code || 'AGENT_UPDATE_FAILED', latestVersion: heartbeat.latestVersion, retryInSeconds: 60 });
+        });
       }
       const delivery = await api.post('/api/pentagrama-agent/poll', { ...agentIdentity, version: VERSION, pentagrama, runtime }, headers);
       failures = 0;
@@ -324,4 +338,4 @@ if (require.main === module) {
   main().catch(error => { logger.error('startup_failed', { code: error.code || 'STARTUP_FAILED', message: error.message }); process.exit(1); });
 }
 
-module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, startJobHeartbeat, writeRuntimeHealth, isDiscardablePendingResultError, CATALOG_OPERATIONS });
+module.exports = Object.freeze({ identity, decryptEnvelope, publicError, runJob, startJobHeartbeat, writeRuntimeHealth, isDiscardablePendingResultError, canAttemptUpdate, CATALOG_OPERATIONS });

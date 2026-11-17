@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 process.env.HOMEEASY_AGENT_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-agent-test-'));
-const { decryptEnvelope, publicError, runJob, startJobHeartbeat, isDiscardablePendingResultError } = require('../src/agent');
+const { decryptEnvelope, publicError, runJob, startJobHeartbeat, isDiscardablePendingResultError, canAttemptUpdate } = require('../src/agent');
 const { Logger } = require('../src/logger');
 
 test('agent decrypts the hybrid registration envelope', () => {
@@ -23,6 +23,13 @@ test('agent decrypts the hybrid registration envelope', () => {
     data: data.toString('base64')
   };
   assert.equal(decryptEnvelope(sealed, keys.privateKey).agentToken, 'token');
+});
+
+test('failed updates may retry after a bounded cooldown without hammering the Bridge', () => {
+  assert.equal(canAttemptUpdate('1.6.10', '', 0, 1000), true);
+  assert.equal(canAttemptUpdate('1.6.10', '1.6.10', 0, 1000), false);
+  assert.equal(canAttemptUpdate('1.6.10', '', 61000, 60000), false);
+  assert.equal(canAttemptUpdate('1.6.10', '', 61000, 61000), true);
 });
 
 test('agent executes only allowlisted health, price, catalog and live resolver jobs', async () => {
