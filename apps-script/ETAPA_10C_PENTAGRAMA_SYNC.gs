@@ -22,6 +22,29 @@ function procesarRutaPentagramaSync10C_(ss, data, authValidation) {
 function leerCatalogoPentagramaSync10C_(ss) {
   const sheet = ss.getSheetByName(HOMEEASY_COST_SHEET);
   const values = sheet.getDataRange().getValues();
+  const matrixSheet = ss.getSheetByName(HOMEEASY_COST_MATRIX_SHEET);
+  const matrixValues = matrixSheet && matrixSheet.getLastRow() > 1
+    ? matrixSheet.getRange(2, 1, matrixSheet.getLastRow() - 1, HOMEEASY_COST_MATRIX_HEADERS.length).getValues()
+    : [];
+  const matrixByProduct = {};
+  matrixValues.forEach(function(row, index) {
+    const id = String(row[0] || "").trim();
+    if (!id) return;
+    if (!matrixByProduct[id]) matrixByProduct[id] = [];
+    matrixByProduct[id].push({
+      row: index + 2,
+      productId: id,
+      family: String(row[1] || ""),
+      reference: String(row[2] || ""),
+      minHeight: Number(row[3] || 0),
+      maxHeight: Number(row[4] || 0),
+      minWidth: Number(row[5] || 0),
+      maxWidth: Number(row[6] || 0),
+      currentCost: Number(row[7] || 0),
+      validThrough: normalizarFechaCostos10B_(row[8]),
+      version: String(row[9] || "")
+    });
+  });
   const rowsById = {};
   for (let i = 1; i < values.length; i++) {
     const id = String(values[i][0] || "").trim();
@@ -60,6 +83,7 @@ function leerCatalogoPentagramaSync10C_(ss) {
       pricesIncludeVat: product.pricesIncludeVat === true,
       currency: String(product.currency || "COP"),
       validThrough: String(product.validThrough || catalog.validThrough || ""),
+      matrixCells: matrixByProduct[String(product.id)] || [],
       external: {
         productCode: String(rules.productCode || ""),
         groupCode: String(rules.groupCode || ""),
