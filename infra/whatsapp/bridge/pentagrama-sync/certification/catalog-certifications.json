@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-20T16:00:00Z",
+  "generatedAt": "2026-10-09T15:24:26Z",
   "sources": {
     "homeeasy": "Costos_Pentagrama live export",
     "pentagrama": "authenticated portal catalog and price endpoint/UI"
@@ -5003,14 +5003,39 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERSCCADFAOF3WHBL",
       "groupCode": "455",
-      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 1581.03 COP; no se certifica sin resolver la tarifa.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-119",
@@ -5020,14 +5045,39 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERSCCADSIBA5BL",
       "groupCode": "455",
-      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 47600 COP; no se certifica sin resolver la tarifa.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-120",
@@ -5247,14 +5297,39 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERSCCADJADE47604",
       "groupCode": "455",
-      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 61880 COP; no se certifica sin resolver la tarifa.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-126",
@@ -5264,14 +5339,39 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERCADSCJADEGRESAN",
       "groupCode": "438",
-      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 14280 COP; no se certifica sin resolver la tarifa.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 438",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-127",

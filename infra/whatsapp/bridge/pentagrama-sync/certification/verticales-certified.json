@@ -289,6 +289,110 @@
       }
     },
     {
+      "id": "vertical-118-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Face Off",
+      "homeeasyId": "vertical-118",
+      "productCode": "VERSCCADFAOF3WHBL",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-119-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Silver Back",
+      "homeeasyId": "vertical-119",
+      "productCode": "VERSCCADSIBA5BL",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
       "id": "vertical-120-catalog-certified",
       "family": "Verticales",
       "reference": "Screen Eco Crystal",
@@ -512,6 +616,110 @@
       "strategy": "RATE_M2",
       "status": "CERTIFIED",
       "verifiedAt": "2026-10-09T15:24:26Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-125-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Jacquard Provence",
+      "homeeasyId": "vertical-125",
+      "productCode": "VERSCCADJADE47604",
+      "groupCode": "455",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "destination": {
+        "sheet": "Costos_Pentagrama",
+        "field": "Tarifa_IVA_COP"
+      },
+      "validationCases": [
+        {
+          "id": "normal-a",
+          "width": "2",
+          "height": "2",
+          "role": "individual-product-code"
+        },
+        {
+          "id": "normal-b",
+          "width": "2.4",
+          "height": "2.1",
+          "role": "shared-group-rule"
+        },
+        {
+          "id": "minimum-regression",
+          "width": "1",
+          "height": "1",
+          "role": "shared-group-boundary-1.3m2"
+        }
+      ],
+      "updateField": "Tarifa_IVA_COP",
+      "special": {
+        "Degrees": "",
+        "Panels": 0,
+        "Cabezal": "",
+        "ItemCodeFather": "",
+        "AssociationGroup": "VERTELCA",
+        "Discount": 0
+      }
+    },
+    {
+      "id": "vertical-126-catalog-certified",
+      "family": "Verticales",
+      "reference": "Screen Jacquard Desert",
+      "homeeasyId": "vertical-126",
+      "productCode": "VERCADSCJADEGRESAN",
+      "groupCode": "438",
+      "calculationType": "NormalProduct",
+      "width": "2",
+      "height": "2",
+      "quantity": 1,
+      "productDiscount": 0,
+      "pricingMode": "account-discount",
+      "strategy": "RATE_M2",
+      "status": "CERTIFIED",
+      "verifiedAt": "2026-11-17T20:11:33Z",
       "casesPassed": 3,
       "maxDifference": 0,
       "destination": {

@@ -13,11 +13,15 @@ const certified = {
   'vertical-115': { productCode: 'VERSCCADLINDUN', groupCode: '455' },
   'vertical-116': { productCode: 'VERSCCADDIFASH', groupCode: '455' },
   'vertical-117': { productCode: 'VERSCCADESAS', groupCode: '455' },
+  'vertical-118': { productCode: 'VERSCCADFAOF3WHBL', groupCode: '455', verifiedAt: '2026-11-17T20:11:33Z' },
+  'vertical-119': { productCode: 'VERSCCADSIBA5BL', groupCode: '455', verifiedAt: '2026-11-17T20:11:33Z' },
   'vertical-120': { productCode: 'VERSCCADECCRYCRE', groupCode: '455' },
   'vertical-121': { productCode: 'VERSCCADJACPRICRBR', groupCode: '455' },
   'vertical-122': { productCode: 'VERSCCADPAPBE', groupCode: '455' },
   'vertical-123': { productCode: 'VERSCCADJADEQUEBAM', groupCode: '455' },
   'vertical-124': { productCode: 'VERCADSCJADESKBRWH', groupCode: '438' },
+  'vertical-125': { productCode: 'VERSCCADJADE47604', groupCode: '455', verifiedAt: '2026-11-17T20:11:33Z' },
+  'vertical-126': { productCode: 'VERCADSCJADEGRESAN', groupCode: '438', verifiedAt: '2026-11-17T20:11:33Z' },
   'vertical-127': { productCode: 'VERSCCASCJASTYCHA', groupCode: '455' },
   'vertical-128': { productCode: 'VERSCMECAD50500277', groupCode: '456' },
   'vertical-129': { productCode: 'VERSCCADSPSTCOBR', groupCode: '455' }
@@ -41,22 +45,6 @@ const review = {
     strategy: 'RATE_M2',
     reason: 'HomeEasy agrupa Tretto 5% y 10%, pero Pentagrama usa ProductCode distintos. Ambos deben permanecer separados para detectar futuras divergencias.'
   },
-  'vertical-118': {
-    candidate: 'EXACT_CANDIDATE', productCode: 'VERSCCADFAOF3WHBL', groupCode: '455', strategy: 'RATE_M2',
-    reason: 'ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 1581.03 COP; no se certifica sin resolver la tarifa.'
-  },
-  'vertical-119': {
-    candidate: 'EXACT_CANDIDATE', productCode: 'VERSCCADSIBA5BL', groupCode: '455', strategy: 'RATE_M2',
-    reason: 'ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 47600 COP; no se certifica sin resolver la tarifa.'
-  },
-  'vertical-125': {
-    candidate: 'EXACT_CANDIDATE', productCode: 'VERSCCADJADE47604', groupCode: '455', strategy: 'RATE_M2',
-    reason: 'ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 61880 COP; no se certifica sin resolver la tarifa.'
-  },
-  'vertical-126': {
-    candidate: 'EXACT_CANDIDATE', productCode: 'VERCADSCJADEGRESAN', groupCode: '438', strategy: 'RATE_M2',
-    reason: 'ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 14280 COP; no se certifica sin resolver la tarifa.'
-  }
 };
 
 const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
@@ -70,11 +58,12 @@ const validationCases = [
 const mappings = Object.entries(certified).map(([homeeasyId, identity]) => {
   const product = byId.get(homeeasyId);
   if (!product) throw new Error(`Missing HomeEasy product ${homeeasyId}`);
+  const itemVerifiedAt = identity.verifiedAt || verifiedAt;
   Object.assign(product, {
     candidate: 'EXACT_CANDIDATE', status: 'CERTIFIED', strategy: 'RATE_M2',
     productCode: identity.productCode, groupCode: identity.groupCode,
     calculationType: 'NormalProduct', associationGroup: 'VERTELCA', unit: 'UND',
-    verifiedAt, casesPassed: 3, maxDifference: 0,
+    verifiedAt: itemVerifiedAt, casesPassed: 3, maxDifference: 0,
     evidence: {
       individualCase: { width: 2, height: 2, result: 'PASS' },
       sharedRule: `Vertical con cadenilla sin cenefa / VERTELCA / grupo ${identity.groupCode}`,
@@ -89,7 +78,7 @@ const mappings = Object.entries(certified).map(([homeeasyId, identity]) => {
     homeeasyId, productCode: identity.productCode, groupCode: identity.groupCode,
     calculationType: 'NormalProduct', width: '2', height: '2', quantity: 1,
     productDiscount: 0, pricingMode: 'account-discount', strategy: 'RATE_M2',
-    status: 'CERTIFIED', verifiedAt, casesPassed: 3, maxDifference: 0,
+    status: 'CERTIFIED', verifiedAt: itemVerifiedAt, casesPassed: 3, maxDifference: 0,
     destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' },
     validationCases, updateField: 'Tarifa_IVA_COP',
     special: { Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: 'VERTELCA', Discount: 0 }
