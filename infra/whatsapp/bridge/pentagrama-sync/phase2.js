@@ -1681,8 +1681,18 @@ class PentagramaPhase2 {
     const scan = this.store.scan(String(payload.scanId || ''));
     if (!scan) throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
     const requested = Array.isArray(payload.changeIds) ? new Set(payload.changeIds.map(String)) : new Set();
+    const approvedReviewIds = Array.isArray(payload.approvedReviewIds) ? new Set(payload.approvedReviewIds.map(String)) : new Set();
     const requestedCatalog = Array.isArray(payload.catalogActionIds) ? new Set(payload.catalogActionIds.map(String)) : new Set();
-    const changes = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && requested.has(String(item.id)));
+    const ordinaryChanges = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && requested.has(String(item.id)));
+    const largeVariationApproval = String(payload.approval || '') === 'HUMAN_APPROVED_LARGE_VARIATION';
+    const approvedLargeVariations = largeVariationApproval ? scan.results.filter(item => {
+      if (item.status !== 'REVIEW_REQUIRED' || !approvedReviewIds.has(String(item.id)) || item.reviewReason) return false;
+      if (!Number.isFinite(Number(item.proposedRate)) || !Number.isFinite(Number(item.expectedRate)) || !item.sourceModel) return false;
+      const percent = Math.abs(Number(item.proposedRate) - Number(item.expectedRate)) / Math.max(1, Math.abs(Number(item.expectedRate))) * 100;
+      const mapping = this.mappings.find(candidate => String(candidate.id) === String(item.id));
+      return percent >= 30 && mappingIsCertified(mapping) && Array.isArray(item.priceEvidence) && item.priceEvidence.length >= 3;
+    }).map(item => ({ ...item, humanApprovedLargeVariation: true })) : [];
+    const changes = [...ordinaryChanges, ...approvedLargeVariations];
     const catalogActions = (scan.catalogActions || []).filter(item => item.autoApplicable === true && requestedCatalog.has(String(item.id)));
     const expired = Date.parse(scan.expiresAt) < Date.now();
     const fullyRevalidatedRenameBatch = expired && changes.length === 0 && catalogActions.length > 0 &&
