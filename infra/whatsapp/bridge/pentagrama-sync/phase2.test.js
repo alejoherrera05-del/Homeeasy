@@ -54,6 +54,32 @@ test('grouped mappings stop automatic updates when one variant diverges', async 
   );
 });
 
+test('fixedPrice mappings add VAT and require grouped variants to agree', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-fixed-price-'));
+  const calls = [];
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [], homeeasy: {}, homeeasyCost: {}, pricing: {},
+    gateway: { dispatch: async (type, payload) => {
+      calls.push({ type, payload });
+      return { Price: Number(payload.params.ancho) * Number(payload.params.alto) * 61900 };
+    } }
+  });
+
+  const result = await service.supplierCostForMapping({
+    productCode: 'CRYSTAL-A', groupCode: '871', calculationType: 'NormalProduct',
+    quantity: 1, productDiscount: 0, pricingEndpoint: 'fixedPrice', fixedPriceVatRate: 0.19,
+    special: {}, variants: [{ id: 'special-colour', productCode: 'CRYSTAL-B', groupCode: '886' }]
+  }, { id: 'normal-a', width: '2', height: '2' });
+
+  assert.equal(result.basePrice, 247600);
+  assert.equal(result.total, 294644);
+  assert.equal(result.variantEvidence.length, 2);
+  assert.deepEqual(calls.map(item => item.type), ['catalog', 'catalog']);
+  assert.deepEqual(calls.map(item => item.payload.operation), ['fixedPrice', 'fixedPrice']);
+  assert.deepEqual(calls.map(item => item.payload.params.Code), ['CRYSTAL-A', 'CRYSTAL-B']);
+});
+
 test('active maintenance is exposed and duplicate starts reuse the same operation', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-active-operation-'));
   const store = new Phase2Store({ dataDir: directory });

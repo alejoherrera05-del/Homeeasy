@@ -16,15 +16,15 @@ test('live catalog certification registry is complete and deliberately conservat
     certified: summary.certified,
     reviewRequired: summary.reviewRequired,
     unmapped: summary.unmapped
-  }, { total: 452, exactCandidates: 160, ambiguous: 12, noCandidate: 280, certified: 157, reviewRequired: 15, unmapped: 280 });
+  }, { total: 452, exactCandidates: 167, ambiguous: 5, noCandidate: 280, certified: 165, reviewRequired: 7, unmapped: 280 });
   assert.deepEqual(summary.certifiedStrategies, {
-    RATE_M2: 152, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 5, SPECIAL_CONFIGURATION: 0
+    RATE_M2: 160, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 5, SPECIAL_CONFIGURATION: 0
   });
 });
 
 test('One Click accepts only mappings carrying a complete Pentagrama certificate', () => {
   const accepted = INITIAL_MAPPINGS.filter(mappingIsCertified).map(item => item.homeeasyId).sort();
-  assert.equal(accepted.length, 131);
+  assert.equal(accepted.length, 139);
   assert.ok(accepted.includes('onda-0'));
   assert.ok(accepted.includes('onda-77'));
   assert.ok(!accepted.includes('onda-10'));
@@ -37,7 +37,9 @@ test('One Click accepts only mappings carrying a complete Pentagrama certificate
   assert.ok(accepted.includes('vertical-129'));
   assert.ok(accepted.includes('coverlight-standard'));
   assert.ok(accepted.includes('perfil-basico-out'));
-  assert.ok(!accepted.includes('vertical-111'));
+  assert.ok(accepted.includes('vertical-111'));
+  assert.ok(accepted.includes('vertical-110'));
+  assert.ok(accepted.includes('sheer-155'));
 });
 
 test('Onda Comfort certificate reproduces both normal measures and the billing minimum', () => {
@@ -53,10 +55,10 @@ test('Onda Comfort certificate reproduces both normal measures and the billing m
 
 test('mandatory regression controls remain outside unsafe automatic strategies', () => {
   const byId = new Map(registry.products.map(item => [item.homeeasyId, item]));
-  assert.equal(byId.get('vertical-111').status, 'REVIEW_REQUIRED');
+  assert.equal(byId.get('vertical-111').status, 'CERTIFIED');
   assert.equal(byId.get('vertesse-161').status, 'REVIEW_REQUIRED');
   assert.equal(byId.get('enrollable-blackout-matte3').status, 'REVIEW_REQUIRED');
-  assert.equal(byId.get('sheer-155').status, 'REVIEW_REQUIRED');
+  assert.equal(byId.get('sheer-155').status, 'CERTIFIED');
 });
 
 test('Complement certificates declare the parent, factor and exact destination', () => {
@@ -98,19 +100,21 @@ test('Vertical certificates preserve the 1.3m2 billing minimum without forcing 1
   ]) assert.ok(Math.abs(homeEasyRateCost(sample.rate, source, sample) - sample.portal) <= 0.02);
 });
 
-test('Vertical expansion certifies only exact one-code mappings', () => {
+test('Vertical expansion certifies exact, grouped-equal and selectable configuration mappings', () => {
   const vertical = registry.products.filter(item => item.family === 'Verticales');
   const certified = vertical.filter(item => item.status === 'CERTIFIED');
   assert.equal(vertical.length, 21);
-  assert.equal(certified.length, 17);
-  assert.equal(new Set(certified.map(item => item.productCode)).size, 17);
-  assert.equal(vertical.filter(item => item.status === 'REVIEW_REQUIRED').length, 3);
+  assert.equal(certified.length, 20);
+  assert.equal(new Set(certified.map(item => item.productCode)).size, 20);
+  assert.equal(vertical.filter(item => item.status === 'REVIEW_REQUIRED').length, 0);
   assert.equal(vertical.filter(item => item.status === 'UNMAPPED').length, 1);
   for (const item of certified) {
     assert.equal(item.strategy, 'RATE_M2');
-    assert.equal(item.casesPassed, 3);
+    assert.ok(item.casesPassed >= 3);
     assert.ok(item.maxDifference <= 0.02);
   }
+  assert.equal(registry.products.find(item => item.homeeasyId === 'vertical-110').casesPassed, 9);
+  assert.equal(registry.products.find(item => item.homeeasyId === 'vertical-112').casesPassed, 6);
 });
 
 test('Panel and Sheer certification keeps only deployable mappings in One Click', () => {
@@ -125,7 +129,7 @@ test('Panel and Sheer certification keeps only deployable mappings in One Click'
     certified: sheer.filter(item => item.status === 'CERTIFIED').length,
     review: sheer.filter(item => item.status === 'REVIEW_REQUIRED').length,
     unmapped: sheer.filter(item => item.status === 'UNMAPPED').length
-  }, { certified: 26, review: 5, unmapped: 1 });
+  }, { certified: 31, review: 0, unmapped: 1 });
   assert.equal(registry.products.find(item => item.homeeasyId === 'panel-78').casesPassed, 3);
   assert.match(registry.products.find(item => item.homeeasyId === 'panel-78').reason, /1[.,]6 m[2²]/);
   assert.equal(registry.products.find(item => item.homeeasyId === 'panel-78').maintenanceRequired, true);
@@ -136,5 +140,10 @@ test('Panel and Sheer certification keeps only deployable mappings in One Click'
     assert.equal(mapping.variants.length, 1);
     assert.equal(mapping.status, 'CERTIFIED');
   }
-  assert.ok(!INITIAL_MAPPINGS.some(item => item.homeeasyId.startsWith('sheer-')));
+  assert.equal(INITIAL_MAPPINGS.filter(item => item.homeeasyId.startsWith('sheer-')).length, 5);
+  for (const id of ['sheer-130', 'sheer-141', 'sheer-142', 'sheer-149', 'sheer-155']) {
+    const mapping = INITIAL_MAPPINGS.find(item => item.homeeasyId === id);
+    assert.equal(mapping.pricingEndpoint, 'fixedPrice');
+    assert.equal(mapping.variants.length, 1);
+  }
 });

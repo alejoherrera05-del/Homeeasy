@@ -14,6 +14,7 @@ const EXPANDED_CERTIFIED_MAPPINGS = Object.freeze(
     ...require('./certification/onda-serena-certified.json').mappings,
     ...require('./certification/verticales-certified.json').mappings,
     ...require('./certification/panel-japones-certified.json').mappings,
+    ...require('./certification/sheer-elegance-certified.json').mappings,
     ...require('./certification/complements-certified.json').mappings
   ].map(mapping => Object.freeze({
     ...mapping,
@@ -25,35 +26,6 @@ const EXPANDED_CERTIFIED_MAPPINGS = Object.freeze(
 );
 
 const INITIAL_MAPPINGS = Object.freeze([
-  Object.freeze({
-    id: 'vertical-matte-blanco-120x130',
-    family: 'Vertical',
-    reference: 'Black Out Matte',
-    homeeasyId: 'vertical-111',
-    productCode: 'VERBOMATCAD090',
-    groupCode: '446',
-    calculationType: 'NormalProduct',
-    width: '1.2',
-    height: '1.3',
-    quantity: 1,
-    productDiscount: 0,
-    pricingMode: 'account-discount',
-    strategy: PRICE_STRATEGIES.RATE_M2,
-    status: MAPPING_STATUSES.REVIEW_REQUIRED,
-    verifiedAt: '2026-10-08T00:00:00Z',
-    casesPassed: 3,
-    maxDifference: 10887.94,
-    autoApplicable: false,
-    reviewReason: 'Pentagrama no es lineal en medidas normales; no se puede sustituir la tarifa por una regla proporcional.',
-    destination: Object.freeze({ sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' }),
-    validationCases: Object.freeze([
-      Object.freeze({ id: 'normal-a', width: '2', height: '2', role: 'derive' }),
-      Object.freeze({ id: 'normal-b', width: '2.4', height: '2', role: 'derive' }),
-      Object.freeze({ id: 'minimum-regression', width: '1.2', height: '1.3', role: 'boundary' })
-    ]),
-    updateField: 'Tarifa_IVA_COP',
-    special: Object.freeze({ Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: 'VERTELCA', Discount: 0 })
-  }),
   Object.freeze({
     id: 'onda-coral-white-100x100',
     family: 'Onda Serena',

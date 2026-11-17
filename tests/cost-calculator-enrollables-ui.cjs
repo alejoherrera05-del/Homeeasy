@@ -9,7 +9,11 @@ catalog.push({id:'enrollable-matte183',family:'enrollable',name:'Matte Básico 1
 catalog.push(...[
  {id:'onda-67',family:'onda',name:'Velo Coral White',type:'Velo'},
  {id:'panel-84',family:'panel',name:'Screen Tretto 3%'},
- {id:'vertical-113',family:'vertical',name:'Screen Tretto 3%'},
+ {id:'vertical-113',family:'vertical',name:'April Showers / Nevada / Sinfonía',configurations:[
+  {id:'standard',label:'April Showers · Vertical estándar'},
+  {id:'nevada',label:'Nevada · Vertical estándar'},
+  {id:'sinfonia',label:'Sinfonía · Vertical estándar'}
+ ]},
  {id:'sheer-130',family:'sheer',name:'Screen'},
  {id:'vertesse-161',family:'vertesse',name:'Regular traslucente'},
  {id:'vertesse-162',family:'vertesse',name:'Soft / Bisou'}
@@ -95,5 +99,11 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
   assert.equal(a.getLastItems()[0].product,id);
   assert.match(d.querySelector('[data-output=unit]').textContent,/100/);
  }
+ change(w,'[data-field=family]','vertical');change(w,'[data-field=product]','vertical-113');await sleep(30);
+ assert.ok(d.querySelector('[data-field=configuration]'));
+ assert.match(d.querySelector('.product-meta').textContent,/April Showers/);
+ change(w,'[data-field=configuration]','nevada');await sleep(30);
+ assert.equal(a.getLastItems()[0].configuration,'nevada');
+ assert.match(d.querySelector('.product-meta').textContent,/Nevada/);
  a.dom.window.close();console.log('Cotizador UI: Coverlight, borrador, cambio de referencia, instalación, transporte, ganancia y WhatsApp OK');
 })().catch(e=>{console.error(e);process.exitCode=1;});
