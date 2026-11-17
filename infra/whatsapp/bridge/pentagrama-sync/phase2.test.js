@@ -105,6 +105,37 @@ test('apply rejects expired scans', () => {
   assert.throws(() => service.startApply({}, {}, { scanId: 'old' }), error => error.code === 'PENTAGRAMA_SCAN_EXPIRED');
 });
 
+test('expired rename-only batches are accepted because every name is fully revalidated Live before writing', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-expired-renames-'));
+  const store = new Phase2Store({ dataDir: directory });
+  store.addScan({
+    id: 'old-renames', checkedAt: new Date(0).toISOString(), expiresAt: new Date(1).toISOString(), results: [],
+    catalogActions: [
+      { id: 'rename-1', kind: 'RENAME', autoApplicable: true, externalKey: 'P|G|A', reference: 'Current Live name', mutation: {} }
+    ]
+  });
+  const service = new PentagramaPhase2({ store, mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {} });
+  service.runApply = async () => {};
+  const operation = service.startApply({}, {}, { scanId: 'old-renames', catalogActionIds: ['rename-1'] });
+  assert.equal(operation.type, 'apply');
+});
+
+test('expired batches containing price mutations remain blocked', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-expired-price-'));
+  const store = new Phase2Store({ dataDir: directory });
+  store.addScan({
+    id: 'old-price', checkedAt: new Date(0).toISOString(), expiresAt: new Date(1).toISOString(), results: [],
+    catalogActions: [
+      { id: 'rate-1', kind: 'UPDATE_RATE', autoApplicable: true, externalKey: 'P|G|A', proposedRate: 100, mutation: {} }
+    ]
+  });
+  const service = new PentagramaPhase2({ store, mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {} });
+  assert.throws(
+    () => service.startApply({}, {}, { scanId: 'old-price', catalogActionIds: ['rate-1'] }),
+    error => error.code === 'PENTAGRAMA_SCAN_EXPIRED'
+  );
+});
+
 test('post-apply mismatch rolls back the affected batch automatically', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-rollback-'));
   const store = new Phase2Store({ dataDir: directory }); let rolledBack = null;
