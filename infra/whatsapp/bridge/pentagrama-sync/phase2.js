@@ -1525,11 +1525,17 @@ class PentagramaPhase2 {
 
   startApply(actor, context, payload) {
     const scan = this.store.scan(String(payload.scanId || ''));
-    if (!scan || Date.parse(scan.expiresAt) < Date.now()) throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
+    if (!scan) throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
     const requested = Array.isArray(payload.changeIds) ? new Set(payload.changeIds.map(String)) : new Set();
     const requestedCatalog = Array.isArray(payload.catalogActionIds) ? new Set(payload.catalogActionIds.map(String)) : new Set();
     const changes = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && requested.has(String(item.id)));
     const catalogActions = (scan.catalogActions || []).filter(item => item.autoApplicable === true && requestedCatalog.has(String(item.id)));
+    const expired = Date.parse(scan.expiresAt) < Date.now();
+    const fullyRevalidatedRenameBatch = expired && changes.length === 0 && catalogActions.length > 0 &&
+      catalogActions.every(item => String(item.kind || '') === 'RENAME');
+    if (expired && !fullyRevalidatedRenameBatch) {
+      throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
+    }
     if (!changes.length && !catalogActions.length) throw Object.assign(new Error('No verified changes were selected'), { statusCode: 409, code: 'PENTAGRAMA_NO_APPLICABLE_CHANGES' });
     const operation = this.store.operation('apply', actor);
     setImmediate(() => this.runApply(operation.id, scan, changes, catalogActions, context).catch(error => this.fail(operation.id, error)));
