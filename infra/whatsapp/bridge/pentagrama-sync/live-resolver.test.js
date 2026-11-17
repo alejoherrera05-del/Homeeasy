@@ -130,6 +130,23 @@ test('live resolver automatically selects Penta13 when Standard is not manufactu
   assert.equal(result.pricing.complements[0].productCode, 'CENPEN13BLA');
 });
 
+test('live resolver keeps live pricing and uses a certified fabrication profile when portal defaults are blank', async () => {
+  const { resolver } = fixture({ catalog: {
+    defaults: async () => [
+      { FriendlyName: 'direccion-de-la-tela', DefaultValue: '' },
+      { FriendlyName: 'mecanismo', DefaultValue: '' }
+    ]
+  } });
+  const result = await resolver.resolve({ homeeasyId: 'enrollable-blackout-angora', width: 3, height: 2, quantity: 1, configuration: 'auto' });
+  assert.equal(result.ok, true);
+  assert.equal(result.source, 'pentagrama-live-price+certified-fabrication-profile');
+  assert.equal(result.configuration.selectedId, 'standard');
+  assert.equal(result.fabrication.configurationLabel, 'Standard manual sin cabezal');
+  assert.equal(result.configuration.orientationCode, 'DIN');
+  assert.equal(result.configuration.mechanism, 'M05');
+  assert.equal(result.pricing.total, 420546);
+});
+
 test('live resolver adds only explicitly mapped complements through Pentagrama', async () => {
   const { resolver, calls } = fixture();
   const result = await resolver.resolve({ homeeasyId: 'enrollable-blackout-matte3', width: 1, height: 2, quantity: 1, coverlight: 'coverlight-standard' });

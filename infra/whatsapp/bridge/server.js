@@ -101,7 +101,8 @@ async function enrichLivePricePayload(payload = {}) {
       calculationType: rules.calculationType || 'NormalProduct',
       discount: Number(rules.discount || 0),
       system: rules.system || 'STANDARD/PLATINA SIN CABEZAL',
-      categories: rules.categories
+      categories: rules.categories,
+      fabricationProfile: rules.fabricationProfile
     }
   };
 }

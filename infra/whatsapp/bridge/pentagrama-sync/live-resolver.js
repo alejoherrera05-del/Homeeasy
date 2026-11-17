@@ -3,6 +3,7 @@
 const { decimalFraction } = require('./pricing');
 const liveInventory = require('./enrollables-live-products.json');
 const certificationRegistry = require('./certification/catalog-certifications.json');
+const { profileForProduct, resolveFabrication } = require('./certified-fabrication');
 
 const SUPPORTED_PRODUCTS = Object.freeze(Object.fromEntries(
   Object.entries(liveInventory.products || {}).map(([id, product]) => [id, Object.freeze({ ...product, categories: Object.freeze({ ...product.categories }) })])
@@ -139,8 +140,16 @@ function dynamicProduct(input = {}) {
       Cat1: text(categories.Cat1), Cat2: text(categories.Cat2),
       Cat3: text(categories.Cat3), Cat4: text(categories.Cat4), Cat5: text(categories.Cat5) || '0'
     }),
+    fabricationProfile: raw.fabricationProfile && typeof raw.fabricationProfile === 'object' &&
+      Array.isArray(raw.fabricationProfile.mechanismBands)
+      ? Object.freeze({ ...raw.fabricationProfile, mechanismBands: Object.freeze(raw.fabricationProfile.mechanismBands.map(item => Object.freeze({ ...item }))) })
+      : null,
     dynamic: true
   });
+}
+
+function certifiedFabricationProfile(product) {
+  return profileForProduct(product);
 }
 
 class PentagramaLiveResolver {
@@ -199,6 +208,46 @@ class PentagramaLiveResolver {
         };
       }
       if (!standard || !['NOT_MANUFACTURABLE', 'CONFIGURATION_UNRESOLVED'].includes(String(standard.outcome || ''))) return standard;
+
+      if (standard.outcome === 'CONFIGURATION_UNRESOLVED' && !input.coverlight && !(Array.isArray(input.addons) && input.addons.length)) {
+        const product = this.product(input);
+        const profile = certifiedFabricationProfile(product);
+        if (product && profile) {
+          const width = requiredNumber(input.width, 'width');
+          const height = requiredNumber(input.height, 'height');
+          const quantity = Math.trunc(requiredNumber(input.quantity === undefined ? 1 : input.quantity, 'quantity', 1));
+          const local = resolveFabrication(profile, width, height);
+          if (local.outcome !== 'NOT_MANUFACTURABLE' && local.mechanism && local.mechanism !== 'NA') {
+            const pricing = await this.quoteBase(input);
+            const orientation = orientationFor(local.orientationCode);
+            return {
+              ok: true,
+              outcome: local.outcome,
+              source: 'pentagrama-live-price+certified-fabrication-profile',
+              checkedAt: new Date().toISOString(),
+              automaticConfiguration: true,
+              product: { homeeasyId: product.homeeasyId, productCode: product.productCode, groupCode: product.groupCode, reference: product.reference },
+              request: { width, height, quantity },
+              configuration: {
+                orientation: orientation.id, orientationCode: orientation.code, mechanism: local.mechanism, tube: '',
+                system: product.system, head: '', selectedId: 'standard', selectedLabel: 'Standard manual sin cabezal'
+              },
+              fabrication: {
+                supported: true, orientation: orientation.id, mechanism: local.mechanism, tube: '',
+                configurationId: 'standard', configurationLabel: 'Standard manual sin cabezal',
+                requiresAuthorization: local.requiresAuthorization, warranty: local.warranty,
+                source: profile.source || 'Perfil de fabricación certificado'
+              },
+              pricing,
+              alternative: local.outcome === 'ALTERNATIVE'
+                ? { id: orientation.id, label: orientation.label, mechanism: local.mechanism, requiresConfirmedCost: false }
+                : null,
+              standardFailure: { code: standard.code, reason: standard.reason },
+              fallback: { allowed: true, reason: 'Precio Pentagrama Live con perfil de fabricación previamente certificado' }
+            };
+          }
+        }
+      }
 
       const penta13 = await this.resolve({ ...input, configuration: 'penta13' });
       if (penta13 && penta13.ok) {
@@ -392,4 +441,4 @@ class PentagramaLiveResolver {
 }
 
 module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, CERTIFIED_FALLBACKS, COMPLEMENTS, attributeOption, defaultMap,
-  dependencyDefaultMap, dynamicProduct, fixedAmount, hasAttributeField, orientationFor });
+  dependencyDefaultMap, dynamicProduct, certifiedFabricationProfile, fixedAmount, hasAttributeField, orientationFor });
