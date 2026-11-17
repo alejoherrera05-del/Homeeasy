@@ -3,6 +3,7 @@
 const { decimalFraction } = require('./pricing');
 const liveInventory = require('./enrollables-live-products.json');
 const certificationRegistry = require('./certification/catalog-certifications.json');
+const { profileForProduct, resolveFabrication } = require('./certified-fabrication');
 
 const SUPPORTED_PRODUCTS = Object.freeze(Object.fromEntries(
   Object.entries(liveInventory.products || {}).map(([id, product]) => [id, Object.freeze({ ...product, categories: Object.freeze({ ...product.categories }) })])
@@ -139,8 +140,16 @@ function dynamicProduct(input = {}) {
       Cat1: text(categories.Cat1), Cat2: text(categories.Cat2),
       Cat3: text(categories.Cat3), Cat4: text(categories.Cat4), Cat5: text(categories.Cat5) || '0'
     }),
+    fabricationProfile: raw.fabricationProfile && typeof raw.fabricationProfile === 'object' &&
+      Array.isArray(raw.fabricationProfile.mechanismBands)
+      ? Object.freeze({ ...raw.fabricationProfile, mechanismBands: Object.freeze(raw.fabricationProfile.mechanismBands.map(item => Object.freeze({ ...item }))) })
+      : null,
     dynamic: true
   });
+}
+
+function certifiedFabricationProfile(product) {
+  return profileForProduct(product);
 }
 
 class PentagramaLiveResolver {
@@ -187,6 +196,78 @@ class PentagramaLiveResolver {
   }
 
   async resolve(input = {}) {
+    const requested = String(input.configuration || 'standard').trim().toLowerCase();
+    if (requested === 'auto') {
+      const standard = await this.resolve({ ...input, configuration: 'standard' });
+      if (standard && standard.ok) {
+        return {
+          ...standard,
+          automaticConfiguration: true,
+          configuration: { ...(standard.configuration || {}), selectedId: 'standard', selectedLabel: 'Standard manual sin cabezal' },
+          fabrication: { ...(standard.fabrication || {}), configurationId: 'standard', configurationLabel: 'Standard manual sin cabezal' }
+        };
+      }
+      if (!standard || !['NOT_MANUFACTURABLE', 'CONFIGURATION_UNRESOLVED'].includes(String(standard.outcome || ''))) return standard;
+
+      if (standard.outcome === 'CONFIGURATION_UNRESOLVED' && !input.coverlight && !(Array.isArray(input.addons) && input.addons.length)) {
+        const product = this.product(input);
+        const profile = certifiedFabricationProfile(product);
+        if (product && profile) {
+          const width = requiredNumber(input.width, 'width');
+          const height = requiredNumber(input.height, 'height');
+          const quantity = Math.trunc(requiredNumber(input.quantity === undefined ? 1 : input.quantity, 'quantity', 1));
+          const local = resolveFabrication(profile, width, height);
+          if (local.outcome !== 'NOT_MANUFACTURABLE' && local.mechanism && local.mechanism !== 'NA') {
+            const pricing = await this.quoteBase(input);
+            const orientation = orientationFor(local.orientationCode);
+            return {
+              ok: true,
+              outcome: local.outcome,
+              source: 'pentagrama-live-price+certified-fabrication-profile',
+              checkedAt: new Date().toISOString(),
+              automaticConfiguration: true,
+              product: { homeeasyId: product.homeeasyId, productCode: product.productCode, groupCode: product.groupCode, reference: product.reference },
+              request: { width, height, quantity },
+              configuration: {
+                orientation: orientation.id, orientationCode: orientation.code, mechanism: local.mechanism, tube: '',
+                system: product.system, head: '', selectedId: 'standard', selectedLabel: 'Standard manual sin cabezal'
+              },
+              fabrication: {
+                supported: true, orientation: orientation.id, mechanism: local.mechanism, tube: '',
+                configurationId: 'standard', configurationLabel: 'Standard manual sin cabezal',
+                requiresAuthorization: local.requiresAuthorization, warranty: local.warranty,
+                source: profile.source || 'Perfil de fabricación certificado'
+              },
+              pricing,
+              alternative: local.outcome === 'ALTERNATIVE'
+                ? { id: orientation.id, label: orientation.label, mechanism: local.mechanism, requiresConfirmedCost: false }
+                : null,
+              standardFailure: { code: standard.code, reason: standard.reason },
+              fallback: { allowed: true, reason: 'Precio Pentagrama Live con perfil de fabricación previamente certificado' }
+            };
+          }
+        }
+      }
+
+      const penta13 = await this.resolve({ ...input, configuration: 'penta13' });
+      if (penta13 && penta13.ok) {
+        return {
+          ...penta13,
+          outcome: 'ALTERNATIVE',
+          automaticConfiguration: true,
+          configuration: { ...(penta13.configuration || {}), selectedId: 'penta13', selectedLabel: 'Cenefa Penta13 manual' },
+          fabrication: { ...(penta13.fabrication || {}), configurationId: 'penta13', configurationLabel: 'Cenefa Penta13 manual' },
+          alternative: {
+            id: 'penta13', label: 'Cenefa Penta13 manual',
+            mechanism: penta13.fabrication && penta13.fabrication.mechanism,
+            requiresConfirmedCost: false, automaticallySelected: true
+          },
+          standardFailure: { code: standard.code, reason: standard.reason }
+        };
+      }
+      return standard;
+    }
+
     const product = this.product(input);
     if (!product) {
       const homeeasyId = String(input.homeeasyId || input.product || '').trim();
@@ -196,7 +277,7 @@ class PentagramaLiveResolver {
     const height = requiredNumber(input.height, 'height');
     const quantity = Math.trunc(requiredNumber(input.quantity === undefined ? 1 : input.quantity, 'quantity', 1));
     const priceParams = this.priceParams(product, width, height, quantity);
-    const requestedConfiguration = String(input.configuration || 'standard').trim().toLowerCase();
+    const requestedConfiguration = requested;
 
     // Mirrors the portal flow: render the available attributes, validate alerts,
     // request both product price paths, then resolve SAP defaults for the entered size.
@@ -264,6 +345,7 @@ class PentagramaLiveResolver {
     }
 
     const head = String(defaults.cabezal || defaults['tipo-de-cabezal'] || product.head || '').trim().toUpperCase();
+    const tube = String(defaults.tubo || defaults['tipo-de-tubo'] || '').trim().toUpperCase();
     const validation = await this.catalog.validateRoller({
       codigoProducto: product.productCode,
       ancho: width,
@@ -336,11 +418,18 @@ class PentagramaLiveResolver {
       checkedAt: new Date().toISOString(),
       product: { homeeasyId: product.homeeasyId, productCode: product.productCode, groupCode: product.groupCode, reference: product.reference },
       request: { width, height, quantity },
-      configuration: { orientation: orientation.id, orientationCode: orientation.code, mechanism, system: product.system, head: configuredHead ? configuredHead.label : head },
+      configuration: {
+        orientation: orientation.id, orientationCode: orientation.code, mechanism, tube,
+        system: product.system, head: configuredHead ? configuredHead.label : head,
+        selectedId: requestedConfiguration.includes('penta13') ? 'penta13' : 'standard',
+        selectedLabel: requestedConfiguration.includes('penta13') ? 'Cenefa Penta13 manual' : 'Standard manual sin cabezal'
+      },
       fabrication: {
         supported: true,
         orientation: orientation.id,
-        mechanism,
+        mechanism, tube,
+        configurationId: requestedConfiguration.includes('penta13') ? 'penta13' : 'standard',
+        configurationLabel: requestedConfiguration.includes('penta13') ? 'Cenefa Penta13 manual' : 'Standard manual sin cabezal',
         requiresAuthorization: orientation.code === 'TAN' || orientation.code.endsWith('SG'),
         warranty: orientation.code !== 'TAN' && !orientation.code.endsWith('SG')
       },
@@ -352,4 +441,4 @@ class PentagramaLiveResolver {
 }
 
 module.exports = Object.freeze({ PentagramaLiveResolver, SUPPORTED_PRODUCTS, CERTIFIED_FALLBACKS, COMPLEMENTS, attributeOption, defaultMap,
-  dependencyDefaultMap, dynamicProduct, fixedAmount, hasAttributeField, orientationFor });
+  dependencyDefaultMap, dynamicProduct, certifiedFabricationProfile, fixedAmount, hasAttributeField, orientationFor });

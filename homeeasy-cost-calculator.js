@@ -357,6 +357,17 @@ function fabricationOrientationLabel(value){
   return 'Normal';
 }
 
+function fabricationConfigurationLabel(result){
+  const fabrication=result?.fabrication||{};
+  const product=result?.product||{};
+  const base=fabrication.configurationLabel||product.configuration||'Standard manual sin cabezal';
+  const details=[];
+  if(fabrication.mechanism)details.push('mecanismo '+fabrication.mechanism);
+  if(fabrication.tube)details.push('tubo '+fabrication.tube);
+  details.push('tela '+fabricationOrientationLabel(fabrication.orientation).toLowerCase());
+  return [base,...details].filter(Boolean).join(' · ');
+}
+
 function renderFabricationNotice(item,result){
   if(item?.family!=='enrollable'||!result)return '';
 
@@ -368,19 +379,22 @@ function renderFabricationNotice(item,result){
 
   const fabrication=result.fabrication;
   if(result.ok&&fabrication?.supported){
+    const configuration=escape(fabricationConfigurationLabel(result));
     if(fabrication.requiresAuthorization||fabrication.warranty===false){
       const detail=[fabrication.mechanism,fabrication.tube].filter(Boolean).join(' · ');
       return '<div class="fabrication-notice fabrication-notice--warning">'+
         '<i class="fa-solid fa-triangle-exclamation"></i><div><strong>Fabricación especial · '+escape(fabricationOrientationLabel(fabrication.orientation))+'</strong>'+
-        '<span>Esta fabricación requiere autorización y queda sin garantía.'+(detail?' '+escape(detail)+'.':'')+'</span></div>'+
+        '<span>Configuración: '+configuration+'. Esta fabricación requiere autorización y queda sin garantía.'+(detail?' '+escape(detail)+'.':'')+'</span></div>'+
       '</div>';
     }
     if(fabrication.orientation==='atravesada'){
       return '<div class="fabrication-notice fabrication-notice--info">'+
-        '<i class="fa-solid fa-rotate"></i><div><strong>Fabricación atravesada</strong><span>La medida está respaldada por la tabla de fabricación registrada.</span></div>'+
+        '<i class="fa-solid fa-rotate"></i><div><strong>Configuración automática</strong><span>'+configuration+'. Medida respaldada por la tabla de fabricación registrada.</span></div>'+
       '</div>';
     }
-    return '';
+    return '<div class="fabrication-notice fabrication-notice--info">'+
+      '<i class="fa-solid fa-circle-check"></i><div><strong>Configuración automática</strong><span>'+configuration+'.</span></div>'+
+    '</div>';
   }
 
   if(result.requiresAlternative&&Array.isArray(result.alternatives)&&result.alternatives.length){
@@ -894,7 +908,7 @@ async function requestPentagramaLive(item){
       headers:{'Accept':'application/json','Content-Type':'application/json','X-HomeEasy-Session':token,...liveDeviceHeaders()},
       body:JSON.stringify({
         homeeasyId:item.product,width:item.width,height:item.height,quantity:item.quantity||'1',
-        configuration:item.configuration||'standard',coverlight:item.coverlight||'',addons:Array.isArray(item.addons)?item.addons:[]
+        configuration:'auto',coverlight:item.coverlight||'',addons:Array.isArray(item.addons)?item.addons:[]
       })
     });
     const payload=await response.json().catch(()=>null);
@@ -921,7 +935,10 @@ function liveItemResult(item,live,previous){
     requiresAlternative:live.outcome==='ALTERNATIVE',
     alternatives:live.alternative?[live.alternative]:[],
     reason:live.alternative?'Pentagrama indicó una configuración de fabricación alternativa para esta medida.':'',
-    product:{...(previous?.product||{}),id:item.product,name:live.product?.reference||previous?.product?.name||item.product},
+    product:{
+      ...(previous?.product||{}),id:item.product,name:live.product?.reference||previous?.product?.name||item.product,
+      configuration:live.fabrication?.configurationLabel||live.configuration?.selectedLabel||previous?.product?.configuration
+    },
     widthMm:Math.round(Number(String(item.width).replace(',','.'))*1000),
     heightMm:Math.round(Number(String(item.height).replace(',','.'))*1000)
   };
@@ -934,7 +951,8 @@ async function applyPentagramaLive(rawQuote){
     if(!isPentagramaLiveProduct(item.product)||item.mode==='manual')return;
     try{items[index]=liveItemResult(item,await requestPentagramaLive(item),items[index]);}
     catch(error){
-      if(error?.liveResult?.fallback?.allowed&&items[index]?.ok){
+      const explicitRejection=error?.liveResult?.outcome==='NOT_MANUFACTURABLE';
+      if(items[index]?.ok&&!explicitRejection){
         items[index]={...items[index],providerSource:'homeeasy-certified-fallback',providerWarning:error?.message||'Pentagrama no respondió; se usó el mapping local certificado.'};
         return;
       }
@@ -1049,9 +1067,7 @@ async function runQuote(seq,signature){
       installMode:'common',
       promotions:state.promotions
     });
-    // La respuesta de Costos_Pentagrama / modelo local certificado es la fuente
-    // autoritativa para cotizar. No consultamos Pentagrama Live en esta ruta.
-    const quote=data.quote;
+    const quote=hasPentagramaLiveItems()?await applyPentagramaLive(data.quote):data.quote;
     if(seq!==requestSeq||signature!==engineSignature())return;
     applyQuote(quote,quote?.ok?(data.warning||''):(quote?.error||data.msg),signature);
   }catch(e){

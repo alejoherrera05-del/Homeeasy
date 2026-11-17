@@ -16,6 +16,22 @@ const { CatalogCertifier, isRing, isRenueva, referenceName, sourceRowValues } = 
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
 
+function runtimeCertifiedSheetProduct(item) {
+  const rules = item && item.rules || {};
+  const evidence = rules.evidence || {};
+  const prices = Array.isArray(evidence.prices) ? evidence.prices : [];
+  return Boolean(item && item.active !== false && String(item.status || '') === 'VIGENTE' &&
+    String(item.method || '') === 'area' && Number(item.rate) > 0 &&
+    String(rules.source || '').startsWith('PENTAGRAMA_LIVE_') && rules.certifiedAt &&
+    rules.productCode && rules.groupCode && rules.associationGroup && prices.length >= 3 &&
+    rules.fabricationProfile && Array.isArray(rules.fabricationProfile.mechanismBands));
+}
+
+function operationalSheetProduct(item) {
+  const status = String(item && item.status || '');
+  return Boolean(item && item.active !== false && (!status || status === 'VIGENTE') && String(item.method || '') !== 'manual');
+}
+
 function bogotaIsoDate(value = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit'
@@ -411,7 +427,16 @@ class PentagramaPhase2 {
   }
 
   validationCases(mapping) {
-    const cases = Array.isArray(mapping.validationCases) ? mapping.validationCases.slice() : [];
+    const cases = (Array.isArray(mapping.validationCases) ? mapping.validationCases : []).map(item => {
+      if (mapping && mapping.strategy === 'RATE_M2' &&
+        ['individual-product-code', 'shared-group-rule'].includes(String(item && item.role || ''))) {
+        return { ...item, role: 'derive', certificationRole: item.role };
+      }
+      if (mapping && mapping.strategy === 'RATE_M2' && /^shared-group-boundary/.test(String(item && item.role || ''))) {
+        return { ...item, role: 'boundary', certificationRole: item.role };
+      }
+      return { ...item };
+    });
     if (!cases.some(item => String(item.width) === String(mapping.width) && String(item.height) === String(mapping.height))) {
       cases.push({ id: 'primary', width: String(mapping.width), height: String(mapping.height), role: 'evidence' });
     }
@@ -1055,17 +1080,25 @@ class PentagramaPhase2 {
     const results = [];
     const catalogActions = [];
     const verifiedRingIds = new Set();
+    const registryCertifiedIds = new Set((this.certificationRegistry.products || [])
+      .filter(item => item.status === MAPPING_STATUSES.CERTIFIED)
+      .map(item => String(item.homeeasyId)));
+    const runtimeCertifiedIds = new Set(sourceProducts.filter(runtimeCertifiedSheetProduct).map(item => String(item.id)));
     const coveredIds = new Set([
       ...certifiedMappings.map(item => String(item.homeeasyId)),
       ...ringSources.map(item => String(item.id)),
-      ...Array.from(ENROLLABLE_IDS)
+      ...Array.from(ENROLLABLE_IDS),
+      ...registryCertifiedIds,
+      ...runtimeCertifiedIds
     ]);
     const certifiedIds = new Set([
       ...certifiedMappings
         .filter(mapping => mappingRuleAlignment(mapping, sourceById.get(String(mapping.homeeasyId))).ok)
         .map(item => String(item.homeeasyId)),
       ...ringSources.map(item => String(item.id)),
-      ...Array.from(ENROLLABLE_IDS)
+      ...Array.from(ENROLLABLE_IDS),
+      ...registryCertifiedIds,
+      ...runtimeCertifiedIds
     ]);
 
     // Cobertura informativa que no requiere tocar Pentagrama.
@@ -1073,6 +1106,7 @@ class PentagramaPhase2 {
     for (const item of sourceProducts) {
       const id = String(item.id);
       if (coveredIds.has(id)) continue;
+      if (!operationalSheetProduct(item)) continue;
       const certification = certificationById.get(id);
       if (certification && certification.status === 'REVIEW_REQUIRED') {
         results.push({
@@ -1325,7 +1359,11 @@ class PentagramaPhase2 {
         }
       });
     }
-    const mappedIds = new Set(certifiedMappings.map(item => String(item.homeeasyId)));
+    const mappedIds = new Set([
+      ...certifiedMappings.map(item => String(item.homeeasyId)),
+      ...registryCertifiedIds,
+      ...runtimeCertifiedIds
+    ]);
     const catalogAudit = {
       mode: 'PRICE_ONLY',
       maintenanceRequired: false,
@@ -1481,13 +1519,19 @@ class PentagramaPhase2 {
     };
 
     const results = [];
-    const mappedIds = new Set([...this.mappings.map(item => item.homeeasyId), ...ENROLLABLE_IDS]);
+    const registryCertifiedIds = new Set((this.certificationRegistry.products || [])
+      .filter(item => item.status === MAPPING_STATUSES.CERTIFIED)
+      .map(item => String(item.homeeasyId)));
+    const runtimeCertifiedIds = new Set((source.products || []).filter(runtimeCertifiedSheetProduct).map(item => String(item.id)));
+    const mappedIds = new Set([...this.mappings.map(item => item.homeeasyId), ...ENROLLABLE_IDS, ...registryCertifiedIds, ...runtimeCertifiedIds]);
     const sourceByIdForCertification = new Map((source.products || []).map(item => [String(item.id), item]));
     const certifiedMappingIds = new Set([
       ...this.mappings
         .filter(mapping => mappingIsCertified(mapping) && mappingRuleAlignment(mapping, sourceByIdForCertification.get(String(mapping.homeeasyId))).ok)
         .map(item => item.homeeasyId),
-      ...(localModelCandidate ? ENROLLABLE_IDS : [])
+      ...(localModelCandidate ? ENROLLABLE_IDS : []),
+      ...registryCertifiedIds,
+      ...runtimeCertifiedIds
     ]);
     const certificationById = new Map((this.certificationRegistry.products || []).map(item => [item.homeeasyId, item]));
     if (localModelCandidate) {
@@ -1532,6 +1576,7 @@ class PentagramaPhase2 {
 
     for (const item of source.products || []) {
       if (mappedIds.has(item.id)) continue;
+      if (!operationalSheetProduct(item)) continue;
       const certification = certificationById.get(item.id);
       if (certification && certification.status === 'REVIEW_REQUIRED') {
         results.push({ homeeasyId: item.id, family: item.familyName, reference: item.reference,
@@ -1636,8 +1681,18 @@ class PentagramaPhase2 {
     const scan = this.store.scan(String(payload.scanId || ''));
     if (!scan) throw Object.assign(new Error('Scan is missing or expired'), { statusCode: 409, code: 'PENTAGRAMA_SCAN_EXPIRED' });
     const requested = Array.isArray(payload.changeIds) ? new Set(payload.changeIds.map(String)) : new Set();
+    const approvedReviewIds = Array.isArray(payload.approvedReviewIds) ? new Set(payload.approvedReviewIds.map(String)) : new Set();
     const requestedCatalog = Array.isArray(payload.catalogActionIds) ? new Set(payload.catalogActionIds.map(String)) : new Set();
-    const changes = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && requested.has(String(item.id)));
+    const ordinaryChanges = scan.results.filter(item => ['INCREASED', 'DECREASED', 'NEW'].includes(item.status) && item.autoApplicable === true && requested.has(String(item.id)));
+    const largeVariationApproval = String(payload.approval || '') === 'HUMAN_APPROVED_LARGE_VARIATION';
+    const approvedLargeVariations = largeVariationApproval ? scan.results.filter(item => {
+      if (item.status !== 'REVIEW_REQUIRED' || !approvedReviewIds.has(String(item.id)) || item.reviewReason) return false;
+      if (!Number.isFinite(Number(item.proposedRate)) || !Number.isFinite(Number(item.expectedRate)) || !item.sourceModel) return false;
+      const percent = Math.abs(Number(item.proposedRate) - Number(item.expectedRate)) / Math.max(1, Math.abs(Number(item.expectedRate))) * 100;
+      const mapping = this.mappings.find(candidate => String(candidate.id) === String(item.id));
+      return percent >= 30 && mappingIsCertified(mapping) && Array.isArray(item.priceEvidence) && item.priceEvidence.length >= 3;
+    }).map(item => ({ ...item, humanApprovedLargeVariation: true })) : [];
+    const changes = [...ordinaryChanges, ...approvedLargeVariations];
     const catalogActions = (scan.catalogActions || []).filter(item => item.autoApplicable === true && requestedCatalog.has(String(item.id)));
     const expired = Date.parse(scan.expiresAt) < Date.now();
     const fullyRevalidatedRenameBatch = expired && changes.length === 0 && catalogActions.length > 0 &&

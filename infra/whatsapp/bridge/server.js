@@ -19,8 +19,9 @@ const { createPentagramaSync } = require('./pentagrama-sync');
 const { PentagramaAgentGateway } = require('./pentagrama-agents/gateway');
 const { PentagramaPhase2, operationContext } = require('./pentagrama-sync/phase2');
 const { PentagramaScheduler } = require('./pentagrama-sync/scheduler');
+const { HomeEasySyncClient } = require('./pentagrama-sync/homeeasy-sync');
 
-const BRIDGE_VERSION = '0.33.7';
+const BRIDGE_VERSION = '0.33.12';
 const PORT = Number(process.env.PORT || 8080);
 const WAHA_BASE_URL = String(process.env.WAHA_BASE_URL || 'http://waha:3000').replace(/\/$/, '');
 const WAHA_API_KEY = String(process.env.WAHA_API_KEY || '');
@@ -60,6 +61,51 @@ const pentagramaPhase2 = new PentagramaPhase2({
   dataDir: DATA_DIR, pricing: pentagramaSync.pricing, homeeasyCost: pentagramaSync.homeeasy, gateway: pentagramaAgents
 });
 const pentagramaScheduler = new PentagramaScheduler({ phase2: pentagramaPhase2, gateway: pentagramaAgents });
+const homeeasyLiveCatalog = new HomeEasySyncClient({ timeoutMs: 30000 });
+let homeeasyLiveCatalogCache = { expiresAt: 0, value: null, pending: null };
+
+async function catalogForLiveResolution() {
+  const now = Date.now();
+  if (homeeasyLiveCatalogCache.value && homeeasyLiveCatalogCache.expiresAt > now) return homeeasyLiveCatalogCache.value;
+  if (!homeeasyLiveCatalogCache.pending) {
+    homeeasyLiveCatalogCache.pending = homeeasyLiveCatalog.catalog(pentagramaScheduler.context())
+      .then(value => {
+        homeeasyLiveCatalogCache = { expiresAt: Date.now() + 5 * 60 * 1000, value, pending: null };
+        return value;
+      })
+      .catch(error => {
+        homeeasyLiveCatalogCache.pending = null;
+        throw error;
+      });
+  }
+  return homeeasyLiveCatalogCache.pending;
+}
+
+async function enrichLivePricePayload(payload = {}) {
+  if (payload.productSpec || pentagramaSync.liveResolver.product(payload)) return payload;
+  const homeeasyId = String(payload.homeeasyId || payload.product || '').trim();
+  if (!homeeasyId.startsWith('enrollable-')) return payload;
+  const catalog = await catalogForLiveResolution();
+  const product = (catalog.products || []).find(item => String(item.id || '') === homeeasyId);
+  const rules = product && product.rules || {};
+  if (!product || !rules.productCode || !rules.groupCode || !rules.associationGroup || !rules.categories) return payload;
+  return {
+    ...payload,
+    productSpec: {
+      homeeasyId,
+      reference: product.reference || product.name,
+      productCode: rules.productCode,
+      groupCode: rules.groupCode,
+      associationGroup: rules.associationGroup,
+      primaryGroup: rules.primaryGroup || 'ENROLLABLE',
+      calculationType: rules.calculationType || 'NormalProduct',
+      discount: Number(rules.discount || 0),
+      system: rules.system || 'STANDARD/PLATINA SIN CABEZAL',
+      categories: rules.categories,
+      fabricationProfile: rules.fabricationProfile
+    }
+  };
+}
 
 function pentagramaOperationContext(req) {
   const context = operationContext(req);
@@ -1529,7 +1575,7 @@ async function handle(req, res) {
 
   if (req.method === 'POST' && url.pathname === '/api/pentagrama-sync/live-price') {
     await auth.authorize(req, 'cotizaciones.write');
-    const payload = await readJsonBody(req);
+    const payload = await enrichLivePricePayload(await readJsonBody(req));
     const result = await pentagramaAgents.dispatch('resolveLivePrice', payload, {
       lockKey: `live-price:${crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex')}`
     });

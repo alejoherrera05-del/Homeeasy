@@ -689,6 +689,68 @@ test('quick scan checks certified prices without running deep catalog maintenanc
   assert.equal(deepCalls, 0);
 });
 
+test('certified catalog RATE_M2 evidence is reusable when a live price changes', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-certified-roles-'));
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {}
+  });
+  const cases = service.validationCases({
+    strategy: 'RATE_M2',
+    width: '2',
+    height: '2',
+    validationCases: [
+      { id: 'normal-a', width: '2', height: '2', role: 'individual-product-code' },
+      { id: 'normal-b', width: '2.4', height: '2.1', role: 'shared-group-rule' },
+      { id: 'minimum', width: '1', height: '1', role: 'shared-group-boundary-1.3m2' }
+    ]
+  });
+
+  assert.deepEqual(cases.map(item => item.role), ['derive', 'derive', 'boundary']);
+  assert.deepEqual(cases.map(item => item.certificationRole), [
+    'individual-product-code', 'shared-group-rule', 'shared-group-boundary-1.3m2'
+  ]);
+});
+
+test('a large certified variation requires an explicit human approval token', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-large-approval-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const mapping = {
+    id: 'vertical-large', homeeasyId: 'vertical-large', strategy: 'RATE_M2', status: 'CERTIFIED',
+    verifiedAt: '2026-10-08T00:00:00Z', casesPassed: 3, maxDifference: 0,
+    destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' },
+    validationCases: [], special: {}
+  };
+  const service = new PentagramaPhase2({ store, mappings: [mapping], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {} });
+  store.addScan({
+    id: 'large-scan', expiresAt: new Date(Date.now() + 60000).toISOString(), catalogActions: [],
+    results: [{
+      id: 'vertical-large', homeeasyId: 'vertical-large', status: 'REVIEW_REQUIRED', reviewReason: null,
+      expectedRate: 100, proposedRate: 150, sourceModel: { id: 'vertical-large' },
+      priceEvidence: [{}, {}, {}]
+    }]
+  });
+
+  assert.throws(() => service.startApply({}, {}, {
+    scanId: 'large-scan', approvedReviewIds: ['vertical-large']
+  }), error => error.code === 'PENTAGRAMA_NO_APPLICABLE_CHANGES');
+
+  let selected = [];
+  service.runApply = async (operationId, scan, changes) => {
+    selected = changes;
+    store.updateOperation(operationId, { state: 'completed', stage: 'COMPLETED' });
+  };
+  const operation = service.startApply({}, {}, {
+    scanId: 'large-scan', approvedReviewIds: ['vertical-large'],
+    approval: 'HUMAN_APPROVED_LARGE_VARIATION'
+  });
+  for (let index = 0; index < 20 && store.operationById(operation.id).state !== 'completed'; index += 1) {
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+  assert.equal(selected.length, 1);
+  assert.equal(selected[0].humanApprovedLargeVariation, true);
+});
+
 test('expired quick scan offers atomic validity renewal only for successfully verified references', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-validity-renewal-'));
   const store = new Phase2Store({ dataDir: directory });
