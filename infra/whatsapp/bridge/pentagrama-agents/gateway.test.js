@@ -150,8 +150,8 @@ test('late result after timeout is acknowledged and the agent is not double-book
 });
 
 test('latest agent version never regresses below the shipped or minimum version', () => {
-  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.6.11');
-  assert.equal(fixture({ latestVersion: '1.6.6' }).latestVersion, '1.6.11');
+  assert.equal(fixture({ latestVersion: '1.4.5' }).latestVersion, '1.6.12');
+  assert.equal(fixture({ latestVersion: '1.6.6' }).latestVersion, '1.6.12');
 });
 
 test('newer Agents are never offered a downgrade', () => {
