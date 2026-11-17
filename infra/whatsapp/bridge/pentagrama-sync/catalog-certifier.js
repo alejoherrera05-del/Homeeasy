@@ -123,20 +123,26 @@ function legacyReferenceKey(value) {
 function inheritedStructuralProfile(route, productSpec) {
   const key = legacyReferenceKey(route && route.referenceName);
   if (!key) return null;
+  const routeIdentity = normalized(`${route && route.referenceName} ${productSpec && productSpec.productCode}`);
+  const wantsThreeMetre = /\b3M?\b/.test(routeIdentity) || /3M(?:\b|$)/.test(routeIdentity);
   const relatives = Object.entries(liveInventory.products || {}).filter(([, product]) =>
     normalized(product && product.associationGroup) === normalized(productSpec && productSpec.associationGroup) &&
     legacyReferenceKey(product && product.reference) === key
   );
-  if (relatives.length !== 1) return null;
-  const [inheritedFrom] = relatives[0];
+  const sameWidthRelatives = relatives.filter(([, product]) => {
+    const identity = normalized(`${product && product.reference} ${product && product.productCode}`);
+    const isThreeMetre = /\b3M?\b/.test(identity) || /3M(?:\b|$)/.test(identity);
+    return isThreeMetre === wantsThreeMetre;
+  });
+  const selected = sameWidthRelatives.length === 1 ? sameWidthRelatives[0] : relatives.length === 1 ? relatives[0] : null;
+  if (!selected) return null;
+  const [inheritedFrom] = selected;
   const definitions = Object.values(structuralProfiles.profiles || {}).filter(definition =>
     Array.isArray(definition && definition.members) && definition.members.includes(inheritedFrom)
   );
   if (definitions.length !== 1) return null;
   const base = portalFabricationProfile(definitions[0]);
   if (!base) return null;
-  const routeIdentity = normalized(`${route && route.referenceName} ${productSpec && productSpec.productCode}`);
-  const wantsThreeMetre = /\b3M?\b/.test(routeIdentity) || /3M(?:\b|$)/.test(routeIdentity);
   if (!wantsThreeMetre) return { profile: base, inheritedFrom };
   const candidates = structuralCandidates().filter(profile =>
     text(profile.sizeGroup) === text(base.sizeGroup) && Number(profile.rollWidthMm) === 3000

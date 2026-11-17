@@ -210,6 +210,25 @@ test('a new Enrollable inherits only its exact certified family when Pentagrama 
   assert.equal(result.rules.fabricationProfile.rollWidthMm, 3000);
   assert.equal(result.rules.evidence.fabricationSource, 'INHERITED_CERTIFIED_FAMILY');
   assert.equal(result.rules.evidence.inheritedFrom, 'enrollable-blackout-marmol');
+
+  const silver = await certifier.certifyEnrollableRoute({
+    routeKey: '4|79|8|2334', categories: { Cat1: '4', Cat2: '79', Cat3: '8', Cat4: '2334' },
+    groupName: 'BLACK OUT', referenceName: 'MATTE SILVER',
+    products: [{ name: 'Enrollable Standard Black Out Matte Silver sin Cabezal', productCode: 'ENRSTDBOMASIL', groupCode: '306', associationGroup: 'ENRSTD', calculationType: 'NormalProduct', unit: 'UND' }]
+  }, { version: 'v1', validThrough: '2026-12-31' });
+  assert.equal(silver.ok, true);
+  assert.equal(silver.rules.fabricationProfile.rollWidthMm, 1830);
+  assert.equal(silver.rules.evidence.inheritedFrom, 'enrollable-blackout-matte');
+
+  const silver3 = await certifier.certifyEnrollableRoute({
+    routeKey: '4|79|8|2335', categories: { Cat1: '4', Cat2: '79', Cat3: '8', Cat4: '2335' },
+    groupName: 'BLACK OUT', referenceName: 'MATTE SILVER 3',
+    products: [{ name: 'Enrollable Standard Black Out Matte Silver 3 sin Cabezal', productCode: 'ENRSTDBOMASIL3M', groupCode: '599', associationGroup: 'ENRSTD', calculationType: 'NormalProduct', unit: 'UND' }]
+  }, { version: 'v1', validThrough: '2026-12-31' });
+  assert.equal(silver3.ok, true);
+  assert.equal(silver3.rules.fabricationProfile.rollWidthMm, 3000);
+  assert.equal(silver3.rules.evidence.inheritedFrom, 'enrollable-blackout-matte3');
+  assert.equal(structureCalls, 3);
 });
 
 test('an unresolved new Enrollable without an exact certified family remains blocked', async () => {
