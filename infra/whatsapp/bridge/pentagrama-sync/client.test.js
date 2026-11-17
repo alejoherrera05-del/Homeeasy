@@ -63,6 +63,23 @@ test('browser transport rejects a response that resolves back to Pentagrama logi
   );
 });
 
+test('browser transport does not misclassify a generic HTML 500 as an expired session', async () => {
+  const client = new PentagramaClient({
+    auth: fakeAuth(),
+    browserTransport: async request => ({
+      status: 500,
+      url: request.url,
+      headers: { 'content-type': 'text/html' },
+      text: '<html><body>Server Error</body></html>'
+    })
+  });
+
+  await assert.rejects(
+    () => client.get('/Order/GetJsonCategoryList', { Category1: 20 }),
+    error => error && error.code === 'PENTAGRAMA_UNEXPECTED_RESPONSE'
+  );
+});
+
 test('browser transport preserves POST JSON payloads without leaking a synthetic cookie header', async () => {
   let requestSeen = null;
   const client = new PentagramaClient({

@@ -16,6 +16,44 @@ test('change classifier enforces unchanged and review thresholds', () => {
   assert.equal(statusFor(100, 130), 'REVIEW_REQUIRED');
 });
 
+test('grouped mappings require every Pentagrama variant to return the same price', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-variants-'));
+  const calls = [];
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [], homeeasy: {}, homeeasyCost: {}, gateway: {},
+    pricing: { supplierCost: async params => {
+      calls.push(params.ProductCode);
+      return { total: 400000, basePrice: 400000, distributorDiscount: 0, productDiscount: 0, vatRate: 0 };
+    } }
+  });
+  const result = await service.supplierCostForMapping({
+    productCode: 'A', groupCode: '1', calculationType: 'NormalProduct', quantity: 1,
+    productDiscount: 0, pricingMode: 'account-discount', special: { AssociationGroup: 'PANEL' },
+    variants: [{ id: 'second', productCode: 'B', groupCode: '2' }]
+  }, { id: 'normal-a', width: '2', height: '2' });
+  assert.deepEqual(calls, ['A', 'B']);
+  assert.equal(result.variantEvidence.length, 2);
+  assert.equal(result.total, 400000);
+});
+
+test('grouped mappings stop automatic updates when one variant diverges', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-variant-divergence-'));
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [], homeeasy: {}, homeeasyCost: {}, gateway: {},
+    pricing: { supplierCost: async params => ({ total: params.ProductCode === 'A' ? 400000 : 410000 }) }
+  });
+  await assert.rejects(
+    service.supplierCostForMapping({
+      productCode: 'A', groupCode: '1', calculationType: 'NormalProduct', quantity: 1,
+      productDiscount: 0, pricingMode: 'account-discount', special: {},
+      variants: [{ id: 'second', productCode: 'B', groupCode: '2' }]
+    }, { id: 'normal-a', width: '2', height: '2' }),
+    error => error.code === 'PENTAGRAMA_VARIANT_PRICE_DIVERGED'
+  );
+});
+
 test('active maintenance is exposed and duplicate starts reuse the same operation', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-active-operation-'));
   const store = new Phase2Store({ dataDir: directory });

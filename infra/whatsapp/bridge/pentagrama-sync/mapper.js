@@ -19,6 +19,7 @@ const EXPANDED_CERTIFIED_MAPPINGS = Object.freeze(
     ...mapping,
     destination: Object.freeze({ ...mapping.destination }),
     validationCases: Object.freeze(mapping.validationCases.map(item => Object.freeze({ ...item }))),
+    variants: Object.freeze((mapping.variants || []).map(item => Object.freeze({ ...item, special: Object.freeze({ ...(item.special || {}) }) }))),
     special: Object.freeze({ ...mapping.special })
   }))
 );

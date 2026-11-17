@@ -10,7 +10,7 @@ const { INITIAL_MAPPINGS } = require('./mapper');
 
 test('Panel Japonés mappings require maintenance until minimum rule is applied', async () => {
   const panel = INITIAL_MAPPINGS.filter(item => item.family === 'Panel Japonés');
-  assert.equal(panel.length, 29);
+  assert.equal(panel.length, 32);
   assert.ok(panel.every(item => item.status === 'CERTIFIED' && item.expectedMinArea === 1.6));
 
   const mapping = {

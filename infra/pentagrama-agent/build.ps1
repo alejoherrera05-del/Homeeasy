@@ -126,7 +126,9 @@ Copy-Item -LiteralPath $CertificatePath -Destination (Join-Path $appStage 'serve
 @{
   serverUrl = $ServerUrl
   caFile = 'server.crt'
-  extensionIds = @($extensionId, 'cmijhfckibhbdhneapoknlbmfadfmogn')
+  # Keep the immediately previous signed extension accepted during a key
+  # rotation so browser policy refreshes cannot interrupt an Agent upgrade.
+  extensionIds = @($extensionId, 'aehdjkempnjcjfhpfiinombmagkeldon', 'cmijhfckibhbdhneapoknlbmfadfmogn')
   extensionPackage = 'browser-extension/homeeasy-session-bridge.crx'
   extensionVersion = $extensionVersion
 } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $appStage 'config.json') -Encoding utf8NoBOM

@@ -152,8 +152,10 @@ test('session bridge accepts both the current and legacy extension origins', () 
   }
 });
 
-test('browser extension treats Pentagrama HTTP 500 HTML as an expired session', () => {
+test('browser extension only treats a real Pentagrama login page as an expired session', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'session-bridge-extension', 'background.js'), 'utf8');
-  assert.match(source, /Number\(result\.status\) === 500 && \/\^\\s\*<\//);
+  assert.doesNotMatch(source, /Number\(result\.status\) === 500/);
+  assert.match(source, /name=\["'\]Login\["'\]/);
+  assert.match(source, /name=\["'\]Password\["'\]/);
   assert.match(source, /freshLoginUrl\(LOGIN_URL\)/);
 });

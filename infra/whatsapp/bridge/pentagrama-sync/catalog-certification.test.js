@@ -16,15 +16,15 @@ test('live catalog certification registry is complete and deliberately conservat
     certified: summary.certified,
     reviewRequired: summary.reviewRequired,
     unmapped: summary.unmapped
-  }, { total: 452, exactCandidates: 157, ambiguous: 15, noCandidate: 280, certified: 154, reviewRequired: 18, unmapped: 280 });
+  }, { total: 452, exactCandidates: 160, ambiguous: 12, noCandidate: 280, certified: 157, reviewRequired: 15, unmapped: 280 });
   assert.deepEqual(summary.certifiedStrategies, {
-    RATE_M2: 149, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 5, SPECIAL_CONFIGURATION: 0
+    RATE_M2: 152, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 5, SPECIAL_CONFIGURATION: 0
   });
 });
 
 test('One Click accepts only mappings carrying a complete Pentagrama certificate', () => {
   const accepted = INITIAL_MAPPINGS.filter(mappingIsCertified).map(item => item.homeeasyId).sort();
-  assert.equal(accepted.length, 128);
+  assert.equal(accepted.length, 131);
   assert.ok(accepted.includes('onda-0'));
   assert.ok(accepted.includes('onda-77'));
   assert.ok(!accepted.includes('onda-10'));
@@ -120,7 +120,7 @@ test('Panel and Sheer certification keeps only deployable mappings in One Click'
     certified: panel.filter(item => item.status === 'CERTIFIED').length,
     review: panel.filter(item => item.status === 'REVIEW_REQUIRED').length,
     unmapped: panel.filter(item => item.status === 'UNMAPPED').length
-  }, { certified: 29, review: 3, unmapped: 1 });
+  }, { certified: 32, review: 0, unmapped: 1 });
   assert.deepEqual({
     certified: sheer.filter(item => item.status === 'CERTIFIED').length,
     review: sheer.filter(item => item.status === 'REVIEW_REQUIRED').length,
@@ -130,6 +130,11 @@ test('Panel and Sheer certification keeps only deployable mappings in One Click'
   assert.match(registry.products.find(item => item.homeeasyId === 'panel-78').reason, /1[.,]6 m[2²]/);
   assert.equal(registry.products.find(item => item.homeeasyId === 'panel-78').maintenanceRequired, true);
   assert.equal(registry.products.find(item => item.homeeasyId === 'sheer-131').status, 'CERTIFIED');
-  assert.equal(INITIAL_MAPPINGS.filter(item => item.homeeasyId.startsWith('panel-')).length, 29);
+  assert.equal(INITIAL_MAPPINGS.filter(item => item.homeeasyId.startsWith('panel-')).length, 32);
+  for (const id of ['panel-80', 'panel-83', 'panel-109']) {
+    const mapping = INITIAL_MAPPINGS.find(item => item.homeeasyId === id);
+    assert.equal(mapping.variants.length, 1);
+    assert.equal(mapping.status, 'CERTIFIED');
+  }
   assert.ok(!INITIAL_MAPPINGS.some(item => item.homeeasyId.startsWith('sheer-')));
 });

@@ -443,14 +443,60 @@ class PentagramaPhase2 {
     return cases;
   }
 
+  mappingVariants(mapping) {
+    const declared = Array.isArray(mapping && mapping.variants) ? mapping.variants : [];
+    return [
+      { id: 'primary', productCode: mapping.productCode, groupCode: mapping.groupCode },
+      ...declared
+    ].map((variant, index) => ({
+      id: String(variant.id || `variant-${index + 1}`),
+      productCode: String(variant.productCode || mapping.productCode || ''),
+      groupCode: String(variant.groupCode || mapping.groupCode || ''),
+      calculationType: String(variant.calculationType || mapping.calculationType || 'NormalProduct'),
+      special: { ...(mapping.special || {}), ...(variant.special || {}) }
+    }));
+  }
+
+  async supplierCostForMapping(mapping, sample) {
+    const variants = this.mappingVariants(mapping);
+    const quoted = [];
+    for (const variant of variants) {
+      const pentagrama = await this.pricing.supplierCost(
+        pentagramaParamsForCase({
+          ...mapping,
+          productCode: variant.productCode,
+          groupCode: variant.groupCode,
+          calculationType: variant.calculationType,
+          special: variant.special
+        }, sample),
+        { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
+      );
+      quoted.push({ ...variant, pentagrama });
+    }
+    const primary = quoted[0] && quoted[0].pentagrama;
+    const mismatch = quoted.find(item => Math.abs(Number(item.pentagrama && item.pentagrama.total) - Number(primary && primary.total)) > 0.02);
+    if (mismatch) {
+      throw Object.assign(new Error(`Las variantes agrupadas divergieron en ${sample.id || 'la muestra'}.`), {
+        code: 'PENTAGRAMA_VARIANT_PRICE_DIVERGED',
+        details: quoted.map(item => ({ id: item.id, productCode: item.productCode, groupCode: item.groupCode, total: item.pentagrama && item.pentagrama.total }))
+      });
+    }
+    return {
+      ...primary,
+      variantEvidence: quoted.map(item => ({
+        id: item.id,
+        productCode: item.productCode,
+        groupCode: item.groupCode,
+        total: item.pentagrama.total
+      }))
+    };
+  }
+
   async validateMapping(mapping, sourceItem, context) {
     if (!mappingIsReady(mapping)) return { autoApplicable: false, reason: 'El mapping está incompleto.', evidence: [] };
     const evidence = [];
     for (const sample of this.validationCases(mapping)) {
-      const pentagrama = await this.pricing.supplierCost(
-        pentagramaParamsForCase(mapping, sample),
-        { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
-      );
+      const pentagrama = await this.supplierCostForMapping(mapping, sample);
       if (mapping.strategy === 'COMPLEMENT') {
         evidence.push({ ...sample, pentagrama, homeeasy: homeEasyComplementCost(Number(sourceItem.rate), mapping, sourceItem, sample) });
       } else {
@@ -923,10 +969,7 @@ class PentagramaPhase2 {
     let pentagrama;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        pentagrama = await this.pricing.supplierCost(
-          pentagramaParamsForCase(mapping, sample),
-          { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
-        );
+        pentagrama = await this.supplierCostForMapping(mapping, sample);
         break;
       } catch (error) {
         const retryable = ['PENTAGRAMA_UNEXPECTED_RESPONSE', 'AGENT_TRANSPORT_ERROR', 'AGENT_TIMEOUT'].includes(String(error && error.code || ''));
@@ -1004,10 +1047,7 @@ class PentagramaPhase2 {
     const samples = this.validationCases(mapping);
     const evidence = [];
     for (const sample of samples) {
-      const pentagrama = await this.pricing.supplierCost(
-        pentagramaParamsForCase(mapping, sample),
-        { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
-      );
+      const pentagrama = await this.supplierCostForMapping(mapping, sample);
       evidence.push({ ...sample, pentagrama });
     }
     const derives = evidence.filter(item => item.role === 'derive');
@@ -1984,10 +2024,7 @@ class PentagramaPhase2 {
       const complementSourceById = new Map((complementSource && complementSource.products || []).map(product => [String(product.id), product]));
       for (const { item, mapping } of verified) {
         for (const sample of this.validationCases(mapping)) {
-          const pentagrama = await this.pricing.supplierCost(
-            pentagramaParamsForCase(mapping, sample),
-            { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
-          );
+          const pentagrama = await this.supplierCostForMapping(mapping, sample);
           const current = mapping.strategy === 'COMPLEMENT'
             ? homeEasyComplementCost(
               Number(complementSourceById.get(String(mapping.homeeasyId)) && complementSourceById.get(String(mapping.homeeasyId)).rate),
