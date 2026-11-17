@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-REPO_URL="https://github.com/alejoherrera05-del/Homeeasy.git"
+REPO_URL="${HOMEEASY_REPO_URL:-https://github.com/alejoherrera05-del/Homeeasy.git}"
 SOURCE_REF="${HOMEEASY_SOURCE_REF:-main}"
 INSTALL_DIR="${HOMEEASY_INSTALL_DIR:-/opt/homeeasy-whatsapp}"
 TMP_DIR="$(mktemp -d)"
