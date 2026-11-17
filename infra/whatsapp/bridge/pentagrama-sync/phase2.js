@@ -52,6 +52,11 @@ function homeEasyRelevantRoot(root) {
   );
 }
 
+function ringCatalogRoot(root) {
+  const name = normalizedRootName(root && root.name);
+  return name.includes('CORTINA RING') || name.includes('ONDA SERENA');
+}
+
 
 function mappingRuleAlignment(mapping, sourceItem) {
   if (!mapping || !sourceItem) return { ok: false, reason: 'No existe la referencia HomeEasy para validar su regla técnica.' };
@@ -394,10 +399,17 @@ class PentagramaPhase2 {
     return { ...buildProposal(mapping, sourceItem, evidence), evidence };
   }
 
-  async fullCatalogInventory() {
+  async fullCatalogInventory(options = {}) {
     if (!this.gateway) throw Object.assign(new Error('Pentagrama gateway is unavailable'), { code: 'AGENT_OFFLINE' });
     if (!this.inventory) throw Object.assign(new Error('Pentagrama catalog inventory is unavailable'), { code: 'AGENT_OFFLINE' });
-    return this.inventory.scan();
+    const hasOverrides = typeof options.rootFilter === 'function' || typeof options.onProgress === 'function';
+    if (!hasOverrides) return this.inventory.scan();
+    const inventory = new PentagramaCatalogInventory({
+      ...this.inventoryOptions,
+      ...options,
+      gateway: this.gateway
+    });
+    return inventory.scan();
   }
 
   inventoryAudit(sourceProducts, inventory) {
@@ -1542,12 +1554,29 @@ class PentagramaPhase2 {
     return operation;
   }
 
-  async verifyCatalogActions(scan, actions, context) {
+  async verifyCatalogActions(scan, actions, context, operationId = '') {
     if (!actions.length) return [];
     const ruleActions = actions.filter(item => String(item.kind || '') === 'UPDATE_RULES');
     const renewalActions = actions.filter(item => String(item.kind || '') === 'RENEW_VALIDITY');
     const otherActions = actions.filter(item => !['UPDATE_RULES', 'RENEW_VALIDITY'].includes(String(item.kind || '')));
-    const inventory = otherActions.length ? await this.fullCatalogInventory() : { products: [] };
+    const renameOnly = otherActions.length > 0 && otherActions.every(item => String(item.kind || '') === 'RENAME');
+    const progressOptions = operationId ? {
+      onProgress: async progress => {
+        this.store.updateOperation(operationId, {
+          stage: 'PREWRITE_VALIDATION',
+          progress: {
+            ...progress,
+            phase: 'CATALOG_REVALIDATION',
+            selectedActions: otherActions.length,
+            scope: renameOnly ? 'CORTINA_RING' : 'FULL_CATALOG'
+          }
+        });
+      }
+    } : {};
+    const inventory = otherActions.length ? await this.fullCatalogInventory({
+      ...progressOptions,
+      ...(renameOnly ? { rootFilter: ringCatalogRoot } : {})
+    }) : { products: [] };
     const liveByKey = new Map((inventory.products || []).map(item => [String(item.externalKey || ''), item]));
     const source = (ruleActions.length || renewalActions.length) ? await this.homeeasy.catalog(context) : null;
     const sourceById = new Map((source && source.products || []).map(item => [String(item.id), item]));
@@ -1718,7 +1747,7 @@ class PentagramaPhase2 {
       verified.push({ item, mapping, validation });
     }
 
-    const verifiedCatalog = await this.verifyCatalogActions(scan, catalogActions || [], context);
+    const verifiedCatalog = await this.verifyCatalogActions(scan, catalogActions || [], context, operationId);
     const verifiedRenewals = verifiedCatalog.filter(item => String(item.kind || '') === 'RENEW_VALIDITY');
     const verifiedOtherCatalog = verifiedCatalog.filter(item => String(item.kind || '') !== 'RENEW_VALIDITY');
     const revalidatedExpiredRenameBatch = Date.parse(scan.expiresAt) < Date.now() && verified.length === 0 && !localChange &&
