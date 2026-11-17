@@ -163,6 +163,41 @@ test('HomeEasy scheduler client uses the scoped read-only service route', async 
   assert.equal(payload.appSessionToken, '');
 });
 
+test('HomeEasy client retries transient upstream failures before returning the cost', async () => {
+  let attempts = 0;
+  const client = new HomeEasyCostClient({
+    backendUrl: 'https://homeeasy.invalid/exec',
+    retryAttempts: 3,
+    retryDelayMs: 0,
+    fetch: async () => {
+      attempts += 1;
+      if (attempts < 3) throw Object.assign(new Error('temporary network error'), { code: 'ECONNRESET' });
+      return response(JSON.stringify({ status: 'ok', quote: { ok: true, items: [{ unit: 13569570 }] } }));
+    }
+  });
+  const result = await client.cost({ product: 'vertical-114', width: '1', height: '1', quantity: '1' }, { serviceKey: 'scheduler-secret', deviceId: 'pentagrama-scheduler' });
+  assert.equal(attempts, 3);
+  assert.equal(result.amount, 135695.7);
+});
+
+test('HomeEasy client does not retry rejected sessions', async () => {
+  let attempts = 0;
+  const client = new HomeEasyCostClient({
+    backendUrl: 'https://homeeasy.invalid/exec',
+    retryAttempts: 3,
+    retryDelayMs: 0,
+    fetch: async () => {
+      attempts += 1;
+      return response(JSON.stringify({ status: 'error', code: 'APP_SESSION_EXPIRED' }));
+    }
+  });
+  await assert.rejects(
+    client.cost({ product: 'vertical-114', width: '1', height: '1', quantity: '1' }, { sessionToken: 'expired', deviceId: 'pentagrama-scheduler' }),
+    error => error.code === 'APP_SESSION_EXPIRED'
+  );
+  assert.equal(attempts, 1);
+});
+
 test('comparison checks Vertical, Onda Serena and Enrollable and reports only changes', async () => {
   const mappings = [
     { id: 'v', family: 'Vertical', homeeasyId: 'vertical-1', productCode: 'V', groupCode: '1', calculationType: 'NormalProduct', width: '1.2', height: '1.3', quantity: 1, strategy: 'RATE_M2', destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' } },
