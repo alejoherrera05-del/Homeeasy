@@ -1,4 +1,4 @@
-#define AgentVersion "1.6.7"
+#define AgentVersion "1.6.8"
 #include "..\build\stage\browser-extension.iss"
 
 [Setup]
@@ -47,7 +47,7 @@ Root: HKLM; Subkey: "Software\Policies\BraveSoftware\Brave\ExtensionInstallForce
 
 [Run]
 Filename: "{app}\HomeEasyPentagramaAgent.exe"; Parameters: "install"; Flags: runhidden waituntilterminated; StatusMsg: "Instalando servicio HomeEasy Pentagrama Agent..."; Check: not ServiceExists
-Filename: "{app}\HomeEasyPentagramaAgent.exe"; Parameters: "start"; Flags: runhidden waituntilterminated; StatusMsg: "Iniciando HomeEasy Pentagrama Agent..."
+Filename: "{app}\HomeEasyPentagramaAgent.exe"; Parameters: "start"; Flags: runhidden waituntilterminated; StatusMsg: "Iniciando HomeEasy Pentagrama Agent..."; BeforeInstall: WaitForRuntimeRelease
 Filename: "{app}\HomeEasyPentagramaAgent.UI.exe"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent; Description: "Abrir HomeEasy Pentagrama Agent"
 
 [UninstallRun]
@@ -60,6 +60,12 @@ var
   ResultCode: Integer;
 begin
   Result := Exec(ExpandConstant('{sys}\sc.exe'), 'query HomeEasyPentagramaAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+procedure WaitForRuntimeRelease();
+begin
+  { Antivirus and the previous service may briefly retain node.exe after an upgrade. }
+  Sleep(45000);
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
