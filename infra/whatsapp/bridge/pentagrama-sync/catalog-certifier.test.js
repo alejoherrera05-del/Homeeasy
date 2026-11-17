@@ -122,8 +122,13 @@ test('a genuinely new Enrollable route is priced, structurally certified and con
     pricing: { supplierCost: async () => ({ total: 1 }) },
     gateway: {
       dispatch: async (type, payload) => {
-        assert.equal(type, 'resolveLivePrice');
         calls.push(payload);
+        if (type === 'catalog') return { Price: 0 };
+        if (type === 'getPrice') {
+          const sample = { width: Number(payload.params.Width), height: Number(payload.params.Height) };
+          return { total: Math.round(rate * Math.max(sample.width * Math.max(sample.height, 1), 1) * 100) / 100 };
+        }
+        assert.equal(type, 'resolveLivePrice');
         const sample = { width: Number(payload.width), height: Number(payload.height) };
         const fabrication = localFabrication({ rules: { minWidthMm: 250, minHeightMm: 400, fabricationProfile: profile } }, sample, {});
         if (fabrication.outcome === 'NOT_MANUFACTURABLE') {
