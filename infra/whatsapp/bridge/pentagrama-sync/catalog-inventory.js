@@ -285,6 +285,7 @@ class PentagramaCatalogInventory {
       rootsTotal: roots.length,
       rootsCompleted: roots.length,
       currentFamily: null,
+      currentFamilyCode: null,
       leaves: leafPaths.length,
       products: products.length,
       skippedWithoutCode,

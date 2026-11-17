@@ -153,6 +153,73 @@ test('expired rename-only batch sends the completed Live revalidation time to th
   assert.equal(store.operationById(operation.id).result.catalogChanges, 1);
 });
 
+test('rename-only prewrite validation scans only the Ring catalog and reports progress', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-ring-revalidation-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const operation = store.operation('apply', { email: 'test@example.com' });
+  const calls = [];
+  const gateway = {
+    dispatch: async (type, payload) => {
+      assert.equal(type, 'catalog');
+      calls.push(payload);
+      if (payload.operation === 'categories') {
+        return [
+          { Code: 'RING', Name: 'CORTINA RING', Levels: 1 },
+          { Code: 'ENR', Name: 'ENROLLABLE', Levels: 1 }
+        ];
+      }
+      if (payload.operation === 'products' && payload.params.Category1 === 'RING') {
+        return [{
+          ProductName: 'Current Live name',
+          ProductCode: 'P',
+          GroupCode: '1346',
+          GrupAsoc: 'RIECORIN',
+          CalculationType: 'NormalProduct',
+          UnidadMedida: 'MT2'
+        }];
+      }
+      throw new Error('Unexpected catalog route: ' + JSON.stringify(payload));
+    }
+  };
+  const service = new PentagramaPhase2({
+    store,
+    mappings: [],
+    pricing: {},
+    homeeasyCost: {},
+    homeeasy: {},
+    gateway
+  });
+  const action = {
+    id: 'rename-1',
+    kind: 'RENAME',
+    autoApplicable: true,
+    externalKey: 'P|1346|RIECORIN',
+    reference: 'Current Live name',
+    mutation: { kind: 'RENAME' }
+  };
+
+  const verified = await service.verifyCatalogActions({}, [action], {}, operation.id);
+
+  assert.equal(verified.length, 1);
+  assert.equal(calls.filter(item => item.operation === 'products').length, 1);
+  assert.equal(calls.some(item => item.operation === 'products' && item.params.Category1 === 'ENR'), false);
+  assert.deepEqual(store.operationById(operation.id).progress, {
+    status: 'COMPLETED',
+    rootsTotal: 1,
+    rootsCompleted: 1,
+    currentFamily: null,
+    currentFamilyCode: null,
+    leaves: 1,
+    products: 1,
+    skippedWithoutCode: 0,
+    duplicateAppearances: 0,
+    requests: 2,
+    phase: 'CATALOG_REVALIDATION',
+    selectedActions: 1,
+    scope: 'CORTINA_RING'
+  });
+});
+
 test('expired batches containing price mutations remain blocked', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-expired-price-'));
   const store = new Phase2Store({ dataDir: directory });
