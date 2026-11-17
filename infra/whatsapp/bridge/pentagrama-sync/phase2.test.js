@@ -120,6 +120,39 @@ test('expired rename-only batches are accepted because every name is fully reval
   assert.equal(operation.type, 'apply');
 });
 
+test('expired rename-only batch sends the completed Live revalidation time to the atomic writer', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-expired-rename-write-'));
+  const store = new Phase2Store({ dataDir: directory });
+  const action = {
+    id: 'rename-1', kind: 'RENAME', autoApplicable: true, externalKey: 'P|G|A', reference: 'Current Live name',
+    mutation: { kind: 'RENAME', id: 'product-1', name: 'Current Live name' }
+  };
+  const scan = {
+    id: 'old-renames', checkedAt: new Date(0).toISOString(), expiresAt: new Date(1).toISOString(), results: [],
+    catalogActions: [action], catalogChanges: [], catalogAudit: {}
+  };
+  const operation = store.operation('apply', { email: 'test@example.com' });
+  let writerScan = null;
+  const service = new PentagramaPhase2({
+    store, mappings: [], pricing: {}, homeeasyCost: {}, gateway: {},
+    homeeasy: {
+      applyCatalog: async currentScan => {
+        writerScan = currentScan;
+        return { historyId: 'catalog-history', qa: { ok: true, checked: 1, maxDifference: 0 } };
+      }
+    }
+  });
+  service.verifyCatalogActions = async () => [action];
+
+  const startedAt = Date.now();
+  await service.runApply(operation.id, scan, [], [action], {});
+
+  assert.equal(writerScan.id, scan.id);
+  assert.ok(Date.parse(writerScan.checkedAt) >= startedAt);
+  assert.equal(store.operationById(operation.id).state, 'completed');
+  assert.equal(store.operationById(operation.id).result.catalogChanges, 1);
+});
+
 test('expired batches containing price mutations remain blocked', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-phase2-expired-price-'));
   const store = new Phase2Store({ dataDir: directory });

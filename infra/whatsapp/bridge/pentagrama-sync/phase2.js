@@ -1721,6 +1721,11 @@ class PentagramaPhase2 {
     const verifiedCatalog = await this.verifyCatalogActions(scan, catalogActions || [], context);
     const verifiedRenewals = verifiedCatalog.filter(item => String(item.kind || '') === 'RENEW_VALIDITY');
     const verifiedOtherCatalog = verifiedCatalog.filter(item => String(item.kind || '') !== 'RENEW_VALIDITY');
+    const revalidatedExpiredRenameBatch = Date.parse(scan.expiresAt) < Date.now() && verified.length === 0 && !localChange &&
+      verifiedCatalog.length > 0 && verifiedCatalog.every(item => String(item.kind || '') === 'RENAME');
+    const writeScan = revalidatedExpiredRenameBatch
+      ? { ...scan, checkedAt: new Date().toISOString() }
+      : scan;
     this.store.updateOperation(operationId, { stage: 'SNAPSHOT' });
     this.store.updateOperation(operationId, { stage: 'WRITING_SHEET' });
 
@@ -1730,7 +1735,7 @@ class PentagramaPhase2 {
     let appliedLocal = null;
     try {
       if (verifiedRenewals.length) {
-        appliedValidity = await this.homeeasy.applyCatalog(scan, verifiedRenewals.map(item => item.mutation), context);
+        appliedValidity = await this.homeeasy.applyCatalog(writeScan, verifiedRenewals.map(item => item.mutation), context);
       }
 
       if (verified.length) {
@@ -1745,7 +1750,7 @@ class PentagramaPhase2 {
       }
 
       if (verifiedOtherCatalog.length) {
-        appliedCatalog = await this.homeeasy.applyCatalog(scan, verifiedOtherCatalog.map(item => item.mutation), context);
+        appliedCatalog = await this.homeeasy.applyCatalog(writeScan, verifiedOtherCatalog.map(item => item.mutation), context);
       }
 
       if (localChange) {
