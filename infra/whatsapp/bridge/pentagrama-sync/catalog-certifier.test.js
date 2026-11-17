@@ -172,3 +172,64 @@ test('a genuinely new Enrollable route is priced, structurally certified and con
   assert.equal(rules.fabricationProfile.rollWidthMm, 3000);
   assert.ok(calls.length < 80);
 });
+
+test('a new Enrollable inherits only its exact certified family when Pentagrama omits manufacturing defaults', async () => {
+  const rate = 105707.7;
+  let structureCalls = 0;
+  const certifier = new CatalogCertifier({
+    pricing: { supplierCost: async () => ({ total: 1 }) },
+    gateway: {
+      dispatch: async (type, payload) => {
+        if (type === 'catalog') return { Price: 0 };
+        if (type === 'getPrice') {
+          const width = Number(payload.params.Width);
+          const height = Number(payload.params.Height);
+          return { total: Math.round(rate * Math.max(width * Math.max(height, 1), 1) * 100) / 100 };
+        }
+        structureCalls += 1;
+        return {
+          ok: false,
+          outcome: 'CONFIGURATION_UNRESOLVED',
+          code: 'PENTAGRAMA_CONFIGURATION_UNRESOLVED',
+          reason: 'Pentagrama did not resolve Dirección de la tela and Mecanismo'
+        };
+      }
+    }
+  });
+  const result = await certifier.certifyEnrollableRoute({
+    routeKey: '4|79|8|2333',
+    categories: { Cat1: '4', Cat2: '79', Cat3: '8', Cat4: '2333' },
+    groupName: 'BLACK OUT',
+    referenceName: 'MÁRMOL 3',
+    products: [
+      { name: 'Enrollable Standard Black Out Marmol Blanco 3 sin Cabezal', productCode: 'ENRSTDBOMARBLA3M', groupCode: '599', associationGroup: 'ENRSTD', calculationType: 'NormalProduct', unit: 'UND' }
+    ]
+  }, { version: 'v1', validThrough: '2026-12-31' });
+  assert.equal(result.ok, true);
+  assert.equal(structureCalls, 1);
+  assert.equal(result.rules.fabricationProfile.rollWidthMm, 3000);
+  assert.equal(result.rules.evidence.fabricationSource, 'INHERITED_CERTIFIED_FAMILY');
+  assert.equal(result.rules.evidence.inheritedFrom, 'enrollable-blackout-marmol');
+});
+
+test('an unresolved new Enrollable without an exact certified family remains blocked', async () => {
+  const certifier = new CatalogCertifier({
+    pricing: { supplierCost: async () => ({ total: 1 }) },
+    gateway: {
+      dispatch: async (type, payload) => {
+        if (type === 'catalog') return { Price: 0 };
+        if (type === 'getPrice') {
+          const width = Number(payload.params.Width);
+          const height = Number(payload.params.Height);
+          return { total: Math.round(90000 * Math.max(width * Math.max(height, 1), 1) * 100) / 100 };
+        }
+        return { ok: false, code: 'PENTAGRAMA_CONFIGURATION_UNRESOLVED', outcome: 'CONFIGURATION_UNRESOLVED' };
+      }
+    }
+  });
+  await assert.rejects(() => certifier.certifyEnrollableRoute({
+    routeKey: '4|79|8|9999', categories: { Cat1: '4', Cat2: '79', Cat3: '8', Cat4: '9999' },
+    groupName: 'BLACK OUT', referenceName: 'REFERENCIA TOTALMENTE NUEVA',
+    products: [{ name: 'Nueva', productCode: 'ENRSTDBONUEVA', groupCode: '306', associationGroup: 'ENRSTD', calculationType: 'NormalProduct', unit: 'UND' }]
+  }), error => error.code === 'PENTAGRAMA_CONFIGURATION_UNRESOLVED');
+});

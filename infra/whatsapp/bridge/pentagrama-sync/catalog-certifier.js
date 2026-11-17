@@ -1,6 +1,7 @@
 'use strict';
 
 const structuralProfiles = require('./enrollables-structural-profiles.json');
+const liveInventory = require('./enrollables-live-products.json');
 const {
   STRUCTURE_CASES,
   fabricationAmbiguityProbes,
@@ -110,6 +111,37 @@ function structuralCandidates() {
     if (!bySignature.has(signature)) bySignature.set(signature, profile);
   });
   return [...bySignature.values()];
+}
+
+function legacyReferenceKey(value) {
+  return normalized(value)
+    .replace(/\bBLACK\s*OUT\b|\bBLACKOUT\b|\bSILVER\b|\b3M?\b/g, ' ')
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .trim();
+}
+
+function inheritedStructuralProfile(route, productSpec) {
+  const key = legacyReferenceKey(route && route.referenceName);
+  if (!key) return null;
+  const relatives = Object.entries(liveInventory.products || {}).filter(([, product]) =>
+    normalized(product && product.associationGroup) === normalized(productSpec && productSpec.associationGroup) &&
+    legacyReferenceKey(product && product.reference) === key
+  );
+  if (relatives.length !== 1) return null;
+  const [inheritedFrom] = relatives[0];
+  const definitions = Object.values(structuralProfiles.profiles || {}).filter(definition =>
+    Array.isArray(definition && definition.members) && definition.members.includes(inheritedFrom)
+  );
+  if (definitions.length !== 1) return null;
+  const base = portalFabricationProfile(definitions[0]);
+  if (!base) return null;
+  const routeIdentity = normalized(`${route && route.referenceName} ${productSpec && productSpec.productCode}`);
+  const wantsThreeMetre = /\b3M?\b/.test(routeIdentity) || /3M(?:\b|$)/.test(routeIdentity);
+  if (!wantsThreeMetre) return { profile: base, inheritedFrom };
+  const candidates = structuralCandidates().filter(profile =>
+    text(profile.sizeGroup) === text(base.sizeGroup) && Number(profile.rollWidthMm) === 3000
+  );
+  return candidates.length === 1 ? { profile: candidates[0], inheritedFrom } : null;
 }
 
 function matchesFabrication(profile, evidence, rules = {}) {
@@ -318,44 +350,57 @@ class CatalogCertifier {
     }
 
     const structuralEvidence = [];
+    let structuralFallback = null;
     const captured = new Set();
     const captureStructure = async sample => {
       const key = `${Number(sample.width).toFixed(3)}:${Number(sample.height).toFixed(3)}`;
       if (captured.has(key)) return;
       captured.add(key);
       const result = await this.resolveEnrollable(productSpec, sample);
+      if (result && result.ok !== true && result.code === 'PENTAGRAMA_CONFIGURATION_UNRESOLVED') {
+        structuralFallback = inheritedStructuralProfile(route, productSpec);
+        if (!structuralFallback) {
+          throw Object.assign(new Error(`Pentagrama no resolvió fabricación y no existe una referencia anterior inequívoca para ${sample.id || key}`), { code: result.code });
+        }
+        return;
+      }
       if (!result || (result.ok !== true && result.outcome !== 'NOT_MANUFACTURABLE')) {
         throw Object.assign(new Error(`Pentagrama no resolvió fabricación para ${sample.id || key}`), { code: result && result.code || 'PENTAGRAMA_CONFIGURATION_UNRESOLVED' });
       }
       structuralEvidence.push(fabricationFromResolved(result, sample));
     };
-    for (const sample of STRUCTURE_CASES) await captureStructure(sample);
+    for (const sample of STRUCTURE_CASES) {
+      await captureStructure(sample);
+      if (structuralFallback) break;
+    }
 
     const sourceRules = { minWidthMm: 250, minHeightMm: 400 };
-    let candidates = structuralCandidates().filter(profile => matchesFabrication(profile, structuralEvidence, sourceRules));
-    for (let attempt = 0; candidates.length > 1 && attempt < 8; attempt++) {
-      const probes = fabricationAmbiguityProbes(candidates, sourceRules, 12);
-      if (!probes.length) break;
-      for (const probe of probes) await captureStructure({ ...probe, id: `${probe.id || 'ambiguity'}-${attempt + 1}` });
-      candidates = candidates.filter(profile => matchesFabrication(profile, structuralEvidence, sourceRules));
-    }
-    if (candidates.length !== 1) {
-      return {
-        ok: false,
-        status: 'REVIEW_REQUIRED',
-        reason: candidates.length ? 'La fabricación coincide con más de un perfil y requiere más evidencia.' : 'La fabricación no coincide con ningún perfil certificado de Enrollables.',
-        evidence: structuralEvidence,
-        candidateCount: candidates.length
-      };
+    let candidates = structuralFallback ? [structuralFallback.profile] : structuralCandidates().filter(profile => matchesFabrication(profile, structuralEvidence, sourceRules));
+    if (!structuralFallback) {
+      for (let attempt = 0; candidates.length > 1 && attempt < 8; attempt++) {
+        const probes = fabricationAmbiguityProbes(candidates, sourceRules, 12);
+        if (!probes.length) break;
+        for (const probe of probes) await captureStructure({ ...probe, id: `${probe.id || 'ambiguity'}-${attempt + 1}` });
+        candidates = candidates.filter(profile => matchesFabrication(profile, structuralEvidence, sourceRules));
+      }
+      if (candidates.length !== 1) {
+        return {
+          ok: false,
+          status: 'REVIEW_REQUIRED',
+          reason: candidates.length ? 'La fabricación coincide con más de un perfil y requiere más evidencia.' : 'La fabricación no coincide con ningún perfil certificado de Enrollables.',
+          evidence: structuralEvidence,
+          candidateCount: candidates.length
+        };
+      }
     }
 
     const certifiedAt = new Date().toISOString();
     const profile = {
       ...candidates[0],
       id: `live-${slug(homeeasyId)}-${Number(candidates[0].rollWidthMm || 0)}`,
-      source: 'Pentagrama Live dynamic route certification',
+      source: structuralFallback ? `Pentagrama certified family inherited from ${structuralFallback.inheritedFrom}` : 'Pentagrama Live dynamic route certification',
       verifiedAt: certifiedAt,
-      casesPassed: structuralEvidence.length,
+      casesPassed: structuralFallback ? Number(candidates[0].casesPassed || 0) : structuralEvidence.length,
       maxDifference: 0
     };
     const reference = titleReference(route.referenceName);
@@ -391,7 +436,9 @@ class CatalogCertifier {
       evidence: {
         prices: priceEvidence.map(item => ({ id: item.id, width: item.width, height: item.height, total: item.total })),
         fabricationCases: structuralEvidence.length,
-        variants: products.length
+        variants: products.length,
+        fabricationSource: structuralFallback ? 'INHERITED_CERTIFIED_FAMILY' : 'PENTAGRAMA_LIVE',
+        inheritedFrom: structuralFallback && structuralFallback.inheritedFrom || ''
       }
     };
     const rowValues = [
@@ -423,7 +470,7 @@ class CatalogCertifier {
       products: products.map(product => dynamicProductSpec(route, product, homeeasyId)),
       rowValues,
       qaCases,
-      evidence: { prices: priceEvidence, variants: variantEvidence, fabrication: structuralEvidence },
+      evidence: { prices: priceEvidence, variants: variantEvidence, fabrication: structuralEvidence, structuralFallback },
       rules
     };
   }
