@@ -122,6 +122,10 @@ Copy-Item -LiteralPath $packedCrx -Destination (Join-Path $browserExtensionStage
 $extensionVersion = [string]$extensionResult.version
 Set-Content -LiteralPath (Join-Path $stage 'browser-extension.iss') -Value "#define BrowserExtensionId `"$extensionId`"" -Encoding ascii
 Copy-Item -LiteralPath (Join-Path $repoRoot 'infra\whatsapp\bridge\pentagrama-sync') -Destination (Join-Path $appStage 'core') -Recurse
+$stagedCore = Join-Path $appStage 'core\index.js'
+$stagedAgent = Join-Path $appStage 'src\agent.js'
+& node -e "require(process.argv[1]); require(process.argv[2]);" $stagedCore $stagedAgent
+if ($LASTEXITCODE -ne 0) { throw "Staged Agent runtime validation failed with exit code $LASTEXITCODE." }
 Copy-Item -LiteralPath $CertificatePath -Destination (Join-Path $appStage 'server.crt')
 @{
   serverUrl = $ServerUrl

@@ -1,6 +1,6 @@
 {
   "name": "homeeasy-pentagrama-agent",
-  "version": "1.6.14",
+  "version": "1.6.15",
   "private": true,
   "type": "commonjs",
   "engines": { "node": ">=20" },

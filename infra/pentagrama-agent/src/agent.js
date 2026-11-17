@@ -10,12 +10,12 @@ const dpapi = require('./dpapi');
 const { PentagramaSessionBridge } = require('./session-bridge');
 const { AgentUpdater } = require('./updater');
 const { startPowerGuard } = require('./power-guard');
-let createPentagramaSync;
-try {
-  ({ createPentagramaSync } = require('../core'));
-} catch (_) {
-  ({ createPentagramaSync } = require('../../whatsapp/bridge/pentagrama-sync'));
-}
+// The Agent installer always vendors the Pentagrama runtime at app/core. The
+// repository path is selected only when that vendored directory does not exist
+// (source tests); an error thrown by a present core must surface unchanged.
+const installedCore = path.join(__dirname, '..', 'core', 'index.js');
+const coreModule = fs.existsSync(installedCore) ? '../core' : '../../whatsapp/bridge/pentagrama-sync';
+const { createPentagramaSync } = require(coreModule);
 const packageJson = require('../package.json');
 
 const VERSION = packageJson.version;
