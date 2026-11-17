@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 const { INITIAL_MAPPINGS, MAPPING_STATUSES, mappingIsReady, mappingIsCertified, pentagramaParamsForCase, homeEasyItemForCase } = require('./mapper');
 const { roundMoney } = require('./comparison');
-const { buildProposal, same, effectiveArea, homeEasyRateCost } = require('./strategies');
+const { buildProposal, same, effectiveArea, homeEasyRateCost, complementFactor } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
@@ -929,11 +929,13 @@ class PentagramaPhase2 {
       }
     }
     const discount = sourceItem.promotional ? (100 - Number(sourceItem.extraDiscount || 0)) / 100 : 1;
-    const area = effectiveArea(sourceItem, sample);
-    if (!(area > 0) || !(discount > 0)) {
+    const factor = mapping.strategy === 'COMPLEMENT'
+      ? complementFactor(mapping, sourceItem, sample)
+      : effectiveArea(sourceItem, sample);
+    if (!(factor > 0) || !(discount > 0)) {
       return { changed: false, status: 'REVIEW_REQUIRED', reason: 'No se pudo reconstruir la tarifa vigente.' };
     }
-    const impliedRate = roundMoney(Number(pentagrama.total) / (area * discount));
+    const impliedRate = roundMoney(Number(pentagrama.total) / (factor * discount));
     const currentRate = roundMoney(Number(sourceItem.rate || 0));
     return {
       changed: !same(currentRate, impliedRate),

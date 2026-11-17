@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T15:24:26Z",
+  "generatedAt": "2026-11-17T20:42:09Z",
   "sources": {
     "homeeasy": "Costos_Pentagrama live export",
     "pentagrama": "authenticated portal catalog and price endpoint/UI"
@@ -9935,10 +9935,43 @@
       "homeeasyMethod": "linear-height",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "KITPERCOLIBLA",
       "groupCode": "616",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, atributos y cálculo lineal completo."
+      "calculationType": "DimensionsHeight",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsHeight",
+        "method": "linear-height",
+        "homeeasyQuantity": 2,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "coverlight-plus",
@@ -9948,10 +9981,43 @@
       "homeeasyMethod": "linear-height",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "KITPERCOLIPLUBLA",
       "groupCode": "616",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, atributos y cálculo lineal completo."
+      "calculationType": "DimensionsHeight",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsHeight",
+        "method": "linear-height",
+        "homeeasyQuantity": 2,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "coverlight-advance",
@@ -9961,10 +10027,43 @@
       "homeeasyMethod": "linear-height",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "KITPERCOLIADVBLA",
       "groupCode": "616",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, atributos y cálculo lineal completo."
+      "calculationType": "DimensionsHeight",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsHeight",
+        "method": "linear-height",
+        "homeeasyQuantity": 2,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "coverlight-single",
@@ -9974,10 +10073,43 @@
       "homeeasyMethod": "linear-height",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "KITPERCOLISINBLA",
       "groupCode": "616",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, atributos y cálculo lineal completo."
+      "calculationType": "DimensionsHeight",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsHeight",
+        "method": "linear-height",
+        "homeeasyQuantity": 2,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "perfil-basico-out",
@@ -9987,10 +10119,43 @@
       "homeeasyMethod": "linear-width",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "ACENPEINSTDOUBLA",
       "groupCode": "108",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, color y cálculo por metro lineal."
+      "calculationType": "DimensionsWidth",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsWidth",
+        "method": "linear-width",
+        "homeeasyQuantity": 1,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     }
   ]
 }

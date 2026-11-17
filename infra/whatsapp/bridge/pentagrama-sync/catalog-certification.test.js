@@ -16,15 +16,15 @@ test('live catalog certification registry is complete and deliberately conservat
     certified: summary.certified,
     reviewRequired: summary.reviewRequired,
     unmapped: summary.unmapped
-  }, { total: 452, exactCandidates: 157, ambiguous: 15, noCandidate: 280, certified: 149, reviewRequired: 23, unmapped: 280 });
+  }, { total: 452, exactCandidates: 157, ambiguous: 15, noCandidate: 280, certified: 154, reviewRequired: 18, unmapped: 280 });
   assert.deepEqual(summary.certifiedStrategies, {
-    RATE_M2: 149, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 0, SPECIAL_CONFIGURATION: 0
+    RATE_M2: 149, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 5, SPECIAL_CONFIGURATION: 0
   });
 });
 
 test('One Click accepts only mappings carrying a complete Pentagrama certificate', () => {
   const accepted = INITIAL_MAPPINGS.filter(mappingIsCertified).map(item => item.homeeasyId).sort();
-  assert.equal(accepted.length, 123);
+  assert.equal(accepted.length, 128);
   assert.ok(accepted.includes('onda-0'));
   assert.ok(accepted.includes('onda-77'));
   assert.ok(!accepted.includes('onda-10'));
@@ -35,6 +35,8 @@ test('One Click accepts only mappings carrying a complete Pentagrama certificate
   assert.ok(accepted.includes('vertical-125'));
   assert.ok(accepted.includes('vertical-126'));
   assert.ok(accepted.includes('vertical-129'));
+  assert.ok(accepted.includes('coverlight-standard'));
+  assert.ok(accepted.includes('perfil-basico-out'));
   assert.ok(!accepted.includes('vertical-111'));
 });
 
@@ -54,7 +56,22 @@ test('mandatory regression controls remain outside unsafe automatic strategies',
   assert.equal(byId.get('vertical-111').status, 'REVIEW_REQUIRED');
   assert.equal(byId.get('vertesse-161').status, 'REVIEW_REQUIRED');
   assert.equal(byId.get('enrollable-blackout-matte3').status, 'REVIEW_REQUIRED');
-  assert.equal(byId.get('coverlight-standard').status, 'REVIEW_REQUIRED');
+  assert.equal(byId.get('sheer-155').status, 'REVIEW_REQUIRED');
+});
+
+test('Complement certificates declare the parent, factor and exact destination', () => {
+  const complementIds = ['coverlight-standard', 'coverlight-plus', 'coverlight-advance', 'coverlight-single', 'perfil-basico-out'];
+  const mappings = INITIAL_MAPPINGS.filter(item => complementIds.includes(item.homeeasyId));
+  assert.equal(mappings.length, 5);
+  for (const item of mappings) {
+    assert.equal(item.strategy, 'COMPLEMENT');
+    assert.equal(item.special.ItemCodeFather, 'ENRSTDBOMA3090');
+    assert.equal(item.special.AssociationGroup, 'ENRSTD');
+    assert.equal(item.casesPassed, 3);
+    assert.equal(item.maxDifference, 0);
+  }
+  assert.equal(mappings.find(item => item.homeeasyId === 'coverlight-standard').homeeasy.quantity, '2');
+  assert.equal(mappings.find(item => item.homeeasyId === 'perfil-basico-out').homeeasy.quantity, '1');
 });
 
 test('Onda expansion keeps one exact ProductCode per certified HomeEasy reference', () => {

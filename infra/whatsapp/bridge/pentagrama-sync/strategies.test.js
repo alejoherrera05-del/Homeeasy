@@ -47,3 +47,26 @@ test('a structurally complete mapping without Pentagrama certification is never 
   assert.equal(result.autoApplicable, false);
   assert.match(result.reason, /certificado Pentagrama/);
 });
+
+test('COMPLEMENT derives Coverlight for two sides and Perfil OUT for one width', () => {
+  const certified = { strategy: 'COMPLEMENT', status: 'CERTIFIED', verifiedAt: '2026-11-17T20:42:09Z',
+    casesPassed: 3, maxDifference: 0, destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' } };
+  const coverlight = buildProposal({ ...certified, quantity: 1, homeeasy: { quantity: '2' } }, {
+    method: 'linear-height', promotional: false
+  }, [
+    { id: 'a', role: 'derive', width: 1.83, height: 1.2, pentagrama: { total: 29688.12 } },
+    { id: 'b', role: 'derive', width: 1.83, height: 2.2, pentagrama: { total: 54428.22 } },
+    { id: 'c', role: 'validate', width: 2.5, height: 2.8, pentagrama: { total: 69272.28 } }
+  ]);
+  assert.equal(coverlight.autoApplicable, true);
+  assert.equal(coverlight.proposedRate, 12370.05);
+  const profile = buildProposal({ ...certified, quantity: 1, homeeasy: { quantity: '1' } }, {
+    method: 'linear-width', promotional: false
+  }, [
+    { id: 'a', role: 'derive', width: 1.83, height: 1.2, pentagrama: { total: 38414.63 } },
+    { id: 'b', role: 'derive', width: 1.83, height: 2.2, pentagrama: { total: 38414.63 } },
+    { id: 'c', role: 'validate', width: 2.5, height: 2.8, pentagrama: { total: 52479 } }
+  ]);
+  assert.equal(profile.autoApplicable, true);
+  assert.equal(profile.proposedRate, 20991.6);
+});
