@@ -2,13 +2,64 @@
 
 const { SyncError } = require('./errors');
 
+function applyHistoryType(payload = {}) {
+  if (Array.isArray(payload.catalogMutations)) return 'CATALOG_APPLY';
+  if (payload.modelCandidate) return 'LOCAL_MODEL_APPLY';
+  return 'APPLY';
+}
+
+function parsedQa(value) {
+  if (value && typeof value === 'object') return value;
+  try { return JSON.parse(String(value || '')); } catch (_) { return null; }
+}
+
 class HomeEasySyncClient {
   constructor(options = {}) {
     this.backendUrl = String(options.backendUrl || process.env.HOMEEASY_BACKEND_URL || 'https://script.google.com/macros/s/AKfycbyZHaIe7hb28KKtaPBORASy_maSZ2co8dZFce44GQRiZGYg_6WoU7qn4qC-lYCQO6ZL/exec');
     this.fetch = options.fetch || globalThis.fetch;
     this.timeoutMs = Math.max(5000, Number(options.timeoutMs ?? 45000));
+    this.applyTimeoutMs = Math.max(this.timeoutMs, Number(options.applyTimeoutMs ?? 5 * 60 * 1000));
+    this.applyReconcileAttempts = Math.max(0, Number(options.applyReconcileAttempts ?? 18));
+    this.applyReconcileDelayMs = Math.max(0, Number(options.applyReconcileDelayMs ?? 5000));
     this.lockRetryDelayMs = Math.max(0, Number(options.lockRetryDelayMs ?? 3000));
     this.lockResponseThresholdMs = Math.max(0, Number(options.lockResponseThresholdMs ?? 25000));
+  }
+
+  async reconcileApply(payload, context, requestStartedAt) {
+    const scanId = String(payload && payload.scanId || '');
+    if (!scanId || !this.applyReconcileAttempts) return null;
+    const expectedType = applyHistoryType(payload);
+    const notBefore = Number(requestStartedAt || Date.now()) - 5000;
+
+    for (let attempt = 0; attempt < this.applyReconcileAttempts; attempt += 1) {
+      try {
+        const history = await this.history(context);
+        const items = Array.isArray(history && history.items) ? history.items : [];
+        const match = items.find(item =>
+          String(item && item.scanId || '') === scanId &&
+          String(item && item.type || '') === expectedType &&
+          String(item && item.state || '') === 'APLICADO' &&
+          Date.parse(String(item && item.at || '')) >= notBefore &&
+          !String(item && item.revertedBy || '')
+        );
+        if (match) {
+          return {
+            status: 'ok',
+            historyId: String(match.id || ''),
+            changed: Number(match.changes || 0),
+            qa: parsedQa(match.qa),
+            reconciled: true
+          };
+        }
+      } catch (_) {
+        // The history endpoint can be unavailable during the same transient
+        // outage. Keep the reconciliation bounded and fail closed afterward.
+      }
+      if (attempt + 1 < this.applyReconcileAttempts && this.applyReconcileDelayMs) {
+        await new Promise(resolve => setTimeout(resolve, this.applyReconcileDelayMs));
+      }
+    }
+    return null;
   }
 
   async request(tipo, payload, context) {
@@ -28,9 +79,13 @@ class HomeEasySyncClient {
       try {
         response = await this.fetch(this.backendUrl, {
           method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'text/plain;charset=utf-8' },
-          body, redirect: 'follow', signal: AbortSignal.timeout(this.timeoutMs)
+          body, redirect: 'follow', signal: AbortSignal.timeout(String(tipo) === 'COSTOS_SYNC_APPLY' ? this.applyTimeoutMs : this.timeoutMs)
         });
       } catch (_) {
+        if (String(tipo) === 'COSTOS_SYNC_APPLY') {
+          const reconciled = await this.reconcileApply(payload, context, startedAt);
+          if (reconciled) return reconciled;
+        }
         throw new SyncError('HomeEasy sync backend is unavailable', { code: 'HOMEEASY_SYNC_UPSTREAM_UNAVAILABLE', statusCode: 502 });
       }
 
