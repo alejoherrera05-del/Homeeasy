@@ -16,6 +16,22 @@ const { CatalogCertifier, isRing, isRenueva, referenceName, sourceRowValues } = 
 
 const SCAN_MAX_AGE_MS = 30 * 60 * 1000;
 
+function runtimeCertifiedSheetProduct(item) {
+  const rules = item && item.rules || {};
+  const evidence = rules.evidence || {};
+  const prices = Array.isArray(evidence.prices) ? evidence.prices : [];
+  return Boolean(item && item.active !== false && String(item.status || '') === 'VIGENTE' &&
+    String(item.method || '') === 'area' && Number(item.rate) > 0 &&
+    String(rules.source || '').startsWith('PENTAGRAMA_LIVE_') && rules.certifiedAt &&
+    rules.productCode && rules.groupCode && rules.associationGroup && prices.length >= 3 &&
+    rules.fabricationProfile && Array.isArray(rules.fabricationProfile.mechanismBands));
+}
+
+function operationalSheetProduct(item) {
+  const status = String(item && item.status || '');
+  return Boolean(item && item.active !== false && (!status || status === 'VIGENTE') && String(item.method || '') !== 'manual');
+}
+
 function bogotaIsoDate(value = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit'
@@ -1055,17 +1071,25 @@ class PentagramaPhase2 {
     const results = [];
     const catalogActions = [];
     const verifiedRingIds = new Set();
+    const registryCertifiedIds = new Set((this.certificationRegistry.products || [])
+      .filter(item => item.status === MAPPING_STATUSES.CERTIFIED)
+      .map(item => String(item.homeeasyId)));
+    const runtimeCertifiedIds = new Set(sourceProducts.filter(runtimeCertifiedSheetProduct).map(item => String(item.id)));
     const coveredIds = new Set([
       ...certifiedMappings.map(item => String(item.homeeasyId)),
       ...ringSources.map(item => String(item.id)),
-      ...Array.from(ENROLLABLE_IDS)
+      ...Array.from(ENROLLABLE_IDS),
+      ...registryCertifiedIds,
+      ...runtimeCertifiedIds
     ]);
     const certifiedIds = new Set([
       ...certifiedMappings
         .filter(mapping => mappingRuleAlignment(mapping, sourceById.get(String(mapping.homeeasyId))).ok)
         .map(item => String(item.homeeasyId)),
       ...ringSources.map(item => String(item.id)),
-      ...Array.from(ENROLLABLE_IDS)
+      ...Array.from(ENROLLABLE_IDS),
+      ...registryCertifiedIds,
+      ...runtimeCertifiedIds
     ]);
 
     // Cobertura informativa que no requiere tocar Pentagrama.
@@ -1073,6 +1097,7 @@ class PentagramaPhase2 {
     for (const item of sourceProducts) {
       const id = String(item.id);
       if (coveredIds.has(id)) continue;
+      if (!operationalSheetProduct(item)) continue;
       const certification = certificationById.get(id);
       if (certification && certification.status === 'REVIEW_REQUIRED') {
         results.push({
@@ -1325,7 +1350,11 @@ class PentagramaPhase2 {
         }
       });
     }
-    const mappedIds = new Set(certifiedMappings.map(item => String(item.homeeasyId)));
+    const mappedIds = new Set([
+      ...certifiedMappings.map(item => String(item.homeeasyId)),
+      ...registryCertifiedIds,
+      ...runtimeCertifiedIds
+    ]);
     const catalogAudit = {
       mode: 'PRICE_ONLY',
       maintenanceRequired: false,
@@ -1481,13 +1510,19 @@ class PentagramaPhase2 {
     };
 
     const results = [];
-    const mappedIds = new Set([...this.mappings.map(item => item.homeeasyId), ...ENROLLABLE_IDS]);
+    const registryCertifiedIds = new Set((this.certificationRegistry.products || [])
+      .filter(item => item.status === MAPPING_STATUSES.CERTIFIED)
+      .map(item => String(item.homeeasyId)));
+    const runtimeCertifiedIds = new Set((source.products || []).filter(runtimeCertifiedSheetProduct).map(item => String(item.id)));
+    const mappedIds = new Set([...this.mappings.map(item => item.homeeasyId), ...ENROLLABLE_IDS, ...registryCertifiedIds, ...runtimeCertifiedIds]);
     const sourceByIdForCertification = new Map((source.products || []).map(item => [String(item.id), item]));
     const certifiedMappingIds = new Set([
       ...this.mappings
         .filter(mapping => mappingIsCertified(mapping) && mappingRuleAlignment(mapping, sourceByIdForCertification.get(String(mapping.homeeasyId))).ok)
         .map(item => item.homeeasyId),
-      ...(localModelCandidate ? ENROLLABLE_IDS : [])
+      ...(localModelCandidate ? ENROLLABLE_IDS : []),
+      ...registryCertifiedIds,
+      ...runtimeCertifiedIds
     ]);
     const certificationById = new Map((this.certificationRegistry.products || []).map(item => [item.homeeasyId, item]));
     if (localModelCandidate) {
@@ -1532,6 +1567,7 @@ class PentagramaPhase2 {
 
     for (const item of source.products || []) {
       if (mappedIds.has(item.id)) continue;
+      if (!operationalSheetProduct(item)) continue;
       const certification = certificationById.get(item.id);
       if (certification && certification.status === 'REVIEW_REQUIRED') {
         results.push({ homeeasyId: item.id, family: item.familyName, reference: item.reference,

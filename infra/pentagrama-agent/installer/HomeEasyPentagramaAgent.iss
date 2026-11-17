@@ -1,4 +1,4 @@
-#define AgentVersion "1.6.10"
+#define AgentVersion "1.6.11"
 #include "..\build\stage\browser-extension.iss"
 
 [Setup]
