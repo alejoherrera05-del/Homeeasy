@@ -257,6 +257,33 @@ test('post-apply mismatch rolls back the affected batch automatically', async ()
   assert.equal(rolledBack, 'history-1');
 });
 
+test('certified complements are validated from their linear factor without standalone HomeEasy quotes', async () => {
+  const mapping = {
+    id: 'coverlight-standard', homeeasyId: 'coverlight-standard', family: 'Enrollable', reference: 'Coverlight Standard',
+    productCode: 'KITPERCOLIBLA', groupCode: '616', calculationType: 'DimensionsHeight',
+    width: '2', height: '1.5', quantity: 1, productDiscount: 0, pricingMode: 'account-discount',
+    strategy: 'COMPLEMENT', status: 'CERTIFIED', verifiedAt: '2026-11-17T00:00:00Z', casesPassed: 3, maxDifference: 0,
+    homeeasy: { quantity: 2 }, destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' },
+    updateField: 'Tarifa_IVA_COP', special: {}, validationCases: [
+      { id: 'a', width: '2', height: '1.5', role: 'derive' },
+      { id: 'b', width: '2', height: '2.2', role: 'derive' },
+      { id: 'c', width: '2.4', height: '1.8', role: 'verify' }
+    ]
+  };
+  let standaloneCalls = 0;
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-complement-validation-')) }),
+    mappings: [mapping], gateway: {}, homeeasy: {},
+    pricing: { supplierCost: async params => ({ total: Number(params.Height) * 2 * 12370.05 }) },
+    homeeasyCost: { cost: async () => { standaloneCalls += 1; throw new Error('standalone complement is invalid'); } }
+  });
+  const result = await service.validateMapping(mapping, { id: 'coverlight-standard', method: 'linear-height', rate: 24740.1, promotional: false }, {});
+  assert.equal(result.autoApplicable, true);
+  assert.equal(result.proposedRate, 12370.05);
+  assert.equal(result.evidence.length, 3);
+  assert.equal(standaloneCalls, 0);
+});
+
 test('inventory audit records real catalog additions and discontinuations without auto-applying them', () => {
   const service = new PentagramaPhase2({
     store: new Phase2Store({ dataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-inventory-audit-')) }),

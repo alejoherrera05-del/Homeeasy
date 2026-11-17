@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 const { INITIAL_MAPPINGS, MAPPING_STATUSES, mappingIsReady, mappingIsCertified, pentagramaParamsForCase, homeEasyItemForCase } = require('./mapper');
 const { roundMoney } = require('./comparison');
-const { buildProposal, same, effectiveArea, homeEasyRateCost, complementFactor } = require('./strategies');
+const { buildProposal, same, effectiveArea, homeEasyRateCost, complementFactor, homeEasyComplementCost } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
@@ -447,11 +447,16 @@ class PentagramaPhase2 {
     if (!mappingIsReady(mapping)) return { autoApplicable: false, reason: 'El mapping está incompleto.', evidence: [] };
     const evidence = [];
     for (const sample of this.validationCases(mapping)) {
-      const [pentagrama, homeeasy] = await Promise.all([
-        this.pricing.supplierCost(pentagramaParamsForCase(mapping, sample), { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }),
-        this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context)
-      ]);
-      evidence.push({ ...sample, pentagrama, homeeasy: roundMoney(homeeasy.amount) });
+      const pentagrama = await this.pricing.supplierCost(
+        pentagramaParamsForCase(mapping, sample),
+        { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
+      );
+      if (mapping.strategy === 'COMPLEMENT') {
+        evidence.push({ ...sample, pentagrama, homeeasy: homeEasyComplementCost(Number(sourceItem.rate), mapping, sourceItem, sample) });
+      } else {
+        const homeeasy = await this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context);
+        evidence.push({ ...sample, pentagrama, homeeasy: roundMoney(homeeasy.amount) });
+      }
     }
     return { ...buildProposal(mapping, sourceItem, evidence), evidence };
   }
@@ -1951,7 +1956,9 @@ class PentagramaPhase2 {
           difference: item.difference, percent: item.percent, width: item.width, height: item.height, quantity: item.quantity,
           strategy: item.strategy, destination: item.destination,
           qaCases: validation.evidence.map(sample => ({ id: sample.id, width: sample.width, height: sample.height,
-            quantity: item.quantity, expected: roundMoney(sample.pentagrama.total), homeeasy: homeEasyItemForCase(mapping, sample) }))
+            quantity: item.quantity, expected: roundMoney(sample.pentagrama.total), strategy: mapping.strategy,
+            homeeasyQuantity: Number(mapping.homeeasy && mapping.homeeasy.quantity || mapping.quantity || 1),
+            ...(mapping.strategy === 'COMPLEMENT' ? {} : { homeeasy: homeEasyItemForCase(mapping, sample) }) }))
         })), context);
       }
 
@@ -1971,14 +1978,24 @@ class PentagramaPhase2 {
 
       this.store.updateOperation(operationId, { stage: 'QA' });
       const postQa = [];
+      const complementSource = verified.some(({ mapping }) => mapping.strategy === 'COMPLEMENT')
+        ? await this.homeeasy.catalog(context)
+        : null;
+      const complementSourceById = new Map((complementSource && complementSource.products || []).map(product => [String(product.id), product]));
       for (const { item, mapping } of verified) {
         for (const sample of this.validationCases(mapping)) {
-          const [pentagrama, current] = await Promise.all([
-            this.pricing.supplierCost(pentagramaParamsForCase(mapping, sample), { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }),
-            this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context)
-          ]);
-          postQa.push({ mappingId: item.id, caseId: sample.id, expected: roundMoney(pentagrama.total), actual: roundMoney(current.amount),
-            difference: roundMoney(current.amount - pentagrama.total) });
+          const pentagrama = await this.pricing.supplierCost(
+            pentagramaParamsForCase(mapping, sample),
+            { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
+          );
+          const current = mapping.strategy === 'COMPLEMENT'
+            ? homeEasyComplementCost(
+              Number(complementSourceById.get(String(mapping.homeeasyId)) && complementSourceById.get(String(mapping.homeeasyId)).rate),
+              mapping, complementSourceById.get(String(mapping.homeeasyId)), sample
+            )
+            : roundMoney((await this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context)).amount);
+          postQa.push({ mappingId: item.id, caseId: sample.id, expected: roundMoney(pentagrama.total), actual: roundMoney(current),
+            difference: roundMoney(current - pentagrama.total) });
         }
       }
       if (postQa.some(item => Math.abs(item.difference) > 0.02)) {

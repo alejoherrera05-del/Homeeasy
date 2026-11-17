@@ -107,7 +107,7 @@ function aplicarPentagramaSync10C_(ss, data, authValidation) {
       const before = sheet.getRange(row, 1, 1, HOMEEASY_COST_HEADERS.length).getValues()[0];
       if (String(before[0]) !== String(change.homeeasyId)) throw new Error("El producto cambió de fila: " + change.homeeasyId);
       if (Math.abs(Number(before[6]) - Number(change.expectedRate)) > 0.005) throw new Error("La tarifa cambió después del escaneo: " + change.homeeasyId);
-      if (String(change.strategy) !== "RATE_M2") throw new Error("Estrategia no habilitada para escritura automática: " + change.homeeasyId);
+      if (["RATE_M2", "COMPLEMENT"].indexOf(String(change.strategy)) < 0) throw new Error("Estrategia no habilitada para escritura automática: " + change.homeeasyId);
       const destination = change.destination || {};
       if (String(destination.sheet) !== HOMEEASY_COST_SHEET || String(destination.field) !== "Tarifa_IVA_COP") throw new Error("Destino de tarifa no autorizado: " + change.homeeasyId);
       if (!Array.isArray(change.qaCases) || change.qaCases.length < 2) throw new Error("Evidencia QA insuficiente: " + change.homeeasyId);
@@ -505,6 +505,19 @@ function ejecutarQaPentagramaSync10C_(ss, snapshots) {
   snapshots.forEach(function(item) {
     (item.change.qaCases || []).forEach(function(testCase) {
       try {
+        if (String(testCase.strategy || "") === "COMPLEMENT") {
+          const product = (catalog.products || []).find(function(candidate) { return String(candidate.id) === String(item.productId); });
+          if (!product) throw new Error("El complemento no quedó visible en el catálogo técnico.");
+          const quantity = Number(testCase.homeeasyQuantity || 1);
+          let factor = 0;
+          if (String(product.method) === "linear-height") factor = Number(testCase.height) * quantity;
+          else if (String(product.method) === "linear-width") factor = Number(testCase.width) * quantity;
+          else if (String(product.method) === "unit") factor = quantity;
+          if (!(factor > 0)) throw new Error("El factor lineal del complemento no es válido.");
+          const actual = Math.round(factor * Number(product.rateCents || 0)) / 100;
+          if (Math.abs(actual - Number(testCase.expected)) > 0.02) errors.push(item.productId + "/" + String(testCase.id || "caso") + " esperado " + testCase.expected + " obtenido " + actual);
+          return;
+        }
         const request = testCase.homeeasy || { product: item.productId, width: String(testCase.width), height: String(testCase.height), quantity: String(testCase.quantity || 1), extras: "0" };
         const result = calcularItemCostos10B_(request, catalog, { today: fechaBogota10B_(), promotions: true, installMode: "common", installation: "0" });
         const actual = Number(result.unit) / 100;
