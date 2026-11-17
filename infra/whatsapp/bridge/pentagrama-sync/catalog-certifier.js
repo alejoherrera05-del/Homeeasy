@@ -252,6 +252,30 @@ class CatalogCertifier {
     }, { lockKey: `dynamic-enrollable:${productSpec.productCode}:${sample.width}:${sample.height}` });
   }
 
+  async quoteEnrollable(productSpec, sample) {
+    if (!this.gateway || typeof this.gateway.dispatch !== 'function') {
+      throw Object.assign(new Error('Dynamic Enrollable certification requires the Pentagrama Agent'), { code: 'AGENT_OFFLINE' });
+    }
+    const fixedPayload = await this.gateway.dispatch('catalog', {
+      operation: 'fixedPrice',
+      params: { Code: productSpec.productCode, cantidad: 1, ancho: sample.width, alto: sample.height }
+    }, { lockKey: `dynamic-enrollable-fixed:${productSpec.productCode}:${sample.width}:${sample.height}` });
+    const fixed = Number(fixedPayload && (fixedPayload.Price ?? fixedPayload.price ?? fixedPayload.Value ?? fixedPayload.value) || fixedPayload || 0);
+    if (Number.isFinite(fixed) && fixed > 0) return { total: roundMoney(fixed * 1.19), pricingMode: 'fixed-price' };
+    return this.gateway.dispatch('getPrice', {
+      params: {
+        ProductCode: productSpec.productCode, Quantity: 1, Width: sample.width, Height: sample.height,
+        GroupCode: productSpec.groupCode, calculationType: productSpec.calculationType,
+        Degrees: '', Panels: 0, Cabezal: '', ItemCodeFather: '', AssociationGroup: productSpec.associationGroup
+      },
+      options: {
+        pricingMode: 'account-discount',
+        productDiscount: Number(productSpec.discount || 0),
+        AssociationGroup: productSpec.associationGroup
+      }
+    }, { lockKey: `dynamic-enrollable-price:${productSpec.productCode}:${sample.width}:${sample.height}` });
+  }
+
   async certifyEnrollableRoute(route, sourceCatalog = {}) {
     const products = Array.isArray(route && route.products) ? route.products.filter(item => text(item && item.productCode)) : [];
     if (!products.length || normalized(products[0].associationGroup) !== 'ENRSTD') {
@@ -266,9 +290,9 @@ class CatalogCertifier {
     const productSpec = dynamicProductSpec(route, preferred, homeeasyId);
     const priceEvidence = [];
     for (const sample of ENROLLABLE_PRICE_SAMPLES) {
-      const result = await this.resolveEnrollable(productSpec, sample);
-      const total = Number(result && result.pricing && result.pricing.total);
-      if (!result || result.ok !== true || !(total > 0)) {
+      const quote = await this.quoteEnrollable(productSpec, sample);
+      const total = Number(quote && quote.total);
+      if (!(total > 0)) {
         return { ok: false, status: 'REVIEW_REQUIRED', reason: `Pentagrama no entregó precio fabricable para ${sample.id}.`, evidence: priceEvidence };
       }
       priceEvidence.push({ ...sample, total: roundMoney(total) });
@@ -283,11 +307,11 @@ class CatalogCertifier {
     for (const product of products) {
       const spec = dynamicProductSpec(route, product, homeeasyId);
       for (const sample of [ENROLLABLE_PRICE_SAMPLES[0], ENROLLABLE_PRICE_SAMPLES[4]]) {
-        const result = await this.resolveEnrollable(spec, sample);
-        const total = Number(result && result.pricing && result.pricing.total);
+        const quote = await this.quoteEnrollable(spec, sample);
+        const total = Number(quote && quote.total);
         const expected = roundMoney(model.rate * Math.max(sample.width * Math.max(sample.height, model.minHeight), model.minArea));
         variantEvidence.push({ productCode: spec.productCode, ...sample, total: roundMoney(total), expected });
-        if (!result || result.ok !== true || !(total > 0) || Math.abs(roundMoney(total) - expected) > this.tolerance) {
+        if (!(total > 0) || Math.abs(roundMoney(total) - expected) > this.tolerance) {
           return { ok: false, status: 'REVIEW_REQUIRED', reason: `La variante ${spec.productCode} no comparte la tarifa certificada de la ruta.`, evidence: variantEvidence };
         }
       }
