@@ -427,7 +427,16 @@ class PentagramaPhase2 {
   }
 
   validationCases(mapping) {
-    const cases = Array.isArray(mapping.validationCases) ? mapping.validationCases.slice() : [];
+    const cases = (Array.isArray(mapping.validationCases) ? mapping.validationCases : []).map(item => {
+      if (mapping && mapping.strategy === 'RATE_M2' &&
+        ['individual-product-code', 'shared-group-rule'].includes(String(item && item.role || ''))) {
+        return { ...item, role: 'derive', certificationRole: item.role };
+      }
+      if (mapping && mapping.strategy === 'RATE_M2' && /^shared-group-boundary/.test(String(item && item.role || ''))) {
+        return { ...item, role: 'boundary', certificationRole: item.role };
+      }
+      return { ...item };
+    });
     if (!cases.some(item => String(item.width) === String(mapping.width) && String(item.height) === String(mapping.height))) {
       cases.push({ id: 'primary', width: String(mapping.width), height: String(mapping.height), role: 'evidence' });
     }

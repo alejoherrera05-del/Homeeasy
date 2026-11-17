@@ -689,6 +689,29 @@ test('quick scan checks certified prices without running deep catalog maintenanc
   assert.equal(deepCalls, 0);
 });
 
+test('certified catalog RATE_M2 evidence is reusable when a live price changes', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-certified-roles-'));
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [], pricing: {}, homeeasyCost: {}, homeeasy: {}, gateway: {}
+  });
+  const cases = service.validationCases({
+    strategy: 'RATE_M2',
+    width: '2',
+    height: '2',
+    validationCases: [
+      { id: 'normal-a', width: '2', height: '2', role: 'individual-product-code' },
+      { id: 'normal-b', width: '2.4', height: '2.1', role: 'shared-group-rule' },
+      { id: 'minimum', width: '1', height: '1', role: 'shared-group-boundary-1.3m2' }
+    ]
+  });
+
+  assert.deepEqual(cases.map(item => item.role), ['derive', 'derive', 'boundary']);
+  assert.deepEqual(cases.map(item => item.certificationRole), [
+    'individual-product-code', 'shared-group-rule', 'shared-group-boundary-1.3m2'
+  ]);
+});
+
 test('expired quick scan offers atomic validity renewal only for successfully verified references', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-validity-renewal-'));
   const store = new Phase2Store({ dataDir: directory });
