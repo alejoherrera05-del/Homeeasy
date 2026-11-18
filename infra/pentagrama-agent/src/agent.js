@@ -8,7 +8,7 @@ const { AgentApi } = require('./api');
 const { Logger } = require('./logger');
 const dpapi = require('./dpapi');
 const { PentagramaSessionBridge } = require('./session-bridge');
-const { AgentUpdater } = require('./updater');
+const { AgentUpdater, completeInstalledUpdate } = require('./updater');
 const { startPowerGuard } = require('./power-guard');
 // The Agent installer always vendors the Pentagrama runtime at app/core. The
 // repository path is selected only when that vendored directory does not exist
@@ -205,6 +205,7 @@ async function runJob(job, sync) {
 
 async function main() {
   fs.mkdirSync(ROOT, { recursive: true });
+  completeInstalledUpdate(UPDATE_STATUS_PATH, VERSION);
   const config = readJson(CONFIG_PATH);
   const agentIdentity = identity();
   const api = new AgentApi({ serverUrl: config.serverUrl, caPath: path.resolve(path.dirname(CONFIG_PATH), config.caFile || 'server.crt') });
@@ -229,7 +230,14 @@ async function main() {
     browserTransport: request => sessionBridge.browserRequest(request, Math.max(150000, Number(request && request.timeoutMs || 0)))
   });
   const headers = authHeaders(agentIdentity, secrets);
-  const updater = new AgentUpdater({ api, headers, currentVersion: VERSION, root: ROOT, statusPath: UPDATE_STATUS_PATH });
+  const updater = new AgentUpdater({
+    api,
+    headers,
+    currentVersion: VERSION,
+    root: ROOT,
+    statusPath: UPDATE_STATUS_PATH,
+    serviceExecutable: path.resolve(__dirname, '..', '..', 'HomeEasyPentagramaAgent.exe')
+  });
   let pentagrama = { status: 'unknown', checkedAt: null };
   let runtime = { status: 'idle', phase: 'STARTED', updatedAt: new Date().toISOString() };
   let failures = 0;
