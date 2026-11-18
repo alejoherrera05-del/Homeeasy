@@ -7,6 +7,13 @@ const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
 const installer = fs.readFileSync(path.join(root, 'installer', 'HomeEasyPentagramaAgent.iss'), 'utf8');
+
+test('installer preserves the running Node runtime during upgrades', () => {
+  assert.match(
+    installer,
+    /Source: "\.\.\\build\\stage\\runtime\\node\.exe";[^\r\n]*Flags: onlyifdoesntexist/
+  );
+});
 const build = fs.readFileSync(path.join(root, 'build.ps1'), 'utf8');
 const source = fs.readFileSync(path.join(root, 'ui', 'HomeEasyPentagramaAgent.UI.cs'), 'utf8');
 
@@ -29,6 +36,12 @@ test('build compiles a DPI-aware native Windows application', () => {
   assert.match(build, /target:winexe/);
   assert.match(build, /win32manifest/);
   assert.match(build, /HomeEasyPentagramaAgent\.UI\.cs/);
+});
+
+test('build rejects a gateway URL that cannot match the bundled certificate', () => {
+  assert.match(build, /ServerUrl must use the private Agent gateway port 8443/);
+  assert.match(build, /GetNameInfo\(\[System\.Security\.Cryptography\.X509Certificates\.X509NameType\]::DnsName/);
+  assert.match(build, /does not match gateway certificate/);
 });
 
 test('native UI keeps credentials in HomeEasy and exposes safe configuration', () => {

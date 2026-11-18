@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { PentagramaPhase2, statusFor, publicInventorySummary } = require('./phase2');
+const { PentagramaPhase2, statusFor, publicInventorySummary, runtimeCertifiedSheetProduct } = require('./phase2');
 const { Phase2Store } = require('./phase2-store');
 const { INITIAL_MAPPINGS, pentagramaParamsForCase } = require('./mapper');
 
@@ -14,6 +14,94 @@ test('change classifier enforces unchanged and review thresholds', () => {
   assert.equal(statusFor(100, 114.99), 'INCREASED');
   assert.equal(statusFor(100, 70), 'REVIEW_REQUIRED');
   assert.equal(statusFor(100, 130), 'REVIEW_REQUIRED');
+});
+
+test('runtime certification accepts only fully evidenced configurable matrices', () => {
+  const matrix = {
+    active: true,
+    status: 'VIGENTE',
+    method: 'matrix',
+    matrixCells: Array.from({ length: 156 }, (_, index) => ({ row: index + 2 })),
+    rules: {
+      source: 'PENTAGRAMA_LIVE_MATRIX',
+      certifiedAt: '2026-11-17T23:13:35.600Z',
+      productCode: 'LUMTRVERALA',
+      groupCode: '702',
+      associationGroup: 'LUMINITY',
+      evidence: { cells: 156, liveQuotes: 468 },
+      configurations: [
+        { id: 'standard', label: 'Alabaster', productCode: 'LUMTRVERALA', groupCode: '702', maxWidthMm: 7000 },
+        { id: 'natural-ebony', label: 'Natural Ebony', productCode: 'LUMTRNAEB', groupCode: '1363', maxWidthMm: 5800 }
+      ]
+    }
+  };
+  assert.equal(runtimeCertifiedSheetProduct(matrix), true);
+  assert.equal(runtimeCertifiedSheetProduct({ ...matrix, matrixCells: matrix.matrixCells.slice(0, 155) }), false);
+  assert.equal(runtimeCertifiedSheetProduct({ ...matrix, rules: { ...matrix.rules, evidence: { cells: 156, liveQuotes: 155 } } }), false);
+});
+
+test('grouped mappings require every Pentagrama variant to return the same price', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-variants-'));
+  const calls = [];
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [], homeeasy: {}, homeeasyCost: {}, gateway: {},
+    pricing: { supplierCost: async params => {
+      calls.push(params.ProductCode);
+      return { total: 400000, basePrice: 400000, distributorDiscount: 0, productDiscount: 0, vatRate: 0 };
+    } }
+  });
+  const result = await service.supplierCostForMapping({
+    productCode: 'A', groupCode: '1', calculationType: 'NormalProduct', quantity: 1,
+    productDiscount: 0, pricingMode: 'account-discount', special: { AssociationGroup: 'PANEL' },
+    variants: [{ id: 'second', productCode: 'B', groupCode: '2' }]
+  }, { id: 'normal-a', width: '2', height: '2' });
+  assert.deepEqual(calls, ['A', 'B']);
+  assert.equal(result.variantEvidence.length, 2);
+  assert.equal(result.total, 400000);
+});
+
+test('grouped mappings stop automatic updates when one variant diverges', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-variant-divergence-'));
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [], homeeasy: {}, homeeasyCost: {}, gateway: {},
+    pricing: { supplierCost: async params => ({ total: params.ProductCode === 'A' ? 400000 : 410000 }) }
+  });
+  await assert.rejects(
+    service.supplierCostForMapping({
+      productCode: 'A', groupCode: '1', calculationType: 'NormalProduct', quantity: 1,
+      productDiscount: 0, pricingMode: 'account-discount', special: {},
+      variants: [{ id: 'second', productCode: 'B', groupCode: '2' }]
+    }, { id: 'normal-a', width: '2', height: '2' }),
+    error => error.code === 'PENTAGRAMA_VARIANT_PRICE_DIVERGED'
+  );
+});
+
+test('fixedPrice mappings add VAT and require grouped variants to agree', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-fixed-price-'));
+  const calls = [];
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: directory }),
+    mappings: [], homeeasy: {}, homeeasyCost: {}, pricing: {},
+    gateway: { dispatch: async (type, payload) => {
+      calls.push({ type, payload });
+      return { Price: Number(payload.params.ancho) * Number(payload.params.alto) * 61900 };
+    } }
+  });
+
+  const result = await service.supplierCostForMapping({
+    productCode: 'CRYSTAL-A', groupCode: '871', calculationType: 'NormalProduct',
+    quantity: 1, productDiscount: 0, pricingEndpoint: 'fixedPrice', fixedPriceVatRate: 0.19,
+    special: {}, variants: [{ id: 'special-colour', productCode: 'CRYSTAL-B', groupCode: '886' }]
+  }, { id: 'normal-a', width: '2', height: '2' });
+
+  assert.equal(result.basePrice, 247600);
+  assert.equal(result.total, 294644);
+  assert.equal(result.variantEvidence.length, 2);
+  assert.deepEqual(calls.map(item => item.type), ['catalog', 'catalog']);
+  assert.deepEqual(calls.map(item => item.payload.operation), ['fixedPrice', 'fixedPrice']);
+  assert.deepEqual(calls.map(item => item.payload.params.Code), ['CRYSTAL-A', 'CRYSTAL-B']);
 });
 
 test('active maintenance is exposed and duplicate starts reuse the same operation', () => {
@@ -255,6 +343,33 @@ test('post-apply mismatch rolls back the affected batch automatically', async ()
     strategy: 'RATE_M2', destination: mapping.destination, sourceModel: { method: 'area', minHeight: 0, minArea: 0, promotional: false } };
   await assert.rejects(service.runApply(operation.id, { id: 'scan-1' }, [change], {}), error => error.code === 'PENTAGRAMA_POST_APPLY_QA_ROLLED_BACK');
   assert.equal(rolledBack, 'history-1');
+});
+
+test('certified complements are validated from their linear factor without standalone HomeEasy quotes', async () => {
+  const mapping = {
+    id: 'coverlight-standard', homeeasyId: 'coverlight-standard', family: 'Enrollable', reference: 'Coverlight Standard',
+    productCode: 'KITPERCOLIBLA', groupCode: '616', calculationType: 'DimensionsHeight',
+    width: '2', height: '1.5', quantity: 1, productDiscount: 0, pricingMode: 'account-discount',
+    strategy: 'COMPLEMENT', status: 'CERTIFIED', verifiedAt: '2026-11-17T00:00:00Z', casesPassed: 3, maxDifference: 0,
+    homeeasy: { quantity: 2 }, destination: { sheet: 'Costos_Pentagrama', field: 'Tarifa_IVA_COP' },
+    updateField: 'Tarifa_IVA_COP', special: {}, validationCases: [
+      { id: 'a', width: '2', height: '1.5', role: 'derive' },
+      { id: 'b', width: '2', height: '2.2', role: 'derive' },
+      { id: 'c', width: '2.4', height: '1.8', role: 'verify' }
+    ]
+  };
+  let standaloneCalls = 0;
+  const service = new PentagramaPhase2({
+    store: new Phase2Store({ dataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'pentagrama-complement-validation-')) }),
+    mappings: [mapping], gateway: {}, homeeasy: {},
+    pricing: { supplierCost: async params => ({ total: Number(params.Height) * 2 * 12370.05 }) },
+    homeeasyCost: { cost: async () => { standaloneCalls += 1; throw new Error('standalone complement is invalid'); } }
+  });
+  const result = await service.validateMapping(mapping, { id: 'coverlight-standard', method: 'linear-height', rate: 24740.1, promotional: false }, {});
+  assert.equal(result.autoApplicable, true);
+  assert.equal(result.proposedRate, 12370.05);
+  assert.equal(result.evidence.length, 3);
+  assert.equal(standaloneCalls, 0);
 });
 
 test('inventory audit records real catalog additions and discontinuations without auto-applying them', () => {

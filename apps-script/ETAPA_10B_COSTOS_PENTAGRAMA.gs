@@ -435,6 +435,7 @@ function calcularItemCostos10B_(item, catalog, options) {
     if (!original || !original.active || original.family === "complemento-enrollable") throw new Error("Elige un producto disponible.");
     let product = configurarProductoCostos10B_(original, item && item.configuration);
     product = aplicarPerfilFabricacionComplementos10B_(product, item || {}, catalog);
+    validarLimitesConfiguracionCostos10B_(product, width, height);
 
     let unit = 0;
     let area = null;
@@ -464,7 +465,7 @@ function calcularItemCostos10B_(item, catalog, options) {
           return width >= c.minWidthMm && width <= c.maxWidthMm && height >= c.minHeightMm && height <= c.maxHeightMm;
         });
         if (!cell || cell.cents === null || cell.cents === undefined) {
-          throw new Error("Esta medida no tiene una tarifa automática confirmada. Consulta Pentagrama y usa costo confirmado.");
+          throw new Error("La medida supera las combinaciones certificadas disponibles. Divide la persiana o elige otra referencia/configuración.");
         }
         unit = cell.cents;
       } else {
@@ -589,13 +590,23 @@ function opcionesComplementos10B_(catalog, ids) {
 
 function configurarProductoCostos10B_(product, configuration) {
   const id = String(configuration || "standard");
-  if (id === "standard") return product;
   const baseRules = product.rules || {};
   const variant = (baseRules.configurations || []).find(function(c) { return c.id === id; });
+  if (!variant && id === "standard") return product;
   if (!variant) throw new Error("Elige una configuración disponible.");
   const rules = Object.assign({}, baseRules, {
     coverlightIds: variant.coverlightIds || baseRules.coverlightIds || [],
-    addonIds: variant.addonIds || baseRules.addonIds || []
+    addonIds: variant.addonIds || baseRules.addonIds || [],
+    selectedConfiguration: {
+      id: id,
+      label: String(variant.label || id),
+      minWidthMm: variant.minWidthMm,
+      maxWidthMm: variant.maxWidthMm,
+      minHeightMm: variant.minHeightMm,
+      maxHeightMm: variant.maxHeightMm,
+      productCode: String(variant.productCode || baseRules.productCode || ""),
+      groupCode: String(variant.groupCode || baseRules.groupCode || "")
+    }
   });
   if (Array.isArray(variant.fabricationMechanismBands) && variant.fabricationMechanismBands.length) {
     const baseProfile = baseRules.fabricationProfile && typeof baseRules.fabricationProfile === "object" ? baseRules.fabricationProfile : {};
@@ -612,6 +623,24 @@ function configurarProductoCostos10B_(product, configuration) {
     selectedSupplementId: String(variant.supplementId || ""),
     rules: rules
   });
+}
+
+function validarLimitesConfiguracionCostos10B_(product, width, height) {
+  const selected = product && product.rules && product.rules.selectedConfiguration;
+  if (!selected) return;
+  const label = String(selected.label || product.configuration || "La configuración elegida");
+  if (isFinite(Number(selected.minWidthMm)) && width < Number(selected.minWidthMm)) {
+    throw new Error(label + " se fabrica desde " + (Number(selected.minWidthMm) / 1000).toFixed(2).replace(".", ",") + " m de ancho. Elige otra configuración.");
+  }
+  if (isFinite(Number(selected.maxWidthMm)) && width > Number(selected.maxWidthMm)) {
+    throw new Error(label + " se fabrica hasta " + (Number(selected.maxWidthMm) / 1000).toFixed(2).replace(".", ",") + " m de ancho. Elige otra configuración o divide la persiana.");
+  }
+  if (isFinite(Number(selected.minHeightMm)) && height < Number(selected.minHeightMm)) {
+    throw new Error(label + " se fabrica desde " + (Number(selected.minHeightMm) / 1000).toFixed(2).replace(".", ",") + " m de alto. Elige otra configuración.");
+  }
+  if (isFinite(Number(selected.maxHeightMm)) && height > Number(selected.maxHeightMm)) {
+    throw new Error(label + " se fabrica hasta " + (Number(selected.maxHeightMm) / 1000).toFixed(2).replace(".", ",") + " m de alto. Elige otra configuración o divide la persiana.");
+  }
 }
 
 function aplicarPerfilFabricacionComplementos10B_(product, item, catalog) {

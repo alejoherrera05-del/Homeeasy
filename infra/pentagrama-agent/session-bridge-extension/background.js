@@ -298,8 +298,7 @@ function resultLooksLoggedOut(value) {
   const url = String(result.url || '');
   const text = String(result.text || '');
   return /\/(?:User\/)?Login/i.test(url) ||
-    (/name=["']Login["']/i.test(text) && /name=["']Password["']/i.test(text)) ||
-    (Number(result.status) === 500 && /^\s*</.test(text));
+    (/name=["']Login["']/i.test(text) && /name=["']Password["']/i.test(text));
 }
 
 async function runBrowserRequest(request) {

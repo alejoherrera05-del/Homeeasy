@@ -56,3 +56,9 @@ test('single setup packages and registers the extension for supported Chromium b
   assert.match(installer, /BraveSoftware\\Brave\\ExtensionInstallForcelist/);
   assert.match(installer, /extension\/update\.xml/);
 });
+
+test('build validates the exact vendored runtime used by clean installations', () => {
+  assert.match(build, /Copy-Item[\s\S]*pentagrama-sync[\s\S]*appStage 'core'/);
+  assert.match(build, /require\(process\.argv\[1\]\); require\(process\.argv\[2\]\);/);
+  assert.match(build, /Staged Agent runtime validation failed/);
+});

@@ -18,6 +18,15 @@ if (-not $EnrollmentToken.Trim()) { throw 'EnrollmentToken is required.' }
 if (-not (Test-Path -LiteralPath $CertificatePath)) { throw 'CertificatePath does not exist.' }
 if (-not (Test-Path -LiteralPath $ExtensionPrivateKeyPath)) { throw 'ExtensionPrivateKeyPath does not exist.' }
 
+try { $serverUri = [Uri]$ServerUrl } catch { throw 'ServerUrl must be a valid absolute HTTPS URL.' }
+if (-not $serverUri.IsAbsoluteUri -or $serverUri.Scheme -ne 'https') { throw 'ServerUrl must be a valid absolute HTTPS URL.' }
+if ($serverUri.Port -ne 8443) { throw 'ServerUrl must use the private Agent gateway port 8443.' }
+$gatewayCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new((Resolve-Path -LiteralPath $CertificatePath).Path)
+$certificateHost = $gatewayCertificate.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsName, $false)
+if (-not [string]::Equals($serverUri.Host, $certificateHost, [StringComparison]::OrdinalIgnoreCase)) {
+  throw "ServerUrl host '$($serverUri.Host)' does not match gateway certificate '$certificateHost'."
+}
+
 if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $stage,$cache,$OutputDirectory | Out-Null
 $appStage = Join-Path $stage 'app'
@@ -122,11 +131,17 @@ Copy-Item -LiteralPath $packedCrx -Destination (Join-Path $browserExtensionStage
 $extensionVersion = [string]$extensionResult.version
 Set-Content -LiteralPath (Join-Path $stage 'browser-extension.iss') -Value "#define BrowserExtensionId `"$extensionId`"" -Encoding ascii
 Copy-Item -LiteralPath (Join-Path $repoRoot 'infra\whatsapp\bridge\pentagrama-sync') -Destination (Join-Path $appStage 'core') -Recurse
+$stagedCore = Join-Path $appStage 'core\index.js'
+$stagedAgent = Join-Path $appStage 'src\agent.js'
+& node -e "require(process.argv[1]); require(process.argv[2]);" $stagedCore $stagedAgent
+if ($LASTEXITCODE -ne 0) { throw "Staged Agent runtime validation failed with exit code $LASTEXITCODE." }
 Copy-Item -LiteralPath $CertificatePath -Destination (Join-Path $appStage 'server.crt')
 @{
   serverUrl = $ServerUrl
   caFile = 'server.crt'
-  extensionIds = @($extensionId, 'cmijhfckibhbdhneapoknlbmfadfmogn')
+  # Keep the immediately previous signed extension accepted during a key
+  # rotation so browser policy refreshes cannot interrupt an Agent upgrade.
+  extensionIds = @($extensionId, 'aehdjkempnjcjfhpfiinombmagkeldon', 'cmijhfckibhbdhneapoknlbmfadfmogn')
   extensionPackage = 'browser-extension/homeeasy-session-bridge.crx'
   extensionVersion = $extensionVersion
 } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $appStage 'config.json') -Encoding utf8NoBOM

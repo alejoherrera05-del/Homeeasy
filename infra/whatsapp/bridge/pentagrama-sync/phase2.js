@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 const { INITIAL_MAPPINGS, MAPPING_STATUSES, mappingIsReady, mappingIsCertified, pentagramaParamsForCase, homeEasyItemForCase } = require('./mapper');
 const { roundMoney } = require('./comparison');
-const { buildProposal, same, effectiveArea, homeEasyRateCost } = require('./strategies');
+const { buildProposal, same, effectiveArea, homeEasyRateCost, complementFactor, homeEasyComplementCost } = require('./strategies');
 const { HomeEasySyncClient } = require('./homeeasy-sync');
 const { Phase2Store } = require('./phase2-store');
 const { registry: DEFAULT_CERTIFICATION_REGISTRY } = require('./catalog-certification');
@@ -20,11 +20,21 @@ function runtimeCertifiedSheetProduct(item) {
   const rules = item && item.rules || {};
   const evidence = rules.evidence || {};
   const prices = Array.isArray(evidence.prices) ? evidence.prices : [];
-  return Boolean(item && item.active !== false && String(item.status || '') === 'VIGENTE' &&
-    String(item.method || '') === 'area' && Number(item.rate) > 0 &&
+  const common = Boolean(item && item.active !== false && String(item.status || '') === 'VIGENTE' &&
     String(rules.source || '').startsWith('PENTAGRAMA_LIVE_') && rules.certifiedAt &&
-    rules.productCode && rules.groupCode && rules.associationGroup && prices.length >= 3 &&
-    rules.fabricationProfile && Array.isArray(rules.fabricationProfile.mechanismBands));
+    rules.productCode && rules.groupCode && rules.associationGroup);
+  const certifiedArea = common &&
+    String(item.method || '') === 'area' && Number(item.rate) > 0 &&
+    prices.length >= 3 && rules.fabricationProfile && Array.isArray(rules.fabricationProfile.mechanismBands);
+  const configurations = Array.isArray(rules.configurations) ? rules.configurations : [];
+  const certifiedMatrix = common && String(item.method || '') === 'matrix' &&
+    Number(evidence.cells) >= 156 && Number(evidence.liveQuotes) >= 156 &&
+    Array.isArray(item.matrixCells) && item.matrixCells.length >= Number(evidence.cells) &&
+    configurations.length > 0 && configurations.every(configuration =>
+      configuration.id && configuration.label && configuration.productCode && configuration.groupCode &&
+      Number(configuration.maxWidthMm) > 0
+    );
+  return Boolean(certifiedArea || certifiedMatrix);
 }
 
 function operationalSheetProduct(item) {
@@ -92,6 +102,26 @@ function mappingRuleAlignment(mapping, sourceItem) {
       };
     }
   }
+  if (Array.isArray(mapping.expectedConfigurations) && mapping.expectedConfigurations.length) {
+    const current = Array.isArray(sourceItem.rules && sourceItem.rules.configurations)
+      ? sourceItem.rules.configurations
+      : [];
+    const expected = mapping.expectedConfigurations;
+    const aligned = current.length === expected.length && expected.every(configuration => {
+      const found = current.find(item => String(item.id) === String(configuration.id));
+      return found && String(found.label || '') === String(configuration.label || '') &&
+        String(found.method || 'area') === 'area' && Number(found.rateCOP) > 0;
+    });
+    if (!aligned) {
+      return {
+        ok: false,
+        field: 'configurations',
+        expected: expected.map(item => item.id),
+        current: current.map(item => item.id),
+        reason: 'La referencia necesita sus configuraciones de tela certificadas para evitar usar una tarifa ambigua.'
+      };
+    }
+  }
   return { ok: true };
 }
 
@@ -107,6 +137,9 @@ function maintenanceRowValues(sourceProduct, sourceCatalog, mapping, overrides =
     unit: String(external.unit || 'UND'),
     source: 'PENTAGRAMA_LIVE'
   };
+  if (Array.isArray(overrides.configurations)) {
+    rules.configurations = overrides.configurations.map(item => ({ ...item }));
+  }
   return [
     String(sourceProduct.id || ''),
     String(sourceProduct.family || ''),
@@ -443,15 +476,96 @@ class PentagramaPhase2 {
     return cases;
   }
 
+  mappingVariants(mapping) {
+    const declared = Array.isArray(mapping && mapping.variants) ? mapping.variants : [];
+    return [
+      { id: 'primary', productCode: mapping.productCode, groupCode: mapping.groupCode },
+      ...declared
+    ].map((variant, index) => ({
+      id: String(variant.id || `variant-${index + 1}`),
+      productCode: String(variant.productCode || mapping.productCode || ''),
+      groupCode: String(variant.groupCode || mapping.groupCode || ''),
+      calculationType: String(variant.calculationType || mapping.calculationType || 'NormalProduct'),
+      special: { ...(mapping.special || {}), ...(variant.special || {}) }
+    }));
+  }
+
+  async supplierCostForMapping(mapping, sample) {
+    const variants = this.mappingVariants(mapping);
+    const quoted = [];
+    for (const variant of variants) {
+      let pentagrama;
+      if (String(mapping.pricingEndpoint || '') === 'fixedPrice') {
+        if (!this.gateway || typeof this.gateway.dispatch !== 'function') {
+          throw Object.assign(new Error('Pentagrama fixedPrice gateway is unavailable'), { code: 'AGENT_OFFLINE' });
+        }
+        const raw = await this.gateway.dispatch('catalog', {
+          operation: 'fixedPrice',
+          params: {
+            Code: variant.productCode,
+            cantidad: Number(mapping.quantity || 1),
+            ancho: Number(sample.width),
+            alto: Number(sample.height)
+          }
+        });
+        const basePrice = typeof raw === 'number' ? raw : Number(raw && (raw.Price ?? raw.price ?? raw.Value ?? raw.value));
+        if (!Number.isFinite(basePrice) || basePrice < 0) {
+          throw Object.assign(new Error('Pentagrama fixedPrice did not return a valid amount'), { code: 'PENTAGRAMA_FIXED_PRICE_INVALID' });
+        }
+        const vatRate = Number.isFinite(Number(mapping.fixedPriceVatRate)) ? Number(mapping.fixedPriceVatRate) : 0.19;
+        pentagrama = {
+          basePrice,
+          distributorDiscount: 0,
+          productDiscount: 0,
+          pricingMode: 'fixed-price-before-vat',
+          subtotal: roundMoney(basePrice),
+          vatRate,
+          total: roundMoney(basePrice * (1 + vatRate))
+        };
+      } else {
+        pentagrama = await this.pricing.supplierCost(
+          pentagramaParamsForCase({
+            ...mapping,
+            productCode: variant.productCode,
+            groupCode: variant.groupCode,
+            calculationType: variant.calculationType,
+            special: variant.special
+          }, sample),
+          { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
+        );
+      }
+      quoted.push({ ...variant, pentagrama });
+    }
+    const primary = quoted[0] && quoted[0].pentagrama;
+    const mismatch = quoted.find(item => Math.abs(Number(item.pentagrama && item.pentagrama.total) - Number(primary && primary.total)) > 0.02);
+    if (mismatch) {
+      throw Object.assign(new Error(`Las variantes agrupadas divergieron en ${sample.id || 'la muestra'}.`), {
+        code: 'PENTAGRAMA_VARIANT_PRICE_DIVERGED',
+        details: quoted.map(item => ({ id: item.id, productCode: item.productCode, groupCode: item.groupCode, total: item.pentagrama && item.pentagrama.total }))
+      });
+    }
+    return {
+      ...primary,
+      variantEvidence: quoted.map(item => ({
+        id: item.id,
+        productCode: item.productCode,
+        groupCode: item.groupCode,
+        total: item.pentagrama.total
+      }))
+    };
+  }
+
   async validateMapping(mapping, sourceItem, context) {
     if (!mappingIsReady(mapping)) return { autoApplicable: false, reason: 'El mapping está incompleto.', evidence: [] };
     const evidence = [];
     for (const sample of this.validationCases(mapping)) {
-      const [pentagrama, homeeasy] = await Promise.all([
-        this.pricing.supplierCost(pentagramaParamsForCase(mapping, sample), { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }),
-        this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context)
-      ]);
-      evidence.push({ ...sample, pentagrama, homeeasy: roundMoney(homeeasy.amount) });
+      const pentagrama = await this.supplierCostForMapping(mapping, sample);
+      if (mapping.strategy === 'COMPLEMENT') {
+        evidence.push({ ...sample, pentagrama, homeeasy: homeEasyComplementCost(Number(sourceItem.rate), mapping, sourceItem, sample) });
+      } else {
+        const homeeasy = await this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context);
+        evidence.push({ ...sample, pentagrama, homeeasy: roundMoney(homeeasy.amount) });
+      }
     }
     return { ...buildProposal(mapping, sourceItem, evidence), evidence };
   }
@@ -918,10 +1032,7 @@ class PentagramaPhase2 {
     let pentagrama;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        pentagrama = await this.pricing.supplierCost(
-          pentagramaParamsForCase(mapping, sample),
-          { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
-        );
+        pentagrama = await this.supplierCostForMapping(mapping, sample);
         break;
       } catch (error) {
         const retryable = ['PENTAGRAMA_UNEXPECTED_RESPONSE', 'AGENT_TRANSPORT_ERROR', 'AGENT_TIMEOUT'].includes(String(error && error.code || ''));
@@ -929,11 +1040,13 @@ class PentagramaPhase2 {
       }
     }
     const discount = sourceItem.promotional ? (100 - Number(sourceItem.extraDiscount || 0)) / 100 : 1;
-    const area = effectiveArea(sourceItem, sample);
-    if (!(area > 0) || !(discount > 0)) {
+    const factor = mapping.strategy === 'COMPLEMENT'
+      ? complementFactor(mapping, sourceItem, sample)
+      : effectiveArea(sourceItem, sample);
+    if (!(factor > 0) || !(discount > 0)) {
       return { changed: false, status: 'REVIEW_REQUIRED', reason: 'No se pudo reconstruir la tarifa vigente.' };
     }
-    const impliedRate = roundMoney(Number(pentagrama.total) / (area * discount));
+    const impliedRate = roundMoney(Number(pentagrama.total) / (factor * discount));
     const currentRate = roundMoney(Number(sourceItem.rate || 0));
     return {
       changed: !same(currentRate, impliedRate),
@@ -949,18 +1062,31 @@ class PentagramaPhase2 {
     const sourceProducts = Array.isArray(source && source.products) ? source.products : [];
     const sourceById = new Map(sourceProducts.map(item => [String(item.id), item]));
     const actions = [];
-    for (const mapping of this.mappings.filter(item => mappingIsCertified(item) && Number.isFinite(Number(item.expectedMinArea)))) {
+    for (const mapping of this.mappings.filter(item => mappingIsCertified(item) && (
+      Number.isFinite(Number(item.expectedMinArea)) ||
+      (Array.isArray(item.expectedConfigurations) && item.expectedConfigurations.length)
+    ))) {
       const sourceItem = sourceById.get(String(mapping.homeeasyId));
       if (!sourceItem) continue;
       const alignment = mappingRuleAlignment(mapping, sourceItem);
       if (alignment.ok) continue;
+      const hasExpectedMinimum = Number.isFinite(Number(mapping.expectedMinArea));
       const expectedPrevious = Number(mapping.expectedPreviousMinArea);
-      const safePrevious = Number.isFinite(expectedPrevious)
+      const safePrevious = hasExpectedMinimum && Number.isFinite(expectedPrevious)
         ? Math.abs(Number(sourceItem.minArea || 0) - expectedPrevious) <= 0.000001
         : true;
       const safeHeight = !Number.isFinite(Number(mapping.expectedMinHeight)) ||
         Math.abs(Number(sourceItem.minHeight || 0) - Number(mapping.expectedMinHeight)) <= 0.000001;
-      const safe = String(sourceItem.method || '') === 'area' && safePrevious && safeHeight;
+      const currentConfigurationIds = Array.isArray(sourceItem.rules && sourceItem.rules.configurations)
+        ? sourceItem.rules.configurations.map(item => String(item.id)).sort()
+        : [];
+      const expectedPreviousConfigurationIds = Array.isArray(mapping.expectedPreviousConfigurationIds)
+        ? mapping.expectedPreviousConfigurationIds.map(String).sort()
+        : null;
+      const safeConfigurations = expectedPreviousConfigurationIds === null ||
+        JSON.stringify(currentConfigurationIds) === JSON.stringify(expectedPreviousConfigurationIds);
+      const safe = String(sourceItem.method || '') === 'area' && safePrevious && safeHeight && safeConfigurations;
+      const proposedMinArea = hasExpectedMinimum ? Number(mapping.expectedMinArea) : Number(sourceItem.minArea || 0);
       actions.push({
         id: 'maintenance-rules:' + String(mapping.homeeasyId),
         kind: 'UPDATE_RULES',
@@ -971,7 +1097,11 @@ class PentagramaPhase2 {
         externalKey: 'MAINTENANCE:' + String(mapping.homeeasyId),
         productCode: String(mapping.productCode || ''),
         reference: String(sourceItem.reference || mapping.reference || ''),
-        reason: safe ? `Aplicar mínimo certificado de ${Number(mapping.expectedMinArea)} m² y recalibrar la tarifa con evidencia Live.` : alignment.reason,
+        reason: safe
+          ? (Array.isArray(mapping.expectedConfigurations) && mapping.expectedConfigurations.length
+            ? 'Aplicar configuraciones certificadas y recalibrar cada tela con evidencia Live.'
+            : `Aplicar mínimo certificado de ${Number(mapping.expectedMinArea)} m² y recalibrar la tarifa con evidencia Live.`)
+          : alignment.reason,
         mutation: safe ? {
           kind: 'UPDATE_RULES',
           certified: true,
@@ -981,7 +1111,9 @@ class PentagramaPhase2 {
           expectedMinHeight: Number(sourceItem.minHeight || 0),
           expectedMinArea: Number(sourceItem.minArea || 0),
           proposedMinHeight: Number(mapping.expectedMinHeight || sourceItem.minHeight || 0),
-          proposedMinArea: Number(mapping.expectedMinArea)
+          proposedMinArea,
+          expectedConfigurationIds: currentConfigurationIds,
+          proposedConfigurationIds: (mapping.expectedConfigurations || []).map(item => String(item.id))
         } : null
       });
     }
@@ -992,40 +1124,64 @@ class PentagramaPhase2 {
     const target = {
       ...sourceItem,
       minHeight: Number.isFinite(Number(mapping.expectedMinHeight)) ? Number(mapping.expectedMinHeight) : Number(sourceItem.minHeight || 0),
-      minArea: Number(mapping.expectedMinArea)
+      minArea: Number.isFinite(Number(mapping.expectedMinArea)) ? Number(mapping.expectedMinArea) : Number(sourceItem.minArea || 0)
     };
     const samples = this.validationCases(mapping);
-    const evidence = [];
-    for (const sample of samples) {
-      const pentagrama = await this.pricing.supplierCost(
-        pentagramaParamsForCase(mapping, sample),
-        { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }
-      );
-      evidence.push({ ...sample, pentagrama });
-    }
-    const derives = evidence.filter(item => item.role === 'derive');
-    if (derives.length < 2) {
-      throw Object.assign(new Error('La regla de mantenimiento necesita dos medidas normales.'), { code: 'PENTAGRAMA_MAINTENANCE_EVIDENCE_INCOMPLETE' });
-    }
     const discount = target.promotional ? (100 - Number(target.extraDiscount || 0)) / 100 : 1;
-    const rates = derives.map(item => Number(item.pentagrama.total) / (effectiveArea(target, item) * discount));
-    if (rates.some(value => !Number.isFinite(value) || value <= 0) || Math.max(...rates) - Math.min(...rates) > 0.02) {
-      throw Object.assign(new Error('Pentagrama dejó de mostrar una tarifa lineal consistente para esta referencia.'), { code: 'PENTAGRAMA_MAINTENANCE_RATE_NOT_REPRODUCIBLE' });
+    const declaredConfigurations = Array.isArray(mapping.expectedConfigurations) && mapping.expectedConfigurations.length
+      ? mapping.expectedConfigurations
+      : [null];
+    const evidence = [];
+    const cases = [];
+    const configurations = [];
+
+    for (const configuration of declaredConfigurations) {
+      const configuredMapping = configuration ? {
+        ...mapping,
+        productCode: String(configuration.productCode || mapping.productCode),
+        groupCode: String(configuration.groupCode || mapping.groupCode),
+        calculationType: String(configuration.calculationType || mapping.calculationType),
+        special: { ...(mapping.special || {}), ...(configuration.special || {}) },
+        variants: Array.isArray(configuration.variants) ? configuration.variants : []
+      } : mapping;
+      const configurationEvidence = [];
+      for (const sample of samples) {
+        const pentagrama = await this.supplierCostForMapping(configuredMapping, sample);
+        const item = { ...sample, configuration: configuration && configuration.id || '', pentagrama };
+        configurationEvidence.push(item);
+        evidence.push(item);
+      }
+      const derives = configurationEvidence.filter(item => item.role === 'derive');
+      if (derives.length < 2) {
+        throw Object.assign(new Error('La regla de mantenimiento necesita dos medidas normales.'), { code: 'PENTAGRAMA_MAINTENANCE_EVIDENCE_INCOMPLETE' });
+      }
+      const rates = derives.map(item => Number(item.pentagrama.total) / (effectiveArea(target, item) * discount));
+      if (rates.some(value => !Number.isFinite(value) || value <= 0) || Math.max(...rates) - Math.min(...rates) > 0.02) {
+        throw Object.assign(new Error('Pentagrama dejó de mostrar una tarifa lineal consistente para esta referencia.'), { code: 'PENTAGRAMA_MAINTENANCE_RATE_NOT_REPRODUCIBLE' });
+      }
+      const rate = roundMoney(rates.reduce((sum, value) => sum + value, 0) / rates.length);
+      for (const item of configurationEvidence) {
+        cases.push({
+          id: item.id,
+          configuration: item.configuration,
+          role: item.role,
+          width: item.width,
+          height: item.height,
+          expected: roundMoney(item.pentagrama.total),
+          reproduced: homeEasyRateCost(rate, target, item)
+        });
+      }
+      if (configuration) configurations.push({ id: String(configuration.id), label: String(configuration.label), method: 'area', rateCOP: rate });
     }
-    const proposedRate = roundMoney(rates.reduce((sum, value) => sum + value, 0) / rates.length);
-    const cases = evidence.map(item => ({
-      id: item.id,
-      role: item.role,
-      width: item.width,
-      height: item.height,
-      expected: roundMoney(item.pentagrama.total),
-      reproduced: homeEasyRateCost(proposedRate, target, item)
-    }));
     const mismatch = cases.find(item => !same(item.expected, item.reproduced));
     if (mismatch) {
       throw Object.assign(new Error(`La regla certificada no reproduce Pentagrama en ${mismatch.id}.`), { code: 'PENTAGRAMA_MAINTENANCE_RULE_NOT_REPRODUCIBLE' });
     }
-    return { proposedRate, target, evidence, cases };
+    const primaryConfiguration = configurations.find(item => item.id === 'standard') || configurations[0];
+    const proposedRate = primaryConfiguration ? primaryConfiguration.rateCOP : cases.length
+      ? roundMoney(cases.find(item => item.role === 'derive').expected / (effectiveArea(target, cases.find(item => item.role === 'derive')) * discount))
+      : Number(sourceItem.rate || 0);
+    return { proposedRate, target, evidence, cases, configurations: configurations.length ? configurations : undefined };
   }
 
   ringLiveFromSource(sourceItem) {
@@ -1763,11 +1919,21 @@ class PentagramaPhase2 {
           Math.abs(Number(sourceItem.minHeight || 0) - Number(mutation.expectedMinHeight || 0)) > 0.000001) {
           throw Object.assign(new Error('La regla o tarifa HomeEasy cambió después del escaneo.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
         }
+        const currentConfigurationIds = Array.isArray(sourceItem.rules && sourceItem.rules.configurations)
+          ? sourceItem.rules.configurations.map(item => String(item.id)).sort()
+          : [];
+        const expectedConfigurationIds = Array.isArray(mutation.expectedConfigurationIds)
+          ? mutation.expectedConfigurationIds.map(String).sort()
+          : [];
+        if (JSON.stringify(currentConfigurationIds) !== JSON.stringify(expectedConfigurationIds)) {
+          throw Object.assign(new Error('Las configuraciones HomeEasy cambiaron después del escaneo.'), { code: 'PENTAGRAMA_PREWRITE_VALIDATION_FAILED' });
+        }
         const certified = await this.certifyRuleMaintenance(mapping, sourceItem);
         const rowValues = maintenanceRowValues(sourceItem, source, mapping, {
           rate: certified.proposedRate,
           minHeight: certified.target.minHeight,
-          minArea: certified.target.minArea
+          minArea: certified.target.minArea,
+          configurations: certified.configurations
         });
         const qaCases = certified.evidence.map(sample => ({
           id: sample.id,
@@ -1775,7 +1941,10 @@ class PentagramaPhase2 {
           height: sample.height,
           quantity: mapping.quantity,
           expected: roundMoney(sample.pentagrama.total),
-          homeeasy: homeEasyItemForCase(mapping, sample)
+          homeeasy: {
+            ...homeEasyItemForCase(mapping, sample),
+            ...(sample.configuration ? { configuration: sample.configuration } : {})
+          }
         }));
         verified.push({
           ...action,
@@ -1949,7 +2118,9 @@ class PentagramaPhase2 {
           difference: item.difference, percent: item.percent, width: item.width, height: item.height, quantity: item.quantity,
           strategy: item.strategy, destination: item.destination,
           qaCases: validation.evidence.map(sample => ({ id: sample.id, width: sample.width, height: sample.height,
-            quantity: item.quantity, expected: roundMoney(sample.pentagrama.total), homeeasy: homeEasyItemForCase(mapping, sample) }))
+            quantity: item.quantity, expected: roundMoney(sample.pentagrama.total), strategy: mapping.strategy,
+            homeeasyQuantity: Number(mapping.homeeasy && mapping.homeeasy.quantity || mapping.quantity || 1),
+            ...(mapping.strategy === 'COMPLEMENT' ? {} : { homeeasy: homeEasyItemForCase(mapping, sample) }) }))
         })), context);
       }
 
@@ -1969,14 +2140,21 @@ class PentagramaPhase2 {
 
       this.store.updateOperation(operationId, { stage: 'QA' });
       const postQa = [];
+      const complementSource = verified.some(({ mapping }) => mapping.strategy === 'COMPLEMENT')
+        ? await this.homeeasy.catalog(context)
+        : null;
+      const complementSourceById = new Map((complementSource && complementSource.products || []).map(product => [String(product.id), product]));
       for (const { item, mapping } of verified) {
         for (const sample of this.validationCases(mapping)) {
-          const [pentagrama, current] = await Promise.all([
-            this.pricing.supplierCost(pentagramaParamsForCase(mapping, sample), { productDiscount: mapping.productDiscount, pricingMode: mapping.pricingMode }),
-            this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context)
-          ]);
-          postQa.push({ mappingId: item.id, caseId: sample.id, expected: roundMoney(pentagrama.total), actual: roundMoney(current.amount),
-            difference: roundMoney(current.amount - pentagrama.total) });
+          const pentagrama = await this.supplierCostForMapping(mapping, sample);
+          const current = mapping.strategy === 'COMPLEMENT'
+            ? homeEasyComplementCost(
+              Number(complementSourceById.get(String(mapping.homeeasyId)) && complementSourceById.get(String(mapping.homeeasyId)).rate),
+              mapping, complementSourceById.get(String(mapping.homeeasyId)), sample
+            )
+            : roundMoney((await this.homeeasyCost.cost(homeEasyItemForCase(mapping, sample), context)).amount);
+          postQa.push({ mappingId: item.id, caseId: sample.id, expected: roundMoney(pentagrama.total), actual: roundMoney(current),
+            difference: roundMoney(current - pentagrama.total) });
         }
       }
       if (postQa.some(item => Math.abs(item.difference) > 0.02)) {
@@ -2174,4 +2352,4 @@ class PentagramaPhase2 {
   }
 }
 
-module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, publicInventorySummary, SCAN_MAX_AGE_MS });
+module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, publicInventorySummary, runtimeCertifiedSheetProduct, SCAN_MAX_AGE_MS });

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-20T16:00:00Z",
+  "generatedAt": "2026-11-17T20:42:09Z",
   "sources": {
     "homeeasy": "Costos_Pentagrama live export",
     "pentagrama": "authenticated portal catalog and price endpoint/UI"
@@ -3242,13 +3242,23 @@
       "reference": "Visualle I y II",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "PANTRVI4009001",
+      "groupCode": "411",
+      "variants": [
+        { "id": "visualle-ii", "productCode": "PANTRVI4007701", "groupCode": "412" }
+      ],
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "reason": "HomeEasy agrega Visualle I y II; Pentagrama expone ProductCode/GroupCode distintos y no existe un destino unico seguro."
+      "verifiedAt": "2026-11-17T21:45:00Z",
+      "casesPassed": 6,
+      "maxDifference": 0,
+      "reason": "Visualle I y II devolvieron la misma tarifa en tres medidas; el mantenimiento compara ambas variantes y se detiene si divergen.",
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-81",
@@ -3365,13 +3375,23 @@
       "reference": "Screen Tretto 5% y 10%",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "PANSCTRE5EBO",
+      "groupCode": "671",
+      "variants": [
+        { "id": "tretto-10", "productCode": "PANSCTRE10EBO", "groupCode": "671" }
+      ],
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "reason": "HomeEasy agrega Tretto 5% y 10%; Pentagrama los expone como referencias separadas."
+      "verifiedAt": "2026-11-17T21:45:00Z",
+      "casesPassed": 6,
+      "maxDifference": 0,
+      "reason": "Tretto 5% y 10% devolvieron la misma tarifa en tres medidas; el mantenimiento compara ambas variantes y se detiene si divergen.",
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "panel-84",
@@ -4730,13 +4750,23 @@
       "reference": "Serenade Screen y Screen Eco",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "PANTRSESC101014",
+      "groupCode": "582",
+      "variants": [
+        { "id": "screen-eco", "productCode": "PANTRSESCECWH", "groupCode": "582" }
+      ],
       "calculationType": "NormalProduct",
       "associationGroup": "PANEL",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:50:08.967Z",
-      "reason": "HomeEasy agrega Serenade Screen y Serenade Eco; Pentagrama usa ProductCode distintos dentro del grupo 582."
+      "verifiedAt": "2026-11-17T21:45:00Z",
+      "casesPassed": 6,
+      "maxDifference": 0,
+      "reason": "Serenade Screen y Screen Eco devolvieron la misma tarifa en tres medidas; el mantenimiento compara ambas variantes y se detiene si divergen.",
+      "maintenanceRequired": true,
+      "expectedMinHeight": 1.3,
+      "expectedMinArea": 1.6
     },
     {
       "homeeasyId": "vertical-110",
@@ -4745,13 +4775,18 @@
       "reference": "April Showers, Nevada, Sinfonía",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
-      "reason": "HomeEasy agrega April Showers, Nevada y Sinfonia. Pentagrama expone las tres como referencias independientes; no existe un unico ProductCode seguro para auto-apply.",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERAPRCAD011",
+      "groupCode": "446",
+      "casesPassed": 9,
+      "maxDifference": 0,
+      "maintenanceRequired": true,
+      "reason": "April Showers, Nevada y Sinfonía quedaron certificadas como tres configuraciones seleccionables con tarifa propia.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T22:45:00Z"
     },
     {
       "homeeasyId": "vertical-111",
@@ -4759,16 +4794,19 @@
       "family": "Verticales",
       "reference": "Black Out Matte",
       "homeeasyMethod": "area",
-      "strategy": "SPECIAL_CONFIGURATION",
+      "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERBOMATCAD090",
       "groupCode": "446",
-      "reason": "La lama de 9 cm resulta lineal a 87941 COP/m2, distinta de HomeEasy (90732.92), y la configuracion de 13 cm no quedo certificada. No se reduce a RATE_M2 unica.",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "maintenanceRequired": true,
+      "reason": "Black Out Matte quedó reproducido como tarifa lineal con mínimo facturable de 1,6 m².",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T22:45:00Z"
     },
     {
       "homeeasyId": "vertical-112",
@@ -4777,13 +4815,18 @@
       "reference": "Screen Tretto 5% y 10%",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
-      "reason": "HomeEasy agrupa Tretto 5% y 10%, pero Pentagrama usa ProductCode distintos. Ambos deben permanecer separados para detectar futuras divergencias.",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "VERSCCADTRE5EBO",
+      "groupCode": "455",
+      "casesPassed": 6,
+      "maxDifference": 0,
+      "maintenanceRequired": true,
+      "reason": "Tretto 5% y 10% se verificaron por separado y reproducen la misma tarifa con mínimo de 1,6 m².",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T22:45:00Z"
     },
     {
       "homeeasyId": "vertical-113",
@@ -5003,14 +5046,39 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERSCCADFAOF3WHBL",
       "groupCode": "455",
-      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 1581.03 COP; no se certifica sin resolver la tarifa.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-119",
@@ -5020,14 +5088,39 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERSCCADSIBA5BL",
       "groupCode": "455",
-      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 47600 COP; no se certifica sin resolver la tarifa.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-120",
@@ -5247,14 +5340,39 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERSCCADJADE47604",
       "groupCode": "455",
-      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 61880 COP; no se certifica sin resolver la tarifa.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 455",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-126",
@@ -5264,14 +5382,39 @@
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "VERCADSCJADEGRESAN",
       "groupCode": "438",
-      "reason": "ProductCode exacto, pero el caso 2x2 vigente difiere de HomeEasy por 14280 COP; no se certifica sin resolver la tarifa.",
       "calculationType": "NormalProduct",
       "associationGroup": "VERTELCA",
       "unit": "UND",
-      "verifiedAt": "2026-10-09T15:24:26Z"
+      "verifiedAt": "2026-11-17T20:11:33Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "individualCase": {
+          "width": 2,
+          "height": 2,
+          "result": "PASS"
+        },
+        "sharedRule": "Vertical con cadenilla sin cenefa / VERTELCA / grupo 438",
+        "sharedCases": [
+          {
+            "id": "normal-b",
+            "width": "2.4",
+            "height": "2.1",
+            "role": "shared-group-rule"
+          },
+          {
+            "id": "minimum-regression",
+            "width": "1",
+            "height": "1",
+            "role": "shared-group-boundary-1.3m2"
+          }
+        ],
+        "billingMinimum": "width * max(height, 1.3); no minimum 1.6m2",
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "vertical-127",
@@ -5406,13 +5549,17 @@
       "reference": "Screen",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "SHEELESTDSC101012",
+      "groupCode": "877",
+      "casesPassed": 6,
+      "maxDifference": 0,
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "reason": "HomeEasy Screen coincide con mas de un GroupCode STANDARD; falta separar el destino antes de certificar."
+      "verifiedAt": "2026-11-17T22:40:00Z",
+      "reason": "Los grupos Screen 877 y 1235 devolvieron la misma tarifa fija en tres medidas."
     },
     {
       "homeeasyId": "sheer-131",
@@ -5991,13 +6138,17 @@
       "reference": "Crystal básicos y especiales",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "SHEELESTDCR901151",
+      "groupCode": "871",
+      "casesPassed": 6,
+      "maxDifference": 0,
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "reason": "HomeEasy agrega Crystal basicos y especiales; Pentagrama los separa en grupos 871 y 886."
+      "verifiedAt": "2026-11-17T22:40:00Z",
+      "reason": "Crystal básico 871 y especial 886 devolvieron la misma tarifa fija en tres medidas."
     },
     {
       "homeeasyId": "sheer-142",
@@ -6006,13 +6157,17 @@
       "reference": "Elegance",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "SHEELESTDEL901034",
+      "groupCode": "872",
+      "casesPassed": 6,
+      "maxDifference": 0,
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "reason": "HomeEasy Elegance corresponde a mas de un GroupCode STANDARD (872 y 1301)."
+      "verifiedAt": "2026-11-17T22:40:00Z",
+      "reason": "Los grupos Elegance 872 y 1301 devolvieron la misma tarifa fija en tres medidas."
     },
     {
       "homeeasyId": "sheer-143",
@@ -6363,13 +6518,17 @@
       "reference": "Natural",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "SHEELESTDEL901133",
+      "groupCode": "1306",
+      "casesPassed": 6,
+      "maxDifference": 0,
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z",
-      "reason": "HomeEasy Natural corresponde a referencias STANDARD en grupos 1306 y 874."
+      "verifiedAt": "2026-11-17T22:40:00Z",
+      "reason": "Los grupos Natural 1306 y 874 devolvieron la misma tarifa fija en tres medidas."
     },
     {
       "homeeasyId": "sheer-150",
@@ -6663,13 +6822,17 @@
       "reference": "Kosta",
       "homeeasyMethod": "area",
       "strategy": "RATE_M2",
-      "candidate": "AMBIGUOUS",
-      "status": "REVIEW_REQUIRED",
-      "reason": "Kosta existe en mas de una estructura/configuracion; no hay un unico ProductCode STANDARD demostrado para el destino HomeEasy.",
+      "candidate": "EXACT_CANDIDATE",
+      "status": "CERTIFIED",
+      "productCode": "SHEELESTDEL901161",
+      "groupCode": "1290",
+      "casesPassed": 6,
+      "maxDifference": 0,
+      "reason": "Los grupos Kosta 1290 y 875 devolvieron la misma tarifa fija en tres medidas.",
       "calculationType": "NormalProduct",
       "associationGroup": "SHEERSTD",
       "unit": "UND",
-      "verifiedAt": "2026-10-10T01:52:11.462Z"
+      "verifiedAt": "2026-11-17T22:40:00Z"
     },
     {
       "homeeasyId": "sheer-156",
@@ -6964,10 +7127,27 @@
       "homeeasyMethod": "matrix",
       "strategy": "MATRIX",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "LUMTRVERALA",
       "groupCode": "702",
-      "reason": "La matriz HomeEasy de 156 celdas no fue demostrada completamente contra Pentagrama."
+      "calculationType": "NormalProduct",
+      "verifiedAt": "2026-11-17T23:13:35.600Z",
+      "casesPassed": 468,
+      "maxDifference": 0,
+      "evidence": {
+        "cells": 156,
+        "liveQuotes": 468,
+        "variants": [
+          "LUMTRVERALA",
+          "LUMTRGRE",
+          "LUMTRNAMAR"
+        ],
+        "naturalEbonyProductCode": "LUMTRNAEB",
+        "naturalEbonyGroupCode": "1363",
+        "standardMaxWidthMm": 7000,
+        "naturalEbonyMaxWidthMm": 5800,
+        "maxDifferenceCOP": 0
+      }
     },
     {
       "homeeasyId": "vertesse-162",
@@ -9835,10 +10015,43 @@
       "homeeasyMethod": "linear-height",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "KITPERCOLIBLA",
       "groupCode": "616",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, atributos y cálculo lineal completo."
+      "calculationType": "DimensionsHeight",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsHeight",
+        "method": "linear-height",
+        "homeeasyQuantity": 2,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "coverlight-plus",
@@ -9848,10 +10061,43 @@
       "homeeasyMethod": "linear-height",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "KITPERCOLIPLUBLA",
       "groupCode": "616",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, atributos y cálculo lineal completo."
+      "calculationType": "DimensionsHeight",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsHeight",
+        "method": "linear-height",
+        "homeeasyQuantity": 2,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "coverlight-advance",
@@ -9861,10 +10107,43 @@
       "homeeasyMethod": "linear-height",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "KITPERCOLIADVBLA",
       "groupCode": "616",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, atributos y cálculo lineal completo."
+      "calculationType": "DimensionsHeight",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsHeight",
+        "method": "linear-height",
+        "homeeasyQuantity": 2,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "coverlight-single",
@@ -9874,10 +10153,43 @@
       "homeeasyMethod": "linear-height",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "KITPERCOLISINBLA",
       "groupCode": "616",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, atributos y cálculo lineal completo."
+      "calculationType": "DimensionsHeight",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsHeight",
+        "method": "linear-height",
+        "homeeasyQuantity": 2,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     },
     {
       "homeeasyId": "perfil-basico-out",
@@ -9887,10 +10199,43 @@
       "homeeasyMethod": "linear-width",
       "strategy": "COMPLEMENT",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "ACENPEINSTDOUBLA",
       "groupCode": "108",
-      "reason": "Requiere certificar producto padre, ItemCodeFather, color y cálculo por metro lineal."
+      "calculationType": "DimensionsWidth",
+      "associationGroup": "ENRSTD",
+      "unit": "UND",
+      "verifiedAt": "2026-11-17T20:42:09Z",
+      "casesPassed": 3,
+      "maxDifference": 0,
+      "evidence": {
+        "parentProductCode": "ENRSTDBOMA3090",
+        "associationGroup": "ENRSTD",
+        "calculationType": "DimensionsWidth",
+        "method": "linear-width",
+        "homeeasyQuantity": 1,
+        "cases": [
+          {
+            "id": "normal-a",
+            "width": "1.83",
+            "height": "1.2",
+            "role": "derive"
+          },
+          {
+            "id": "normal-b",
+            "width": "1.83",
+            "height": "2.2",
+            "role": "derive"
+          },
+          {
+            "id": "wide-tall",
+            "width": "2.5",
+            "height": "2.8",
+            "role": "validate"
+          }
+        ],
+        "source": "Pentagrama authenticated portal"
+      }
     }
   ]
 }

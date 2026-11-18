@@ -336,10 +336,20 @@ function calculatedCovers(item){
   const mm=value=>Math.round(Number(String(value).replace(',','.'))*1000);
   return result?.ok&&result.product.id===item.product&&result.widthMm===mm(item.width)&&result.heightMm===mm(item.height)?result.coverlightOptions||[]:[];
 }
+function configuredCovers(item){
+  const covers=chosen(item)?.coverlight;
+  return Array.isArray(covers)?covers.filter(cover=>cover?.id):[];
+}
+function coverlightOptionLabel(cover){
+  const cost=Number(cover?.costCents);
+  const priced=cover?.costCents!==undefined&&cover?.costCents!==null&&Number.isFinite(cost);
+  return String(cover?.name||'Coverlight')+(priced?' · +'+cop(cost):' · precio según alto');
+}
 function coverlightControls(item){
-  const covers=calculatedCovers(item);
+  const calculated=calculatedCovers(item);
+  const covers=calculated.length?calculated:configuredCovers(item);
   return covers.length?'<label class="coverlight-toggle" for="coverlight-'+item.id+'"><input id="coverlight-'+item.id+'" type="checkbox" data-action="coverlight-toggle" '+(item.coverlight?'checked':'')+'> Agregar Coverlight</label>'+
-    (item.coverlight?'<div class="field"><label for="coverlight-version-'+item.id+'">Coverlight</label><select id="coverlight-version-'+item.id+'" data-field="coverlight">'+covers.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===item.coverlight?'selected':'')+'>'+escape(c.name)+' · +'+escape(cop(c.costCents))+'</option>').join('')+'</select></div>':''):'';
+    (item.coverlight?'<div class="field"><label for="coverlight-version-'+item.id+'">Coverlight</label><select id="coverlight-version-'+item.id+'" data-field="coverlight">'+covers.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===item.coverlight?'selected':'')+'>'+escape(coverlightOptionLabel(c))+'</option>').join('')+'</select></div>':''):'';
 }
 function specialAlternativeLabel(item){
   return String(item?.specialAlternative?.label||item?.specialAlternative?.id||'configuración especial');
@@ -1192,7 +1202,7 @@ $('items').addEventListener('change',event=>{
   }
 
   if(target.dataset.action==='coverlight-toggle'){
-    item.coverlight=target.checked?(calculatedCovers(item)[0]?.id||''):'';
+    item.coverlight=target.checked?(calculatedCovers(item)[0]?.id||configuredCovers(item)[0]?.id||''):'';
     render();
     return;
   }
@@ -1814,4 +1824,3 @@ window.addEventListener('pageshow',event=>{
 });
 start();
 })();
-

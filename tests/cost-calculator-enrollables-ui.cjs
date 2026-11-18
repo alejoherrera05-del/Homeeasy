@@ -9,7 +9,11 @@ catalog.push({id:'enrollable-matte183',family:'enrollable',name:'Matte Básico 1
 catalog.push(...[
  {id:'onda-67',family:'onda',name:'Velo Coral White',type:'Velo'},
  {id:'panel-84',family:'panel',name:'Screen Tretto 3%'},
- {id:'vertical-113',family:'vertical',name:'Screen Tretto 3%'},
+ {id:'vertical-113',family:'vertical',name:'April Showers / Nevada / Sinfonía',configurations:[
+  {id:'standard',label:'April Showers · Vertical estándar'},
+  {id:'nevada',label:'Nevada · Vertical estándar'},
+  {id:'sinfonia',label:'Sinfonía · Vertical estándar'}
+ ]},
  {id:'sheer-130',family:'sheer',name:'Screen'},
  {id:'vertesse-161',family:'vertesse',name:'Regular traslucente'},
  {id:'vertesse-162',family:'vertesse',name:'Soft / Bisou'}
@@ -48,7 +52,7 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  const a=await mount(),w=a.w,d=w.document;
  change(w,'[data-field=family]','enrollable');assert.equal(d.querySelector('[data-field=configuration]'),null);
  assert.equal(d.querySelector('[data-action=manual-toggle]'),null);assert.equal(d.querySelector('.product-meta'),null);
- assert.equal(d.querySelector('[data-action=coverlight-toggle]'),null);
+ assert.ok(d.querySelector('[data-action=coverlight-toggle]'),'Coverlight debe aparecer inmediatamente para una tela compatible');
  assert.equal(d.querySelectorAll('[data-field=product] option').length,5);
  assert.ok(d.querySelector('optgroup[label="Dim Out"]'));
  input(w,'[data-field=width]','1');input(w,'[data-field=height]','1');await sleep(250);
@@ -60,7 +64,7 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  d.querySelector('#copy-sale').click();await sleep(20);assert.match(a.getCopied(),/con Coverlight/);assert.doesNotMatch(a.getCopied(),/195|120|Costo Coverlight/);
  w.dispatchEvent(new w.Event('pagehide'));const saved=w.localStorage.getItem('homeeasy.cost-draft.v2:qa');assert.ok(JSON.parse(saved).items[0].coverlight);
  const b=await mount(saved);assert.equal(b.w.document.querySelector('[data-action=coverlight-toggle]').checked,true);b.dom.window.close();
- input(w,'[data-field=height]','2');assert.equal(d.querySelector('[data-action=coverlight-toggle]'),null);await sleep(250);
+ input(w,'[data-field=height]','2');assert.ok(d.querySelector('[data-action=coverlight-toggle]'));assert.match(d.querySelector('[data-field=coverlight]').textContent,/precio según alto/);await sleep(250);
  assert.match(d.querySelector('[data-field=coverlight]').textContent,/40/);
  change(w,'[data-field=product]','enrollable-screen');assert.equal(d.querySelector('[data-action=manual-toggle]'),null);await sleep(250);assert.equal(d.querySelector('[data-action=coverlight-toggle]'),null);
  input(w,'[data-field=width]','2.3');input(w,'[data-field=height]','3');await sleep(250);
@@ -89,11 +93,18 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  change(w,'[data-field=family]','onda');assert.equal(d.querySelector('[data-field=product]').value,'old');assert.equal(d.querySelector('[data-field=configuration]'),null);
  for(const [family,id] of [['onda','onda-67'],['panel','panel-84'],['vertical','vertical-113'],['sheer','sheer-130'],['vertesse','vertesse-161']]){
   change(w,'[data-field=family]',family);
-  assert.ok(d.querySelector('[data-field=product] optgroup'),family);
+  assert.ok(d.querySelector('[data-field=product] option'),family);
+  if(family!=='vertical')assert.ok(d.querySelector('[data-field=product] optgroup'),family);
   assert.equal(d.querySelectorAll('[data-field=product] option').length,catalog.filter(p=>p.family===family).length);
   change(w,'[data-field=product]',id);await sleep(30);
   assert.equal(a.getLastItems()[0].product,id);
   assert.match(d.querySelector('[data-output=unit]').textContent,/100/);
  }
+ change(w,'[data-field=family]','vertical');change(w,'[data-field=product]','vertical-113');await sleep(30);
+ assert.ok(d.querySelector('[data-field=configuration]'));
+ assert.match(d.querySelector('.product-meta').textContent,/April Showers/);
+ change(w,'[data-field=configuration]','nevada');await sleep(30);
+ assert.equal(a.getLastItems()[0].configuration,'nevada');
+ assert.match(d.querySelector('.product-meta').textContent,/Nevada/);
  a.dom.window.close();console.log('Cotizador UI: Coverlight, borrador, cambio de referencia, instalación, transporte, ganancia y WhatsApp OK');
 })().catch(e=>{console.error(e);process.exitCode=1;});

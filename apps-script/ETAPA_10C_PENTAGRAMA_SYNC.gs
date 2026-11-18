@@ -22,6 +22,29 @@ function procesarRutaPentagramaSync10C_(ss, data, authValidation) {
 function leerCatalogoPentagramaSync10C_(ss) {
   const sheet = ss.getSheetByName(HOMEEASY_COST_SHEET);
   const values = sheet.getDataRange().getValues();
+  const matrixSheet = ss.getSheetByName(HOMEEASY_COST_MATRIX_SHEET);
+  const matrixValues = matrixSheet && matrixSheet.getLastRow() > 1
+    ? matrixSheet.getRange(2, 1, matrixSheet.getLastRow() - 1, HOMEEASY_COST_MATRIX_HEADERS.length).getValues()
+    : [];
+  const matrixByProduct = {};
+  matrixValues.forEach(function(row, index) {
+    const id = String(row[0] || "").trim();
+    if (!id) return;
+    if (!matrixByProduct[id]) matrixByProduct[id] = [];
+    matrixByProduct[id].push({
+      row: index + 2,
+      productId: id,
+      family: String(row[1] || ""),
+      reference: String(row[2] || ""),
+      minHeight: Number(row[3] || 0),
+      maxHeight: Number(row[4] || 0),
+      minWidth: Number(row[5] || 0),
+      maxWidth: Number(row[6] || 0),
+      currentCost: Number(row[7] || 0),
+      validThrough: normalizarFechaCostos10B_(row[8]),
+      version: String(row[9] || "")
+    });
+  });
   const rowsById = {};
   for (let i = 1; i < values.length; i++) {
     const id = String(values[i][0] || "").trim();
@@ -60,6 +83,7 @@ function leerCatalogoPentagramaSync10C_(ss) {
       pricesIncludeVat: product.pricesIncludeVat === true,
       currency: String(product.currency || "COP"),
       validThrough: String(product.validThrough || catalog.validThrough || ""),
+      matrixCells: matrixByProduct[String(product.id)] || [],
       external: {
         productCode: String(rules.productCode || ""),
         groupCode: String(rules.groupCode || ""),
@@ -107,7 +131,7 @@ function aplicarPentagramaSync10C_(ss, data, authValidation) {
       const before = sheet.getRange(row, 1, 1, HOMEEASY_COST_HEADERS.length).getValues()[0];
       if (String(before[0]) !== String(change.homeeasyId)) throw new Error("El producto cambió de fila: " + change.homeeasyId);
       if (Math.abs(Number(before[6]) - Number(change.expectedRate)) > 0.005) throw new Error("La tarifa cambió después del escaneo: " + change.homeeasyId);
-      if (String(change.strategy) !== "RATE_M2") throw new Error("Estrategia no habilitada para escritura automática: " + change.homeeasyId);
+      if (["RATE_M2", "COMPLEMENT"].indexOf(String(change.strategy)) < 0) throw new Error("Estrategia no habilitada para escritura automática: " + change.homeeasyId);
       const destination = change.destination || {};
       if (String(destination.sheet) !== HOMEEASY_COST_SHEET || String(destination.field) !== "Tarifa_IVA_COP") throw new Error("Destino de tarifa no autorizado: " + change.homeeasyId);
       if (!Array.isArray(change.qaCases) || change.qaCases.length < 2) throw new Error("Evidencia QA insuficiente: " + change.homeeasyId);
@@ -505,6 +529,19 @@ function ejecutarQaPentagramaSync10C_(ss, snapshots) {
   snapshots.forEach(function(item) {
     (item.change.qaCases || []).forEach(function(testCase) {
       try {
+        if (String(testCase.strategy || "") === "COMPLEMENT") {
+          const product = (catalog.products || []).find(function(candidate) { return String(candidate.id) === String(item.productId); });
+          if (!product) throw new Error("El complemento no quedó visible en el catálogo técnico.");
+          const quantity = Number(testCase.homeeasyQuantity || 1);
+          let factor = 0;
+          if (String(product.method) === "linear-height") factor = Number(testCase.height) * quantity;
+          else if (String(product.method) === "linear-width") factor = Number(testCase.width) * quantity;
+          else if (String(product.method) === "unit") factor = quantity;
+          if (!(factor > 0)) throw new Error("El factor lineal del complemento no es válido.");
+          const actual = Math.round(factor * Number(product.rateCents || 0)) / 100;
+          if (Math.abs(actual - Number(testCase.expected)) > 0.02) errors.push(item.productId + "/" + String(testCase.id || "caso") + " esperado " + testCase.expected + " obtenido " + actual);
+          return;
+        }
         const request = testCase.homeeasy || { product: item.productId, width: String(testCase.width), height: String(testCase.height), quantity: String(testCase.quantity || 1), extras: "0" };
         const result = calcularItemCostos10B_(request, catalog, { today: fechaBogota10B_(), promotions: true, installMode: "common", installation: "0" });
         const actual = Number(result.unit) / 100;

@@ -10,7 +10,7 @@ const { INITIAL_MAPPINGS } = require('./mapper');
 
 test('Panel Japonés mappings require maintenance until minimum rule is applied', async () => {
   const panel = INITIAL_MAPPINGS.filter(item => item.family === 'Panel Japonés');
-  assert.equal(panel.length, 29);
+  assert.equal(panel.length, 32);
   assert.ok(panel.every(item => item.status === 'CERTIFIED' && item.expectedMinArea === 1.6));
 
   const mapping = {
@@ -126,4 +126,64 @@ test('targeted maintenance scan creates certified rule actions without catalog c
   assert.equal(scan.catalogAudit.maintenanceRuleChanges, 1);
   assert.equal(scan.catalogActions[0].kind, 'UPDATE_RULES');
   assert.equal(gatewayCalls, 0);
+});
+
+test('configuration maintenance certifies and writes one independent rate per fabric', async () => {
+  const mapping = {
+    id: 'vertical-configurations', homeeasyId: 'vertical-test', family: 'Verticales', reference: 'Tres telas',
+    productCode: 'APRIL', groupCode: '446', calculationType: 'NormalProduct',
+    width: '2', height: '2', quantity: 1, productDiscount: 0, pricingMode: 'account-discount',
+    strategy: 'RATE_M2', status: 'CERTIFIED', verifiedAt: '2026-11-17T00:00:00Z',
+    casesPassed: 9, maxDifference: 0, expectedMinHeight: 1.3, expectedMinArea: 1.6,
+    expectedPreviousMinArea: 0, expectedPreviousConfigurationIds: [],
+    expectedConfigurations: [
+      { id: 'standard', label: 'April Showers', productCode: 'APRIL', groupCode: '446' },
+      { id: 'nevada', label: 'Nevada', productCode: 'NEVADA', groupCode: '451' },
+      { id: 'sinfonia', label: 'Sinfonia', productCode: 'SINFONIA', groupCode: '457' }
+    ],
+    destination: { sheet: 'Costos_Pentagrama', field: 'Reglas_JSON' }, updateField: 'Reglas_JSON', special: {},
+    validationCases: [
+      { id: 'a', width: '2', height: '2', role: 'derive' },
+      { id: 'b', width: '2.4', height: '2.1', role: 'derive' },
+      { id: 'min', width: '1', height: '1.3', role: 'boundary' }
+    ]
+  };
+  const sourceItem = {
+    row: 2, id: 'vertical-test', family: 'vertical', familyName: 'Verticales', reference: 'Tres telas',
+    method: 'area', rate: 80000, minHeight: 1.3, minArea: 0, extraDiscount: 0,
+    promotional: false, active: true, status: 'VIGENTE', pricesIncludeVat: true, rules: {}
+  };
+  const source = { version: 'vertical-v1', validThrough: '2026-12-31', products: [sourceItem] };
+  const rates = { APRIL: 84716.1, NEVADA: 82467, SINFONIA: 74970 };
+  const service = new PentagramaPhase2({
+    mappings: [mapping], certificationRegistry: { products: [] }, enrollablesRegistry: { products: {} },
+    homeeasy: { catalog: async () => source },
+    pricing: { supplierCost: async params => {
+      const area = Math.max(Number(params.Width) * Math.max(Number(params.Height), 1.3), 1.6);
+      return { total: area * rates[params.ProductCode] };
+    } },
+    homeeasyCost: { cost: async () => ({ amount: 0 }) }
+  });
+
+  const actions = service.buildRuleMaintenanceActions(source);
+  assert.equal(actions.length, 1);
+  assert.equal(actions[0].autoApplicable, true);
+  assert.deepEqual(actions[0].mutation.proposedConfigurationIds, ['standard', 'nevada', 'sinfonia']);
+
+  const verified = await service.verifyCatalogActions(
+    { sourceVersion: source.version, sourceValidThrough: source.validThrough },
+    actions,
+    { deviceId: 'test-device' }
+  );
+  const mutation = verified[0].mutation;
+  const rules = JSON.parse(mutation.rowValues[20]);
+  assert.deepEqual(rules.configurations, [
+    { id: 'standard', label: 'April Showers', method: 'area', rateCOP: 84716.1 },
+    { id: 'nevada', label: 'Nevada', method: 'area', rateCOP: 82467 },
+    { id: 'sinfonia', label: 'Sinfonia', method: 'area', rateCOP: 74970 }
+  ]);
+  assert.equal(mutation.proposedRate, 84716.1);
+  assert.equal(mutation.proposedMinArea, 1.6);
+  assert.equal(mutation.qaCases.length, 9);
+  assert.deepEqual(new Set(mutation.qaCases.map(item => item.homeeasy.configuration)), new Set(['standard', 'nevada', 'sinfonia']));
 });

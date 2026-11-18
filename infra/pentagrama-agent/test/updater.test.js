@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const { AgentUpdater, versionGreater, sha256 } = require('../src/updater');
+const { AgentUpdater, versionGreater, sha256, completeInstalledUpdate } = require('../src/updater');
 
 test('semantic update comparison never downgrades', () => {
   assert.equal(versionGreater('1.6.0', '1.5.5'), true);
@@ -41,9 +41,25 @@ test('authenticated update is checksum-verified and launches silent installer', 
   assert.equal(result.started, true);
   assert.equal(calls.length, 2);
   assert.equal(calls[1].options.binary, true);
-  assert.ok(launched.file.endsWith('HomeEasy-Pentagrama-Agent-1.6.0.exe'));
-  assert.deepEqual(launched.args, ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CLOSEAPPLICATIONS']);
+  assert.ok(/cmd\.exe$/i.test(launched.file));
+  assert.deepEqual(launched.args.slice(0, 3), ['/d', '/s', '/c']);
+  const helper = path.join(root, 'updates', 'install-1.6.0.cmd');
+  const helperSource = fs.readFileSync(helper, 'utf8');
+  assert.match(helperSource, /HomeEasy-Pentagrama-Agent-1\.6\.0\.exe" \/VERYSILENT/);
+  assert.match(helperSource, /sc\.exe query HomeEasyPentagramaAgent/);
+  assert.match(helperSource, /HomeEasyPentagramaAgent\.exe" start/);
   assert.equal(launched.options.detached, true);
+});
+
+test('a restarted agent marks its own installed update completed', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'homeeasy-updater-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const statusPath = path.join(root, 'update-status.json');
+  fs.writeFileSync(statusPath, JSON.stringify({ state: 'installing', currentVersion: '1.6.18', availableVersion: '1.6.19' }));
+  assert.equal(completeInstalledUpdate(statusPath, '1.6.19'), true);
+  const status = JSON.parse(fs.readFileSync(statusPath, 'utf8'));
+  assert.equal(status.state, 'completed');
+  assert.equal(status.currentVersion, '1.6.19');
 });
 
 test('checksum mismatch is rejected without launching code', async t => {

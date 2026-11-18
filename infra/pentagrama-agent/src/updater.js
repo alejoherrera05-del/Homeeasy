@@ -30,6 +30,32 @@ function writeStatus(file, status) {
   fs.renameSync(temporary, file);
 }
 
+function completeInstalledUpdate(statusPath, currentVersion) {
+  try {
+    const status = JSON.parse(fs.readFileSync(statusPath, 'utf8'));
+    if (status.state !== 'installing' || String(status.availableVersion || '') !== String(currentVersion || '')) return false;
+    writeStatus(statusPath, { state: 'completed', currentVersion, availableVersion: currentVersion });
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function windowsUpdateHelper(installer, serviceExecutable) {
+  const lines = [
+    '@echo off',
+    'setlocal',
+    `"${installer}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS`,
+    'for /L %%G in (1,1,18) do (',
+    '  sc.exe query HomeEasyPentagramaAgent | findstr /C:"RUNNING" >nul 2>&1 && exit /b 0',
+    `  "${serviceExecutable}" start >nul 2>&1`,
+    '  timeout /t 5 /nobreak >nul',
+    ')',
+    'exit /b 1'
+  ];
+  return `${lines.join('\r\n')}\r\n`;
+}
+
 class AgentUpdater {
   constructor(options = {}) {
     this.api = options.api;
@@ -39,6 +65,7 @@ class AgentUpdater {
     this.statusPath = String(options.statusPath || path.join(this.root, 'update-status.json'));
     this.spawn = options.spawn || spawn;
     this.platform = options.platform || process.platform;
+    this.serviceExecutable = String(options.serviceExecutable || path.resolve(__dirname, '..', '..', 'HomeEasyPentagramaAgent.exe'));
     this.running = false;
   }
 
@@ -68,7 +95,9 @@ class AgentUpdater {
       writeStatus(this.statusPath, { state: 'installing', currentVersion: this.currentVersion, availableVersion: manifest.version });
 
       if (this.platform !== 'win32') return { started: false, installer, reason: 'UNSUPPORTED_PLATFORM' };
-      const child = this.spawn(installer, ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CLOSEAPPLICATIONS'], {
+      const helper = path.join(directory, `install-${manifest.version}.cmd`);
+      fs.writeFileSync(helper, windowsUpdateHelper(installer, this.serviceExecutable), { encoding: 'utf8', mode: 0o700 });
+      const child = this.spawn(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', `"${helper}"`], {
         detached: true,
         windowsHide: true,
         stdio: 'ignore'
@@ -90,4 +119,4 @@ class AgentUpdater {
   }
 }
 
-module.exports = Object.freeze({ AgentUpdater, versionGreater, sha256, writeStatus });
+module.exports = Object.freeze({ AgentUpdater, versionGreater, sha256, writeStatus, completeInstalledUpdate, windowsUpdateHelper });

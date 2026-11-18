@@ -1,4 +1,4 @@
-#define AgentVersion "1.6.13"
+#define AgentVersion "1.6.19"
 #include "..\build\stage\browser-extension.iss"
 
 [Setup]
@@ -29,7 +29,8 @@ RestartApplications=yes
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Files]
-Source: "..\build\stage\runtime\*"; DestDir: "{app}\runtime"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\build\stage\runtime\node.exe"; DestDir: "{app}\runtime"; Flags: onlyifdoesntexist
+Source: "..\build\stage\runtime\NODE-LICENSE.txt"; DestDir: "{app}\runtime"; Flags: ignoreversion
 Source: "..\build\stage\app\*"; DestDir: "{app}\app"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\build\stage\HomeEasyPentagramaAgent.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\build\stage\HomeEasyPentagramaAgent.xml"; DestDir: "{app}"; Flags: ignoreversion
