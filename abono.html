@@ -242,13 +242,14 @@
         .btn-success-home { background: var(--homeeasy-wine); color: white; border: none; font-weight: 800; padding: 16px; width: 100%; border-radius: 14px; font-size: 1rem; transition: transform 0.2s; box-shadow: 0 8px 20px rgba(166, 69, 90, 0.25); }
         .btn-success-home:active { transform: scale(0.95); }
         /* El botón del recibo existe incluso cuando WhatsApp carga tarde. */
-        .he-wa-generated-btn { width: 100%; min-height: 52px; margin: 0 0 10px; border: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 9px; background: #25D366; color: #fff; font-weight: 800; font-size: .92rem; box-shadow: 0 9px 22px rgba(37,211,102,.23); }
+        .he-wa-generated-btn { width: 100%; min-height: 52px; margin: 0 0 10px; border: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 9px; background: #25D366; color: #fff; font-weight: 800; font-size: 1rem; box-shadow: 0 9px 22px rgba(37,211,102,.23); }
         .he-wa-generated-btn:active { transform: scale(.97); }
         .he-wa-generated-btn:disabled { opacity: .58; cursor: wait; }
     </style>
     
     <script src="homeeasy-core.js?v=3.5.2"></script>
     <script src="homeeasy-page-guard.js?v=20261008"></script>
+    <script defer src="homeeasy-whatsapp-doc-actions.js?v=20261118"></script>
     <script src="homeeasy-docs.js?v=4.7"></script>
     <script defer src="homeeasy-recibos.js?v=20261016"></script>
   <link rel="stylesheet" href="homeeasy-back.css?v=1.1">
@@ -277,7 +278,7 @@
     <div class="success-box">
         <div class="success-icon"><i class="fas fa-check"></i></div>
         <h3>¡Pago Registrado!</h3>
-        <p>El abono fue guardado, el saldo actualizado y el recibo está listo para el cliente.</p>
+        <p>El abono fue guardado y el saldo actualizado. Ahora puedes ver el PDF, enviarlo por WhatsApp o volver al menú.</p>
         <button id="btn-recibo-whatsapp" class="he-wa-generated-btn" type="button" onclick="enviarReciboWhatsapp()"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Enviar por WhatsApp</button>
         <button class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
     </div>
@@ -1104,7 +1105,6 @@
                 
                 setTimeout(function() {
                     setStep(4, 'check');
-                    pdf.save(nombreArchivo);
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('success-modal').style.display = 'flex';
                 }, 800);
