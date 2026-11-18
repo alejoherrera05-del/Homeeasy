@@ -18,6 +18,15 @@ if (-not $EnrollmentToken.Trim()) { throw 'EnrollmentToken is required.' }
 if (-not (Test-Path -LiteralPath $CertificatePath)) { throw 'CertificatePath does not exist.' }
 if (-not (Test-Path -LiteralPath $ExtensionPrivateKeyPath)) { throw 'ExtensionPrivateKeyPath does not exist.' }
 
+try { $serverUri = [Uri]$ServerUrl } catch { throw 'ServerUrl must be a valid absolute HTTPS URL.' }
+if (-not $serverUri.IsAbsoluteUri -or $serverUri.Scheme -ne 'https') { throw 'ServerUrl must be a valid absolute HTTPS URL.' }
+if ($serverUri.Port -ne 8443) { throw 'ServerUrl must use the private Agent gateway port 8443.' }
+$gatewayCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new((Resolve-Path -LiteralPath $CertificatePath).Path)
+$certificateHost = $gatewayCertificate.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsName, $false)
+if (-not [string]::Equals($serverUri.Host, $certificateHost, [StringComparison]::OrdinalIgnoreCase)) {
+  throw "ServerUrl host '$($serverUri.Host)' does not match gateway certificate '$certificateHost'."
+}
+
 if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $stage,$cache,$OutputDirectory | Out-Null
 $appStage = Join-Path $stage 'app'

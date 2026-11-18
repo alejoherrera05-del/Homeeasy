@@ -38,6 +38,12 @@ test('build compiles a DPI-aware native Windows application', () => {
   assert.match(build, /HomeEasyPentagramaAgent\.UI\.cs/);
 });
 
+test('build rejects a gateway URL that cannot match the bundled certificate', () => {
+  assert.match(build, /ServerUrl must use the private Agent gateway port 8443/);
+  assert.match(build, /GetNameInfo\(\[System\.Security\.Cryptography\.X509Certificates\.X509NameType\]::DnsName/);
+  assert.match(build, /does not match gateway certificate/);
+});
+
 test('native UI keeps credentials in HomeEasy and exposes safe configuration', () => {
   assert.match(source, /Configurar acceso/);
   assert.match(source, /credenciales protegidas por HomeEasy/i);
