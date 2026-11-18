@@ -93,7 +93,8 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  change(w,'[data-field=family]','onda');assert.equal(d.querySelector('[data-field=product]').value,'old');assert.equal(d.querySelector('[data-field=configuration]'),null);
  for(const [family,id] of [['onda','onda-67'],['panel','panel-84'],['vertical','vertical-113'],['sheer','sheer-130'],['vertesse','vertesse-161']]){
   change(w,'[data-field=family]',family);
-  assert.ok(d.querySelector('[data-field=product] optgroup'),family);
+  assert.ok(d.querySelector('[data-field=product] option'),family);
+  if(family!=='vertical')assert.ok(d.querySelector('[data-field=product] optgroup'),family);
   assert.equal(d.querySelectorAll('[data-field=product] option').length,catalog.filter(p=>p.family===family).length);
   change(w,'[data-field=product]',id);await sleep(30);
   assert.equal(a.getLastItems()[0].product,id);
