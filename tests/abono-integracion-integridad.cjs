@@ -27,8 +27,10 @@ must(receipt,'var saldoReal = Number(check.saldoReal) || 0;');
 must(receipt,'totalPagado += Number(historialAbonos[j].valor) || 0;');
 must(receipt,'tipo: "abono"');
 for(const key of ['numeroOP: numOP','cedula: ced','nombre: nom','valorAbono: valAbono','medioPago: mPago',
-'concepto: concepto','pdfBase64: pdfBase64','nombreArchivo: nombreArchivo','pdf.save(nombreArchivo)'])
+'concepto: concepto','pdfBase64: pdfBase64','nombreArchivo: nombreArchivo'])
 must(receipt,key);
+assert(!receipt.includes('pdf.save(nombreArchivo)'),'Receipt must not open the mobile PDF viewer before post-save actions');
+must(receipt,'homeeasy-whatsapp-doc-actions.js?v=20261118');
 must(guard,"['cotizacion.html', 'pedido.html', 'abono.html']");
 must(guard,"homeeasy:document-generated");
 must(guard,"ensureWhatsappDocumentActions: async () => {");
@@ -40,6 +42,8 @@ must(receipt,'await acciones.sendStoredDocument({');
 must(receipt,"resend:false,source:'generado'");
 must(actions,"documentType: type");
 must(actions,"const type = DOCUMENT_PAGES[page]");
+must(actions,'Ver o descargar PDF');
+must(actions,'openStoredDocument');
 must(quote,'const payloadType = isEditMode ? "edit_cotizacion" : "cotizacion"');
 must(order,'const payloadType = isEditMode ? "edit_pedido" : "pedido"');
 console.log('Receipt integration: original voucher branding, docs settings, finance, AppScript save, WhatsApp event, quote/order unchanged PASS');

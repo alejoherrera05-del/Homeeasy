@@ -1,5 +1,5 @@
 /**
- * HomeEasy WhatsApp Document Actions v0.3.0
+ * HomeEasy WhatsApp Document Actions v0.5.0
  * Envío/reenvío de PDFs con plantillas centralizadas, vista previa y trazabilidad.
  * WhatsApp es secundario: nunca bloquea ni modifica el flujo principal de HomeEasy.
  */
@@ -8,7 +8,7 @@
 
     if (global.HomeEasyWhatsAppDocumentActions) return;
 
-    const VERSION = '0.4.0';
+    const VERSION = '0.5.0';
     const page = ((global.location && global.location.pathname ? global.location.pathname.split('/').pop() : '') || '').toLowerCase();
     const DOCUMENT_PAGES = Object.freeze({
         'cotizacion.html': 'cotizacion',
@@ -177,8 +177,10 @@
         const style = global.document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = `
-            .he-wa-generated-btn{width:100%;min-height:52px;margin:0 0 10px;border:0;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:9px;background:#25D366;color:#fff;font:800 .92rem/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 9px 22px rgba(37,211,102,.23);transition:transform .14s ease,opacity .14s ease}
-            .he-wa-generated-btn:active{transform:scale(.97)}.he-wa-generated-btn:disabled{opacity:.58;cursor:wait}
+            .he-document-ready-btn{width:100%;min-height:52px;margin:0 0 10px;border:0;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:9px;font:800 1rem/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:transform .14s ease,opacity .14s ease}
+            .he-document-ready-btn:active{transform:scale(.97)}.he-document-ready-btn:disabled{opacity:.58;cursor:wait}
+            .he-pdf-generated-btn{border:1px solid rgba(166,69,90,.22);background:#fff7f9;color:#8f354b;box-shadow:0 9px 22px rgba(166,69,90,.12)}
+            .he-wa-generated-btn{background:#25D366;color:#fff;box-shadow:0 9px 22px rgba(37,211,102,.23)}
             .he-wa-inline-btn{min-height:34px;padding:0 11px;border:1px solid rgba(37,211,102,.30);border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(37,211,102,.09);color:#168b43;font:750 .60rem/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;white-space:nowrap}
             .he-wa-inline-btn:active,.he-wa-icon-btn:active{transform:scale(.95)}
             .he-wa-icon-btn{width:33px;height:33px;padding:0;border:1px solid rgba(37,211,102,.28);border-radius:10px;display:inline-grid;place-items:center;background:rgba(37,211,102,.09);color:#159447;font-size:.85rem}
@@ -462,29 +464,91 @@
             toast('El PDF todavía no está listo.');
             return;
         }
+        const guard = global.HomeEasyPageGuard;
+        if (!global.HomeEasyWhatsApp && guard && typeof guard.ensureWhatsappDocumentActions === 'function') {
+            try { await guard.ensureWhatsappDocumentActions(); } catch (error) {
+                toast(error && error.message ? error.message : 'WhatsApp todavía no está disponible.');
+                return;
+            }
+        }
         await sendContext(latestGenerated);
+    }
+
+    function pdfBlob(context) {
+        const base64 = clean(context && context.pdfBase64);
+        if (!base64) throw new Error('El PDF todavía no está listo.');
+        const binary = global.atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+        return new Blob([bytes], { type: 'application/pdf' });
+    }
+
+    function openStoredDocument(context) {
+        const blob = pdfBlob(context);
+        const url = global.URL.createObjectURL(blob);
+        const link = global.document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.download = clean(context && context.filename) || 'Documento_HomeEasy.pdf';
+        link.setAttribute('aria-label', 'Abrir PDF en una pestaña nueva');
+        global.document.body.appendChild(link);
+        link.click();
+        link.remove();
+        // iOS puede conservar el visor durante varios segundos; no invalida el Blob inmediatamente.
+        global.setTimeout(() => global.URL.revokeObjectURL(url), 60000);
+        return url;
+    }
+
+    function openLatestGenerated() {
+        if (!latestGenerated) {
+            toast('El PDF todavía no está listo.');
+            return null;
+        }
+        try {
+            return openStoredDocument(latestGenerated);
+        } catch (error) {
+            toast(error && error.message ? error.message : 'No fue posible abrir el PDF.');
+            return null;
+        }
     }
 
     function showGeneratedButton() {
         const box = global.document.querySelector('#success-modal .success-box, .success-overlay .success-box');
-        if (!box || box.querySelector('.he-wa-generated-btn')) return;
+        if (!box) return;
         const home = box.querySelector('.btn-success-home, #btn-success-home');
-        const button = global.document.createElement('button');
-        button.type = 'button';
-        button.className = 'he-wa-generated-btn';
-        button.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Enviar por WhatsApp';
-        button.addEventListener('click', async () => {
-            if (button.disabled) return;
-            button.disabled = true;
-            const old = button.innerHTML;
-            button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Preparando…';
-            try { await sendGenerated(); } finally {
-                button.disabled = false;
-                button.innerHTML = old;
-            }
-        });
-        if (home) box.insertBefore(button, home);
-        else box.appendChild(button);
+        let whatsapp = box.querySelector('.he-wa-generated-btn');
+        let pdf = box.querySelector('.he-pdf-generated-btn');
+
+        if (!pdf) {
+            pdf = global.document.createElement('button');
+            pdf.type = 'button';
+            pdf.className = 'he-document-ready-btn he-pdf-generated-btn';
+            pdf.innerHTML = '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Ver o descargar PDF';
+            pdf.addEventListener('click', openLatestGenerated);
+            if (whatsapp) box.insertBefore(pdf, whatsapp);
+            else if (home) box.insertBefore(pdf, home);
+            else box.appendChild(pdf);
+        }
+
+        if (!whatsapp) {
+            whatsapp = global.document.createElement('button');
+            whatsapp.type = 'button';
+            whatsapp.className = 'he-document-ready-btn he-wa-generated-btn';
+            whatsapp.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Enviar por WhatsApp';
+            whatsapp.addEventListener('click', async () => {
+                if (whatsapp.disabled) return;
+                whatsapp.disabled = true;
+                const old = whatsapp.innerHTML;
+                whatsapp.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Preparando…';
+                try { await sendGenerated(); } finally {
+                    whatsapp.disabled = false;
+                    whatsapp.innerHTML = old;
+                }
+            });
+            if (home) box.insertBefore(whatsapp, home);
+            else box.appendChild(whatsapp);
+        }
     }
 
     function makeInlineButton(text, className) {
@@ -729,6 +793,8 @@
         buildCaption,
         refreshTemplates,
         sendStoredDocument,
+        openStoredDocument,
+        openLatestGenerated,
         getLatestGenerated: () => latestGenerated
     });
 })(window);
