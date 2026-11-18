@@ -110,7 +110,7 @@ namespace HomeEasy.PentagramaAgent.UI
             Height = 46;
             Padding = new Thickness(22, 0, 22, 0);
             FontFamily = new FontFamily("Segoe UI");
-            FontSize = 14;
+            FontSize = 15;
             FontWeight = FontWeights.SemiBold;
             Cursor = Cursors.Hand;
             BorderThickness = new Thickness(1);
@@ -162,10 +162,10 @@ namespace HomeEasy.PentagramaAgent.UI
         {
             reader = stateReader;
             Title = "HomeEasy · Pentagrama Agent";
-            Width = 920;
-            Height = 650;
-            MinWidth = 920;
-            MinHeight = 650;
+            Width = 1000;
+            Height = 710;
+            MinWidth = 1000;
+            MinHeight = 710;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             ResizeMode = ResizeMode.CanMinimize;
             WindowStyle = WindowStyle.None;
@@ -178,87 +178,111 @@ namespace HomeEasy.PentagramaAgent.UI
             if (File.Exists(iconPath)) Icon = BitmapFrame.Create(new Uri(iconPath));
 
             var root = new Grid();
-            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(72) });
-            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
+            root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             Content = root;
-            root.Children.Add(BuildHeader(logoPath));
+            root.Children.Add(BuildBrandRail(logoPath));
 
-            var content = new StackPanel { Margin = new Thickness(34, 24, 34, 22) };
+            var main = new Grid { Background = CanvasBrush };
+            main.RowDefinitions.Add(new RowDefinition { Height = new GridLength(58) });
+            main.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            Grid.SetColumn(main, 1);
+            root.Children.Add(main);
+            main.Children.Add(BuildTitleBar());
+
+            var content = new Grid { Margin = new Thickness(42, 16, 38, 26) };
+            content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(188) });
+            content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1) });
+            content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(94) });
+            content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1) });
+            content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(132) });
+            content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1) });
+            content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
             Grid.SetRow(content, 1);
-            root.Children.Add(content);
+            main.Children.Add(content);
 
-            var statusCard = Card(20, 24, 22, 24);
-            statusCard.Height = 306;
-            statusCard.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E3D3D9"));
-            statusCard.BorderThickness = new Thickness(1, 1, 1, 2);
-            statusCard.Effect = new DropShadowEffect { BlurRadius = 28, ShadowDepth = 8, Opacity = .13, Color = (Color)ColorConverter.ConvertFromString("#5A243A") };
-            var statusGrid = new Grid();
-            statusGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            statusGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            var statusCopy = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
-            statusIcon = new Border { Width = 80, Height = 80, CornerRadius = new CornerRadius(40), Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E7F6ED")), BorderBrush = Gold, BorderThickness = new Thickness(2), HorizontalAlignment = HorizontalAlignment.Center, Effect = new DropShadowEffect { BlurRadius = 16, ShadowDepth = 5, Opacity = .22, Color = Colors.Black } };
-            statusIcon.Child = Glyph("\uE73E", 36, "#187A45");
-            statusCopy.Children.Add(statusIcon);
-            statusTitle = Copy("Comprobando estado…", 30, FontWeights.SemiBold, Ink);
-            statusTitle.HorizontalAlignment = HorizontalAlignment.Center;
-            statusTitle.Margin = new Thickness(0, 11, 0, 0);
-            statusDetail = Copy("Validando la conexión segura.", 16, FontWeights.Normal, Muted);
-            statusDetail.HorizontalAlignment = HorizontalAlignment.Center;
-            statusDetail.Margin = new Thickness(0, 3, 0, 0);
+            var hero = new Grid { Margin = new Thickness(6, 0, 0, 0) };
+            hero.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(126) });
+            hero.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(26) });
+            hero.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            statusIcon = new Border { Width = 96, Height = 96, CornerRadius = new CornerRadius(48), Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EAF6ED")), BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2D7D3B")), BorderThickness = new Thickness(1.5), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+            statusIcon.Child = Glyph("\uE73E", 40, "#2D7D3B");
+            hero.Children.Add(statusIcon);
+            var heroDivider = new Border { Width = 2, Height = 92, Background = Gold, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(heroDivider, 1);
+            hero.Children.Add(heroDivider);
+            var statusCopy = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
+            statusTitle = Copy("Comprobando estado…", 36, FontWeights.SemiBold, Ink);
+            statusDetail = Copy("Validando la conexión segura.", 17, FontWeights.Normal, Muted);
+            statusDetail.Margin = new Thickness(0, 7, 0, 0);
             statusCopy.Children.Add(statusTitle);
             statusCopy.Children.Add(statusDetail);
-            statusGrid.Children.Add(statusCopy);
+            Grid.SetColumn(statusCopy, 2);
+            hero.Children.Add(statusCopy);
+            content.Children.Add(hero);
 
-            var capsules = new Grid { Margin = new Thickness(0, 14, 0, 0) };
-            capsules.ColumnDefinitions.Add(new ColumnDefinition());
-            capsules.ColumnDefinitions.Add(new ColumnDefinition());
-            capsules.ColumnDefinitions.Add(new ColumnDefinition());
-            versionText = Capsule(capsules, 0, "\uE7BA", "Agent verificando…");
-            browserText = Capsule(capsules, 1, "\uE774", "Extensión verificando…");
-            updateText = Capsule(capsules, 2, "\uE895", "Actualizaciones activas");
-            Grid.SetRow(capsules, 1);
-            statusGrid.Children.Add(capsules);
-            statusCard.Child = statusGrid;
-            content.Children.Add(statusCard);
+            var dividerOne = Divider();
+            Grid.SetRow(dividerOne, 1);
+            content.Children.Add(dividerOne);
 
-            var connection = Card(16, 20, 18, 20);
-            connection.Margin = new Thickness(0, 18, 0, 0);
-            connection.Height = 98;
-            connection.Effect = new DropShadowEffect { BlurRadius = 18, ShadowDepth = 5, Opacity = .10, Color = Colors.Black };
+            var statuses = new Grid();
+            statuses.ColumnDefinitions.Add(new ColumnDefinition());
+            statuses.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1) });
+            statuses.ColumnDefinitions.Add(new ColumnDefinition());
+            statuses.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1) });
+            statuses.ColumnDefinitions.Add(new ColumnDefinition());
+            versionText = StatusItem(statuses, 0, "\uE7BA", "Agente verificando…");
+            statuses.Children.Add(StatusDivider(1));
+            browserText = StatusItem(statuses, 2, "\uE774", "Extensión verificando…");
+            statuses.Children.Add(StatusDivider(3));
+            updateText = StatusItem(statuses, 4, "\uE895", "Actualizaciones al día");
+            Grid.SetRow(statuses, 2);
+            content.Children.Add(statuses);
+
+            var dividerTwo = Divider();
+            Grid.SetRow(dividerTwo, 3);
+            content.Children.Add(dividerTwo);
+
             var connectionGrid = new Grid();
-            connectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(58) });
+            connectionGrid.Margin = new Thickness(0, 0, 0, 0);
+            connectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(72) });
             connectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             connectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var lockIcon = new Border { Width = 46, Height = 46, CornerRadius = new CornerRadius(12), Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F5E9EE")), VerticalAlignment = VerticalAlignment.Center };
-            lockIcon.Child = Glyph("\uE72E", 20, "#9E3155");
+            var lockIcon = new Border { Width = 56, Height = 56, CornerRadius = new CornerRadius(14), Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F5E7EC")), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
+            lockIcon.Child = Glyph("\uE72E", 24, "#9E3155");
             connectionGrid.Children.Add(lockIcon);
             var connectionCopy = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            connectionCopy.Children.Add(Copy("Conexión Pentagrama", 17, FontWeights.SemiBold, Ink));
-            var protectedText = Copy("Cuenta administrada · Credenciales protegidas por HomeEasy", 12.5, FontWeights.Normal, Muted);
-            protectedText.Margin = new Thickness(0, 4, 0, 0);
+            connectionCopy.Children.Add(Copy("Conexión Pentagrama", 20, FontWeights.SemiBold, Ink));
+            var protectedText = Copy("Cuenta administrada · Credenciales protegidas por HomeEasy", 14, FontWeights.Normal, Muted);
+            protectedText.Margin = new Thickness(0, 5, 0, 0);
             connectionCopy.Children.Add(protectedText);
             Grid.SetColumn(connectionCopy, 1);
             connectionGrid.Children.Add(connectionCopy);
-            var configure = new PremiumButton("Configurar acceso", false) { Height = 42, FontSize = 13, Margin = new Thickness(18, 0, 0, 0) };
+            var configure = new PremiumButton("Configurar acceso", false) { Height = 42, FontSize = 14, Margin = new Thickness(18, 0, 0, 0), MinWidth = 142 };
             configure.Click += delegate { OpenExternal("https://hommy.homeeasy.com.co/configuracion.html?section=pentagrama"); };
             Grid.SetColumn(configure, 2);
             connectionGrid.Children.Add(configure);
-            connection.Child = connectionGrid;
-            content.Children.Add(connection);
+            Grid.SetRow(connectionGrid, 4);
+            content.Children.Add(connectionGrid);
 
-            var footer = new Grid { Margin = new Thickness(0, 20, 0, 0) };
+            var dividerThree = Divider();
+            Grid.SetRow(dividerThree, 5);
+            content.Children.Add(dividerThree);
+
+            var footer = new Grid { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 0, 26) };
             footer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             footer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            footer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
+            footer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(18) });
             footer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var diagnosis = new PremiumButton("Ver diagnóstico", false);
+            var diagnosis = new PremiumButton("Ver diagnóstico", false) { MinWidth = 168 };
             diagnosis.Click += delegate { Directory.CreateDirectory(reader.LogsPath); OpenExternal(reader.LogsPath); };
             Grid.SetColumn(diagnosis, 1);
             footer.Children.Add(diagnosis);
-            var openHomeEasy = new PremiumButton("Abrir HomeEasy", true) { MinWidth = 190 };
+            var openHomeEasy = new PremiumButton("Abrir HomeEasy", true) { MinWidth = 212 };
             openHomeEasy.Click += delegate { OpenExternal("https://hommy.homeeasy.com.co/configuracion.html?section=pentagrama"); };
             Grid.SetColumn(openHomeEasy, 3);
             footer.Children.Add(openHomeEasy);
+            Grid.SetRow(footer, 6);
             content.Children.Add(footer);
 
             var menu = new Forms.ContextMenuStrip();
@@ -284,35 +308,50 @@ namespace HomeEasy.PentagramaAgent.UI
             RefreshState(statusMenu);
         }
 
-        private UIElement BuildHeader(string logoPath)
+        private UIElement BuildBrandRail(string logoPath)
         {
-            var header = new Grid { Background = Burgundy };
-            header.Effect = new DropShadowEffect { BlurRadius = 18, ShadowDepth = 5, Opacity = .20, Color = (Color)ColorConverter.ConvertFromString("#4F122A") };
+            var rail = new Grid { Background = Burgundy };
+            rail.RowDefinitions.Add(new RowDefinition { Height = new GridLength(226) });
+            rail.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            rail.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            rail.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            rail.MouseLeftButtonDown += delegate(object sender, MouseButtonEventArgs args) { if (args.ButtonState == MouseButtonState.Pressed) DragMove(); };
+            var logoFrame = new Border { Width = 132, Height = 132, CornerRadius = new CornerRadius(66), BorderBrush = Gold, BorderThickness = new Thickness(2), Background = BurgundyDark, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 24, 0, 0) };
+            if (File.Exists(logoPath)) logoFrame.Child = new Image { Source = new BitmapImage(new Uri(logoPath)), Stretch = Stretch.Uniform, Margin = new Thickness(8) };
+            rail.Children.Add(logoFrame);
+            var brand = new StackPanel { Margin = new Thickness(26, -8, 18, 0) };
+            brand.Children.Add(Copy("HomeEasy", 24, FontWeights.SemiBold, Brushes.White));
+            var product = Copy("Pentagrama Agent", 21, FontWeights.SemiBold, Brushes.White);
+            product.Margin = new Thickness(0, 2, 0, 0);
+            brand.Children.Add(product);
+            brand.Children.Add(new Border { Width = 70, Height = 3, Background = Gold, CornerRadius = new CornerRadius(2), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 24, 0, 0) });
+            Grid.SetRow(brand, 1);
+            rail.Children.Add(brand);
+            var secure = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(28, 0, 18, 94), VerticalAlignment = VerticalAlignment.Bottom };
+            secure.Children.Add(Glyph("\uE72E", 24, "#E0BD5A"));
+            var secureCopy = Copy("Conexión segura\ncon HomeEasy", 14.5, FontWeights.Normal, Brushes.White);
+            secureCopy.Margin = new Thickness(14, 0, 0, 0);
+            secure.Children.Add(secureCopy);
+            Grid.SetRow(secure, 3);
+            rail.Children.Add(secure);
+            return rail;
+        }
+
+        private UIElement BuildTitleBar()
+        {
+            var header = new Grid { Background = CanvasBrush };
             header.MouseLeftButtonDown += delegate(object sender, MouseButtonEventArgs args) { if (args.ButtonState == MouseButtonState.Pressed) DragMove(); };
-            header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(88) });
             header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(52) });
             header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(52) });
-            var logoFrame = new Border { Width = 56, Height = 56, CornerRadius = new CornerRadius(28), BorderBrush = Gold, BorderThickness = new Thickness(2), Background = BurgundyDark, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right };
-            if (File.Exists(logoPath)) logoFrame.Child = new Image { Source = new BitmapImage(new Uri(logoPath)), Stretch = Stretch.Uniform, Margin = new Thickness(5) };
-            header.Children.Add(logoFrame);
-            var brand = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(18, 0, 0, 0) };
-            var divider = new Border { Width = 1, Height = 36, Background = Gold, Margin = new Thickness(0, 0, 18, 0) };
-            brand.Children.Add(divider);
-            brand.Children.Add(Copy("HomeEasy Pentagrama Agent", 23, FontWeights.SemiBold, Brushes.White));
-            Grid.SetColumn(brand, 1);
-            header.Children.Add(brand);
             var minimize = HeaderButton("\uE921");
             minimize.Click += delegate { WindowState = WindowState.Minimized; };
-            Grid.SetColumn(minimize, 2);
+            Grid.SetColumn(minimize, 1);
             header.Children.Add(minimize);
             var close = HeaderButton("\uE8BB");
             close.Click += delegate { Hide(); };
-            Grid.SetColumn(close, 3);
+            Grid.SetColumn(close, 2);
             header.Children.Add(close);
-            var goldLine = new Border { Height = 2, Background = Gold, VerticalAlignment = VerticalAlignment.Bottom };
-            Grid.SetColumnSpan(goldLine, 4);
-            header.Children.Add(goldLine);
             return header;
         }
 
@@ -323,7 +362,7 @@ namespace HomeEasy.PentagramaAgent.UI
                 Content = glyph,
                 FontFamily = new FontFamily("Segoe MDL2 Assets"),
                 FontSize = 14,
-                Foreground = Brushes.White,
+                Foreground = Ink,
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
                 VerticalAlignment = VerticalAlignment.Stretch,
@@ -373,19 +412,27 @@ namespace HomeEasy.PentagramaAgent.UI
             return new TextBlock { Text = glyph, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = size, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color)), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
         }
 
-        private static TextBlock Capsule(Grid parent, int column, string glyph, string text)
+        private static Border Divider()
         {
-            var border = Card(12, 14, 13, 14);
-            border.Margin = new Thickness(column == 0 ? 0 : 7, 0, column == 2 ? 0 : 7, 0);
-            border.Effect = new DropShadowEffect { BlurRadius = 14, ShadowDepth = 4, Opacity = .08, Color = Colors.Black };
-            var row = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+            return new Border { Height = 1, Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DECED4")), VerticalAlignment = VerticalAlignment.Center };
+        }
+
+        private static Border StatusDivider(int column)
+        {
+            var divider = new Border { Width = 1, Height = 32, Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D8C6CD")), VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(divider, column);
+            return divider;
+        }
+
+        private static TextBlock StatusItem(Grid parent, int column, string glyph, string text)
+        {
+            var row = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(10, 0, 10, 0) };
             row.Children.Add(Glyph(glyph, 15, "#9E3155"));
-            var label = Copy(text, 11.5, FontWeights.SemiBold, Ink);
-            label.Margin = new Thickness(9, 0, 0, 0);
+            var label = Copy(text, 14, FontWeights.SemiBold, Ink);
+            label.Margin = new Thickness(10, 0, 0, 0);
             row.Children.Add(label);
-            border.Child = row;
-            Grid.SetColumn(border, column);
-            parent.Children.Add(border);
+            Grid.SetColumn(row, column);
+            parent.Children.Add(row);
             return label;
         }
 
@@ -394,13 +441,18 @@ namespace HomeEasy.PentagramaAgent.UI
             var state = reader.Read();
             statusTitle.Text = state.Title;
             statusDetail.Text = state.Detail;
-            versionText.Text = "Agent " + state.Version + " online";
+            versionText.Text = "Agente " + state.Version + " online";
             browserText.Text = state.BrowserConnected ? "Extensión conectada" : "Esperando navegador";
+            var updateState = JsonFiles.Text(state.Update, "state");
+            updateText.Text = updateState == "downloading" ? "Descargando actualización" :
+                              updateState == "installing" ? "Instalando actualización" :
+                              updateState == "failed" ? "Reintento automático activo" : "Actualizaciones al día";
             statusMenu.Text = state.Title;
             var fill = state.Level == "ok" ? "#E7F6ED" : state.Level == "working" ? "#FFF5D8" : state.Level == "warning" ? "#FFF0E2" : "#FBE9EC";
             var color = state.Level == "ok" ? "#187A45" : state.Level == "working" ? "#9B6A00" : state.Level == "warning" ? "#B55B12" : "#B4233F";
             statusIcon.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(fill));
-            statusIcon.Child = Glyph(state.Level == "ok" ? "\uE73E" : state.Level == "working" ? "\uE895" : "\uE7BA", 25, color);
+            statusIcon.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+            statusIcon.Child = Glyph(state.Level == "ok" ? "\uE73E" : state.Level == "working" ? "\uE895" : "\uE7BA", 40, color);
             tray.Text = ("HomeEasy · " + state.Title).Substring(0, Math.Min(63, ("HomeEasy · " + state.Title).Length));
             NotifyUpdate(state.Update);
         }
@@ -454,8 +506,13 @@ namespace HomeEasy.PentagramaAgent.UI
         [STAThread]
         private static void Main(string[] args)
         {
+            var preview = Array.Exists(args, arg => string.Equals(arg, "--preview", StringComparison.OrdinalIgnoreCase)) ||
+                          AppDomain.CurrentDomain.BaseDirectory.IndexOf("ui-preview", StringComparison.OrdinalIgnoreCase) >= 0;
+            var mutexName = preview
+                ? "HomeEasyPentagramaAgentNativeUIPreview-" + Path.GetFileNameWithoutExtension(AppDomain.CurrentDomain.FriendlyName)
+                : "HomeEasyPentagramaAgentNativeUI";
             bool created;
-            using (var mutex = new Mutex(true, "HomeEasyPentagramaAgentNativeUI", out created))
+            using (var mutex = new Mutex(true, mutexName, out created))
             {
                 if (!created) return;
                 var appRoot = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
