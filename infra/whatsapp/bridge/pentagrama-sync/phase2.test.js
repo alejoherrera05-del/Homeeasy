@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { PentagramaPhase2, statusFor, publicInventorySummary } = require('./phase2');
+const { PentagramaPhase2, statusFor, publicInventorySummary, runtimeCertifiedSheetProduct } = require('./phase2');
 const { Phase2Store } = require('./phase2-store');
 const { INITIAL_MAPPINGS, pentagramaParamsForCase } = require('./mapper');
 
@@ -14,6 +14,30 @@ test('change classifier enforces unchanged and review thresholds', () => {
   assert.equal(statusFor(100, 114.99), 'INCREASED');
   assert.equal(statusFor(100, 70), 'REVIEW_REQUIRED');
   assert.equal(statusFor(100, 130), 'REVIEW_REQUIRED');
+});
+
+test('runtime certification accepts only fully evidenced configurable matrices', () => {
+  const matrix = {
+    active: true,
+    status: 'VIGENTE',
+    method: 'matrix',
+    matrixCells: Array.from({ length: 156 }, (_, index) => ({ row: index + 2 })),
+    rules: {
+      source: 'PENTAGRAMA_LIVE_MATRIX',
+      certifiedAt: '2026-11-17T23:13:35.600Z',
+      productCode: 'LUMTRVERALA',
+      groupCode: '702',
+      associationGroup: 'LUMINITY',
+      evidence: { cells: 156, liveQuotes: 468 },
+      configurations: [
+        { id: 'standard', label: 'Alabaster', productCode: 'LUMTRVERALA', groupCode: '702', maxWidthMm: 7000 },
+        { id: 'natural-ebony', label: 'Natural Ebony', productCode: 'LUMTRNAEB', groupCode: '1363', maxWidthMm: 5800 }
+      ]
+    }
+  };
+  assert.equal(runtimeCertifiedSheetProduct(matrix), true);
+  assert.equal(runtimeCertifiedSheetProduct({ ...matrix, matrixCells: matrix.matrixCells.slice(0, 155) }), false);
+  assert.equal(runtimeCertifiedSheetProduct({ ...matrix, rules: { ...matrix.rules, evidence: { cells: 156, liveQuotes: 155 } } }), false);
 });
 
 test('grouped mappings require every Pentagrama variant to return the same price', async () => {

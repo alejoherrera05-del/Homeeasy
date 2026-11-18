@@ -7127,10 +7127,27 @@
       "homeeasyMethod": "matrix",
       "strategy": "MATRIX",
       "candidate": "EXACT_CANDIDATE",
-      "status": "REVIEW_REQUIRED",
+      "status": "CERTIFIED",
       "productCode": "LUMTRVERALA",
       "groupCode": "702",
-      "reason": "La matriz HomeEasy de 156 celdas no fue demostrada completamente contra Pentagrama."
+      "calculationType": "NormalProduct",
+      "verifiedAt": "2026-11-17T23:13:35.600Z",
+      "casesPassed": 468,
+      "maxDifference": 0,
+      "evidence": {
+        "cells": 156,
+        "liveQuotes": 468,
+        "variants": [
+          "LUMTRVERALA",
+          "LUMTRGRE",
+          "LUMTRNAMAR"
+        ],
+        "naturalEbonyProductCode": "LUMTRNAEB",
+        "naturalEbonyGroupCode": "1363",
+        "standardMaxWidthMm": 7000,
+        "naturalEbonyMaxWidthMm": 5800,
+        "maxDifferenceCOP": 0
+      }
     },
     {
       "homeeasyId": "vertesse-162",

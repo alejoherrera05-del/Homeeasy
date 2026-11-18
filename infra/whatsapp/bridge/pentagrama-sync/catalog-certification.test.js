@@ -16,9 +16,9 @@ test('live catalog certification registry is complete and deliberately conservat
     certified: summary.certified,
     reviewRequired: summary.reviewRequired,
     unmapped: summary.unmapped
-  }, { total: 452, exactCandidates: 167, ambiguous: 5, noCandidate: 280, certified: 165, reviewRequired: 7, unmapped: 280 });
+  }, { total: 452, exactCandidates: 167, ambiguous: 5, noCandidate: 280, certified: 166, reviewRequired: 6, unmapped: 280 });
   assert.deepEqual(summary.certifiedStrategies, {
-    RATE_M2: 160, MATRIX: 0, FIXED_PRICE: 0, COMPLEMENT: 5, SPECIAL_CONFIGURATION: 0
+    RATE_M2: 160, MATRIX: 1, FIXED_PRICE: 0, COMPLEMENT: 5, SPECIAL_CONFIGURATION: 0
   });
 });
 
@@ -56,7 +56,9 @@ test('Onda Comfort certificate reproduces both normal measures and the billing m
 test('mandatory regression controls remain outside unsafe automatic strategies', () => {
   const byId = new Map(registry.products.map(item => [item.homeeasyId, item]));
   assert.equal(byId.get('vertical-111').status, 'CERTIFIED');
-  assert.equal(byId.get('vertesse-161').status, 'REVIEW_REQUIRED');
+  assert.equal(byId.get('vertesse-161').status, 'CERTIFIED');
+  assert.equal(byId.get('vertesse-161').evidence.cells, 156);
+  assert.equal(byId.get('vertesse-161').evidence.liveQuotes, 468);
   assert.equal(byId.get('enrollable-blackout-matte3').status, 'REVIEW_REQUIRED');
   assert.equal(byId.get('sheer-155').status, 'CERTIFIED');
 });

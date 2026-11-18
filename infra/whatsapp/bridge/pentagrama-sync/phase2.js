@@ -20,11 +20,21 @@ function runtimeCertifiedSheetProduct(item) {
   const rules = item && item.rules || {};
   const evidence = rules.evidence || {};
   const prices = Array.isArray(evidence.prices) ? evidence.prices : [];
-  return Boolean(item && item.active !== false && String(item.status || '') === 'VIGENTE' &&
-    String(item.method || '') === 'area' && Number(item.rate) > 0 &&
+  const common = Boolean(item && item.active !== false && String(item.status || '') === 'VIGENTE' &&
     String(rules.source || '').startsWith('PENTAGRAMA_LIVE_') && rules.certifiedAt &&
-    rules.productCode && rules.groupCode && rules.associationGroup && prices.length >= 3 &&
-    rules.fabricationProfile && Array.isArray(rules.fabricationProfile.mechanismBands));
+    rules.productCode && rules.groupCode && rules.associationGroup);
+  const certifiedArea = common &&
+    String(item.method || '') === 'area' && Number(item.rate) > 0 &&
+    prices.length >= 3 && rules.fabricationProfile && Array.isArray(rules.fabricationProfile.mechanismBands);
+  const configurations = Array.isArray(rules.configurations) ? rules.configurations : [];
+  const certifiedMatrix = common && String(item.method || '') === 'matrix' &&
+    Number(evidence.cells) >= 156 && Number(evidence.liveQuotes) >= 156 &&
+    Array.isArray(item.matrixCells) && item.matrixCells.length >= Number(evidence.cells) &&
+    configurations.length > 0 && configurations.every(configuration =>
+      configuration.id && configuration.label && configuration.productCode && configuration.groupCode &&
+      Number(configuration.maxWidthMm) > 0
+    );
+  return Boolean(certifiedArea || certifiedMatrix);
 }
 
 function operationalSheetProduct(item) {
@@ -2342,4 +2352,4 @@ class PentagramaPhase2 {
   }
 }
 
-module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, publicInventorySummary, SCAN_MAX_AGE_MS });
+module.exports = Object.freeze({ PentagramaPhase2, statusFor, operationContext, publicInventorySummary, runtimeCertifiedSheetProduct, SCAN_MAX_AGE_MS });
