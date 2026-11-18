@@ -103,8 +103,11 @@ function input(w,selector,value){const el=w.document.querySelector(selector);ass
  change(w,'[data-field=family]','vertical');change(w,'[data-field=product]','vertical-113');await sleep(30);
  assert.ok(d.querySelector('[data-field=configuration]'));
  assert.match(d.querySelector('.product-meta').textContent,/April Showers/);
+ assert.match(d.querySelector('[data-field=configuration]').selectedOptions[0].textContent,/Cadenilla incluida/i);
+ assert.match(d.querySelector('.product-meta').textContent,/Cadenilla incluida/i);
  change(w,'[data-field=configuration]','nevada');await sleep(30);
  assert.equal(a.getLastItems()[0].configuration,'nevada');
  assert.match(d.querySelector('.product-meta').textContent,/Nevada/);
+ assert.match(d.querySelector('.product-meta').textContent,/Cadenilla incluida/i);
  a.dom.window.close();console.log('Cotizador UI: Coverlight, borrador, cambio de referencia, instalación, transporte, ganancia y WhatsApp OK');
 })().catch(e=>{console.error(e);process.exitCode=1;});
