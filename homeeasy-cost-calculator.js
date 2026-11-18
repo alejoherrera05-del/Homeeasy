@@ -320,12 +320,19 @@ function productOptions(item){
 function firstProduct(family){return (catalog?.products||[]).find(p=>p.family===family);}
 function chosen(item){return (catalog?.products||[]).find(p=>p.id===item.product);}
 function chosenConfiguration(item){return chosen(item)?.configurations?.find(c=>c.id===(item.configuration||'standard'));}
+function visibleConfigurationLabel(item,label){
+  const value=String(label||'').trim();
+  if(item.family!=='vertical'||!value||/sin cadenilla/i.test(value)||/cadenilla incluida/i.test(value))return value;
+  if(/con cadenilla/i.test(value))return value.replace(/con cadenilla/i,'Cadenilla incluida');
+  if(/cadenilla/i.test(value))return value.replace(/cadenilla/i,'cadenilla incluida');
+  return value+' · Cadenilla incluida';
+}
 function productConfigurationControl(item){
   const configurations=Array.isArray(chosen(item)?.configurations)?chosen(item).configurations:[];
   if(item.family==='enrollable'||!configurations.length)return '';
   const selected=configurations.some(c=>c.id===(item.configuration||'standard'))?(item.configuration||'standard'):configurations[0].id;
   return '<div class="field"><label for="configuration-'+item.id+'">Configuración cotizada</label><select id="configuration-'+item.id+'" data-field="configuration">'+
-    configurations.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===selected?'selected':'')+'>'+escape(c.label||c.id)+'</option>').join('')+
+    configurations.map(c=>'<option value="'+escape(c.id)+'" '+(c.id===selected?'selected':'')+'>'+escape(visibleConfigurationLabel(item,c.label||c.id))+'</option>').join('')+
     '</select></div>';
 }
 function requiresManual(item){return item.family!=='enrollable'&&(chosen(item)?.method==='manual'||chosenConfiguration(item)?.manual);}
@@ -536,7 +543,7 @@ function renderItem(item,index,layerIndex=0,layerCount=1){
       productConfigurationControl(item)+
     '</div>'+
 
-    (item.family!=='enrollable'&&(chosenConfiguration(item)?.label||p?.configuration)?'<div class="product-meta">Se cotiza como: '+escape(chosenConfiguration(item)?.label||p.configuration)+'</div>':'')+
+    (item.family!=='enrollable'&&(chosenConfiguration(item)?.label||p?.configuration)?'<div class="product-meta">Se cotiza como: '+escape(visibleConfigurationLabel(item,chosenConfiguration(item)?.label||p.configuration))+'</div>':'')+
 
     '<div class="measure-grid">'+
       field(item,'width','Ancho (m)','inputmode="decimal" placeholder="1,80" autocomplete="off"')+
