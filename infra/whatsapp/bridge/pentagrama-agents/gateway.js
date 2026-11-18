@@ -6,7 +6,7 @@ const path = require('path');
 
 const ALLOWED_JOBS = new Set(['health', 'getPrice', 'catalog', 'resolveLivePrice', 'catalogInventory', 'buildLocalEnrollablesSnapshot']);
 const MIN_AGENT_VERSION = '1.5.3';
-const LATEST_AGENT_VERSION = '1.6.18';
+const LATEST_AGENT_VERSION = '1.6.19';
 const INFRASTRUCTURE_CODES = new Set([
   'AGENT_OFFLINE',
   'AGENT_BUSY',
