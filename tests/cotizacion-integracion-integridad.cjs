@@ -55,10 +55,13 @@ must(quote,'aplicarModoPresentacion(transfer.displayMode)','Presentation mode no
 must(quote,'pdfBase64: pdfBase64','PDF not forwarded to backend');
 must(quote,'itemsJSON: JSON.stringify(itemsJSON)','Product lines not saved');
 must(quote,'const payloadType = isEditMode ? "edit_cotizacion" : "cotizacion"','Create/edit operation missing');
-must(quote,'pdf.save(nombreArchivo)','Download missing');
+assert(!quote.includes('pdf.save(nombreArchivo)'),'Quote must show post-save actions before opening the mobile PDF viewer');
+must(quote,'homeeasy-whatsapp-doc-actions.js?v=20261118','Document-ready actions must load directly');
 must(guard,"['cotizacion.html', 'pedido.html', 'abono.html']",'Global save interceptor disconnected');
 must(guard,'body.pdfBase64 && (body.nombreArchivo || body.filename)','Document event payload missing');
 must(whatsapp,'generatedContext(payload)','WhatsApp handoff missing');
+must(whatsapp,'Ver o descargar PDF','Explicit PDF action missing');
+must(whatsapp,'openStoredDocument','PDF viewer action missing');
 must(order,'canvas = await html2canvas(areaPdf,','Order original HTML capture must remain');
 must(order,'window.scrollTo(exportScrollX, exportScrollY);','Mobile scroll must restore after order export');
 must(order,"printFooter.classList.add('pdf-pinned-footer')",'Order footer must anchor after pagination');
@@ -67,6 +70,8 @@ must(order,'itemsJSON: JSON.stringify(itemsJSON)','Order products must reach bac
 must(order,'abonoInicial: abonoInicial','Order deposit must reach backend');
 must(order,'valorTotal: totalFinal','Order total must reach backend');
 must(order,'const payloadType = isEditMode ? "edit_pedido" : "pedido"','Order edit/create contract missing');
+assert(!order.includes('pdf.save(nombreArchivo)'),'Order must show post-save actions before opening the mobile PDF viewer');
+must(order,'homeeasy-whatsapp-doc-actions.js?v=20261118','Order document-ready actions must load directly');
 must(order,'src="logohomeeasy.png"','Original order logo missing');
 assert(!quote.includes('HomeEasyQuotePDF.build'),'Replacement PDF template returned');
 assert(!fs.existsSync('homeeasy-quote-pdf.js'),'Unapproved vector quote renderer present');

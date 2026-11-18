@@ -321,6 +321,7 @@
     <script src="homeeasy-runtime.js?v=11a0"></script>
     <script src="homeeasy-runtime-cache.js?v=11a2"></script>
     <script src="homeeasy-page-guard.js?v=20261008"></script>
+    <script defer src="homeeasy-whatsapp-doc-actions.js?v=20261118"></script>
     <script src="homeeasy-docs.js?v=4.7"></script>
   <link rel="stylesheet" href="homeeasy-back.css?v=1.1">
   <script defer src="homeeasy-back.js?v=1.2"></script>
@@ -347,8 +348,8 @@
 <div id="success-modal" class="success-overlay">
     <div class="success-box">
         <div class="success-icon"><i class="fas fa-check"></i></div>
-        <h3>¡Todo un Éxito!</h3>
-        <p id="exito-msg">La cotización fue generada, guardada en la base de datos y está lista para el cliente.</p>
+        <h3>¡Cotización lista!</h3>
+        <p id="exito-msg">La cotización fue guardada correctamente. Ahora puedes ver el PDF, enviarlo por WhatsApp o volver al menú.</p>
         <button id="btn-success-home" class="btn-success-home" onclick="window.location.replace('index.html')">Volver al Menú</button>
     </div>
 </div>
@@ -1199,11 +1200,10 @@
                 
                 setTimeout(() => {
                     setStep(4, 'check');
-                    pdf.save(nombreArchivo);
                     document.getElementById('loading').style.display = 'none';
                     
                     if(isEditMode) {
-                        document.getElementById('exito-msg').innerText = "La cotización fue actualizada y el PDF ha sido reemplazado.";
+                        document.getElementById('exito-msg').innerText = "La cotización fue actualizada correctamente. Ahora puedes ver el PDF, enviarlo por WhatsApp o volver.";
                     }
                     
                     const btnSuccess = document.getElementById('btn-success-home');
