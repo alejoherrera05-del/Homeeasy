@@ -7,6 +7,13 @@ const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
 const installer = fs.readFileSync(path.join(root, 'installer', 'HomeEasyPentagramaAgent.iss'), 'utf8');
+
+test('installer preserves the running Node runtime during upgrades', () => {
+  assert.match(
+    installer,
+    /Source: "\.\.\\build\\stage\\runtime\\node\.exe";[^\r\n]*Flags: onlyifdoesntexist/
+  );
+});
 const build = fs.readFileSync(path.join(root, 'build.ps1'), 'utf8');
 const source = fs.readFileSync(path.join(root, 'ui', 'HomeEasyPentagramaAgent.UI.cs'), 'utf8');
 

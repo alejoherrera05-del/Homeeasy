@@ -2,11 +2,15 @@
 
 const fs = require('fs');
 const https = require('https');
+const tls = require('tls');
 
 class AgentApi {
   constructor(options) {
     this.baseUrl = new URL(options.serverUrl);
-    this.ca = fs.readFileSync(options.caPath);
+    // Keep the operating/runtime public roots and append HomeEasy's private
+    // CA. Passing only the private certificate replaces Node's trust store and
+    // breaks whenever the public TLS provider rotates its intermediate chain.
+    this.ca = [...tls.rootCertificates, fs.readFileSync(options.caPath)];
     this.timeoutMs = Number(options.timeoutMs || 40000);
   }
 
