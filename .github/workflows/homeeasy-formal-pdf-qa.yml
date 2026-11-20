@@ -90,5 +90,7 @@ jobs:
         if: always()
         with:
           name: homeeasy-formal-pdf-qa
-          path: qa/cotizacion-pdf/
+          path: |
+            qa/cotizacion-pdf/
+            qa/cotizacion-edicion-privacidad/
           retention-days: 14

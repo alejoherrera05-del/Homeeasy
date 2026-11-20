@@ -133,7 +133,7 @@ async function openQuote(page) {
   assert.equal(await page.locator('#total_val').innerText(), '$ 591.456');
 }
 
-const browser = await chromium.launch({ headless: true, ...(process.env.HOMEEASY_QA_CHROMIUM ? { executablePath: process.env.HOMEEASY_QA_CHROMIUM } : {}) });
+const browser = await chromium.launch({ headless: true });
 const report = [];
 try {
   for (const scenario of [
