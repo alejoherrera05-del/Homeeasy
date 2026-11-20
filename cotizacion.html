@@ -315,6 +315,21 @@
         #area-pdf.quote-hide-unit-prices thead th:nth-child(3),
         #area-pdf.quote-hide-unit-prices #tabla-body td:nth-child(3),
         #area-pdf.quote-hide-unit-prices #tabla-body .pdf-repeat-table-header th:nth-child(3) { display:none !important; }
+        /* Revisión del texto público sin abandonar ni perder la edición. */
+        .quote-privacy-dialog { border:0; border-radius:18px; padding:24px; width:calc(100% - 32px); max-width:620px; max-height:85vh; overflow-y:auto; color:#333; font-family:inherit; box-shadow:0 20px 70px rgba(0,0,0,.22); }
+        .quote-privacy-dialog::backdrop { background:rgba(30,20,25,.45); }
+        .quote-privacy-dialog h2 { font-size:1.15rem; color:var(--homeeasy-wine); font-weight:800; margin:0 0 12px; }
+        .quote-privacy-dialog p { font-size:.85rem; line-height:1.5; margin:0 0 14px; }
+        .quote-privacy-row { border-top:1px solid #eee; padding-top:16px; margin-top:16px; }
+        .quote-privacy-row label { display:block; font-weight:700; font-size:.85rem; margin-bottom:8px; }
+        .quote-privacy-internal { color:#777; overflow-wrap:anywhere; }
+        .quote-privacy-input { display:block; box-sizing:border-box; width:100%; min-height:84px; padding:10px 12px; border:1px solid #ccc; border-radius:8px; font:inherit; font-size:16px; resize:vertical; }
+        .quote-privacy-input:focus { outline:2px solid var(--homeeasy-gold); outline-offset:2px; }
+        .quote-privacy-hint { color:#777; margin-top:6px !important; font-size:.78rem !important; }
+        .quote-privacy-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; margin-top:22px; }
+        .quote-privacy-actions button { border-radius:9px; padding:12px 16px; font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; border:1px solid #ddd; background:#fff; color:#555; }
+        .quote-privacy-actions button[type="submit"] { background:var(--homeeasy-wine); border-color:var(--homeeasy-wine); color:#fff; }
+        @media (max-width:480px) { .quote-privacy-dialog { padding:20px; } .quote-privacy-actions button { width:100%; } }
     </style>
     
     <script src="homeeasy-core.js?v=3.5.2"></script>
@@ -498,20 +513,141 @@
         catch (error) { return null; }
     }
 
+    function claveDescripcionCliente() {
+        return quoteClientVisibility.hideMeasures
+            ? (quoteClientVisibility.hideFabrics ? 'sinAmbas' : 'sinMedidas')
+            : 'sinTelas';
+    }
+
     function descripcionParaCliente(tr) {
         const desc = String(tr.querySelector('.row-desc')?.value || '').trim();
         if (!desc || (!quoteClientVisibility.hideMeasures && !quoteClientVisibility.hideFabrics)) return desc;
         const variants = obtenerDetallePublico(tr);
         if (!variants || variants.original !== desc) {
-            throw new Error('La descripción técnica cambió o no está disponible. Para ocultar medidas o telas, vuelve al cotizador y genera la cotización con los datos actualizados.');
+            throw new Error('Revisa la descripción para el cliente antes de guardar los cambios.');
         }
-        const key = quoteClientVisibility.hideMeasures
-            ? (quoteClientVisibility.hideFabrics ? 'sinAmbas' : 'sinMedidas')
-            : 'sinTelas';
+        const key = claveDescripcionCliente();
         if (typeof variants[key] !== 'string' || !variants[key].trim()) {
-            throw new Error('No se pudo generar la descripción protegida. Revisa el producto en el cotizador.');
+            throw new Error('Revisa la descripción para el cliente antes de generar el PDF.');
         }
         return variants[key];
+    }
+
+    // Una sola revisión pendiente evita duplicar diálogos o continuar dos guardados.
+    let quotePrivacyReviewPromise = null;
+
+    function revisarDescripcionesParaCliente() {
+        if (quotePrivacyReviewPromise) return Promise.resolve(false);
+        const key = claveDescripcionCliente();
+        const flags = {...quoteClientVisibility};
+        const pendientes = [];
+        document.querySelectorAll('#tabla-body tr').forEach((tr,index) => {
+            try { descripcionParaCliente(tr); }
+            catch (error) {
+                pendientes.push({tr,index,descripcion:String(tr.querySelector('.row-desc')?.value || '').trim(),variants:obtenerDetallePublico(tr)});
+            }
+        });
+        if (!pendientes.length) return Promise.resolve(true);
+
+        const dialog = document.createElement('dialog');
+        dialog.id = 'quote-privacy-review';
+        dialog.className = 'quote-privacy-dialog no-print';
+        dialog.setAttribute('aria-labelledby','quote-privacy-title');
+        dialog.setAttribute('aria-describedby','quote-privacy-explanation');
+        const form = document.createElement('form');
+        form.id = 'quote-privacy-form';
+        const title = document.createElement('h2');
+        title.id = 'quote-privacy-title';
+        title.textContent = 'Revisa el texto que verá el cliente';
+        const explanation = document.createElement('p');
+        explanation.id = 'quote-privacy-explanation';
+        const oculto = flags.hideMeasures ? (flags.hideFabrics ? 'medidas y referencias de telas' : 'medidas') : 'referencias de telas';
+        explanation.textContent = 'Esta cotización oculta ' + oculto + '. Ajusta el texto del PDF de los productos modificados. La descripción completa se conservará en Hommy.';
+        form.append(title,explanation);
+
+        const campos = pendientes.map(entry => {
+            const section = document.createElement('div');
+            section.className = 'quote-privacy-row';
+            const internal = document.createElement('p');
+            internal.className = 'quote-privacy-internal';
+            internal.textContent = 'Descripción interna actual: ' + entry.descripcion;
+            const label = document.createElement('label');
+            const input = document.createElement('textarea');
+            input.id = 'quote-privacy-input-' + entry.index;
+            input.name = 'descripcionCliente';
+            input.className = 'quote-privacy-input';
+            input.required = true;
+            input.rows = 3;
+            const previous = typeof entry.variants?.[key] === 'string' ? entry.variants[key].trim() : '';
+            input.value = previous;
+            input.placeholder = 'Escribe la descripción que debe aparecer en el PDF';
+            input.addEventListener('input',() => input.setCustomValidity(''));
+            label.htmlFor = input.id;
+            label.textContent = 'Producto ' + (entry.index + 1) + ' · Texto para el cliente';
+            const hint = document.createElement('p');
+            hint.className = 'quote-privacy-hint';
+            hint.id = input.id + '-hint';
+            hint.textContent = previous
+                ? 'Este es el texto anterior del PDF. Revísalo para que refleje los cambios, sin incluir ' + oculto + '.'
+                : 'Escribe el texto sin incluir ' + oculto + '.';
+            input.setAttribute('aria-describedby',hint.id);
+            section.append(internal,label,input,hint);
+            form.appendChild(section);
+            return {...entry,input};
+        });
+        const actions = document.createElement('div');
+        actions.className = 'quote-privacy-actions';
+        const cancel = document.createElement('button');
+        cancel.id = 'quote-privacy-cancel';
+        cancel.type = 'button';
+        cancel.textContent = 'Volver a editar';
+        const save = document.createElement('button');
+        save.id = 'quote-privacy-save';
+        save.type = 'submit';
+        save.textContent = isEditMode ? 'Guardar cambios' : 'Procesar cotización';
+        actions.append(cancel,save);
+        form.appendChild(actions);
+        dialog.appendChild(form);
+        document.body.appendChild(dialog);
+
+        quotePrivacyReviewPromise = new Promise(resolve => {
+            let closed = false;
+            function finish(accepted) {
+                if (closed) return;
+                closed = true;
+                dialog.close();
+                dialog.remove();
+                resolve(accepted);
+            }
+            cancel.addEventListener('click',() => finish(false));
+            dialog.addEventListener('cancel',event => { event.preventDefault(); finish(false); });
+            dialog.addEventListener('close',() => finish(false));
+            form.addEventListener('submit',event => {
+                event.preventDefault();
+                const changed = flags.hideMeasures !== quoteClientVisibility.hideMeasures || flags.hideFabrics !== quoteClientVisibility.hideFabrics ||
+                    campos.some(entry => !entry.tr.isConnected || String(entry.tr.querySelector('.row-desc')?.value || '').trim() !== entry.descripcion);
+                if (changed) {
+                    alert('La cotización cambió durante la revisión. Tus cambios siguen en el formulario; vuelve a pulsar Guardar cambios.');
+                    finish(false);
+                    return;
+                }
+                for (const entry of campos) {
+                    if (!entry.input.value.trim()) {
+                        entry.input.setCustomValidity('Escribe la descripción que verá el cliente.');
+                        entry.input.reportValidity();
+                        return;
+                    }
+                }
+                campos.forEach(entry => {
+                    // No reutilizar variantes de otras opciones: pueden pertenecer al texto anterior.
+                    guardarDetallePublico(entry.tr,{detallePublico:{original:entry.descripcion,[key]:entry.input.value.trim()}});
+                });
+                finish(true);
+            });
+            dialog.showModal();
+            campos[0].input.focus();
+        }).finally(() => { quotePrivacyReviewPromise = null; });
+        return quotePrivacyReviewPromise;
     }
 
     let homeEasyPdfLibrariesPromise = null;
@@ -919,6 +1055,7 @@
         let numeroCot = document.getElementById("n_cot_display").innerText.trim() || "0";
 
         if (!cedula || !nombre) return alert("Por favor, ingresa al menos Cédula y Nombre.");
+        if (!await revisarDescripcionesParaCliente()) return;
         let descripcionesParaPdf;
         try {
             descripcionesParaPdf = Array.from(document.querySelectorAll('#tabla-body tr')).map(descripcionParaCliente);
