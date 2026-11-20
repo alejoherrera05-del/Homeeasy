@@ -75,7 +75,7 @@ for(const config of [
 }
 assert.throws(()=>publicQuote.descripcionParaCliente({
   dataset:{},querySelector:()=>({value:'Texto sin estructura 1,60 × 2,20 m'})
-}),/vuelve al cotizador/,'No se filtra información cuando falta metadata');
+}),/Revisa la descripci/,'No se filtra información cuando falta metadata');
 
 assert(quote.includes('visibilidadCliente: {...quoteClientVisibility}'));
 assert(quote.includes('guardarDetallePublico(tr,item)'));

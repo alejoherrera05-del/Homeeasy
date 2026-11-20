@@ -8,6 +8,8 @@ on:
       - 'homeeasy-cost-calculator.js'
       - 'homeeasy-cost-calculator.css'
       - 'tests/cotizacion-visibilidad-cliente.cjs'
+      - 'tests/cotizacion-edicion-privacidad.cjs'
+      - 'tests/cotizacion-edicion-privacidad-browser.mjs'
       - 'homeeasy-docs.js'
       - 'tests/homeeasy-document-config-parity.cjs'
       - 'tests/cotizacion-pdf-browser-regression.mjs'
@@ -21,6 +23,8 @@ on:
       - 'homeeasy-cost-calculator.js'
       - 'homeeasy-cost-calculator.css'
       - 'tests/cotizacion-visibilidad-cliente.cjs'
+      - 'tests/cotizacion-edicion-privacidad.cjs'
+      - 'tests/cotizacion-edicion-privacidad-browser.mjs'
       - 'homeeasy-docs.js'
       - 'tests/homeeasy-document-config-parity.cjs'
       - 'tests/cotizacion-pdf-browser-regression.mjs'
@@ -47,6 +51,8 @@ jobs:
           node --check tests/cotizacion-pdf-browser-regression.mjs
           node tests/cotizacion-integracion-integridad.cjs
           node tests/cotizacion-visibilidad-cliente.cjs
+          node tests/cotizacion-edicion-privacidad.cjs
+          node --check tests/cotizacion-edicion-privacidad-browser.mjs
           node --check tests/cotizacion-cerebro-roundtrip.cjs
           node tests/homeeasy-document-config-parity.cjs
       - name: Install isolated QA tools
@@ -68,7 +74,9 @@ jobs:
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/homeeasy-formal-pdf-http.log 2>&1 &
           sleep 2
       - name: Verify twelve PDF scenarios and quote recovery, editing and OP conversion
-        run: node tests/cotizacion-pdf-browser-regression.mjs
+        run: |
+          node tests/cotizacion-pdf-browser-regression.mjs
+          node tests/cotizacion-edicion-privacidad-browser.mjs
       - name: Inspect PDF pagination and produce visual previews
         if: always()
         run: |
