@@ -1,0 +1,55 @@
+name: HomeEasy Account PDF Regression
+
+on:
+  pull_request:
+    paths:
+      - 'documentos.html'
+      - 'homeeasy-account-template.js'
+      - 'homeeasy-core.js'
+      - 'tests/cuenta-cobro-flow.cjs'
+      - 'tests/cuenta-cobro-pdf-browser-regression.mjs'
+      - '.github/workflows/homeeasy-account-pdf-qa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'documentos.html'
+      - 'homeeasy-account-template.js'
+      - 'homeeasy-core.js'
+      - 'tests/cuenta-cobro-flow.cjs'
+      - 'tests/cuenta-cobro-pdf-browser-regression.mjs'
+      - '.github/workflows/homeeasy-account-pdf-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  account-pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify account workflow and existing document contracts
+        run: |
+          node --check tests/cuenta-cobro-flow.cjs
+          node --check tests/cuenta-cobro-pdf-browser-regression.mjs
+          node tests/cuenta-cobro-flow.cjs
+          node tests/homeeasy-inline-js-syntax.mjs
+          node tests/homeeasy-document-config-parity.cjs
+          node tests/abono-integracion-integridad.cjs
+          node tests/cotizacion-integracion-integridad.cjs
+      - name: Install isolated browser QA dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright@1.65.0 html2canvas@1.4.1 jspdf@2.5.1 @fortawesome/fontawesome-free@6.4.0
+          npx playwright install --with-deps chromium
+      - name: Verify real PDF rendering with a fully isolated backend
+        run: node tests/cuenta-cobro-pdf-browser-regression.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homeeasy-account-pdf-qa
+          path: qa/cuenta-cobro-pdf/
+          retention-days: 14
